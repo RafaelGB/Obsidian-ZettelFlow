@@ -1,11 +1,13 @@
-import { Platform, Setting, setIcon, type App, type SettingDefinitionItem } from "obsidian";
+import { Platform, type SettingDefinitionItem } from "obsidian";
 import type ZettelFlow from "main";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { FolderSuggest } from "architecture/settings";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { normalizeExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
-import { ModeHostView } from "architecture/components/core/surface/ModeHostView";
+import { normalizeExcludedPaths, systemExcludedPaths } from "architecture/knowledge/scope/knowledgeScope";
+import { compiledScopeOf } from "architecture/knowledge/scopeGate";
+import { renderScopeCard, type ScopeCardDeps } from "./scope/scopeCard";
+import { commitScope } from "./scope/scopeCommit";
+import { ScopeRuleSheet } from "./scope/ScopeRuleSheet";
 import {
     DEFAULT_STATE_PROPERTY,
     DEFAULT_CREATED_PROPERTY,
@@ -17,68 +19,26 @@ import { rowContainer } from "architecture/components/settings/settingContainer"
 
 // Debounce the (expensive) index re-register + rebuild when the user edits the state property name.
 let lifecycleRebuildTimer: number | undefined;
-// Debounce the index rebuild when the user edits the excluded-paths list (#311).
-let scopeRebuildTimer: number | undefined;
 
-/**
- * Refresh any open knowledge surface (Home / Cultivate / Timeline / Health, and the Graph) after a scope
- * change (#374), so an exclusion takes effect on-screen immediately — not only on the next vault event.
- */
-function refreshKnowledgeSurfaces(app: App): void {
-    for (const type of ["zettelflow-home", "zettelflow-graph"]) {
-        app.workspace.getLeavesOfType(type).forEach((leaf) => {
-            if (leaf.view instanceof ModeHostView) leaf.view.refresh();
-        });
-    }
-}
-
-/** What a folder chip and the add form do with the excluded-paths list — the one place it changes. */
-export interface ExcludedPathsActions {
-    remove(path: string): void;
-    add(path: string): void;
-}
-
-/**
- * Excluded folders as chips (#662): each one a removable token, then a folder search to add one.
- * The stored value stays the exact `folder.path` the suggest returns (#374) — no typo can silently
- * turn an exclusion into a no-op.
- */
-export function renderExcludedChips(host: HTMLElement, paths: readonly string[], actions: ExcludedPathsActions): void {
-    host.empty();
-    const chips = host.createDiv({ cls: c("settings-chips") });
-    if (paths.length === 0) {
-        chips.createDiv({ cls: c("excluded-paths-empty"), text: t("settings_excluded_paths_empty") });
-    }
-    for (const path of paths) {
-        const chip = chips.createDiv({ cls: c("settings-chip"), attr: { title: path } });
-        chip.createSpan({ cls: c("settings-chip-label"), text: path });
-        const remove = chip.createEl("button", {
-            cls: [c("settings-chip-remove"), "clickable-icon"].join(" "),
-            attr: { type: "button", "aria-label": `${t("settings_excluded_paths_remove")}: ${path}` },
-        });
-        setIcon(remove, "x");
-        remove.addEventListener("click", () => actions.remove(path));
-    }
-
-    const form = host.createDiv({ cls: c("settings-chip-add") });
-    const draft = { value: "" };
-    new Setting(form)
-        .setClass(c("excluded-paths-add"))
-        .addSearch((cb) => {
-            new FolderSuggest(cb.inputEl);
-            cb.setPlaceholder(t("settings_excluded_paths_placeholder"))
-                .setValue(draft.value)
-                .onChange((value) => (draft.value = value));
-        })
-        .addButton((btn) =>
-            btn
-                .setButtonText(t("settings_excluded_paths_add"))
-                .onClick(() => {
-                    if (draft.value.trim().length === 0) return;
-                    actions.add(draft.value);
-                    draft.value = "";
-                })
-        );
+/** The kept-out card's view of the live app (#713). */
+export function scopeCardDeps(plugin: ZettelFlow): ScopeCardDeps {
+    return {
+        rules: () => compiledScopeOf(plugin.settings).rules,
+        compiled: () => compiledScopeOf(plugin.settings),
+        facts: () => KnowledgeIndex.getInstance().scopeFacts(),
+        system: () => ({
+            folders: systemExcludedPaths(plugin.settings),
+            thinking: normalizeExcludedPaths([plugin.settings.thoughtLabPath ?? ""])[0] ?? "",
+        }),
+        folderExists: (path) => plugin.app.vault.getFolderByPath(path) !== null,
+        commit: (next) => commitScope(plugin, next),
+        isPhone: Platform.isPhone,
+        openSheet: (draw, dismissed) => {
+            const sheet = new ScopeRuleSheet(plugin.app, draw, dismissed);
+            sheet.open();
+            return sheet;
+        },
+    };
 }
 
 /**
@@ -93,40 +53,14 @@ export function knowledgeSettingsGroups(plugin: ZettelFlow): SettingDefinitionIt
             heading: t("settings_card_scope"),
             items: [
                 {
-                    // Said once (#662): an intro row repeated this description almost word for word.
-                    name: t("settings_excluded_paths_name"),
-                    desc: t("settings_excluded_paths_desc"),
+                    // What is left out (#713): closed rules and exceptions, replacing the folder list.
+                    // The old name stays an alias, so Obsidian's settings search still finds it (FR-21).
+                    name: t("settings_scope_name"),
+                    desc: t("settings_scope_desc"),
+                    aliases: [t("settings_excluded_paths_name"), t("settings_scope_alias_excluded"), t("settings_scope_alias_left_out")],
                     render: (setting) => {
-                        setting.setClass(c("excluded-paths-setting-item"));
-                        const host = rowContainer(setting, "excluded-paths-list");
-                        const apply = async () => {
-                            await plugin.saveSettings();
-                            if (scopeRebuildTimer) window.clearTimeout(scopeRebuildTimer);
-                            // Reindex once editing settles, then refresh open surfaces so the change shows now.
-                            scopeRebuildTimer = window.setTimeout(() => {
-                                KnowledgeIndex.getInstance().build();
-                                refreshKnowledgeSurfaces(plugin.app);
-                            }, 300);
-                        };
-                        const draw = () =>
-                            renderExcludedChips(host, plugin.settings.excludedPaths ?? [], {
-                                remove: (path) => {
-                                    plugin.settings.excludedPaths = (plugin.settings.excludedPaths ?? []).filter(
-                                        (p) => p !== path
-                                    );
-                                    draw();
-                                    void apply();
-                                },
-                                add: (path) => {
-                                    plugin.settings.excludedPaths = normalizeExcludedPaths([
-                                        ...(plugin.settings.excludedPaths ?? []),
-                                        path,
-                                    ]);
-                                    draw();
-                                    void apply();
-                                },
-                            });
-                        draw();
+                        setting.setClass(c("scope-setting-item"));
+                        renderScopeCard(rowContainer(setting, "scope-card-host"), scopeCardDeps(plugin));
                     },
                 },
             ],

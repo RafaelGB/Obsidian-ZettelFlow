@@ -7,7 +7,7 @@ import { DomNode } from "../../support/dashboardDom";
 // The folder suggest reaches the live app; a row drawn under jest only needs it to exist.
 jest.mock("architecture/settings", () => ({ FolderSuggest: class { constructor(_input: unknown) {} } }));
 
-import { renderExcludedChips, knowledgeSettingsGroups } from "config/modals/handlers/knowledgeSettingsGroups";
+import { knowledgeSettingsGroups } from "config/modals/handlers/knowledgeSettingsGroups";
 import { movesSettingsGroup, movesCountLabel } from "config/modals/handlers/movesSettingsGroup";
 import { returnSettingsGroup } from "config/modals/handlers/returnSettingsGroup";
 import { rememberedSettingsGroup } from "config/modals/handlers/rememberedSettingsGroup";
@@ -52,38 +52,23 @@ const byName = (items: Item[], name: string) => {
 
 afterEach(() => __captureSettings(null));
 
-describe("excluded folders as chips (#662)", () => {
-    it("draws one removable chip per folder, and says so when there is none", () => {
-        const el = host();
-        renderExcludedChips(el, ["_templates", "Attachments"], { remove: jest.fn(), add: jest.fn() });
-        expect(el.byClass("settings-chip-label").map((chip) => chip.textContent)).toEqual(["_templates", "Attachments"]);
-
-        const empty = host();
-        renderExcludedChips(empty, [], { remove: jest.fn(), add: jest.fn() });
-        expect(empty.byClass("excluded-paths-empty")[0].textContent).toBe("No folders excluded yet.");
+describe("what is left out, on the kept-out card (#713, replacing the folder chips of #662)", () => {
+    it("is one row named for what it does, still found by searching for excluded folders (AC-15)", () => {
+        const scope = itemsOf(knowledgeSettingsGroups(plugin() as never)[0]) as (Item & { aliases?: string[]; desc?: string })[];
+        expect(scope.map((item) => item.name)).toEqual(["What is left out"]);
+        expect(scope[0].aliases).toEqual(["Excluded folders", "Excluded", "Left out"]);
     });
 
-    it("removes a folder and adds one through the row, persisting both", () => {
-        const p = plugin({ excludedPaths: ["_templates", "Attachments"] });
-        const scope = itemsOf(knowledgeSettingsGroups(p as never)[0]);
-        const row = draw(byName(scope, "Excluded folders"));
-        const removes = row.settingEl.byClass("settings-chip-remove");
-        removes[0].click();
-        expect(p.settings.excludedPaths).toEqual(["Attachments"]);
-        expect(p.saveSettings).toHaveBeenCalled();
-        // The chips redraw from the setting, in place.
-        expect(row.settingEl.byClass("settings-chip-label").map((chip) => chip.textContent)).toEqual(["Attachments"]);
-    });
-
-    it("draws again without stacking a second list", () => {
+    it("draws again without stacking a second card", () => {
         const p = plugin({ excludedPaths: ["A"] });
         const scope = itemsOf(knowledgeSettingsGroups(p as never)[0]);
         __captureSettings(() => undefined);
         const setting = new Setting(new DomNode()) as Drawn;
-        const row = byName(scope, "Excluded folders");
+        const row = byName(scope, "What is left out");
         row.render!(setting);
         row.render!(setting);
-        expect(setting.settingEl.byClass("excluded-paths-list")).toHaveLength(1);
+        expect(setting.settingEl.byClass("scope-card-host")).toHaveLength(1);
+        expect(setting.settingEl.byClass("scope-card")).toHaveLength(1);
     });
 
     it("lays the three lifecycle properties out as one row of fields", () => {

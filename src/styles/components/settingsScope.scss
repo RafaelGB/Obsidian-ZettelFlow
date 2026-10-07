@@ -1,0 +1,339 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+// What is left out (#713): the kept-out card. Rules read as sentences, values as chips, counts as
+// quiet chips at the end of a row; the editor is a bounded card under the rules. Everything here is
+// the theme's — spacing on the 4-grid, colours from Obsidian's variables, chips from the mixin.
+
+/* The card fills the row: its words above, the card beneath them. */
+.setting-group .zettelkasten-flow__scope-setting-item.setting-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    > .zettelkasten-flow__scope-card-host {
+        flex-basis: 100%;
+        margin-top: $space-2;
+    }
+}
+
+.zettelkasten-flow__scope-card {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-hint {
+    @include hint;
+}
+
+.zettelkasten-flow__scope-empty {
+    @include empty-state;
+}
+
+// ── the summary ────────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__scope-summary {
+    @include card;
+    flex-direction: row;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3;
+}
+
+.zettelkasten-flow__scope-summary-icon {
+    display: inline-flex;
+    color: var(--color-green);
+}
+
+.zettelkasten-flow__scope-summary-words {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $space-hair;
+    min-width: 0;
+}
+
+.zettelkasten-flow__scope-summary-line {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__scope-caution {
+    @include hint;
+    padding: $space-2 $space-3;
+    border-radius: $radius-small;
+    background-color: $surface-quiet;
+    color: var(--text-warning);
+}
+
+// ── sections, rules and exceptions ─────────────────────────────────────────────────────────────
+.zettelkasten-flow__scope-section {
+    margin-top: $space-2;
+}
+
+.zettelkasten-flow__scope-section-title {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__scope-rule {
+    @include card;
+    flex-direction: row;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+}
+
+.zettelkasten-flow__scope-rule-icon {
+    display: inline-flex;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__scope-sentence {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+    min-width: 0;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__scope-chip {
+    @include chip;
+    color: $text-plain;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__scope-count {
+    @include chip;
+    flex: none;
+}
+
+.zettelkasten-flow__scope-add {
+    @include row;
+    align-self: flex-start;
+}
+
+.zettelkasten-flow__scope-add-icon {
+    display: inline-flex;
+}
+
+// ── ZettelFlow's own folders ───────────────────────────────────────────────────────────────────
+.zettelkasten-flow__scope-locked {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-style: dashed;
+    border-radius: $radius-small;
+}
+
+.zettelkasten-flow__scope-locked-head {
+    @include hint;
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-locked-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__scope-locked-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    font-family: var(--font-monospace);
+}
+
+// ── the editor ─────────────────────────────────────────────────────────────────────────────────
+.zettelkasten-flow__scope-editor {
+    @include card;
+    gap: $space-3;
+    padding: $space-3;
+    border-color: $accent-surface;
+}
+
+.zettelkasten-flow__scope-editor-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-editor-title {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__scope-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-field-label {
+    @include hint;
+    min-width: var(--size-4-12);
+}
+
+.zettelkasten-flow__scope-segments {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-segment.is-active {
+    background-color: $accent-surface;
+    color: $accent-text;
+}
+
+.zettelkasten-flow__scope-toggle-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-toggle-label {
+    color: $text-plain;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__scope-picker {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__scope-search-icon {
+    display: inline-flex;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__scope-search-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__scope-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-pick {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__scope-pick-check {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__scope-pick-count,
+.zettelkasten-flow__scope-check-count,
+.zettelkasten-flow__scope-name-count {
+    color: $text-faint;
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__scope-pick.is-active .zettelkasten-flow__scope-pick-count {
+    color: $accent-text;
+}
+
+.zettelkasten-flow__scope-names,
+.zettelkasten-flow__scope-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-name,
+.zettelkasten-flow__scope-check {
+    @include row;
+    justify-content: space-between;
+    height: auto;
+    padding: $space-1 $space-2;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    box-shadow: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+
+    &.is-active {
+        border-color: $accent-surface;
+    }
+}
+
+.zettelkasten-flow__scope-check-name {
+    flex: 1;
+}
+
+.zettelkasten-flow__scope-chosen {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__scope-chosen-name {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__scope-subheading {
+    @include hint;
+}
+
+.zettelkasten-flow__scope-preview {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+    padding-top: $space-2;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__scope-preview-count {
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__scope-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $space-2;
+}
+
+// ── a narrow pane and the phone sheet: everything stacks ───────────────────────────────────────
+@container (max-width: 34rem) {
+    .zettelkasten-flow__scope-rule {
+        flex-wrap: wrap;
+    }
+
+    .zettelkasten-flow__scope-sentence {
+        flex-basis: calc(100% - var(--size-4-8));
+    }
+}
+
+.zettelkasten-flow__scope-sheet .zettelkasten-flow__scope-editor {
+    border: none;
+    padding: 0;
+}

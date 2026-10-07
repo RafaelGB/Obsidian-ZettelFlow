@@ -212,10 +212,11 @@ export class KnowledgeIndex {
      */
     public scopeFacts(): readonly ScopeFacts[] {
         if (this.factsMemo && this.factsMemo.revision === this.factsRevision) return this.factsMemo.facts;
+        const vault = ObsidianApi.vault();
+        // No vault yet (the app still loading, an isolated test): nothing to count.
+        if (!vault) return [];
         const cache = ObsidianApi.metadataCache();
-        const facts = ObsidianApi.vault()
-            .getMarkdownFiles()
-            .map((file) => scopeFactsOf(cache?.getFileCache(file), file.path));
+        const facts = vault.getMarkdownFiles().map((file) => scopeFactsOf(cache?.getFileCache(file), file.path));
         this.factsMemo = { revision: this.factsRevision, facts };
         return facts;
     }

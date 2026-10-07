@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import {
+    crystallizeSeed,
     destinationsFor,
     renderReturn,
     FROZEN_QUOTE_LIMIT,
@@ -155,5 +156,39 @@ describe("going back to the note you came from (#474)", () => {
         const block = renderReturn(plan!, "x", "From the lab", HEADING, OMITTED);
         // Whatever the note already says is untouched: this is a block to append, nothing more.
         expect(block.split("\n")[0].startsWith("## ")).toBe(true);
+    });
+});
+
+describe("the seed a crystallize flow opens with (#712)", () => {
+    const highlight = (text: string, id: string, exact: string, offset = 0): Thought =>
+        newThought({ text, id, at: NOW + offset, about: "Notes/Event sourcing.md", quote: { exact, prefix: "", suffix: "", heading: "Events" } });
+
+    it("keeps the passages of the highlights, and only theirs", () => {
+        const plan = planCrystallization([
+            thought("my own idea", "t1", 0),
+            highlight("why it matters", "h1", "Replay rebuilds it.", 100),
+        ]);
+        expect(plan?.quotes).toEqual(["Replay rebuilds it."]);
+    });
+
+    it("carries exactly what crystallizing writes today, plus the title, quote and sources", () => {
+        const plan = planCrystallization([
+            thought("my own idea", "t1", 0),
+            highlight("why it matters", "h1", "Replay rebuilds it.", 100),
+        ])!;
+        const seed = crystallizeSeed(plan, "A better title", "edited body", HEADING, OMITTED);
+        expect(seed.title).toBe("A better title");
+        expect(seed.content).toBe(renderCrystallized(plan, "edited body", HEADING, OMITTED));
+        expect(seed.quote).toBe("Replay rebuilds it.");
+        expect(seed.source).toBe("[[Notes/Event sourcing#Events]]");
+        expect(seed.frozen).toBe(2);
+    });
+
+    it("arrives as text, never as a Templater command — a thought with <% %> is not run", () => {
+        const plan = planCrystallization([thought("<% tp.system.prompt() %> and more", "t1")])!;
+        const seed = crystallizeSeed(plan, "<% tp.file.title %>", plan.body, HEADING, OMITTED);
+        for (const value of [seed.title, seed.content, seed.quote, seed.source]) expect(value).not.toContain("<%");
+        expect(seed.content).toContain("&lt;% tp.system.prompt() %>");
+        expect(seed.title).toBe("&lt;% tp.file.title %>");
     });
 });

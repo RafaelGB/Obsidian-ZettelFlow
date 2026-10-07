@@ -10,6 +10,7 @@ describe("DEFAULT_SETTINGS", () => {
         expect(DEFAULT_SETTINGS.logLevel).toBeDefined();
         expect(DEFAULT_SETTINGS.ribbonCanvas).toBeDefined();
         expect(DEFAULT_SETTINGS.editorCanvas).toBeDefined();
+        expect(DEFAULT_SETTINGS.crystallizeCanvas).toBe(""); // no crystallize flow: today's root write (#712)
         expect(DEFAULT_SETTINGS.jsLibraryFolderPath).toBeDefined();
     });
 

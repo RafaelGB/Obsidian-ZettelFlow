@@ -9,6 +9,7 @@ import type { DraftSnapshot, WizardDraft } from "application/notes/draftState";
 import type { BufferedVerdict, SuggestionVerdict } from "application/notes/suggestionVerdicts";
 import type { RedoEntry } from "application/components/noteBuilder/walkHistory";
 import type { HiddenBranch } from "application/notes/branchVisibility";
+import type { CrystallizeSeed } from "application/thinking/crystallize";
 import type { JudgementConfidence } from "architecture/knowledge/judgement/Judgement";
 import { NoteBuilder } from "application/notes/NoteBuilder";
 import { ZettelFlowSettings } from "config";
@@ -80,6 +81,8 @@ export type NoteBuilderStateActions = {
     restoreFromDraft: (draft: WizardDraft) => void;
     addBridge: (uniqueChild: FlowNode) => void;
     setTitle: (title: string) => void;
+    /** A crystallize run (#712): the content the note is built around. */
+    setCrystallizeSeed: (seed: CrystallizeSeed | undefined) => void;
     setInvalidTitle: (invalid: boolean) => void;
     setTargetFolder: (folder: string | undefined) => void;
     setHeader: (header: Partial<HeaderType>) => void;

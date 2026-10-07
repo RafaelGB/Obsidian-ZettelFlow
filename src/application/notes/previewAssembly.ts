@@ -1,4 +1,5 @@
-import { substituteContextTokens } from "./contextTokens";
+import { resolveCrystallizeTokens, substituteContextTokens } from "./contextTokens";
+import type { CrystallizeSeed } from "application/thinking/crystallize";
 
 /**
  * A single step template contributing to the assembled note: its body (without frontmatter)
@@ -34,6 +35,8 @@ export interface AssembleNotePreviewInput {
     canvasName?: string;
     /** Recorded connection links, appended to the body as [[wikilinks]]. */
     links?: string[];
+    /** A crystallize flow's seed (#712): its content goes on top, or where a step places it. */
+    crystallize?: CrystallizeSeed;
 }
 
 export interface NotePreview {
@@ -137,6 +140,9 @@ export function assembleNotePreview(input: AssembleNotePreviewInput): NotePrevie
 
     // 4. Replace {{title}} in the body for readability.
     body = body.replace(/{{title}}/g, title ?? "");
+
+    // 4b. A crystallized note (#712): the same placement rule the build applies, at the same point.
+    if (input.crystallize) body = resolveCrystallizeTokens(body, input.crystallize);
 
     // 5. Append recorded connection links as wikilinks.
     if (links.length > 0) {

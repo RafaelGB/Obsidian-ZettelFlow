@@ -7,6 +7,7 @@ import { currentWriteBatch, withWriteBatch } from "architecture/plugin/writes/re
 import { offerUndo } from "architecture/plugin/writes/undoNotice";
 import { applyErrorPolicy, type ScriptErrorPolicy } from "application/scripts/errorPolicy";
 import { isUnderFolder } from "architecture/plugin/canvas/flowRole";
+import { namedRolesFollowRename, namedRolesForgetDelete } from "config/roles/roleFollows";
 import { SelectorMenuModal } from "zettelkasten";
 import {
     App,
@@ -223,11 +224,12 @@ export class VaultHooks {
         const settings = this.plugin.settings;
         this.baselines.rename(oldPath, file.path);
 
-        if (oldPath === settings.ribbonCanvas) {
+        // Every named role follows its canvas (#712) — the editor canvas used not to.
+        const moved = namedRolesFollowRename(settings, oldPath, file.path);
+        if (moved.length > 0) {
             canvas.flows.delete(oldPath);
-            settings.ribbonCanvas = file.path;
             void this.plugin.saveSettings();
-            log.info("[VaultHooks] Renombrado ribbonCanvas.");
+            log.info(`[VaultHooks] Renamed ${moved.join(", ")}.`);
         }
         // jsLibraryFolderPath is a folder path, so its rename is handled in onRenameFolder.
     }
@@ -316,11 +318,11 @@ export class VaultHooks {
 
     private onDeleteFile = (file: TFile) => {
         this.baselines.forget(file.path);
-        if (file.path === this.plugin.settings.ribbonCanvas) {
+        const forgotten = namedRolesForgetDelete(this.plugin.settings, file.path);
+        if (forgotten.length > 0) {
             canvas.flows.delete(file.path);
-            this.plugin.settings.ribbonCanvas = "";
             void this.plugin.saveSettings();
-            log.info("[VaultHooks] Eliminado ribbonCanvas.");
+            log.info(`[VaultHooks] Forgot ${forgotten.join(", ")}.`);
         }
     };
 

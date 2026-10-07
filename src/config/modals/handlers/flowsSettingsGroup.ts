@@ -25,7 +25,7 @@ import { ManageInstalledTemplatesModal } from "application/community/ManageInsta
 type LocaleKey = Parameters<typeof t>[0];
 
 /** The order the list reads in: how you launch it, from the most deliberate to the most automatic. */
-const ROLE_ORDER: FlowRole[] = ["create", "edit", "folder", "event", "hook"];
+const ROLE_ORDER: FlowRole[] = ["create", "edit", "crystallize", "folder", "event", "hook"];
 
 
 /**
@@ -44,6 +44,7 @@ export function flowsWithRole(plugin: ZettelFlow): FlowWithRole[] {
 
     remember(folders.ribbonCanvas);
     remember(folders.editorCanvas);
+    remember(folders.crystallizeCanvas);
     for (const folder of [folders.foldersFlowsPath, folders.eventFlowsPath, folders.hooksFolderPath]) {
         if (!folder) continue;
         try {

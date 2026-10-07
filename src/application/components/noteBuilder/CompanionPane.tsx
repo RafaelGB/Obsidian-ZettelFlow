@@ -101,6 +101,8 @@ function buildPreviewInput(
     sourceFrontmatter,
     canvasName: modal.getCanvasName(),
     links: builder.note.getLinks(),
+    // A crystallize run (#712): the content shows before any step is answered.
+    crystallize: builder.note.getCrystallizeSeed(),
   };
 }
 
@@ -355,7 +357,8 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
     const builder = useNoteBuilderStore.getState().builder;
     const paths = builder.note.getPaths();
     const elements = builder.note.getElements();
-    const hasContent = paths.size > 0 || elements.size > 0 || title.length > 0;
+    const hasContent =
+      paths.size > 0 || elements.size > 0 || title.length > 0 || builder.note.getCrystallizeSeed() !== undefined;
 
     if (!hasContent) {
       setState("empty");

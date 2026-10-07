@@ -3,6 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { crystallize, crystallizeInto } from "architecture/plugin/thinking/crystallizeThought";
+import { crystallizeFlowPath, crystallizeThroughFlow } from "architecture/plugin/thinking/crystallizeThroughFlow";
 import { destinationsFor, type Crystallization, type Destination } from "application/thinking/crystallize";
 
 /**
@@ -96,34 +97,70 @@ export class CrystallizeModal extends Modal {
         }
         contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_keeps_thoughts") });
 
+        // A new note with a crystallize flow continues in it (#712): it decides where and how.
+        const flow = this.flowName();
+        if (flow) {
+            contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_continues_in", flow) });
+        }
+
         // "Create the note" is a lie when the thinking is going back into the note it came from —
         // that is an update, and the button has to say so (#590 follow-up).
-        const confirm = this.destination === "back" ? "crystallize_confirm_back" : "crystallize_confirm";
+        const label = flow
+            ? t("crystallize_confirm_flow", flow)
+            : t(this.destination === "back" ? "crystallize_confirm_back" : "crystallize_confirm");
         new Setting(contentEl)
             .addButton((button) =>
                 button
-                    .setButtonText(t(confirm))
+                    .setButtonText(label)
                     .setCta()
                     .onClick(() => void this.apply())
             )
             .addButton((button) => button.setButtonText(t("crystallize_cancel")).onClick(() => this.close()));
     }
 
+    /** The crystallize flow a new note would continue in, by its canvas name; "" when none. */
+    private flowName(): string {
+        if (this.destination !== "new-note") return "";
+        const path = crystallizeFlowPath();
+        return path ? (path.split("/").pop() ?? path).replace(/\.canvas$/i, "") : "";
+    }
+
+    /** What the last Notice said — a toast cannot be read back, so the answer is kept. */
+    lastNotice?: string;
+
     private async apply(): Promise<void> {
         this.close();
         const appending = this.destination === "back" && Boolean(this.subject);
+        const flow = this.flowName();
         try {
-            const path =
-                appending && this.subject
-                    ? await crystallizeInto(this.subject, this.plan, this.body)
-                    : await crystallize({
-                          plan: this.plan,
-                          title: this.title,
-                          body: this.body,
-                          folder: "",
-                      });
-            new Notice(path ? t(appending ? "crystallize_done_back" : "crystallize_done", path) : t("crystallize_failed"));
-            this.onDone(path);
+            let path: string | undefined;
+            let message: string;
+            if (flow) {
+                // The wizard takes it from here; the verdict and onDone wait for the note (#712).
+                const opened = await crystallizeThroughFlow({
+                    plan: this.plan,
+                    title: this.title,
+                    body: this.body,
+                    flowPath: crystallizeFlowPath(),
+                    onDone: (built) => this.onDone(built),
+                });
+                if (opened === "opened") return;
+                message = t("crystallize_flow_failed", flow);
+            } else {
+                path =
+                    appending && this.subject
+                        ? await crystallizeInto(this.subject, this.plan, this.body)
+                        : await crystallize({
+                              plan: this.plan,
+                              title: this.title,
+                              body: this.body,
+                              folder: "",
+                          });
+                message = path ? t(appending ? "crystallize_done_back" : "crystallize_done", path) : t("crystallize_failed");
+            }
+            this.lastNotice = message;
+            new Notice(message);
+            if (!flow) this.onDone(path);
         } catch (error) {
             log.error("[lab] crystallization failed", error);
             new Notice(t("crystallize_failed"));

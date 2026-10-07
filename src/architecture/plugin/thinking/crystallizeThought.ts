@@ -63,6 +63,20 @@ export async function crystallize(request: CrystallizeRequest): Promise<string |
 }
 
 /**
+ * The verdict for a note a crystallize flow built (#712). The flow wrote the note through
+ * NoteBuilder's own recorded write; what is left is the §XII verdict — a human decided this chaos
+ * was an idea — in the same log, subject only, no content. Called once the note exists.
+ */
+export function recordCrystallizedThroughFlow(path: string, plan: Crystallization): void {
+    JudgementLog.getInstance().record({
+        path,
+        subject: `crystallize:${plan.frozen.length}`,
+        origin: "human",
+        verdict: "accepted",
+    });
+}
+
+/**
  * Put the thinking back into the note it was about (#474).
  *
  * An **append**, never a rewrite: whatever the note already says is untouched, and the write goes

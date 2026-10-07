@@ -56,6 +56,51 @@ export interface Crystallization {
      * recognised as **sourced** by the claim/source parser (#148).
      */
     sources?: string[];
+    /** The passages of the highlights among the thoughts — `{{crystallize.quote}}` (#712). */
+    quotes?: string[];
+}
+
+/**
+ * What a crystallize flow opens with (#712): the note crystallizing would write, handed to an
+ * ordinary flow so its steps choose the folder, the template and the properties.
+ */
+export interface CrystallizeSeed {
+    /** The title accepted in the preview. */
+    title: string;
+    /** Exactly what crystallizing writes today: your text, *Born from*, the `source::` lines. */
+    content: string;
+    /** The highlights' passages. */
+    quote: string;
+    /** The sources it cites, comma-separated. */
+    source: string;
+    /** How many thoughts it was made from — the verdict's subject. */
+    frozen: number;
+}
+
+/**
+ * A seeded flow runs Templater on the note it builds, which crystallizing straight to the root never
+ * did: a thought that says `<% … %>` would be executed. Your words arrive as text — the open tag is
+ * written as an entity, which reads the same in the note and is never run.
+ */
+function inert(text: string): string {
+    return text.replace(/<%/g, "&lt;%");
+}
+
+/** The seed for a crystallize flow — the same content `renderCrystallized` writes, made inert. */
+export function crystallizeSeed(
+    plan: Crystallization,
+    title: string,
+    body: string,
+    heading: string,
+    omittedLine: (count: string) => string
+): CrystallizeSeed {
+    return {
+        title: inert(title),
+        content: inert(renderCrystallized(plan, body, heading, omittedLine)),
+        quote: inert((plan.quotes ?? []).join("\n\n")),
+        source: inert((plan.sources ?? []).join(", ")),
+        frozen: plan.frozen.length,
+    };
 }
 
 /**
@@ -123,6 +168,10 @@ export function planCrystallization(
         })),
         omitted: chosen.length - quoted.length,
         sources,
+        quotes: chosen
+            .filter(isHighlight)
+            .map((thought) => (thought.quote?.exact ?? "").replace(/\s+/g, " ").trim())
+            .filter(Boolean),
     };
 }
 

@@ -18,6 +18,10 @@ export class DomNode {
     tabIndex = -1;
     /** `<details>` disclosure state (#640). */
     open = false;
+    /** Obsidian's `el.win`: the window the element lives in — one window here. */
+    get win(): Window {
+        return (globalThis as any).window as Window;
+    }
     /** Every `scrollIntoView` / `scrollTo` call, with its options — hand-overs are asserted on these. */
     scrolls: any[] = [];
     /** No layout here: a container's scroll position and an element's size are what a test sets. */

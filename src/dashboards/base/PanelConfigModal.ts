@@ -161,8 +161,8 @@ export class PanelConfigModal extends Modal {
 
     /** Redraw the preview on the next frame — a burst of edits paints once. */
     private changed(): void {
-        if (this.previewFrame) window.cancelAnimationFrame(this.previewFrame);
-        this.previewFrame = window.requestAnimationFrame(() => {
+        if (this.previewFrame) this.modalEl.win.cancelAnimationFrame(this.previewFrame);
+        this.previewFrame = this.modalEl.win.requestAnimationFrame(() => {
             this.previewFrame = 0;
             if (!this.preview) return;
             this.preview.setConfig(this.draft());
@@ -436,7 +436,7 @@ export class PanelConfigModal extends Modal {
     }
 
     onClose(): void {
-        if (this.previewFrame) window.cancelAnimationFrame(this.previewFrame);
+        if (this.previewFrame) this.modalEl.win.cancelAnimationFrame(this.previewFrame);
         this.preview?.unload();
         this.preview = null;
         this.contentEl.empty();

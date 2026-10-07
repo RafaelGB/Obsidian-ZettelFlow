@@ -1,7 +1,7 @@
 import { FatalError, ObsidianApi, log } from "architecture";
 import { SkipStepError } from "application/scripts/SkipStepError";
 import { t } from "architecture/lang";
-import { substituteContextTokens } from "./contextTokens";
+import { resolveCrystallizeTokens, substituteContextTokens } from "./contextTokens";
 import { composeFilename } from "./destination";
 import { orderedTemplateSources } from "./stepBody";
 import { resolveSatellite, SATELLITE_ERROR_KEYS } from "./satellitePlan";
@@ -203,7 +203,17 @@ export class NoteBuilder {
     this.applyContextTokens();
     await this.manageElements();
     await this.runOnCreation();
+    this.applyCrystallizeSeed();
     this.appendConnectionLinks();
+  }
+
+  /**
+   * A crystallize flow (#712): the crystallized text goes where a step placed
+   * `{{crystallize.content}}`, or at the top — the same rule the companion preview uses. After the
+   * actions, so none of them re-reads your words; in any other flow the placeholders become "".
+   */
+  private applyCrystallizeSeed(): void {
+    this.content.set(resolveCrystallizeTokens(this.content.get(), this.note.getCrystallizeSeed()));
   }
 
   /**

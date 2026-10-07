@@ -52,8 +52,9 @@ function Component(noteBuilderType: NoteBuilderType) {
   // Remounting the step is what a retry means; the key change is the remount (#417).
   const [attempt, setAttempt] = useState(0);
   // Looked up once, when the flow opens: an unfinished walk for this canvas (#410).
+  // A crystallize run (#712) is not a walk you resume: it is never offered one.
   const [draft, setDraft] = useState(() =>
-    editor ? undefined : draftStore.offer(noteBuilderType.flow.canvasPath)
+    editor || noteBuilderType.modal.isSeeded() ? undefined : draftStore.offer(noteBuilderType.flow.canvasPath)
   );
   useEffect(() => {
     if (editor) {
@@ -62,6 +63,13 @@ function Component(noteBuilderType: NoteBuilderType) {
         actions.setTargetFolder(editor.file.path);
         actions.setTitle(editor.file.basename);
       }
+    }
+    // What Think hands a crystallize flow: the title and the content, here so StrictMode's
+    // remount (which resets the store) seeds again.
+    const seed = noteBuilderType.modal.getCrystallizeSeed();
+    if (seed) {
+      actions.setCrystallizeSeed(seed);
+      actions.setTitle(seed.title);
     }
     return () => {
       // Control global state resetting when the component is unmounted

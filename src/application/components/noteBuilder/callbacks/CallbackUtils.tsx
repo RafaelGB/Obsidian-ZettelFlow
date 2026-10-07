@@ -157,8 +157,9 @@ export async function manageElement(
         // The write record (#453) already knows what this flow created, and the Recent mode
         // reads it — a second list kept only for the wizard was the narrower half of the story.
         if (!modal.isEditor()) void FileService.openFile(path);
-        // The flow produced a note: there is nothing left to resume (#410).
-        modal.markBuilt();
+        // The flow produced a note: there is nothing left to resume (#410). A crystallize run
+        // hears the path here, and only here — never on a close (#712).
+        modal.markBuilt(path);
         modal.close();
       })
       .catch((error: ZettelError) => {

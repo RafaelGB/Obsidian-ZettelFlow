@@ -121,3 +121,19 @@ describe("crystallizing back is an append, never a rewrite (#474)", () => {
         }
     });
 });
+
+describe("crystallize through a flow (#712)", () => {
+    const BUILDER = readFileSync(join(SRC, "application", "notes", "NoteBuilder.ts"), "utf8");
+
+    it("places your words after every action ran, and before the links", () => {
+        // After the actions: an action's {{key}} replacement must never re-read what you wrote.
+        const body = BUILDER.slice(BUILDER.indexOf("private async buildNote()"));
+        const actions = body.indexOf("await this.runOnCreation();");
+        const placed = body.indexOf("this.applyCrystallizeSeed();");
+        const links = body.indexOf("this.appendConnectionLinks();");
+        expect(actions).toBeGreaterThan(-1);
+        expect(placed).toBeGreaterThan(actions);
+        expect(links).toBeGreaterThan(placed);
+        expect(BUILDER).toContain("resolveCrystallizeTokens(this.content.get(), this.note.getCrystallizeSeed())");
+    });
+});

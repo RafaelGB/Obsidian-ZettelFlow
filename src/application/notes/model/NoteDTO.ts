@@ -5,6 +5,7 @@ import { FileService } from "architecture/plugin";
 import type { NotePersistence } from "./NotePersistence";
 import { composeDestination } from "../destination";
 import type { SatelliteDeclaration } from "../satellitePlan";
+import type { CrystallizeSeed } from "application/thinking/crystallize";
 
 export class NoteDTO implements NotePersistence {
     private title = "";
@@ -22,6 +23,17 @@ export class NoteDTO implements NotePersistence {
      * a **byproduct** resolved at build time, so this DTO keeps modelling exactly one note.
      */
     private satellite: SatelliteDeclaration | undefined;
+    /** What Think hands a crystallize flow (#712): placed in the body when the note is built. */
+    private crystallizeSeed: CrystallizeSeed | undefined;
+
+    public getCrystallizeSeed(): CrystallizeSeed | undefined {
+        return this.crystallizeSeed;
+    }
+
+    public setCrystallizeSeed(seed: CrystallizeSeed | undefined): NoteDTO {
+        this.crystallizeSeed = seed;
+        return this;
+    }
 
     public getFinalPath(): string {
         // Shared with the destination indicator (#408) so the two can never disagree.

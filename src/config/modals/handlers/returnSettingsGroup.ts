@@ -1,5 +1,6 @@
 import type { Setting, SettingDefinitionItem } from "obsidian";
 import type ZettelFlow from "main";
+import { c } from "architecture";
 import { t } from "architecture/lang";
 import { daysLabel } from "./durationLabel";
 import { FolderSuggest } from "architecture/settings";
@@ -55,6 +56,8 @@ export function returnSettingsGroup(plugin: ZettelFlow, changed: () => void = ()
                 name: t("settings_thought_lab_name"),
                 desc: t("settings_thought_lab_desc"),
                 render: (setting: Setting) => {
+                    // Room for a whole path: the default control column showed "4. 📒" of a nested one.
+                    setting.settingEl.addClass(c("settings-folder-wide"));
                     setting.addSearch((cb) => {
                         new FolderSuggest(cb.inputEl);
                         // The real default, not a folder that never existed (#662).

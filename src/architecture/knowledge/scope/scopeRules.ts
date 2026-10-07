@@ -6,7 +6,7 @@
  * stored shape is plain on purpose — it is the escape hatch a person can read in `data.json`
  * (§XIII), and {@link normalizeScopeRules} makes sure a hand edit can never break a load.
  */
-import { normalizeExcludedPaths } from "./knowledgeScope";
+import { normalizeExcludedPaths, type ScopeSettings } from "./knowledgeScope";
 
 export interface FolderRule {
     kind: "folder";
@@ -120,6 +120,17 @@ export function folderMirror(leaveOut: readonly ScopeRule[]): string[] {
     return normalizeExcludedPaths(
         leaveOut.filter((rule): rule is FolderRule => rule.kind === "folder" && rule.op === "in" && rule.subfolders).map((rule) => rule.folder)
     );
+}
+
+/**
+ * The rules a settings object holds. Before the migration has run (an isolated test, a settings
+ * object built by hand) the old excluded folders are read as the rules they become, so the left-out
+ * set never depends on whether the migration has happened yet.
+ */
+export function scopeRulesOf(settings: Pick<ScopeSettings, "knowledgeScope" | "excludedPaths"> | null | undefined): ScopeRules {
+    if (!settings) return { leaveOut: [], keep: [] };
+    if (settings.knowledgeScope !== undefined && settings.knowledgeScope !== null) return normalizeScopeRules(settings.knowledgeScope);
+    return { leaveOut: rulesFromExcludedPaths(settings.excludedPaths ?? []), keep: [] };
 }
 
 /** Two rules that say the same thing. */

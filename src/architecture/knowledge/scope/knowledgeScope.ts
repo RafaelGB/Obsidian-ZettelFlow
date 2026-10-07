@@ -52,7 +52,13 @@ export function excludedPrefixOf(path: string, prefixes: readonly string[]): str
  * JS library — never the user's own thinking, so they are excluded automatically.
  */
 export interface ScopeSettings {
+    /**
+     * The folders the previous version excluded. Since #713 a mirror of the folder rules, written
+     * for one release so a downgrade keeps them; read only to migrate.
+     */
     excludedPaths?: readonly string[];
+    /** What is left out (#713): closed rules and the exceptions that keep a note in anyway. */
+    knowledgeScope?: unknown;
     /** Folder where folder-automation flow canvases (and their step notes) live. */
     foldersFlowsPath?: string;
     /** Folder holding the user's `zf` JS library. */
@@ -64,6 +70,15 @@ export interface ScopeSettings {
      * judged as if it had: no orphans, no debt, no Health, no Discovery.
      */
     thoughtLabPath?: string;
+}
+
+/**
+ * ZettelFlow's own folders (#713): always left out, before any rule and beyond any exception — the
+ * flow canvases and their steps, the hook flows, the script library and the Thinking space.
+ */
+export function systemExcludedPaths(settings: ScopeSettings): string[] {
+    const system = [settings.foldersFlowsPath, settings.jsLibraryFolderPath, settings.hooks?.folderFlowPath, settings.thoughtLabPath];
+    return normalizeExcludedPaths(system.filter((p): p is string => typeof p === "string"));
 }
 
 /**

@@ -8,6 +8,7 @@ import {
     renderNav,
     renderStart,
     scrollToSection,
+    scrollToRow,
     sectionClass,
     sectionInView,
     barIsStuck,
@@ -109,6 +110,18 @@ describe("the settings shell (#660)", () => {
         scrollToSection(container, "ai", 48, false);
         expect(container.scrolls).toEqual([{ top: 50 + 900 - 100 - 48 - 8, behavior: "auto" }]);
         expect(head.scrolls).toEqual([]);
+    });
+
+    it("lands a row itself under the bar, not just its section's head", () => {
+        // The Advanced grid's way to the thinking space folder landed on Thinking's head, with the
+        // field far below it: you arrived and did not see what you came for.
+        const container = host();
+        const row = container.createDiv({ cls: "setting-item" });
+        row.getBoundingClientRect = () => ({ left: 0, top: 1500, width: 100, height: 40 });
+        container.getBoundingClientRect = () => ({ left: 0, top: 100, width: 600, height: 700 });
+        container.scrollTop = 0;
+        scrollToRow(container, row as never, 48, false);
+        expect(container.scrolls).toEqual([{ top: 1500 - 100 - 48 - 8, behavior: "auto" }]);
     });
 
     it("ends on one line: version, docs, report a problem, support", () => {

@@ -80,9 +80,15 @@ you can launch. Without one it is just a file. See [your flows and their roles](
 
 *What counts as knowledge, and how ZettelFlow reads it.*
 
-- **Kept out of the thinking system** — the excluded folders, shown as removable chips with a
-  folder search to add one. Notes under them never enter the graph, Health, discovery, Cultivate or
-  Home. ZettelFlow's own folders are always left out. More in [knowledge scope](knowledge-scope.md).
+- **Kept out of the thinking system — What is left out** — how many notes count as knowledge, then
+  rules read as sentences (*Leave out notes that… are in Templates*, *have the tag #draft*, *have
+  type set to moc*), each with what it leaves out; **Keep anyway** exceptions; and ZettelFlow's own
+  folders, locked. A rule is built from the vault's own folders, tags and property values — nothing
+  is typed — and says what it would leave out before you add it. **Show the notes left out** lists
+  them. On a phone the editor is a sheet. Still found by searching *Excluded folders*. More in
+  [knowledge scope](knowledge-scope.md).
+
+  ![The kept-out card](../resources/settings/knowledge-scope.svg)
 - **Lifecycle properties** — the frontmatter keys for a note's *state*, its *created* date and its
   *last reviewed* date, side by side. The defaults are `state`, `created` and `last-reviewed`.
   They are plain properties, so there is no lock-in.

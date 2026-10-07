@@ -39,7 +39,14 @@ function factsOf(count: number): ScopeFacts[] {
     return generateVault(count).map((snapshot) => ({ path: snapshot.path, tags: snapshot.tags, frontmatter: snapshot.frontmatter }));
 }
 
+/**
+ * Time one pass, after a collection and one warm-up pass: this file runs after the 50k-note suites,
+ * and without it the number measured their leftover heap, not the rules (an extra ~60% in the full
+ * run, while the same code measured well inside its ceiling alone).
+ */
 function timed(work: () => unknown): number {
+    work();
+    global.gc?.();
     const started = performance.now();
     work();
     return performance.now() - started;
@@ -60,8 +67,12 @@ describe("the scope rules (#713)", () => {
     });
 
     it("scope.census.50k", () => {
-        clearSamples();
         const compiled = compileScope(RULES, SYSTEM);
+        // Warm up and collect first, as `timed` does: the card's own instrument is what is read.
+        scopeCensus(compiled, facts);
+        scopeVocabulary(facts);
+        global.gc?.();
+        clearSamples();
         measure(
             "scope.census",
             () => {

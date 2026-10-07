@@ -117,7 +117,7 @@ nav:
       - Get started in 5 minutes: get-started.md
       - Settings, section by section: development/settings-panel.md
       - AI provider setup (optional): development/ai-provider-setup.md
-      - Knowledge scope (excluded paths): development/knowledge-scope.md
+      - Knowledge scope (what is left out): development/knowledge-scope.md
       - Capabilities & privacy: development/capabilities-and-privacy.md
       - Mobile & accessibility: development/mobile-and-accessibility.md
       - Mobile support: development/mobile-support.md

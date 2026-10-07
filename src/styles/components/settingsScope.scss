@@ -109,9 +109,12 @@
     flex: none;
 }
 
-.zettelkasten-flow__scope-add {
+/* `button.` outranks Obsidian's fixed button height, which clipped its label. */
+button.zettelkasten-flow__scope-add {
     @include row;
     align-self: flex-start;
+    height: auto;
+    padding: $space-1 $space-3;
 }
 
 .zettelkasten-flow__scope-add-icon {

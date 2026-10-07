@@ -130,10 +130,11 @@ export class NoteBuilder {
       if (potentialFile) {
         await FileService.deleteFile(potentialFile);
       }
-      VaultStateManager.INSTANCE.defrost();
       throw error;
     } finally {
-      // Enable other process
+      // Enable other process. Thaw the vault hooks whatever happened: lifted only on failure, a
+      // successful build left every hook off for the rest of the session.
+      VaultStateManager.INSTANCE.defrost();
       VaultStateManager.INSTANCE.processFinished(this.note.getFinalPath());
     }
   }

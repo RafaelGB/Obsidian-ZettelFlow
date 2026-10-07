@@ -42,8 +42,8 @@ auto-launches it on every new note.*
 - **`delete`** — folder delete removes its paired canvas and clears `jsLibraryFolderPath`; file
   delete clears `ribbonCanvas`. Invalidates the flow cache.
 - **`modify`** — invalidates the `canvas.flows` cache for `.canvas` files.
-- **`file-open`** — registers the opened markdown file into `VaultStateManager` (snapshots its
-  frontmatter for later diffing).
+- **`file-open`** — registers the opened markdown file into `VaultStateManager` and refreshes its
+  diff baseline.
 
 ## Property hooks (`metadataCache "changed"`)
 
@@ -53,7 +53,13 @@ This is the "run JS when a property changes" feature (`onCacheUpdate` / `process
    `isOnProcess`.
 2. Read the property→hook map from `settings.hooks.properties`; if empty, return.
 3. **Diff** old vs new frontmatter per configured property (`valuesEqual`, a JSON deep-equal).
-   On a change, build a `HookEvent`.
+   On a change, build a `HookEvent`. The "old" side is `HookBaselines` (`hooks/utils`): every
+   note's watched properties are seeded once at layout-ready (a hook added later seeds its property
+   on first use), so the first change to a note that was never opened — already open at startup,
+   edited from a Base — still fires, including a property the note did not have before. A note
+   created since (no baseline) treats its first parse as the baseline, so creating a note never
+   fires. Event flows (`property.changed` / `tag.added`) seed the same way, only when a flow
+   listens for them.
 4. **Run the script** (`executeHook`): the hook's JS is wrapped in an `AsyncFunction` invoked as
    `scriptFn(event, zf)`, where `event` is mutable and `zf = await fnsManager.getFns()`. The user
    script mutates `event.response.frontmatter` / `event.response.removeProperties` /

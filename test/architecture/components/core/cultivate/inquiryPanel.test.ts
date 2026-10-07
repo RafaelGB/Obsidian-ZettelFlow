@@ -34,6 +34,18 @@ describe('actual inquiry controls', () => {
         button('clear').fire('click'); for (let i = 0; i < 4; i++)await Promise.resolve();
         expect(storage).toEqual({ version: 1, current: null }); panel.unload();
     });
+    it('names the rule that left a selected reference out, in the settings card words (#713, AC-5)', () => {
+        runtime.init({ load: () => undefined, persist: async () => { }, now: () => 1, id: () => 'one' }); runtime.start();
+        runtime.update({ kind: 'select', path: 'drafts/x.md' });
+        const root = new FakeElement();
+        const context = { materials: [], candidates: [], relations: [], evidence: [], unavailable: [{ path: 'drafts/x.md', reason: 'excluded' as const, by: 'have the tag #draft or a nested tag' }], inspected: 0, truncated: false, method: 'selected' as const };
+        const deps: InquiryPanelDependencies = { runtime, pick: () => { }, capture: () => { }, open: async () => { }, canUse: () => true, confirm: (_key, fn) => void fn(), context: () => ({ status: 'ready', value: context }) };
+        const panel = new InquiryPanel(root as any, deps); panel.load();
+        const walk = (el: FakeElement): FakeElement[] => [el, ...el.children.flatMap(walk)];
+        const lines = walk(root).filter(el => el.tag === 'p').map(el => el.textContent);
+        expect(lines).toContain('drafts/x.md: Left out by have the tag #draft or a nested tag; reconcile explicitly, do not substitute silently');
+        panel.unload();
+    });
     it('keeps focused drafts and selection across context refresh, and records only explicit resolution', async () => {
         let saved: unknown;
         runtime.init({ load: () => undefined, persist: async value => { saved = value; }, now: () => 1, id: () => 'one' });

@@ -38,8 +38,8 @@ export interface CompanionModel {
 export type CompanionScreen =
     | { kind: "note"; model: CompanionModel }
     | { kind: "empty"; last: string | null }
-    /** A note in an excluded folder (#688): outside ZettelFlow, so nothing is read or offered. */
-    | { kind: "outside"; path: string; prefix: string }
+    /** A note left out (#688, #713): outside ZettelFlow, named by the rule that left it out (`by`). */
+    | { kind: "outside"; path: string; by: string; also: string[] }
     | { kind: "indexing"; path: string }
     | { kind: "error"; path: string };
 

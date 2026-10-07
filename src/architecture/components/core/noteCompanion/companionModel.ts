@@ -1,6 +1,7 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { scopeReasonName } from "architecture/components/core/scope/ruleSentence";
 import {
     buildEvidenceMap,
     companionSections,
@@ -31,13 +32,10 @@ export function buildCompanionScreen(app: App, subject: SubjectState): Companion
     // note to read — and it is known without waiting for the index to finish building.
     const reason = index.excludedBy(path);
     if (reason !== null) {
-        const rule = reason.kind === "rule" ? index.scopeRules().leaveOut[reason.index] : undefined;
-        const prefix =
-            reason.kind === "system" ? reason.folder
-            : rule?.kind === "folder" ? rule.folder
-            : rule?.kind === "tag" ? rule.tags.map((tag) => `#${tag}`).join(", ")
-            : rule?.property ?? "";
-        return { kind: "outside", path, prefix };
+        // Named in the settings card's own words (#713): the rule's sentence, or ZettelFlow's folders.
+        const rules = index.scopeRules();
+        const also = index.alsoExcludedBy(path).map((at) => scopeReasonName({ kind: "rule", index: at }, rules));
+        return { kind: "outside", path, by: scopeReasonName(reason, rules), also };
     }
     if (index.status !== "ready") return { kind: "indexing", path };
 

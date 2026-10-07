@@ -136,6 +136,11 @@ export class InquiryPanel extends Component {
             if (!context.candidates.length) this.contextEl.createEl('p', { text: t('inquiry_no_candidates') });
             for (const edge of context.relations) this.contextEl.createEl('p', { text: `${edge.from} → ${edge.type} → ${edge.to}` });
             for (const evidence of context.evidence) this.contextEl.createEl('p', { text: `${evidence.path}: ${evidence.claim} — ${evidence.source}` });
+            // A selected reference that is left out says by what (#713): the rule's own words.
+            for (const missing of context.unavailable) {
+                const why = missing.reason === 'excluded' && missing.by ? t('inquiry_reference_left_out', missing.by) : t('inquiry_reference_missing');
+                this.contextEl.createEl('p', { cls: c('inquiry-unavailable'), text: `${missing.path}: ${why}` });
+            }
         } catch { this.contextEl.createEl('p', { text: t('inquiry_error_read') }); }
     }
     private referenceRow(path: string, q: Inquiry, selected: boolean): HTMLElement {

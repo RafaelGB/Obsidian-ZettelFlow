@@ -2,6 +2,7 @@ import { App, Modal, Notice, Setting } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { scopeReasonName } from "architecture/components/core/scope/ruleSentence";
 import { crystallize, crystallizeInto } from "architecture/plugin/thinking/crystallizeThought";
 import { destinationsFor, type Crystallization, type Destination } from "application/thinking/crystallize";
 
@@ -44,9 +45,16 @@ export class CrystallizeModal extends Modal {
         return destinationsFor(this.subject, exists && !this.subjectOutside());
     }
 
-    /** Whether the thread's note sits in an excluded folder. */
+    /** Whether the thread's note is left out of the thinking system. */
     private subjectOutside(): boolean {
         return Boolean(this.subject && !KnowledgeIndex.getInstance().inScope(this.subject));
+    }
+
+    /** What left it out, in the settings card's own words (#713). */
+    private outsideReason(): string {
+        const index = KnowledgeIndex.getInstance();
+        const reason = this.subject ? index.excludedBy(this.subject) : null;
+        return reason ? scopeReasonName(reason, index.scopeRules()) : "";
     }
 
     onOpen(): void {
@@ -72,7 +80,7 @@ export class CrystallizeModal extends Modal {
         } else if (this.subject) {
             // Offering to append to something that is gone is offering to fail; offering to append
             // to a note outside ZettelFlow is offering a write it promised not to make (#688).
-            const text = this.subjectOutside() ? t("crystallize_subject_outside") : t("crystallize_subject_gone");
+            const text = this.subjectOutside() ? t("crystallize_subject_outside", this.outsideReason()) : t("crystallize_subject_gone");
             contentEl.createDiv({ cls: c("crystallize-keeps"), text });
         }
 

@@ -497,6 +497,28 @@ cannot reach a delete.
 The title and the body are **proposed, never imposed** — a proposal that is hard to change is an
 imposition. Cancelling writes nothing at all.
 
+### Through your crystallize flow
+
+By default a new note lands at the vault root. Give a canvas the **Crystallizes thoughts** role
+(Settings → *Your flows*, see [flow roles](flow-roles.md)) and a new note goes through it instead:
+the preview says *This note continues in «flow»*, and its button reads **Continue in «flow»**.
+Confirming opens that flow — an ordinary one — with the title you accepted and the crystallized
+content already in its preview, so its steps choose the folder, the template and the properties as
+for any note.
+
+- **The content goes at the top** of the note's body: your text, *Born from*, and the `source::`
+  lines. A step's template can place it elsewhere with `{{crystallize.content}}` (exactly once);
+  `{{crystallize.title}}`, `{{crystallize.quote}}` and `{{crystallize.source}}` carry the rest. In
+  any other flow the four are empty.
+- **Nothing is written on cancel.** Close the preview or the flow and no note exists, no verdict is
+  recorded, no draft is kept, and the thoughts stay where they were.
+- **The verdict is recorded when the flow builds the note** — the same `crystallize:` judgement, the
+  same single undo, and the thoughts set aside, exactly as a direct crystallization.
+- **Your words arrive as text.** A thought that says `<% … %>` is written as `&lt;% … %>`, so
+  Templater (which runs on a note a flow builds) never executes it.
+- A flow that cannot be opened says so and writes nothing — it never falls back to the root. Going
+  back into the note a thread was about is still a plain append, never a flow.
+
 ## Set it aside
 
 Some ideas should not be processed. Not developed, not linked, not classified, not turned into a

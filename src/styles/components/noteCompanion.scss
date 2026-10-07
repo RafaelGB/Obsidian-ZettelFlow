@@ -183,6 +183,12 @@
     .zettelkasten-flow__note-companion-step-dot {
         display: none;
     }
+
+    // The connector to the step before is drawn inside the step: in the pill it read as a dash
+    // before the state's name. (Doubled class: it has to outrank `step + step::before`.)
+    &.zettelkasten-flow__note-companion-step::before {
+        display: none;
+    }
 }
 
 .zettelkasten-flow__note-companion-no-state {
@@ -258,12 +264,14 @@ button.zettelkasten-flow__note-companion-vital {
     gap: $space-2;
 }
 
-.zettelkasten-flow__note-next-another,
-.zettelkasten-flow__note-next-cancel,
-.zettelkasten-flow__note-next-choose,
-.zettelkasten-flow__note-next-pick,
-.zettelkasten-flow__note-next-undo,
-.zettelkasten-flow__note-companion-step-next {
+/* Text actions, not buttons — `button.` so they outrank Obsidian's `button:not(.clickable-icon)`,
+   which gave *Another step* a button's box beside the real one. */
+button.zettelkasten-flow__note-next-another,
+button.zettelkasten-flow__note-next-cancel,
+button.zettelkasten-flow__note-next-choose,
+button.zettelkasten-flow__note-next-pick,
+button.zettelkasten-flow__note-next-undo,
+button.zettelkasten-flow__note-companion-step-next {
     background: none;
     border: none;
     box-shadow: none;

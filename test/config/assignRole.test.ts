@@ -75,3 +75,39 @@ describe("taking a role away (#435)", () => {
         expect(planRoleRemoval("_ZettelFlow/events/A.canvas", folders)).toBeUndefined();
     });
 });
+
+describe("crystallizes thoughts: one role per canvas (#712)", () => {
+    const named: FlowFolders = { ...folders, editorCanvas: "Flows/Edit.canvas", crystallizeCanvas: "Flows/Think.canvas" };
+
+    it("moves the role to another canvas and names who loses it", () => {
+        expect(planRoleChange({ path: "Flows/Other.canvas", role: "crystallize", folders: named })).toEqual({
+            role: "crystallize",
+            settings: { key: "crystallizeCanvas", value: "Flows/Other.canvas" },
+            displaces: "Flows/Think.canvas",
+        });
+    });
+
+    it("given to the ribbon canvas, the canvas stops creating notes", () => {
+        expect(planRoleChange({ path: "Flows/Create.canvas", role: "crystallize", folders: named })).toEqual({
+            role: "crystallize",
+            settings: { key: "crystallizeCanvas", value: "Flows/Create.canvas" },
+            displaces: "Flows/Think.canvas",
+            releases: [{ key: "ribbonCanvas", value: "" }],
+        });
+    });
+
+    it("moved to a place-based role, the crystallize canvas gives the named role up", () => {
+        expect(planRoleChange({ path: "Flows/Think.canvas", role: "event", folders: named })).toEqual({
+            role: "event",
+            move: { from: "Flows/Think.canvas", to: "_ZettelFlow/events/Think.canvas" },
+            releases: [{ key: "crystallizeCanvas", value: "" }],
+        });
+    });
+
+    it("can be taken away without moving a file", () => {
+        expect(planRoleRemoval("Flows/Think.canvas", named)).toEqual({
+            role: "none",
+            settings: { key: "crystallizeCanvas", value: "" },
+        });
+    });
+});

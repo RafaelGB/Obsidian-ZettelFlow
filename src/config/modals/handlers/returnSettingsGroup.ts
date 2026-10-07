@@ -3,7 +3,7 @@ import type ZettelFlow from "main";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { daysLabel } from "./durationLabel";
-import { FolderSuggest } from "architecture/settings";
+import { addFolderField } from "./folderField";
 import { controlContainer } from "architecture/components/settings/settingContainer";
 import { DEFAULT_SETTINGS } from "config/typing";
 import {
@@ -58,16 +58,18 @@ export function returnSettingsGroup(plugin: ZettelFlow, changed: () => void = ()
                 render: (setting: Setting) => {
                     // Room for a whole path: the default control column showed "4. 📒" of a nested one.
                     setting.settingEl.addClass(c("settings-folder-wide"));
-                    setting.addSearch((cb) => {
-                        new FolderSuggest(cb.inputEl);
+                    addFolderField(setting, {
+                        read: () => plugin.settings.thoughtLabPath ?? "",
+                        accept: (value) => {
+                            plugin.settings.thoughtLabPath = value;
+                            return true;
+                        },
+                        saved: async () => {
+                            changed();
+                            await plugin.saveSettings();
+                        },
                         // The real default, not a folder that never existed (#662).
-                        cb.setPlaceholder(DEFAULT_SETTINGS.thoughtLabPath ?? "")
-                            .setValue(plugin.settings.thoughtLabPath ?? "")
-                            .onChange(async (value) => {
-                                plugin.settings.thoughtLabPath = value.trim();
-                                changed();
-                                await plugin.saveSettings();
-                            });
+                        placeholder: DEFAULT_SETTINGS.thoughtLabPath ?? "",
                     });
                 },
             },

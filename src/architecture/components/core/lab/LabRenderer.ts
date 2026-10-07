@@ -1,7 +1,8 @@
+import { displayName } from "application/library/displayName";
 import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
 import type MomentFn from "moment";
 import { openReader } from "architecture/components/core/reader/openReader";
-import { c, log } from "architecture";
+import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
@@ -1073,7 +1074,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const row = box.createDiv({ cls: c("lab-subject") });
         setIcon(row.createSpan({ cls: c("lab-subject-icon") }), "file-text");
         const gone = !this.app.vault.getAbstractFileByPath(path);
-        const name = (path.split("/").pop() ?? path).replace(/\.md$/, "");
+        const name = displayName(path, ObsidianApi.getOwnPlugin()?.settings.library);
         const label = row.createSpan({
             cls: c("lab-subject-name"),
             text: gone ? t("lab_about_gone", name) : t("lab_about", name),
@@ -1099,7 +1100,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const block = box.createDiv({ cls: c("lab-quote") });
         block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
         const meta = block.createDiv({ cls: c("lab-quote-meta") });
-        const name = (about.split("/").pop() ?? about).replace(/\.md$/, "");
+        const name = displayName(about, ObsidianApi.getOwnPlugin()?.settings.library);
         meta.createSpan({ text: t("lab_highlight_from", quote.heading ? `${name} › ${quote.heading}` : name) });
         if (!this.app.vault.getAbstractFileByPath(about)) return;
         const open = meta.createEl("button", {

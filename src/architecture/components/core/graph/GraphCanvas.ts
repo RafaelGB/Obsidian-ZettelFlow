@@ -766,7 +766,8 @@ export class GraphCanvas extends Component {
                 },
                 (ci) => this.names[ci] ?? "",
                 (text) => ctx.measureText(text).width,
-                view
+                view,
+                labels
             );
             ctx.textAlign = "center";
             for (const label of names) {

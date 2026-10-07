@@ -9,6 +9,7 @@ import { t } from "architecture/lang";
 import { ConfirmModal } from "architecture/components/settings";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { useNoteBuilderStore } from "application/components/noteBuilder";
+import type { CrystallizeSeed } from "application/thinking/crystallize";
 
 export class SelectorMenuModal extends Modal {
     private root: Root;
@@ -16,6 +17,9 @@ export class SelectorMenuModal extends Modal {
     private embedded: boolean;
     /** Set once the note exists: a built flow has nothing left to resume (#410). */
     private built = false;
+    /** A crystallize run (#712): what Think hands the flow, and who hears when the note exists. */
+    private seed: CrystallizeSeed | undefined;
+    private onBuilt: ((path: string) => void) | undefined;
     constructor(
         app: App,
         private plugin: ZettelFlow,
@@ -33,6 +37,26 @@ export class SelectorMenuModal extends Modal {
     enableEditor(enabled: boolean): SelectorMenuModal {
         this.editorMode = enabled;
         return this;
+    }
+
+    /**
+     * Open as a crystallize flow (#712): the wizard starts with the title and the crystallized
+     * content filled in, and `onBuilt` hears the note's path once it exists — never on a close. A
+     * seeded run is not a walk you resume: it is never offered a draft, never keeps one, and never
+     * clears the one this canvas may hold from an ordinary walk.
+     */
+    seedCrystallization(seed: CrystallizeSeed, onBuilt: (path: string) => void): SelectorMenuModal {
+        this.seed = seed;
+        this.onBuilt = onBuilt;
+        return this;
+    }
+
+    isSeeded(): boolean {
+        return this.seed !== undefined;
+    }
+
+    getCrystallizeSeed(): CrystallizeSeed | undefined {
+        return this.seed;
     }
 
     onOpen(): void {
@@ -70,16 +94,22 @@ export class SelectorMenuModal extends Modal {
         }
     }
 
-    /** The flow reached a note; its draft is done. */
-    markBuilt(): void {
+    /** The flow reached a note; its draft is done. A crystallize run reports the note instead. */
+    markBuilt(path?: string): void {
+        if (this.built) return;
         this.built = true;
+        if (this.seed) {
+            if (path) this.onBuilt?.(path);
+            return;
+        }
         if (this.flow) draftStore.clear(this.flow.canvasPath);
     }
 
     onClose(): void {
         // Before unmounting: the wizard's own cleanup resets the store, which is exactly the data
-        // a draft is made of (#410). Creation flows only — the editor flow edits an existing note.
-        if (this.flow && !this.built && !this.isEditor()) {
+        // a draft is made of (#410). Creation flows only — the editor flow edits an existing note,
+        // and a crystallize run is never resumed (#712).
+        if (this.flow && !this.built && !this.isEditor() && !this.seed) {
             try {
                 const snapshot = useNoteBuilderStore
                     .getState()

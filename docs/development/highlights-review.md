@@ -76,6 +76,10 @@ Like a ledger — nothing is erased, only appended.
 source:: [[Notes/Event sourcing#Events]]
 ```
 
+With a canvas in the **Crystallizes thoughts** role, this text goes at the top of a note that flow
+builds — its steps choose the folder, the template and the properties — instead of a note at the
+vault root ([Think → through your crystallize flow](../architecture/thought-lab.md#through-your-crystallize-flow)).
+
 The link carries a **locator**: the note and the heading the passage sat under. Because of that
 line, the [claim and source parser](../architecture/knowledge-model.md) counts the new note as
 **sourced**: it holds a claim grounded in the note you read, so it counts as

@@ -96,6 +96,14 @@ describe("region names (#697)", () => {
         const placed = placeRegionNames([0, 1], () => ({ x: 400, y: 300, span: 30 }), (i) => `Region ${i}`, measure, view);
         expect(placed).toHaveLength(1);
     });
+
+    it("gives way to a note's label already there — a region named after its hub drew its name over it", () => {
+        const note = { index: 3, text: "Login usuarios internos", x: 330, y: 288, w: 150, h: 22, strong: false };
+        const over = placeRegionNames([0], () => ({ x: 400, y: 300, span: 30 }), () => "Login usuarios internos", measure, view, [note]);
+        expect(over).toEqual([]);
+        const clear = placeRegionNames([0], () => ({ x: 400, y: 100, span: 30 }), () => "Login usuarios internos", measure, view, [note]);
+        expect(clear).toHaveLength(1);
+    });
 });
 
 describe("ranking the answer once, not every frame (#695)", () => {

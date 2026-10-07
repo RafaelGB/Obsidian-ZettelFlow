@@ -141,6 +141,34 @@ describe("returns and the thinking space (#662)", () => {
         expect(row.settingEl.hasClass("zettelkasten-flow__settings-folder-wide")).toBe(true);
     });
 
+    it("saves the thinking space folder when you leave the field or press Enter — never per keystroke", async () => {
+        jest.useFakeTimers();
+        try {
+            const p = plugin({ thoughtLabPath: "Lab" });
+            const changed = jest.fn();
+            const row = draw(byName(itemsOf(returnSettingsGroup(p as never, changed)), "Thinking space folder"));
+            const field = row.searches[0] as unknown as { type(v: string): void; inputEl: { fire(t: string, e?: unknown): void } };
+            // Each keystroke used to save and re-scope what the knowledge model leaves out.
+            field.type("T");
+            field.type("Th");
+            expect(p.saveSettings).not.toHaveBeenCalled();
+            expect(p.settings.thoughtLabPath).toBe("Lab");
+            field.inputEl.fire("keydown", { key: "Enter", isComposing: false });
+            await Promise.resolve();
+            expect(p.settings.thoughtLabPath).toBe("Th");
+            expect(p.saveSettings).toHaveBeenCalledTimes(1);
+            expect(changed).toHaveBeenCalledTimes(1);
+            field.type("Think");
+            field.inputEl.fire("blur");
+            jest.advanceTimersByTime(250);
+            await Promise.resolve();
+            expect(p.settings.thoughtLabPath).toBe("Think");
+            expect(p.saveSettings).toHaveBeenCalledTimes(2);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it("finishes a pattern after indexing from the same card", () => {
         const names = itemsOf(returnSettingsGroup(plugin() as never)).map((item) => item.name);
         expect(names).toContain("Re-run a pattern after the note is indexed");

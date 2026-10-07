@@ -161,6 +161,7 @@ capabilities.
 | trace a reasoning path | **merge** | the per-note mode, which already answers per-note questions |
 | knowledge patterns | not a capability | configuration; settings is its home by design |
 | vault hooks | not a capability | configuration; settings is its home by design |
+| crystallize role (#712) | not a capability | configuration of Think's crystallize (a rank-1 control in Think); settings → *Your flows* is its home by design |
 
 **Nothing was deleted.** Every one of the nine was a thing a person would want; what they lacked was
 a way in. What the epic actually removed is duplication and litter: a second query engine (the blind

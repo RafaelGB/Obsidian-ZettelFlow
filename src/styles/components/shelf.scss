@@ -11,10 +11,13 @@
  * its own size container.
  */
 
+/* Never sideways: the closed detail panel waits off the right edge, and as `overflow: auto` counted it
+   the shelf had a horizontal scrollbar whenever the panel was shut. */
 .workspace-leaf-content[data-type="zettelflow-library"] .view-content.zettelkasten-flow__shelf-host {
     padding: 0;
     position: relative;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .zettelkasten-flow__shelf {
@@ -224,6 +227,9 @@
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    // A drawn cover's title wraps inside the cover; it ran out of it on one line (`Comunica SMS - AI`).
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .zettelkasten-flow__shelf-cover-author {

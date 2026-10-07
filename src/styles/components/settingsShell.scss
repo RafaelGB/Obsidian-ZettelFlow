@@ -255,17 +255,19 @@
     content: none;
 }
 
-/* A narrow pane keeps the bar to one line and lets it scroll sideways, instead of a sticky block
-   three lines tall over every section. The tab's scroller is an inline-size container. */
-@container (max-width: 40rem) {
-    .zettelkasten-flow__settings-nav {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        scrollbar-width: none;
+/* One line at every width (fitNav): the labels give way to icons first, and only a pane narrower
+   than seven icons scrolls sideways — never a sticky block two or three lines tall. */
+.zettelkasten-flow__settings-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
 
-        &::-webkit-scrollbar {
-            display: none;
-        }
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &.is-compact .zettelkasten-flow__settings-nav-tab:not(.is-active) .zettelkasten-flow__settings-nav-label {
+        display: none;
     }
 }
 

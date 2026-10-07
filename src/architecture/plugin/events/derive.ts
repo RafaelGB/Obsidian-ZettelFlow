@@ -82,3 +82,10 @@ export function seedBaselines(
         if (!baselines.has(path)) baselines.set(path, JSON.parse(JSON.stringify(frontmatter ?? {})) as Record<string, unknown>);
     }
 }
+
+/** A rename keeps the note's baseline: without it the first change after a rename never fired. */
+export function moveBaseline(baselines: Map<string, Record<string, unknown>>, oldPath: string, newPath: string): void {
+    const baseline = baselines.get(oldPath);
+    baselines.delete(oldPath);
+    if (baseline) baselines.set(newPath, baseline);
+}

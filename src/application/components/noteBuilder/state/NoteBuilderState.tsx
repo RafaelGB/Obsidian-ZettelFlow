@@ -64,6 +64,12 @@ export const useNoteBuilderStore = create<NoteBuilderState>((set, get) => ({
           builder,
         };
       }),
+    setCrystallizeSeed: (seed) =>
+      set((state) => {
+        const { builder } = state;
+        builder.note.setCrystallizeSeed(seed);
+        return { builder };
+      }),
     setInvalidTitle: (invalidTitle) => {
       const { builder, position } = get();
       if (invalidTitle) {

@@ -182,3 +182,19 @@ export function marksWrite(button: HTMLElement): void {
 export function noteName(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
 }
+
+/**
+ * A list's names, told apart: a name two notes share gets the folder each lives in (`readme ·
+ * Alpha`). *Near and forgotten* read `readme` five times, with nothing to choose between them.
+ */
+export function distinctNames(paths: readonly string[]): Map<string, string> {
+    const count = new Map<string, number>();
+    for (const path of paths) count.set(noteName(path), (count.get(noteName(path)) ?? 0) + 1);
+    return new Map(
+        paths.map((path) => {
+            const name = noteName(path);
+            const folder = path.split("/").slice(-2, -1)[0];
+            return [path, (count.get(name) ?? 0) > 1 && folder ? `${name} · ${folder}` : name];
+        })
+    );
+}

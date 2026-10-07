@@ -146,6 +146,11 @@ opens, with the note before it exists.
 You can also crystallize a book's highlights from Think and from the review of
 [a few things you marked](highlights-review.md): they cite their page the same way.
 
+With a canvas in the **Crystallizes thoughts** role, the note does not land at the vault root: the
+preview's button reads **Continue in «flow»** and that flow builds it, with the quote, the margin
+note and the `source::` line already at the top — see
+[Think → through your crystallize flow](../architecture/thought-lab.md#through-your-crystallize-flow).
+
 ## What it keeps, and where
 
 **Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no

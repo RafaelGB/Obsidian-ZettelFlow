@@ -72,6 +72,22 @@ describe("flows drawn as objects (#661)", () => {
         expect(select.value).toBe("create");
     });
 
+    it("lists the crystallize flow with its own tile and label, offers the role, and lets it go (#712)", () => {
+        const el = host();
+        const think: FlowWithRole = { path: "Flows/Think.canvas", role: "crystallize" };
+        const actions = { changeRole: jest.fn(), removeRole: jest.fn(), open: jest.fn() };
+        renderFlowRows(el, [think], actions);
+        const [row] = el.byClass("settings-flow");
+        expect(row.hasClass("zettelkasten-flow__settings-flow--crystallize")).toBe(true);
+        expect(row.byClass("settings-flow-tile")[0].getAttribute("data-icon")).toBe(FLOW_ROLE_ICON.crystallize);
+        const select = row.byClass("settings-flow-role")[0];
+        const labels = select.querySelectorAll("option").map((option) => option.textContent);
+        expect(labels).toContain("Crystallizes thoughts");
+        expect(select.value).toBe("crystallize");
+        row.byClass("settings-flow-remove")[0].click();
+        expect(actions.removeRole).toHaveBeenCalledWith(think);
+    });
+
     it("says so when nothing has a role", () => {
         const el = host();
         renderFlowRows(el, [], { changeRole: jest.fn(), removeRole: jest.fn(), open: jest.fn() });

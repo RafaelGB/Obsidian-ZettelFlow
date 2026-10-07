@@ -702,6 +702,19 @@
     }
 }
 
+// With the time bar at the foot, the legend and the hints rise above it: centred and 44rem wide, it
+// sat over the legend's last rows and the hints at any width short of a very wide pane.
+.zettelkasten-flow__explore:has(.zettelkasten-flow__explore-time) {
+    .zettelkasten-flow__explore-hints {
+        bottom: calc(var(--size-4-16) + var(--size-4-1));
+    }
+
+    .zettelkasten-flow__explore-overview {
+        bottom: calc(var(--size-4-16) + var(--size-4-8));
+        max-height: calc(55% - var(--size-4-12));
+    }
+}
+
 // ── time (#697): the vault's growth, and a cursor through it ─────────────────
 .zettelkasten-flow__explore .zettelkasten-flow__explore-time {
     position: absolute;

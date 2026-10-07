@@ -525,7 +525,7 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
                     cls: [c("cultivate-life-step"), ...(index < at ? [c("is-past")] : index === at ? [c("is-now")] : [])],
                 });
                 step.createSpan({ cls: c("cultivate-life-dot") });
-                step.createSpan({ text: t(STATE_LABEL_KEY[state]) });
+                step.createSpan({ cls: c("cultivate-life-label"), text: t(STATE_LABEL_KEY[state]) });
             });
         }
 

@@ -8,6 +8,11 @@ import { applyTransforms } from "dashboards/transform";
 import type { TransformStep } from "dashboards/transform";
 import { ComputedResolver } from "dashboards/base/scriptTransform";
 import { buildTaskView, parseTaskLine, type TaskItem } from "dashboards/panels";
+import { TFile } from "obsidian";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — the jest mock exposes a setter the real barrel does not
+import { __setMockObsidianApi } from "architecture";
+import { readTasks, __resetTaskCache } from "dashboards/base/taskSource";
 import { clearSamples, lastSample, measure, type Measurable } from "architecture/monitoring/measure";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
@@ -99,6 +104,34 @@ describe("the Base dashboard data path (#622)", () => {
         const view = buildTaskView(items, paths, { show: "open", group: true });
         expect(view.open + view.done).toBe(5_000);
         assertBudget("dashboard.tasks.1k", Date.now() - started);
+    });
+
+    it("dashboard.tasks.read.300", async () => {
+        __resetTaskCache();
+        const files = new Map<string, TFile>();
+        for (let i = 0; i < 300; i++) {
+            const f = new TFile();
+            f.path = `Daily/${i}.md`;
+            (f as unknown as { stat: { mtime: number; size: number } }).stat = { mtime: 1, size: 100 };
+            files.set(f.path, f);
+        }
+        const listItems = Array.from({ length: 5 }, (_, k) => ({ position: { start: { line: k } }, parent: -1, task: " " }));
+        const body = Array.from({ length: 5 }, (_, k) => `- [ ] task ${k}`).join("\n");
+        __setMockObsidianApi({
+            vault: {
+                getFileByPath: (path: string) => files.get(path) ?? null,
+                // A real read is I/O: a millisecond of it per note is what made one-at-a-time slow.
+                cachedRead: () => new Promise<string>((resolve) => setTimeout(() => resolve(body), 1)),
+            },
+            metadataCache: { getFileCache: () => ({ listItems }) },
+        });
+        const paths = [...files.keys()];
+        const started = Date.now();
+        const first = await readTasks(paths);
+        const second = await readTasks(paths); // the next update: nothing changed
+        expect(first).toHaveLength(1_500);
+        expect(second).toEqual(first);
+        assertBudget("dashboard.tasks.read.300", Date.now() - started);
     });
 
     it("dashboard.bundle.kb", () => {

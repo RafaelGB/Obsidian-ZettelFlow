@@ -274,6 +274,13 @@ export const BUDGETS = {
         because:
             "a computed field re-resolves off the render path on each data update; a cheap one must add negligible overhead vs the un-enriched normalize (#632, against the #452 ~103 ms 50k-derive baseline)",
     },
+    "dashboard.tasks.read.300": {
+        name: "read the tasks of a 300-note Base twice (1 ms of disk per note), as two updates do",
+        limit: 500,
+        measured: "244 ms",
+        because:
+            "a Base updates whenever one of its notes does, and the Tasks panel read every note again, one after another: 7,204 ms here before, 244 ms now (on Windows, whose timers round the simulated 1 ms up to ~12) — notes are read side by side and an unchanged note is never read twice",
+    },
     "dashboard.tasks.1k": {
         name: "parse and shape 5,000 tasks across 1,000 notes for a Tasks panel",
         limit: 250,

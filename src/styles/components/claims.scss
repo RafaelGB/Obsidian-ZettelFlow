@@ -22,11 +22,11 @@
     font-size: var(--font-ui-smaller);
 }
 
+/* Beside the move button in the card's foot, on its line — a top margin set it a step lower. */
 .zettelkasten-flow__cultivate-target-claim {
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-4-2);
-    margin-block-start: var(--size-4-1);
 }
 
 // Asked again (#562): two sentences meeting, neither of them marked as the better one.

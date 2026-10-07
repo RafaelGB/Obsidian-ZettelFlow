@@ -2,6 +2,7 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { App, TFile, moment as obsidianMoment, setIcon } from "obsidian";
 import type MomentFn from "moment";
 import { c, log, ObsidianApi } from "architecture";
+import { displayName } from "application/library/displayName";
 import { t, tCount } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
@@ -337,7 +338,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const first = thought.text.trim().split(/\r?\n/)[0] ?? "";
             const title = first.length > 80 ? `${first.slice(0, 79)}…` : first || t("home_left_thought_untitled");
             const line = thought.about
-                ? t("home_left_thought_about", basename(thought.about))
+                ? t("home_left_thought_about", displayName(thought.about, ObsidianApi.getOwnPlugin()?.settings.library))
                 : t("home_left_thought_line", moment(thought.at).fromNow());
             this.card(row, "lightbulb", t("home_left_thought"), title, line, () =>
                 void activateSurface(this.app, "zettelflow-home", "lab", thought.about ? { about: thought.about } : undefined)

@@ -17,7 +17,7 @@ import type { GlanceCard, GlanceSection, GlanceText } from "config/settingsSumma
 
 type LocaleKey = Parameters<typeof t>[0];
 
-export type SectionId = "flows" | "creating" | "knowledge" | "thinking" | "ai" | "automation" | "advanced";
+export type SectionId = "flows" | "creating" | "knowledge" | "thinking" | "reading" | "ai" | "automation" | "advanced";
 
 export interface SectionInfo {
     id: SectionId;
@@ -26,12 +26,13 @@ export interface SectionInfo {
     purposeKey: LocaleKey;
 }
 
-/** The seven sections, in the order the tab reads (#659): launch, create, know, think, then the rest. */
+/** The eight sections, in the order the tab reads (#659): launch, create, know, think, read (#732), then the rest. */
 export const SETTINGS_SECTIONS: readonly SectionInfo[] = [
     { id: "flows", icon: "workflow", titleKey: "settings_section_flows", purposeKey: "settings_section_flows_purpose" },
     { id: "creating", icon: "file-plus-2", titleKey: "settings_section_creating", purposeKey: "settings_section_creating_purpose" },
     { id: "knowledge", icon: "network", titleKey: "settings_section_knowledge", purposeKey: "settings_section_knowledge_purpose" },
     { id: "thinking", icon: "lightbulb", titleKey: "settings_section_thinking", purposeKey: "settings_section_thinking_purpose" },
+    { id: "reading", icon: "book-open", titleKey: "settings_section_reading", purposeKey: "settings_section_reading_purpose" },
     { id: "ai", icon: "sparkles", titleKey: "settings_section_ai", purposeKey: "settings_section_ai_purpose" },
     { id: "automation", icon: "zap", titleKey: "settings_section_automation", purposeKey: "settings_section_automation_purpose" },
     { id: "advanced", icon: "settings-2", titleKey: "settings_section_advanced", purposeKey: "settings_section_advanced_purpose" },

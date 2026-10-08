@@ -1,5 +1,6 @@
 import { Platform, type App, type WorkspaceLeaf } from "obsidian";
-import { READER_VIEW, type ReaderKind, type ReaderSidesState } from "./readerContract";
+import { READER_VIEW, type ReaderBack, type ReaderKind, type ReaderSidesState } from "./readerContract";
+import { LIBRARY_VIEW } from "architecture/components/core/library/libraryHost";
 import { collapseSides, restoreSides, snapshotSides, type SideLike } from "./readerWorkspace";
 
 /**
@@ -47,17 +48,23 @@ export interface ReaderRequest {
     name?: string;
     /** A PDF or an EPUB to read instead of a note (#681, #682); `seed` is then ignored. */
     source?: string;
+    /** Read in this leaf — the Library's own (#733): a camera move, never a new tab. */
+    leaf?: WorkspaceLeaf;
+    /** The Library's state to give the leaf back to on exit (#733). */
+    back?: ReaderBack;
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight, name, source } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     if (!held) {
         const s = sides(app);
         held = { sides: s ? snapshotSides(s.left, s.right) : null, leaf: workspace.getMostRecentLeaf() };
         if (s) collapseSides(s.left, s.right);
     }
-    const leaf = workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
+    // There is only one reader: read in the leaf you are given (the Library's), closing any other.
+    if (given) for (const other of workspace.getLeavesOfType(READER_VIEW)) if (other !== given) other.detach();
+    const leaf = given ?? workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
     // A source opened by its path — from the Library, its own menu, or Think's "Open in the Reader".
     const book = source ?? (/\.(pdf|epub)$/i.test(seed) ? seed : undefined);
     const state: Record<string, unknown> = book ? { source: book, chapter } : { seed, chapter };
@@ -65,6 +72,7 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     if (!book && paths && paths.length > 0) state.paths = paths;
     if (highlight) state.highlight = highlight;
     if (name) state.name = name;
+    if (back) state.back = back;
     await leaf.setViewState({ type: READER_VIEW, state, active: true });
     await workspace.revealLeaf(leaf);
 }
@@ -88,10 +96,14 @@ export function restoreWorkspace(app: App): void {
     if (alive) app.workspace.setActiveLeaf(leaf, { focus: true });
 }
 
-/** Leave the reader: close its leaf and give the workspace back. */
-export function exitReader(app: App, leaf: WorkspaceLeaf): void {
+/**
+ * Leave the reader and give the workspace back. A reading opened from the Library hands its leaf
+ * back to the Library as it was (#733); any other closes its leaf.
+ */
+export function exitReader(app: App, leaf: WorkspaceLeaf, back?: ReaderBack | null): void {
     restoreWorkspace(app);
-    leaf.detach();
+    if (back) void leaf.setViewState({ type: LIBRARY_VIEW, state: back, active: true });
+    else leaf.detach();
 }
 
 /** Test seam: forget any held snapshot. */

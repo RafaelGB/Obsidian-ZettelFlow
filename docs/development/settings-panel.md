@@ -1,11 +1,11 @@
 ---
-description: A visual tour of ZettelFlow's settings — the at-a-glance cards, the start card, and the seven sections (flows, creating notes, your knowledge, thinking, AI, automation, advanced), each with what it does and its default.
+description: A visual tour of ZettelFlow's settings — the at-a-glance cards, the start card, and the eight sections (flows, creating notes, your knowledge, thinking, reading, AI, automation, advanced), each with what it does and its default.
 ---
 
 # Settings, section by section
 
 Open **Settings → ZettelFlow**. The tab tells you who it is and what is on before it asks you
-anything. After that it reads as **seven sections**, organised by what you are doing rather than by
+anything. After that it reads as **eight sections**, organised by what you are doing rather than by
 when each feature was written. Every row is still found by Obsidian's own settings search.
 
 ![The ZettelFlow settings tab: a header, four at-a-glance cards, the section bar and the sections](../resources/settings/settings.svg)
@@ -128,6 +128,19 @@ you can launch. Without one it is just a file. See [your flows and their roles](
 | **Record conceptual snapshots** | A note's lifecycle state and claim texts over time. Because it stores note content it is opt-in, and turning it off clears what was captured. | Off |
 
 Nothing in this card ever leaves your vault.
+
+## Reading
+
+How a book opens from the [Library](library.md) and how the [Reader](reader.md) moves from one
+chapter to the next. ZettelFlow is filmed in [one continuous shot](../manifesto.md#one-continuous-shot):
+both choices are camera moves, never a cut.
+
+| Row | What it does | Default |
+|---|---|---|
+| **Opening a book** | *Camera shot*: the shelf zooms into the book, the cover opens on the page you were on, and that page becomes the Reader. Closing plays it backwards. *Instant*: the same places, no movement. | Camera shot |
+| **Changing chapter** | *Leaf turns* on the spine; *Keeps flowing*, where the chapter carries on up and the next one rises behind it; or *Sheet slides off* the stack. | Leaf turns |
+
+With your system's **reduced motion** on, both are instant whatever you pick.
 
 ## AI
 

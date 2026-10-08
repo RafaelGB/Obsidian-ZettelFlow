@@ -80,14 +80,14 @@ const REPLACED: Record<string, string> = {
 };
 
 /**
- * The tab reads as seven sections (#660, epic #659), each opened by a head with its icon and
+ * The tab reads as eight sections (#660, epic #659; Reading since #732), each opened by a head with its icon and
  * purpose: what you launch, how notes are built, what counts as knowledge, how thinking behaves,
  * then AI, automation and the folded internals. The order is part of the answer.
  */
-describe("the settings tab is seven sections (#660)", () => {
+describe("the settings tab is eight sections (#660, #732)", () => {
     it("draws the sections in the order the epic decided", () => {
         expect(sectionOrder()).toEqual(SETTINGS_SECTIONS.map((section) => section.id));
-        expect(sectionOrder()).toEqual(["flows", "creating", "knowledge", "thinking", "ai", "automation", "advanced"]);
+        expect(sectionOrder()).toEqual(["flows", "creating", "knowledge", "thinking", "reading", "ai", "automation", "advanced"]);
     });
 
     it("says who it is and what is on before the first section asks anything", () => {

@@ -14,10 +14,13 @@ import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
-import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
+import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
-import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
+import { MOTION, motionWelcome } from "./readerMotion";
+import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
+import { endChapterTurn, playChapterTurn } from "./readerTurn";
+import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
@@ -193,6 +196,8 @@ export class ReaderView extends ItemView {
     private turn: 1 | -1 | 0 = 0;
     /** The leaving fade is playing; a second Esc or × does not start another. */
     private leaving = false;
+    /** Opened from the Library in its leaf (#733): the shelf to give the leaf back to. Never cleared. */
+    private back: ReaderBack | null = null;
     /** The keyboard shortcuts sheet, while it is open. */
     private shortcuts: HTMLElement | null = null;
     /** Highlights and margin notes (#671): drawn over each chapter, kept as thoughts in Think. */
@@ -315,6 +320,7 @@ export class ReaderView extends ItemView {
                 chapter: this.index,
                 ...(this.sourceLayout === "page" ? { layout: "page" } : {}),
                 ...(sides ? { restore: sides } : {}),
+                ...(this.back ? { back: this.back } : {}),
             };
         }
         return {
@@ -328,6 +334,7 @@ export class ReaderView extends ItemView {
             ...(this.paths ? { paths: this.paths } : {}),
             ...(this.name ? { name: this.name } : {}),
             ...(sides ? { restore: sides } : {}),
+            ...(this.back ? { back: this.back } : {}),
         };
     }
 
@@ -335,6 +342,8 @@ export class ReaderView extends ItemView {
         await super.setState(state, result);
         const parsed = parseReaderState(state);
         if (parsed.restore) adoptHeldSides(parsed.restore);
+        // Kept when another note is read in the same leaf: the leaf is still the Library's.
+        if (parsed.back) this.back = parsed.back;
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.source) {
             await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
@@ -470,8 +479,13 @@ export class ReaderView extends ItemView {
 
     async onOpen(): Promise<void> {
         this.buildShell();
-        // The cover clicked on the shelf opens into this page, before anything else moves (#724).
-        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
+        // The end of a shot from the Library (#734): out of sight until the page lands on the column.
+        if (this.root && shotIncoming()) {
+            const root = this.root;
+            root.addClass(c("reader--in-shot"));
+            // Whatever happens to the shot, the Reader is never left invisible.
+            window.setTimeout(() => root.removeClass(c("reader--in-shot")), MOTION.shotPatience + MOTION.shotLand);
+        }
         this.contentEl.setAttribute("tabindex", "-1");
         this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
         // A reading restored before the index is ready is read as soon as the model is built.
@@ -484,6 +498,7 @@ export class ReaderView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
+        endChapterTurn();
         this.leaveSource();
         this.highlights?.dispose();
         this.chapter?.unload();
@@ -596,9 +611,9 @@ export class ReaderView extends ItemView {
     private applyPrefs(): void {
         if (!this.root) return;
         const { plugin, obsidian } = readerClassNames(this.prefs);
-        const idle = this.root.hasClass?.(c("reader--idle")) ?? false;
-        const fromCover = this.root.hasClass?.(c("reader--from-cover")) ?? false;
-        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...(idle ? [c("reader--idle")] : []), ...(fromCover ? [c("reader--from-cover")] : [])].join(" ");
+        // A shot's states survive a change of type or theme: taking them off would replay an entrance.
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
     private savePrefs(next: ReaderPrefs): void {
@@ -693,6 +708,7 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        this.turnFrom(page);
         page.empty();
         this.turnPage(page);
         this.chapterWords = 0;
@@ -733,6 +749,7 @@ export class ReaderView extends ItemView {
         if (generation !== this.generation) return;
         this.chapterWords = wordCount(body.textContent ?? "");
         this.seenWords.set(this.index, this.chapterWords);
+        this.landShot();
         this.watchFocus(body, component);
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
@@ -790,15 +807,23 @@ export class ReaderView extends ItemView {
     }
 
     /**
-     * The page turns the way you went (#667): forward slides in from the right, back from the left,
-     * a reading that just opened rises. The same element is reused, so the class is taken off and
-     * the box read once — that restarts the animation instead of leaving it finished.
+     * A chapter changes physically (#735): the page you were on is laid over the stage as a sheet and
+     * leaves the way Settings → Reading says, before this page is emptied for the next one.
+     */
+    private turnFrom(page: HTMLElement): void {
+        if (this.turn === 0 || !this.root || !this.els) return;
+        playChapterTurn(this.root, this.els.stage, page, readingMotion(this.plugin?.settings?.readingMotion).chapter, this.turn > 0 ? 1 : -1);
+    }
+
+    /**
+     * A reading that just opened rises (#667); a turned chapter is already there under its sheet. The
+     * same element is reused, so the class is taken off and the box read once — that restarts the
+     * animation instead of leaving it finished.
      */
     private turnPage(page: HTMLElement): void {
-        const turns = [c("reader-page--forward"), c("reader-page--back"), c("reader-page--enter")];
-        page.removeClass(...turns);
+        page.removeClass(c("reader-page--enter"));
         void page.offsetWidth;
-        page.addClass(this.turn > 0 ? turns[0] : this.turn < 0 ? turns[1] : turns[2]);
+        if (this.turn === 0) page.addClass(c("reader-page--enter"));
         this.turn = 0;
     }
 
@@ -1107,8 +1132,6 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
-        // The cover's entrance is over: the next chapter turns as chapters do.
-        this.root?.removeClass(c("reader--from-cover"));
         this.samplePace();
         this.pending = null;
         this.detours = [];
@@ -1140,6 +1163,13 @@ export class ReaderView extends ItemView {
         this.show(next);
     }
 
+    /** The shot from the Library, landed on the page just drawn — once; a Reader with no shot is simply shown. */
+    private landShot(): void {
+        if (!this.root || !this.els) return;
+        if (!this.root.hasClass?.(c("reader--in-shot")) && !shotIncoming()) return;
+        void landOpenShot(this.root, this.els.stage, this.els.page);
+    }
+
     /** The next chapter — the palette's *Reader: next chapter*, and →. */
     nextChapter(): void {
         this.go(1);
@@ -1159,12 +1189,17 @@ export class ReaderView extends ItemView {
         if (this.leaving) return;
         this.leaving = true;
         const root = this.root;
+        // Opened from the Library: the shot back to the book on its shelf (#734).
+        if (root && this.els && this.back && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") {
+            const back = this.back;
+            if (beginCloseShot(root, this.els.stage, this.els.page, String(back.focus ?? ""), () => exitReader(this.app, this.leaf, back))) return;
+        }
         if (!root || !this.motionAllowed()) {
-            exitReader(this.app, this.leaf);
+            exitReader(this.app, this.leaf, this.back);
             return;
         }
         root.addClass(c("reader--leaving"));
-        window.setTimeout(() => exitReader(this.app, this.leaf), EXIT_MS);
+        window.setTimeout(() => exitReader(this.app, this.leaf, this.back), EXIT_MS);
     }
 
     // ── the end of a path (#672) ─────────────────────────────────────────────
@@ -1292,7 +1327,7 @@ export class ReaderView extends ItemView {
 
     /** Hand the thesis to Cultivate, giving the workspace back first. */
     private cultivateThesis(thesis: string): void {
-        exitReader(this.app, this.leaf);
+        exitReader(this.app, this.leaf, this.back);
         void activateSurface(this.app, "zettelflow-home", "cultivate", { target: thesis });
     }
 
@@ -1337,6 +1372,7 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        this.turnFrom(page);
         page.empty();
         this.turnPage(page);
         this.chapterWords = 0;
@@ -1387,8 +1423,6 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
-        // A Reader already open when the cover was clicked: the flight plays once the page is drawn.
-        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
         // Back from a jump lands on the very line it left (#718).
         if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;
@@ -1402,6 +1436,8 @@ export class ReaderView extends ItemView {
                 if (generation === this.generation) stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
             }, RESUME_SETTLE_MS);
         }
+        // The shot from the Library lands here: the page is drawn, and at your place (#734).
+        this.landShot();
         // An open search tints its matches in every chapter it lands on (#719).
         if (this.searchEl) this.markSearch();
         this.onStageScroll();
@@ -1803,11 +1839,13 @@ export class ReaderView extends ItemView {
                 },
                 actions: {
                     library: () => {
+                        // From the Library: its own leaf comes back, on this book's detail (#733).
+                        if (this.back) return exitReader(this.app, this.leaf, { ...this.back, detail: path });
                         exitReader(this.app, this.leaf);
                         void openLibrary(this.app, path);
                     },
                     think: () => {
-                        exitReader(this.app, this.leaf);
+                        exitReader(this.app, this.leaf, this.back);
                         void activateSurface(this.app, "zettelflow-home", "lab", { about: path });
                     },
                     again: () => this.show(0),

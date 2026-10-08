@@ -289,17 +289,15 @@ describe("progress and minutes left (#667)", () => {
         expect(content.oneByClass("reader-next-minutes").textContent).toBe("1 minute");
     });
 
-    it("turns the page the way you went", async () => {
+    it("rises when a reading opens; a turned chapter is simply there, under its sheet (#735)", async () => {
         const { content, leaf } = await open();
         const page = content.oneByClass("reader-page");
         expect(page.hasClass("zettelkasten-flow__reader-page--enter")).toBe(true);
         press(leaf, "ArrowRight");
         await flush();
-        expect(page.hasClass("zettelkasten-flow__reader-page--forward")).toBe(true);
-        press(leaf, "ArrowLeft");
-        await flush();
-        expect(page.hasClass("zettelkasten-flow__reader-page--back")).toBe(true);
-        expect(page.hasClass("zettelkasten-flow__reader-page--forward")).toBe(false);
+        // No slide and no dissolve: the physical turn is a sheet over the stage (none here, no motion).
+        expect(page.hasClass("zettelkasten-flow__reader-page--enter")).toBe(false);
+        expect(content.byClass("turn-sheet")).toHaveLength(0);
     });
 });
 

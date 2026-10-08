@@ -17,6 +17,7 @@ import { rememberedSettingsGroup } from "./handlers/rememberedSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
 import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
+import { readingSettingsGroup } from "./handlers/readingSettingsGroup";
 import { settingsGlance } from "config/settingsSummary";
 import {
     SETTINGS_SECTIONS,
@@ -131,6 +132,10 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             rememberedSettingsGroup(plugin),
 
             // ── 5 · AI (optional, off by default): one switch, and the provider only when it is on ──
+            // ── 5 · Reading: how a book opens and how a chapter turns (#732, epic #729) ─────────
+            this.sectionHead("reading"),
+            readingSettingsGroup(plugin),
+
             this.sectionHead("ai"),
             aiSettingsGroup(plugin, () => this.changedInPlace()),
 

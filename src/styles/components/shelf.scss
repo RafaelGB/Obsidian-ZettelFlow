@@ -917,3 +917,8 @@ button.zettelkasten-flow__notebook-action {
         animation: none;
     }
 }
+
+/* The book is in the closing shot's hands until it is back on the shelf (#734). */
+.zettelkasten-flow__shelf-cover.zettelkasten-flow__shelf-cover--in-shot {
+    visibility: hidden;
+}

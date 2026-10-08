@@ -148,31 +148,9 @@
     padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
 }
 
-/* The page turns the way you went: forward from the right, back from the left, a new reading rises. */
-.zettelkasten-flow__reader-page--forward {
-    animation: zf-reader-turn-forward 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-.zettelkasten-flow__reader-page--back {
-    animation: zf-reader-turn-back 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
+/* A reading that just opened rises. A chapter that turns is already under its sheet (#735). */
 .zettelkasten-flow__reader-page--enter {
     animation: zf-reader-rise 0.45s ease both;
-}
-
-@keyframes zf-reader-turn-forward {
-    from {
-        opacity: 0;
-        transform: translateX(var(--size-4-8));
-    }
-}
-
-@keyframes zf-reader-turn-back {
-    from {
-        opacity: 0;
-        transform: translateX(calc(var(--size-4-8) * -1));
-    }
 }
 
 @keyframes zf-reader-rise {
@@ -183,8 +161,6 @@
 }
 
 /* The chapter opener arrives in order: the count, the role, the title, then the words. */
-.zettelkasten-flow__reader-page--forward,
-.zettelkasten-flow__reader-page--back,
 .zettelkasten-flow__reader-page--enter {
     > .zettelkasten-flow__reader-count,
     > .zettelkasten-flow__reader-role,
@@ -1052,33 +1028,221 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     animation: zf-reader-note-in $motion-fast $ease-out both;
 }
 
-/* The cover opens into the page (#724): one gesture. The Reader's own entrance is held back while
-   it plays, and the text fades in beneath the cover as it gives way — nothing else moves. */
-.zettelkasten-flow__reader.zettelkasten-flow__reader--from-cover {
+/* ── One continuous shot (#734, epic #729; constitution §XVI) ──────────────────────────────────
+   The camera films a rig over the window: a copy of the shelf and a book whose page is the Reader's
+   page. The Reader itself waits out of sight until the page lands on its column, then its title line
+   and bar arrive. Transform and opacity only; opacity never on a 3D parent (it flattens the scene). */
+.zettelkasten-flow__reader.zettelkasten-flow__reader--in-shot {
+    opacity: 0;
     animation: none;
 }
 
-.zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page,
-.zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page > * {
-    animation: zf-reader-from-cover $motion-base $ease-out 220ms both;
+.zettelkasten-flow__reader.zettelkasten-flow__reader--arrived {
+    animation: none;
 }
 
-@keyframes zf-reader-from-cover {
+.zettelkasten-flow__reader--arrived {
+    .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-bar {
+        animation: zf-reader-arrive $motion-base $ease-out both;
+    }
+}
+
+@keyframes zf-reader-arrive {
     from {
         opacity: 0;
-        translate: 0 var(--size-4-2);
     }
 }
 
-.zettelkasten-flow__motion-cover {
-    z-index: 8;
-    box-shadow: var(--shadow-l);
+.zettelkasten-flow__shot {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-popover);
+    pointer-events: none;
+    overflow: hidden;
+}
 
-    // A copy of a cover already shown: its picture must not fade in again, as it did on the shelf.
-    // Two classes: shelf.scss loads later and its own `.shelf-cover-image` rule would win a tie.
-    &.zettelkasten-flow__motion-ghost * {
-        animation: none;
-    }
+/* Nothing copied into the shot moves on its own: a cover's picture must not fade in again. Two
+   classes, so shelf.scss — which loads later — cannot win a tie. */
+.zettelkasten-flow__shot.zettelkasten-flow__shot * {
+    animation: none;
+    transition: none;
+}
+
+.zettelkasten-flow__shot-camera {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+}
+
+.zettelkasten-flow__shot-scene,
+.zettelkasten-flow__shot-backdrop,
+.zettelkasten-flow__shot-book {
+    position: absolute;
+    left: var(--zf-shot-x);
+    top: var(--zf-shot-y);
+    width: var(--zf-shot-w);
+    height: var(--zf-shot-h);
+}
+
+.zettelkasten-flow__shot-scene {
+    overflow: hidden;
+}
+
+.zettelkasten-flow__shot-backdrop {
+    background-color: var(--zf-shot-paper, var(--background-primary));
+}
+
+.zettelkasten-flow__shot-fill {
+    width: 100%;
+    height: 100%;
+}
+
+.zettelkasten-flow__shot-book {
+    perspective: var(--zf-shot-depth);
+    transform-style: preserve-3d;
+}
+
+.zettelkasten-flow__shot-page {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background-color: var(--zf-shot-paper, var(--background-primary));
+}
+
+.zettelkasten-flow__shot-inner {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--zf-shot-pw);
+    transform-origin: 0 0;
+    transform: scale(var(--zf-shot-k)) translateY(var(--zf-shot-dy));
+}
+
+/* The reader's own classes (its theme, its type) around the copied page — but not its frame. */
+.zettelkasten-flow__shot .zettelkasten-flow__reader.zettelkasten-flow__shot-reader {
+    position: relative;
+    inset: auto;
+    background-color: transparent;
+}
+
+.zettelkasten-flow__shot-edge {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--shadow-l);
+}
+
+.zettelkasten-flow__shot-lid {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+}
+
+.zettelkasten-flow__shot-lid--waiting,
+.zettelkasten-flow__shot-edge--waiting {
+    visibility: hidden;
+}
+
+.zettelkasten-flow__shot-front,
+.zettelkasten-flow__shot-back {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    backface-visibility: hidden;
+}
+
+.zettelkasten-flow__shot-back {
+    transform: rotateY(180deg);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+/* The inside of the cover settles into the reader's margin as the camera lands. */
+.zettelkasten-flow__shot-wash {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background-color: var(--zf-shot-paper, var(--background-primary));
+}
+
+/* ── A chapter changes physically (#735) ────────────────────────────────────────────────────────
+   The page you were on, laid over the stage as a sheet of paper; it leaves as a leaf, keeps flowing
+   or slides off. Placed exactly where the stage is, and only what was on screen is in it. */
+.zettelkasten-flow__turn-sheet,
+.zettelkasten-flow__turn-shade {
+    position: absolute;
+    inset: var(--size-4-12) 0 var(--size-4-18) 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__turn-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background-color: var(--reader-bg);
+}
+
+.zettelkasten-flow__turn-sheet.zettelkasten-flow__turn-sheet * {
+    animation: none;
+    transition: none;
+}
+
+.zettelkasten-flow__turn-sheet--spine-left {
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__turn-sheet--spine-right {
+    transform-origin: right center;
+}
+
+.zettelkasten-flow__turn-sheet--stack .zettelkasten-flow__turn-clip {
+    box-shadow: var(--shadow-l);
+}
+
+.zettelkasten-flow__turn-block {
+    position: absolute;
+    left: var(--zf-turn-x);
+    top: var(--zf-turn-y);
+    width: var(--zf-turn-w);
+    height: var(--zf-turn-h, auto);
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* The turned page's shadow on the one beneath, lifting as it goes. */
+.zettelkasten-flow__turn-shade {
+    background-color: var(--background-modifier-cover);
+}
+
+.zettelkasten-flow__turn-shade--none {
+    visibility: hidden;
+}
+
+/* The seam between two chapters that flow into each other. */
+.zettelkasten-flow__turn-seam {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--size-4-16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__turn-seam--below {
+    top: 100%;
+}
+
+.zettelkasten-flow__turn-seam--above {
+    bottom: 100%;
 }
 
 /* A ghost of a kept passage settling into its card in the margin (#724), and any flown copy. */
@@ -1326,8 +1490,10 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
     .zettelkasten-flow__reader-hl-pop,
-    .zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page,
-    .zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page > * {
+    .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-bar {
         animation: none;
     }
 

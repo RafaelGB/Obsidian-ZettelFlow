@@ -17,6 +17,8 @@ import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architectu
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
+import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
+import { chapterText, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
 import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
@@ -56,6 +58,10 @@ const DOTS_LIMIT = 40;
 const EXIT_MS = 220;
 /** How long the way back from a jump stays on screen before it fades (#718); Alt+← keeps working. */
 const JUMP_PILL_MS = 8000;
+/** A pause in typing before the book is searched (#719). */
+const SEARCH_DEBOUNCE_MS = 150;
+/** Results listed under the search bar; the bar counts them all. */
+const SEARCH_LIST_LIMIT = 60;
 
 /**
  * The keys, as the shortcuts sheet lists them. A cap is a locale key (a word: Space, Esc) or the
@@ -71,6 +77,8 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["F"], label: "reader_key_fullscreen" },
     { keys: ["V"], label: "reader_key_layout" },
+    { keys: ["reader_kbd_mod", "F"], label: "reader_key_search" },
+    { keys: ["reader_kbd_alt", "←"], label: "reader_key_back" },
     { keys: ["?"], label: "reader_key_help" },
     { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
 ];
@@ -82,6 +90,8 @@ const KBD_KEY: Record<string, LocaleKey> = {
     reader_kbd_home: "reader_kbd_home",
     reader_kbd_end: "reader_kbd_end",
     reader_kbd_esc: "reader_kbd_esc",
+    reader_kbd_mod: "reader_kbd_mod",
+    reader_kbd_alt: "reader_kbd_alt",
 };
 
 /** Whether a key went to something you type in — a margin note, a save name — and is not ours. */
@@ -156,6 +166,8 @@ export class ReaderView extends ItemView {
         minutes: HTMLElement;
         /** Page view ↔ reading view, shown for a PDF that has text (#681). */
         layout: HTMLElement;
+        /** Search inside the book (#719), shown for a book or a paper. */
+        search: HTMLElement;
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
@@ -209,6 +221,20 @@ export class ReaderView extends ItemView {
     /** The footnote read in place (#718), and its listeners. */
     private notePop: HTMLElement | null = null;
     private notePopScope: Component | null = null;
+    /** Search inside the book (#719): the bar, the book's text read once, and the results. */
+    private searchEl: HTMLElement | null = null;
+    private searchInput: HTMLInputElement | null = null;
+    private searchCount: HTMLElement | null = null;
+    private searchList: HTMLElement | null = null;
+    private searchScope: Component | null = null;
+    private searchTexts: string[] | null = null;
+    private searchBuilding: Promise<string[] | null> | null = null;
+    private searchResult: SearchResult | null = null;
+    private searchAt = -1;
+    private searchMarks: HTMLElement[] = [];
+    /** The next drawn chapter brings the current match into view. */
+    private searchReveal = false;
+    private searchTimer: number | undefined;
     /** The reading is over and its end card is on screen (#672). */
     private ended = false;
     /** When this reading began, for the end card's minutes. */
@@ -379,6 +405,9 @@ export class ReaderView extends ItemView {
 
     /** Close the source being read, before another reading takes its place. */
     private leaveSource(): void {
+        this.closeSearch();
+        this.searchTexts = null;
+        this.searchBuilding = null;
         this.sourceGeneration++;
         this.source?.close();
         this.source = null;
@@ -501,6 +530,8 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
         this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
+        const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
+        search.addClass(c("reader-hidden"));
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const layout = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleLayout());
@@ -509,7 +540,7 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout, search };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -566,6 +597,7 @@ export class ReaderView extends ItemView {
         }
         const pageView = this.sourceLayout === "page";
         els.layout.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
+        els.search.toggleClass(c("reader-hidden"), !this.sourcePath);
         els.layout.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
         els.layout.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
         els.layout.setAttribute("aria-pressed", String(pageView));
@@ -1251,6 +1283,8 @@ export class ReaderView extends ItemView {
             stage.scrollTop = this.pendingTop;
             this.pendingTop = null;
         }
+        // An open search tints its matches in every chapter it lands on (#719).
+        if (this.searchEl) this.markSearch();
         this.onStageScroll();
         this.watchFocus(body, component);
         // The highlights of this page or chapter, found again by their words (#681).
@@ -1350,6 +1384,215 @@ export class ReaderView extends ItemView {
         scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment));
         this.notePop = pop;
         this.notePopScope = scope;
+    }
+
+    // ── search inside the book (#719) ───────────────────────────────────────
+
+    /** Ctrl/Cmd+F or the bar's search: a slim bar under the top, focused. Books and papers only. */
+    private openSearch(): boolean {
+        if (!this.sourcePath || !this.root) return false;
+        if (this.searchEl) {
+            this.searchInput?.focus();
+            this.searchInput?.select();
+            return true;
+        }
+        const scope = new Component();
+        scope.load();
+        this.searchScope = scope;
+        const bar = this.root.createDiv({ cls: c("reader-search"), attr: { role: "search" } });
+        const row = bar.createDiv({ cls: c("reader-search-row") });
+        setIcon(row.createSpan({ cls: c("reader-search-icon") }), "search");
+        const input = row.createEl("input", {
+            cls: c("reader-search-input"),
+            attr: { type: "search", placeholder: t("reader_search_placeholder"), "aria-label": t("reader_search") },
+        });
+        const count = row.createSpan({ cls: c("reader-search-count"), attr: { "aria-live": "polite" } });
+        const button = (icon: string, key: LocaleKey, run: () => void) => {
+            const el = row.createEl("button", { cls: ["clickable-icon", c("reader-search-button")].join(" "), attr: { type: "button", "aria-label": t(key) } });
+            setIcon(el, icon);
+            scope.registerDomEvent(el, "click", run);
+        };
+        button("chevron-up", "reader_search_previous", () => this.stepSearch(-1));
+        button("chevron-down", "reader_search_next", () => this.stepSearch(1));
+        button("x", "reader_search_close", () => this.closeSearch());
+        const list = bar.createDiv({ cls: c("reader-search-results") });
+        scope.registerDomEvent(input, "input", () => {
+            const win = this.root?.win ?? window;
+            win.clearTimeout(this.searchTimer);
+            this.searchTimer = win.setTimeout(() => void this.runSearch(), SEARCH_DEBOUNCE_MS);
+        });
+        scope.registerDomEvent(input, "keydown", (event: KeyboardEvent) => {
+            if (event.isComposing) return;
+            if (event.key === "Enter") {
+                event.preventDefault();
+                this.stepSearch(event.shiftKey ? -1 : 1);
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                this.stepSearch(event.key === "ArrowUp" ? -1 : 1);
+            } else if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeSearch();
+            }
+        });
+        this.searchEl = bar;
+        this.searchInput = input;
+        this.searchCount = count;
+        this.searchList = list;
+        input.focus?.();
+        void this.ensureSearchIndex();
+        return true;
+    }
+
+    /** The book's text, read once per reading, chapter by chapter, yielding so the page never freezes. */
+    private ensureSearchIndex(): Promise<string[] | null> {
+        if (this.searchTexts) return Promise.resolve(this.searchTexts);
+        if (this.searchBuilding) return this.searchBuilding;
+        const doc = this.source;
+        const root = this.root;
+        if (!doc || !root || doc.imageOnly) return Promise.resolve(null);
+        const generation = this.sourceGeneration;
+        this.searchCount?.setText(t("reader_search_reading"));
+        this.searchBuilding = (async () => {
+            const texts: string[] = [];
+            const win = root.win ?? window;
+            for (let i = 0; i < doc.chapters.length; i++) {
+                // Drawn aside, as the page draws it, so a match's offsets are the page's own.
+                const scratch = root.createDiv();
+                scratch.remove();
+                const scope = new Component();
+                scope.load();
+                try {
+                    await doc.draw(i, scratch, scope, "reading");
+                    // The text the highlights see; where the walker finds no text node, what it reads.
+                    texts.push(chapterText(scratch) || (scratch.textContent ?? ""));
+                } catch (error) {
+                    log.debug(`[Reader] chapter ${i} cannot be read for search: ${String(error)}`);
+                    texts.push("");
+                } finally {
+                    scope.unload();
+                }
+                if (generation !== this.sourceGeneration) return null;
+                if (i % 4 === 3) await new Promise<void>((resolve) => win.setTimeout(resolve, 0));
+            }
+            this.searchTexts = texts;
+            return texts;
+        })();
+        return this.searchBuilding;
+    }
+
+    private async runSearch(): Promise<void> {
+        const query = this.searchInput?.value ?? "";
+        const texts = await this.ensureSearchIndex();
+        if (!this.searchEl || query !== (this.searchInput?.value ?? "")) return;
+        if (!texts) {
+            this.searchCount?.setText(t(this.source?.imageOnly ? "reader_search_scan" : "reader_search_unavailable"));
+            return;
+        }
+        this.searchResult = searchBook(texts, query);
+        this.searchAt = -1;
+        this.renderSearch();
+        this.markSearch();
+    }
+
+    /** The count and the list of results, each with its snippet and the source's own label. */
+    private renderSearch(): void {
+        const list = this.searchList;
+        const count = this.searchCount;
+        const scope = this.searchScope;
+        const result = this.searchResult;
+        if (!list || !count || !scope) return;
+        list.empty();
+        const query = (this.searchInput?.value ?? "").trim();
+        if (!result || result.matches.length === 0) {
+            count.setText(query.length < 2 ? "" : t("reader_search_none"));
+            return;
+        }
+        const total = result.matches.length;
+        const found = `${tCount(total, "reader_search_results", String(total))} · ${tCount(result.chapters, "reader_search_in_chapters", String(result.chapters))}`;
+        count.setText(this.searchAt >= 0 ? `${t("reader_search_current", String(this.searchAt + 1), String(total))} · ${found}` : found);
+        result.matches.slice(0, SEARCH_LIST_LIMIT).forEach((match, i) => {
+            const row = list.createEl("button", {
+                cls: [c("reader-search-result"), ...(i === this.searchAt ? [c("reader-search-result--current")] : [])].join(" "),
+                attr: { type: "button" },
+            });
+            row.createDiv({ cls: c("reader-search-where"), text: this.sourceLabel(match.chapter) });
+            const snippet = row.createDiv({ cls: c("reader-search-snippet") });
+            snippet.createSpan({ text: match.before });
+            snippet.createSpan({ cls: c("reader-search-snippet-hit"), text: match.match });
+            snippet.createSpan({ text: match.after });
+            scope.registerDomEvent(row, "click", () => this.goToMatch(i));
+        });
+    }
+
+    private goToMatch(i: number): void {
+        const match = this.searchResult?.matches[i];
+        if (!match) return;
+        this.searchAt = i;
+        this.renderSearch();
+        this.searchReveal = true;
+        // A match in another chapter is a jump, with its way back (#718).
+        if (match.chapter !== this.index) this.jumpTo(match.chapter);
+        else this.markSearch();
+    }
+
+    /** Enter / Shift+Enter: the next match from where you are, wrapping round the book. */
+    private stepSearch(direction: 1 | -1): void {
+        const matches = this.searchResult?.matches ?? [];
+        if (matches.length === 0) return;
+        let next: number;
+        if (this.searchAt < 0) {
+            const ahead = matches.findIndex((match) => match.chapter >= this.index);
+            next = direction > 0 ? (ahead < 0 ? 0 : ahead) : ahead <= 0 ? matches.length - 1 : ahead - 1;
+        } else {
+            next = (this.searchAt + direction + matches.length) % matches.length;
+        }
+        this.goToMatch(next);
+    }
+
+    /** Tint every match in the chapter on screen; outline the current one and bring it into view. */
+    private markSearch(): void {
+        this.unmarkSearch();
+        const body = this.els?.page.querySelector<HTMLElement>(`.${c("reader-source-body")}`);
+        const result = this.searchResult;
+        if (!body || !result || result.matches.length === 0) return;
+        const query = this.searchInput?.value ?? "";
+        const here = result.matches.filter((match) => match.chapter === this.index);
+        const current = this.searchAt >= 0 ? result.matches[this.searchAt] : null;
+        const spans = matchesIn(chapterText(body), query);
+        // Last first: wrapping a later match never moves the offsets of an earlier one.
+        let currentMark: HTMLElement | null = null;
+        for (let k = spans.length - 1; k >= 0; k--) {
+            const isCurrent = current !== null && current.chapter === this.index && here[k]?.start === current.start;
+            const marks = wrapSpan(body, spans[k], () => {
+                const mark = body.createSpan({ cls: [c("reader-search-hit"), ...(isCurrent ? [c("reader-search-hit--current")] : [])].join(" ") });
+                mark.remove();
+                return mark;
+            }) as unknown as HTMLElement[];
+            this.searchMarks.push(...marks);
+            if (isCurrent && marks[0]) currentMark = marks[0];
+        }
+        if (currentMark && this.searchReveal) this.scrollToEl(currentMark);
+        this.searchReveal = false;
+    }
+
+    private unmarkSearch(): void {
+        for (const mark of this.searchMarks) unwrapMark(mark);
+        this.searchMarks = [];
+    }
+
+    private closeSearch(): void {
+        (this.root?.win ?? window).clearTimeout(this.searchTimer);
+        this.unmarkSearch();
+        this.searchEl?.remove();
+        this.searchEl = null;
+        this.searchInput = null;
+        this.searchCount = null;
+        this.searchList = null;
+        this.searchScope?.unload();
+        this.searchScope = null;
+        this.searchResult = null;
+        this.searchAt = -1;
     }
 
     private closeNote(): void {
@@ -1586,6 +1829,8 @@ export class ReaderView extends ItemView {
         bind(none, "Escape", taken(() => this.escape()));
         // Back from a jump inside a book (#718); with nowhere to go back to, Obsidian keeps the key.
         bind(["Alt"], "ArrowLeft", () => this.backFromJump());
+        // Search inside the book (#719); in a note reading the key stays Obsidian's.
+        bind(["Mod"], "F", () => this.openSearch());
     }
 
     /** Esc: one thing at a time, nearest first — then the reader itself. */
@@ -1596,6 +1841,10 @@ export class ReaderView extends ItemView {
         }
         if (this.notePop) {
             this.closeNote();
+            return;
+        }
+        if (this.searchEl) {
+            this.closeSearch();
             return;
         }
         if (this.highlights?.hasPopover()) {

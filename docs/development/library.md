@@ -118,6 +118,12 @@ contents, nested as the book nests them.
 - **Footnotes are read in place.** Click a footnote mark and the note floats over the page, at the
   mark. That works for a note in the chapter and for an endnote at the back of the book. The page
   does not move; Esc or a click elsewhere puts it away, and **Go to note** goes there.
+- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens a slim bar under the top.
+  It searches every chapter or page, ignoring case and accents, and says *N results · in M chapters*,
+  each with its snippet and its page or chapter. **Enter** and **Shift+Enter** step through them; the
+  matches are tinted in the page and the current one is outlined. A match in another chapter is a
+  jump, with its way back. **Esc** closes the search and takes every tint away. A scan says it has
+  no text to search.
 - **Every jump has a way back.** A cross-reference, **Go to note** or a **Contents** entry moves you,
   and a **← Back to …** pill shows where you came from. Click it, or press **Alt+←**, to return to
   the very line. The pill fades by itself after a few seconds; Alt+← keeps working until your next

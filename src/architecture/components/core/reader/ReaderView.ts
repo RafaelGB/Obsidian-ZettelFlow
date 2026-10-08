@@ -470,6 +470,8 @@ export class ReaderView extends ItemView {
 
     async onOpen(): Promise<void> {
         this.buildShell();
+        // The cover clicked on the shelf opens into this page, before anything else moves (#724).
+        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
         this.contentEl.setAttribute("tabindex", "-1");
         this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
         // A reading restored before the index is ready is read as soon as the model is built.
@@ -595,7 +597,8 @@ export class ReaderView extends ItemView {
         if (!this.root) return;
         const { plugin, obsidian } = readerClassNames(this.prefs);
         const idle = this.root.hasClass?.(c("reader--idle")) ?? false;
-        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...(idle ? [c("reader--idle")] : [])].join(" ");
+        const fromCover = this.root.hasClass?.(c("reader--from-cover")) ?? false;
+        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...(idle ? [c("reader--idle")] : []), ...(fromCover ? [c("reader--from-cover")] : [])].join(" ");
     }
 
     private savePrefs(next: ReaderPrefs): void {
@@ -1104,6 +1107,8 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
+        // The cover's entrance is over: the next chapter turns as chapters do.
+        this.root?.removeClass(c("reader--from-cover"));
         this.samplePace();
         this.pending = null;
         this.detours = [];
@@ -1382,8 +1387,8 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
-        // The cover you clicked on the shelf grows into this page (#724).
-        if (this.root) playCoverFlight(this.root, page);
+        // A Reader already open when the cover was clicked: the flight plays once the page is drawn.
+        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
         // Back from a jump lands on the very line it left (#718).
         if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;

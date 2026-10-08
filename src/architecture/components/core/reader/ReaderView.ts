@@ -1684,6 +1684,14 @@ export class ReaderView extends ItemView {
     private renderSourceContents(host: HTMLElement): void {
         const doc = this.source;
         if (!doc) return;
+        // Everything you marked in this book, in one place (#721).
+        const sourcePath = this.sourcePath;
+        if (sourcePath) {
+            const notebook = host.createEl("button", { cls: c("reader-notebook-link"), attr: { type: "button" } });
+            setIcon(notebook.createSpan({ cls: c("reader-notebook-icon") }), "notebook-pen");
+            notebook.createSpan({ text: t("notebook_title") });
+            this.panelScope?.registerDomEvent(notebook, "click", () => void openLibrary(this.app, undefined, sourcePath));
+        }
         const entries = doc.toc.length > 0 ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
         // The entry you are in: the last one that starts at or before the chapter on screen.
         let current = -1;

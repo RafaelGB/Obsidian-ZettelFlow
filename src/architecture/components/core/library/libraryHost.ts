@@ -8,6 +8,8 @@ import type { ReaderHost } from "architecture/components/core/reader/readerHost"
 export interface LibraryHost extends ReaderHost {
     settings?: ReaderHost["settings"] & {
         library?: unknown;
+        /** Where the last reading note from a notebook went (#721). */
+        readingNoteFolder?: string;
     };
 }
 

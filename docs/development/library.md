@@ -131,6 +131,23 @@ contents, nested as the book nests them.
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
 
+## The book notebook
+
+Everything you marked in one book, in one place. Open it from the book's detail (**⋯ → Notebook**)
+or from the Reader (**Contents → Notebook**). It takes the shelf's place: **← Library** or **Esc**
+brings the shelf back.
+
+- **In reading order.** Your highlights and margin notes, by chapter or page, each with its
+  meaning's colour, the passage, your note and its place. **Open in reader** goes to that passage;
+  **To note** makes a note of it, through the usual preview.
+- **Narrow it.** Chips by meaning (**Idea**, **Question**, **Quote**, **To discuss**, with counts)
+  and **With notes only**.
+- **Export as a reading note.** A preview of exactly what will be written, for what the filter
+  shows: a title, `Source:: [[the book]]`, and per chapter the quotes (with the page, in a paper)
+  and your notes as bullets. Pages are written as text, never as block ids. Pick a folder (the last
+  one is remembered) and **Create note**. Nothing is written before that. The note never goes over
+  an existing file, and its creation can be undone.
+
 ## From passage to note
 
 What you mark in a book is where your own ideas start. Click a highlight in a PDF or an EPUB and

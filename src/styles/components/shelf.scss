@@ -1,5 +1,6 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
+@use '../utils/motion' as *;
 
 /*
  * The Library (#680, epic #675) — your PDFs, EPUBs and saved reading paths, on one shelf.
@@ -723,6 +724,184 @@
     }
 
     .zettelkasten-flow__shelf-cover-image {
+        animation: none;
+    }
+}
+
+/* ── the book notebook (#721) ──────────────────────────────────────────── */
+.zettelkasten-flow__notebook {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+    animation: zf-notebook-in $motion-base $ease-out both;
+}
+
+@keyframes zf-notebook-in {
+    from {
+        opacity: 0;
+        translate: 0 var(--size-4-2);
+    }
+}
+
+.zettelkasten-flow__notebook-crumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+button.zettelkasten-flow__notebook-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-2-1);
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: inherit;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__notebook-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__notebook-title {
+    margin: 0;
+}
+
+.zettelkasten-flow__notebook-author,
+.zettelkasten-flow__notebook-counts {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__notebook-actions,
+.zettelkasten-flow__notebook-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__notebook-group-title {
+    margin: var(--size-4-2) 0 var(--size-4-2);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__notebook-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__notebook-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding: var(--size-4-3) var(--size-4-4);
+    border: $line-quiet;
+    border-left: var(--size-2-2) solid var(--zf-ink-solid, var(--text-highlight-bg));
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary);
+}
+
+.zettelkasten-flow__notebook-quote {
+    font-family: var(--font-text);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__notebook-note {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__notebook-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-3);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__notebook-where {
+    flex: 1;
+}
+
+button.zettelkasten-flow__notebook-action {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: inherit;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__notebook-empty {
+    color: var(--text-muted);
+}
+
+/* The reading note's preview: exactly what will be written. */
+.zettelkasten-flow__notebook-export {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__notebook-export-intro,
+.zettelkasten-flow__notebook-export-where {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__notebook-export-field {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+
+    input {
+        flex: 1;
+    }
+}
+
+.zettelkasten-flow__notebook-export-preview {
+    max-height: 50vh;
+    overflow: auto;
+    margin: 0;
+    padding: var(--size-4-3);
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__notebook-export-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__notebook {
         animation: none;
     }
 }

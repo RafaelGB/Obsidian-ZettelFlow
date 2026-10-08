@@ -211,3 +211,65 @@ describe("the Library (#680)", () => {
         expect(groupHighlights(book, [thought("1", "b.epub", "Ch. 1"), thought("2", "b.epub", "Ch. 2"), thought("3", "b.epub", "Ch. 1")]).map((g) => g.label)).toEqual(["Ch. 1", "Ch. 2"]);
     });
 });
+
+describe("the book notebook (#721)", () => {
+    const BOOK = "Books/Thinking, Fast and Slow.epub";
+    const thoughts = [
+        { id: "h1", at: 1, text: "", links: [], about: BOOK, quote: { exact: "System 1 operates automatically.", prefix: "", suffix: "" }, locator: { at: 0, label: "Ch. 1 · The characters" }, meaning: "quote" },
+        { id: "h2", at: 2, text: "Is it really automatic?", links: [], about: BOOK, quote: { exact: "It operates quickly, with little effort.", prefix: "", suffix: "" }, locator: { at: 0, label: "Ch. 1 · The characters" }, meaning: "question" },
+        { id: "h3", at: 3, text: "", links: [], about: BOOK, quote: { exact: "A general law of least effort.", prefix: "", suffix: "" }, locator: { at: 2, label: "Ch. 3 · The lazy controller" } },
+    ] as unknown as Thought[];
+
+    function mountNotebook() {
+        const m = mount([BOOK], { library });
+        const store = { highlightsAbout: jest.fn(async () => thoughts) };
+        const view = new LibraryView(new WorkspaceLeaf(m.app, m.content), m.host, { store });
+        return { ...m, view, store };
+    }
+
+    it("opens from its state where the shelf was: by chapter, counted, each passage with its meaning", async () => {
+        const { view, content, store } = mountNotebook();
+        await view.setState({ notebook: BOOK }, {} as never);
+        await view.onOpen();
+        await flush();
+        expect(store.highlightsAbout).toHaveBeenCalledWith(BOOK);
+        expect(content.oneByClass("notebook-title").textContent).toBe("Thinking, Fast and Slow");
+        expect(content.oneByClass("notebook-counts").textContent).toBe("3 highlights · 1 note");
+        expect(content.byClass("notebook-group-title").map((el) => el.textContent)).toEqual(["Ch. 1 · The characters", "Ch. 3 · The lazy controller"]);
+        expect(content.byClass("notebook-where").map((el) => el.textContent)).toEqual([
+            "Ch. 1 · The characters · Quote",
+            "Ch. 1 · The characters · Question",
+            "Ch. 3 · The lazy controller · Idea",
+        ]);
+        expect(content.byClass("shelf-card-title")).toHaveLength(0);
+        expect(view.getState()).toMatchObject({ notebook: BOOK });
+    });
+
+    it("narrows by meaning or to what carries a note, and goes back to the shelf with Esc", async () => {
+        const { view, content } = mountNotebook();
+        await view.setState({ notebook: BOOK }, {} as never);
+        await view.onOpen();
+        await flush();
+        content.byClass("reader-hl-filter-chip").find((el) => el.textContent?.startsWith("Question"))!.click();
+        await flush();
+        expect(content.byClass("notebook-quote").map((el) => el.textContent)).toEqual(["It operates quickly, with little effort."]);
+        content.byClass("reader-hl-filter-chip").find((el) => el.textContent?.startsWith("All"))!.click();
+        await flush();
+        content.oneByClass("notebook-with-notes").click();
+        await flush();
+        expect(content.byClass("notebook-note").map((el) => el.textContent)).toEqual(["Is it really automatic?"]);
+        const evt = press(content as never, "Escape");
+        expect(evt.defaultPrevented).toBe(true);
+        expect(content.byClass("notebook")).toHaveLength(0);
+        expect(content.byClass("shelf-card-title").length).toBeGreaterThan(0);
+    });
+
+    it("is offered from a source's detail", async () => {
+        const { view, content } = mountNotebook();
+        await view.onOpen();
+        await view.setState({ detail: BOOK }, {} as never);
+        content.byText("Notebook")!.click();
+        await flush();
+        expect(content.byClass("notebook-title")).toHaveLength(1);
+    });
+});

@@ -6,9 +6,11 @@ import { LIBRARY_VIEW } from "./libraryHost";
  * reused, so the shelf is never there twice. `detail` opens a source's detail on arrival — the
  * file menu's *Show in the library*.
  */
-export async function openLibrary(app: App, detail?: string): Promise<void> {
+export async function openLibrary(app: App, detail?: string, notebook?: string): Promise<void> {
     const { workspace } = app;
     const leaf = workspace.getLeavesOfType(LIBRARY_VIEW)[0] ?? workspace.getLeaf("tab");
-    await leaf.setViewState({ type: LIBRARY_VIEW, state: detail ? { detail } : {}, active: true });
+    // `notebook` opens a source's notebook on arrival (#721) — the Reader's Contents → Notebook.
+    const state = notebook ? { notebook } : detail ? { detail } : {};
+    await leaf.setViewState({ type: LIBRARY_VIEW, state, active: true });
     await workspace.revealLeaf(leaf);
 }

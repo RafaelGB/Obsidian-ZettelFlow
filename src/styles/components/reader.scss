@@ -649,6 +649,22 @@
     }
 }
 
+/* Contents → Notebook (#721): everything you marked in this book, in the Library. */
+button.zettelkasten-flow__reader-notebook-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    height: auto;
+    margin-bottom: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background: none;
+    box-shadow: none;
+    color: var(--reader-fg);
+    cursor: pointer;
+}
+
 /* Search inside the book (#719): a slim bar under the top, the results under it. */
 .zettelkasten-flow__reader-search {
     position: absolute;

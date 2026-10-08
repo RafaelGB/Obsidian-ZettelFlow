@@ -148,31 +148,9 @@
     padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
 }
 
-/* The page turns the way you went: forward from the right, back from the left, a new reading rises. */
-.zettelkasten-flow__reader-page--forward {
-    animation: zf-reader-turn-forward 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
-.zettelkasten-flow__reader-page--back {
-    animation: zf-reader-turn-back 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-
+/* A reading that just opened rises. A chapter that turns is already under its sheet (#735). */
 .zettelkasten-flow__reader-page--enter {
     animation: zf-reader-rise 0.45s ease both;
-}
-
-@keyframes zf-reader-turn-forward {
-    from {
-        opacity: 0;
-        transform: translateX(var(--size-4-8));
-    }
-}
-
-@keyframes zf-reader-turn-back {
-    from {
-        opacity: 0;
-        transform: translateX(calc(var(--size-4-8) * -1));
-    }
 }
 
 @keyframes zf-reader-rise {
@@ -183,8 +161,6 @@
 }
 
 /* The chapter opener arrives in order: the count, the role, the title, then the words. */
-.zettelkasten-flow__reader-page--forward,
-.zettelkasten-flow__reader-page--back,
 .zettelkasten-flow__reader-page--enter {
     > .zettelkasten-flow__reader-count,
     > .zettelkasten-flow__reader-role,
@@ -1192,6 +1168,81 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     inset: 0;
     opacity: 0;
     background-color: var(--zf-shot-paper, var(--background-primary));
+}
+
+/* ── A chapter changes physically (#735) ────────────────────────────────────────────────────────
+   The page you were on, laid over the stage as a sheet of paper; it leaves as a leaf, keeps flowing
+   or slides off. Placed exactly where the stage is, and only what was on screen is in it. */
+.zettelkasten-flow__turn-sheet,
+.zettelkasten-flow__turn-shade {
+    position: absolute;
+    inset: var(--size-4-12) 0 var(--size-4-18) 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__turn-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background-color: var(--reader-bg);
+}
+
+.zettelkasten-flow__turn-sheet.zettelkasten-flow__turn-sheet * {
+    animation: none;
+    transition: none;
+}
+
+.zettelkasten-flow__turn-sheet--spine-left {
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__turn-sheet--spine-right {
+    transform-origin: right center;
+}
+
+.zettelkasten-flow__turn-sheet--stack .zettelkasten-flow__turn-clip {
+    box-shadow: var(--shadow-l);
+}
+
+.zettelkasten-flow__turn-block {
+    position: absolute;
+    left: var(--zf-turn-x);
+    top: var(--zf-turn-y);
+    width: var(--zf-turn-w);
+    height: var(--zf-turn-h, auto);
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* The turned page's shadow on the one beneath, lifting as it goes. */
+.zettelkasten-flow__turn-shade {
+    background-color: var(--background-modifier-cover);
+}
+
+.zettelkasten-flow__turn-shade--none {
+    visibility: hidden;
+}
+
+/* The seam between two chapters that flow into each other. */
+.zettelkasten-flow__turn-seam {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--size-4-16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__turn-seam--below {
+    top: 100%;
+}
+
+.zettelkasten-flow__turn-seam--above {
+    bottom: 100%;
 }
 
 /* A ghost of a kept passage settling into its card in the margin (#724), and any flown copy. */

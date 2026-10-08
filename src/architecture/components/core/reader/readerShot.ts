@@ -129,7 +129,7 @@ function copyPage(rig: Rig, readerRoot: HTMLElement, stage: HTMLElement, page: H
     frame.removeClass(c("reader--in-shot"), c("reader--arrived"), c("reader--idle"), c("reader--leaving"));
     frame.addClass(c("shot-reader"));
     const copy = page.cloneNode(true) as HTMLElement;
-    copy.removeClass(c("reader-page--forward"), c("reader-page--back"), c("reader-page--enter"));
+    copy.removeClass(c("reader-page--enter"));
     // A canvas is copied empty: draw what it shows (a PDF page laid out as printed).
     const from = Array.from(page.querySelectorAll("canvas"));
     const to = Array.from(copy.querySelectorAll("canvas"));

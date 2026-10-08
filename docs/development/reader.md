@@ -139,8 +139,11 @@ its shelf again. Any key or click jumps a shot to its end, and with reduced moti
 
 - **The measure of a book.** About 68 characters to a line, with ragged edges evened out, long words
   hyphenated and generous leading, in your theme's font or a serif.
-- **Pages that turn.** Going forward the page slides in from the right; going back, from the left.
-  Each chapter opens in order: its number, its role, its title, then the words.
+- **Pages that turn, physically.** Changing chapter never dissolves one into the next. The page you
+  were on is laid on top like paper and leaves the way you choose in **Settings → Reading →
+  Changing chapter**: a **leaf turns** on the spine, the text **keeps flowing** up into the next
+  chapter (a small ❦ marks the seam), or the **sheet slides off** the stack. Going back plays it the
+  other way. Arrows, keys, the contents and search jumps all turn the same page.
 - **A marker, not a stamp.** A new highlight is swept across the words like a marker pen.
 - **Time left, at your pace.** The bar says how long is left in the chapter and in the book,
   counted at **your** reading speed, learned from the chapters you read to the end and kept on this

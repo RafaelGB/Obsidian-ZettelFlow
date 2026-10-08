@@ -15,6 +15,9 @@ export const MOTION = {
     shotLand: 700,
     /** The closing shot, the same move backwards in one gesture. */
     shotClose: 950,
+    /** A chapter turning (#735): a leaf or a sheet; the flowing text is a touch quicker. */
+    turn: 650,
+    turnFlow: 600,
     /** How long a shot waits for the other view before it lets go. */
     shotPatience: 3000,
     ease: "cubic-bezier(0.22, 1, 0.36, 1)",

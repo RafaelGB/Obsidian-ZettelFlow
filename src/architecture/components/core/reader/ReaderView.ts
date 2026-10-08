@@ -19,6 +19,7 @@ import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
+import { endChapterTurn, playChapterTurn } from "./readerTurn";
 import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
@@ -497,6 +498,7 @@ export class ReaderView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
+        endChapterTurn();
         this.leaveSource();
         this.highlights?.dispose();
         this.chapter?.unload();
@@ -706,6 +708,7 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        this.turnFrom(page);
         page.empty();
         this.turnPage(page);
         this.chapterWords = 0;
@@ -804,15 +807,23 @@ export class ReaderView extends ItemView {
     }
 
     /**
-     * The page turns the way you went (#667): forward slides in from the right, back from the left,
-     * a reading that just opened rises. The same element is reused, so the class is taken off and
-     * the box read once — that restarts the animation instead of leaving it finished.
+     * A chapter changes physically (#735): the page you were on is laid over the stage as a sheet and
+     * leaves the way Settings → Reading says, before this page is emptied for the next one.
+     */
+    private turnFrom(page: HTMLElement): void {
+        if (this.turn === 0 || !this.root || !this.els) return;
+        playChapterTurn(this.root, this.els.stage, page, readingMotion(this.plugin?.settings?.readingMotion).chapter, this.turn > 0 ? 1 : -1);
+    }
+
+    /**
+     * A reading that just opened rises (#667); a turned chapter is already there under its sheet. The
+     * same element is reused, so the class is taken off and the box read once — that restarts the
+     * animation instead of leaving it finished.
      */
     private turnPage(page: HTMLElement): void {
-        const turns = [c("reader-page--forward"), c("reader-page--back"), c("reader-page--enter")];
-        page.removeClass(...turns);
+        page.removeClass(c("reader-page--enter"));
         void page.offsetWidth;
-        page.addClass(this.turn > 0 ? turns[0] : this.turn < 0 ? turns[1] : turns[2]);
+        if (this.turn === 0) page.addClass(c("reader-page--enter"));
         this.turn = 0;
     }
 
@@ -1361,6 +1372,7 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        this.turnFrom(page);
         page.empty();
         this.turnPage(page);
         this.chapterWords = 0;

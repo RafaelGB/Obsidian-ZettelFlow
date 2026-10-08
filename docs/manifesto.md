@@ -226,6 +226,25 @@ The corollary is ours to carry: the effort a feature demands is part of the feat
 technically exists but costs an afternoon of reading to enable has not shipped — it has been
 announced.
 
+## One continuous shot
+
+ZettelFlow is filmed in **one take** — a *plano secuencia*. You never feel the view change; the camera
+moves. What you touch becomes what you see: open a book and the camera pushes into its cover, the
+cover opens on the page you were on, and that page *is* the reader. Close it and the same shot plays
+backwards, until the book stands on its shelf again. Nothing cuts to black, nothing dissolves into
+something else.
+
+Continuity is what makes a place feel like one place. A cut asks you to work out where you are; a
+camera move has already told you. So every element arrives from somewhere and leaves to somewhere,
+and motion follows the material it shows — a page turns, a sheet slides off a stack, a chapter carries
+on in the direction you were reading. Not a fade and something new.
+
+The shot is never longer than the thought. It is one gesture, never a crowd of entrances; it never
+blocks a key (input jumps it to its end); it costs nothing a frame cannot afford; and for someone who
+asks for less motion, it is instant — the continuity of place survives even when the movement does not.
+
+> **Never cut. Move the camera.**
+
 ## The test for every addition
 
 Before building, ask:

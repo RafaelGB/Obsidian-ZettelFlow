@@ -970,10 +970,50 @@
 }
 
 // A passage you marked reads as a quote with an accent edge (#707) — the way Home's stack sets it.
+/* What a highlight means (#720), in the theme's own colours — the same ink as in the Reader. */
+.zettelkasten-flow__lab-quote--idea,
+.zettelkasten-flow__lab-meaning-chip--idea {
+    --zf-ink-solid: var(--color-yellow);
+}
+
+.zettelkasten-flow__lab-quote--question,
+.zettelkasten-flow__lab-meaning-chip--question {
+    --zf-ink-solid: var(--color-blue);
+}
+
+.zettelkasten-flow__lab-quote--quote,
+.zettelkasten-flow__lab-meaning-chip--quote {
+    --zf-ink-solid: var(--color-green);
+}
+
+.zettelkasten-flow__lab-quote--discuss,
+.zettelkasten-flow__lab-meaning-chip--discuss {
+    --zf-ink-solid: var(--color-purple);
+}
+
+button.zettelkasten-flow__lab-meaning-chip {
+    @include chip;
+    @include chip-clickable;
+    flex: none;
+    gap: var(--size-4-1);
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__lab-meaning-swatch {
+    display: inline-block;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    background-color: var(--zf-ink-solid);
+}
+
 .zettelkasten-flow__lab-quote-text {
     margin: 0;
     padding-left: var(--size-4-3);
-    border-left: var(--size-2-2) solid var(--color-orange);
+    border-left: var(--size-2-2) solid var(--zf-ink-solid, var(--color-orange));
     color: var(--text-muted);
     font-family: var(--font-text);
 }

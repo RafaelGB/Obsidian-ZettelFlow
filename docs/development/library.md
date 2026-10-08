@@ -115,10 +115,38 @@ contents, nested as the book nests them.
   allowed element at a time, so nothing the book carries can run: no scripts, no event handlers, no
   embedded frames or forms, no styles. Its images are read from the book itself; nothing is ever
   loaded from the web, and a link that leaves the book is shown as plain text.
-- **Links inside the book work**: a footnote, a cross-reference to another chapter — click and the
-  Reader goes there.
+- **Footnotes are read in place.** Click a footnote mark and the note floats over the page, at the
+  mark. That works for a note in the chapter and for an endnote at the back of the book. The page
+  does not move; Esc or a click elsewhere puts it away, and **Go to note** goes there.
+- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens a slim bar under the top.
+  It searches every chapter or page, ignoring case and accents, and says *N results · in M chapters*,
+  each with its snippet and its page or chapter. **Enter** and **Shift+Enter** step through them; the
+  matches are tinted in the page and the current one is outlined. A match in another chapter is a
+  jump, with its way back. **Esc** closes the search and takes every tint away. A scan says it has
+  no text to search.
+- **Every jump has a way back.** A cross-reference, **Go to note** or a **Contents** entry moves you,
+  and a **← Back to …** pill shows where you came from. Click it, or press **Alt+←**, to return to
+  the very line. The pill fades by itself after a few seconds; Alt+← keeps working until your next
+  page turn. In a PDF the pill follows Contents jumps.
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
+
+## The book notebook
+
+Everything you marked in one book, in one place. Open it from the book's detail (**⋯ → Notebook**)
+or from the Reader (**Contents → Notebook**). It takes the shelf's place: **← Library** or **Esc**
+brings the shelf back.
+
+- **In reading order.** Your highlights and margin notes, by chapter or page, each with its
+  meaning's colour, the passage, your note and its place. **Open in reader** goes to that passage;
+  **To note** makes a note of it, through the usual preview.
+- **Narrow it.** Chips by meaning (**Idea**, **Question**, **Quote**, **To discuss**, with counts)
+  and **With notes only**.
+- **Export as a reading note.** A preview of exactly what will be written, for what the filter
+  shows: a title, `Source:: [[the book]]`, and per chapter the quotes (with the page, in a paper)
+  and your notes as bullets. Pages are written as text, never as block ids. Pick a folder (the last
+  one is remembered) and **Create note**. Nothing is written before that. The note never goes over
+  an existing file, and its creation can be undone.
 
 ## From passage to note
 
@@ -199,8 +227,9 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
    nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
 10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
-    **Contents** lists the book's own chapters. Click a footnote or a cross-reference: the Reader goes
-    there. Highlight a sentence; it shows in Think with the chapter's name.
+    **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
+    the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
+    Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.
 11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
     the title → **Create**. Expect a new note quoting the passage, ending with
     `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click

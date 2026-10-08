@@ -6,6 +6,7 @@ import { chapterTitles, packagePath, parseNav, parsePackage, type XmlParse } fro
 import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/epubSanitize";
 import { makeEpub } from "../support/zipFixture";
 import { parseXml } from "../support/miniXml";
+import { searchBook } from "architecture/components/core/reader/readerSearch";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -125,5 +126,16 @@ describe("the Library (#675)", () => {
         // eslint-disable-next-line no-console
         console.log(`epub fixture: ${(bytes.length / 1024 / 1024).toFixed(1)} MB`);
         assertBudget("library.epub.open.5mb", fastest);
+    });
+
+    it("reader.search.1k", () => {
+        const sentence = "The best modules give a lot of power through a small, simple interface; depth is what they hide. ";
+        const texts = Array.from({ length: 1_000 }, (_, i) => sentence.repeat(50) + `Chapter ${i} ends with an informática note.`);
+        let found = 0;
+        const ms = best(3, () => {
+            found = searchBook(texts, "modules").matches.length + searchBook(texts, "informatica").matches.length;
+        });
+        if (found === 0) throw new Error("the search found nothing");
+        assertBudget("reader.search.1k", ms);
     });
 });

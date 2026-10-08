@@ -41,6 +41,19 @@ describe("an EPUB chapter, rebuilt node by node — never innerHTML (#682)", () 
         expect(out).toBe('<h2 data-zf-id="c3">The Lazy Controller</h2><p>A <em>law</em> of <strong>least</strong> effort.</p><ol start="3"><li>one</li></ol><table><tr><td colspan="2">x</td></tr></table><blockquote>q</blockquote>');
     });
 
+    it("keeps what marks a footnote as a fixed flag, never the book's own value (#718)", () => {
+        const { out } = clean(
+            '<p>Text<a epub:type="noteref" href="#fn1">1</a> and <a role="doc-noteref" href="#fn2">2</a>.</p>' +
+                '<aside epub:type="footnote" id="fn1"><p>One.</p></aside><li role="doc-endnote" id="fn2">Two.</li>' +
+                '<section epub:type="chapter bodymatter" role="doc-chapter onclick">x</section>'
+        );
+        expect(out).toBe(
+            '<p>Text<a data-zf-noteref="true" data-zf-href="OEBPS/text/ch1.xhtml#fn1">1</a> and <a data-zf-noteref="true" data-zf-href="OEBPS/text/ch1.xhtml#fn2">2</a>.</p>' +
+                '<aside data-zf-note="true" data-zf-id="fn1"><p>One.</p></aside><li data-zf-note="true" data-zf-id="fn2">Two.</li>' +
+                "<section>x</section>"
+        );
+    });
+
     it("drops scripts and everything that runs, with what is inside them", () => {
         const { out } = clean(
             '<script>alert(1)</script><p>safe</p><iframe src="https://evil.example"><p>inside</p></iframe><object data="x.swf"></object><embed src="x"/><form action="https://evil.example"><input value="x"/><button>go</button></form><noscript>ns</noscript><template><p>t</p></template>'

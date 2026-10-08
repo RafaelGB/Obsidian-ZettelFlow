@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-label="Mockup: the book notebook — everything you marked in one book, opened from the Library and the Reader: the cover, title and counts, filters by highlight colour and With notes only, entries grouped by chapter with the passage, your note, the page and actions, and Export as a reading note with a Markdown preview that is written only when you press Create note; and the phone layout">
+<rect width="1200" height="1500" fill="#141416"/>
+<rect x="30" y="20" width="1140" height="1010" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="52" cy="40" r="5.5" fill="#fb464c" stroke="none" stroke-width="1"/>
+<circle cx="70" cy="40" r="5.5" fill="#e9973f" stroke="none" stroke-width="1"/>
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e" stroke="none" stroke-width="1"/>
+<text x="600" y="45" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="30" y="60" width="44" height="970" rx="0" fill="#202022" stroke="none" stroke-width="1"/>
+<rect x="40" y="112" width="24" height="24" rx="6" fill="#2f2b45" stroke="none" stroke-width="1"/>
+<text x="52" y="129" fill="#7f6df2" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">▥</text>
+<rect x="74" y="60" width="1096" height="34" rx="0" fill="#202022" stroke="none" stroke-width="1"/>
+<rect x="84" y="66" width="130" height="28" rx="6" fill="none" stroke="none" stroke-width="1"/>
+<text x="100" y="85" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Library</text>
+<rect x="170" y="66" width="280" height="28" rx="6" fill="#18181b" stroke="none" stroke-width="1"/>
+<text x="186" y="85" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Notebook · A Philosophy of Software…</text>
+<text x="434" y="85" fill="#5f6168" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">×</text>
+<text x="120" y="126" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Library  ›  A Philosophy of Software Design  ›  Notebook</text>
+<rect x="120" y="144" width="84" height="126" rx="4" fill="#1f5f66" stroke="none" stroke-width="1"/>
+<rect x="120" y="144" width="8.4" height="126" rx="0" fill="#000" stroke="none" stroke-width="1" opacity="0.18"/>
+<rect x="138.48" y="161.64" width="15.12" height="42.84" rx="1" fill="#f4efe6" stroke="none" stroke-width="1" opacity="0.9"/>
+<rect x="162" y="161.64" width="30.24" height="11.34" rx="1" fill="#f4efe6" stroke="none" stroke-width="1" opacity="0.55"/>
+<text x="166.2" y="227.16000000000003" fill="#f7f4ee" font-family="Georgia, serif" font-size="9.5" font-weight="700" text-anchor="middle">A Philosophy</text>
+<text x="166.2" y="238.16000000000003" fill="#f7f4ee" font-family="Georgia, serif" font-size="9.5" font-weight="700" text-anchor="middle">of Software</text>
+<text x="166.2" y="249.16000000000003" fill="#f7f4ee" font-family="Georgia, serif" font-size="9.5" font-weight="700" text-anchor="middle">Design</text>
+<text x="166.2" y="263" fill="#f7f4ee" font-family="sans-serif" font-size="5.8" font-weight="400" text-anchor="middle" opacity="0.75" letter-spacing="1">OUSTERHOUT</text>
+<text x="228" y="170" fill="#dcddde" font-family="sans-serif" font-size="24" font-weight="700" text-anchor="start">A Philosophy of Software Design</text>
+<text x="228" y="195" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">John Ousterhout  ·  EPUB  ·  64% read</text>
+<text x="228" y="232" fill="#dcddde" font-family="sans-serif" font-size="16" font-weight="650" text-anchor="start">38 highlights  ·  11 notes</text>
+<text x="228" y="256" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">In 9 chapters  ·  last marked yesterday</text>
+<rect x="744" y="150" width="144" height="34" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1"/>
+<text x="816" y="172" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Continue reading</text>
+<rect x="898" y="150" width="232" height="34" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="1014" y="172" fill="#ffffff" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Export as a reading note</text>
+<line x1="120" y1="288" x2="1130" y2="288" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="120" y="302" width="70" height="26" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="132" y="319.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">All</text>
+<text x="179" y="319.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">38</text>
+<rect x="196" y="302" width="82" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="210" cy="315" r="5" fill="#e8c547" stroke="none" stroke-width="1"/>
+<text x="221" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Idea</text>
+<text x="267" y="319.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">14</text>
+<rect x="284" y="302" width="108" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="298" cy="315" r="5" fill="#4a9dff" stroke="none" stroke-width="1"/>
+<text x="309" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Question</text>
+<text x="381" y="319.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">9</text>
+<rect x="398" y="302" width="88" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="412" cy="315" r="5" fill="#44cf6e" stroke="none" stroke-width="1"/>
+<text x="423" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Quote</text>
+<text x="475" y="319.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">11</text>
+<rect x="492" y="302" width="116" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="506" cy="315" r="5" fill="#a882ff" stroke="none" stroke-width="1"/>
+<text x="517" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To discuss</text>
+<text x="597" y="319.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">4</text>
+<line x1="620" y1="304" x2="620" y2="326" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="632" y="302" width="148" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="642" y="309" width="24" height="12" rx="6" fill="#3a3a3a" stroke="none" stroke-width="1"/>
+<circle cx="648" cy="315" r="4.5" fill="#8b8e94" stroke="none" stroke-width="1"/>
+<text x="674" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">With notes only</text>
+<rect x="1010" y="302" width="120" height="26" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1022" y="319.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Book order  ▾</text>
+<text x="120" y="362" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start" letter-spacing="1.2">CHAPTER 2 · THE NATURE OF COMPLEXITY</text>
+<text x="700" y="362" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end">2</text>
+<rect x="120" y="374" width="580" height="114" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="120" y="374" width="3" height="114" rx="1.5" fill="#e8c547" stroke="none" stroke-width="1"/>
+<text x="138" y="400" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">Complexity is whatever makes a system hard to understand or change;</text>
+<text x="138" y="422" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">it is measured by the people who work in it, not by the code.</text>
+<text x="138" y="448" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">✎  </tspan><tspan>Complexity is a reader's cost, not a size.</tspan></text>
+<text x="138" y="474" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">p. 9  ·  Idea</text>
+<text x="504" y="474" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Open in reader</text>
+<text x="608" y="474" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To note</text>
+<text x="678" y="474" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⋯</text>
+<rect x="120" y="498" width="580" height="92" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="120" y="498" width="3" height="92" rx="1.5" fill="#4a9dff" stroke="none" stroke-width="1"/>
+<text x="138" y="524" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">Dependencies and obscurity are the two causes; the rest are symptoms.</text>
+<text x="138" y="550" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">✎  </tspan><tspan>Are there really only two? Where does churn go?</tspan></text>
+<text x="138" y="576" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">p. 12  ·  Question</text>
+<text x="504" y="576" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Open in reader</text>
+<text x="608" y="576" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To note</text>
+<text x="678" y="576" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⋯</text>
+<text x="120" y="618" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start" letter-spacing="1.2">CHAPTER 4 · MODULES SHOULD BE DEEP</text>
+<text x="700" y="618" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end">3</text>
+<rect x="120" y="630" width="580" height="114" rx="6" fill="#202024" stroke="#7f6df2" stroke-width="1.5"/>
+<rect x="120" y="630" width="3" height="114" rx="1.5" fill="#e8c547" stroke="none" stroke-width="1"/>
+<text x="138" y="656" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">A deep module hides far more than it shows, so the people who call it</text>
+<text x="138" y="678" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">learn little and get a great deal.</text>
+<text x="138" y="704" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">✎  </tspan><tspan>Depth: what it hides minus what it asks</tspan></text>
+<text x="138" y="730" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">p. 22  ·  Idea</text>
+<text x="504" y="730" fill="#7f6df2" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Open in reader</text>
+<text x="608" y="730" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To note</text>
+<text x="678" y="730" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⋯</text>
+<rect x="120" y="754" width="580" height="66" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="120" y="754" width="3" height="66" rx="1.5" fill="#44cf6e" stroke="none" stroke-width="1"/>
+<text x="138" y="780" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">the common case should be the simplest thing to call.</text>
+<text x="138" y="806" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">p. 23  ·  Quote</text>
+<text x="504" y="806" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Open in reader</text>
+<text x="608" y="806" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To note</text>
+<text x="678" y="806" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⋯</text>
+<rect x="120" y="830" width="580" height="114" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="120" y="830" width="3" height="114" rx="1.5" fill="#a882ff" stroke="none" stroke-width="1"/>
+<text x="138" y="856" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">A class whose methods only pass their arguments on to another class</text>
+<text x="138" y="878" fill="#cfd0d4" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">adds an interface and hides nothing.</text>
+<text x="138" y="904" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">✎  </tspan><tspan>Raise in Friday's design review</tspan></text>
+<text x="138" y="930" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">p. 24  ·  To discuss</text>
+<text x="504" y="930" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Open in reader</text>
+<text x="608" y="930" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">To note</text>
+<text x="678" y="930" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="middle">⋯</text>
+<text x="120" y="972" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start" letter-spacing="1.2">CHAPTER 5 · INFORMATION HIDING</text>
+<text x="700" y="972" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end">6</text>
+<defs><linearGradient id="nbfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18181b" stop-opacity="0"/><stop offset="1" stop-color="#18181b" stop-opacity="1"/></linearGradient></defs>
+<rect x="120" y="982" width="580" height="26" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="120" y="982" width="3" height="26" rx="0" fill="#44cf6e" stroke="none" stroke-width="1"/>
+<rect x="118" y="970" width="584" height="57" rx="0" fill="url(#nbfade)" stroke="none" stroke-width="1"/>
+<rect x="728" y="344" width="402" height="662" rx="14" fill="#1f1f23" stroke="#7f6df2" stroke-width="1.2"/>
+<text x="748" y="374" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">Export as a reading note</text>
+<text x="1110" y="374" fill="#5f6168" font-family="sans-serif" font-size="16" font-weight="400" text-anchor="end">×</text>
+<text x="748" y="396" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">A preview. Nothing is written until you create it.</text>
+<text x="748" y="426" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Takes</text>
+<rect x="790" y="410" width="132" height="24" rx="12" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<text x="856" y="426" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">The filter · all 38</text>
+<text x="942" y="426" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Folder</text>
+<rect x="988" y="410" width="122" height="24" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1"/>
+<text x="998" y="426" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Reading notes  ▾</text>
+<rect x="744" y="448" width="370" height="474" rx="8" fill="#151517" stroke="#3a3a3a" stroke-width="1"/>
+<text x="758" y="474" fill="#dcddde" font-family="monospace" font-size="12" font-weight="700" text-anchor="start"># A Philosophy of Software Design</text>
+<text x="758" y="493.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#8b8e94">Source:: </tspan><tspan fill="#7f6df2">[[A Philosophy of Software Design]]</tspan></text>
+<text x="758" y="532.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="700" text-anchor="start">## Chapter 2 · The nature of complexity</text>
+<text x="758" y="552" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">Complexity is whatever makes a system hard</tspan></text>
+<text x="758" y="571.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">to understand or change; it is measured by</tspan></text>
+<text x="758" y="591" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">the people who work in it.</tspan><tspan fill="#5f6168"> (p. 9)</tspan></text>
+<text x="758" y="610.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">- </tspan><tspan fill="#dcddde">Complexity is a reader's cost, not a size.</tspan></text>
+<text x="758" y="649.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">Dependencies and obscurity are the two</tspan></text>
+<text x="758" y="669" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">causes; the rest are symptoms.</tspan><tspan fill="#5f6168"> (p. 12)</tspan></text>
+<text x="758" y="688.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">- </tspan><tspan fill="#dcddde">Are there really only two? Where does churn go?</tspan></text>
+<text x="758" y="727.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="700" text-anchor="start">## Chapter 4 · Modules should be deep</text>
+<text x="758" y="747" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">A deep module hides far more than it shows,</tspan></text>
+<text x="758" y="766.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">so the people who call it learn little and</tspan></text>
+<text x="758" y="786" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">get a great deal.</tspan><tspan fill="#5f6168"> (p. 22)</tspan></text>
+<text x="758" y="805.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">- </tspan><tspan fill="#dcddde">Depth: what it hides minus what it asks</tspan></text>
+<text x="758" y="844.5" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">the common case should be the simplest</tspan></text>
+<text x="758" y="864" fill="#dcddde" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">thing to call.</tspan><tspan fill="#5f6168"> (p. 23)</tspan></text>
+<text x="758" y="903" fill="#5f6168" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" font-style="italic">… 7 more chapters</text>
+<text x="748" y="952" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">One new note: Reading notes/A Philosophy of Software Design</text>
+<text x="748" y="986" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Recorded, with Undo in Recent.</text>
+<rect x="934" y="966" width="78" height="32" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1"/>
+<text x="973" y="987" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Cancel</text>
+<rect x="1020" y="966" width="94" height="32" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="1067" y="987" fill="#fff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Create note</text>
+<circle cx="104" cy="121" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="104" y="125.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<circle cx="204" cy="146" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="204" y="150.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<circle cx="104" cy="315" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="104" y="319.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<circle cx="104" cy="358" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="104" y="362.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<circle cx="700" cy="674" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="700" y="678.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">5</text>
+<circle cx="898" cy="152" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="898" y="156.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">6</text>
+<circle cx="744" cy="448" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="744" y="452.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">7</text>
+<circle cx="1020" cy="968" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="1020" y="972.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">8</text>
+<text x="40" y="1056" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="650" text-anchor="start">Phone — the notebook</text>
+<rect x="40" y="1068" width="250" height="410" rx="26" fill="#18181b" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="131" y="1078" width="68" height="6" rx="3" fill="#3a3a3a" stroke="none" stroke-width="1"/>
+<text x="58" y="1108" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">‹  Library</text>
+<rect x="58" y="1122" width="40" height="60" rx="4" fill="#1f5f66" stroke="none" stroke-width="1"/>
+<rect x="58" y="1122" width="4" height="60" rx="0" fill="#000" stroke="none" stroke-width="1" opacity="0.18"/>
+<rect x="66.8" y="1130.4" width="7.199999999999999" height="20.400000000000002" rx="1" fill="#f4efe6" stroke="none" stroke-width="1" opacity="0.9"/>
+<rect x="78" y="1130.4" width="14.399999999999999" height="5.3999999999999995" rx="1" fill="#f4efe6" stroke="none" stroke-width="1" opacity="0.55"/>
+<text x="110" y="1138" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="700" text-anchor="start">A Philosophy of</text>
+<text x="110" y="1155" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="700" text-anchor="start">Software Design</text>
+<text x="110" y="1174" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">38 highlights · 11 notes</text>
+<clipPath id="phAclip"><rect x="42" y="1068" width="246" height="410" rx="24"/></clipPath>
+<g clip-path="url(#phAclip)">
+<rect x="54" y="1194" width="62" height="26" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="66" y="1211.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">All</text>
+<text x="105" y="1211.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">38</text>
+<rect x="122" y="1194" width="80" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="136" cy="1207" r="5" fill="#e8c547" stroke="none" stroke-width="1"/>
+<text x="147" y="1211.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Idea</text>
+<text x="191" y="1211.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">14</text>
+<rect x="208" y="1194" width="106" height="26" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="222" cy="1207" r="5" fill="#4a9dff" stroke="none" stroke-width="1"/>
+<text x="233" y="1211.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start">Question</text>
+<text x="303" y="1211.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.85">9</text>
+</g>
+<rect x="54" y="1230" width="24" height="12" rx="6" fill="#3a3a3a" stroke="none" stroke-width="1"/>
+<circle cx="60" cy="1236" r="4.5" fill="#8b8e94" stroke="none" stroke-width="1"/>
+<text x="86" y="1240" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">With notes only</text>
+<text x="56" y="1270" fill="#5f6168" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start" letter-spacing="0.8">CH. 4 · MODULES SHOULD BE DEEP</text>
+<rect x="54" y="1280" width="222" height="112" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="54" y="1280" width="3" height="112" rx="1.5" fill="#e8c547" stroke="none" stroke-width="1"/>
+<text x="68" y="1302" fill="#cfd0d4" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start">A deep module hides far more</text>
+<text x="68" y="1320" fill="#cfd0d4" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start">than it shows, so the people</text>
+<text x="68" y="1338" fill="#cfd0d4" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start">who call it learn little…</text>
+<text x="68" y="1360" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">✎  Depth: what it hides…</text>
+<text x="68" y="1382" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">p. 22  ·  Idea</text>
+<text x="260" y="1382" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">⋯</text>
+<rect x="54" y="1400" width="222" height="72" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="54" y="1400" width="3" height="72" rx="1.5" fill="#44cf6e" stroke="none" stroke-width="1"/>
+<text x="68" y="1422" fill="#cfd0d4" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start">the common case should be the</text>
+<text x="68" y="1440" fill="#cfd0d4" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start">simplest thing to call.</text>
+<text x="68" y="1462" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">p. 23  ·  Quote</text>
+<text x="260" y="1462" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">⋯</text>
+<g clip-path="url(#phAclip)">
+<rect x="42" y="1412" width="246" height="66" rx="0" fill="#18181b" stroke="none" stroke-width="1"/>
+</g>
+<line x1="42" y1="1412" x2="288" y2="1412" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="54" y="1426" width="222" height="36" rx="8" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="165" y="1449" fill="#fff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Export as a reading note</text>
+<text x="310" y="1056" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="650" text-anchor="start">Phone — the preview sheet</text>
+<rect x="310" y="1068" width="250" height="410" rx="26" fill="#18181b" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="401" y="1078" width="68" height="6" rx="3" fill="#3a3a3a" stroke="none" stroke-width="1"/>
+<text x="328" y="1108" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" opacity="0.5">‹  Library</text>
+<rect x="328" y="1122" width="40" height="60" rx="4" fill="#1f5f66" stroke="none" stroke-width="1" opacity="0.4"/>
+<text x="380" y="1140" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="700" text-anchor="start" opacity="0.35">A Philosophy of</text>
+<rect x="311" y="1164" width="248" height="313" rx="18" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="411" y="1172" width="48" height="5" rx="2.5" fill="#3a3a3a" stroke="none" stroke-width="1"/>
+<text x="326" y="1200" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="650" text-anchor="start">Reading note preview</text>
+<text x="326" y="1218" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Nothing is written yet.</text>
+<rect x="322" y="1228" width="226" height="170" rx="8" fill="#151517" stroke="#3a3a3a" stroke-width="1"/>
+<text x="332" y="1246" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="700" text-anchor="start"># A Philosophy of Software…</text>
+<text x="332" y="1263" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#8b8e94">Source:: </tspan><tspan fill="#7f6df2">[[A Philosophy…]]</tspan></text>
+<text x="332" y="1297" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="700" text-anchor="start">## Chapter 4 · Deep modules</text>
+<text x="332" y="1314" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">A deep module hides far</tspan></text>
+<text x="332" y="1331" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">more than it shows… (p. 22)</tspan></text>
+<text x="332" y="1348" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">- </tspan><tspan fill="#dcddde">Depth: what it hides…</tspan></text>
+<text x="332" y="1382" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#5f6168">&gt; </tspan><tspan fill="#cfd0d4">the common case… (p. 23)</tspan></text>
+<rect x="322" y="1426" width="84" height="36" rx="8" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1"/>
+<text x="364" y="1449" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Cancel</text>
+<rect x="414" y="1426" width="134" height="36" rx="8" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="481" y="1449" fill="#fff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Create note</text>
+<circle cx="48" cy="1080" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="48" y="1084.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">9</text>
+<circle cx="596" cy="1075.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1080" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<text x="616" y="1080" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Opened from the Library (a book's detail, Notebook) and from the</text>
+<text x="616" y="1099" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Reader (Contents, then Notebook). Esc goes back to where you were.</text>
+<circle cx="596" cy="1126.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1131" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<text x="616" y="1131" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">The book at a glance: its cover, title, author and how much you marked.</text>
+<circle cx="596" cy="1158.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1163" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<text x="616" y="1163" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Filter by colour, with counts, or keep only what has a note under it.</text>
+<circle cx="596" cy="1190.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1195" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<text x="616" y="1195" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Grouped by chapter, in the order of the book.</text>
+<circle cx="596" cy="1222.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1227" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">5</text>
+<text x="616" y="1227" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Each entry: its colour as a bar, the passage, your note, the page and the</text>
+<text x="616" y="1246" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">chapter. Open in reader goes to the passage; To note starts a note from it.</text>
+<circle cx="596" cy="1273.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1278" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">6</text>
+<text x="616" y="1278" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">One primary action: Export as a reading note.</text>
+<circle cx="596" cy="1305.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1310" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">7</text>
+<text x="616" y="1310" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">The preview is plain Markdown, no YAML: a title, Source:: to the book,</text>
+<text x="616" y="1329" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">then per chapter its quotes (&gt; with their page) and your notes as bullets.</text>
+<circle cx="596" cy="1356.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1361" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">8</text>
+<text x="616" y="1361" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Create note writes it, and only then (§XII): Cancel leaves the vault as it</text>
+<text x="616" y="1380" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">was. The write is recorded, with Undo in Recent.</text>
+<circle cx="596" cy="1407.5" r="11" fill="#e0a351" stroke="none" stroke-width="1"/>
+<text x="596" y="1412" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">9</text>
+<text x="616" y="1412" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">On a phone: chips scroll, the export button stays at the bottom, and the</text>
+<text x="616" y="1431" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">preview opens as a sheet with Create note under your thumb.</text>
+</svg>

@@ -263,18 +263,24 @@ describe("progress and minutes left (#667)", () => {
         const { content } = await open();
         const stage = content.oneByClass("reader-stage") as DomNode & { scrollHeight: number; clientHeight: number };
         const minutes = content.oneByClass("reader-bar-minutes");
-        expect(minutes.textContent).toBe("3 minutes left");
+        // The chapter, and the book after it (#722).
+        expect(minutes.textContent).toBe("3 minutes left · 9 min in the book");
         stage.scrollHeight = 1000;
         stage.clientHeight = 500;
         stage.scrollTop = 250;
         stage.fire("scroll");
         expect(content.oneByClass("reader-hairline").cssProps["--zf-reader-read"]).toBe("0.5");
-        expect(minutes.textContent).toBe("2 minutes left");
+        expect(minutes.textContent).toMatch(/^2 minutes left · \d+ min in the book$/);
         stage.scrollTop = 500;
         stage.fire("scroll");
         expect(minutes.hasClass("zettelkasten-flow__reader-hidden")).toBe(true);
         // At the bottom, the way on lights up.
         expect(content.oneByClass("reader-next").hasClass("zettelkasten-flow__reader-next--arrived")).toBe(true);
+    });
+
+    it("keeps the time left out of the bar when you turn it off in Type (#722)", async () => {
+        const { content } = await open({ readerPrefs: { timeLeft: false } });
+        expect(content.oneByClass("reader-bar-minutes").hasClass("zettelkasten-flow__reader-hidden")).toBe(true);
     });
 
     it("names the next chapter and how long it is at the end of this one", async () => {

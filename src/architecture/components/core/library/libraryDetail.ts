@@ -18,6 +18,8 @@ export interface DetailParts {
     lastRead: string;
     open(at?: OpenAt): void;
     close(): void;
+    /** Open the source's notebook (#721); absent for a saved path. */
+    notebook?: () => void;
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -89,6 +91,11 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     const actions = what.createDiv({ cls: c("shelf-detail-actions") });
     const open = actions.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("shelf_open") });
     scope.registerDomEvent(open, "click", () => parts.open());
+    // Everything you marked in it, in one place (#721).
+    if (parts.notebook && item.kind !== "path") {
+        const notebook = actions.createEl("button", { attr: { type: "button" }, text: t("notebook_title") });
+        scope.registerDomEvent(notebook, "click", () => parts.notebook?.());
+    }
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());
 

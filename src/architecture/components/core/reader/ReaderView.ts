@@ -16,6 +16,10 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
+import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
+import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
+import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
+import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
 import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
@@ -33,7 +37,7 @@ import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
 import { chapterOfHighlight, rememberSourceFacts, rememberSourcePlace, sourceMetaOf, sourceReading } from "./readerSource";
 import { openSourceDocument, type SourceDocument, type SourceLayout } from "architecture/components/core/library/sources/sourceDocument";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
-import { END_OF_CHAPTER, minutesFor, minutesLeft, readFraction, scrolls, wordCount } from "./readerPace";
+import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, normalizePace, paceWpm, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import {
     READER_FONTS,
     READER_SIZES,
@@ -53,6 +57,14 @@ const DOTS_LIMIT = 40;
 
 /** The leaving fade (`reader--leaving` in reader.scss); the workspace comes back when it ends. */
 const EXIT_MS = 220;
+/** How long the way back from a jump stays on screen before it fades (#718); Alt+← keeps working. */
+const JUMP_PILL_MS = 8000;
+/** Where your reading pace is kept — Obsidian's per-device local storage, never synced (#722). */
+const PACE_STORAGE_KEY = "zettelflow-reader-pace";
+/** A pause in typing before the book is searched (#719). */
+const SEARCH_DEBOUNCE_MS = 150;
+/** Results listed under the search bar; the bar counts them all. */
+const SEARCH_LIST_LIMIT = 60;
 
 /**
  * The keys, as the shortcuts sheet lists them. A cap is a locale key (a word: Space, Esc) or the
@@ -65,9 +77,12 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_back" },
     { keys: ["reader_kbd_home", "reader_kbd_end"], label: "reader_key_ends" },
     { keys: ["H"], label: "reader_key_highlight" },
+    { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["F"], label: "reader_key_fullscreen" },
     { keys: ["V"], label: "reader_key_layout" },
+    { keys: ["reader_kbd_mod", "F"], label: "reader_key_search" },
+    { keys: ["reader_kbd_alt", "←"], label: "reader_key_back" },
     { keys: ["?"], label: "reader_key_help" },
     { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
 ];
@@ -79,6 +94,8 @@ const KBD_KEY: Record<string, LocaleKey> = {
     reader_kbd_home: "reader_kbd_home",
     reader_kbd_end: "reader_kbd_end",
     reader_kbd_esc: "reader_kbd_esc",
+    reader_kbd_mod: "reader_kbd_mod",
+    reader_kbd_alt: "reader_kbd_alt",
 };
 
 /** Whether a key went to something you type in — a margin note, a save name — and is not ours. */
@@ -153,9 +170,18 @@ export class ReaderView extends ItemView {
         minutes: HTMLElement;
         /** Page view ↔ reading view, shown for a PDF that has text (#681). */
         layout: HTMLElement;
+        /** Search inside the book (#719), shown for a book or a paper. */
+        search: HTMLElement;
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
+    /** Your reading pace, learned on this device only (#722). */
+    private pace: Pace | null = null;
+    /** When the chapter on screen opened, and whether you reached its end: one sample of your pace. */
+    private chapterOpenedAt = Date.now();
+    private reachedEnd = false;
+    /** Words of the chapters drawn in this reading, for the time left in the book. */
+    private readonly seenWords = new Map<number, number>();
     /** The end-of-chapter card: the next chapter's name and length, lit when you reach it. */
     private nextCard: HTMLElement | null = null;
     /** Which way the next page turns: forward, back, or 0 for a reading that just opened. */
@@ -196,6 +222,30 @@ export class ReaderView extends ItemView {
     /** Bumped on every peek, so a slow excerpt never lands in a newer one. */
     private peekGeneration = 0;
     private pill: HTMLElement | null = null;
+    /** Where you were before each jump inside a book (#718): the pill and Alt+← return there. */
+    private readonly jumps = new JumpStack<{ chapter: number; top: number; label: string }>();
+    /** The jump pill goes away by itself; the way back stays on Alt+←. */
+    private jumpPillTimer: number | undefined;
+    private jumpPillShown = false;
+    /** A scroll to restore once the chapter a Back returns to is drawn. */
+    private pendingTop: number | null = null;
+    /** The footnote read in place (#718), and its listeners. */
+    private notePop: HTMLElement | null = null;
+    private notePopScope: Component | null = null;
+    /** Search inside the book (#719): the bar, the book's text read once, and the results. */
+    private searchEl: HTMLElement | null = null;
+    private searchInput: HTMLInputElement | null = null;
+    private searchCount: HTMLElement | null = null;
+    private searchList: HTMLElement | null = null;
+    private searchScope: Component | null = null;
+    private searchTexts: string[] | null = null;
+    private searchBuilding: Promise<string[] | null> | null = null;
+    private searchResult: SearchResult | null = null;
+    private searchAt = -1;
+    private searchMarks: HTMLElement[] = [];
+    /** The next drawn chapter brings the current match into view. */
+    private searchReveal = false;
+    private searchTimer: number | undefined;
     /** The reading is over and its end card is on screen (#672). */
     private ended = false;
     /** When this reading began, for the end card's minutes. */
@@ -226,6 +276,7 @@ export class ReaderView extends ItemView {
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
+        this.pace = normalizePace(this.app?.loadLocalStorage?.(PACE_STORAGE_KEY));
         // Obsidian's way (#667): the active leaf's scope gets the keys, wherever focus is, and only
         // the keys it registers — Ctrl/Cmd/Alt combinations fall through to the app's hotkeys.
         this.scope = new Scope(this.app?.scope);
@@ -289,6 +340,9 @@ export class ReaderView extends ItemView {
                 this.startedAt = Date.now();
                 this.detourCount = 0;
                 this.visited.clear();
+            this.seenWords.clear();
+            this.chapterOpenedAt = Date.now();
+            this.reachedEnd = false;
                 this.savedId = undefined;
                 this.endStatus = undefined;
             }
@@ -327,6 +381,7 @@ export class ReaderView extends ItemView {
             this.savedId = undefined;
             this.endStatus = undefined;
             this.sourcePath = path;
+            this.jumps.clear();
         }
         this.ended = false;
         this.detours = [];
@@ -365,6 +420,9 @@ export class ReaderView extends ItemView {
 
     /** Close the source being read, before another reading takes its place. */
     private leaveSource(): void {
+        this.closeSearch();
+        this.searchTexts = null;
+        this.searchBuilding = null;
         this.sourceGeneration++;
         this.source?.close();
         this.source = null;
@@ -457,19 +515,22 @@ export class ReaderView extends ItemView {
             cls: [c("reader-detour-pill"), c("reader-hidden")].join(" "),
             attr: { type: "button" },
         });
-        this.registerDomEvent(pill, "click", () => this.backFromDetour());
+        // The same pill is the way back from a jump inside a book (#718).
+        this.registerDomEvent(pill, "click", () => (this.detours.length > 0 ? this.backFromDetour() : this.backFromJump()));
         this.pill = pill;
 
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
         this.registerDomEvent(stage, "scroll", () => {
             this.highlights?.onScroll();
+            this.closeNote();
             this.onStageScroll();
         });
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
             if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
+            if (this.notePop && target && !this.notePop.contains(target)) this.closeNote();
         });
         const page = stage.createEl("article", { cls: c("reader-page") });
         // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
@@ -484,6 +545,8 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
         this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
+        const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
+        search.addClass(c("reader-hidden"));
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const layout = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleLayout());
@@ -492,7 +555,7 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout, search };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -526,6 +589,7 @@ export class ReaderView extends ItemView {
     }
 
     private savePrefs(next: ReaderPrefs): void {
+        if (next.theme !== this.prefs.theme) this.crossFadeTheme();
         this.prefs = next;
         this.applyPrefs();
         if (this.plugin?.settings) {
@@ -533,6 +597,22 @@ export class ReaderView extends ItemView {
             void this.plugin.saveSettings?.();
         }
         if (this.panel === "type") this.renderPanel();
+    }
+
+    /**
+     * Day, sepia, night (#724): the new theme fades in under a veil of the old one, instead of
+     * snapping. Only opacity moves; the text never does.
+     */
+    private crossFadeTheme(): void {
+        const root = this.root;
+        if (!root || !motionWelcome(root)) return;
+        const background = root.win.getComputedStyle?.(root).backgroundColor;
+        if (!background) return;
+        const veil = root.createDiv({ cls: c("reader-theme-veil"), attr: { "aria-hidden": "true" } });
+        veil.setCssProps({ "--zf-veil": background });
+        const done = () => veil.remove();
+        veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" }).onfinish = done;
+        root.win.setTimeout(done, MOTION.base + 300);
     }
 
     // ── chapters ─────────────────────────────────────────────────────────────
@@ -549,6 +629,7 @@ export class ReaderView extends ItemView {
         }
         const pageView = this.sourceLayout === "page";
         els.layout.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
+        els.search.toggleClass(c("reader-hidden"), !this.sourcePath);
         els.layout.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
         els.layout.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
         els.layout.setAttribute("aria-pressed", String(pageView));
@@ -638,6 +719,7 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         this.chapterWords = wordCount(body.textContent ?? "");
+        this.seenWords.set(this.index, this.chapterWords);
         this.watchFocus(body, component);
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
@@ -652,6 +734,8 @@ export class ReaderView extends ItemView {
         }
 
         const card = page.createDiv({ cls: c("reader-next") });
+        // The chapter's end, quietly (#724): an ornament that fades in as you arrive. No number.
+        card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
         this.nextCard = card;
         const next = card.createEl("button", {
             cls: c("reader-next-button"),
@@ -712,11 +796,55 @@ export class ReaderView extends ItemView {
         const { stage } = els;
         const fraction = this.ended ? 1 : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
-        const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction);
-        els.minutes.setText(left > 0 ? tCount(left, "reader_minutes_left", String(left)) : "");
-        els.minutes.toggleClass(c("reader-hidden"), left === 0);
+        if (fraction >= END_OF_CHAPTER) this.reachedEnd = true;
+        const wpm = paceWpm(this.pace);
+        const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction, wpm);
+        const book = this.ended ? 0 : this.bookMinutes(fraction, wpm);
+        // Quiet (#722): it lives in the bar, which shows only while you move or press a key.
+        const text = !this.prefs.timeLeft || left === 0 ? "" : book > left ? `${tCount(left, "reader_minutes_left", String(left))} · ${t("reader_book_left", this.duration(book))}` : tCount(left, "reader_minutes_left", String(left));
+        els.minutes.setText(text);
+        els.minutes.toggleClass(c("reader-hidden"), text === "");
         const atEnd = !scrolls(stage.scrollHeight, stage.clientHeight) || fraction >= END_OF_CHAPTER;
         this.nextCard?.toggleClass(c("reader-next--arrived"), atEnd);
+    }
+
+    /**
+     * One sample of your pace (#722), taken as you leave a chapter you read to its end: its words over
+     * the time it was open. A chapter skimmed or left open is not reading, and `learnPace` drops it.
+     * Kept on this device only.
+     */
+    private samplePace(): void {
+        const opened = this.chapterOpenedAt;
+        this.chapterOpenedAt = Date.now();
+        const reached = this.reachedEnd;
+        this.reachedEnd = false;
+        if (!reached || this.chapterWords <= 0) return;
+        const next = learnPace(this.pace, { words: this.chapterWords, ms: Date.now() - opened });
+        if (next === this.pace) return;
+        this.pace = next;
+        this.app?.saveLocalStorage?.(PACE_STORAGE_KEY, next);
+    }
+
+    /** Minutes left in the book: this chapter's remainder and the chapters after it (#722). */
+    private bookMinutes(fraction: number, wpm: number): number {
+        const total = this.source?.chapters.length ?? this.path?.chapters.length ?? 0;
+        const after = Math.max(0, total - this.index - 1);
+        const chapterWordsLeft = Math.round(this.chapterWords * (1 - fraction));
+        // Read through by a search: the words of each chapter to come. Otherwise, the average so far.
+        const texts = this.searchTexts;
+        if (texts && texts.length === total) {
+            return bookMinutesLeft({ chapterWordsLeft, upcoming: texts.slice(this.index + 1).map(wordCount), wpm });
+        }
+        const seen = [...this.seenWords.values()].filter((words) => words > 0);
+        const averageWords = seen.length > 0 ? seen.reduce((sum, words) => sum + words, 0) / seen.length : this.chapterWords;
+        return bookMinutesLeft({ chapterWordsLeft, upcoming: { chapters: after, averageWords }, wpm });
+    }
+
+    /** A time as the bar says it: "40 min", "3 h", "3 h 40 min". */
+    private duration(total: number): string {
+        const { hours, minutes } = splitMinutes(total);
+        if (hours === 0) return t("reader_time_min", String(minutes));
+        return minutes === 0 ? t("reader_time_h", String(hours)) : t("reader_time_h_min", String(hours), String(minutes));
     }
 
     /**
@@ -764,9 +892,60 @@ export class ReaderView extends ItemView {
 
     private renderPill(): void {
         if (!this.pill) return;
-        const on = this.detours.length > 0;
-        this.pill.toggleClass(c("reader-hidden"), !on);
-        this.pill.setText(on ? `↩ ${t("reader_back_to", this.backName())}` : "");
+        if (this.detours.length > 0) {
+            this.pill.toggleClass(c("reader-hidden"), false);
+            this.pill.toggleClass(c("reader-jump-pill"), false);
+            this.pill.setText(`↩ ${t("reader_back_to", this.backName())}`);
+            return;
+        }
+        // A jump inside a book (#718): where you were, until it fades by itself.
+        const back = this.jumpPillShown ? this.jumps.peek() : undefined;
+        this.pill.toggleClass(c("reader-hidden"), !back);
+        this.pill.toggleClass(c("reader-jump-pill"), Boolean(back));
+        this.pill.setText(back ? `← ${t("reader_back_to", back.label)}` : "");
+    }
+
+    /**
+     * A jump inside a book (#718): a link, Contents, *Go to note*. Where you were is kept first, so
+     * the pill — or Alt+← — brings you back to the very line.
+     */
+    private jumpTo(chapter: number, fragment?: string): void {
+        const stage = this.els?.stage;
+        if (!this.path || !stage) return;
+        this.jumps.push({ chapter: this.index, top: stage.scrollTop, label: this.sourceLabel(this.index) });
+        this.closeNote();
+        if (chapter !== this.index) this.show(chapter);
+        if (fragment) this.scrollToFragment(fragment);
+        this.flashJumpPill();
+    }
+
+    /** Back to where the last jump left from. False when there is nowhere to go back to. */
+    private backFromJump(): boolean {
+        const back = this.jumps.pop();
+        const stage = this.els?.stage;
+        if (!back || !stage) return false;
+        this.closeNote();
+        if (back.chapter !== this.index) {
+            this.pendingTop = back.top;
+            this.show(back.chapter);
+        } else {
+            stage.scrollTop = back.top;
+        }
+        this.jumpPillShown = this.jumps.size > 0;
+        this.renderPill();
+        return true;
+    }
+
+    /** The way back, for a while: it goes away by itself, and an ordinary turn puts it away. */
+    private flashJumpPill(): void {
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.jumpPillTimer);
+        this.jumpPillShown = true;
+        this.renderPill();
+        this.jumpPillTimer = win.setTimeout(() => {
+            this.jumpPillShown = false;
+            this.renderPill();
+        }, JUMP_PILL_MS);
     }
 
     /** The note a link in the chapter points at, resolved the way Obsidian resolves it. */
@@ -902,6 +1081,7 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
+        this.samplePace();
         this.pending = null;
         this.detours = [];
         const target = Math.max(0, Math.min(index, this.path.chapters.length - 1));
@@ -915,6 +1095,9 @@ export class ReaderView extends ItemView {
 
     private go(delta: number): void {
         if (!this.path) return;
+        // An ordinary turn: the way back from a jump is no longer where you are reading (#718).
+        this.jumps.clear();
+        this.jumpPillShown = false;
         if (this.ended) {
             // Back from the end card lands on the last chapter; forward stays on the end.
             if (delta < 0) this.show(this.index);
@@ -1169,12 +1352,22 @@ export class ReaderView extends ItemView {
             const drawn = await doc.draw(index, body, component, this.sourceLayout);
             picture = drawn.picture;
             this.chapterWords = drawn.words;
+            this.seenWords.set(index, drawn.words);
         } catch (error) {
             log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
             if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
+        // The cover you clicked on the shelf grows into this page (#724).
+        if (this.root) playCoverFlight(this.root, page);
+        // Back from a jump lands on the very line it left (#718).
+        if (this.pendingTop !== null) {
+            stage.scrollTop = this.pendingTop;
+            this.pendingTop = null;
+        }
+        // An open search tints its matches in every chapter it lands on (#719).
+        if (this.searchEl) this.markSearch();
         this.onStageScroll();
         this.watchFocus(body, component);
         // The highlights of this page or chapter, found again by their words (#681).
@@ -1184,6 +1377,8 @@ export class ReaderView extends ItemView {
         });
 
         const card = page.createDiv({ cls: c("reader-next") });
+        // The chapter's end, quietly (#724): an ornament that fades in as you arrive. No number.
+        card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
         this.nextCard = card;
         const next = card.createEl("button", { cls: c("reader-next-button"), attr: { type: "button" } });
         this.onStageScroll();
@@ -1207,8 +1402,296 @@ export class ReaderView extends ItemView {
         const href = link.getAttribute("data-zf-href");
         const resolved = href ? this.source?.resolveLink?.(this.index, href) : null;
         if (!resolved) return;
-        if (resolved.chapter !== this.index) this.show(resolved.chapter);
-        if (resolved.fragment) this.scrollToFragment(resolved.fragment);
+        // A footnote is read where it is referenced (#718); anything else is a jump with a way back.
+        const note = isNoteLink({
+            text: link.textContent ?? "",
+            noteref: link.getAttribute("data-zf-noteref") === "true",
+            inSup: Boolean(link.closest?.("sup")),
+        });
+        if (note && resolved.fragment) {
+            void this.openNote(link, resolved.chapter, resolved.fragment);
+            return;
+        }
+        this.jumpTo(resolved.chapter, resolved.fragment);
+    }
+
+    /** The note a footnote mark points at, in this chapter or another one (endnotes). */
+    private async findNote(chapter: number, fragment: string): Promise<string | null> {
+        const id = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(fragment) : fragment.replace(/["\\]/g, "");
+        const selector = `[data-zf-id="${id}"]`;
+        if (chapter === this.index) {
+            const el = this.els?.page.querySelector<HTMLElement>(selector) ?? null;
+            return el ? noteExcerpt(el) : null;
+        }
+        const doc = this.source;
+        if (!doc) return null;
+        // Drawn aside, never shown: the other chapter is read for its note and let go at once.
+        const scratch = this.root?.createDiv();
+        if (!scratch) return null;
+        scratch.remove();
+        const scope = new Component();
+        scope.load();
+        try {
+            await doc.draw(chapter, scratch, scope, "reading");
+            const el = scratch.querySelector<HTMLElement>(selector);
+            return el ? noteExcerpt(el) : null;
+        } catch (error) {
+            log.debug(`[Reader] the note in chapter ${chapter} cannot be read: ${String(error)}`);
+            return null;
+        } finally {
+            scope.unload();
+        }
+    }
+
+    /** A footnote, floating over the page at its mark (#718). The page does not move. */
+    private async openNote(link: HTMLElement, chapter: number, fragment: string): Promise<void> {
+        const generation = this.generation;
+        const text = await this.findNote(chapter, fragment);
+        if (generation !== this.generation || !this.root) return;
+        if (!text) {
+            this.jumpTo(chapter, fragment);
+            return;
+        }
+        this.closeNote();
+        const root = this.root;
+        const pop = root.createDiv({ cls: c("reader-note-pop"), attr: { role: "dialog", "aria-label": t("reader_note_label") } });
+        pop.createDiv({ cls: c("reader-note-pop-text"), text });
+        const go = pop.createEl("button", { cls: c("reader-note-pop-go"), text: t("reader_note_go"), attr: { type: "button" } });
+        const box = root.getBoundingClientRect();
+        const at = link.getBoundingClientRect();
+        // Positioned by two custom properties the stylesheet reads — no inline layout.
+        pop.setCssProps?.({
+            "--zf-note-x": `${Math.round(at.left + at.width / 2 - box.left)}px`,
+            "--zf-note-y": `${Math.round(at.bottom - box.top)}px`,
+        });
+        const scope = new Component();
+        scope.load();
+        scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment));
+        this.notePop = pop;
+        this.notePopScope = scope;
+    }
+
+    // ── search inside the book (#719) ───────────────────────────────────────
+
+    /** Ctrl/Cmd+F or the bar's search: a slim bar under the top, focused. Books and papers only. */
+    private openSearch(): boolean {
+        if (!this.sourcePath || !this.root) return false;
+        if (this.searchEl) {
+            this.searchInput?.focus();
+            this.searchInput?.select();
+            return true;
+        }
+        const scope = new Component();
+        scope.load();
+        this.searchScope = scope;
+        const bar = this.root.createDiv({ cls: c("reader-search"), attr: { role: "search" } });
+        const row = bar.createDiv({ cls: c("reader-search-row") });
+        setIcon(row.createSpan({ cls: c("reader-search-icon") }), "search");
+        const input = row.createEl("input", {
+            cls: c("reader-search-input"),
+            attr: { type: "search", placeholder: t("reader_search_placeholder"), "aria-label": t("reader_search") },
+        });
+        const count = row.createSpan({ cls: c("reader-search-count"), attr: { "aria-live": "polite" } });
+        const button = (icon: string, key: LocaleKey, run: () => void) => {
+            const el = row.createEl("button", { cls: ["clickable-icon", c("reader-search-button")].join(" "), attr: { type: "button", "aria-label": t(key) } });
+            setIcon(el, icon);
+            scope.registerDomEvent(el, "click", run);
+        };
+        button("chevron-up", "reader_search_previous", () => this.stepSearch(-1));
+        button("chevron-down", "reader_search_next", () => this.stepSearch(1));
+        button("x", "reader_search_close", () => this.closeSearch());
+        const list = bar.createDiv({ cls: c("reader-search-results") });
+        scope.registerDomEvent(input, "input", () => {
+            list.removeClass(c("reader-search-results--folded"));
+            const win = this.root?.win ?? window;
+            win.clearTimeout(this.searchTimer);
+            this.searchTimer = win.setTimeout(() => void this.runSearch(), SEARCH_DEBOUNCE_MS);
+        });
+        scope.registerDomEvent(input, "keydown", (event: KeyboardEvent) => {
+            if (event.isComposing) return;
+            if (event.key === "Enter") {
+                event.preventDefault();
+                this.stepSearch(event.shiftKey ? -1 : 1);
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                this.stepSearch(event.key === "ArrowUp" ? -1 : 1);
+            } else if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeSearch();
+            }
+        });
+        this.searchEl = bar;
+        this.searchInput = input;
+        this.searchCount = count;
+        this.searchList = list;
+        input.focus?.();
+        void this.ensureSearchIndex();
+        return true;
+    }
+
+    /** The book's text, read once per reading, chapter by chapter, yielding so the page never freezes. */
+    private ensureSearchIndex(): Promise<string[] | null> {
+        if (this.searchTexts) return Promise.resolve(this.searchTexts);
+        if (this.searchBuilding) return this.searchBuilding;
+        const doc = this.source;
+        const root = this.root;
+        if (!doc || !root || doc.imageOnly) return Promise.resolve(null);
+        const generation = this.sourceGeneration;
+        this.searchCount?.setText(t("reader_search_reading"));
+        this.searchBuilding = (async () => {
+            const texts: string[] = [];
+            const win = root.win ?? window;
+            for (let i = 0; i < doc.chapters.length; i++) {
+                // Drawn aside, as the page draws it, so a match's offsets are the page's own.
+                const scratch = root.createDiv();
+                scratch.remove();
+                const scope = new Component();
+                scope.load();
+                try {
+                    await doc.draw(i, scratch, scope, "reading");
+                    // As a reader sees it — blocks apart; where the walker finds no text node, what it reads.
+                    texts.push(readableText(scratch) || (scratch.textContent ?? ""));
+                } catch (error) {
+                    log.debug(`[Reader] chapter ${i} cannot be read for search: ${String(error)}`);
+                    texts.push("");
+                } finally {
+                    scope.unload();
+                }
+                if (generation !== this.sourceGeneration) return null;
+                if (i % 4 === 3) await new Promise<void>((resolve) => win.setTimeout(resolve, 0));
+            }
+            this.searchTexts = texts;
+            return texts;
+        })();
+        return this.searchBuilding;
+    }
+
+    private async runSearch(): Promise<void> {
+        const query = this.searchInput?.value ?? "";
+        const texts = await this.ensureSearchIndex();
+        if (!this.searchEl || query !== (this.searchInput?.value ?? "")) return;
+        if (!texts) {
+            this.searchCount?.setText(t(this.source?.imageOnly ? "reader_search_scan" : "reader_search_unavailable"));
+            return;
+        }
+        this.searchResult = searchBook(texts, query);
+        this.searchAt = -1;
+        this.renderSearch();
+        this.markSearch();
+    }
+
+    /** The count and the list of results, each with its snippet and the source's own label. */
+    private renderSearch(): void {
+        const list = this.searchList;
+        const count = this.searchCount;
+        const scope = this.searchScope;
+        const result = this.searchResult;
+        if (!list || !count || !scope) return;
+        list.empty();
+        const query = (this.searchInput?.value ?? "").trim();
+        if (!result || result.matches.length === 0) {
+            count.setText(query.length < 2 ? "" : t("reader_search_none"));
+            return;
+        }
+        const total = result.matches.length;
+        const found = `${tCount(total, "reader_search_results", String(total))} · ${tCount(result.chapters, "reader_search_in_chapters", String(result.chapters))}`;
+        count.setText(this.searchAt >= 0 ? `${t("reader_search_current", String(this.searchAt + 1), String(total))} · ${found}` : found);
+        result.matches.slice(0, SEARCH_LIST_LIMIT).forEach((match, i) => {
+            const row = list.createEl("button", {
+                cls: [c("reader-search-result"), ...(i === this.searchAt ? [c("reader-search-result--current")] : [])].join(" "),
+                attr: { type: "button" },
+            });
+            row.createDiv({ cls: c("reader-search-where"), text: this.sourceLabel(match.chapter) });
+            const snippet = row.createDiv({ cls: c("reader-search-snippet") });
+            snippet.createSpan({ text: match.before });
+            snippet.createSpan({ cls: c("reader-search-snippet-hit"), text: match.match });
+            snippet.createSpan({ text: match.after });
+            scope.registerDomEvent(row, "click", () => this.goToMatch(i));
+        });
+    }
+
+    private goToMatch(i: number): void {
+        const match = this.searchResult?.matches[i];
+        if (!match) return;
+        this.searchAt = i;
+        this.renderSearch();
+        // Out of the way while you look at the match; typing brings the list back.
+        this.searchList?.addClass(c("reader-search-results--folded"));
+        this.searchReveal = true;
+        // A match in another chapter is a jump, with its way back (#718).
+        if (match.chapter !== this.index) this.jumpTo(match.chapter);
+        else this.markSearch();
+    }
+
+    /** Enter / Shift+Enter: the next match from where you are, wrapping round the book. */
+    private stepSearch(direction: 1 | -1): void {
+        const matches = this.searchResult?.matches ?? [];
+        if (matches.length === 0) return;
+        let next: number;
+        if (this.searchAt < 0) {
+            const ahead = matches.findIndex((match) => match.chapter >= this.index);
+            next = direction > 0 ? (ahead < 0 ? 0 : ahead) : ahead <= 0 ? matches.length - 1 : ahead - 1;
+        } else {
+            next = (this.searchAt + direction + matches.length) % matches.length;
+        }
+        this.goToMatch(next);
+    }
+
+    /** Tint every match in the chapter on screen; outline the current one and bring it into view. */
+    private markSearch(): void {
+        this.unmarkSearch();
+        const body = this.els?.page.querySelector<HTMLElement>(`.${c("reader-source-body")}`);
+        const result = this.searchResult;
+        if (!body || !result || result.matches.length === 0) return;
+        const query = this.searchInput?.value ?? "";
+        const here = result.matches.filter((match) => match.chapter === this.index);
+        const current = this.searchAt >= 0 ? result.matches[this.searchAt] : null;
+        // The current match by its place among this chapter's matches.
+        const ordinal = current && current.chapter === this.index ? here.indexOf(current) : -1;
+        // Found in the text as it reads (blocks apart), drawn on the page's own offsets.
+        const readable = readableWithMap(body);
+        const spans = matchesIn(readable.text, query).map((span) => ({ start: readable.toChapter(span.start), end: readable.toChapter(span.end) }));
+        // Last first: wrapping a later match never moves the offsets of an earlier one.
+        let currentMark: HTMLElement | null = null;
+        for (let k = spans.length - 1; k >= 0; k--) {
+            const isCurrent = k === ordinal;
+            const marks = wrapSpan(body, spans[k], () => {
+                const mark = body.createSpan({ cls: [c("reader-search-hit"), ...(isCurrent ? [c("reader-search-hit--current")] : [])].join(" ") });
+                mark.remove();
+                return mark;
+            }) as unknown as HTMLElement[];
+            this.searchMarks.push(...marks);
+            if (isCurrent && marks[0]) currentMark = marks[0];
+        }
+        if (currentMark && this.searchReveal) this.scrollToEl(currentMark);
+        this.searchReveal = false;
+    }
+
+    private unmarkSearch(): void {
+        for (const mark of this.searchMarks) unwrapMark(mark);
+        this.searchMarks = [];
+    }
+
+    private closeSearch(): void {
+        (this.root?.win ?? window).clearTimeout(this.searchTimer);
+        this.unmarkSearch();
+        this.searchEl?.remove();
+        this.searchEl = null;
+        this.searchInput = null;
+        this.searchCount = null;
+        this.searchList = null;
+        this.searchScope?.unload();
+        this.searchScope = null;
+        this.searchResult = null;
+        this.searchAt = -1;
+    }
+
+    private closeNote(): void {
+        this.notePop?.remove();
+        this.notePop = null;
+        this.notePopScope?.unload();
+        this.notePopScope = null;
     }
 
     /** Bring an element a link named into view, once its chapter is drawn. */
@@ -1232,6 +1715,14 @@ export class ReaderView extends ItemView {
     private renderSourceContents(host: HTMLElement): void {
         const doc = this.source;
         if (!doc) return;
+        // Everything you marked in this book, in one place (#721).
+        const sourcePath = this.sourcePath;
+        if (sourcePath) {
+            const notebook = host.createEl("button", { cls: c("reader-notebook-link"), attr: { type: "button" } });
+            setIcon(notebook.createSpan({ cls: c("reader-notebook-icon") }), "notebook-pen");
+            notebook.createSpan({ text: t("notebook_title") });
+            this.panelScope?.registerDomEvent(notebook, "click", () => void openLibrary(this.app, undefined, sourcePath));
+        }
         const entries = doc.toc.length > 0 ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
         // The entry you are in: the last one that starts at or before the chapter on screen.
         let current = -1;
@@ -1246,10 +1737,10 @@ export class ReaderView extends ItemView {
             row.createSpan({ cls: c("reader-toc-name"), text: entry.title });
             if (doc.toc.length > 0) row.createSpan({ cls: c("reader-toc-role"), text: this.sourceLabel(entry.chapter) });
             if (i === current) row.setAttribute("aria-current", "step");
-            this.panelScope?.registerDomEvent(row, "click", () => {
-                this.show(entry.chapter);
-                if ("fragment" in entry && typeof entry.fragment === "string") this.scrollToFragment(entry.fragment);
-            });
+            // A Contents entry is a jump: where you were stays one press away (#718).
+            this.panelScope?.registerDomEvent(row, "click", () =>
+                this.jumpTo(entry.chapter, "fragment" in entry && typeof entry.fragment === "string" ? entry.fragment : undefined)
+            );
         });
     }
 
@@ -1359,6 +1850,17 @@ export class ReaderView extends ItemView {
         setIcon(focus.createSpan({ cls: c("reader-focus-icon") }), "focus");
         focus.createSpan({ text: t("reader_focus") });
         this.panelScope?.registerDomEvent(focus, "click", () => this.savePrefs({ ...this.prefs, focus: !this.prefs.focus }));
+        // The time left, quietly in the bar (#722): yours to turn off.
+        const time = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
+            cls: [c("reader-type-option"), c("reader-focus-toggle"), ...(this.prefs.timeLeft ? ["is-active"] : [])].join(" "),
+            attr: { type: "button", "aria-pressed": String(this.prefs.timeLeft) },
+        });
+        setIcon(time.createSpan({ cls: c("reader-focus-icon") }), "hourglass");
+        time.createSpan({ text: t("reader_time_left_toggle") });
+        this.panelScope?.registerDomEvent(time, "click", () => {
+            this.savePrefs({ ...this.prefs, timeLeft: !this.prefs.timeLeft });
+            this.onStageScroll();
+        });
     }
 
     private renderContext(host: HTMLElement): void {
@@ -1433,15 +1935,29 @@ export class ReaderView extends ItemView {
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
         bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
+        // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
+        for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
         bind(null, "?", taken(() => this.toggleShortcuts()));
         bind(none, "Escape", taken(() => this.escape()));
+        // Back from a jump inside a book (#718); with nowhere to go back to, Obsidian keeps the key.
+        bind(["Alt"], "ArrowLeft", () => this.backFromJump());
+        // Search inside the book (#719); in a note reading the key stays Obsidian's.
+        bind(["Mod"], "F", () => this.openSearch());
     }
 
     /** Esc: one thing at a time, nearest first — then the reader itself. */
     private escape(): void {
         if (this.shortcuts) {
             this.closeShortcuts();
+            return;
+        }
+        if (this.notePop) {
+            this.closeNote();
+            return;
+        }
+        if (this.searchEl) {
+            this.closeSearch();
             return;
         }
         if (this.highlights?.hasPopover()) {

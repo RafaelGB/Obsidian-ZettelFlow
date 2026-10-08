@@ -26,8 +26,8 @@ function memoryStore(initial: Thought[] = []) {
     const store = {
         folder: () => "Lab",
         highlightsAbout: jest.fn(async (path: string) => kept.filter((t) => t.about === path)),
-        write: jest.fn(async (text: string, options: { about?: string; quote?: ThoughtQuote }) => {
-            const made = thought(`hl-${++next}`, options.quote as ThoughtQuote, text);
+        write: jest.fn(async (text: string, options: { about?: string; quote?: ThoughtQuote; meaning?: Thought["meaning"] }) => {
+            const made = { ...thought(`hl-${++next}`, options.quote as ThoughtQuote, text), ...(options.meaning ? { meaning: options.meaning } : {}) };
             kept.push(made);
             return made;
         }),
@@ -100,7 +100,7 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         m.select("stores changes");
         m.body.fire("mouseup");
         expect(m.highlights.hasPopover()).toBe(true);
-        for (const label of ["Highlight", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
+        for (const label of ["Idea", "Question", "Quote", "To discuss", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
     });
 
     it("lets the popover go when the page scrolls under it (#667)", async () => {
@@ -118,11 +118,12 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         const before = chapterText(m.body as never);
         m.select("stores changes");
         m.body.fire("mouseup");
-        m.button("Highlight").click();
+        m.button("Idea").click();
         await flush();
         expect(m.store.write).toHaveBeenCalledWith("", {
             about: "Notes/es.md",
             quote: expect.objectContaining({ exact: "stores changes", heading: "Events" }),
+            meaning: "idea",
         });
         const quote = m.store.write.mock.calls[0][1].quote as ThoughtQuote;
         expect(quote.prefix.endsWith("Event sourcing ")).toBe(true);
@@ -189,6 +190,58 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         expect(m.marks()).toHaveLength(0);
         expect(chapterText(m.body as never)).toBe(before);
         expect(m.store.write).not.toHaveBeenCalled();
+    });
+
+    it("keeps a passage with the meaning you chose, drawn in its colour (#720)", async () => {
+        const m = mount();
+        await m.attach();
+        m.select("Replay rebuilds it");
+        m.body.fire("mouseup");
+        m.button("Question").click();
+        await flush();
+        expect(m.store.write).toHaveBeenCalledWith("", expect.objectContaining({ meaning: "question" }));
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--question")).toBe(true);
+        // H keeps the next one with the meaning used last.
+        m.select("stores changes");
+        expect(m.highlights.highlightCurrent()).toBe(true);
+        await flush();
+        expect(m.store.write.mock.calls[1][1]).toEqual(expect.objectContaining({ meaning: "question" }));
+    });
+
+    it("1–4 keep the selection with that meaning while the popover is up, and do nothing otherwise (#720)", async () => {
+        const m = mount();
+        await m.attach();
+        expect(m.highlights.chooseMeaning(2)).toBe(false);
+        m.select("Replay");
+        m.body.fire("mouseup");
+        expect(m.highlights.chooseMeaning(3)).toBe(true);
+        await flush();
+        expect(m.store.write).toHaveBeenCalledWith("", expect.objectContaining({ meaning: "discuss" }));
+    });
+
+    it("reads a highlight made before meanings as an idea, and filters the margin by meaning (#720)", async () => {
+        const old = thought("h-old", { exact: "Replay rebuilds it", prefix: "", suffix: "" });
+        const asked = { ...thought("h-q", { exact: "stores changes", prefix: "", suffix: "" }), meaning: "question" as const };
+        const m = mount([old, asked]);
+        await m.attach();
+        expect(m.marks().some((mark) => mark.hasClass("zettelkasten-flow__reader-highlight--idea"))).toBe(true);
+        const chips = m.margin.findAll((el) => el.tag === "button" && el.classes.has("zettelkasten-flow__reader-hl-filter-chip"));
+        expect(chips.map((chip) => chip.textContent)).toEqual(["All2", "Idea1", "Question1"]);
+        chips[2].click();
+        const items = m.margin.findAll((el) => el.classes.has("zettelkasten-flow__reader-hl-item"));
+        expect(items).toHaveLength(1);
+        expect(items[0].classes.has("zettelkasten-flow__reader-hl-item--question")).toBe(true);
+    });
+
+    it("changes what a highlight means from its popover, and the marks follow (#720)", async () => {
+        const m = mount([thought("h1", { exact: "Replay rebuilds it", prefix: "", suffix: "" })]);
+        await m.attach();
+        m.marks()[0].fire("click");
+        m.button("Quote").click();
+        await flush();
+        expect(m.store.save).toHaveBeenCalledWith(expect.objectContaining({ id: "h1", meaning: "quote" }));
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(true);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--idea")).toBe(false);
     });
 
     it("undo takes the thought to the trash and the marks off the page", async () => {
@@ -294,7 +347,7 @@ describe("highlights in a PDF or an EPUB (#681)", () => {
         await m.highlights.attach(m.body as never, BOOK, new Component(), m.margin as never, { at: 6, label: "p. 7" });
         m.select("Replay rebuilds");
         m.body.fire("mouseup");
-        m.button("Highlight").click();
+        m.button("Idea").click();
         await flush();
         expect(m.store.write).toHaveBeenCalledWith("", expect.objectContaining({ about: BOOK, locator: { at: 6, label: "p. 7" } }));
     });

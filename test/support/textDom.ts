@@ -43,6 +43,11 @@ export class FakeEl {
         for (const child of children) this.appendChild(typeof child === "string" ? new FakeText(child) : child);
     }
 
+    /** The DOM's own name for the element, upper-cased as the DOM gives it. */
+    get nodeName(): string {
+        return this.tag.toUpperCase();
+    }
+
     get firstChild(): FakeNode | null {
         return this.childNodes[0] ?? null;
     }
@@ -91,6 +96,10 @@ export class FakeEl {
 
     addClass(...names: string[]): void {
         for (const name of names) this.classes.add(name);
+    }
+
+    removeClass(...names: string[]): void {
+        for (const name of names) this.classes.delete(name);
     }
 
     hasClass(name: string): boolean {

@@ -72,6 +72,51 @@ export function chapterText(root: NodeLike): string {
         .join("");
 }
 
+/** Elements whose text starts a new block: what a reader sees as a break, and a search must too. */
+const BLOCKS = new Set(["p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "td", "th", "dt", "dd", "figcaption", "section", "aside", "article", "tr"]);
+
+function blockOf(node: NodeLike, root: NodeLike): NodeLike | null {
+    let at = (node as TextLike).parentNode as unknown as NodeLike | null;
+    while (at && at !== root) {
+        const name = (at as ParentLike).nodeName?.toLowerCase();
+        if (name && BLOCKS.has(name)) return at;
+        at = (at as unknown as TextLike).parentNode;
+    }
+    return root;
+}
+
+/**
+ * The chapter's text as a reader sees it (#719): the same text nodes as `chapterText`, with a space
+ * where one block ends and the next begins — so two paragraphs never run into one word, in a search
+ * or in its snippets. Not for highlight offsets: those are `chapterText`'s.
+ */
+export function readableText(root: NodeLike): string {
+    return readableWithMap(root).text;
+}
+
+/**
+ * The readable text, and the way back from one of its offsets to `chapterText`'s — so a match found
+ * across two blocks is drawn on the page with `wrapSpan` all the same.
+ */
+export function readableWithMap(root: NodeLike): { text: string; toChapter: (offset: number) => number } {
+    let out = "";
+    const inserted: number[] = [];
+    let block: NodeLike | null = null;
+    for (const node of textNodes(root)) {
+        const here = blockOf(node, root);
+        if (block !== null && here !== block && out && !/\s$/.test(out) && !/^\s/.test(node.data)) {
+            inserted.push(out.length);
+            out += " ";
+        }
+        out += node.data;
+        block = here;
+    }
+    return {
+        text: out,
+        toChapter: (offset) => offset - inserted.filter((at) => at < offset).length,
+    };
+}
+
 /**
  * Wrap `span` of `root`'s text in marks made by `makeMark`, one per text node it covers. A piece
  * that is only whitespace (the gap between two paragraphs) is left alone: there is nothing to see,

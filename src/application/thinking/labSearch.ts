@@ -1,4 +1,5 @@
-import type { Thought } from "./thought";
+import { isHighlight, type Thought } from "./thought";
+import { meaningOf, type HighlightMeaning } from "./highlightMeaning";
 import { normalise, type ThoughtNode } from "./thread";
 import { parseTags } from "./tags";
 
@@ -22,6 +23,8 @@ export interface LabQuery {
     tags?: string[];
     /** Restrict to fork / challenge / plain thoughts. */
     kind?: ThoughtKind;
+    /** Restrict to highlights that mean this (#720); a plain thought never matches. */
+    meaning?: HighlightMeaning;
 }
 
 export function kindOf(thought: Thought): ThoughtKind {
@@ -38,7 +41,7 @@ function haystack(thought: Thought): string {
 }
 
 export function isEmptyQuery(query: LabQuery): boolean {
-    return !normalise(query.text ?? "") && !(query.tags && query.tags.length > 0) && !query.kind;
+    return !normalise(query.text ?? "") && !(query.tags && query.tags.length > 0) && !query.kind && !query.meaning;
 }
 
 export function matchesThought(thought: Thought, query: LabQuery): boolean {
@@ -49,6 +52,7 @@ export function matchesThought(thought: Thought, query: LabQuery): boolean {
         if (!query.tags.every((tag) => have.has(tag.toLowerCase()))) return false;
     }
     if (query.kind && kindOf(thought) !== query.kind) return false;
+    if (query.meaning && !(isHighlight(thought) && meaningOf(thought) === query.meaning)) return false;
     return true;
 }
 

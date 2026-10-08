@@ -1,4 +1,5 @@
 import { displayName } from "application/library/displayName";
+import { meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
 import type MomentFn from "moment";
 import { openReader } from "architecture/components/core/reader/openReader";
@@ -74,6 +75,14 @@ const LAB_SCROLL_MARGIN = 480;
 /** Monday, like most of the calendar-using world. Obsidian exposes no week-start we could read here. */
 const WEEK_STARTS_ON = 1;
 
+
+/** The name each highlight meaning shows in Think (#720); a literal map for the locale guardrail. */
+const LAB_MEANING_LABEL: Record<HighlightMeaning, Parameters<typeof t>[0]> = {
+    idea: "reader_hl_meaning_idea",
+    question: "reader_hl_meaning_question",
+    quote: "reader_hl_meaning_quote",
+    discuss: "reader_hl_meaning_discuss",
+};
 export class LabRenderer extends KnowledgeModeRenderer {
     private thoughts: Thought[] = [];
 
@@ -108,6 +117,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private filter = "";
     /** Tag chips you have clicked to narrow by — a thought must carry all of them (#596). */
     private readonly activeTags = new Set<string>();
+    /** Highlights of one meaning only, when you clicked one on a card (#720). */
+    private activeMeaning: HighlightMeaning | null = null;
     /** The find input, so `/` can focus it (#596). */
     private findInputEl: HTMLInputElement | undefined;
     /** The set-aside region, kept as one element so the find bar can refresh it without a full redraw. */
@@ -516,10 +527,22 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 this.render();
             });
         }
-        if (this.filter || this.activeTags.size > 0) {
+        if (this.activeMeaning) {
+            const meaning = this.activeMeaning;
+            const chip = bar.createEl("button", {
+                cls: [c("lab-tag-chip"), c("lab-meaning-chip"), c(`lab-meaning-chip--${meaning}`), "is-active"].join(" "),
+                attr: { type: "button", "aria-label": t("lab_meaning_filter", t(LAB_MEANING_LABEL[meaning])) },
+            });
+            chip.createSpan({ cls: [c("lab-meaning-swatch"), c(`lab-meaning-swatch--${meaning}`)].join(" ") });
+            chip.createSpan({ text: t(LAB_MEANING_LABEL[meaning]) });
+            setIcon(chip.createSpan({ cls: c("lab-tag-remove") }), "x");
+            this.registerDomEvent(chip, "click", () => this.toggleMeaning(meaning));
+        }
+        if (this.filter || this.activeTags.size > 0 || this.activeMeaning) {
             this.ghostAction(bar, t("lab_filter_clear"), "x", () => {
                 this.filter = "";
                 this.activeTags.clear();
+                this.activeMeaning = null;
                 this.shown = LAB_PAGE;
                 this.render();
             });
@@ -536,7 +559,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     /** The current find query, from the text box and the active tag chips. */
     private query(): LabQuery {
-        return { text: this.filter, ...(this.activeTags.size > 0 ? { tags: [...this.activeTags] } : {}) };
+        return {
+            text: this.filter,
+            ...(this.activeTags.size > 0 ? { tags: [...this.activeTags] } : {}),
+            ...(this.activeMeaning ? { meaning: this.activeMeaning } : {}),
+        };
+    }
+
+    /** Show only highlights of this meaning, or everything again (clicked from a card's chip, #720). */
+    private toggleMeaning(meaning: HighlightMeaning): void {
+        this.activeMeaning = this.activeMeaning === meaning ? null : meaning;
+        this.shown = LAB_PAGE;
+        this.render();
     }
 
     /** Toggle a tag as an active filter (clicked from a card's chip). */
@@ -1097,9 +1131,18 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const quote = thought.quote;
         const about = thought.about;
         if (!quote || !about) return;
-        const block = box.createDiv({ cls: c("lab-quote") });
+        const meaning = meaningOf(thought);
+        const block = box.createDiv({ cls: [c("lab-quote"), c(`lab-quote--${meaning}`)].join(" ") });
         block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
         const meta = block.createDiv({ cls: c("lab-quote-meta") });
+        // What you marked it as (#720): one click shows only the highlights that mean the same.
+        const chip = meta.createEl("button", {
+            cls: [c("lab-meaning-chip"), c(`lab-meaning-chip--${meaning}`), ...(this.activeMeaning === meaning ? ["is-active"] : [])].join(" "),
+            attr: { type: "button", "aria-label": t("lab_meaning_filter", t(LAB_MEANING_LABEL[meaning])) },
+        });
+        chip.createSpan({ cls: [c("lab-meaning-swatch"), c(`lab-meaning-swatch--${meaning}`)].join(" ") });
+        chip.createSpan({ text: t(LAB_MEANING_LABEL[meaning]) });
+        this.registerDomEvent(chip, "click", () => this.toggleMeaning(meaning));
         const name = displayName(about, ObsidianApi.getOwnPlugin()?.settings.library);
         meta.createSpan({ text: t("lab_highlight_from", quote.heading ? `${name} › ${quote.heading}` : name) });
         if (!this.app.vault.getAbstractFileByPath(about)) return;

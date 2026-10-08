@@ -288,6 +288,13 @@ export const BUDGETS = {
         because:
             "a Tasks panel redraws on every data update and on every edit to one of its notes; parsing the lines and grouping them must stay well under a frame budget's worth of work (#635)",
     },
+    "reader.search.1k": {
+        name: "search a 1,000-chapter book (5 MB of prose) for a common word",
+        limit: 400,
+        measured: "118 ms (two searches, desktop)",
+        because:
+            "Ctrl/Cmd+F in the Reader searches the whole book on each pause in typing (#719); a long book must answer while you are still looking at the bar",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,

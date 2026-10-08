@@ -174,6 +174,13 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
                 if (rule && rule.test(value)) attrs[key] = value;
                 // An element a link can name, kept as data so it never collides with the app's ids.
                 if ((key === "id" || key === "xml:id") && /^[\w.:-]{1,120}$/.test(value)) attrs["data-zf-id"] = value;
+                // What marks a footnote (#718): EPUB 3 `epub:type` or ARIA `role`, read for its
+                // meaning and kept only as a fixed flag — the book's own value is never copied.
+                if (key === "epub:type" || key === "type" || key === "role") {
+                    const kinds = value.toLowerCase().split(/\s+/);
+                    if (kinds.some((kind) => kind === "noteref" || kind === "doc-noteref")) attrs["data-zf-noteref"] = "true";
+                    else if (kinds.some((kind) => /^(doc-)?(footnote|endnote|rearnote|note)s?$/.test(kind))) attrs["data-zf-note"] = "true";
+                }
             }
             let element = tag;
             if (tag === "a") {

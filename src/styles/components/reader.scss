@@ -1,5 +1,6 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
+@use '../utils/motion' as *;
 
 /*
  * The Reader (#668, epic #667) — a path across your notes, read the way you read a book.
@@ -322,13 +323,17 @@
     text-align: center;
 }
 
+/* The chapter's end: the ornament above, the way on under it (#724). */
 .zettelkasten-flow__reader-next {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     margin-top: var(--size-4-12);
 }
 
-.zettelkasten-flow__reader-next-button {
+/* `button.` so the reading theme's surface wins over Obsidian's `button:not(.clickable-icon)`:
+   in sepia the button was the app's dark one, its text unreadable on it. */
+button.zettelkasten-flow__reader-next-button {
     display: inline-flex;
     align-items: baseline;
     gap: var(--size-4-2);
@@ -355,7 +360,7 @@
 }
 
 /* At the end of the chapter, the way on lights up and lifts a little. */
-.zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+.zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
     border-color: var(--interactive-accent);
     box-shadow: var(--shadow-s);
     transform: translateY(calc(var(--size-2-1) * -1));
@@ -629,6 +634,209 @@
     }
 }
 
+/* The way back from a jump inside a book (#718): the same pill, sliding in, fading by itself. */
+.zettelkasten-flow__reader-jump-pill {
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    animation: zf-reader-pill-in $motion-base $ease-out both;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+@keyframes zf-reader-pill-in {
+    from {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
+/* Contents → Notebook (#721): everything you marked in this book, in the Library. */
+button.zettelkasten-flow__reader-notebook-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    height: auto;
+    margin-bottom: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background: none;
+    box-shadow: none;
+    color: var(--reader-fg);
+    cursor: pointer;
+}
+
+/* Search inside the book (#719): a slim bar under the top, the results under it. */
+.zettelkasten-flow__reader-search {
+    position: absolute;
+    top: calc(var(--size-4-12) + var(--size-4-1));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    width: min(40rem, calc(100% - var(--size-4-8)));
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    animation: zf-reader-pill-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-search-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1) var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-search-icon {
+    display: inline-flex;
+    color: var(--reader-faint);
+}
+
+input.zettelkasten-flow__reader-search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: var(--reader-fg);
+
+    &:focus {
+        box-shadow: none;
+    }
+}
+
+.zettelkasten-flow__reader-search-count {
+    flex: none;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__reader-search-results {
+    max-height: 40vh;
+    overflow-y: auto;
+    border-top: var(--border-width) solid var(--reader-line);
+
+    &:empty,
+    &.zettelkasten-flow__reader-search-results--folded {
+        display: none;
+    }
+}
+
+button.zettelkasten-flow__reader-search-result {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--size-2-1);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-2) var(--size-4-3);
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-align: start;
+    white-space: normal;
+    cursor: pointer;
+
+    &:hover,
+    &.zettelkasten-flow__reader-search-result--current {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__reader-search-where {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-search-snippet {
+    color: var(--reader-fg);
+    font-size: var(--font-ui-small);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-search-snippet-hit {
+    background-color: var(--text-highlight-bg);
+    border-radius: var(--radius-s);
+}
+
+/* The matches in the chapter on screen: tinted; the current one outlined, and it breathes once. */
+.zettelkasten-flow__reader-search-hit {
+    position: relative;
+    background-color: var(--text-highlight-bg);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-search-hit--current::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--size-2-1));
+    border: var(--size-2-1) solid var(--interactive-accent);
+    border-radius: var(--radius-s);
+    pointer-events: none;
+    animation: zf-reader-search-breathe $motion-base $ease-out both;
+}
+
+@keyframes zf-reader-search-breathe {
+    from {
+        opacity: 0;
+        scale: 1.3;
+    }
+}
+
+/* A footnote read in place (#718): it floats under its mark and grows from it. */
+.zettelkasten-flow__reader-note-pop {
+    position: absolute;
+    left: var(--zf-note-x, 50%);
+    top: var(--zf-note-y, 50%);
+    transform: translate(-50%, var(--size-4-2));
+    transform-origin: top center;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: min(26rem, calc(100% - var(--size-4-8)));
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.55;
+    animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+@keyframes zf-reader-note-in {
+    from {
+        opacity: 0;
+        scale: 0.96;
+    }
+}
+
+button.zettelkasten-flow__reader-note-pop-go {
+    align-self: flex-start;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
 .zettelkasten-flow__reader-role-tag--detour {
     color: var(--reader-faint);
     background-color: var(--background-modifier-hover);
@@ -701,8 +909,38 @@
     container-name: zf-reader;
 }
 
+/* What a highlight means (#720) sets its ink; the mark, the sweep and the margin read it. The
+   colours are the theme's own, softened, so a theme that changes them changes these too. */
+.zettelkasten-flow__reader-highlight--idea,
+.zettelkasten-flow__reader-hl-item--idea,
+.zettelkasten-flow__reader-hl-swatch--idea {
+    --zf-ink: color-mix(in srgb, var(--color-yellow) 38%, transparent);
+    --zf-ink-solid: var(--color-yellow);
+}
+
+.zettelkasten-flow__reader-highlight--question,
+.zettelkasten-flow__reader-hl-item--question,
+.zettelkasten-flow__reader-hl-swatch--question {
+    --zf-ink: color-mix(in srgb, var(--color-blue) 32%, transparent);
+    --zf-ink-solid: var(--color-blue);
+}
+
+.zettelkasten-flow__reader-highlight--quote,
+.zettelkasten-flow__reader-hl-item--quote,
+.zettelkasten-flow__reader-hl-swatch--quote {
+    --zf-ink: color-mix(in srgb, var(--color-green) 32%, transparent);
+    --zf-ink-solid: var(--color-green);
+}
+
+.zettelkasten-flow__reader-highlight--discuss,
+.zettelkasten-flow__reader-hl-item--discuss,
+.zettelkasten-flow__reader-hl-swatch--discuss {
+    --zf-ink: color-mix(in srgb, var(--color-purple) 32%, transparent);
+    --zf-ink-solid: var(--color-purple);
+}
+
 .zettelkasten-flow__reader-highlight {
-    background-color: var(--text-highlight-bg);
+    background-color: var(--zf-ink, var(--text-highlight-bg));
     color: inherit;
     border-radius: var(--radius-s);
     cursor: pointer;
@@ -721,7 +959,7 @@
 /* A highlight just made is drawn like a marker: swept across the words, left to right. */
 .zettelkasten-flow__reader-highlight--new {
     background-color: transparent;
-    background-image: linear-gradient(var(--text-highlight-bg), var(--text-highlight-bg));
+    background-image: linear-gradient(var(--zf-ink, var(--text-highlight-bg)), var(--zf-ink, var(--text-highlight-bg)));
     background-repeat: no-repeat;
     background-size: 100% 100%;
     animation: zf-reader-highlight-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
@@ -740,6 +978,46 @@
     to {
         box-shadow: 0 0 0 var(--size-4-3) transparent;
     }
+}
+
+/* The four meanings in a popover (#720): a swatch and a name each; the one in use is marked. */
+.zettelkasten-flow__reader-hl-meanings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+button.zettelkasten-flow__reader-hl-meaning,
+button.zettelkasten-flow__reader-hl-filter-chip {
+    @include chip;
+    @include chip-clickable;
+    gap: var(--size-4-1);
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__reader-hl-swatch {
+    display: inline-block;
+    flex: none;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    background-color: var(--zf-ink-solid);
+}
+
+/* The margin's filter by meaning (#720). */
+.zettelkasten-flow__reader-hl-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-hl-filter-count {
+    color: var(--text-faint);
 }
 
 /* The popover floats over the selection; two custom properties place it, nothing inline. */
@@ -765,6 +1043,74 @@
     flex-direction: row;
     align-items: center;
     transform: translate(-50%, var(--size-4-2));
+    transform-origin: top center;
+}
+
+/* Grown from where you selected (#724): `scale`, beside the transform that places it. */
+.zettelkasten-flow__reader-hl-pop {
+    transform-origin: bottom center;
+    animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+/* A ghost of a kept passage settling into its card in the margin (#724), and any flown copy. */
+.zettelkasten-flow__motion-ghost {
+    position: absolute;
+    left: var(--zf-ghost-x);
+    top: var(--zf-ghost-y);
+    width: var(--zf-ghost-w);
+    height: var(--zf-ghost-h);
+    margin: 0;
+    z-index: 7;
+    pointer-events: none;
+    transform-origin: top left;
+}
+
+.zettelkasten-flow__reader-hl-ghost {
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink, var(--text-highlight-bg));
+}
+
+/* Day, sepia, night: the old theme's surface fading away over the new one (#724). */
+.zettelkasten-flow__reader-theme-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    pointer-events: none;
+    background-color: var(--zf-veil);
+}
+
+/* The chapter's end (#724): a quiet ornament — a line, a diamond, a line — fading in as you arrive. */
+.zettelkasten-flow__reader-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-3);
+    color: var(--reader-faint);
+    opacity: 0;
+    scale: 0.92;
+    transition:
+        opacity $motion-base $ease-out,
+        scale $motion-base $ease-out;
+
+    &::before,
+    &::after {
+        content: "";
+        width: var(--size-4-8);
+        border-top: var(--border-width) solid currentColor;
+    }
+}
+
+.zettelkasten-flow__reader-ornament-mark {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border: var(--border-width) solid currentColor;
+    rotate: 45deg;
+}
+
+.zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-ornament {
+    opacity: 1;
+    scale: 1;
 }
 
 .zettelkasten-flow__reader-hl-actions {
@@ -828,7 +1174,7 @@
     background-color: var(--reader-surface);
     color: var(--reader-fg);
     border: var(--border-width) solid var(--reader-line);
-    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    border-left: var(--size-2-1) solid var(--zf-ink-solid, var(--text-highlight-bg));
     border-radius: var(--radius-s);
     box-shadow: none;
 }
@@ -945,8 +1291,17 @@
     .zettelkasten-flow__reader-peek,
     .zettelkasten-flow__reader-highlight--new,
     .zettelkasten-flow__reader-shortcuts,
-    .zettelkasten-flow__reader-shortcuts-card {
+    .zettelkasten-flow__reader-shortcuts-card,
+    .zettelkasten-flow__reader-note-pop,
+    .zettelkasten-flow__reader-jump-pill,
+    .zettelkasten-flow__reader-search,
+    .zettelkasten-flow__reader-search-hit--current::after,
+    .zettelkasten-flow__reader-hl-pop {
         animation: none;
+    }
+
+    .zettelkasten-flow__reader-ornament {
+        transition: none;
     }
 
     .zettelkasten-flow__reader-bar,
@@ -954,12 +1309,12 @@
     .zettelkasten-flow__reader-dots,
     .zettelkasten-flow__reader-dot,
     .zettelkasten-flow__reader-hairline-fill,
-    .zettelkasten-flow__reader-next-button,
+    button.zettelkasten-flow__reader-next-button,
     .zettelkasten-flow__reader--focus .zettelkasten-flow__reader-body > * {
         transition: none;
     }
 
-    .zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+    .zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
         transform: none;
     }
 }

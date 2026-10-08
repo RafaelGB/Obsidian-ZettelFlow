@@ -127,9 +127,19 @@ way on lights up: **Next · *its name* · *how long it is***.
 - **Pages that turn.** Going forward the page slides in from the right; going back, from the left.
   Each chapter opens in order: its number, its role, its title, then the words.
 - **A marker, not a stamp.** A new highlight is swept across the words like a marker pen.
+- **Time left, at your pace.** The bar says how long is left in the chapter and in the book,
+  counted at **your** reading speed, learned from the chapters you read to the end and kept on this
+  device only. It shows only while the bar does: move the pointer or press a key. **Type → Time
+  left** turns it off.
 - **Focus mode** (in **Type**): every paragraph but the one at your reading line steps back, so your
   eye stays where you are. It is remembered for next time.
 - **Calm when you read.** Opening, the page rises out of the workspace; leaving, it sinks back.
+- **Details that explain themselves.** The cover you click on the shelf grows into the page. A
+  highlight you keep drifts into its card in the margin. Popovers grow from where you selected, and
+  a chapter ends with a quiet ornament as you arrive. Day, sepia and night cross-fade instead of
+  snapping, and the book you are reading breathes once when you come back to the Library. Each one
+  moves only what the screen can move for free (transform and opacity), and none of them counts at
+  you.
 - **Less motion, if you asked for it.** With your system's *reduce motion* setting on, every one of
   these is instant: nothing slides, sweeps or fades.
 
@@ -140,6 +150,10 @@ as they do everywhere else.
 
 Getting lost is the main way reading fails in a linked vault: you follow a link, then another, and
 the thread is gone. So a link in the Reader is a **peek**, not a jump.
+
+In a book or a paper it is the same idea. A **footnote** opens over the page, at its mark, and any
+**jump** (a cross-reference, Contents, *Go to note*) leaves a **← Back to …** pill and Alt+← to return
+to the line you left. See [Your Library](library.md#reading-an-epub).
 
 ![A peek under a paragraph, a detour with its way back, and the context of the chapter](../resources/reader/peek.svg)
 
@@ -174,6 +188,11 @@ you write the note, the passage stays marked; cancel and the mark goes.
 
 ![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
 
+- **A highlight says what it is.** The popover offers four meanings: **Idea**, **Question**,
+  **Quote** and **To discuss**, each in a colour of your theme. Click one (or press **1–4**) and the
+  passage takes it; **H** keeps the next one with the meaning you used last. Click a highlight to
+  change its meaning. With more than one meaning in a chapter, the margin can show one meaning at a
+  time. A highlight made before meanings existed reads as an idea.
 - **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the
   thought's text. Open Think on that note and the passage is there, quoted above what you wrote, with

@@ -35,7 +35,71 @@ export function scrolls(scrollHeight: number, clientHeight: number): boolean {
 }
 
 /** Minutes left in a chapter of `words`, `fraction` of the way through; 0 at the end. */
-export function minutesLeft(words: number, fraction: number): number {
+export function minutesLeft(words: number, fraction: number, wpm = WORDS_PER_MINUTE): number {
     if (fraction >= END_OF_CHAPTER) return 0;
-    return minutesFor(Math.round(words * (1 - fraction)));
+    return minutesFor(Math.round(words * (1 - fraction)), wpm);
+}
+
+/**
+ * Your own reading pace (#722): learned from the chapters you read to the end, on this device only,
+ * never sent anywhere and never shown as a number to beat.
+ */
+export interface Pace {
+    wpm: number;
+    samples: number;
+}
+
+/** A chapter shorter than this says nothing about how fast you read. */
+const MIN_SAMPLE_WORDS = 150;
+/** Outside this, it was not reading: a tab left open, or a skim. */
+const MIN_WPM = 80;
+const MAX_WPM = 700;
+/** How far one chapter moves the pace: gently, so one slow evening does not rewrite it. */
+const LEARNING_RATE = 0.3;
+/** Until then, the default: one chapter is an anecdote. */
+const TRUSTED_AFTER = 2;
+
+/** The pace after reading `words` in `ms`, or the same pace when that was not reading. */
+export function learnPace(pace: Pace | null, sample: { words: number; ms: number }): Pace | null {
+    if (sample.words < MIN_SAMPLE_WORDS || sample.ms <= 0) return pace;
+    const wpm = sample.words / (sample.ms / 60_000);
+    if (wpm < MIN_WPM || wpm > MAX_WPM) return pace;
+    if (!pace) return { wpm, samples: 1 };
+    const rate = pace.samples < TRUSTED_AFTER ? 0.5 : LEARNING_RATE;
+    return { wpm: pace.wpm + (wpm - pace.wpm) * rate, samples: pace.samples + 1 };
+}
+
+/** Words per minute to count with: yours once there is enough to trust, the default until then. */
+export function paceWpm(pace: Pace | null): number {
+    return pace && pace.samples >= TRUSTED_AFTER ? Math.round(pace.wpm) : WORDS_PER_MINUTE;
+}
+
+/** Whatever was stored, as a pace — or none. */
+export function normalizePace(raw: unknown): Pace | null {
+    const value = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+    const wpm = Number(value?.wpm);
+    const samples = Number(value?.samples);
+    return Number.isFinite(wpm) && wpm >= MIN_WPM && wpm <= MAX_WPM && Number.isInteger(samples) && samples > 0 ? { wpm, samples } : null;
+}
+
+/**
+ * Minutes left in the book: what is left of this chapter, and the chapters after it — their words
+ * when the book has been read through (a search does that), or the chapters you read so far, as an
+ * average, otherwise.
+ */
+export function bookMinutesLeft(input: {
+    chapterWordsLeft: number;
+    upcoming: number[] | { chapters: number; averageWords: number };
+    wpm: number;
+}): number {
+    const after = Array.isArray(input.upcoming)
+        ? input.upcoming.reduce((sum, words) => sum + words, 0)
+        : input.upcoming.chapters * input.upcoming.averageWords;
+    const words = Math.max(0, input.chapterWordsLeft) + Math.max(0, after);
+    return words <= 0 ? 0 : Math.max(1, Math.round(words / input.wpm));
+}
+
+/** A long time, as hours and minutes. */
+export function splitMinutes(total: number): { hours: number; minutes: number } {
+    return { hours: Math.floor(total / 60), minutes: total % 60 };
 }

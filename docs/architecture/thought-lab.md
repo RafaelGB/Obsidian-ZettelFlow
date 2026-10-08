@@ -809,3 +809,11 @@ is that the command id and the mode id never changed, so nobody's hotkey or deep
 | AI | No |
 
 _README vocabulary for this page: **Cognitive moves**._
+
+### Highlights by what they mean (#720)
+
+A highlight from the Reader shows what you marked it as (**Idea**, **Question**, **Quote** or **To
+discuss**) as a chip on its quote, in the same colour as in the book. Click the chip to show only the
+highlights with that meaning; the find bar shows it as a chip you can remove. Like every filter here,
+it narrows and never reorders.
+

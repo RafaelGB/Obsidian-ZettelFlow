@@ -188,3 +188,24 @@ diff:
 The cost is that the plugin cannot look like itself. That is the point: the look belongs to the
 user, and legibility inside their choice is the whole job.
 
+## XVI. One continuous shot
+
+The interface is one *plano secuencia* ([manifesto](../manifesto.md#one-continuous-shot)): moving
+between places is a camera move, never a cut. Born in the Library and the Reader (the
+[prototype](../resources/reader/prototype-one-shot.html) is the reference), it applies wherever one
+view becomes another. Six consequences a reviewer can check on a diff:
+
+- **No cut between related views.** When one thing becomes another view (a cover becomes the
+  reader, a card becomes its note), the element travels and becomes it; a fade-out/fade-in swap,
+  or a new tab where the same leaf could carry the shot, is a cut.
+- **Every entrance has an origin, every exit a destination**, and the reverse gesture plays the
+  reverse shot: closing the Reader returns the camera to the book on its shelf.
+- **One gesture at a time.** A transition is one camera move with continuous velocity — no hold
+  in the middle, no several entrances running in parallel.
+- **Physical, not decorative.** Motion follows the material (a page turns, a sheet slides, text
+  keeps flowing in the reading direction). A blur or a cross-dissolve is not a transition.
+- **Cheap.** `transform` and `opacity` only, on the shared motion tokens
+  (`src/styles/utils/motion.scss`); opacity never on a 3D parent (it flattens the scene).
+- **Never in the way.** Input during a shot jumps it to its end, and under reduced motion every
+  shot is instant — the place is still continuous, only the movement is gone.
+

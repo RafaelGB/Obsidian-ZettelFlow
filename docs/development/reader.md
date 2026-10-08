@@ -178,6 +178,11 @@ you write the note, the passage stays marked; cancel and the mark goes.
 
 ![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
 
+- **A highlight says what it is.** The popover offers four meanings: **Idea**, **Question**,
+  **Quote** and **To discuss**, each in a colour of your theme. Click one (or press **1–4**) and the
+  passage takes it; **H** keeps the next one with the meaning you used last. Click a highlight to
+  change its meaning. With more than one meaning in a chapter, the margin can show one meaning at a
+  time. A highlight made before meanings existed reads as an idea.
 - **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the
   thought's text. Open Think on that note and the passage is there, quoted above what you wrote, with

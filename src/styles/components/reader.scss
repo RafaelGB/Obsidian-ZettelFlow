@@ -888,8 +888,38 @@ button.zettelkasten-flow__reader-note-pop-go {
     container-name: zf-reader;
 }
 
+/* What a highlight means (#720) sets its ink; the mark, the sweep and the margin read it. The
+   colours are the theme's own, softened, so a theme that changes them changes these too. */
+.zettelkasten-flow__reader-highlight--idea,
+.zettelkasten-flow__reader-hl-item--idea,
+.zettelkasten-flow__reader-hl-swatch--idea {
+    --zf-ink: color-mix(in srgb, var(--color-yellow) 38%, transparent);
+    --zf-ink-solid: var(--color-yellow);
+}
+
+.zettelkasten-flow__reader-highlight--question,
+.zettelkasten-flow__reader-hl-item--question,
+.zettelkasten-flow__reader-hl-swatch--question {
+    --zf-ink: color-mix(in srgb, var(--color-blue) 32%, transparent);
+    --zf-ink-solid: var(--color-blue);
+}
+
+.zettelkasten-flow__reader-highlight--quote,
+.zettelkasten-flow__reader-hl-item--quote,
+.zettelkasten-flow__reader-hl-swatch--quote {
+    --zf-ink: color-mix(in srgb, var(--color-green) 32%, transparent);
+    --zf-ink-solid: var(--color-green);
+}
+
+.zettelkasten-flow__reader-highlight--discuss,
+.zettelkasten-flow__reader-hl-item--discuss,
+.zettelkasten-flow__reader-hl-swatch--discuss {
+    --zf-ink: color-mix(in srgb, var(--color-purple) 32%, transparent);
+    --zf-ink-solid: var(--color-purple);
+}
+
 .zettelkasten-flow__reader-highlight {
-    background-color: var(--text-highlight-bg);
+    background-color: var(--zf-ink, var(--text-highlight-bg));
     color: inherit;
     border-radius: var(--radius-s);
     cursor: pointer;
@@ -908,7 +938,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 /* A highlight just made is drawn like a marker: swept across the words, left to right. */
 .zettelkasten-flow__reader-highlight--new {
     background-color: transparent;
-    background-image: linear-gradient(var(--text-highlight-bg), var(--text-highlight-bg));
+    background-image: linear-gradient(var(--zf-ink, var(--text-highlight-bg)), var(--zf-ink, var(--text-highlight-bg)));
     background-repeat: no-repeat;
     background-size: 100% 100%;
     animation: zf-reader-highlight-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
@@ -927,6 +957,46 @@ button.zettelkasten-flow__reader-note-pop-go {
     to {
         box-shadow: 0 0 0 var(--size-4-3) transparent;
     }
+}
+
+/* The four meanings in a popover (#720): a swatch and a name each; the one in use is marked. */
+.zettelkasten-flow__reader-hl-meanings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+button.zettelkasten-flow__reader-hl-meaning,
+button.zettelkasten-flow__reader-hl-filter-chip {
+    @include chip;
+    @include chip-clickable;
+    gap: var(--size-4-1);
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__reader-hl-swatch {
+    display: inline-block;
+    flex: none;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: $radius-pill;
+    background-color: var(--zf-ink-solid);
+}
+
+/* The margin's filter by meaning (#720). */
+.zettelkasten-flow__reader-hl-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+    margin-bottom: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-hl-filter-count {
+    color: var(--text-faint);
 }
 
 /* The popover floats over the selection; two custom properties place it, nothing inline. */
@@ -1015,7 +1085,7 @@ button.zettelkasten-flow__reader-note-pop-go {
     background-color: var(--reader-surface);
     color: var(--reader-fg);
     border: var(--border-width) solid var(--reader-line);
-    border-left: var(--size-2-1) solid var(--text-highlight-bg);
+    border-left: var(--size-2-1) solid var(--zf-ink-solid, var(--text-highlight-bg));
     border-radius: var(--radius-s);
     box-shadow: none;
 }

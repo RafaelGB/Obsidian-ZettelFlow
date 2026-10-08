@@ -8,6 +8,7 @@ import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
+import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -15,7 +16,7 @@ type LocaleKey = Parameters<typeof t>[0];
 export interface HighlightStore {
     folder(): string;
     highlightsAbout(notePath: string): Promise<Thought[]>;
-    write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator }): Promise<Thought | undefined>;
+    write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator; meaning?: HighlightMeaning }): Promise<Thought | undefined>;
     save(thought: Thought): Promise<void>;
     discard(thought: Thought): Promise<void>;
     restore(thought: Thought): Promise<void>;
@@ -53,6 +54,14 @@ export interface HighlightDeps {
     /** A source's highlight into a note (#683): the crystallize preview, never a write of its own. */
     toNote?: (app: App, thought: Thought) => void;
 }
+
+/** The name each meaning shows (#720). A literal map, so the locale guardrail sees every key. */
+const MEANING_LABEL: Record<HighlightMeaning, LocaleKey> = {
+    idea: "reader_hl_meaning_idea",
+    question: "reader_hl_meaning_question",
+    quote: "reader_hl_meaning_quote",
+    discuss: "reader_hl_meaning_discuss",
+};
 
 /** How long an answer (and its Undo) stays in the popover. */
 const STATUS_MS = 8000;
@@ -177,6 +186,10 @@ export class ReaderHighlights {
     /** The listeners of the margin's rows, replaced when it redraws. */
     private marginScope: Component | null = null;
     private statusTimer: number | undefined;
+    /** The meaning you chose last (#720): what H keeps and what *Highlight and note* uses. */
+    private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
+    /** The margin shows one meaning only, when you asked it to (#720). */
+    private filter: HighlightMeaning | null = null;
     /** Bumped on every chapter, so a slow load never draws over a newer one. */
     private generation = 0;
 
@@ -328,12 +341,19 @@ export class ReaderHighlights {
     }
 
     /** H: highlight what is selected now. Returns whether there was anything to keep. */
-    highlightCurrent(withNote = false): boolean {
+    highlightCurrent(withNote = false, meaning: HighlightMeaning = this.lastMeaning): boolean {
         const found = this.currentQuote();
         if (!found) return false;
-        if (withNote) this.openNoteEditor(found.selection, found.span, found.quote);
-        else void this.keep(found.selection, found.span, found.quote, "");
+        if (withNote) this.openNoteEditor(found.selection, found.span, found.quote, meaning);
+        else void this.keep(found.selection, found.span, found.quote, "", meaning);
         return true;
+    }
+
+    /** 1–4 while words are selected: keep them with that meaning (#720). */
+    chooseMeaning(index: number): boolean {
+        const meaning = HIGHLIGHT_MEANINGS[index];
+        if (!meaning || !this.popover?.hasClass(c("reader-hl-pop--select"))) return false;
+        return this.highlightCurrent(false, meaning);
     }
 
     hidePopover(): void {
@@ -367,8 +387,11 @@ export class ReaderHighlights {
         }
         if (this.anchored.length === 0 && this.detached.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_margin") });
+        this.renderFilter(host, scope);
         for (const entry of this.anchored) {
-            const row = host.createEl("button", { cls: c("reader-hl-item"), attr: { type: "button" } });
+            const meaning = meaningOf(entry.thought);
+            if (this.filter && meaning !== this.filter) continue;
+            const row = host.createEl("button", { cls: [c("reader-hl-item"), c(`reader-hl-item--${meaning}`)], attr: { type: "button" } });
             row.createDiv({ cls: c("reader-hl-quote"), text: snippet(entry.thought.quote?.exact ?? "") });
             if (entry.thought.text.trim()) row.createDiv({ cls: c("reader-hl-note"), text: entry.thought.text.trim() });
             scope.registerDomEvent(row, "click", () => this.reveal(entry.thought.id));
@@ -410,23 +433,27 @@ export class ReaderHighlights {
             return;
         }
         const pop = this.openPopover(found.selection.rect, "select");
+        // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
+        const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
+        for (const meaning of HIGHLIGHT_MEANINGS) {
+            this.meaningButton(meanings, meaning, meaning === this.lastMeaning, () => void this.keep(found.selection, found.span, found.quote, "", meaning));
+        }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
-        this.button(actions, "reader_hl_highlight", true, () => void this.keep(found.selection, found.span, found.quote, ""));
-        this.button(actions, "reader_hl_highlight_note", false, () => this.openNoteEditor(found.selection, found.span, found.quote));
+        this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
         this.button(actions, "reader_hl_copy", false, () => {
             if (this.body) this.copy(this.body, found.quote.exact);
             this.status("reader_hl_copied");
         });
     }
 
-    private openNoteEditor(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote): void {
+    private openNoteEditor(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, meaning: HighlightMeaning = this.lastMeaning): void {
         const pop = this.openPopover(selection.rect, "editing");
         // Marked before the box takes focus — and the selection with it.
         if (this.body) {
             this.pending = wrapSpan(this.body, span, () => this.makeMark("pending")) as unknown as HTMLElement[];
-            this.pending.forEach((mark) => mark.addClass(c("reader-highlight--pending")));
+            this.pending.forEach((mark) => mark.addClass(c("reader-highlight--pending"), c(`reader-highlight--${meaning}`)));
         }
-        this.noteForm(pop, "", (text) => void this.keep(selection, span, quote, text));
+        this.noteForm(pop, "", (text) => void this.keep(selection, span, quote, text, meaning));
     }
 
     private clearPending(): void {
@@ -460,7 +487,7 @@ export class ReaderHighlights {
 
     // ── writes (all of them thoughts, never the note) ────────────────────────
 
-    private async keep(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, note: string): Promise<void> {
+    private async keep(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, note: string, meaning: HighlightMeaning = this.lastMeaning): Promise<void> {
         const notePath = this.notePath;
         const body = this.body;
         if (!notePath || !body) return;
@@ -474,7 +501,7 @@ export class ReaderHighlights {
         const cited = locator && !quote.heading && locator.label ? { ...quote, heading: locator.label } : quote;
         try {
             await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: notePath }, async () => {
-                made = await this.store.write(note.trim(), { about: notePath, quote: cited, ...(locator ? { locator } : {}) });
+                made = await this.store.write(note.trim(), { about: notePath, quote: cited, ...(locator ? { locator } : {}), meaning });
             });
         } catch (error) {
             log.error(`[Reader] could not keep a highlight on ${notePath}: ${String(error)}`);
@@ -485,6 +512,7 @@ export class ReaderHighlights {
         }
         this.made++;
         if (note.trim()) this.noted++;
+        this.lastMeaning = meaning;
         selection.clear();
         if (this.body !== body) return; // the chapter turned while the thought was written
         this.clearPending(); // the real marks take its place
@@ -612,6 +640,7 @@ export class ReaderHighlights {
         if (!body) return [];
         const marks = wrapSpan(body, span, () => this.makeMark(thought.id)) as unknown as HTMLElement[];
         if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
+        marks.forEach((mark) => mark.addClass(c(`reader-highlight--${meaningOf(thought)}`)));
         for (const mark of marks) {
             this.component?.registerDomEvent(mark, "click", (event: MouseEvent) => {
                 // Inside a link the mark wins: its popover, not the link's peek or navigation.
@@ -641,6 +670,11 @@ export class ReaderHighlights {
         const pop = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "mark");
         const note = thought.text.trim();
         pop.createDiv({ cls: c(note ? "reader-hl-pop-note" : "reader-hl-pop-empty"), text: note || t("reader_hl_no_note") });
+        // What it means, changed in place (#720).
+        const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
+        for (const meaning of HIGHLIGHT_MEANINGS) {
+            this.meaningButton(meanings, meaning, meaning === meaningOf(thought), () => void this.changeMeaning(thought, meaning));
+        }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, note ? "reader_hl_edit_note" : "reader_hl_add_note", true, () => {
             const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
@@ -658,6 +692,73 @@ export class ReaderHighlights {
             this.hidePopover();
             this.openThink(this.view.app, thought.about ?? this.notePath ?? "");
         });
+    }
+
+    /** The meanings as chips with their counts; one click shows only that meaning, again for all (#720). */
+    private renderFilter(host: HTMLElement, scope: Component): void {
+        const counts = new Map<HighlightMeaning, number>();
+        for (const entry of this.anchored) counts.set(meaningOf(entry.thought), (counts.get(meaningOf(entry.thought)) ?? 0) + 1);
+        if (counts.size < 2 && !this.filter) return;
+        const row = host.createDiv({ cls: c("reader-hl-filter"), attr: { role: "group", "aria-label": t("reader_hl_filter") } });
+        const chip = (label: string, count: number, on: boolean, meaning: HighlightMeaning | null) => {
+            const el = row.createEl("button", {
+                cls: [c("reader-hl-filter-chip"), ...(meaning ? [c(`reader-hl-filter-chip--${meaning}`)] : []), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on) },
+            });
+            if (meaning) el.createSpan({ cls: [c("reader-hl-swatch"), c(`reader-hl-swatch--${meaning}`)] });
+            el.createSpan({ text: label });
+            el.createSpan({ cls: c("reader-hl-filter-count"), text: String(count) });
+            scope.registerDomEvent(el, "click", () => {
+                this.filter = this.filter === meaning ? null : meaning;
+                this.renderMargin();
+                this.view.onChange();
+            });
+        };
+        chip(t("reader_hl_filter_all"), this.anchored.length, this.filter === null, null);
+        for (const meaning of HIGHLIGHT_MEANINGS) {
+            const count = counts.get(meaning) ?? 0;
+            if (count > 0 || this.filter === meaning) chip(t(MEANING_LABEL[meaning]), count, this.filter === meaning, meaning);
+        }
+    }
+
+    /** One meaning as a swatch and its name; the one in use is marked. */
+    private meaningButton(parent: HTMLElement, meaning: HighlightMeaning, on: boolean, run: () => void): HTMLElement {
+        const button = parent.createEl("button", {
+            cls: [c("reader-hl-meaning"), c(`reader-hl-meaning--${meaning}`), ...(on ? ["is-active"] : [])],
+            attr: { type: "button", "aria-pressed": String(on), "data-meaning": meaning },
+        });
+        button.createSpan({ cls: [c("reader-hl-swatch"), c(`reader-hl-swatch--${meaning}`)] });
+        button.createSpan({ text: t(MEANING_LABEL[meaning]) });
+        (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", run);
+        return button;
+    }
+
+    /** Change what a highlight means (#720): the thought is saved, the marks take the new colour. */
+    private async changeMeaning(thought: Thought, meaning: HighlightMeaning): Promise<void> {
+        if (meaningOf(thought) === meaning) {
+            this.hidePopover();
+            return;
+        }
+        const next: Thought = { ...thought, meaning };
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not change what a highlight means: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
+        if (entry) {
+            entry.thought = next;
+            for (const mark of entry.marks) {
+                for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
+                mark.addClass(c(`reader-highlight--${meaning}`));
+            }
+        }
+        this.lastMeaning = meaning;
+        this.renderMargin();
+        this.view.onChange();
+        this.hidePopover();
     }
 
     private renderMargin(): void {

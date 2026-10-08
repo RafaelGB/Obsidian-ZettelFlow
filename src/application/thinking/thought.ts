@@ -16,6 +16,7 @@
  * is exactly what you typed.
  */
 
+import { isMeaning, type HighlightMeaning } from "./highlightMeaning";
 import type { Incubation } from "./incubation";
 import type { TextQuote } from "./quoteAnchor";
 
@@ -122,6 +123,8 @@ export interface Thought {
      * note written in the margin of a page that has no text to highlight.
      */
     locator?: ThoughtLocator;
+    /** What a highlight means (#720): absent reads as an idea. Chosen by you, never inferred. */
+    meaning?: HighlightMeaning;
 }
 
 /** What a *changed my mind* thought points back at (#679). */
@@ -145,6 +148,7 @@ export interface NewThought {
     quote?: ThoughtQuote;
     revises?: ThoughtRevision;
     locator?: ThoughtLocator;
+    meaning?: HighlightMeaning;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -159,6 +163,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.quote?.exact ? { quote: input.quote } : {}),
         ...(input.revises?.of ? { revises: input.revises } : {}),
         ...(input.locator ? { locator: input.locator } : {}),
+        ...(input.meaning ? { meaning: input.meaning } : {}),
     };
 }
 
@@ -216,6 +221,7 @@ export function renderThought(thought: Thought): string {
         lines.push(`  quoteSuffix: ${JSON.stringify(thought.quote.suffix)}`);
         if (thought.quote.heading) lines.push(`  quoteHeading: ${JSON.stringify(thought.quote.heading)}`);
     }
+    if (thought.meaning) lines.push(`  meaning: ${thought.meaning}`);
     if (thought.review) {
         lines.push(`  reviewStage: ${thought.review.stage}`, `  reviewDue: ${thought.review.due}`);
         if (thought.review.last) lines.push(`  reviewedAt: ${thought.review.last}`);
@@ -264,6 +270,7 @@ export function parseThought(content: string, path: string): Thought {
     const quote = readQuote(read);
     const review = readReview(read);
     const locator = readLocator(read);
+    const meaning = readString(read("meaning"));
     const revisesOf = read("revisesOf");
     const revises: ThoughtRevision | undefined = revisesOf
         ? { of: revisesOf, quote: readString(read("revisesQuote")) ?? "" }
@@ -287,6 +294,7 @@ export function parseThought(content: string, path: string): Thought {
         links,
         ...(respondsTo ? { respondsTo } : {}),
         ...(about ? { about } : {}),
+        ...(isMeaning(meaning) ? { meaning } : {}),
         ...(alsoAbout ? { alsoAbout } : {}),
         ...(incubated ? { incubated } : {}),
         ...(quote ? { quote } : {}),

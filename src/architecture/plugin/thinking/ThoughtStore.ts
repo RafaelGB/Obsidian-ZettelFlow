@@ -1,3 +1,4 @@
+import type { HighlightMeaning } from "application/thinking/highlightMeaning";
 import { TFile } from "obsidian";
 import type { ThoughtRef } from "architecture/knowledge/timeline/timelineEvents";
 import { v4 as uuid4 } from "uuid";
@@ -75,6 +76,8 @@ export class ThoughtStore {
             quote?: ThoughtQuote;
             revises?: ThoughtRevision;
             locator?: ThoughtLocator;
+            /** What a highlight means (#720). */
+            meaning?: HighlightMeaning;
         } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();

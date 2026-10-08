@@ -93,6 +93,10 @@ export class FakeEl {
         for (const name of names) this.classes.add(name);
     }
 
+    removeClass(...names: string[]): void {
+        for (const name of names) this.classes.delete(name);
+    }
+
     hasClass(name: string): boolean {
         return this.classes.has(name);
     }

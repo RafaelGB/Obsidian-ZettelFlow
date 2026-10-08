@@ -74,6 +74,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_back" },
     { keys: ["reader_kbd_home", "reader_kbd_end"], label: "reader_key_ends" },
     { keys: ["H"], label: "reader_key_highlight" },
+    { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["F"], label: "reader_key_fullscreen" },
     { keys: ["V"], label: "reader_key_layout" },
@@ -1824,6 +1825,8 @@ export class ReaderView extends ItemView {
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
         bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
+        // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
+        for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
         bind(null, "?", taken(() => this.toggleShortcuts()));
         bind(none, "Escape", taken(() => this.escape()));

@@ -1,0 +1,74 @@
+{#
+  Docs-site analytics: GoatCounter, chosen for privacy. No cookies, no personal data, no fingerprint,
+  so there is no consent banner to show. A visitor who sends Do Not Track or Global Privacy Control
+  is never counted. Only this website is measured; the plugin itself sends nothing (see
+  development/capabilities-and-privacy.md). The dashboard is private and needs a GoatCounter login.
+
+  What is counted: page views (also on instant navigation), "Was this page helpful?" answers, and
+  search terms typed into the docs search, each as an event.
+#}
+{% set property = config.extra.analytics.property | d("", true) %}
+<script id="__analytics">
+  function __md_analytics() {
+    if (navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true)
+      return
+
+    /* Count by hand: Material's instant navigation never reloads the page */
+    window.goatcounter = { no_onload: true }
+    var ready = false
+    var pending = []
+    function count(vars) {
+      if (ready) window.goatcounter.count(vars)
+      else pending.push(vars)
+    }
+
+    var script = document.createElement("script")
+    script.async = true
+    script.src = "https://gc.zgo.at/count.js"
+    script.setAttribute("data-goatcounter", "https://{{ property }}.goatcounter.com/count")
+    script.onload = function() {
+      ready = typeof window.goatcounter.count === "function"
+      if (ready) pending.splice(0).forEach(function(vars) { window.goatcounter.count(vars) })
+    }
+    document.getElementById("__analytics").insertAdjacentElement("afterEnd", script)
+
+    document.addEventListener("DOMContentLoaded", function() {
+      /* The first page view, then one per instant navigation */
+      count({ path: location.pathname })
+      location$.subscribe(function(url) {
+        count({ path: url.pathname })
+      })
+
+      /* What people look for: the term, never who looked */
+      if (document.forms.search) {
+        document.forms.search.query.addEventListener("blur", function() {
+          var term = this.value.trim().toLowerCase().slice(0, 60)
+          if (term) count({ path: "search: " + term, title: "Docs search", event: true })
+        })
+      }
+
+      /* "Was this page helpful?" */
+      document$.subscribe(function() {
+        var feedback = document.forms.feedback
+        if (typeof feedback === "undefined")
+          return
+        for (var button of feedback.querySelectorAll("[type=submit]")) {
+          button.addEventListener("click", function(ev) {
+            ev.preventDefault()
+            var data = this.getAttribute("data-md-value")
+            count({
+              path: "feedback-" + (data === "1" ? "helpful" : "not-helpful") + ": " + location.pathname,
+              title: "Was this page helpful?",
+              event: true,
+            })
+            feedback.firstElementChild.disabled = true
+            var note = feedback.querySelector(".md-feedback__note [data-md-value='" + data + "']")
+            if (note)
+              note.hidden = false
+          })
+          feedback.hidden = false
+        }
+      })
+    })
+  }
+</script>

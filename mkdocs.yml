@@ -104,6 +104,24 @@ markdown_extensions:
   - pymdownx.tilde
 
 extra:
+  # Docs-site analytics (privacy-first, no cookies): overrides/partials/integrations/analytics/goatcounter.html.
+  # The dashboard at https://zettelflow.goatcounter.com is private (GoatCounter login).
+  analytics:
+    provider: goatcounter
+    property: zettelflow
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Tell us what was missing in a
+            <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new" target="_blank" rel="noopener">GitHub issue</a>.
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/RafaelGB/Obsidian-ZettelFlow

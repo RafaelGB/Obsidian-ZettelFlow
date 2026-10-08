@@ -1,7 +1,7 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { isFresh, normalizeLibrary, withFacts, withPlace, type SourceMeta } from "application/library/sourceMeta";
+import { isFresh, normalizeLibrary, withFacts, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import type { Thought } from "application/thinking/thought";
 import type { SourceDocument } from "architecture/components/core/library/sources/sourceDocument";
@@ -31,6 +31,28 @@ export function rememberSourcePlace(app: App, host: ReaderHost | undefined, path
     const stat = file instanceof TFile ? file.stat : undefined;
     settings.library = withPlace(normalizeLibrary(settings.library), path, chapter, total, Date.now(), stat?.size ?? 0, stat?.mtime ?? 0);
     void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the place: ${String(error)}`));
+}
+
+/** How far into the chapter you are, for the next resume to land there — not at the chapter's top. */
+export function rememberSourceScroll(app: App, host: ReaderHost | undefined, path: string, chapter: number, total: number, share: number): void {
+    const settings = host?.settings;
+    if (!settings) return;
+    let map = normalizeLibrary(settings.library);
+    // Opened straight on a chapter and never turned: the place itself is kept first.
+    if (map[path]?.chapter !== chapter) {
+        const file = app.vault.getAbstractFileByPath(path);
+        const stat = file instanceof TFile ? file.stat : undefined;
+        map = withPlace(map, path, chapter, total, Date.now(), stat?.size ?? 0, stat?.mtime ?? 0);
+    }
+    const next = withScroll(map, path, chapter, share);
+    settings.library = next;
+    void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the place: ${String(error)}`));
+}
+
+/** The share of `chapter` a resume should land on, when that is the chapter the place was kept for. */
+export function keptScroll(host: ReaderHost | undefined, path: string, chapter: number): number | null {
+    const meta = normalizeLibrary(host?.settings?.library)[path];
+    return meta && meta.chapter === chapter && meta.scroll !== undefined ? meta.scroll : null;
 }
 
 /** Keep what opening a source told about it, when the shelf had not read it yet. */

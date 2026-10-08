@@ -101,6 +101,13 @@ you try: *This PDF is made of images, so there is no text to highlight. You can 
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
 
+### Where you left off, to the line
+
+The Library keeps the chapter or page you were on **and how far into it you were**. **Resume** opens
+there, not at the chapter's top, which matters in an EPUB whose chapters are long. It is kept a moment
+after you stop scrolling, and it lands on the same share of the chapter even if you changed the type
+size. A deep link to a highlight lands on the highlight instead.
+
 ## Reading an EPUB
 
 A book opens in the same Reader. Its **chapters are the book's spine**, named from the book's own

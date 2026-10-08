@@ -17,6 +17,7 @@ import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architectu
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
+import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { chapterText, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
@@ -588,6 +589,7 @@ export class ReaderView extends ItemView {
     }
 
     private savePrefs(next: ReaderPrefs): void {
+        if (next.theme !== this.prefs.theme) this.crossFadeTheme();
         this.prefs = next;
         this.applyPrefs();
         if (this.plugin?.settings) {
@@ -595,6 +597,22 @@ export class ReaderView extends ItemView {
             void this.plugin.saveSettings?.();
         }
         if (this.panel === "type") this.renderPanel();
+    }
+
+    /**
+     * Day, sepia, night (#724): the new theme fades in under a veil of the old one, instead of
+     * snapping. Only opacity moves; the text never does.
+     */
+    private crossFadeTheme(): void {
+        const root = this.root;
+        if (!root || !motionWelcome(root)) return;
+        const background = root.win.getComputedStyle?.(root).backgroundColor;
+        if (!background) return;
+        const veil = root.createDiv({ cls: c("reader-theme-veil"), attr: { "aria-hidden": "true" } });
+        veil.setCssProps({ "--zf-veil": background });
+        const done = () => veil.remove();
+        veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" }).onfinish = done;
+        root.win.setTimeout(done, MOTION.base + 300);
     }
 
     // ── chapters ─────────────────────────────────────────────────────────────
@@ -716,6 +734,8 @@ export class ReaderView extends ItemView {
         }
 
         const card = page.createDiv({ cls: c("reader-next") });
+        // The chapter's end, quietly (#724): an ornament that fades in as you arrive. No number.
+        card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
         this.nextCard = card;
         const next = card.createEl("button", {
             cls: c("reader-next-button"),
@@ -1339,6 +1359,8 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
+        // The cover you clicked on the shelf grows into this page (#724).
+        if (this.root) playCoverFlight(this.root, page);
         // Back from a jump lands on the very line it left (#718).
         if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;
@@ -1355,6 +1377,8 @@ export class ReaderView extends ItemView {
         });
 
         const card = page.createDiv({ cls: c("reader-next") });
+        // The chapter's end, quietly (#724): an ornament that fades in as you arrive. No number.
+        card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
         this.nextCard = card;
         const next = card.createEl("button", { cls: c("reader-next-button"), attr: { type: "button" } });
         this.onStageScroll();

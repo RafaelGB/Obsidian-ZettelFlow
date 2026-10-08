@@ -1038,6 +1038,74 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     flex-direction: row;
     align-items: center;
     transform: translate(-50%, var(--size-4-2));
+    transform-origin: top center;
+}
+
+/* Grown from where you selected (#724): `scale`, beside the transform that places it. */
+.zettelkasten-flow__reader-hl-pop {
+    transform-origin: bottom center;
+    animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+/* A ghost of a kept passage settling into its card in the margin (#724), and any flown copy. */
+.zettelkasten-flow__motion-ghost {
+    position: absolute;
+    left: var(--zf-ghost-x);
+    top: var(--zf-ghost-y);
+    width: var(--zf-ghost-w);
+    height: var(--zf-ghost-h);
+    margin: 0;
+    z-index: 7;
+    pointer-events: none;
+    transform-origin: top left;
+}
+
+.zettelkasten-flow__reader-hl-ghost {
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink, var(--text-highlight-bg));
+}
+
+/* Day, sepia, night: the old theme's surface fading away over the new one (#724). */
+.zettelkasten-flow__reader-theme-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    pointer-events: none;
+    background-color: var(--zf-veil);
+}
+
+/* The chapter's end (#724): a quiet ornament — a line, a diamond, a line — fading in as you arrive. */
+.zettelkasten-flow__reader-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--size-4-2);
+    margin-bottom: var(--size-4-3);
+    color: var(--reader-faint);
+    opacity: 0;
+    scale: 0.92;
+    transition:
+        opacity $motion-base $ease-out,
+        scale $motion-base $ease-out;
+
+    &::before,
+    &::after {
+        content: "";
+        width: var(--size-4-8);
+        border-top: var(--border-width) solid currentColor;
+    }
+}
+
+.zettelkasten-flow__reader-ornament-mark {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border: var(--border-width) solid currentColor;
+    rotate: 45deg;
+}
+
+.zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-ornament {
+    opacity: 1;
+    scale: 1;
 }
 
 .zettelkasten-flow__reader-hl-actions {
@@ -1222,8 +1290,13 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     .zettelkasten-flow__reader-note-pop,
     .zettelkasten-flow__reader-jump-pill,
     .zettelkasten-flow__reader-search,
-    .zettelkasten-flow__reader-search-hit--current::after {
+    .zettelkasten-flow__reader-search-hit--current::after,
+    .zettelkasten-flow__reader-hl-pop {
         animation: none;
+    }
+
+    .zettelkasten-flow__reader-ornament {
+        transition: none;
     }
 
     .zettelkasten-flow__reader-bar,

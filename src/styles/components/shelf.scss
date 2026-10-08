@@ -728,6 +728,17 @@
     }
 }
 
+/* Back from the Reader, the book you are reading breathes once (#724). */
+.zettelkasten-flow__shelf-hero-card--back {
+    animation: zf-shelf-breathe $motion-cover $ease-out 1;
+}
+
+@keyframes zf-shelf-breathe {
+    40% {
+        scale: 1.012;
+    }
+}
+
 /* ── the book notebook (#721) ──────────────────────────────────────────── */
 .zettelkasten-flow__notebook {
     display: flex;
@@ -901,7 +912,8 @@ button.zettelkasten-flow__notebook-action {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__notebook {
+    .zettelkasten-flow__notebook,
+    .zettelkasten-flow__shelf-hero-card--back {
         animation: none;
     }
 }

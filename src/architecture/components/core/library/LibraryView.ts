@@ -17,6 +17,7 @@ import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
+import { setCoverFlight } from "architecture/components/core/reader/readerMotion";
 import { renderNotebook, type NotebookFilter } from "./libraryNotebook";
 import { crystallizeHighlight } from "./crystallizeHighlight";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
@@ -90,6 +91,8 @@ export class LibraryView extends ItemView {
     private detail: string | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
+    /** The Library came back into view: the continue card breathes once (#724). */
+    private welcomeBack = false;
     private notebookFilter: NotebookFilter = { meaning: null, withNotes: false };
     private notebookScope: Component | null = null;
     private shelf: Shelf = { items: [], born: new Map(), meta: {} };
@@ -194,7 +197,10 @@ export class LibraryView extends ItemView {
         // Back from the Reader, the counts and the place have moved.
         this.registerEvent(
             this.app.workspace.on("active-leaf-change", (leaf) => {
-                if (leaf === this.leaf) this.scheduleRefresh();
+                if (leaf === this.leaf) {
+                    this.welcomeBack = true;
+                    this.scheduleRefresh();
+                }
             })
         );
         this.refresh();
@@ -343,7 +349,7 @@ export class LibraryView extends ItemView {
         const cover = drawCover(open, item);
         open.createSpan({ cls: c("shelf-kind"), text: t(KIND_KEY[item.format]) });
         this.watchCover(cover, item);
-        scope.registerDomEvent(open, "click", () => this.openItem(item));
+        scope.registerDomEvent(open, "click", () => this.openItem(item, {}, cover));
 
         const more = card.createEl("button", {
             cls: ["clickable-icon", c("shelf-more")],
@@ -390,6 +396,9 @@ export class LibraryView extends ItemView {
 
     private renderHeroCard(parent: HTMLElement, item: ShelfItem, scope: Component): void {
         const card = parent.createDiv({ cls: c("shelf-hero-card") });
+        // Back from the Reader, the book you are reading breathes once (#724).
+        if (this.welcomeBack) card.addClass(c("shelf-hero-card--back"));
+        this.welcomeBack = false;
         const cover = drawCover(card, item, "hero");
         this.watchCover(cover, item);
         const info = card.createDiv({ cls: c("shelf-hero-info") });
@@ -405,8 +414,8 @@ export class LibraryView extends ItemView {
         const resume = info.createEl("button", { cls: ["mod-cta", c("shelf-resume")], attr: { type: "button" } });
         setIcon(resume.createSpan({ cls: c("shelf-resume-icon") }), "book-open");
         resume.createSpan({ text: t("shelf_resume") });
-        scope.registerDomEvent(resume, "click", () => this.openItem(item));
-        scope.registerDomEvent(cover, "click", () => this.openItem(item));
+        scope.registerDomEvent(resume, "click", () => this.openItem(item, {}, cover));
+        scope.registerDomEvent(cover, "click", () => this.openItem(item, {}, cover));
     }
 
     // ── covers ───────────────────────────────────────────────────────────────
@@ -465,7 +474,9 @@ export class LibraryView extends ItemView {
 
     // ── open, and the detail ─────────────────────────────────────────────────
 
-    private openItem(item: ShelfItem, at: OpenAt = {}): void {
+    private openItem(item: ShelfItem, at: OpenAt = {}, from: HTMLElement | null = null): void {
+        // The cover you clicked flies into the Reader's page (#724).
+        setCoverFlight(from);
         if (!openShelfItem(this.app, item, this.plugin ?? null, at)) this.openDetail(item.id);
     }
 

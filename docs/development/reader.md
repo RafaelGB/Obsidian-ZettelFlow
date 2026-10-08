@@ -134,6 +134,12 @@ way on lights up: **Next · *its name* · *how long it is***.
 - **Focus mode** (in **Type**): every paragraph but the one at your reading line steps back, so your
   eye stays where you are. It is remembered for next time.
 - **Calm when you read.** Opening, the page rises out of the workspace; leaving, it sinks back.
+- **Details that explain themselves.** The cover you click on the shelf grows into the page. A
+  highlight you keep drifts into its card in the margin. Popovers grow from where you selected, and
+  a chapter ends with a quiet ornament as you arrive. Day, sepia and night cross-fade instead of
+  snapping, and the book you are reading breathes once when you come back to the Library. Each one
+  moves only what the screen can move for free (transform and opacity), and none of them counts at
+  you.
 - **Less motion, if you asked for it.** With your system's *reduce motion* setting on, every one of
   these is instant: nothing slides, sweeps or fades.
 

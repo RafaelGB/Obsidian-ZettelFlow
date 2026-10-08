@@ -9,6 +9,7 @@ import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
+import { MOTION, fly, motionWelcome } from "./readerMotion";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -391,7 +392,7 @@ export class ReaderHighlights {
         for (const entry of this.anchored) {
             const meaning = meaningOf(entry.thought);
             if (this.filter && meaning !== this.filter) continue;
-            const row = host.createEl("button", { cls: [c("reader-hl-item"), c(`reader-hl-item--${meaning}`)], attr: { type: "button" } });
+            const row = host.createEl("button", { cls: [c("reader-hl-item"), c(`reader-hl-item--${meaning}`)], attr: { type: "button", "data-hl": entry.thought.id } });
             row.createDiv({ cls: c("reader-hl-quote"), text: snippet(entry.thought.quote?.exact ?? "") });
             if (entry.thought.text.trim()) row.createDiv({ cls: c("reader-hl-note"), text: entry.thought.text.trim() });
             scope.registerDomEvent(row, "click", () => this.reveal(entry.thought.id));
@@ -521,6 +522,7 @@ export class ReaderHighlights {
         // A marker drawn across the words, once — only on the highlight just made (#667).
         marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
         this.insert(thought, marks, span.start);
+        this.settleIntoMargin(marks[0], thought);
         this.status("reader_hl_saved", () => void this.forget(thought, false));
     }
 
@@ -692,6 +694,22 @@ export class ReaderHighlights {
             this.hidePopover();
             this.openThink(this.view.app, thought.about ?? this.notePath ?? "");
         });
+    }
+
+    /**
+     * A highlight finds its place (#724): a faint ghost of the passage drifts into its card in the
+     * margin, so you see where it went with nothing to confirm. Only on a wide pane, where the margin
+     * shows; transform and opacity only.
+     */
+    private settleIntoMargin(mark: HTMLElement | undefined, thought: Thought): void {
+        const host = this.view.host;
+        const row = this.margin?.querySelector?.<HTMLElement>(`[data-hl="${thought.id}"]`);
+        if (!mark || !row || !motionWelcome(host)) return;
+        const from = mark.getBoundingClientRect();
+        const to = row.getBoundingClientRect();
+        if (!(to.width > 0) || !(from.width > 0)) return;
+        const ghost = createDiv({ cls: [c("reader-hl-ghost"), c(`reader-hl-item--${meaningOf(thought)}`)] });
+        fly(host, ghost, from, to, { duration: MOTION.base, startOpacity: 0.6 });
     }
 
     /** The meanings as chips with their counts; one click shows only that meaning, again for all (#720). */

@@ -59,3 +59,31 @@ describe("matchesIn — the spans to tint in the chapter on screen (#719)", () =
         ]);
     });
 });
+
+describe("what a search reads, and shows (#719, found walking the real app)", () => {
+    it("never runs two paragraphs into one word", async () => {
+        const { FakeEl } = await import("../../../../support/textDom");
+        const { readableText } = await import("architecture/components/core/reader/readerMarks");
+        const body = new FakeEl("div", [new FakeEl("p", ["They do not."]), new FakeEl("p", ["Paragraph two"]), new FakeEl("h2", ["Next"])]);
+        expect(readableText(body as never)).toBe("They do not. Paragraph two Next");
+    });
+
+    it("cuts a snippet at whole words", () => {
+        const text = "Deep modules hide complexity behind simple interfaces, and shallow ones do not, which is why they matter so much.";
+        const [hit] = searchBook([text], "shallow", 10).matches;
+        expect(hit.before).toBe("…behind simple interfaces, and ");
+        expect(hit.after.startsWith(" ones do not,")).toBe(true);
+    });
+});
+
+describe("readableWithMap — a match across two blocks still lands on the page (#719)", () => {
+    it("maps an offset in the readable text back to the page's own text", async () => {
+        const { FakeEl } = await import("../../../../support/textDom");
+        const { readableWithMap, chapterText } = await import("architecture/components/core/reader/readerMarks");
+        const body = new FakeEl("div", [new FakeEl("p", ["They do not."]), new FakeEl("p", ["Paragraph two"])]);
+        const { text, toChapter } = readableWithMap(body as never);
+        const start = text.indexOf("not. Para");
+        const end = start + "not. Para".length;
+        expect(chapterText(body as never).slice(toChapter(start), toChapter(end))).toBe("not.Para");
+    });
+});

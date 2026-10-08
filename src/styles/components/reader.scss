@@ -323,13 +323,17 @@
     text-align: center;
 }
 
+/* The chapter's end: the ornament above, the way on under it (#724). */
 .zettelkasten-flow__reader-next {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     margin-top: var(--size-4-12);
 }
 
-.zettelkasten-flow__reader-next-button {
+/* `button.` so the reading theme's surface wins over Obsidian's `button:not(.clickable-icon)`:
+   in sepia the button was the app's dark one, its text unreadable on it. */
+button.zettelkasten-flow__reader-next-button {
     display: inline-flex;
     align-items: baseline;
     gap: var(--size-4-2);
@@ -356,7 +360,7 @@
 }
 
 /* At the end of the chapter, the way on lights up and lifts a little. */
-.zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+.zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
     border-color: var(--interactive-accent);
     box-shadow: var(--shadow-s);
     transform: translateY(calc(var(--size-2-1) * -1));
@@ -720,7 +724,8 @@ input.zettelkasten-flow__reader-search-input {
     overflow-y: auto;
     border-top: var(--border-width) solid var(--reader-line);
 
-    &:empty {
+    &:empty,
+    &.zettelkasten-flow__reader-search-results--folded {
         display: none;
     }
 }
@@ -1304,12 +1309,12 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     .zettelkasten-flow__reader-dots,
     .zettelkasten-flow__reader-dot,
     .zettelkasten-flow__reader-hairline-fill,
-    .zettelkasten-flow__reader-next-button,
+    button.zettelkasten-flow__reader-next-button,
     .zettelkasten-flow__reader--focus .zettelkasten-flow__reader-body > * {
         transition: none;
     }
 
-    .zettelkasten-flow__reader-next--arrived .zettelkasten-flow__reader-next-button {
+    .zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
         transform: none;
     }
 }

@@ -19,7 +19,7 @@ import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
 import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
-import { chapterText, unwrapMark, wrapSpan } from "./readerMarks";
+import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
 import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
@@ -1502,6 +1502,7 @@ export class ReaderView extends ItemView {
         button("x", "reader_search_close", () => this.closeSearch());
         const list = bar.createDiv({ cls: c("reader-search-results") });
         scope.registerDomEvent(input, "input", () => {
+            list.removeClass(c("reader-search-results--folded"));
             const win = this.root?.win ?? window;
             win.clearTimeout(this.searchTimer);
             this.searchTimer = win.setTimeout(() => void this.runSearch(), SEARCH_DEBOUNCE_MS);
@@ -1549,8 +1550,8 @@ export class ReaderView extends ItemView {
                 scope.load();
                 try {
                     await doc.draw(i, scratch, scope, "reading");
-                    // The text the highlights see; where the walker finds no text node, what it reads.
-                    texts.push(chapterText(scratch) || (scratch.textContent ?? ""));
+                    // As a reader sees it — blocks apart; where the walker finds no text node, what it reads.
+                    texts.push(readableText(scratch) || (scratch.textContent ?? ""));
                 } catch (error) {
                     log.debug(`[Reader] chapter ${i} cannot be read for search: ${String(error)}`);
                     texts.push("");
@@ -1615,6 +1616,8 @@ export class ReaderView extends ItemView {
         if (!match) return;
         this.searchAt = i;
         this.renderSearch();
+        // Out of the way while you look at the match; typing brings the list back.
+        this.searchList?.addClass(c("reader-search-results--folded"));
         this.searchReveal = true;
         // A match in another chapter is a jump, with its way back (#718).
         if (match.chapter !== this.index) this.jumpTo(match.chapter);
@@ -1644,11 +1647,15 @@ export class ReaderView extends ItemView {
         const query = this.searchInput?.value ?? "";
         const here = result.matches.filter((match) => match.chapter === this.index);
         const current = this.searchAt >= 0 ? result.matches[this.searchAt] : null;
-        const spans = matchesIn(chapterText(body), query);
+        // The current match by its place among this chapter's matches.
+        const ordinal = current && current.chapter === this.index ? here.indexOf(current) : -1;
+        // Found in the text as it reads (blocks apart), drawn on the page's own offsets.
+        const readable = readableWithMap(body);
+        const spans = matchesIn(readable.text, query).map((span) => ({ start: readable.toChapter(span.start), end: readable.toChapter(span.end) }));
         // Last first: wrapping a later match never moves the offsets of an earlier one.
         let currentMark: HTMLElement | null = null;
         for (let k = spans.length - 1; k >= 0; k--) {
-            const isCurrent = current !== null && current.chapter === this.index && here[k]?.start === current.start;
+            const isCurrent = k === ordinal;
             const marks = wrapSpan(body, spans[k], () => {
                 const mark = body.createSpan({ cls: [c("reader-search-hit"), ...(isCurrent ? [c("reader-search-hit--current")] : [])].join(" ") });
                 mark.remove();

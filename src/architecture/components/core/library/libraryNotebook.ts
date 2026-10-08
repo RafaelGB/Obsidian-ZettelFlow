@@ -222,7 +222,7 @@ class ReadingNoteModal extends Modal {
             return;
         }
         this.parts.rememberFolder(this.folder.trim());
-        if (batch) offerUndo(batch, path);
+        if (batch) offerUndo(batch, path, t("notebook_export_created", path.split("/").pop() ?? path));
         this.close();
     }
 

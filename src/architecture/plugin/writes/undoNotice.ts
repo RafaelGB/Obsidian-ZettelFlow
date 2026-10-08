@@ -14,7 +14,7 @@ import { bufferedWrites } from "./recordVaultWrite";
  * about a property is worse than the property. It lives for thirty seconds and then goes quietly —
  * no second notice, no badge, no counter. The same undo is still in the record afterwards.
  */
-export function offerUndo(batch: string, notePath: string): void {
+export function offerUndo(batch: string, notePath: string, message?: string): void {
     const writes = filterWrites(bufferedWrites(), { batch });
     if (!worthOffering(writes)) return;
 
@@ -28,10 +28,10 @@ export function offerUndo(batch: string, notePath: string): void {
     // Says what changed, not just that something did — a notice you cannot read is a notice.
     wrapper.createDiv({
         cls: c("undo-offer-what"),
+        // A caller that made the write itself says what it did (a reading note created, #721).
         text:
-            properties.length > 0
-                ? t("undo_offer_properties", properties.join(", "), name)
-                : t("undo_offer_changed", name),
+            message ??
+            (properties.length > 0 ? t("undo_offer_properties", properties.join(", "), name) : t("undo_offer_changed", name)),
     });
     const button = wrapper.createEl("button", {
         cls: c("undo-offer-button"),

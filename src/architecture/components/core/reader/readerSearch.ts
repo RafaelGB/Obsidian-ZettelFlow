@@ -89,8 +89,17 @@ export function matchesIn(text: string, query: string, limit = MAX_MATCHES): { s
 
 function snippet(text: string, start: number, end: number): Pick<SearchMatch, "before" | "match" | "after"> {
     const flat = (s: string) => s.replace(/\s+/g, " ");
-    const from = Math.max(0, start - CONTEXT);
-    const to = Math.min(text.length, end + CONTEXT);
+    // At whole words: a snippet that starts mid-word ("…omplexity") is harder to recognise.
+    let from = Math.max(0, start - CONTEXT);
+    if (from > 0) {
+        const space = text.indexOf(" ", from);
+        if (space >= 0 && space < start) from = space + 1;
+    }
+    let to = Math.min(text.length, end + CONTEXT);
+    if (to < text.length) {
+        const space = text.lastIndexOf(" ", to);
+        if (space > end) to = space;
+    }
     return {
         before: (from > 0 ? "…" : "") + flat(text.slice(from, start)),
         match: flat(text.slice(start, end)),

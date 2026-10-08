@@ -2400,6 +2400,7 @@ export default {
     notebook_export_where: 'One new note: {0}',
     notebook_export_cancel: 'Cancel',
     notebook_export_create: 'Create note',
+    notebook_export_created: 'Reading note created: {0}',
     reader_hl_copied: 'Copied.',
     reader_hl_note_placeholder: 'Your note, in your words…',
     reader_hl_save: 'Save',

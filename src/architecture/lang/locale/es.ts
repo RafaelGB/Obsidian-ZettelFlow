@@ -2399,6 +2399,7 @@ export default {
     notebook_export_where: 'Una nota nueva: {0}',
     notebook_export_cancel: 'Cancelar',
     notebook_export_create: 'Crear la nota',
+    notebook_export_created: 'Nota de lectura creada: {0}',
     reader_hl_copied: 'Copiado.',
     reader_hl_note_placeholder: 'Tu nota, con tus palabras…',
     reader_hl_save: 'Guardar',

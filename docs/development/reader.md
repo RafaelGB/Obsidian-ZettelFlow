@@ -31,6 +31,9 @@ back exactly as it was: the sidebars that were open open again, and you return t
 in, where you left it. Closing the tab any other way gives everything back too, and so does a reader
 left open across a restart.
 
+A book opened from the [Library](library.md) is read in the Library's own tab, so leaving it does not
+close anything: the tab becomes the Library again, with its filter, sort and scroll as they were.
+
 ## Choosing what to read
 
 When there is more than one good way through a note, *Read from here* asks **how do you want to

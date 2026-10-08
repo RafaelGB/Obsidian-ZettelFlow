@@ -14,7 +14,7 @@ import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
-import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
+import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
 import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
@@ -193,6 +193,8 @@ export class ReaderView extends ItemView {
     private turn: 1 | -1 | 0 = 0;
     /** The leaving fade is playing; a second Esc or × does not start another. */
     private leaving = false;
+    /** Opened from the Library in its leaf (#733): the shelf to give the leaf back to. Never cleared. */
+    private back: ReaderBack | null = null;
     /** The keyboard shortcuts sheet, while it is open. */
     private shortcuts: HTMLElement | null = null;
     /** Highlights and margin notes (#671): drawn over each chapter, kept as thoughts in Think. */
@@ -315,6 +317,7 @@ export class ReaderView extends ItemView {
                 chapter: this.index,
                 ...(this.sourceLayout === "page" ? { layout: "page" } : {}),
                 ...(sides ? { restore: sides } : {}),
+                ...(this.back ? { back: this.back } : {}),
             };
         }
         return {
@@ -328,6 +331,7 @@ export class ReaderView extends ItemView {
             ...(this.paths ? { paths: this.paths } : {}),
             ...(this.name ? { name: this.name } : {}),
             ...(sides ? { restore: sides } : {}),
+            ...(this.back ? { back: this.back } : {}),
         };
     }
 
@@ -335,6 +339,8 @@ export class ReaderView extends ItemView {
         await super.setState(state, result);
         const parsed = parseReaderState(state);
         if (parsed.restore) adoptHeldSides(parsed.restore);
+        // Kept when another note is read in the same leaf: the leaf is still the Library's.
+        if (parsed.back) this.back = parsed.back;
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.source) {
             await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
@@ -1160,11 +1166,11 @@ export class ReaderView extends ItemView {
         this.leaving = true;
         const root = this.root;
         if (!root || !this.motionAllowed()) {
-            exitReader(this.app, this.leaf);
+            exitReader(this.app, this.leaf, this.back);
             return;
         }
         root.addClass(c("reader--leaving"));
-        window.setTimeout(() => exitReader(this.app, this.leaf), EXIT_MS);
+        window.setTimeout(() => exitReader(this.app, this.leaf, this.back), EXIT_MS);
     }
 
     // ── the end of a path (#672) ─────────────────────────────────────────────
@@ -1292,7 +1298,7 @@ export class ReaderView extends ItemView {
 
     /** Hand the thesis to Cultivate, giving the workspace back first. */
     private cultivateThesis(thesis: string): void {
-        exitReader(this.app, this.leaf);
+        exitReader(this.app, this.leaf, this.back);
         void activateSurface(this.app, "zettelflow-home", "cultivate", { target: thesis });
     }
 
@@ -1803,11 +1809,13 @@ export class ReaderView extends ItemView {
                 },
                 actions: {
                     library: () => {
+                        // From the Library: its own leaf comes back, on this book's detail (#733).
+                        if (this.back) return exitReader(this.app, this.leaf, { ...this.back, detail: path });
                         exitReader(this.app, this.leaf);
                         void openLibrary(this.app, path);
                     },
                     think: () => {
-                        exitReader(this.app, this.leaf);
+                        exitReader(this.app, this.leaf, this.back);
                         void activateSurface(this.app, "zettelflow-home", "lab", { about: path });
                     },
                     again: () => this.show(0),

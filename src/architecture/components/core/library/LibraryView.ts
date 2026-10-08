@@ -93,6 +93,8 @@ export class LibraryView extends ItemView {
     private notebook: string | null = null;
     /** The Library came back into view: the continue card breathes once (#724). */
     private welcomeBack = false;
+    /** Back from the Reader (#733): the scroll to land on once the shelf is drawn. One-shot. */
+    private pendingScroll: number | null = null;
     private notebookFilter: NotebookFilter = { meaning: null, withNotes: false };
     private notebookScope: Component | null = null;
     private shelf: Shelf = { items: [], born: new Map(), meta: {} };
@@ -160,6 +162,7 @@ export class LibraryView extends ItemView {
         const notebook = typeof value.notebook === "string" && value.notebook ? value.notebook : null;
         if (notebook !== this.notebook) this.notebookFilter = { meaning: null, withNotes: false };
         this.notebook = notebook;
+        if (typeof value.scroll === "number" && Number.isFinite(value.scroll) && value.scroll >= 0) this.pendingScroll = value.scroll;
         if (this.root) this.refresh();
     }
 
@@ -226,6 +229,10 @@ export class LibraryView extends ItemView {
         this.notebook = null;
         this.render();
         if (this.detail) this.openDetail(this.detail);
+        if (this.pendingScroll !== null) {
+            this.contentEl.scrollTop = this.pendingScroll;
+            this.pendingScroll = null;
+        }
     }
 
     private scheduleRefresh(): void {
@@ -477,7 +484,9 @@ export class LibraryView extends ItemView {
     private openItem(item: ShelfItem, at: OpenAt = {}, from: HTMLElement | null = null): void {
         // The cover you clicked flies into the Reader's page (#724).
         setCoverFlight(from);
-        if (!openShelfItem(this.app, item, this.plugin ?? null, at)) this.openDetail(item.id);
+        // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
+        const back = { filter: this.filter, sort: this.sort, scroll: this.contentEl.scrollTop, focus: item.id };
+        if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
     }
 
     private openDetail(id: string): void {

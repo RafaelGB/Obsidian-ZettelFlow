@@ -1,4 +1,5 @@
-import type { App } from "obsidian";
+import type { App, WorkspaceLeaf } from "obsidian";
+import type { ReaderBack } from "architecture/components/core/reader/readerContract";
 import type { ShelfItem } from "application/library/shelf";
 import { openReader } from "architecture/components/core/reader/openReader";
 import { normalizeResume, readingKey, resumeOf } from "architecture/components/core/reader/readerResume";
@@ -18,7 +19,13 @@ export const READABLE: readonly string[] = ["pdf", "epub"];
  * chapter, a source at its page or chapter, or at one highlight. Returns `false` for what cannot be
  * opened, so the caller can show its detail instead.
  */
-export function openShelfItem(app: App, item: ShelfItem, host: LibraryHost | null, at: OpenAt = {}): boolean {
+/** Where to read (#733): the Library's own leaf, and what to give it back to. */
+export interface ReadIn {
+    leaf: WorkspaceLeaf;
+    back: ReaderBack;
+}
+
+export function openShelfItem(app: App, item: ShelfItem, host: LibraryHost | null, at: OpenAt = {}, readIn?: ReadIn): boolean {
     if (item.kind === "path" && item.paths && item.seed) {
         const place = resumeOf(normalizeResume(host?.settings?.readerResume), readingKey("selection", item.seed, item.paths));
         void openReader(app, {
@@ -28,6 +35,7 @@ export function openShelfItem(app: App, item: ShelfItem, host: LibraryHost | nul
             name: item.title,
             chapter: at.chapter ?? place?.chapter ?? 0,
             ...(at.highlight ? { highlight: at.highlight } : {}),
+            ...readIn,
         });
         return true;
     }
@@ -37,6 +45,7 @@ export function openShelfItem(app: App, item: ShelfItem, host: LibraryHost | nul
             source: item.file,
             chapter: at.chapter ?? item.place ?? 0,
             ...(at.highlight ? { highlight: at.highlight } : {}),
+            ...readIn,
         });
         return true;
     }

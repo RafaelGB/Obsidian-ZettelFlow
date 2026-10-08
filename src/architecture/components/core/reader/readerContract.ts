@@ -36,7 +36,15 @@ export interface ReaderState {
     source?: string;
     /** A PDF drawn as its pages were laid out (#681), instead of reflowed into the column. */
     layout?: "page";
+    /**
+     * Opened from the Library in its own leaf (#733, epic #729): the Library's state to give that
+     * leaf back to on exit — its filter, sort, scroll and the book to come back to. Flat values only.
+     */
+    back?: ReaderBack;
 }
+
+/** The Library's view state a reading returns to (#733): flat, so a restored workspace can carry it. */
+export type ReaderBack = Record<string, string | number | boolean>;
 
 /** Read a view-state payload, keeping only what the contract knows. Never throws. */
 export function parseReaderState(raw: unknown): ReaderState {
@@ -58,6 +66,13 @@ export function parseReaderState(raw: unknown): ReaderState {
     if (typeof value.name === "string" && value.name.trim().length > 0) state.name = value.name.trim();
     if (typeof value.source === "string" && /\.(pdf|epub)$/i.test(value.source)) state.source = value.source;
     if (value.layout === "page") state.layout = "page";
+    if (value.back !== null && typeof value.back === "object" && !Array.isArray(value.back)) {
+        const back: ReaderBack = {};
+        for (const [key, item] of Object.entries(value.back as Record<string, unknown>)) {
+            if (typeof item === "string" || typeof item === "boolean" || (typeof item === "number" && Number.isFinite(item))) back[key] = item;
+        }
+        state.back = back;
+    }
     const restore = value.restore as Record<string, unknown> | undefined;
     if (restore && typeof restore.left === "boolean" && typeof restore.right === "boolean") {
         state.restore = { left: restore.left, right: restore.right };

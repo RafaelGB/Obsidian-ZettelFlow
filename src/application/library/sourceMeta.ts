@@ -27,6 +27,8 @@ export interface SourceMeta {
     imageOnly?: boolean;
     /** The chapter you were last on, and when. */
     chapter?: number;
+    /** How far into that chapter you were, as a share of it (0–1): where a resume lands. */
+    scroll?: number;
     at?: number;
     /** You reached the end at least once. */
     done?: boolean;
@@ -61,6 +63,7 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (num(v.chapters) && v.chapters > 0) meta.chapters = Math.round(v.chapters);
         if (v.imageOnly === true) meta.imageOnly = true;
         if (num(v.chapter) && v.chapter >= 0) meta.chapter = Math.round(v.chapter);
+        if (num(v.scroll) && v.scroll >= 0 && v.scroll <= 1) meta.scroll = v.scroll;
         if (num(v.at) && v.at > 0) meta.at = v.at;
         if (v.done === true) meta.done = true;
         out[path] = meta;
@@ -98,14 +101,31 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
 export function withPlace(map: LibraryMeta, path: string, chapter: number, total: number, now: number, size = 0, mtime = 0): LibraryMeta {
     const previous = map[path] ?? { size, mtime };
     const last = Math.max(1, total) - 1;
+    const at = Math.max(0, Math.min(chapter, last));
+    // Another chapter starts at its top: the share kept belonged to the one you left.
+    const { scroll, ...kept } = previous;
     const next: SourceMeta = {
-        ...previous,
+        ...kept,
+        ...(scroll !== undefined && previous.chapter === at ? { scroll } : {}),
         chapters: previous.chapters ?? Math.max(1, total),
-        chapter: Math.max(0, Math.min(chapter, last)),
+        chapter: at,
         at: now,
         ...(chapter >= last || previous.done ? { done: true } : {}),
     };
     return prune({ ...map, [path]: next });
+}
+
+/** How far into the chapter you are, kept for a resume — only for the chapter the place says you are on. */
+export function withScroll(map: LibraryMeta, path: string, chapter: number, share: number): LibraryMeta {
+    const previous = map[path];
+    if (!previous || previous.chapter !== chapter || !(share >= 0 && share <= 1)) return map;
+    return { ...map, [path]: { ...previous, scroll: Math.round(share * 1000) / 1000 } };
+}
+
+/** The scroll position for a kept share of a chapter, on the page as tall as it is now. */
+export function resumeScroll(share: number, scrollHeight: number, clientHeight: number): number {
+    const room = scrollHeight - clientHeight;
+    return room > 0 ? Math.round(share * room) : 0;
 }
 
 /** A source renamed in the vault keeps everything the Library knew about it. */

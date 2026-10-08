@@ -138,6 +138,17 @@ describe("a PDF in the Reader (#681)", () => {
         expect(content.byClass("reader-end-action-name").map((el) => el.textContent)).toEqual(["Think on what you marked", "See it in the library", "Read it again"]);
     });
 
+    it("keeps how far into the page you are, so a resume lands there and not at its top", async () => {
+        const { content, host } = await open(1);
+        const stage = content.oneByClass("reader-stage") as DomNode & { scrollHeight: number; clientHeight: number };
+        stage.scrollHeight = 3000;
+        stage.clientHeight = 1000;
+        stage.scrollTop = 1000;
+        stage.fire("scroll");
+        await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.scroll === 0.5, 200, 2500);
+        expect((host.settings.library as any)["Papers/cap.pdf"]).toMatchObject({ chapter: 1, scroll: 0.5 });
+    });
+
     it("says so when the file cannot be read, and never throws", async () => {
         __setPdfJs(null);
         const m = mount();

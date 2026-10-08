@@ -34,7 +34,8 @@ import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openR
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
-import { chapterOfHighlight, rememberSourceFacts, rememberSourcePlace, sourceMetaOf, sourceReading } from "./readerSource";
+import { chapterOfHighlight, keptScroll, rememberSourceFacts, rememberSourcePlace, rememberSourceScroll, sourceMetaOf, sourceReading } from "./readerSource";
+import { resumeScroll } from "application/library/sourceMeta";
 import { openSourceDocument, type SourceDocument, type SourceLayout } from "architecture/components/core/library/sources/sourceDocument";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, normalizePace, paceWpm, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
@@ -61,6 +62,10 @@ const EXIT_MS = 220;
 const JUMP_PILL_MS = 8000;
 /** Where your reading pace is kept — Obsidian's per-device local storage, never synced (#722). */
 const PACE_STORAGE_KEY = "zettelflow-reader-pace";
+/** How long after you stop scrolling the place inside a chapter is kept. */
+const SCROLL_SAVE_MS = 800;
+/** A second landing on a resumed chapter, once its pictures have moved the page. */
+const RESUME_SETTLE_MS = 600;
 /** A pause in typing before the book is searched (#719). */
 const SEARCH_DEBOUNCE_MS = 150;
 /** Results listed under the search bar; the bar counts them all. */
@@ -229,6 +234,9 @@ export class ReaderView extends ItemView {
     private jumpPillShown = false;
     /** A scroll to restore once the chapter a Back returns to is drawn. */
     private pendingTop: number | null = null;
+    /** How far into the chapter a resume lands, once it is drawn (a share of it, 0–1). */
+    private pendingShare: number | null = null;
+    private scrollSaveTimer: number | undefined;
     /** The footnote read in place (#718), and its listeners. */
     private notePop: HTMLElement | null = null;
     private notePopScope: Component | null = null;
@@ -382,6 +390,8 @@ export class ReaderView extends ItemView {
             this.endStatus = undefined;
             this.sourcePath = path;
             this.jumps.clear();
+            // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
+            this.pendingShare = highlight ? null : keptScroll(this.plugin, path, chapter);
         }
         this.ended = false;
         this.detours = [];
@@ -797,6 +807,7 @@ export class ReaderView extends ItemView {
         const fraction = this.ended ? 1 : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
         if (fraction >= END_OF_CHAPTER) this.reachedEnd = true;
+        this.keepScroll(fraction);
         const wpm = paceWpm(this.pace);
         const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction, wpm);
         const book = this.ended ? 0 : this.bookMinutes(fraction, wpm);
@@ -823,6 +834,18 @@ export class ReaderView extends ItemView {
         if (next === this.pace) return;
         this.pace = next;
         this.app?.saveLocalStorage?.(PACE_STORAGE_KEY, next);
+    }
+
+    /** How far into the chapter you are, kept a moment after you stop scrolling (a book or a paper). */
+    private keepScroll(fraction: number): void {
+        const path = this.sourcePath;
+        if (!path || !this.source || this.ended) return;
+        const chapter = this.index;
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.scrollSaveTimer);
+        this.scrollSaveTimer = win.setTimeout(() => {
+            if (this.sourcePath === path && this.index === chapter) rememberSourceScroll(this.app, this.plugin, path, chapter, this.source?.chapters.length ?? chapter + 1, fraction);
+        }, SCROLL_SAVE_MS);
     }
 
     /** Minutes left in the book: this chapter's remainder and the chapters after it (#722). */
@@ -1365,6 +1388,14 @@ export class ReaderView extends ItemView {
         if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;
             this.pendingTop = null;
+        } else if (this.pendingShare !== null && index === this.index) {
+            const share = this.pendingShare;
+            this.pendingShare = null;
+            stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
+            // Pictures arrive after the text and move the page: land again once they have.
+            stage.win.setTimeout(() => {
+                if (generation === this.generation) stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
+            }, RESUME_SETTLE_MS);
         }
         // An open search tints its matches in every chapter it lands on (#719).
         if (this.searchEl) this.markSearch();

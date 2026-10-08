@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="One continuous shot (epic #729): opening a book from the Library is a camera move — the shelf, the push into the book, the cover opening on the page you were on, that page becoming the Reader — closing plays it backwards, and a chapter turns as a leaf, keeps flowing or slides off like a sheet">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="30" y="44" fill="#dcddde" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="start">One continuous shot — the Library and the Reader never cut</text>
+<text x="30" y="66" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Constitution §XVI: never cut, move the camera. Times are from the click; the Reader underneath is the same picture when the page lands.</text>
+<rect x="20.0" y="84.0" width="1160.0" height="300.0" rx="12" fill="#18181b" opacity="1" stroke="#3a3a3a"/>
+<text x="40" y="112" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">Opening a book</text>
+<rect x="40.0" y="130.0" width="258.0" height="180.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="40" y="334" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">0 ms · the shelf</text>
+<rect x="324.0" y="130.0" width="258.0" height="180.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="324" y="334" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">450 ms · the camera pushes in</text>
+<rect x="608.0" y="130.0" width="258.0" height="180.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="608" y="334" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">≈ 800 ms · the cover opens on your page</text>
+<rect x="892.0" y="130.0" width="258.0" height="180.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="892" y="334" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">≈ 1150 ms · that page is the Reader</text>
+<text x="56" y="156" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="650" text-anchor="start">Library</text>
+<rect x="56.0" y="176.0" width="44.0" height="66.0" rx="3" fill="#4a7fd0" opacity="1" stroke="none"/>
+<rect x="56.0" y="250.0" width="40.0" height="3.0" rx="4" fill="#5c5f66" opacity="0.7" stroke="none"/>
+<rect x="114.0" y="176.0" width="44.0" height="66.0" rx="3" fill="#1f5f66" opacity="1" stroke="none"/>
+<rect x="114.0" y="250.0" width="40.0" height="3.0" rx="4" fill="#5c5f66" opacity="0.7" stroke="none"/>
+<rect x="172.0" y="176.0" width="44.0" height="66.0" rx="3" fill="#a0803a" opacity="1" stroke="none"/>
+<rect x="172.0" y="250.0" width="40.0" height="3.0" rx="4" fill="#5c5f66" opacity="0.7" stroke="none"/>
+<rect x="230.0" y="176.0" width="44.0" height="66.0" rx="3" fill="#7a5a94" opacity="1" stroke="none"/>
+<rect x="230.0" y="250.0" width="40.0" height="3.0" rx="4" fill="#5c5f66" opacity="0.7" stroke="none"/>
+<rect x="54.0" y="174.0" width="48.0" height="70.0" rx="4" fill="none" opacity="1" stroke="#8b6cef"/>
+<rect x="384.0" y="144.0" width="104.0" height="156.0" rx="4" fill="#4a7fd0" opacity="1" stroke="none"/>
+<rect x="506.0" y="144.0" width="70.0" height="156.0" rx="4" fill="#1f5f66" opacity="0.55" stroke="none"/>
+<rect x="384.0" y="144.0" width="8.0" height="156.0" rx="0" fill="#000" opacity="0.18" stroke="none"/>
+<text x="436" y="226" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="650" text-anchor="middle">A book</text>
+<rect x="736.0" y="144.0" width="104.0" height="156.0" rx="3" fill="#202024" opacity="1" stroke="none"/>
+<rect x="746.0" y="160.0" width="79.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="169.0" width="75.6" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="178.0" width="72.2" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="187.0" width="79.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="196.0" width="52.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="205.0" width="72.2" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="214.0" width="79.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="223.0" width="75.6" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="232.0" width="72.2" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="241.0" width="52.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="250.0" width="75.6" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="259.0" width="72.2" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="268.0" width="79.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="746.0" y="277.0" width="75.6" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<polygon points="736,144 660,156 660,288 736,300" fill="#2a2a2e" opacity="0.95"/>
+<rect x="736.0" y="144.0" width="104.0" height="156.0" rx="3" fill="none" opacity="1" stroke="#3a3a40"/>
+<rect x="902.0" y="140.0" width="238.0" height="12.0" rx="3" fill="#262629" opacity="1" stroke="none"/>
+<text x="910" y="150" fill="#8b8e94" font-family="sans-serif" font-size="8" font-weight="400" text-anchor="start">A BOOK · ITS AUTHOR</text>
+<rect x="956.0" y="166.0" width="124.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="175.5" width="118.8" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="185.0" width="113.5" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="194.5" width="124.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="204.0" width="81.8" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="213.5" width="113.5" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="223.0" width="124.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="232.5" width="118.8" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="242.0" width="113.5" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="251.5" width="81.8" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="261.0" width="118.8" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="270.5" width="113.5" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="956.0" y="280.0" width="124.1" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.95" stroke="none"/>
+<rect x="976.0" y="280.0" width="90.0" height="16.0" rx="6" fill="#262629" opacity="1" stroke="none"/>
+<rect x="956.0" y="202.0" width="60.0" height="5.0" rx="1" fill="#e8c454" opacity="0.45" stroke="none"/>
+<path d="M 302 220 l 18 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M 586 220 l 18 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M 870 220 l 18 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b6cef"/></marker></defs>
+<text x="40" y="362" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">The shelf zooms with the book — nothing fades, the neighbours leave the frame. The page under the cover is the real page at your place, highlights included.</text>
+<rect x="20.0" y="400.0" width="1160.0" height="150.0" rx="12" fill="#18181b" opacity="1" stroke="#3a3a3a"/>
+<text x="40" y="428" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">Closing — the same shot, backwards</text>
+<text x="40" y="452" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Esc or × freezes the page where it is, the tab becomes the Library again (its filter, sort and scroll), and the camera pulls out:</text>
+<rect x="40.0" y="470.0" width="230.0" height="56.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="155" y="503" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">the page</text>
+<path d="M 276 498 l 40 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="324.0" y="470.0" width="230.0" height="56.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="439" y="503" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">shrinks into the book</text>
+<path d="M 560 498 l 40 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="608.0" y="470.0" width="230.0" height="56.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="723" y="503" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">the cover closes</text>
+<path d="M 844 498 l 40 0" stroke="#8b6cef" stroke-width="2" marker-end="url(#ar)"/>
+<rect x="892.0" y="470.0" width="230.0" height="56.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="1007" y="503" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">the book is on its shelf</text>
+<rect x="20.0" y="566.0" width="1160.0" height="230.0" rx="12" fill="#18181b" opacity="1" stroke="#3a3a3a"/>
+<text x="40" y="594" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">Changing chapter — physical, never a dissolve (Settings → Reading → Changing chapter)</text>
+<rect x="40.0" y="610.0" width="340.0" height="140.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="40" y="772" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Leaf turns — the page turns on the spine</text>
+<rect x="150.0" y="624.0" width="120.0" height="112.0" rx="3" fill="#202024" opacity="1" stroke="none"/>
+<rect x="160.0" y="638.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="647.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="656.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="665.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="674.0" width="62.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="683.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="692.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="701.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="710.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="160.0" y="719.0" width="62.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<polygon points="150,624 110,636 110,724 150,736" fill="#2a2a2e"/>
+<rect x="420.0" y="610.0" width="340.0" height="140.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="420" y="772" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Keeps flowing — the chapter carries on up; the next rises behind it</text>
+<rect x="530.0" y="616.0" width="120.0" height="56.0" rx="3" fill="#202024" opacity="1" stroke="none"/>
+<rect x="540.0" y="626.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="540.0" y="635.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="540.0" y="644.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="540.0" y="653.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<text x="590" y="688" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">❦</text>
+<rect x="530.0" y="696.0" width="120.0" height="50.0" rx="3" fill="#202024" opacity="1" stroke="none"/>
+<text x="590" y="714" fill="#dcddde" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="middle">Chapter 4</text>
+<rect x="540.0" y="722.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="540.0" y="731.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="800.0" y="610.0" width="340.0" height="140.0" rx="8" fill="#1e1e1e" opacity="1" stroke="#2c2c30"/>
+<text x="800" y="772" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Sheet slides off — the page slides off the stack</text>
+<rect x="920.0" y="628.0" width="120.0" height="112.0" rx="3" fill="#202024" opacity="1" stroke="none"/>
+<rect x="930.0" y="642.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="651.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="660.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="669.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="678.0" width="62.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="687.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="696.0" width="94.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="705.0" width="90.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="714.0" width="86.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<rect x="930.0" y="723.0" width="62.0" height="3.0" rx="1.5" fill="#5c5f66" opacity="0.8" stroke="none"/>
+<g transform="rotate(-4 860 680)"><rect x="820" y="622" width="120" height="112" rx="3" fill="#242428" stroke="#3a3a40"/></g>
+</svg>

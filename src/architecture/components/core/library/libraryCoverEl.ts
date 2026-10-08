@@ -30,7 +30,8 @@ function constellation(seed: string): [number, number][] {
 export function drawCover(parent: HTMLElement, item: ShelfItem, size: "card" | "hero" | "detail" = "card"): HTMLElement {
     const cover = parent.createDiv({
         cls: [c("shelf-cover"), c(`shelf-cover--${item.format}`), c(`shelf-cover--${size}`), c(`shelf-cover--tint-${tintOf(item.title)}`)],
-        attr: { "aria-hidden": "true" },
+        // Which book: the closing shot (#734) finds its cover again by this.
+        attr: { "aria-hidden": "true", ...(size === "detail" ? {} : { "data-zf-book": item.id }) },
     });
     const drawn = cover.createDiv({ cls: c("shelf-cover-drawn") });
     if (item.kind === "path") {

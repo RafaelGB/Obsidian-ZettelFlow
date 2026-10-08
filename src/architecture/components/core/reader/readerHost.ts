@@ -13,6 +13,8 @@ export interface ReaderHost {
         readerSaved?: unknown;
         /** What the Library knows about each source, and where you are in it (#680, #681). */
         library?: unknown;
+        /** How a book opens and a chapter turns (#732): read through `readingMotion()`. */
+        readingMotion?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

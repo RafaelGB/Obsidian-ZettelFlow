@@ -123,6 +123,18 @@ pointer fades with it. It holds:
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
 way on lights up: **Next · *its name* · *how long it is***.
 
+### One continuous shot
+
+Opening a book from the [Library](library.md) never cuts to another view: the camera moves. The shelf
+zooms with the book you clicked, the cover opens on its hinge **on the page you were on** (your
+highlights already in their places), and that page lands exactly where the Reader's column is: it
+*is* the Reader, with everything it has. Leaving plays the same shot backwards, until the book is on
+its shelf again. Any key or click jumps a shot to its end, and with reduced motion, or
+**Settings → Reading → Opening a book → Instant**, the same places are reached at once. This is
+[constitution §XVI](constitution.md#xvi-one-continuous-shot) at work.
+
+![One continuous shot: the shelf, the push into the book, the cover opening on your page, that page becoming the Reader; closing backwards; and the three ways a chapter turns](../resources/reader/one-continuous-shot.svg)
+
 ### A reader that feels good
 
 - **The measure of a book.** About 68 characters to a line, with ragged edges evened out, long words
@@ -137,7 +149,7 @@ way on lights up: **Next · *its name* · *how long it is***.
 - **Focus mode** (in **Type**): every paragraph but the one at your reading line steps back, so your
   eye stays where you are. It is remembered for next time.
 - **Calm when you read.** Opening, the page rises out of the workspace; leaving, it sinks back.
-- **Details that explain themselves.** The cover you click on the shelf grows into the page. A
+- **Details that explain themselves.** A
   highlight you keep drifts into its card in the margin. Popovers grow from where you selected, and
   a chapter ends with a quiet ornament as you arrive. Day, sepia and night cross-fade instead of
   snapping, and the book you are reading breathes once when you come back to the Library. Each one

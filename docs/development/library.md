@@ -74,7 +74,8 @@ Click a paper or a PDF book on the shelf — or **Resume** — and it opens in t
 [Reader](reader.md) as your notes: the same keys (**← →**, **Space**, **Esc**), the same bar, the
 same themes and type. Its **pages are the chapters**.
 
-Reading happens **in the Library's own tab** — no new tab opens. Leave the Reader and the same tab is
+Reading happens **in the Library's own tab**, as [one continuous shot](reader.md#one-continuous-shot):
+the camera pushes into the book and its cover opens on the page you were on — no new tab opens. Leave the Reader and the same tab is
 the Library again, exactly as you left it: the same filter, the same sort, the shelf scrolled where
 it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps its own tab.)
 

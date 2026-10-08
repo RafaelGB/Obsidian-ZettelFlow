@@ -17,7 +17,9 @@ import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architectu
 import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
-import { MOTION, motionWelcome, playCoverFlight } from "./readerMotion";
+import { MOTION, motionWelcome } from "./readerMotion";
+import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
+import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
@@ -476,8 +478,13 @@ export class ReaderView extends ItemView {
 
     async onOpen(): Promise<void> {
         this.buildShell();
-        // The cover clicked on the shelf opens into this page, before anything else moves (#724).
-        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
+        // The end of a shot from the Library (#734): out of sight until the page lands on the column.
+        if (this.root && shotIncoming()) {
+            const root = this.root;
+            root.addClass(c("reader--in-shot"));
+            // Whatever happens to the shot, the Reader is never left invisible.
+            window.setTimeout(() => root.removeClass(c("reader--in-shot")), MOTION.shotPatience + MOTION.shotLand);
+        }
         this.contentEl.setAttribute("tabindex", "-1");
         this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
         // A reading restored before the index is ready is read as soon as the model is built.
@@ -602,9 +609,9 @@ export class ReaderView extends ItemView {
     private applyPrefs(): void {
         if (!this.root) return;
         const { plugin, obsidian } = readerClassNames(this.prefs);
-        const idle = this.root.hasClass?.(c("reader--idle")) ?? false;
-        const fromCover = this.root.hasClass?.(c("reader--from-cover")) ?? false;
-        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...(idle ? [c("reader--idle")] : []), ...(fromCover ? [c("reader--from-cover")] : [])].join(" ");
+        // A shot's states survive a change of type or theme: taking them off would replay an entrance.
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
     private savePrefs(next: ReaderPrefs): void {
@@ -739,6 +746,7 @@ export class ReaderView extends ItemView {
         if (generation !== this.generation) return;
         this.chapterWords = wordCount(body.textContent ?? "");
         this.seenWords.set(this.index, this.chapterWords);
+        this.landShot();
         this.watchFocus(body, component);
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
@@ -1113,8 +1121,6 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
-        // The cover's entrance is over: the next chapter turns as chapters do.
-        this.root?.removeClass(c("reader--from-cover"));
         this.samplePace();
         this.pending = null;
         this.detours = [];
@@ -1146,6 +1152,13 @@ export class ReaderView extends ItemView {
         this.show(next);
     }
 
+    /** The shot from the Library, landed on the page just drawn — once; a Reader with no shot is simply shown. */
+    private landShot(): void {
+        if (!this.root || !this.els) return;
+        if (!this.root.hasClass?.(c("reader--in-shot")) && !shotIncoming()) return;
+        void landOpenShot(this.root, this.els.stage, this.els.page);
+    }
+
     /** The next chapter — the palette's *Reader: next chapter*, and →. */
     nextChapter(): void {
         this.go(1);
@@ -1165,6 +1178,11 @@ export class ReaderView extends ItemView {
         if (this.leaving) return;
         this.leaving = true;
         const root = this.root;
+        // Opened from the Library: the shot back to the book on its shelf (#734).
+        if (root && this.els && this.back && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") {
+            const back = this.back;
+            if (beginCloseShot(root, this.els.stage, this.els.page, String(back.focus ?? ""), () => exitReader(this.app, this.leaf, back))) return;
+        }
         if (!root || !this.motionAllowed()) {
             exitReader(this.app, this.leaf, this.back);
             return;
@@ -1393,8 +1411,6 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
-        // A Reader already open when the cover was clicked: the flight plays once the page is drawn.
-        if (this.root && this.els) playCoverFlight(this.root, this.els.stage);
         // Back from a jump lands on the very line it left (#718).
         if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;
@@ -1408,6 +1424,8 @@ export class ReaderView extends ItemView {
                 if (generation === this.generation) stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
             }, RESUME_SETTLE_MS);
         }
+        // The shot from the Library lands here: the page is drawn, and at your place (#734).
+        this.landShot();
         // An open search tints its matches in every chapter it lands on (#719).
         if (this.searchEl) this.markSearch();
         this.onStageScroll();

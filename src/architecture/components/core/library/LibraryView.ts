@@ -17,7 +17,8 @@ import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
-import { setCoverFlight } from "architecture/components/core/reader/readerMotion";
+import { beginOpenShot } from "architecture/components/core/reader/readerShot";
+import { readingMotion } from "architecture/components/core/reader/readingMotion";
 import { renderNotebook, type NotebookFilter } from "./libraryNotebook";
 import { crystallizeHighlight } from "./crystallizeHighlight";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
@@ -482,8 +483,8 @@ export class LibraryView extends ItemView {
     // ── open, and the detail ─────────────────────────────────────────────────
 
     private openItem(item: ShelfItem, at: OpenAt = {}, from: HTMLElement | null = null): void {
-        // The cover you clicked flies into the Reader's page (#724).
-        setCoverFlight(from);
+        // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
+        if (from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") beginOpenShot(this.containerEl, from);
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
         const back = { filter: this.filter, sort: this.sort, scroll: this.contentEl.scrollTop, focus: item.id };
         if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);

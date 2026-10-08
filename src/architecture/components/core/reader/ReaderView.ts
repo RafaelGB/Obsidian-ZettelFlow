@@ -36,7 +36,7 @@ import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
 import { chapterOfHighlight, rememberSourceFacts, rememberSourcePlace, sourceMetaOf, sourceReading } from "./readerSource";
 import { openSourceDocument, type SourceDocument, type SourceLayout } from "architecture/components/core/library/sources/sourceDocument";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
-import { END_OF_CHAPTER, minutesFor, minutesLeft, readFraction, scrolls, wordCount } from "./readerPace";
+import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, normalizePace, paceWpm, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import {
     READER_FONTS,
     READER_SIZES,
@@ -58,6 +58,8 @@ const DOTS_LIMIT = 40;
 const EXIT_MS = 220;
 /** How long the way back from a jump stays on screen before it fades (#718); Alt+← keeps working. */
 const JUMP_PILL_MS = 8000;
+/** Where your reading pace is kept — Obsidian's per-device local storage, never synced (#722). */
+const PACE_STORAGE_KEY = "zettelflow-reader-pace";
 /** A pause in typing before the book is searched (#719). */
 const SEARCH_DEBOUNCE_MS = 150;
 /** Results listed under the search bar; the bar counts them all. */
@@ -172,6 +174,13 @@ export class ReaderView extends ItemView {
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
+    /** Your reading pace, learned on this device only (#722). */
+    private pace: Pace | null = null;
+    /** When the chapter on screen opened, and whether you reached its end: one sample of your pace. */
+    private chapterOpenedAt = Date.now();
+    private reachedEnd = false;
+    /** Words of the chapters drawn in this reading, for the time left in the book. */
+    private readonly seenWords = new Map<number, number>();
     /** The end-of-chapter card: the next chapter's name and length, lit when you reach it. */
     private nextCard: HTMLElement | null = null;
     /** Which way the next page turns: forward, back, or 0 for a reading that just opened. */
@@ -266,6 +275,7 @@ export class ReaderView extends ItemView {
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
+        this.pace = normalizePace(this.app?.loadLocalStorage?.(PACE_STORAGE_KEY));
         // Obsidian's way (#667): the active leaf's scope gets the keys, wherever focus is, and only
         // the keys it registers — Ctrl/Cmd/Alt combinations fall through to the app's hotkeys.
         this.scope = new Scope(this.app?.scope);
@@ -329,6 +339,9 @@ export class ReaderView extends ItemView {
                 this.startedAt = Date.now();
                 this.detourCount = 0;
                 this.visited.clear();
+            this.seenWords.clear();
+            this.chapterOpenedAt = Date.now();
+            this.reachedEnd = false;
                 this.savedId = undefined;
                 this.endStatus = undefined;
             }
@@ -688,6 +701,7 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         this.chapterWords = wordCount(body.textContent ?? "");
+        this.seenWords.set(this.index, this.chapterWords);
         this.watchFocus(body, component);
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
@@ -762,11 +776,55 @@ export class ReaderView extends ItemView {
         const { stage } = els;
         const fraction = this.ended ? 1 : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
-        const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction);
-        els.minutes.setText(left > 0 ? tCount(left, "reader_minutes_left", String(left)) : "");
-        els.minutes.toggleClass(c("reader-hidden"), left === 0);
+        if (fraction >= END_OF_CHAPTER) this.reachedEnd = true;
+        const wpm = paceWpm(this.pace);
+        const left = this.ended ? 0 : minutesLeft(this.chapterWords, fraction, wpm);
+        const book = this.ended ? 0 : this.bookMinutes(fraction, wpm);
+        // Quiet (#722): it lives in the bar, which shows only while you move or press a key.
+        const text = !this.prefs.timeLeft || left === 0 ? "" : book > left ? `${tCount(left, "reader_minutes_left", String(left))} · ${t("reader_book_left", this.duration(book))}` : tCount(left, "reader_minutes_left", String(left));
+        els.minutes.setText(text);
+        els.minutes.toggleClass(c("reader-hidden"), text === "");
         const atEnd = !scrolls(stage.scrollHeight, stage.clientHeight) || fraction >= END_OF_CHAPTER;
         this.nextCard?.toggleClass(c("reader-next--arrived"), atEnd);
+    }
+
+    /**
+     * One sample of your pace (#722), taken as you leave a chapter you read to its end: its words over
+     * the time it was open. A chapter skimmed or left open is not reading, and `learnPace` drops it.
+     * Kept on this device only.
+     */
+    private samplePace(): void {
+        const opened = this.chapterOpenedAt;
+        this.chapterOpenedAt = Date.now();
+        const reached = this.reachedEnd;
+        this.reachedEnd = false;
+        if (!reached || this.chapterWords <= 0) return;
+        const next = learnPace(this.pace, { words: this.chapterWords, ms: Date.now() - opened });
+        if (next === this.pace) return;
+        this.pace = next;
+        this.app?.saveLocalStorage?.(PACE_STORAGE_KEY, next);
+    }
+
+    /** Minutes left in the book: this chapter's remainder and the chapters after it (#722). */
+    private bookMinutes(fraction: number, wpm: number): number {
+        const total = this.source?.chapters.length ?? this.path?.chapters.length ?? 0;
+        const after = Math.max(0, total - this.index - 1);
+        const chapterWordsLeft = Math.round(this.chapterWords * (1 - fraction));
+        // Read through by a search: the words of each chapter to come. Otherwise, the average so far.
+        const texts = this.searchTexts;
+        if (texts && texts.length === total) {
+            return bookMinutesLeft({ chapterWordsLeft, upcoming: texts.slice(this.index + 1).map(wordCount), wpm });
+        }
+        const seen = [...this.seenWords.values()].filter((words) => words > 0);
+        const averageWords = seen.length > 0 ? seen.reduce((sum, words) => sum + words, 0) / seen.length : this.chapterWords;
+        return bookMinutesLeft({ chapterWordsLeft, upcoming: { chapters: after, averageWords }, wpm });
+    }
+
+    /** A time as the bar says it: "40 min", "3 h", "3 h 40 min". */
+    private duration(total: number): string {
+        const { hours, minutes } = splitMinutes(total);
+        if (hours === 0) return t("reader_time_min", String(minutes));
+        return minutes === 0 ? t("reader_time_h", String(hours)) : t("reader_time_h_min", String(hours), String(minutes));
     }
 
     /**
@@ -1003,6 +1061,7 @@ export class ReaderView extends ItemView {
 
     private show(index: number): void {
         if (!this.path) return;
+        this.samplePace();
         this.pending = null;
         this.detours = [];
         const target = Math.max(0, Math.min(index, this.path.chapters.length - 1));
@@ -1273,6 +1332,7 @@ export class ReaderView extends ItemView {
             const drawn = await doc.draw(index, body, component, this.sourceLayout);
             picture = drawn.picture;
             this.chapterWords = drawn.words;
+            this.seenWords.set(index, drawn.words);
         } catch (error) {
             log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
             if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });
@@ -1751,6 +1811,17 @@ export class ReaderView extends ItemView {
         setIcon(focus.createSpan({ cls: c("reader-focus-icon") }), "focus");
         focus.createSpan({ text: t("reader_focus") });
         this.panelScope?.registerDomEvent(focus, "click", () => this.savePrefs({ ...this.prefs, focus: !this.prefs.focus }));
+        // The time left, quietly in the bar (#722): yours to turn off.
+        const time = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
+            cls: [c("reader-type-option"), c("reader-focus-toggle"), ...(this.prefs.timeLeft ? ["is-active"] : [])].join(" "),
+            attr: { type: "button", "aria-pressed": String(this.prefs.timeLeft) },
+        });
+        setIcon(time.createSpan({ cls: c("reader-focus-icon") }), "hourglass");
+        time.createSpan({ text: t("reader_time_left_toggle") });
+        this.panelScope?.registerDomEvent(time, "click", () => {
+            this.savePrefs({ ...this.prefs, timeLeft: !this.prefs.timeLeft });
+            this.onStageScroll();
+        });
     }
 
     private renderContext(host: HTMLElement): void {

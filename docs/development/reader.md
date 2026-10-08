@@ -127,6 +127,10 @@ way on lights up: **Next · *its name* · *how long it is***.
 - **Pages that turn.** Going forward the page slides in from the right; going back, from the left.
   Each chapter opens in order: its number, its role, its title, then the words.
 - **A marker, not a stamp.** A new highlight is swept across the words like a marker pen.
+- **Time left, at your pace.** The bar says how long is left in the chapter and in the book,
+  counted at **your** reading speed, learned from the chapters you read to the end and kept on this
+  device only. It shows only while the bar does: move the pointer or press a key. **Type → Time
+  left** turns it off.
 - **Focus mode** (in **Type**): every paragraph but the one at your reading line steps back, so your
   eye stays where you are. It is remembered for next time.
 - **Calm when you read.** Opening, the page rises out of the workspace; leaving, it sinks back.

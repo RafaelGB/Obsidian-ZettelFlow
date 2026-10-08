@@ -15,13 +15,15 @@ export interface ReaderPrefs {
     theme: ReaderTheme;
     /** Focus mode (#667): every paragraph but the one you are reading is dimmed. */
     focus: boolean;
+    /** The time left, quietly, in the bar (#722). On unless you turn it off. */
+    timeLeft: boolean;
 }
 
 export const READER_FONTS: readonly ReaderFont[] = ["sans", "serif"];
 export const READER_SIZES: readonly ReaderSize[] = ["small", "medium", "large"];
 export const READER_THEMES: readonly ReaderTheme[] = ["auto", "light", "sepia", "dark"];
 
-export const DEFAULT_READER_PREFS: ReaderPrefs = { font: "sans", size: "medium", theme: "auto", focus: false };
+export const DEFAULT_READER_PREFS: ReaderPrefs = { font: "sans", size: "medium", theme: "auto", focus: false, timeLeft: true };
 
 /** Whatever was stored, as prefs the reader can use. Unknown values fall back to the default. */
 export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
@@ -33,6 +35,7 @@ export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
         size: pick(READER_SIZES, value.size, DEFAULT_READER_PREFS.size),
         theme: pick(READER_THEMES, value.theme, DEFAULT_READER_PREFS.theme),
         focus: value.focus === true,
+        timeLeft: value.timeLeft !== false,
     };
 }
 

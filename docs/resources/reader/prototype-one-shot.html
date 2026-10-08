@@ -85,6 +85,24 @@
   .sheet { overflow: visible; }
   .sheet > .clip { position: absolute; inset: 0; overflow: hidden; background: var(--bg); }
   .seam { position: absolute; left: 0; right: 0; top: 100%; height: 64px; display: grid; place-items: center; color: var(--faint); font-size: 22px; }
+  .gear { background: var(--bg3); color: var(--text); border: 0; border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+  .settings { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: grid; place-items: center; z-index: 10; }
+  .settings[hidden] { display: none; }
+  .panel { width: 560px; background: var(--bg2); border: 1px solid var(--bg3); border-radius: 10px; padding: 18px 22px; }
+  .shead { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; }
+  .sdesc { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+  .setting-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px 0; border-top: 1px solid var(--bg3); }
+  .setting-item .name { font-size: 14px; } .setting-item .desc { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .setting-item select { background: var(--bg3); color: var(--text); border: 1px solid #444; border-radius: 5px; padding: 4px 8px; font: inherit; font-size: 13px; }
+  .rtool .prog { width: 120px; height: 3px; background: var(--bg3); border-radius: 2px; padding: 0; min-width: 0; }
+  .rtool .prog i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; }
+  .rtool .sep { width: 1px; height: 20px; background: var(--bg3); padding: 0; min-width: 0; margin: 0 4px; }
+  .dots { position: absolute; left: 50%; bottom: 76px; translate: -50% 0; display: flex; gap: 8px; z-index: 3; }
+  .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--bg3); }
+  .dots i.done { background: var(--faint); } .dots i.on { width: 22px; border-radius: 4px; background: var(--muted); }
+  mark.hl { color: inherit; border-radius: 2px; padding: 0 1px; }
+  mark.idea { background: rgba(232, 196, 84, .28); } mark.question { background: rgba(98, 160, 234, .28); }
+  mark.quote { background: rgba(98, 196, 140, .26); } mark.discuss { background: rgba(214, 112, 160, .26); }
   .shade { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0; }
 </style>
 </head>
@@ -92,11 +110,21 @@
 <div class="controls">
   <b>One continuous shot · prototype</b>
   <label>Speed <span class="seg" data-ctl="speed"><button data-v="1" class="on">1×</button><button data-v="0.5">½×</button><button data-v="0.2">⅕×</button></span></label>
-  <label>Chapter <span class="seg" data-ctl="turn"><button data-v="leaf" class="on">Leaf turns</button><button data-v="flow">Keeps flowing</button><button data-v="stack">Sheet slides off</button></span></label>
+  <button class="gear" id="gear">⚙ Settings › Reading</button>
   <label><input type="checkbox" id="reduced"> Reduced motion</label>
-  <span class="note">Click a book · ← → change chapter · Esc back to the shelf</span>
+  <span class="note">Click a book · ← → change chapter · Esc back to the shelf · highlights, progress and tools are the Reader's own</span>
 </div>
 
+<div class="settings" id="settings" hidden>
+  <div class="panel">
+    <div class="shead">Reading <button class="icon" id="sclose">✕</button></div>
+    <div class="sdesc">The Library and the Reader. Motion follows your system: with reduced motion on, every shot is instant.</div>
+    <div class="setting-item"><div><div class="name">Opening a book</div><div class="desc">The camera pushes into the cover and it opens on the page you were on.</div></div>
+      <select id="s-open"><option value="shot">Camera shot</option><option value="instant">Instant</option></select></div>
+    <div class="setting-item"><div><div class="name">Changing chapter</div><div class="desc">How one chapter gives way to the next.</div></div>
+      <select id="s-turn"><option value="leaf">Leaf turns</option><option value="flow">Keeps flowing</option><option value="stack">Sheet slides off</option></select></div>
+  </div>
+</div>
 <div class="stage" id="stage">
   <div class="layer library" id="library">
     <h1>Library</h1>
@@ -107,7 +135,9 @@
     <div class="rhead"><span id="rtitle"></span><button class="icon" id="close" title="Back to the shelf">✕</button></div>
     <div class="rbody" id="rbody">
       <div class="scroller" id="scroller"><div class="col" id="col"></div></div>
-      <div class="rtool"><button class="icon" id="prev" title="Previous chapter">‹</button><span id="where"></span><button class="icon" id="next" title="Next chapter">›</button></div>
+      <div class="dots" id="dots"></div>
+      <div class="rtool"><button class="icon" id="prev" title="Previous chapter">‹</button><span id="where"></span><span class="prog"><i id="prog"></i></span><button class="icon" id="next" title="Next chapter">›</button>
+        <span class="sep"></span><button class="icon" title="Contents">☰</button><button class="icon" title="Search">⌕</button><button class="icon" title="Type">T</button><button class="icon" title="Notebook">✎</button><button class="icon" title="Full screen">⛶</button></div>
     </div>
   </div>
   <div class="layer rig" id="rig"></div>
@@ -140,13 +170,20 @@ function chapterHTML(book, i) {
   let h = `<div class="count">CHAPTER ${i + 1} / ${TITLES.length}</div><h2>${TITLES[i]}</h2>`;
   for (let p = 0; p < 11; p++) {
     let s = ""; for (let k = 0; k < 4 + ((p + i) % 3); k++) s += SENTENCES[(p * 3 + k + i * 2 + book) % SENTENCES.length] + " ";
+    const kind = { 1: "idea", 3: "question", 5: "quote", 8: "discuss" }[p];
+    if (kind) { const cut = s.indexOf(". ") + 1; s = `<mark class="hl ${kind}">${s.slice(0, cut)}</mark>${s.slice(cut)}`; }
     h += `<p>${s}</p>`;
   }
   return h;
 }
 
 /* ---------- controls ---------- */
-const opts = { speed: 1, turn: "leaf" };
+const opts = { speed: 1, turn: "leaf", open: "shot" };
+document.getElementById("gear").addEventListener("click", () => { document.getElementById("settings").hidden = false; });
+document.getElementById("sclose").addEventListener("click", () => { document.getElementById("settings").hidden = true; });
+document.getElementById("settings").addEventListener("click", e => { if (e.target.id === "settings") e.target.hidden = true; });
+document.getElementById("s-turn").addEventListener("change", e => { opts.turn = e.target.value; });
+document.getElementById("s-open").addEventListener("change", e => { opts.open = e.target.value; });
 document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
@@ -154,6 +191,7 @@ document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", e
 }));
 const reduced = () => document.getElementById("reduced").checked || matchMedia("(prefers-reduced-motion: reduce)").matches;
 const D = ms => reduced() ? 1 : ms / opts.speed;
+const DOPEN = ms => opts.open === "instant" ? 1 : D(ms);
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";      /* $ease-out: arrives and settles */
 const INOUT = "cubic-bezier(0.65, 0, 0.35, 1)";      /* a hinge: starts and stops with weight */
 const CAMERA = "cubic-bezier(0.45, 0, 0.15, 1)";     /* a dolly: gathers speed, then glides to rest */
@@ -189,6 +227,13 @@ function fillReader(i) {
   $("rtitle").textContent = `${b.t} · ${b.a}`;
   $("where").textContent = `Chapter ${i + 1} / ${TITLES.length}`;
   b.ch = i;
+  $("dots").innerHTML = TITLES.map((_, k) => `<i class="${k === i ? "on" : k < i ? "done" : ""}"></i>`).join("");
+  requestAnimationFrame(progress);
+}
+function progress() {
+  if (current === null) return;
+  const f = scroller.scrollTop / Math.max(1, scroller.scrollHeight - scroller.clientHeight);
+  $("prog").style.width = Math.round(f * 100) + "%";
 }
 
 /* ---------- open: zoom into the book, it opens where you are, the page becomes the reader ---------- */
@@ -232,7 +277,7 @@ function openBook(i, coverEl) {
   rig.appendChild(book);
   coverEl.style.visibility = "hidden";
 
-  const d = D(1000);
+  const d = DOPEN(1000);
   const o = { duration: d, fill: "forwards" };
   /* one camera move that never stops: the push in and the landing are the same gesture */
   const camFrames = [{ transform: css(ID) }, { transform: css(T1), offset: 0.45 }, { transform: css(T12) }];
@@ -267,9 +312,9 @@ function closeBook() {
   b.at = scroller.scrollTop / Math.max(1, scroller.scrollHeight - scroller.clientHeight);
   const { coverEl } = openBook.last;
   /* rebuild the rig so the page shows where you are now */
-  coverEl.style.visibility = "visible";
-  library.style.visibility = "visible";
-  rig.style.visibility = "visible";
+  coverEl.style.visibility = "";
+  library.style.visibility = "";
+  rig.style.visibility = "";
   const at = b.at, ch = b.ch, idx = current;
   current = null; busy = false;
   BOOKS[idx].ch = ch; BOOKS[idx].at = at;
@@ -298,7 +343,7 @@ function closeBook() {
   lid.append(front, back); book.append(page, lid); rig.appendChild(book);
   coverEl.style.visibility = "hidden";
 
-  const d = D(950);
+  const d = DOPEN(950);
   const o = { duration: d, fill: "forwards" };
   const camFrames = [{ transform: css(T12) }, { transform: css(T1), offset: 0.55 }, { transform: css(ID) }];
   const camera = { ...o, easing: CAMERA };
@@ -312,7 +357,8 @@ function closeBook() {
   ];
   Promise.all(anims.map(a => a.finished)).then(() => {
     anims.forEach(a => a.cancel());
-    rig.innerHTML = ""; coverEl.style.visibility = "visible";
+    // Clear, never force "visible": a visible child shows through its hidden parent (the stale covers).
+    rig.innerHTML = ""; coverEl.style.visibility = "";
     reader.classList.remove("open"); reader.style.opacity = "";
     const pct = Math.round(((ch + at) / TITLES.length) * 100);
     coverEl.parentElement.querySelector(".meta").innerHTML = `<b>${b.t}</b>Chapter ${ch + 1} · ${pct}%<div class="bar"><i style="width:${pct}%"></i></div>`;
@@ -382,6 +428,7 @@ function turn(dir) {
   Promise.all(anims.map(a => a.finished)).then(() => { old.remove(); fresh.remove(); shade.remove(); scroller.style.visibility = ""; busy = false; });
 }
 
+scroller.addEventListener("scroll", progress, { passive: true });
 $("close").addEventListener("click", closeBook);
 $("next").addEventListener("click", () => turn(1));
 $("prev").addEventListener("click", () => turn(-1));

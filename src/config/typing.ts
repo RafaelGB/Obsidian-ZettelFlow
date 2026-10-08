@@ -142,6 +142,11 @@ export interface ZettelFlowSettings {
      */
     readerResume?: Record<string, { chapter: number; total: number; at: number }>;
     /**
+     * How a book opens from the Library and how a chapter turns (#732, epic #729) — the settings'
+     * *Reading* section. Read through `readingMotion()`, which mends anything unknown.
+     */
+    readingMotion?: { open: "shot" | "instant"; chapter: "leaf" | "flow" | "stack" };
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */
@@ -418,6 +423,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     noteNeighbourhoodView: "graph", // the picture first; the list is one click away (#643).
     readerPrefs: { font: "sans", size: "medium", theme: "auto" }, // the theme's own type, until you pick (#668).
     readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
+    readingMotion: { open: "shot", chapter: "leaf" }, // one continuous shot, a leaf that turns (#732).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

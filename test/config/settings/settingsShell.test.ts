@@ -59,7 +59,7 @@ describe("the settings shell (#660)", () => {
         expect(actions.openCultivate).toHaveBeenCalledTimes(1);
     });
 
-    it("lists the seven sections in the bar, and marks the one in view", () => {
+    it("lists the eight sections in the bar, and marks the one in view", () => {
         const el = host();
         const go = jest.fn();
         const mark = renderNav(el, go);
@@ -70,6 +70,7 @@ describe("the settings shell (#660)", () => {
             "Creating notes",
             "Your knowledge",
             "Thinking",
+            "Reading",
             "AI",
             "Automation",
             "Advanced",
@@ -79,7 +80,7 @@ describe("the settings shell (#660)", () => {
         expect(tabs.filter((tab) => tab.hasClass("is-active")).map((tab) => tab.getAttribute("data-section"))).toEqual([
             "thinking",
         ]);
-        tabs[4].click();
+        tabs[5].click();
         expect(go).toHaveBeenCalledWith("ai");
     });
 

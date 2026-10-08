@@ -25,3 +25,24 @@ describe("motion that never costs a frame (#724)", () => {
         expect(takeCoverFlight()).toBeNull();
     });
 });
+
+describe("the cover opens into the page, gracefully (owner: the first version was coarse)", () => {
+    it("keeps the cover's shape: one scale for both sides, never stretched to the page", async () => {
+        const { coverLanding } = await import("architecture/components/core/reader/readerMotion");
+        const cover = { left: 100, top: 400, width: 120, height: 180 };
+        const column = { left: 260, top: 230, width: 1060, height: 900 };
+        const to = coverLanding(cover, column);
+        expect(to.width / to.height).toBeCloseTo(cover.width / cover.height, 5);
+        expect(to.width).toBeLessThanOrEqual(cover.width * 1.5);
+        // Centred on the column, near its top, where the text is about to appear.
+        expect(to.left + to.width / 2).toBeCloseTo(column.left + column.width / 2, 5);
+        expect(to.top).toBeGreaterThanOrEqual(column.top);
+        expect(to.top + to.height).toBeLessThanOrEqual(column.top + column.height);
+    });
+
+    it("never grows a cover past a third of a narrow column", async () => {
+        const { coverLanding } = await import("architecture/components/core/reader/readerMotion");
+        const to = coverLanding({ left: 0, top: 0, width: 200, height: 300 }, { left: 0, top: 0, width: 360, height: 700 });
+        expect(to.width).toBeLessThanOrEqual(120 + 0.001);
+    });
+});

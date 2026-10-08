@@ -1052,6 +1052,35 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     animation: zf-reader-note-in $motion-fast $ease-out both;
 }
 
+/* The cover opens into the page (#724): one gesture. The Reader's own entrance is held back while
+   it plays, and the text fades in beneath the cover as it gives way — nothing else moves. */
+.zettelkasten-flow__reader.zettelkasten-flow__reader--from-cover {
+    animation: none;
+}
+
+.zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page,
+.zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page > * {
+    animation: zf-reader-from-cover $motion-base $ease-out 220ms both;
+}
+
+@keyframes zf-reader-from-cover {
+    from {
+        opacity: 0;
+        translate: 0 var(--size-4-2);
+    }
+}
+
+.zettelkasten-flow__motion-cover {
+    z-index: 8;
+    box-shadow: var(--shadow-l);
+
+    // A copy of a cover already shown: its picture must not fade in again, as it did on the shelf.
+    // Two classes: shelf.scss loads later and its own `.shelf-cover-image` rule would win a tie.
+    &.zettelkasten-flow__motion-ghost * {
+        animation: none;
+    }
+}
+
 /* A ghost of a kept passage settling into its card in the margin (#724), and any flown copy. */
 .zettelkasten-flow__motion-ghost {
     position: absolute;
@@ -1296,7 +1325,9 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     .zettelkasten-flow__reader-jump-pill,
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
-    .zettelkasten-flow__reader-hl-pop {
+    .zettelkasten-flow__reader-hl-pop,
+    .zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page,
+    .zettelkasten-flow__reader--from-cover .zettelkasten-flow__reader-page > * {
         animation: none;
     }
 

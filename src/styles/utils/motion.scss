@@ -1,0 +1,8 @@
+// Motion (#723): one set of durations and one curve for the whole plugin. Not theme variables —
+// timings — so they live apart from `variables.scss`, whose tokens all alias the theme.
+// Animate transform and opacity only, and give every effect an instant equivalent under
+// prefers-reduced-motion.
+$motion-fast: 120ms;
+$motion-base: 250ms;
+$motion-cover: 400ms;
+$ease-out: cubic-bezier(0.22, 1, 0.36, 1);

@@ -1,5 +1,6 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
+@use '../utils/motion' as *;
 
 /*
  * The Reader (#668, epic #667) — a path across your notes, read the way you read a book.
@@ -629,6 +630,69 @@
     }
 }
 
+/* The way back from a jump inside a book (#718): the same pill, sliding in, fading by itself. */
+.zettelkasten-flow__reader-jump-pill {
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    animation: zf-reader-pill-in $motion-base $ease-out both;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+@keyframes zf-reader-pill-in {
+    from {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
+/* A footnote read in place (#718): it floats under its mark and grows from it. */
+.zettelkasten-flow__reader-note-pop {
+    position: absolute;
+    left: var(--zf-note-x, 50%);
+    top: var(--zf-note-y, 50%);
+    transform: translate(-50%, var(--size-4-2));
+    transform-origin: top center;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: min(26rem, calc(100% - var(--size-4-8)));
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.55;
+    animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+@keyframes zf-reader-note-in {
+    from {
+        opacity: 0;
+        scale: 0.96;
+    }
+}
+
+button.zettelkasten-flow__reader-note-pop-go {
+    align-self: flex-start;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    cursor: pointer;
+}
+
 .zettelkasten-flow__reader-role-tag--detour {
     color: var(--reader-faint);
     background-color: var(--background-modifier-hover);
@@ -945,7 +1009,9 @@
     .zettelkasten-flow__reader-peek,
     .zettelkasten-flow__reader-highlight--new,
     .zettelkasten-flow__reader-shortcuts,
-    .zettelkasten-flow__reader-shortcuts-card {
+    .zettelkasten-flow__reader-shortcuts-card,
+    .zettelkasten-flow__reader-note-pop,
+    .zettelkasten-flow__reader-jump-pill {
         animation: none;
     }
 

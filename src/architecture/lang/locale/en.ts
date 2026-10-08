@@ -2343,6 +2343,8 @@ export default {
     reader_read_folder: 'Read this folder',
     reader_detour: 'Detour',
     reader_back_to: 'Back to {0}',
+    reader_note_go: 'Go to note',
+    reader_note_label: 'Footnote',
     reader_visited: 'Read',
     reader_peek_label: 'Peek: {0}',
     reader_peek_in_path: 'Chapter {0} of this reading',

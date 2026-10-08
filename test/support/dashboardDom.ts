@@ -324,6 +324,9 @@ function matcher(selector: string): (el: DomNode) => boolean {
     }
     const one = parts[0] ?? "";
     if (one.startsWith("#")) return (el) => el.id === one.slice(1);
+    // `[name="value"]` / `[name]`: one attribute, as the reader asks for an element a link names.
+    const attr = /^\[([\w:-]+)(?:="([^"]*)")?\]$/.exec(one);
+    if (attr) return (el) => (attr[2] === undefined ? el.getAttribute(attr[1]) !== null : el.getAttribute(attr[1]) === attr[2]);
     if (/[\s>+~\[\]:]/.test(one)) throw new Error(`DomNode cannot match selector "${one}"`);
     const [tag, ...classes] = one.split(".");
     return (el) => (tag === "" || el.tag === tag) && classes.every((cls) => el.classes.has(cls));

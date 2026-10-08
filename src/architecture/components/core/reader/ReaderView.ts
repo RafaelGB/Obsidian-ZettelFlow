@@ -16,6 +16,7 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
+import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
 import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
@@ -53,6 +54,8 @@ const DOTS_LIMIT = 40;
 
 /** The leaving fade (`reader--leaving` in reader.scss); the workspace comes back when it ends. */
 const EXIT_MS = 220;
+/** How long the way back from a jump stays on screen before it fades (#718); Alt+← keeps working. */
+const JUMP_PILL_MS = 8000;
 
 /**
  * The keys, as the shortcuts sheet lists them. A cap is a locale key (a word: Space, Esc) or the
@@ -196,6 +199,16 @@ export class ReaderView extends ItemView {
     /** Bumped on every peek, so a slow excerpt never lands in a newer one. */
     private peekGeneration = 0;
     private pill: HTMLElement | null = null;
+    /** Where you were before each jump inside a book (#718): the pill and Alt+← return there. */
+    private readonly jumps = new JumpStack<{ chapter: number; top: number; label: string }>();
+    /** The jump pill goes away by itself; the way back stays on Alt+←. */
+    private jumpPillTimer: number | undefined;
+    private jumpPillShown = false;
+    /** A scroll to restore once the chapter a Back returns to is drawn. */
+    private pendingTop: number | null = null;
+    /** The footnote read in place (#718), and its listeners. */
+    private notePop: HTMLElement | null = null;
+    private notePopScope: Component | null = null;
     /** The reading is over and its end card is on screen (#672). */
     private ended = false;
     /** When this reading began, for the end card's minutes. */
@@ -327,6 +340,7 @@ export class ReaderView extends ItemView {
             this.savedId = undefined;
             this.endStatus = undefined;
             this.sourcePath = path;
+            this.jumps.clear();
         }
         this.ended = false;
         this.detours = [];
@@ -457,19 +471,22 @@ export class ReaderView extends ItemView {
             cls: [c("reader-detour-pill"), c("reader-hidden")].join(" "),
             attr: { type: "button" },
         });
-        this.registerDomEvent(pill, "click", () => this.backFromDetour());
+        // The same pill is the way back from a jump inside a book (#718).
+        this.registerDomEvent(pill, "click", () => (this.detours.length > 0 ? this.backFromDetour() : this.backFromJump()));
         this.pill = pill;
 
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
         this.registerDomEvent(stage, "scroll", () => {
             this.highlights?.onScroll();
+            this.closeNote();
             this.onStageScroll();
         });
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
             if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
+            if (this.notePop && target && !this.notePop.contains(target)) this.closeNote();
         });
         const page = stage.createEl("article", { cls: c("reader-page") });
         // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
@@ -764,9 +781,60 @@ export class ReaderView extends ItemView {
 
     private renderPill(): void {
         if (!this.pill) return;
-        const on = this.detours.length > 0;
-        this.pill.toggleClass(c("reader-hidden"), !on);
-        this.pill.setText(on ? `↩ ${t("reader_back_to", this.backName())}` : "");
+        if (this.detours.length > 0) {
+            this.pill.toggleClass(c("reader-hidden"), false);
+            this.pill.toggleClass(c("reader-jump-pill"), false);
+            this.pill.setText(`↩ ${t("reader_back_to", this.backName())}`);
+            return;
+        }
+        // A jump inside a book (#718): where you were, until it fades by itself.
+        const back = this.jumpPillShown ? this.jumps.peek() : undefined;
+        this.pill.toggleClass(c("reader-hidden"), !back);
+        this.pill.toggleClass(c("reader-jump-pill"), Boolean(back));
+        this.pill.setText(back ? `← ${t("reader_back_to", back.label)}` : "");
+    }
+
+    /**
+     * A jump inside a book (#718): a link, Contents, *Go to note*. Where you were is kept first, so
+     * the pill — or Alt+← — brings you back to the very line.
+     */
+    private jumpTo(chapter: number, fragment?: string): void {
+        const stage = this.els?.stage;
+        if (!this.path || !stage) return;
+        this.jumps.push({ chapter: this.index, top: stage.scrollTop, label: this.sourceLabel(this.index) });
+        this.closeNote();
+        if (chapter !== this.index) this.show(chapter);
+        if (fragment) this.scrollToFragment(fragment);
+        this.flashJumpPill();
+    }
+
+    /** Back to where the last jump left from. False when there is nowhere to go back to. */
+    private backFromJump(): boolean {
+        const back = this.jumps.pop();
+        const stage = this.els?.stage;
+        if (!back || !stage) return false;
+        this.closeNote();
+        if (back.chapter !== this.index) {
+            this.pendingTop = back.top;
+            this.show(back.chapter);
+        } else {
+            stage.scrollTop = back.top;
+        }
+        this.jumpPillShown = this.jumps.size > 0;
+        this.renderPill();
+        return true;
+    }
+
+    /** The way back, for a while: it goes away by itself, and an ordinary turn puts it away. */
+    private flashJumpPill(): void {
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.jumpPillTimer);
+        this.jumpPillShown = true;
+        this.renderPill();
+        this.jumpPillTimer = win.setTimeout(() => {
+            this.jumpPillShown = false;
+            this.renderPill();
+        }, JUMP_PILL_MS);
     }
 
     /** The note a link in the chapter points at, resolved the way Obsidian resolves it. */
@@ -915,6 +983,9 @@ export class ReaderView extends ItemView {
 
     private go(delta: number): void {
         if (!this.path) return;
+        // An ordinary turn: the way back from a jump is no longer where you are reading (#718).
+        this.jumps.clear();
+        this.jumpPillShown = false;
         if (this.ended) {
             // Back from the end card lands on the last chapter; forward stays on the end.
             if (delta < 0) this.show(this.index);
@@ -1175,6 +1246,11 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
+        // Back from a jump lands on the very line it left (#718).
+        if (this.pendingTop !== null) {
+            stage.scrollTop = this.pendingTop;
+            this.pendingTop = null;
+        }
         this.onStageScroll();
         this.watchFocus(body, component);
         // The highlights of this page or chapter, found again by their words (#681).
@@ -1207,8 +1283,80 @@ export class ReaderView extends ItemView {
         const href = link.getAttribute("data-zf-href");
         const resolved = href ? this.source?.resolveLink?.(this.index, href) : null;
         if (!resolved) return;
-        if (resolved.chapter !== this.index) this.show(resolved.chapter);
-        if (resolved.fragment) this.scrollToFragment(resolved.fragment);
+        // A footnote is read where it is referenced (#718); anything else is a jump with a way back.
+        const note = isNoteLink({
+            text: link.textContent ?? "",
+            noteref: link.getAttribute("data-zf-noteref") === "true",
+            inSup: Boolean(link.closest?.("sup")),
+        });
+        if (note && resolved.fragment) {
+            void this.openNote(link, resolved.chapter, resolved.fragment);
+            return;
+        }
+        this.jumpTo(resolved.chapter, resolved.fragment);
+    }
+
+    /** The note a footnote mark points at, in this chapter or another one (endnotes). */
+    private async findNote(chapter: number, fragment: string): Promise<string | null> {
+        const id = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(fragment) : fragment.replace(/["\\]/g, "");
+        const selector = `[data-zf-id="${id}"]`;
+        if (chapter === this.index) {
+            const el = this.els?.page.querySelector<HTMLElement>(selector) ?? null;
+            return el ? noteExcerpt(el) : null;
+        }
+        const doc = this.source;
+        if (!doc) return null;
+        // Drawn aside, never shown: the other chapter is read for its note and let go at once.
+        const scratch = this.root?.createDiv();
+        if (!scratch) return null;
+        scratch.remove();
+        const scope = new Component();
+        scope.load();
+        try {
+            await doc.draw(chapter, scratch, scope, "reading");
+            const el = scratch.querySelector<HTMLElement>(selector);
+            return el ? noteExcerpt(el) : null;
+        } catch (error) {
+            log.debug(`[Reader] the note in chapter ${chapter} cannot be read: ${String(error)}`);
+            return null;
+        } finally {
+            scope.unload();
+        }
+    }
+
+    /** A footnote, floating over the page at its mark (#718). The page does not move. */
+    private async openNote(link: HTMLElement, chapter: number, fragment: string): Promise<void> {
+        const generation = this.generation;
+        const text = await this.findNote(chapter, fragment);
+        if (generation !== this.generation || !this.root) return;
+        if (!text) {
+            this.jumpTo(chapter, fragment);
+            return;
+        }
+        this.closeNote();
+        const root = this.root;
+        const pop = root.createDiv({ cls: c("reader-note-pop"), attr: { role: "dialog", "aria-label": t("reader_note_label") } });
+        pop.createDiv({ cls: c("reader-note-pop-text"), text });
+        const go = pop.createEl("button", { cls: c("reader-note-pop-go"), text: t("reader_note_go"), attr: { type: "button" } });
+        const box = root.getBoundingClientRect();
+        const at = link.getBoundingClientRect();
+        // Positioned by two custom properties the stylesheet reads — no inline layout.
+        pop.setCssProps?.({
+            "--zf-note-x": `${Math.round(at.left + at.width / 2 - box.left)}px`,
+            "--zf-note-y": `${Math.round(at.bottom - box.top)}px`,
+        });
+        const scope = new Component();
+        scope.load();
+        scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment));
+        this.notePop = pop;
+        this.notePopScope = scope;
+    }
+
+    private closeNote(): void {
+        this.notePop?.remove();
+        this.notePop = null;
+        this.notePopScope?.unload();
+        this.notePopScope = null;
     }
 
     /** Bring an element a link named into view, once its chapter is drawn. */
@@ -1246,10 +1394,10 @@ export class ReaderView extends ItemView {
             row.createSpan({ cls: c("reader-toc-name"), text: entry.title });
             if (doc.toc.length > 0) row.createSpan({ cls: c("reader-toc-role"), text: this.sourceLabel(entry.chapter) });
             if (i === current) row.setAttribute("aria-current", "step");
-            this.panelScope?.registerDomEvent(row, "click", () => {
-                this.show(entry.chapter);
-                if ("fragment" in entry && typeof entry.fragment === "string") this.scrollToFragment(entry.fragment);
-            });
+            // A Contents entry is a jump: where you were stays one press away (#718).
+            this.panelScope?.registerDomEvent(row, "click", () =>
+                this.jumpTo(entry.chapter, "fragment" in entry && typeof entry.fragment === "string" ? entry.fragment : undefined)
+            );
         });
     }
 
@@ -1436,12 +1584,18 @@ export class ReaderView extends ItemView {
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
         bind(null, "?", taken(() => this.toggleShortcuts()));
         bind(none, "Escape", taken(() => this.escape()));
+        // Back from a jump inside a book (#718); with nowhere to go back to, Obsidian keeps the key.
+        bind(["Alt"], "ArrowLeft", () => this.backFromJump());
     }
 
     /** Esc: one thing at a time, nearest first — then the reader itself. */
     private escape(): void {
         if (this.shortcuts) {
             this.closeShortcuts();
+            return;
+        }
+        if (this.notePop) {
+            this.closeNote();
             return;
         }
         if (this.highlights?.hasPopover()) {

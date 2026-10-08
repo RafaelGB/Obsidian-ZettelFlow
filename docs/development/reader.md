@@ -141,6 +141,10 @@ as they do everywhere else.
 Getting lost is the main way reading fails in a linked vault: you follow a link, then another, and
 the thread is gone. So a link in the Reader is a **peek**, not a jump.
 
+In a book or a paper it is the same idea. A **footnote** opens over the page, at its mark, and any
+**jump** (a cross-reference, Contents, *Go to note*) leaves a **← Back to …** pill and Alt+← to return
+to the line you left. See [Your Library](library.md#reading-an-epub).
+
 ![A peek under a paragraph, a detour with its way back, and the context of the chapter](../resources/reader/peek.svg)
 
 Click a link and a card opens right under the paragraph that holds it. It says where the note sits

@@ -115,8 +115,13 @@ contents, nested as the book nests them.
   allowed element at a time, so nothing the book carries can run: no scripts, no event handlers, no
   embedded frames or forms, no styles. Its images are read from the book itself; nothing is ever
   loaded from the web, and a link that leaves the book is shown as plain text.
-- **Links inside the book work**: a footnote, a cross-reference to another chapter — click and the
-  Reader goes there.
+- **Footnotes are read in place.** Click a footnote mark and the note floats over the page, at the
+  mark. That works for a note in the chapter and for an endnote at the back of the book. The page
+  does not move; Esc or a click elsewhere puts it away, and **Go to note** goes there.
+- **Every jump has a way back.** A cross-reference, **Go to note** or a **Contents** entry moves you,
+  and a **← Back to …** pill shows where you came from. Click it, or press **Alt+←**, to return to
+  the very line. The pill fades by itself after a few seconds; Alt+← keeps working until your next
+  page turn. In a PDF the pill follows Contents jumps.
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
 
@@ -199,8 +204,9 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
    nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
 10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
-    **Contents** lists the book's own chapters. Click a footnote or a cross-reference: the Reader goes
-    there. Highlight a sentence; it shows in Think with the chapter's name.
+    **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
+    the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
+    Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.
 11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
     the title → **Create**. Expect a new note quoting the passage, ending with
     `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click

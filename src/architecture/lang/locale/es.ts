@@ -2342,6 +2342,8 @@ export default {
     reader_read_folder: 'Leer esta carpeta',
     reader_detour: 'Desvío',
     reader_back_to: 'Volver a {0}',
+    reader_note_go: 'Ir a la nota',
+    reader_note_label: 'Nota al pie',
     reader_visited: 'Leído',
     reader_peek_label: 'Vistazo: {0}',
     reader_peek_in_path: 'Capítulo {0} de esta lectura',

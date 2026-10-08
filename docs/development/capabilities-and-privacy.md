@@ -63,6 +63,17 @@ your notes leaves your machine unless *you* enable AI and run an AI action (whic
 content only to the endpoint you set). Sharing a template is a manual GitHub contribution you make
 yourself — the plugin never uploads anything.
 
+### This documentation website
+
+The plugin has no telemetry; **this website** counts its readers, so we know which pages help and
+which are missing something. It uses [GoatCounter](https://www.goatcounter.com/), chosen for privacy:
+
+- **No cookies**, no personal data, no fingerprinting, no cross-site tracking — so no consent banner.
+- If your browser sends **Do Not Track** or **Global Privacy Control**, you are never counted.
+- What is counted: page views, the *Was this page helpful?* answer, and terms typed into the docs
+  search — never who sent them.
+- The numbers are private to the maintainer; they are not sold or shared.
+
 ## Diagnostics stay content-free (#401)
 
 The inquiry journey reads the knowledge index, so a diagnostic emitted while indexing the very note

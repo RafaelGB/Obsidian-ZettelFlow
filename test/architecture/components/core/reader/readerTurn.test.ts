@@ -4,7 +4,7 @@ import { join } from "path";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
 import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn } from "architecture/components/core/reader/readerTurn";
-import { MOTION } from "architecture/components/core/reader/readerMotion";
+import { MOTION, copyLive } from "architecture/components/core/reader/readerMotion";
 
 const VIEW = readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "reader", "ReaderView.ts"), "utf8");
 
@@ -222,5 +222,54 @@ describe("a turning sheet in pages (#753 T9)", () => {
         expect(copied?.namespaceURI).toBe("http://www.w3.org/1998/Math/MathML");
         // Placed by a holder, since the equation itself cannot be.
         expect(copied?.parent?.cssProps["--zf-turn-y"]).toBe("180px");
+    });
+    it("carries a designed page into the sheet with its shadow content, adopting the same sheet (#771)", () => {
+        rec = recordAnimations();
+        const { root, stage, page } = paged();
+        const host = page.createDiv({ cls: "zettelkasten-flow__reader-designed-host" });
+        (host as unknown as { getBoundingClientRect: () => unknown }).getBoundingClientRect = () => ({ left: 200, top: 100, width: 600, height: 400 });
+        const shadow = host.attachShadow({ mode: "open" }) as DomNode & { adoptedStyleSheets: unknown[] };
+        const sheet = { the: "page's own sheet" };
+        shadow.adoptedStyleSheets = [sheet];
+        shadow.createDiv({ attr: { "data-zf-html": "" } }).createDiv({ text: "Panel 1" });
+        playChapterTurn(root as never, stage as never, page as never, "stack", 1);
+        const copied = sheetOf(root).byClass("reader-designed-host")[0];
+        // cloneNode copies a host empty, as the platform does: the copy has a root of its own.
+        expect(copied.shadowRoot).not.toBeNull();
+        expect(copied.shadowRoot).not.toBe(host.shadowRoot);
+        expect(copied.shadowRoot?.adoptedStyleSheets[0]).toBe(sheet);
+        expect(copied.shadowRoot?.textContent).toBe("Panel 1");
+    });
+});
+
+describe("what cloneNode leaves behind, copied (#771)", () => {
+    afterEach(() => rec?.stop());
+    let rec: AnimationRecord | undefined;
+
+    it("draws a canvas into its copy, and gives a host its page again — the shared copy of the turn and the shot", () => {
+        rec = recordAnimations();
+        const from = new DomNode();
+        const canvas = from.createEl("canvas") as DomNode & { width: number; height: number; getContext: () => unknown };
+        canvas.width = 30;
+        canvas.height = 40;
+        const drawn: unknown[] = [];
+        const host = from.createDiv({ cls: "zettelkasten-flow__reader-designed-host" });
+        host.attachShadow({ mode: "open" }).createDiv({ text: "Bread" });
+        const to = (from as unknown as { cloneNode: (deep: boolean) => DomNode }).cloneNode(true);
+        const copyCanvas = to.find((el) => el.tag === "canvas") as DomNode & { width: number; getContext: () => unknown };
+        copyCanvas.getContext = () => ({ drawImage: (source: unknown) => drawn.push(source) });
+        expect(to.byClass("reader-designed-host")[0].shadowRoot).toBeNull();
+        copyLive(from as never, to as never);
+        expect(copyCanvas.width).toBe(30);
+        expect(drawn).toEqual([canvas]);
+        expect(to.byClass("reader-designed-host")[0].shadowRoot?.textContent).toBe("Bread");
+    });
+
+    it("is what the turn and the shot both use: one copy, not two", () => {
+        const source = (file: string) => readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "reader", file), "utf8");
+        for (const file of ["readerTurn.ts", "readerShot.ts"]) {
+            expect(source(file)).toContain("copyLive(");
+            expect(source(file)).not.toContain("copyCanvases");
+        }
     });
 });

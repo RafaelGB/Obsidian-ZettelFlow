@@ -11,6 +11,7 @@
 
 import type { ReaderLayout } from "architecture/components/core/reader/readerPrefs";
 import { normalizeCropBox, type CropBox } from "application/library/pdfCrop";
+import type { SpreadView } from "application/library/epubFixedLayout";
 
 export type PageFit = "width" | "page";
 export type PageRotation = 0 | 90 | 180 | 270;
@@ -47,6 +48,18 @@ export const ZOOM_STEP = 1.25;
 export const CANVAS_MAX_PIXELS = 16_777_216;
 /** However far the paper and however small the zoom, no more pages than this are drawn (FR-14). */
 export const MAX_DRAWN = 7;
+/** A page's picture is kept this many pages beyond the pages near the screen before it is let go. */
+export const KEEP_AROUND = 2;
+
+/**
+ * The pages whose pictures are kept (FR-14, #771 FR-9): those near the screen, and `KEEP_AROUND` either
+ * side of them — a turn back or on shows a page at once, and nothing further is held.
+ */
+export function heldRange(near: readonly number[], keep = KEEP_AROUND): { lo: number; hi: number } {
+    if (near.length === 0) return { lo: 0, hi: -1 };
+    return { lo: Math.min(...near) - keep, hi: Math.max(...near) + keep };
+}
+
 /** Room around the run and between its pages, in CSS pixels (the 4-grid's 16). */
 export const RUN_PAD = 16;
 export const RUN_GAP = 16;
@@ -162,6 +175,18 @@ export interface RunOptions {
      * its own rather than running off the screen. A level of zoom has no cap — overflow is asked for.
      */
     capWidth?: number;
+    /**
+     * In *Spread*, a book's own pairing (#771): its views, and the side a page alone sits on. When
+     * absent, a paper's — page 1 alone on the right, then pairs (`viewsOf`).
+     */
+    views?: readonly SpreadView[];
+    /** A right-to-left book (#771): the first page of a pair sits on the right of the spine. */
+    rtl?: boolean;
+    /**
+     * In *Page* and *Spread*, the height of the free area the view is centred in, down the run (#771):
+     * a designed page at *Fit page* sits in the middle of it, not at its top.
+     */
+    centreIn?: number;
 }
 
 export interface RunLayout {
@@ -207,26 +232,32 @@ export function runLayout(boxes: readonly PageSize[], options: RunOptions): RunL
         });
         return { slots, width, height: Math.max(view.height, y - RUN_GAP + RUN_PAD), pages: slots.map((s) => s.page) };
     }
-    const views = viewsOf(boxes.length, layout, options.fits ?? true);
-    const pages = views[viewIndexOf(views, options.current ?? 0)] ?? [];
+    const own = layout === "spread" ? options.views : undefined;
+    const views = own ? own.map((view) => view.pages) : viewsOf(boxes.length, layout, options.fits ?? true);
+    const at = viewIndexOf(views, options.current ?? 0);
+    const pages = views[at] ?? [];
     const sizes = pages.map(size);
-    const spread = layout === "spread" && (options.fits ?? true);
+    const spread = layout === "spread" && (own ? own.some((view) => view.pages.length === 2) : (options.fits ?? true));
     const tallest = Math.max(0, ...sizes.map((s) => s.h));
     const height = Math.max(view.height, tallest + 2 * RUN_PAD);
+    const top = options.centreIn ? Math.max(RUN_PAD, Math.round((options.centreIn - tallest) / 2)) : RUN_PAD;
     if (!spread) {
         const s = sizes[0] ?? { w: 1, h: 1 };
         const width = Math.max(view.width, s.w + 2 * RUN_PAD);
-        return { slots: pages.map((page) => ({ page, x: Math.round((width - s.w) / 2), y: RUN_PAD, w: s.w, h: s.h })), width, height, pages };
+        return { slots: pages.map((page) => ({ page, x: Math.round((width - s.w) / 2), y: top, w: s.w, h: s.h })), width, height, pages };
     }
     // Two pages meet at the gutter in the middle; page 1, alone, opens on its right.
     const half = Math.max(...sizes.map((s) => s.w), 1);
     const width = Math.max(view.width, 2 * half + RUN_GAP + 2 * RUN_PAD);
     const gutter = width / 2;
+    const lone = own?.[at]?.side;
     const slots: Slot[] = pages.map((page, i) => {
         const s = sizes[i];
-        const right = pages.length === 1 ? page === 0 : i === 1;
+        // A book's page alone with no side of its own (`page-spread-center`) sits on the spine (#771).
+        if (own && pages.length === 1 && !lone) return { page, x: Math.round(gutter - s.w / 2), y: top, w: s.w, h: s.h };
+        const right = pages.length === 1 ? (own ? lone === "right" : page === 0) : (i === 1) !== Boolean(options.rtl);
         const x = right ? gutter + RUN_GAP / 2 : gutter - RUN_GAP / 2 - s.w;
-        return { page, x: Math.round(x), y: RUN_PAD, w: s.w, h: s.h };
+        return { page, x: Math.round(x), y: top, w: s.w, h: s.h };
     });
     return { slots, width, height, pages };
 }
@@ -272,8 +303,8 @@ export function mostOnScreen(slots: readonly Slot[], scroll: Scroll, view: PageS
 }
 
 /** The view a turn of `dir` lands on, as its first page: -1 before the first, `count` past the last. */
-export function stepView(page: number, dir: 1 | -1, count: number, layout: ReaderLayout, fits: boolean): number {
-    const views = viewsOf(count, layout, fits);
+export function stepView(page: number, dir: 1 | -1, count: number, layout: ReaderLayout, fits: boolean, own?: readonly SpreadView[]): number {
+    const views = layout === "spread" && own ? own.map((view) => view.pages) : viewsOf(count, layout, fits);
     const next = viewIndexOf(views, page) + dir;
     if (next < 0) return -1;
     if (next >= views.length) return count;

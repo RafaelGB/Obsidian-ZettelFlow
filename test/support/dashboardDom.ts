@@ -42,6 +42,22 @@ export class DomNode {
     cssProps: Record<string, string> = {};
     private detached = false;
 
+    /**
+     * `attachShadow` (#771): a root of its own, which `find`, `querySelector` and `cloneNode` never
+     * enter — as the platform's. `adoptedStyleSheets` is what the page adopted.
+     */
+    shadowRoot: (DomNode & { adoptedStyleSheets: unknown[]; host: DomNode }) | null = null;
+    attachShadow(_init: { mode: "open" | "closed" }): DomNode {
+        if (this.shadowRoot) throw new Error("NotSupportedError: a shadow root is already attached");
+        const root = Object.assign(new DomNode("#shadow-root"), { adoptedStyleSheets: [] as unknown[], host: this as DomNode });
+        this.shadowRoot = root;
+        return root;
+    }
+    /** `Element.matches`, over the same small selectors as `querySelector`. */
+    matches(selector: string): boolean {
+        return matcher(selector)(this);
+    }
+
     /** The element's namespace (#770): XHTML, unless made by `createSvg` (or set by a test). */
     namespaceURI: string | null = "http://www.w3.org/1999/xhtml";
 

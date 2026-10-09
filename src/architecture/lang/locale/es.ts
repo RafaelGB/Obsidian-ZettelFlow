@@ -2391,6 +2391,7 @@ export default {
     reader_search_none: 'Sin resultados',
     reader_search_scan: 'Este escaneo no tiene texto que buscar',
     reader_search_unavailable: 'No se puede buscar en este libro',
+    reader_search_designed: 'Las páginas de este libro están diseñadas, así que no hay texto que buscar',
     reader_search_results: '{0} resultados',
     reader_search_results_one: '{0} resultado',
     reader_search_in_chapters: 'en {0} capítulos',
@@ -2620,6 +2621,8 @@ export default {
     reader_source_scanned: 'Este PDF está hecho de imágenes, así que no hay texto que subrayar. Puedes leerlo y anotar al margen por página.',
     reader_source_note_page: 'Anotar esta página',
     reader_source_page_hint: 'La vista de página conserva la maqueta original. Subraya en la vista de lectura.',
+    reader_source_designed_hint: 'Esta página se muestra tal como se diseñó. Los subrayados y la búsqueda no están disponibles en las páginas diseñadas.',
+    reader_source_designed_failed: 'No se pudo dibujar esta página.',
     // Vista de página, crecida (#767): zoom, disposiciones, giro, las páginas, los enlaces.
     reader_pv_group: 'Vista de página',
     reader_pv_fit: 'Ajuste',

@@ -94,6 +94,8 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `analysis.neighbourhood.scaling` (20k ÷ 10k) | 1.01× | 1.5 |
 | `reader.pdf.window.600` (2,000 scroll steps through a 600-page paper in Page view, #767) | 7.6 ms, never more than 7 pages drawn | 30 |
 | `library.pdf.crop.frames` (Crop margins: 24 sampled dense pages, 1,000 runs and 2,000 operators each, measured and joined into two frames, #769) | 5.5 ms | 25 |
+| `library.epub.fxl.window.300` (a 300-page fixed-layout comic turned end to end in Spread, its pages held by the run's own rule, #771) | 1.1 ms, never more than 6 pages held | 5 |
+| `library.epub.fxl.css.200kb` (a designed page's 200 KB stylesheet cleaned: fonts renamed, pictures made placeholders, every function checked, #771) | 15.3 ms | 50 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:

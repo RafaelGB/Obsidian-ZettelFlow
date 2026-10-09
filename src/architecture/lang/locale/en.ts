@@ -2392,6 +2392,7 @@ export default {
     reader_search_none: 'No results',
     reader_search_scan: 'This scan has no text to search',
     reader_search_unavailable: 'This book cannot be searched',
+    reader_search_designed: "This book's pages are designed, so there is no text to search",
     reader_search_results: '{0} results',
     reader_search_results_one: '{0} result',
     reader_search_in_chapters: 'in {0} chapters',
@@ -2621,6 +2622,8 @@ export default {
     reader_source_scanned: 'This PDF is made of images, so there is no text to highlight. You can read it, and note in the margin by page.',
     reader_source_note_page: 'Note this page',
     reader_source_page_hint: 'Page view keeps the page as it was laid out. Highlight in the reading view.',
+    reader_source_designed_hint: 'This page is shown as it was designed. Highlights and search are not available on designed pages.',
+    reader_source_designed_failed: 'This page could not be drawn.',
     // Page view, grown up (#767): zoom, layouts, rotation, the pages, the links.
     reader_pv_group: 'Page view',
     reader_pv_fit: 'Fit',

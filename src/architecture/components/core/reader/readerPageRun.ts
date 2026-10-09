@@ -5,6 +5,7 @@ import { MOTION, flightTransform, motionWelcome } from "./readerMotion";
 import { scrollTravel, TRAVEL_FAINT } from "./readerTravel";
 import type { ReaderLayout } from "./readerPrefs";
 import type { SourcePageLink, SourcePages, SourcePageTask } from "architecture/components/core/library/sources/sourceDocument";
+import type { SpreadView } from "application/library/epubFixedLayout";
 import {
     WHOLE_PAGE,
     boxInFrame,
@@ -29,6 +30,7 @@ import {
     ZOOM_STEP,
     clampZoom,
     drawSize,
+    heldRange,
     mostOnScreen,
     nextRotation,
     normalizePageView,
@@ -81,8 +83,6 @@ import {
 const SETTLE_MS = 120;
 /** How much a wheel notch zooms: e^(−deltaY × rate), a mouse notch of 100 is about a fifth. */
 const WHEEL_RATE = 0.0022;
-/** A canvas is kept this many pages beyond the window before it is let go. */
-const KEEP_AROUND = 2;
 /** Two fingers whose spread changed by this share are pinching, not swiping. */
 const PINCH_SHARE = 0.08;
 /** Faster than a screen in this long is a fling: nothing is drawn until it slows. */
@@ -107,13 +107,16 @@ export interface PageRunHost {
     onOutLink(url: string, anchor: HTMLElement): void;
     /** *Crop margins* changed state — measuring, on, off, or could not measure (#769): the switch follows. */
     onCrop?(): void;
+    /** Whether the reader chose the layout themselves (#771): an explicit *Spread* wins over the orientation. */
+    layoutChosen?(): boolean;
 }
 
 /** Where *Crop margins* is (#769): off, measuring the paper, or on. */
 export type CropState = "off" | "busy" | "on";
 
 interface Drawn {
-    canvas: HTMLCanvasElement;
+    /** A canvas drawn by pdf.js, or a designed page mounted as elements (#771). */
+    picture: HTMLElement;
     /** Device pixels per point it was drawn at. */
     scale: number;
     rotation: number;
@@ -150,7 +153,7 @@ interface Gesture {
 interface Pending {
     page: number;
     task: SourcePageTask;
-    canvas: HTMLCanvasElement;
+    picture: HTMLElement;
     scale: number;
     rotation: number;
     frame: CropBox;
@@ -270,12 +273,23 @@ export class PdfPageRun {
 
     /** The first page of the view a turn of `dir` from `page` lands on: -1 before the first, the count past the last. */
     stepFrom(page: number, dir: 1 | -1): number {
-        return stepView(page, dir, this.pages.count, this.host.layout(), pdfSpreadFits(this.viewSize()));
+        return stepView(page, dir, this.pages.count, this.host.layout(), pdfSpreadFits(this.viewSize()), this.ownSpreads() ?? undefined);
     }
 
     /** The views of the paper as it is laid out now (one page, or page 1 alone then pairs). */
     viewsNow(): number[][] {
-        return viewsOf(this.pages.count, this.host.layout(), pdfSpreadFits(this.viewSize()));
+        return this.ownSpreads()?.map((view) => view.pages) ?? viewsOf(this.pages.count, this.host.layout(), pdfSpreadFits(this.viewSize()));
+    }
+
+    /** Whether the pages are designed (#771): mounted as elements, never turned or cropped. */
+    designed(): boolean {
+        return typeof this.pages.mount === "function";
+    }
+
+    /** In *Spread*, the book's own pairing (#771), or null for a paper's. */
+    private ownSpreads(): SpreadView[] | null {
+        if (this.host.layout() !== "spread" || !this.pages.spreads) return null;
+        return this.pages.spreads(pdfSpreadFits(this.viewSize()), this.host.layoutChosen?.() ?? true);
     }
 
     /** Show `page` — in Scroll, scrolled to it; in Page and Spread, its view — at `share` down it. */
@@ -284,6 +298,8 @@ export class PdfPageRun {
         this.relayout();
         this.scrollToPage(this.current, share);
         this.sync();
+        // At Fit page the whole page is in view: it is centred whatever the place kept in it.
+        if (this.centred()) this.settleCentre();
         // Drawn before the reading had its size (a leaf still opening): laid out again once it has.
         if (this.viewSize().width <= 0 && this.waits++ < 10) nextFrame(this.el, () => this.show(this.current, share));
     }
@@ -339,9 +355,18 @@ export class PdfPageRun {
         return { left: r.left, top: r.top, width: r.width, height: r.height };
     }
 
+    /** A designed page at *Fit page*, in *Page* or *Spread*: centred, not held where it was (#771). */
+    private centred(): boolean {
+        return this.designed() && this.fit === "page" && this.host.layout() !== "scroll";
+    }
+
     /** A new shape for the reading (a window resized, an iPad turned, a new layout): the page kept. */
     reshape(): void {
         if (this.disposed) return;
+        if (this.centred()) {
+            this.recentre();
+            return;
+        }
         const from = this.scale;
         const focal = this.middle();
         const before = this.pointAt(focal, 1, 0, 0, this.originNow());
@@ -353,6 +378,58 @@ export class PdfPageRun {
         // The point at the middle of the screen stays there; a page that grew (Fit width on a wider
         // window, deep reading's cover) grows from where it was (#764, §XVI).
         this.land(before, focal, from / this.scale, single);
+    }
+
+    /**
+     * A designed page at *Fit page* after a reshape (#771): laid out again, centred in the free area
+     * between the top chrome and the bar — never held at the old middle point — and **glided** there
+     * from where it was (FLIP: translate and scale, 250 ms; at once under reduced motion).
+     */
+    private recentre(): void {
+        const before = this.slots.get(this.current)?.el.getBoundingClientRect();
+        this.relayout();
+        this.scrollToPage(this.current, 0);
+        this.sync();
+        const slot = this.slotOf(this.current);
+        this.camera?.cancel();
+        this.camera = null;
+        this.settleCentre();
+        if (!before || !slot || !(before.width > 0) || !motionWelcome(this.el)) return;
+        const now = this.originNow();
+        const k = before.width / Math.max(1, slot.w);
+        const tr = { x: before.left - now.left - k * slot.x, y: before.top - now.top - k * slot.y };
+        if (Math.abs(k - 1) < 0.001 && Math.abs(tr.x) < 0.5 && Math.abs(tr.y) < 0.5) return;
+        this.camera = this.el.animate(
+            [
+                { translate: `${px(tr.x)} ${px(tr.y)}`, scale: String(Math.round(k * 10000) / 10000) },
+                { translate: "0px 0px", scale: "1" },
+            ],
+            { duration: MOTION.base, easing: MOTION.ease }
+        );
+    }
+
+    /**
+     * The reading takes its final size a frame or two after it is asked to (an iPad turning, the hint
+     * laid out above a page just opened): once it has, a centred page is centred again in the room it
+     * really has — with no second move (walked on #771).
+     */
+    private settleCentre(frames = 3): void {
+        const again = () => {
+            if (this.disposed || !this.centred()) return;
+            const at = this.slotOf(this.current);
+            this.relayout();
+            const now = this.slotOf(this.current);
+            if (!at || !now || at.y !== now.y || at.x !== now.x || at.h !== now.h || this.host.stage.scrollTop > 1) {
+                this.scrollToPage(this.current, 0);
+                this.sync();
+            }
+        };
+        nextFrame(this.el, () => {
+            again();
+            if (frames > 1) this.settleCentre(frames - 1);
+            // And once more after a beat: a line above the page (the hint) can take its height late.
+            else this.el.win?.setTimeout(again, MOTION.base + 50);
+        });
     }
 
     /** Down or Across, in Scroll (FR-7): the same page stays on screen. */
@@ -445,6 +522,8 @@ export class PdfPageRun {
      * them. Returns its cancel, for a thumbnail that leaves the list before it is drawn.
      */
     drawThumb(page: number, canvas: HTMLCanvasElement, width: number, done: () => void = () => undefined): () => void {
+        // A designed page has no picture to make small (#771): the *Pages* tab is not offered for it.
+        if (!this.pages.render) return () => undefined;
         const request: ThumbRequest = { page, canvas, width, cancelled: false, done };
         this.thumbs.push(request);
         this.pump();
@@ -594,7 +673,7 @@ export class PdfPageRun {
                 "--zf-slot-h": px(slot.height),
             });
             const drawn = this.drawn.get(page);
-            const picture = drawn?.canvas;
+            const picture = drawn?.picture as HTMLCanvasElement | undefined;
             // A picture held turned (a page turned a moment ago) is left as its sheet.
             if (!drawn || !picture || !(picture.width > 0) || picture.parentElement !== view.el || drawn.rotation !== this.rotationOf(page)) continue;
             const framed = this.framedProps(drawn);
@@ -635,7 +714,7 @@ export class PdfPageRun {
         this.pending = null;
         for (const request of this.thumbs) request.cancelled = true;
         this.thumbs.length = 0;
-        for (const drawn of this.drawn.values()) release(drawn.canvas);
+        for (const drawn of this.drawn.values()) release(drawn.picture);
         this.drawn.clear();
         this.slots.clear();
         this.camera?.cancel();
@@ -698,6 +777,8 @@ export class PdfPageRun {
     }
 
     private columns(layout: ReaderLayout, view: PageSize): number {
+        const own = this.ownSpreads();
+        if (own) return own.some((spread) => spread.pages.length === 2) ? 2 : 1;
         return layout === "spread" && pdfSpreadFits(view) ? 2 : 1;
     }
 
@@ -738,6 +819,7 @@ export class PdfPageRun {
         const fitView = this.fitView(layout);
         const columns = this.columns(layout, view);
         this.scale = zoomFor(this.fit ?? this.level, this.framed(layout), fitView, columns);
+        const own = this.ownSpreads();
         const boxes = this.sizes.map((_, i) => this.boxOf(i));
         this.layoutNow = runLayout(boxes, {
             layout,
@@ -746,6 +828,10 @@ export class PdfPageRun {
             view,
             current: this.current,
             fits: pdfSpreadFits(view),
+            ...(own ? { views: own } : {}),
+            // A designed page at Fit page sits in the middle of the free area, below the hint (#771).
+            ...(this.centred() ? { centreIn: fitView.height } : {}),
+            ...(this.pages.direction === "rtl" ? { rtl: true } : {}),
             ...(this.fit ? { capWidth: Math.max(1, (fitView.width - 2 * RUN_PAD - (columns - 1) * RUN_GAP) / columns) } : {}),
         });
         this.el.toggleClass(c("reader-pv-run--across"), layout === "scroll" && this.across);
@@ -800,11 +886,10 @@ export class PdfPageRun {
         }
         for (const slot of near) this.place(slot);
         // Canvases far from the window are let go (FR-14): the window, two pages either side.
-        const lo = Math.min(...near.map((s) => s.page)) - KEEP_AROUND;
-        const hi = Math.max(...near.map((s) => s.page)) + KEEP_AROUND;
+        const { lo, hi } = heldRange(near.map((s) => s.page));
         for (const [page, drawn] of this.drawn) {
             if (page >= lo && page <= hi) continue;
-            release(drawn.canvas);
+            release(drawn.picture);
             this.drawn.delete(page);
         }
         if (layout === "scroll" && near.length > 0) {
@@ -850,7 +935,7 @@ export class PdfPageRun {
             // Drawn already, a moment ago: shown again at once, without a fade.
             const drawn = this.drawn.get(slot.page);
             if (drawn) {
-                el.appendChild(drawn.canvas);
+                el.appendChild(drawn.picture);
                 this.linksFor(view);
             }
         }
@@ -862,16 +947,23 @@ export class PdfPageRun {
     private fitCanvas(view: SlotView, slot: Slot): void {
         const drawn = this.drawn.get(view.page);
         if (!drawn) return;
+        if (this.designed()) {
+            // A designed page is drawn once at its own size, and scaled to its slot (#771 FR-5).
+            const box = this.boxOf(view.page);
+            drawn.picture.setCssProps({ "--zf-fxl-scale": String(Math.round((slot.w / Math.max(1e-6, box.width)) * 100000) / 100000) });
+            return;
+        }
+        const canvas = drawn.picture;
         const delta = (((this.rotationOf(view.page) - drawn.rotation) % 360) + 360) % 360;
-        drawn.canvas.toggleClass(c("reader-pv-canvas--turned"), delta !== 0);
+        canvas.toggleClass(c("reader-pv-canvas--turned"), delta !== 0);
         // A picture of another frame (crop just turned on or off, #769) sits where its part of the page
         // now is, clipped by the slot, until the page is drawn again on its frame.
         const framed = delta === 0 ? this.framedProps(drawn) : null;
-        drawn.canvas.toggleClass(c("reader-pv-canvas--framed"), framed !== null);
-        if (framed) drawn.canvas.setCssProps(framed);
+        canvas.toggleClass(c("reader-pv-canvas--framed"), framed !== null);
+        if (framed) canvas.setCssProps(framed);
         if (delta === 0) return;
         const quarter = delta % 180 === 90;
-        drawn.canvas.setCssProps({ "--zf-turn": `${delta}deg`, "--zf-turn-w": px(quarter ? slot.h : slot.w), "--zf-turn-h": px(quarter ? slot.w : slot.h) });
+        canvas.setCssProps({ "--zf-turn": `${delta}deg`, "--zf-turn-w": px(quarter ? slot.h : slot.w), "--zf-turn-h": px(quarter ? slot.w : slot.h) });
     }
 
     /** Where a picture of another frame sits in its slot, as shares of it — `null` when it is the slot's own. */
@@ -949,6 +1041,8 @@ export class PdfPageRun {
 
     private needsDrawing(slot: Slot): boolean {
         const drawn = this.drawn.get(slot.page);
+        // A designed page is drawn once: a zoom only scales it (#771 FR-14).
+        if (this.designed()) return !drawn;
         if (!drawn || drawn.rotation !== this.rotationOf(slot.page) || !sameBox(drawn.frame, this.shownFrame(slot.page))) return true;
         const want = this.wantedScale(slot);
         return Math.abs(drawn.scale - want) / want > SHARP_ENOUGH;
@@ -964,7 +1058,7 @@ export class PdfPageRun {
             // A page that left the screen, or whose turn changed, is let go (FR-14).
             if (!slot || running.rotation !== this.rotationOf(running.page) || !sameBox(running.frame, this.shownFrame(running.page))) {
                 running.task.cancel();
-                release(running.canvas);
+                release(running.picture);
                 this.pending = null;
             } else return;
         }
@@ -987,23 +1081,39 @@ export class PdfPageRun {
         const rotation = this.rotationOf(page);
         const scale = this.wantedScale(slot);
         const frame = this.shownFrame(page);
-        const canvas = this.el.createEl("canvas", { cls: c("reader-pv-canvas") });
-        canvas.remove();
-        const task = this.pages.render(page, canvas, { scale, rotation, ...(frame === WHOLE_PAGE ? {} : { frame }) });
-        const pending: Pending = { page, task, canvas, scale, rotation, frame };
+        const mount = this.pages.mount?.bind(this.pages);
+        const render = this.pages.render?.bind(this.pages);
+        let picture: HTMLElement;
+        let task: SourcePageTask;
+        if (mount) {
+            // A designed page (#771): its elements, once, in a box of its own size.
+            picture = this.el.createDiv({ cls: c("reader-pv-designed") });
+            picture.remove();
+            task = mount(page, picture);
+            MOUNTED.set(picture, task);
+        } else if (render) {
+            const canvas = this.el.createEl("canvas", { cls: c("reader-pv-canvas") });
+            canvas.remove();
+            picture = canvas;
+            task = render(page, canvas, { scale, rotation, ...(frame === WHOLE_PAGE ? {} : { frame }) });
+        } else return;
+        const pending: Pending = { page, task, picture, scale, rotation, frame };
         this.pending = pending;
         void task.promise
             .then(() => {
                 if (this.pending !== pending) return;
                 this.pending = null;
                 if (this.disposed) {
-                    release(canvas);
+                    release(picture);
                     return;
                 }
                 this.takeDrawing(pending);
             })
             .catch((error: unknown) => {
-                if (this.pending === pending) this.pending = null;
+                const mine = this.pending === pending;
+                if (mine) this.pending = null;
+                // A designed page that cannot be drawn says so in its place; the next still turns (#771 FR-10).
+                if (mine && mount && !this.disposed) this.takeDrawing(pending);
                 log.debug(`[Reader] page ${page + 1} not drawn: ${String(error)}`);
             })
             .finally(() => this.pump());
@@ -1012,21 +1122,21 @@ export class PdfPageRun {
     /** A drawing is in: it takes its slot's place — the first one fades in, a sharper one just replaces. */
     private takeDrawing(pending: Pending): void {
         const previous = this.drawn.get(pending.page);
-        this.drawn.set(pending.page, { canvas: pending.canvas, scale: pending.scale, rotation: pending.rotation, frame: pending.frame, page: pending.page });
+        this.drawn.set(pending.page, { picture: pending.picture, scale: pending.scale, rotation: pending.rotation, frame: pending.frame, page: pending.page });
         const view = this.slots.get(pending.page);
         if (!view) {
-            if (previous) release(previous.canvas);
+            if (previous) release(previous.picture);
             return;
         }
-        if (previous && previous.canvas.parentElement === view.el) previous.canvas.replaceWith(pending.canvas);
-        else view.el.appendChild(pending.canvas);
+        if (previous && previous.picture.parentElement === view.el) previous.picture.replaceWith(pending.picture);
+        else view.el.appendChild(pending.picture);
         // The label waits under the picture; the links lie over it.
         if (view.links) view.el.appendChild(view.links);
-        if (previous && previous.canvas !== pending.canvas) release(previous.canvas);
+        if (previous && previous.picture !== pending.picture) release(previous.picture);
         const slot = this.slotOf(pending.page);
         if (slot) this.fitCanvas(view, slot);
-        if (!previous && motionWelcome(pending.canvas)) {
-            pending.canvas.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
+        if (!previous && motionWelcome(pending.picture)) {
+            pending.picture.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
         }
         this.linksFor(view);
     }
@@ -1041,7 +1151,12 @@ export class PdfPageRun {
         const frame = this.shownFrame(request.page);
         const ratio = this.el.win?.devicePixelRatio || 1;
         const scale = (request.width * ratio) / Math.max(1e-6, box.width);
-        const task = this.pages.render(request.page, request.canvas, { scale, rotation: this.rotationOf(request.page), ...(frame === WHOLE_PAGE ? {} : { frame }) });
+        const render = this.pages.render?.bind(this.pages);
+        if (!render) {
+            this.thumbRunning = null;
+            return;
+        }
+        const task = render(request.page, request.canvas, { scale, rotation: this.rotationOf(request.page), ...(frame === WHOLE_PAGE ? {} : { frame }) });
         void task.promise
             .then(() => {
                 if (!this.disposed) request.done();
@@ -1325,8 +1440,22 @@ function nextFrame(el: HTMLElement, run: () => void): void {
     else win.setTimeout(run, 16);
 }
 
-/** A canvas let go: WebKit counts every canvas's memory until its size is 0. */
-function release(canvas: HTMLCanvasElement): void {
+/** The task of each designed page mounted (#771): cancelling it lets go everything the page holds. */
+const MOUNTED = new WeakMap<HTMLElement, SourcePageTask>();
+
+/**
+ * A picture let go: a designed page's task cancelled and its elements removed (#771); a canvas sized
+ * to 0, since WebKit counts every canvas's memory until it is.
+ */
+function release(picture: HTMLElement): void {
+    const mounted = MOUNTED.get(picture);
+    if (mounted) {
+        MOUNTED.delete(picture);
+        mounted.cancel();
+        picture.remove();
+        return;
+    }
+    const canvas = picture as HTMLCanvasElement;
     canvas.width = 0;
     canvas.height = 0;
     canvas.remove();

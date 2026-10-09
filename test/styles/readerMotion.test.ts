@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/shelf.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss"];
 const SCRIPTS = [join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"), join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources")];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);

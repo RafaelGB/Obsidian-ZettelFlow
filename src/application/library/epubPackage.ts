@@ -36,6 +36,20 @@ export interface ManifestItem {
 export interface SpineItem {
     href: string;
     linear: boolean;
+    /** `itemref@properties` (#771): `rendition:layout-pre-paginated`, `page-spread-left`… */
+    properties?: string[];
+}
+
+/** How a fixed-layout book pairs its pages (#771): EPUB 3's `rendition:spread`. */
+export type RenditionSpread = "none" | "landscape" | "both" | "auto";
+
+/** What a book declares about its pages (#771): EPUB 3's `rendition:*` metadata. */
+export interface Rendition {
+    layout?: "pre-paginated" | "reflowable";
+    spread?: RenditionSpread;
+    orientation?: "landscape" | "portrait" | "auto";
+    /** The deprecated `rendition:viewport`: every page's size, when a page does not say its own. */
+    viewport?: string;
 }
 
 export interface EpubPackage {
@@ -50,6 +64,8 @@ export interface EpubPackage {
     direction?: "ltr" | "rtl";
     /** `dc:language`: what the book is written in, so the page hyphenates by its rules (#757). */
     language?: string;
+    /** What the book declares about its pages (#771), when it declares anything. */
+    rendition?: Rendition;
 }
 
 export interface TocEntry {
@@ -173,7 +189,8 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
     for (const node of spineNode ? elementsNamed(spineNode, "itemref") : []) {
         const item = byId.get(attr(node, "idref"));
         if (!item || !/html|xml/.test(item.mediaType)) continue;
-        spine.push({ href: item.href, linear: attr(node, "linear") !== "no" });
+        const properties = attr(node, "properties").split(/\s+/).filter(Boolean);
+        spine.push({ href: item.href, linear: attr(node, "linear") !== "no", ...(properties.length > 0 ? { properties } : {}) });
     }
 
     const images = manifest.filter((item) => item.mediaType.startsWith("image/"));
@@ -187,6 +204,7 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
     const nav = manifest.find((item) => item.properties.includes("nav"));
     const tocId = spineNode ? attr(spineNode, "toc") : "";
     const progression = spineNode ? attr(spineNode, "page-progression-direction").toLowerCase() : "";
+    const rendition = metadata ? renditionOf(metadata) : undefined;
     const ncx = (tocId ? byId.get(tocId) : undefined) ?? manifest.find((item) => item.mediaType === "application/x-dtbncx+xml");
 
     return {
@@ -199,7 +217,29 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         ...(ncx ? { ncxHref: ncx.href } : {}),
         ...(progression === "rtl" || progression === "ltr" ? { direction: progression } : {}),
         ...(language ? { language } : {}),
+        ...(rendition ? { rendition } : {}),
     };
+}
+
+/**
+ * The book's `rendition:*` metadata (#771): `<meta property="rendition:layout">pre-paginated</meta>`,
+ * and the older `<meta name="fixed-layout" content="true"/>` many fixed-layout books still carry. A
+ * `meta` that refines one item is that item's, not the book's.
+ */
+function renditionOf(metadata: XmlNode): Rendition | undefined {
+    const out: Rendition = {};
+    for (const node of elementsNamed(metadata, "meta")) {
+        if (attr(node, "refines")) continue;
+        const property = attr(node, "property").toLowerCase();
+        const value = clean(node.textContent).toLowerCase();
+        if (property === "rendition:layout" && (value === "pre-paginated" || value === "reflowable")) out.layout = value;
+        else if (property === "rendition:spread" && (value === "none" || value === "landscape" || value === "both" || value === "auto")) out.spread = value;
+        else if (property === "rendition:spread" && value === "portrait") out.spread = "both";
+        else if (property === "rendition:orientation" && (value === "landscape" || value === "portrait" || value === "auto")) out.orientation = value;
+        else if (property === "rendition:viewport" && value) out.viewport = value.slice(0, 200);
+        else if (!out.layout && attr(node, "name").toLowerCase() === "fixed-layout" && attr(node, "content").toLowerCase() === "true") out.layout = "pre-paginated";
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /** The book's contents from an EPUB 3 `nav` document: the `toc` list, nested as it is nested. */

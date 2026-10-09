@@ -310,6 +310,22 @@ export const BUDGETS = {
         because:
             "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
     },
+    "library.epub.fxl.window.300": {
+        name: "turn a 300-page fixed-layout comic end to end in Spread: pair its pages, lay out each view, keep what the run keeps",
+        // ~4.5x the first measurement (a millisecond is noise on a busy runner); the held count is asserted beside it.
+        limit: 5,
+        measured: "1.1 ms",
+        because:
+            "a comic is turned page after page; the pairing and the layout run on every turn, and the pages held must stay at six however long the book is (#771 FR-9, a 300-page comic on an iPad)",
+    },
+    "library.epub.fxl.css.200kb": {
+        name: "clean a designed page's 200 KB stylesheet: its fonts renamed, its pictures made placeholders, every function checked",
+        // ~3x the first measurement.
+        limit: 50,
+        measured: "15.3 ms",
+        because:
+            "it runs before a designed page can be drawn, between the turn and the page; a heavy comic's sheet must clean well inside the 120 ms the page takes to fade in (#771 FR-15)",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,

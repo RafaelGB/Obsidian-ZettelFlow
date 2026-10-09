@@ -1,5 +1,5 @@
 import { c } from "architecture";
-import { MOTION, motionWelcome } from "./readerMotion";
+import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 
 /**
  * **One continuous shot** (#734, epic #729; constitution §XVI): opening a book from the Library is a
@@ -130,16 +130,8 @@ function copyPage(rig: Rig, readerRoot: HTMLElement, stage: HTMLElement, page: H
     frame.addClass(c("shot-reader"));
     const copy = page.cloneNode(true) as HTMLElement;
     copy.removeClass(c("reader-page--enter"));
-    // A canvas is copied empty: draw what it shows (a PDF page laid out as printed).
-    const from = Array.from(page.querySelectorAll("canvas"));
-    const to = Array.from(copy.querySelectorAll("canvas"));
-    from.forEach((canvas, i) => {
-        const target = to[i];
-        if (!target) return;
-        target.width = canvas.width;
-        target.height = canvas.height;
-        target.getContext?.("2d")?.drawImage(canvas, 0, 0);
-    });
+    // A canvas is copied empty, a designed page's shadow root not at all: both carried (#771).
+    copyLive(page, copy);
     frame.appendChild(copy);
     rig.inner.appendChild(frame);
     rig.inner.setCssProps({

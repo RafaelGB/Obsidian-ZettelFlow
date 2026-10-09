@@ -103,3 +103,29 @@ export function bookMinutesLeft(input: {
 export function splitMinutes(total: number): { hours: number; minutes: number } {
     return { hours: Math.floor(total / 60), minutes: total % 60 };
 }
+
+/** A designed page's pace until three pages have been read (#771, a spec gap settled): half a minute. */
+export const DEFAULT_SECONDS_PER_PAGE = 30;
+/** How many pages of this reading make its pace its own. */
+const PAGES_TRUSTED_AFTER = 3;
+/** A page left sooner than this was turned past, not read; longer, the tab was left open. */
+const MIN_PAGE_MS = 1500;
+const MAX_PAGE_MS = 10 * 60_000;
+
+/**
+ * How long a designed page takes you (#771 FR-8): the median of this reading's pages, once three have
+ * been read, else the default. A median, so one page you stared at does not move it.
+ */
+export function pagePace(dwellsMs: readonly number[]): number {
+    const read = dwellsMs.filter((ms) => ms >= MIN_PAGE_MS && ms <= MAX_PAGE_MS).sort((a, b) => a - b);
+    if (read.length < PAGES_TRUSTED_AFTER) return DEFAULT_SECONDS_PER_PAGE;
+    const mid = Math.floor(read.length / 2);
+    const median = read.length % 2 === 1 ? read[mid] : (read[mid - 1] + read[mid]) / 2;
+    return Math.round(median / 100) / 10;
+}
+
+/** Minutes left in a designed book: the pages left at that pace, never less than one while any are. */
+export function minutesLeftByPages(pagesLeft: number, secondsPerPage: number): number {
+    if (!(pagesLeft > 0)) return 0;
+    return Math.max(1, Math.round((pagesLeft * Math.max(1, secondsPerPage)) / 60));
+}

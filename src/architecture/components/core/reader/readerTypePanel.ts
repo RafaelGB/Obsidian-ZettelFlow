@@ -90,6 +90,8 @@ export interface PageViewControls {
     /** The paper could not be measured the last time it was turned on. */
     cropFailed?: boolean;
     onCrop(on: boolean): void;
+    /** A designed book's pages (#771): drawn as they were made — never turned, never cropped. */
+    designed?: boolean;
 }
 
 /** What the panel says about the page, besides the choices (#757). */
@@ -149,6 +151,7 @@ function pageViewGroup(host: HTMLElement, controls: PageViewControls, scope: Com
             before
         );
     }
+    if (controls.designed) return;
     const rotate = host.createDiv({ cls: c("reader-type-group") }).createEl("button", { cls: [c("reader-type-option"), c("reader-focus-toggle")], attr: { type: "button" } });
     setIcon(rotate.createSpan({ cls: c("reader-focus-icon") }), "rotate-cw");
     rotate.createSpan({ text: t("reader_pv_rotate") });

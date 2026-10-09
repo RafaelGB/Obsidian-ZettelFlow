@@ -63,7 +63,19 @@ export interface SanitizeResult {
     images: string[];
     /** Elements kept, for the budget and the tests. */
     elements: number;
+    /** A designed page's `<style>` text in its body, collected and never built (#771). */
+    styles?: string[];
+    /** A designed page's `style` attributes, in order: the n-th element carries `data-zf-s="n"` (#771). */
+    inline?: string[];
 }
+
+/**
+ * How a chapter is rebuilt (#771). **Flow** (#682): in your type, nothing of the book's look kept.
+ * **Designed** — a fixed-layout page: everything the flow keeps, plus its `class` and `id` (safe in the
+ * page's own shadow root), its `width` and `height`, and its styles *collected* — `<style>` text and
+ * every `style` attribute, moved to a rule the caller cleans. No `style` attribute is ever set.
+ */
+export type SanitizePolicy = "flow" | "designed";
 
 /** Elements kept as they are. */
 const KEEP = new Set([
@@ -463,13 +475,20 @@ export function sanitizeSvg<E>(svg: SourceNode, parent: E, builder: ChapterBuild
  * Rebuild `root`'s children under `parent`. `chapterHref` is the chapter's path in the archive, so
  * relative images and links resolve inside the book.
  */
-export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: ChapterBuilder<E>, chapterHref: string): SanitizeResult {
-    const result: SanitizeResult = { images: [], elements: 0 };
+export function sanitizeChapter<E>(
+    root: SourceNode,
+    parent: E,
+    builder: ChapterBuilder<E>,
+    chapterHref: string,
+    options: { policy?: SanitizePolicy; inline?: string[] } = {}
+): SanitizeResult {
+    const designed = options.policy === "designed";
+    const result: SanitizeResult = { images: [], elements: 0, ...(designed ? { styles: [], inline: options.inline ?? [] } : {}) };
 
-    const image = (into: E, path: string, alt: string) => {
+    const image = (into: E, path: string, alt: string, own: Record<string, string> = {}) => {
         result.images.push(path);
         result.elements++;
-        builder.element(into, "img", { "data-zf-src": path, alt, loading: "lazy" });
+        builder.element(into, "img", { ...own, "data-zf-src": path, alt, ...(designed ? {} : { loading: "lazy" }) });
     };
 
     const foreign: Foreign<E> = { builder, result, chapterHref, uses: 0 };
@@ -485,10 +504,16 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
             }
             if (child.nodeType !== ELEMENT) continue; // comments, processing instructions
             const name = nameOf(child);
+            if (designed && name === "style") {
+                // Collected for the cleaner, never built (#771).
+                result.styles?.push((child.textContent ?? "").slice(0, 512 * 1024));
+                continue;
+            }
             if (DROP.has(name)) continue;
             if (depth >= MAX_DEPTH) continue;
             if (name === "svg") {
-                const cover = coverPictures(child, (picture) => {
+                // A designed page keeps its drawing whole: its viewBox is where its pictures sit.
+                const cover = !designed && coverPictures(child, (picture) => {
                     const path = imageIn(chapterHref, hrefOf(picture));
                     if (path) image(into, path, "");
                 });
@@ -501,7 +526,7 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
             }
             if (name === "img") {
                 const path = imageIn(chapterHref, attr(child, "src"));
-                if (path) image(into, path, attr(child, "alt").slice(0, 500));
+                if (path) image(into, path, attr(child, "alt").slice(0, 500), designed ? designedAttributes(child, result.inline ?? []) : {});
                 continue;
             }
             const tag = KEEP.has(name) ? name : RENAME[name];
@@ -538,6 +563,7 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
                     attrs["data-zf-outlink"] = "true";
                 }
             }
+            if (designed) Object.assign(attrs, designedAttributes(child, result.inline ?? []));
             result.elements++;
             walk(child, builder.element(into, element, attrs), depth + 1);
         }
@@ -545,6 +571,31 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
 
     walk(root, parent, 0);
     return result;
+}
+
+/** A class list of plain names, as a designed page's own CSS may name them. */
+const CLASS = /^[\w\s-]{1,300}$/;
+/** A size the designer wrote on the element: a number, in pixels or a share. */
+const SIZE = /^\d{1,5}(\.\d{1,3})?(px|%)?$/;
+
+/**
+ * What a designed page keeps of an element of its own (#771): its `class` and `id` (the page's own
+ * shadow root scopes both), its written `width` and `height`, and its `style` — collected for the
+ * cleaner and marked `data-zf-s`, never set as an attribute.
+ */
+export function designedAttributes(node: SourceNode, inline: string[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const { name, value } of attributesOf(node)) {
+        const key = name.toLowerCase();
+        if (key === "class" && CLASS.test(value)) out.class = value.replace(/\s+/g, " ").trim();
+        else if (key === "id" && ID.test(value)) out.id = value;
+        else if ((key === "width" || key === "height") && SIZE.test(value.trim())) out[key] = value.trim();
+        else if (key === "style" && value.trim() && inline.length < 20_000) {
+            out["data-zf-s"] = String(inline.length);
+            inline.push(value.slice(0, 4000));
+        }
+    }
+    return out;
 }
 
 /**

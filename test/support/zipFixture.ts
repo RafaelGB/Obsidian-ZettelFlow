@@ -58,6 +58,14 @@ export interface FixtureChapter {
     body: string;
     /** `<html xml:lang>` (#757): a chapter that declares its own language. */
     lang?: string;
+    /** What the chapter's `<head>` holds besides its title (#771): a viewport, its styles. */
+    head?: string;
+    /** `itemref@properties` (#771): `rendition:layout-pre-paginated`, `page-spread-right`… */
+    properties?: string;
+    /** The whole file, as it is (#771: an SVG page, or a page whose markup is broken). */
+    raw?: string;
+    /** Its media type, when it is not XHTML (#771: `image/svg+xml`). */
+    mediaType?: string;
 }
 
 /** A small, valid EPUB 3: a package, a nav, chapters and an optional cover. */
@@ -72,11 +80,13 @@ export function makeEpub(book: {
     direction?: "ltr" | "rtl";
     /** `<dc:language>` (#757). */
     language?: string;
+    /** More `<metadata>`, as it is (#771: `<meta property="rendition:layout">pre-paginated</meta>`). */
+    metadata?: string;
 }): Uint8Array {
     const items = book.chapters
-        .map((ch) => `<item id="${ch.id}" href="${ch.href}" media-type="application/xhtml+xml"/>`)
+        .map((ch) => `<item id="${ch.id}" href="${ch.href}" media-type="${ch.mediaType ?? "application/xhtml+xml"}"/>`)
         .join("");
-    const spine = book.chapters.map((ch) => `<itemref idref="${ch.id}"/>`).join("");
+    const spine = book.chapters.map((ch) => `<itemref idref="${ch.id}"${ch.properties ? ` properties="${ch.properties}"` : ""}/>`).join("");
     const navItems = book.chapters
         .filter((ch) => ch.title)
         .map((ch) => `<li><a href="${ch.href}">${ch.title}</a></li>`)
@@ -85,7 +95,7 @@ export function makeEpub(book: {
         mimetype: "application/epub+zip",
         "META-INF/container.xml":
             '<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
-        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}</manifest><spine${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
+        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}${book.metadata ?? ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}</manifest><spine${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
         ...(book.nav === false
             ? {}
             : {
@@ -95,7 +105,9 @@ export function makeEpub(book: {
         ...book.extra,
     };
     for (const ch of book.chapters) {
-        files[`OEBPS/${ch.href}`] = `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"${ch.lang ? ` xml:lang="${ch.lang}"` : ""}><head><title>${ch.title ?? ""}</title></head><body>${ch.body}</body></html>`;
+        files[`OEBPS/${ch.href}`] =
+            ch.raw ??
+            `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"${ch.lang ? ` xml:lang="${ch.lang}"` : ""}><head><title>${ch.title ?? ""}</title>${ch.head ?? ""}</head><body>${ch.body}</body></html>`;
     }
     return makeZip(files, { store: ["mimetype"] });
 }

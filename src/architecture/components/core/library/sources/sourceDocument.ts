@@ -1,6 +1,7 @@
 import { TFile, type App, type Component } from "obsidian";
 import { sourceFormat, type SourceFormat } from "application/library/sourceMeta";
 import type { CropBox, PageInk } from "application/library/pdfCrop";
+import type { SpreadView } from "application/library/epubFixedLayout";
 import { openPdfSource } from "./pdfSource";
 import { openEpubSource } from "./epubSource";
 
@@ -25,6 +26,8 @@ export interface SourceChapter {
     label: string;
     /** The section it sits in, when the source names one. */
     section?: string;
+    /** A designed page (#771): it has no text to search, highlight or count. */
+    designed?: true;
 }
 
 export interface SourceTocEntry {
@@ -42,6 +45,8 @@ export interface DrawnChapter {
     picture: boolean;
     /** The language the chapter declares for itself, over the book's (#757). */
     language?: string;
+    /** A designed page (#771): drawn as it was made, in its own boundary — nothing in it is read or kept. */
+    designed?: boolean;
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */
@@ -76,7 +81,20 @@ export interface SourcePages {
      * `frame` when one is given (#769: shares of the page as drawn at that turn), so the margins
      * cropped away are never drawn at all.
      */
-    render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number; frame?: CropBox }): SourcePageTask;
+    render?(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number; frame?: CropBox }): SourcePageTask;
+    /**
+     * A designed page (#771), drawn **as elements** into `into` once, at its own size — the run scales
+     * it, never draws it again. Cancelling the task (before or after it is drawn) lets go everything
+     * it holds. A source has `render` or `mount`, never both.
+     */
+    mount?(index: number, into: HTMLElement): SourcePageTask;
+    /**
+     * In *Spread*, how the book pairs its pages (#771 FR-6): in landscape or not, and whether the reader
+     * chose *Spread* themselves. Absent for a paper: page 1 alone, then pairs.
+     */
+    spreads?(landscape: boolean, explicit: boolean): SpreadView[];
+    /** A right-to-left book's pages (#771): a pair's first page sits on the right of the spine. */
+    direction?: "ltr" | "rtl";
     /**
      * What is printed on the page (#769): its text runs, its pictures and its drawn shapes, as boxes
      * on the page as drawn upright. Read once per page, when *Crop margins* asks.
@@ -109,8 +127,13 @@ export interface SourceDocument {
      * it names. `null` for a link that leaves it — which the Reader never follows (L1).
      */
     resolveLink?(fromChapter: number, href: string): { chapter: number; fragment?: string } | null;
-    /** A PDF's printed pages, for Page view's run of pages (#767). */
+    /** A PDF's printed pages, for Page view's run of pages (#767) — or a fixed-layout book's (#771). */
     pages?: SourcePages;
+    /**
+     * A fixed-layout book (#771): every page designed. It is read as its pages, as a scan is — through
+     * the run — and nothing in it can be highlighted or searched (FR-8).
+     */
+    designed?: boolean;
     close(): void;
 }
 

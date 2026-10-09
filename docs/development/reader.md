@@ -435,6 +435,14 @@ for the margin: the highlights are in **Around this chapter**.
 A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,
 a swipe right), and its pages flow from the right. PDF Page view keeps its own pages (#767).
 
+A book of **designed pages** — a comic, a picture book, a cookbook declared *fixed layout* (#771) —
+reads its pages through the same run of pages as a PDF in Page view: *Page* shows one, *Spread* two
+as the book pairs them, turned as **one leaf**, and *Scroll* the pages in one run. If you never chose
+a layout, a designed book reads as a spread in landscape and a page in portrait; once you choose, your
+choice wins. In a right-to-left book the leaf turns over the other way. Under reduced motion turns and
+fits are instant, and a pinch still follows your fingers. See
+[Designed pages](library.md#designed-pages-comics-picture-books-and-cookbooks).
+
 ## Type you can tune
 
 The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading

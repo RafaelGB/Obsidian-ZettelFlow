@@ -72,3 +72,33 @@ export function fly(host: HTMLElement, ghost: HTMLElement, from: Box, to: Box, o
     animation.onfinish = done;
     ownWindow(host).setTimeout(done, options.duration + 300);
 }
+
+/**
+ * What `cloneNode` leaves behind, copied (#771): a canvas is copied blank, so what it shows is drawn
+ * into the copy; a shadow root is not copied at all, so a designed page's host would be an empty box —
+ * the copy gets a root of its own, adopting **the same** sheet, holding a copy of the page. The turn
+ * and the shot build their sheet with this, so a page in motion is the page you were reading.
+ */
+export function copyLive(from: Element, to: Element): void {
+    const sources = Array.from(from.querySelectorAll("canvas"));
+    const targets = Array.from(to.querySelectorAll("canvas"));
+    sources.forEach((canvas, i) => {
+        const target = targets[i];
+        if (!target) return;
+        target.width = canvas.width;
+        target.height = canvas.height;
+        target.getContext?.("2d")?.drawImage(canvas, 0, 0);
+    });
+    const selector = `.${c("reader-designed-host")}`;
+    const hosts = [...(from.matches?.(selector) ? [from] : []), ...Array.from(from.querySelectorAll(selector))];
+    const copies = [...(to.matches?.(selector) ? [to] : []), ...Array.from(to.querySelectorAll(selector))];
+    hosts.forEach((host, i) => {
+        const root = host.shadowRoot;
+        const copy = copies[i];
+        if (!root || !copy || copy.shadowRoot) return;
+        const shadow = copy.attachShadow({ mode: "open" });
+        shadow.adoptedStyleSheets = root.adoptedStyleSheets;
+        // The root holds the page's own `html` box, and only that: its elements are the page.
+        for (const child of Array.from(root.children)) shadow.appendChild(child.cloneNode(true));
+    });
+}

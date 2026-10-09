@@ -319,6 +319,49 @@ Covers are kept for the session only, in memory: never in your vault, never in t
 What you *mark* — highlights and margin notes — is not kept by the Library at all: those are
 [thoughts in Think](../architecture/thought-lab.md), files you can open.
 
+### Designed pages: comics, picture books and cookbooks
+
+Some books are not text that flows: a comic, a picture book, a cookbook or a magazine places every
+word and picture where its designer put it. EPUB 3 calls them **fixed layout** — the book (or one of
+its pages) says it is *pre-paginated*, and gives its page size. The Reader shows those pages **as they
+were made**: their positions, their pictures, their colours and their own fonts, at the size they
+declare.
+
+![A comic's spread fitted in the Reader: two designed pages side by side with their panels and balloons in place, the quiet one-line hint above them, the Reader's bar below in your theme, and a blank sheet of paper waiting for the next page](../resources/library/epub-designed.svg)
+
+- **Known by what the book says.** A book declared fixed layout is read as its pages; a page declared
+  on its own in a flowing book is shown as itself, fitted to the column, between chapters in your type.
+  A book that declares nothing reads exactly as before.
+- **Fitted, then zoomed.** A page opens whole (*Fit page*). It zooms as a PDF in Page view does — pinch,
+  **Ctrl/⌘ + wheel**, **Ctrl/⌘ +** **−**, a double tap — about the point you look at; **Ctrl/⌘ 0** is a
+  camera move back to the whole page. A page is drawn once and only ever scaled, so it stays sharp.
+- **Page, Spread, Scroll** — the Reader's own **Layout**. *Spread* pairs the pages the way the book
+  says (`page-spread-left` / `-right`, a first page alone when it says so, a centred page alone), and
+  never pairs a book that says `rendition:spread none`. If you never chose a layout, a designed book
+  reads as a spread in landscape and a page in portrait; a layout you chose wins.
+- **Right to left.** A book whose spine says `page-progression-direction="rtl"` (most manga) turns
+  the other way: **←** is next, the left edge and a swipe to the right turn on, and a spread's first
+  page sits on the right of the spine.
+- **Read-only, and said so once.** Highlights and search are not available on a designed page, and
+  the first one of a reading says so in one quiet line. Contents, bookmarks, the trail, resume and the
+  end card work as in any book; the time left is counted in **pages**, at this reading's own pace
+  (half a minute a page until you have read three).
+- **Light on memory.** Only the pages on screen and two either side are held; a page further away
+  lets its pictures go. A page waits as a blank sheet of its size and fades in when it is drawn.
+- **A page that cannot be drawn** says *This page could not be drawn.* in its place, and the next one
+  still turns.
+
+**Nothing in it runs, and nothing is fetched.** A designed page is rebuilt node by node, like every
+chapter, inside a **shadow root** of its own — so its look stays inside its page and reaches nothing
+of the Reader's or of your theme's. Its style sheets are read from the book and **cleaned** first: a
+closed list of CSS functions, no CSS escapes, no `@import`, and every `url()` only to a file inside
+the book, read from the archive and shown through a `blob:` URL the Reader made itself; then the sheet
+the platform parsed is checked a second time. Its fonts are read from the archive and loaded under a
+name of the Reader's own (`zf-fxl-…`), so a book's *Inter* can never replace the app's, and they are
+let go when the book closes. Its own animations never play; `position: fixed` stays inside its page.
+No `<style>`, `<link>` or `<script>` element is ever made. A book's `!important` rule can beat what a
+page wrote inline — rare in fixed layout, and the designer's own choice.
+
 ## How to verify
 
 | Command | Proves |
@@ -332,7 +375,9 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
 | `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
 | `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget |
+| `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
+| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -380,5 +425,18 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     the title → **Create**. Expect a new note quoting the passage, ending with
     `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click
     it and the Reader opens there. Back in the Library, the book's card says **1 note born**.
-12. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-   No file was created in the vault.
+12. **A comic.** Open a fixed-layout EPUB (a free comic or picture book; or build one: a package
+    declaring `rendition:layout` *pre-paginated*, pages with a `viewport` of 600 × 800 and absolutely
+    placed panels and captions). Expect the first page whole, its balloons where they were drawn, in the
+    book's own font, and one quiet line saying highlights and search are not available. **→** turns a
+    page with your chapter motion. In **Type → Layout → Spread** two pages sit side by side, the first
+    alone if the book says so, and **→** turns the whole spread. **Ctrl/⌘ + wheel** over a panel grows it
+    around the pointer, still sharp; **Ctrl/⌘ 0** flies back to the whole page. The bar says
+    *Page n / N* and a time left; the Reader's bar and top line are in your theme, not the comic's.
+    A right-to-left sample turns with **←**. On an iPad (landscape) a spread, (portrait) one page; a
+    pinch follows your fingers, a swipe the page. Close halfway and open again: the same page.
+13. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+   No file was created in the vault. A hostile fixed-layout page (a style sheet that imports, loads a
+   font and a picture from `https://example.com`, a `<script>`, a `position: fixed` overlay): with the
+   developer tools' network panel open, nothing is fetched, nothing runs, the overlay stays inside its
+   page, and the Reader's bar is unchanged.

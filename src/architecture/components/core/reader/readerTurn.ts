@@ -1,5 +1,5 @@
 import { c } from "architecture";
-import { MOTION, motionWelcome } from "./readerMotion";
+import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 import type { ChapterMotion } from "./readingMotion";
 
 /**
@@ -35,19 +35,6 @@ function place(el: HTMLElement, box: Box, origin: Box, withHeight: boolean): voi
         "--zf-turn-y": px(box.top - origin.top),
         "--zf-turn-w": px(box.width),
         ...(withHeight ? { "--zf-turn-h": px(box.height) } : {}),
-    });
-}
-
-/** A canvas is copied empty: draw what it shows (a PDF page laid out as printed). */
-function copyCanvases(from: Element, to: Element): void {
-    const sources = Array.from(from.querySelectorAll("canvas"));
-    const targets = Array.from(to.querySelectorAll("canvas"));
-    sources.forEach((canvas, i) => {
-        const target = targets[i];
-        if (!target) return;
-        target.width = canvas.width;
-        target.height = canvas.height;
-        target.getContext?.("2d")?.drawImage(canvas, 0, 0);
     });
 }
 
@@ -112,7 +99,7 @@ function copyVisible(node: HTMLElement, into: HTMLElement, view: Box, depth = 0)
                     const clip = into.createDiv({ cls: c("turn-piece") });
                     place(clip, piece, origin, true);
                     const copy = child.cloneNode(true) as HTMLElement;
-                    copyCanvases(child, copy);
+                    copyLive(child, copy);
                     place(copy, { left: 0, top: -before, width: piece.width, height: 0 }, { left: 0, top: 0, width: 0, height: 0 }, false);
                     clip.appendChild(copy);
                 }
@@ -121,7 +108,7 @@ function copyVisible(node: HTMLElement, into: HTMLElement, view: Box, depth = 0)
             continue;
         }
         const copy = child.cloneNode(true) as HTMLElement;
-        copyCanvases(child, copy);
+        copyLive(child, copy);
         place(copy, box, origin, false);
         into.appendChild(copy);
     }

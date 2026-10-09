@@ -85,10 +85,10 @@ relations:
 
 | Key | Does |
 |---|---|
-| **→**, **Page down** | next chapter |
-| **←**, **Page up** | previous chapter |
-| **Space** / **Shift+Space** | a screen down (up) the chapter, and the next (previous) chapter once you reach its end |
-| **↓** / **↑** | scroll the chapter a little |
+| **→**, **Page down** | next chapter — in *Page* or *Spread*, the next page, then the next chapter |
+| **←**, **Page up** | previous chapter — in *Page* or *Spread*, the previous page, then the previous chapter's last page |
+| **Space** / **Shift+Space** | a screen down (up) the chapter, and the next (previous) chapter once you reach its end — in pages, a page on (back) |
+| **↓** / **↑** | scroll the chapter a little (nothing in pages: there is no scroll) |
 | **Home** / **End** | first / last chapter |
 | **F** | fullscreen, where the platform allows it (not on an iPad or a phone) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
@@ -308,10 +308,42 @@ end card says what it added up to and what you can do with it.
 
 **←** goes back to the last chapter; **Esc** leaves the reader.
 
+## Pages or scroll
+
+**Type → Layout** has three answers, and they apply to every book and every reading:
+
+![Pages or scroll, one page or a spread: the Layout row with its sliding marker; Scroll, a page with the next one waiting just off screen, and a spread; an iPad showing a spread in landscape and one page in portrait](../resources/reader/layouts.svg)
+
+- **Scroll** is how the Reader always read: one long column, a scrollbar, **←** **→** for the
+  chapters. It stays the default, and nothing about it changed.
+- **Page** lays the chapter out in pages the size of the screen: whole lines only, no scroll.
+  **Space**, **→**, **Page down**, a tap on the right edge or a swipe left turn a page; past the last
+  page you are in the next chapter, with the chapter turn you chose. Back from a chapter's first
+  page lands on the previous chapter's **last** page.
+- **Spread** shows two pages side by side, like an open book, and a turn moves two. When the reading
+  is too narrow for two comfortable lines (about 45 characters each at your size), it shows one
+  page — without changing your choice. An iPad shows a spread in landscape and one page in portrait.
+
+The page **slides** on (about a quarter of a second); with a finger it follows you 1:1 and turns
+past a third of the width or on a flick, or springs back. Holding a key never queues turns.
+Changing the layout, the font, the size or the window keeps **the line you were reading** on
+screen, and the text around it settles into its new shape. Under reduced motion it is all instant.
+
+There are **no page numbers**: an EPUB has none of its own, and a number would change with your
+font size. The place is the chapter, and the hairline across the top fills page by page. A
+search hit, a jump and its way back (**Alt+←**), a resumed reading and a highlight opened from Think
+all land on the page that holds them. A selection can run across a page break and be highlighted.
+Pictures and tables are scaled to fit a page, never cut across two. In a spread there is no room
+for the margin: the highlights are in **Around this chapter**.
+
+A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,
+a swipe right), and its pages flow from the right. PDF Page view keeps its own pages (#767).
+
 ## Type and reading themes
 
-The **Type** panel sets the font (your theme's own, or a serif), three sizes, a reading theme and
-**Focus mode**. The choices are kept for next time.
+The **Type** panel sets the layout (above), the font (your theme's own, or a serif), three sizes, a
+reading theme and **Focus mode**. Each row has its name, and the marker under your choice slides to
+the next one you pick. The choices are kept for next time.
 
 | Theme | Looks like |
 |---|---|
@@ -344,6 +376,16 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   `readerSheet.ts` (the sheet's heights and settle). `beginChapterScrub` in `readerTurn.ts` builds
   the clock's own turn paused and moves it by the finger; the chapter shown next adopts it
   (`adoptChapterScrub`).
+- Pages (#753) are CSS multi-column, not a pagination engine: in *Page* and *Spread* the chapter's
+  `<article>` is one strip of columns the stage's height, moved with the individual `translate`
+  property (so it never clashes with the `transform` the entrance uses). The decisions are pure in
+  `readerPages.ts` (`pageGeometry`, `spreadFits`, `pageCount`, `pageHolding`, `pageForShare`,
+  `keyIntent`, `edgeTurn`, `forwardSign`); `readerPager.ts` measures once per layout inside
+  `measure("reader.paginate")` (shown under Health → speed), writes `--zf-page-*` with `setCssProps`
+  and animates the turn on `translate` alone. A place is a `Range` at the first line on screen, so
+  the DOM is never rebuilt. `readerSettle.ts` settles the text around that line after a change;
+  `readerTypePanel.ts` draws the Type panel with `segmentedRow` — the one control later rows reuse.
+  Page turns at a chapter's ends go through the view's `go(±1)`, where the chapter turn is played.
 - On mobile, `coverApp` (in `openReader.ts`) puts `zettelkasten-flow__reader-covers-app` on the body:
   the stylesheet slides Obsidian's chrome away and lets the Reader's leaf cover the screen. The stage
   sets `data-ignore-swipe` for the touches it takes, which Obsidian's own drawer swipe respects.

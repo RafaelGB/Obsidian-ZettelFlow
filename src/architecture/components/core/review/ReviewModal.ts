@@ -29,7 +29,8 @@ export class ReviewModal extends Modal {
         const prefs = normalizeReaderPrefs(ObsidianApi.getOwnPlugin()?.settings?.readerPrefs);
         const { plugin, obsidian } = readerClassNames(prefs);
         // Not the reader's own frame — that one fills a leaf — only the way it sets its type.
-        const look = plugin.filter((name) => name !== "reader").map((name) => c(name));
+        // Nor how a chapter is laid out (#753): a card is not paged.
+        const look = plugin.filter((name) => name !== "reader" && !name.startsWith("reader--layout-")).map((name) => c(name));
         this.modalEl.addClasses([c("review-modal"), ...look, ...obsidian]);
         this.setTitle(t("review_title"));
         this.cards = new ReviewCards(this.contentEl, this.due, reviewDeps(this.app, () => this.close()));

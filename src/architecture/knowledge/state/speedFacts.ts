@@ -22,6 +22,7 @@ export const SPEED_ROWS: { name: Measurable; labelKey: string }[] = [
     { name: "enrich.incremental", labelKey: "speed_row_enrich_incremental" },
     { name: "analysis.heaviest", labelKey: "speed_row_analysis" },
     { name: "scope.census", labelKey: "speed_row_scope" },
+    { name: "reader.paginate", labelKey: "speed_row_paginate" },
 ];
 
 export interface SpeedFact {

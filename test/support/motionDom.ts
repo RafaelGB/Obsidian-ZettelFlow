@@ -105,3 +105,18 @@ export function recordAnimations(): AnimationRecord {
         },
     };
 }
+
+/**
+ * Reduced motion asked for, or not (#753): the window every `DomNode` lives in answers the media
+ * query with `on`. Returns the undo.
+ */
+export function reducedMotion(on: boolean): () => void {
+    const g = globalThis as any;
+    const had = Object.prototype.hasOwnProperty.call(g, "matchMedia");
+    const before = g.matchMedia;
+    g.matchMedia = () => ({ matches: on });
+    return () => {
+        if (had) g.matchMedia = before;
+        else delete g.matchMedia;
+    };
+}

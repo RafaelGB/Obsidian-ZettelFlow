@@ -51,6 +51,7 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
         toc,
         imageOnly: false,
         hasPageView: false,
+        ...(book.pkg.direction === "rtl" ? { direction: "rtl" as const } : {}),
         async draw(index: number, body: HTMLElement, component: Component): Promise<DrawnChapter> {
             const href = spine[index]?.href;
             const xhtml = href ? await book.archive.text(href) : null;

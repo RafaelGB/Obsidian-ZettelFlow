@@ -44,6 +44,8 @@ export interface EpubPackage {
     coverHref?: string;
     navHref?: string;
     ncxHref?: string;
+    /** `<spine page-progression-direction="rtl">`: a book that turns to the left (#753). */
+    direction?: "ltr" | "rtl";
 }
 
 export interface TocEntry {
@@ -179,6 +181,7 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         images.find((item) => /cover/i.test(item.id) || /cover/i.test(item.href));
     const nav = manifest.find((item) => item.properties.includes("nav"));
     const tocId = spineNode ? attr(spineNode, "toc") : "";
+    const progression = spineNode ? attr(spineNode, "page-progression-direction").toLowerCase() : "";
     const ncx = (tocId ? byId.get(tocId) : undefined) ?? manifest.find((item) => item.mediaType === "application/x-dtbncx+xml");
 
     return {
@@ -189,6 +192,7 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         ...(cover && cover.mediaType.startsWith("image/") ? { coverHref: cover.href } : {}),
         ...(nav ? { navHref: nav.href } : {}),
         ...(ncx ? { ncxHref: ncx.href } : {}),
+        ...(progression === "rtl" || progression === "ltr" ? { direction: progression } : {}),
     };
 }
 

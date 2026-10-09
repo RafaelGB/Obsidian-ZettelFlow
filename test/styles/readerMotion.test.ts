@@ -1,9 +1,12 @@
 import { describe, it, expect } from "@jest/globals";
-import { readFileSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/shelf.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/shelf.scss"];
+const SCRIPTS = [join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"), join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources")];
+/** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
+const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);
 
 /** What a compositor animates without a layout or a paint: the only things motion may touch (#724). */
 const COMPOSITOR = new Set(["transform", "opacity", "scale", "translate", "rotate", "visibility"]);
@@ -65,6 +68,29 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
             expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
         }
         expect(reduced).toMatch(/transition: none;\s*animation: none;/);
+    });
+
+    it("animates only what the compositor moves in the Reader's scripted keyframes too (#753 AC-8)", () => {
+        const offenders: string[] = [];
+        for (const dir of SCRIPTS) {
+            for (const name of readdirSync(dir).filter((file) => file.endsWith(".ts"))) {
+                const code = readFileSync(join(dir, name), "utf8");
+                for (const match of code.matchAll(/\.animate\(\s*\[/g)) {
+                    // The keyframe list, to its matching bracket.
+                    let depth = 0;
+                    let end = match.index + match[0].length - 1;
+                    for (; end < code.length; end++) {
+                        if (code[end] === "[") depth++;
+                        else if (code[end] === "]" && --depth === 0) break;
+                    }
+                    const frames = code.slice(match.index + match[0].length, end);
+                    for (const key of frames.matchAll(/[{,]\s*([a-zA-Z]+)\s*:/g)) {
+                        if (!COMPOSITOR.has(key[1]) && !KEYFRAME_FIELDS.has(key[1])) offenders.push(`${name}: ${key[1]}`);
+                    }
+                }
+            }
+        }
+        expect(offenders).toEqual([]);
     });
 
     it("keeps the motion tokens in one place", () => {

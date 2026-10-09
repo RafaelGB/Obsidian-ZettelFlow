@@ -204,7 +204,7 @@ describe("the reader view (#668)", () => {
         typeButton.click();
         const sepia = content.byClass("reader-type-option").find((b) => b.textContent === "Sepia")!;
         sepia.click();
-        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia", focus: false, timeLeft: true });
+        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia", focus: false, timeLeft: true, layout: "scroll" });
         const root = content.children[0];
         expect(root.hasClass("theme-light")).toBe(true);
         expect(root.hasClass("zettelkasten-flow__reader--theme-sepia")).toBe(true);

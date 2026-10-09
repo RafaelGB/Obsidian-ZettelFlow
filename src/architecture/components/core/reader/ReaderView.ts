@@ -45,17 +45,14 @@ import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
 import { chapterOfHighlight, keptScroll, rememberSourceFacts, rememberSourcePlace, rememberSourceScroll, sourceMetaOf, sourceReading } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
-import { openSourceDocument, type SourceDocument, type SourceLayout } from "architecture/components/core/library/sources/sourceDocument";
+import { openSourceDocument, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, normalizePace, paceWpm, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
-import {
-    READER_FONTS,
-    READER_SIZES,
-    READER_THEMES,
-    normalizeReaderPrefs,
-    readerClassNames,
-    type ReaderPrefs,
-} from "./readerPrefs";
+import { normalizeReaderPrefs, readerClassNames, type ReaderLayout, type ReaderPrefs } from "./readerPrefs";
+import { ReaderPager, type Landing, type PageAnchor } from "./readerPager";
+import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent } from "./readerPages";
+import { settleAround } from "./readerSettle";
+import { renderTypePanel, snapshotMarkers } from "./readerTypePanel";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -82,13 +79,29 @@ const SEARCH_LIST_LIMIT = 60;
 
 /**
  * The keys, as the shortcuts sheet lists them. A cap is a locale key (a word: Space, Esc) or the
- * literal glyph on the key (→, H, ?).
+ * literal glyph on the key (→, H, ?). The turning keys say what they do in the layout you read in
+ * (#753 FR-11): in pages → and Space are the next page, then the next chapter — ← in a book that
+ * reads right to left.
  */
+function shortcutsFor(layout: ReaderLayout, direction: BookDirection): { keys: string[]; label: LocaleKey }[] {
+    const turning: { keys: string[]; label: LocaleKey }[] =
+        layout === "scroll"
+            ? [
+                  { keys: ["→"], label: "reader_key_next" },
+                  { keys: ["←"], label: "reader_key_previous" },
+                  { keys: ["reader_kbd_space"], label: "reader_key_page" },
+                  { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_back" },
+              ]
+            : [
+                  { keys: [direction === "rtl" ? "←" : "→"], label: "reader_key_page_next" },
+                  { keys: [direction === "rtl" ? "→" : "←"], label: "reader_key_page_previous" },
+                  { keys: ["reader_kbd_space"], label: "reader_key_page_next" },
+                  { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_previous" },
+              ];
+    return [...turning, ...SHORTCUTS];
+}
+
 const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
-    { keys: ["→"], label: "reader_key_next" },
-    { keys: ["←"], label: "reader_key_previous" },
-    { keys: ["reader_kbd_space"], label: "reader_key_page" },
-    { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_back" },
     { keys: ["reader_kbd_home", "reader_kbd_end"], label: "reader_key_ends" },
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["1–4"], label: "reader_key_meaning" },
@@ -143,20 +156,6 @@ const ROLE_KEY: Record<ChapterRole, LocaleKey> = {
     context: "reader_role_context",
 };
 
-/** Literal maps, so the locale guardrail sees every key the type panel draws. */
-const FONT_KEY: Record<ReaderPrefs["font"], LocaleKey> = { sans: "reader_font_sans", serif: "reader_font_serif" };
-const SIZE_KEY: Record<ReaderPrefs["size"], LocaleKey> = {
-    small: "reader_size_small",
-    medium: "reader_size_medium",
-    large: "reader_size_large",
-};
-const THEME_KEY: Record<ReaderPrefs["theme"], LocaleKey> = {
-    auto: "reader_theme_auto",
-    light: "reader_theme_light",
-    sepia: "reader_theme_sepia",
-    dark: "reader_theme_dark",
-};
-
 export type { ReaderHost };
 
 
@@ -172,6 +171,8 @@ interface TouchState {
     scrub: ChapterScrub | null;
     /** The page resisting at an end of the book. */
     rubber: boolean;
+    /** In pages (#753): the strip itself is under the finger, a page — not a chapter — at a time. */
+    paging: boolean;
     /** A frame is already asked for. */
     frame: boolean;
 }
@@ -213,7 +214,7 @@ export class ReaderView extends ItemView {
         hairline: HTMLElement;
         minutes: HTMLElement;
         /** Page view ↔ reading view, shown for a PDF that has text (#681). */
-        layout: HTMLElement;
+        view: HTMLElement;
         /** Search inside the book (#719), shown for a book or a paper. */
         search: HTMLElement;
     } | null = null;
@@ -269,7 +270,7 @@ export class ReaderView extends ItemView {
     private peekGeneration = 0;
     private pill: HTMLElement | null = null;
     /** Where you were before each jump inside a book (#718): the pill and Alt+← return there. */
-    private readonly jumps = new JumpStack<{ chapter: number; top: number; label: string }>();
+    private readonly jumps = new JumpStack<{ chapter: number; top: number; share: number; anchor: PageAnchor | null; label: string }>();
     /** The jump pill goes away by itself; the way back stays on Alt+←. */
     private jumpPillTimer: number | undefined;
     private jumpPillShown = false;
@@ -313,7 +314,7 @@ export class ReaderView extends ItemView {
     private sourcePath: string | null = null;
     private source: SourceDocument | null = null;
     private sourceFailed = false;
-    private sourceLayout: SourceLayout = "reading";
+    private sourceView: SourceView = "reading";
     /** Bumped on every source opened, so a slow open never lands in a newer reading. */
     private sourceGeneration = 0;
     /** A source too large for this device (#750 FR-13): not opened, and the page says so. */
@@ -333,6 +334,16 @@ export class ReaderView extends ItemView {
     /** The panel as a bottom sheet (#750 D5): its height from the bottom, and the dim behind it. */
     private sheet: { height: number; snaps: SheetSnaps } | null = null;
     private scrim: HTMLElement | null = null;
+    /**
+     * The chapter in pages (#753): *Page* or *Spread*. Built with the shell; in *Scroll* it does
+     * nothing, and the stage scrolls as it always has.
+     */
+    private pager: ReaderPager | null = null;
+    /** Where the next chapter drawn in pages lands: its first page, or — turned back into — its last. */
+    private landing: "start" | "end" = "start";
+    /** A chapter is being drawn: a place asked for now is landed on once its pages are laid out. */
+    private pagesPending = false;
+    private pendingReveal: PageAnchor | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -371,7 +382,7 @@ export class ReaderView extends ItemView {
                 ...base,
                 source: this.sourcePath,
                 chapter: this.index,
-                ...(this.sourceLayout === "page" ? { layout: "page" } : {}),
+                ...(this.sourceView === "page" ? { layout: "page" } : {}),
                 ...(sides ? { restore: sides } : {}),
                 ...(this.back ? { back: this.back } : {}),
             };
@@ -441,7 +452,7 @@ export class ReaderView extends ItemView {
      * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
      * Library. A highlight a deep link names is landed on, whichever page it is on.
      */
-    private async readSource(path: string, chapter: number, layout: SourceLayout, highlight?: string): Promise<void> {
+    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string): Promise<void> {
         const fresh = path !== this.sourcePath;
         if (fresh) {
             this.leaveSource();
@@ -462,7 +473,7 @@ export class ReaderView extends ItemView {
         this.name = undefined;
         this.kind = "around";
         this.paths = undefined;
-        this.sourceLayout = layout;
+        this.sourceView = view;
         this.index = Math.max(0, chapter);
         if (!this.source) {
             // Something to show at once: the source, opening.
@@ -511,13 +522,13 @@ export class ReaderView extends ItemView {
         this.sourcePath = null;
         this.sourceFailed = false;
         this.sourceTooLarge = false;
-        this.sourceLayout = "reading";
+        this.sourceView = "reading";
     }
 
     /** Page view ↔ reading view, for a PDF (#681). The place is kept. */
-    private toggleLayout(): void {
+    private toggleView(): void {
         if (!this.source?.hasPageView) return;
-        this.sourceLayout = this.sourceLayout === "page" ? "reading" : "page";
+        this.sourceView = this.sourceView === "page" ? "reading" : "page";
         this.app.workspace.requestSaveLayout();
         this.render();
     }
@@ -575,6 +586,8 @@ export class ReaderView extends ItemView {
         window.clearTimeout(this.placeTimer);
         this.touch = null;
         endChapterTurn();
+        this.pager?.dispose();
+        this.pager = null;
         this.dropSheet();
         this.leaveSource();
         this.highlights?.dispose();
@@ -641,6 +654,17 @@ export class ReaderView extends ItemView {
         const page = stage.createEl("article", { cls: c("reader-page") });
         // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
         const margin = stage.createEl("aside", { cls: c("reader-margin"), attr: { "aria-label": t("reader_hl_margin") } });
+        // Pages or scroll (#753): a turn moves the strip; the popovers, the hairline and the time left follow.
+        this.pager = new ReaderPager(stage, page, {
+            onTurn: () => {
+                this.highlights?.onScroll();
+                this.closeNote();
+                this.onStageScroll();
+            },
+        });
+        this.pager.configure(this.effectiveLayout(), this.bookDirection());
+        // A picture arrives after the text and moves it: the pages are counted again, your line kept.
+        this.registerDomEvent(page, "load", () => this.pager?.contentChanged(), { capture: true });
         const dots = root.createDiv({ cls: c("reader-dots"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
 
         const bar = root.createDiv({ cls: c("reader-bar"), attr: { role: "toolbar", "aria-label": t("reader_title") } });
@@ -655,14 +679,14 @@ export class ReaderView extends ItemView {
         search.addClass(c("reader-hidden"));
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
-        const layout = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleLayout());
-        layout.addClass(c("reader-hidden"));
+        const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
+        view.addClass(c("reader-hidden"));
         // No dead control (FR-10): where the platform cannot go fullscreen, there is no button for it.
         if (canFullscreen(this.ownDocument())) this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, layout, search };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, view, search };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -691,21 +715,101 @@ export class ReaderView extends ItemView {
 
     private applyPrefs(): void {
         if (!this.root) return;
-        const { plugin, obsidian } = readerClassNames(this.prefs);
+        // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
+        const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
         const kept = ["reader--idle", "reader--in-shot", "reader--arrived"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
     private savePrefs(next: ReaderPrefs): void {
-        if (next.theme !== this.prefs.theme) this.crossFadeTheme();
+        const before = this.prefs;
+        if (next.theme !== before.theme) this.crossFadeTheme();
+        // A new shape for the chapter keeps the line you were reading where your eyes are (FR-6, FR-14):
+        // noted before the change, landed on after it, and the text around it settles.
+        const reshapes = next.layout !== before.layout || next.font !== before.font || next.size !== before.size;
+        const pager = this.pager;
+        const anchor = reshapes && pager && !this.ended ? pager.firstVisible() : null;
+        const tops = anchor && pager ? pager.blockTops() : null;
         this.prefs = next;
         this.applyPrefs();
+        if (pager && anchor && tops) {
+            pager.configure(this.effectiveLayout(), this.bookDirection());
+            if (pager.paged) pager.relayout({ anchor });
+            else pager.reveal(anchor);
+            const keep = pager.blockOf(anchor);
+            settleAround(keep, pager.visibleBlocks().map((el) => ({ el, oldTop: tops.get(el) ?? null })));
+            this.onStageScroll();
+        } else if (reshapes) {
+            this.applyLayout();
+            this.pager?.relayout("keep");
+        }
         if (this.plugin?.settings) {
             this.plugin.settings.readerPrefs = next;
             void this.plugin.saveSettings?.();
         }
+        if (next.timeLeft !== before.timeLeft) this.onStageScroll();
         if (this.panel === "type") this.renderPanel();
+    }
+
+    /** *Scroll*, *Page* or *Spread* as it applies now: a PDF's Page view and the end card always scroll. */
+    private effectiveLayout(): ReaderLayout {
+        if (this.ended || this.sourceView === "page" || (this.sourcePath && !this.source)) return "scroll";
+        return this.prefs.layout;
+    }
+
+    /** The chapter is in pages now. */
+    private pagedNow(): boolean {
+        return Boolean(this.pager?.paged);
+    }
+
+    /** Which way the book reads: a right-to-left book turns the other way (FR-10). */
+    private bookDirection(): BookDirection {
+        return this.source?.direction ?? "ltr";
+    }
+
+    /** The layout's classes and the pager, as they apply to what is on screen now. */
+    private applyLayout(): void {
+        const root = this.root;
+        if (!root) return;
+        const layout = this.effectiveLayout();
+        root.toggleClass(c("reader--layout-page"), layout === "page");
+        root.toggleClass(c("reader--layout-spread"), layout === "spread");
+        this.pager?.configure(layout, this.bookDirection());
+    }
+
+    /**
+     * The chapter just drawn, laid out in pages (#753): on its first page, on its last when you turned
+     * back into it, or on the place a resume, a jump back, a search hit or a highlight asked for.
+     */
+    private layPages(): void {
+        const pager = this.pager;
+        const reveal = this.pendingReveal;
+        const share = this.pendingShare;
+        const landing = this.landing;
+        this.pagesPending = false;
+        this.pendingReveal = null;
+        this.landing = "start";
+        if (!pager || !this.pagedNow()) return;
+        this.pendingShare = null;
+        this.pendingTop = null;
+        const land: Landing = reveal ? { anchor: reveal } : share !== null ? { share } : landing;
+        pager.relayout(land);
+    }
+
+    /** What a key asks for (#753): a page in pages, a screen or a chapter in a scroll — as today. */
+    private runIntent(intent: KeyIntent | null): void {
+        if (intent === "chapter+") this.go(1);
+        else if (intent === "chapter-") this.go(-1);
+        else if (intent === "page+" || intent === "screen+") this.page(1);
+        else if (intent === "page-" || intent === "screen-") this.page(-1);
+    }
+
+    /** How far through the chapter you are: the page on show, or the scroll. */
+    private currentShare(): number {
+        const stage = this.els?.stage;
+        if (this.pagedNow() && this.pager) return this.pager.fraction();
+        return stage ? readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight) : 0;
     }
 
     /**
@@ -736,12 +840,13 @@ export class ReaderView extends ItemView {
         } else {
             els.title.setText(path ? (this.name ?? `${noteName(path.seed)} · ${t(KIND_KEY[this.kind])}`) : t("reader_title"));
         }
-        const pageView = this.sourceLayout === "page";
-        els.layout.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
+        this.applyLayout();
+        const pageView = this.sourceView === "page";
+        els.view.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
         els.search.toggleClass(c("reader-hidden"), !this.sourcePath);
-        els.layout.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
-        els.layout.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
-        els.layout.setAttribute("aria-pressed", String(pageView));
+        els.view.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
+        els.view.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
+        els.view.setAttribute("aria-pressed", String(pageView));
         const total = path?.chapters.length ?? 0;
         els.label.setText(this.ended ? t("reader_finished") : total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
         els.progress.max = Math.max(1, total);
@@ -791,10 +896,14 @@ export class ReaderView extends ItemView {
 
         this.turnFrom(page);
         page.empty();
+        // In pages the strip goes back to its start before the next chapter is drawn on it (#753).
+        this.pager?.reset();
+        this.pagesPending = this.pagedNow();
         this.turnPage(page);
         this.chapterWords = 0;
         this.nextCard = null;
         const total = this.path.chapters.length;
+        page.removeAttribute("dir");
         page.createDiv({
             cls: c("reader-count"),
             text: detour ? t("reader_detour") : `${String(this.index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`,
@@ -852,27 +961,28 @@ export class ReaderView extends ItemView {
             cls: c("reader-next-button"),
             attr: { type: "button" },
         });
-        this.onStageScroll();
+        const last = this.index === total - 1;
         if (detour) {
             next.setText(t("reader_back_to", this.backName()));
             component.registerDomEvent(next, "click", () => this.backFromDetour());
-            return;
-        }
-        const last = this.index === total - 1;
-        if (last) {
+        } else if (last) {
             next.setText(t("reader_finish"));
             component.registerDomEvent(next, "click", () => this.finish());
-            return;
+        } else {
+            // "Next · its name · how long it is": the end of a chapter tells you what the next one asks.
+            const upcoming = this.path.chapters[this.index + 1].path;
+            next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", noteName(upcoming)) });
+            component.registerDomEvent(next, "click", () => this.go(1));
+            void this.nextMinutes(upcoming).then((minutes) => {
+                if (generation !== this.generation || minutes === 0) return;
+                next.createSpan({ cls: c("reader-next-sep"), text: "·", attr: { "aria-hidden": "true" } });
+                next.createSpan({ cls: c("reader-next-minutes"), text: tCount(minutes, "reader_minutes", String(minutes)) });
+                this.pager?.contentChanged();
+            });
         }
-        // "Next · its name · how long it is": the end of a chapter tells you what the next one asks.
-        const upcoming = this.path.chapters[this.index + 1].path;
-        next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", noteName(upcoming)) });
-        component.registerDomEvent(next, "click", () => this.go(1));
-        void this.nextMinutes(upcoming).then((minutes) => {
-            if (generation !== this.generation || minutes === 0) return;
-            next.createSpan({ cls: c("reader-next-sep"), text: "·", attr: { "aria-hidden": "true" } });
-            next.createSpan({ cls: c("reader-next-minutes"), text: tCount(minutes, "reader_minutes", String(minutes)) });
-        });
+        // Everything is on the page, the end card too: lay it out in pages (#753), then say where you are.
+        this.layPages();
+        this.onStageScroll();
     }
 
     /** How long a chapter takes to read, from its words; 0 when it cannot be read. */
@@ -915,7 +1025,9 @@ export class ReaderView extends ItemView {
         const els = this.els;
         if (!els) return;
         const { stage } = els;
-        const fraction = this.ended ? 1 : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
+        // In pages the place is the page on show, filled page by page (#753 FR-7).
+        const pager = this.pagedNow() ? this.pager : null;
+        const fraction = this.ended ? 1 : pager ? pager.fraction() : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
         if (fraction >= END_OF_CHAPTER) this.reachedEnd = true;
         this.keepScroll(fraction);
@@ -926,7 +1038,7 @@ export class ReaderView extends ItemView {
         const text = !this.prefs.timeLeft || left === 0 ? "" : book > left ? `${tCount(left, "reader_minutes_left", String(left))} · ${t("reader_book_left", this.duration(book))}` : tCount(left, "reader_minutes_left", String(left));
         els.minutes.setText(text);
         els.minutes.toggleClass(c("reader-hidden"), text === "");
-        const atEnd = !scrolls(stage.scrollHeight, stage.clientHeight) || fraction >= END_OF_CHAPTER;
+        const atEnd = pager ? pager.atEnd() : !scrolls(stage.scrollHeight, stage.clientHeight) || fraction >= END_OF_CHAPTER;
         this.nextCard?.toggleClass(c("reader-next--arrived"), atEnd);
     }
 
@@ -1046,7 +1158,14 @@ export class ReaderView extends ItemView {
     private jumpTo(chapter: number, fragment?: string): void {
         const stage = this.els?.stage;
         if (!this.path || !stage) return;
-        this.jumps.push({ chapter: this.index, top: stage.scrollTop, label: this.sourceLabel(this.index) });
+        this.jumps.push({
+            chapter: this.index,
+            top: stage.scrollTop,
+            share: this.currentShare(),
+            // In pages, the line itself: the way back lands on the page that holds it (#753).
+            anchor: this.pagedNow() ? (this.pager?.firstVisible() ?? null) : null,
+            label: this.sourceLabel(this.index),
+        });
         this.closeNote();
         if (chapter !== this.index) this.show(chapter);
         if (fragment) this.scrollToFragment(fragment);
@@ -1059,9 +1178,16 @@ export class ReaderView extends ItemView {
         const stage = this.els?.stage;
         if (!back || !stage) return false;
         this.closeNote();
+        const paged = this.pagedNow() ? this.pager : null;
         if (back.chapter !== this.index) {
-            this.pendingTop = back.top;
+            // The chapter is drawn again: in pages the way back is its share, in a scroll its line.
+            if (paged) this.pendingShare = back.share;
+            else this.pendingTop = back.top;
             this.show(back.chapter);
+        } else if (paged) {
+            const node = back.anchor && ("startContainer" in back.anchor ? back.anchor.startContainer : back.anchor);
+            if (back.anchor && node?.isConnected !== false) paged.reveal(back.anchor);
+            else paged.goToShare(back.share);
         } else {
             stage.scrollTop = back.top;
         }
@@ -1213,8 +1339,10 @@ export class ReaderView extends ItemView {
         this.render();
     }
 
-    private show(index: number): void {
+    /** Open chapter `index` — in pages on its first page, or (`land: "end"`) on its last. */
+    private show(index: number, land: "start" | "end" = "start"): void {
         if (!this.path) return;
+        this.landing = land;
         this.samplePace();
         this.pending = null;
         this.detours = [];
@@ -1227,14 +1355,14 @@ export class ReaderView extends ItemView {
         this.rememberPlace();
     }
 
-    private go(delta: number): void {
+    private go(delta: number, land: "start" | "end" = "start"): void {
         if (!this.path) return;
         // An ordinary turn: the way back from a jump is no longer where you are reading (#718).
         this.jumps.clear();
         this.jumpPillShown = false;
         if (this.ended) {
             // Back from the end card lands on the last chapter; forward stays on the end.
-            if (delta < 0) this.show(this.index);
+            if (delta < 0) this.show(this.index, land);
             return;
         }
         const next = this.index + delta;
@@ -1243,7 +1371,7 @@ export class ReaderView extends ItemView {
             return;
         }
         if (next < 0) return;
-        this.show(next);
+        this.show(next, land);
     }
 
     /** The shot from the Library, landed on the page just drawn — once; a Reader with no shot is simply shown. */
@@ -1457,11 +1585,17 @@ export class ReaderView extends ItemView {
 
         this.turnFrom(page);
         page.empty();
+        // In pages the strip goes back to its start before the next chapter is drawn on it (#753).
+        this.pager?.reset();
+        this.pagesPending = this.pagedNow();
         this.turnPage(page);
         this.chapterWords = 0;
         this.nextCard = null;
         const total = this.path.chapters.length;
         const chapter = doc?.chapters[index];
+        // A book written right to left: its pages flow, and turn, to the left (#753 FR-10).
+        if (this.bookDirection() === "rtl") page.setAttribute("dir", "rtl");
+        else page.removeAttribute("dir");
         page.createDiv({
             cls: c("reader-count"),
             text: doc ? t(doc.format === "pdf" ? "reader_source_count_page" : "reader_source_count_chapter", String(index + 1), String(total)) : "",
@@ -1476,11 +1610,11 @@ export class ReaderView extends ItemView {
             banner.createSpan({ cls: c("reader-source-banner-text"), text: t("reader_source_scanned") });
             const note = banner.createEl("button", { cls: c("reader-source-banner-action"), attr: { type: "button" }, text: t("reader_source_note_page") });
             component.registerDomEvent(note, "click", () => this.highlights?.notePage(note));
-        } else if (this.sourceLayout === "page" && doc?.hasPageView) {
+        } else if (this.sourceView === "page" && doc?.hasPageView) {
             const hint = page.createDiv({ cls: c("reader-source-hint") });
             hint.createSpan({ text: t("reader_source_page_hint") });
             const back = hint.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_reading_view") });
-            component.registerDomEvent(back, "click", () => this.toggleLayout());
+            component.registerDomEvent(back, "click", () => this.toggleView());
         }
         const body = page.createDiv({
             cls: ["markdown-rendered", c("reader-body"), c("reader-source-body"), c(`reader-source-body--${doc?.format ?? "pdf"}`)].join(" "),
@@ -1504,7 +1638,7 @@ export class ReaderView extends ItemView {
         }
         let picture = false;
         try {
-            const drawn = await doc.draw(index, body, component, this.sourceLayout);
+            const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
             this.chapterWords = drawn.words;
             this.seenWords.set(index, drawn.words);
@@ -1514,8 +1648,10 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
-        // Back from a jump lands on the very line it left (#718).
-        if (this.pendingTop !== null) {
+        // Back from a jump lands on the very line it left (#718). In pages that is `layPages`' to do.
+        if (this.pagedNow()) {
+            // Landed once the chapter is laid out in pages, below.
+        } else if (this.pendingTop !== null) {
             stage.scrollTop = this.pendingTop;
             this.pendingTop = null;
         } else if (this.pendingShare !== null && index === this.index) {
@@ -1544,14 +1680,15 @@ export class ReaderView extends ItemView {
         card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
         this.nextCard = card;
         const next = card.createEl("button", { cls: c("reader-next-button"), attr: { type: "button" } });
-        this.onStageScroll();
         if (index === total - 1) {
             next.setText(t("reader_finish"));
             component.registerDomEvent(next, "click", () => this.finish());
-            return;
+        } else {
+            next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(index + 1)) });
+            component.registerDomEvent(next, "click", () => this.go(1));
         }
-        next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(index + 1)) });
-        component.registerDomEvent(next, "click", () => this.go(1));
+        this.layPages();
+        this.onStageScroll();
     }
 
     /** Back to the shelf: the Library's own leaf as it was, or the Library opened on this source. */
@@ -1971,6 +2108,8 @@ export class ReaderView extends ItemView {
     private renderPanel(): void {
         if (!this.els) return;
         const host = this.els.panel;
+        // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
+        const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
         host.empty();
         this.panelScope?.unload();
         const scope = new Component();
@@ -1983,7 +2122,7 @@ export class ReaderView extends ItemView {
         if (asSheet) this.openSheet(host, scope);
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
-        else if (this.panel === "type") this.renderType(host);
+        else if (this.panel === "type") renderTypePanel(host, this.prefs, scope, (next) => this.savePrefs(next), markers);
         else if (this.panel === "context") this.renderContext(host);
     }
 
@@ -2007,43 +2146,6 @@ export class ReaderView extends ItemView {
             }
             if (i === this.index) row.setAttribute("aria-current", "step");
             this.panelScope?.registerDomEvent(row, "click", () => this.show(i));
-        });
-    }
-
-    private renderType(host: HTMLElement): void {
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_type") });
-        const group = <T extends string>(options: readonly T[], current: T, key: (o: T) => LocaleKey, apply: (o: T) => ReaderPrefs) => {
-            const row = host.createDiv({ cls: c("reader-type-group") });
-            for (const option of options) {
-                const button = row.createEl("button", {
-                    cls: [c("reader-type-option"), ...(option === current ? ["is-active"] : [])].join(" "),
-                    attr: { type: "button", "aria-pressed": String(option === current) },
-                    text: t(key(option)),
-                });
-                this.panelScope?.registerDomEvent(button, "click", () => this.savePrefs(apply(option)));
-            }
-        };
-        group(READER_FONTS, this.prefs.font, (o) => FONT_KEY[o], (font) => ({ ...this.prefs, font }));
-        group(READER_SIZES, this.prefs.size, (o) => SIZE_KEY[o], (size) => ({ ...this.prefs, size }));
-        group(READER_THEMES, this.prefs.theme, (o) => THEME_KEY[o], (theme) => ({ ...this.prefs, theme }));
-        // Focus mode: one switch, kept with the rest of the type.
-        const focus = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
-            cls: [c("reader-type-option"), c("reader-focus-toggle"), ...(this.prefs.focus ? ["is-active"] : [])].join(" "),
-            attr: { type: "button", "aria-pressed": String(this.prefs.focus) },
-        });
-        setIcon(focus.createSpan({ cls: c("reader-focus-icon") }), "focus");
-        focus.createSpan({ text: t("reader_focus") });
-        this.panelScope?.registerDomEvent(focus, "click", () => this.savePrefs({ ...this.prefs, focus: !this.prefs.focus }));
-        // The time left, quietly in the bar (#722): yours to turn off.
-        const time = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
-            cls: [c("reader-type-option"), c("reader-focus-toggle"), ...(this.prefs.timeLeft ? ["is-active"] : [])].join(" "),
-            attr: { type: "button", "aria-pressed": String(this.prefs.timeLeft) },
-        });
-        setIcon(time.createSpan({ cls: c("reader-focus-icon") }), "hourglass");
-        time.createSpan({ text: t("reader_time_left_toggle") });
-        this.panelScope?.registerDomEvent(time, "click", () => {
-            this.savePrefs({ ...this.prefs, timeLeft: !this.prefs.timeLeft });
-            this.onStageScroll();
         });
     }
 
@@ -2254,6 +2356,11 @@ export class ReaderView extends ItemView {
         const first = this.shape.width === 0 && this.shape.height === 0;
         this.shape = next;
         if (first) return;
+        // In pages the pager lays the chapter out again on its own observer, keeping the line (#753).
+        if (this.pagedNow()) {
+            if (this.panel) this.renderPanel();
+            return;
+        }
         const blocks = this.blocks();
         if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
         if (this.panel) this.renderPanel();
@@ -2318,7 +2425,7 @@ export class ReaderView extends ItemView {
         if (isThing(event.target as Element | null, this.hasSelection())) return;
         const gesture = startGesture(event, stage.win?.innerWidth ?? 0);
         if (!gesture) return;
-        this.touch = { gesture, stage: stage.getBoundingClientRect(), dir: 0, scrub: null, rubber: false, frame: false };
+        this.touch = { gesture, stage: stage.getBoundingClientRect(), dir: 0, scrub: null, rubber: false, paging: false, frame: false };
     }
 
     private onPointerMove(event: PointerEvent): void {
@@ -2355,9 +2462,9 @@ export class ReaderView extends ItemView {
     /** The outer fifth on each side turns a screen, as Space does; the middle shows or hides the bar. */
     private tapAt(x: number, stage: { left: number; width: number }): void {
         const zone = edgeZone(x, stage);
-        if (zone === "forward") this.page(1);
-        else if (zone === "back") this.page(-1);
-        else this.toggleBar();
+        // In pages the edge the book turns towards is forward: the left one in a right-to-left book.
+        if (zone === "middle") this.toggleBar();
+        else this.page(edgeTurn(zone, this.effectiveLayout(), this.bookDirection()));
     }
 
     /** Whether a turn `dir` lands on a chapter: never past the first, nor past the last (FR-18). */
@@ -2378,11 +2485,18 @@ export class ReaderView extends ItemView {
 
     /** The swipe has locked: hold the chapter's turn under the finger, or resist at an end of the book. */
     private beginSwipe(touch: TouchState): void {
-        const dir: 1 | -1 = touch.gesture.dx < 0 ? 1 : -1;
+        const pager = this.pagedNow() ? this.pager : null;
+        const dir: 1 | -1 = pager ? dragDirection(touch.gesture.dx, this.bookDirection()) || 1 : touch.gesture.dx < 0 ? 1 : -1;
         touch.dir = dir;
         this.closeNote();
         this.highlights?.hidePopover();
         if (!this.root || !this.els) return;
+        // In pages (#753 FR-13) the strip is in your hand while there is a page that way, and resists
+        // at the book's ends; past a chapter's last page the chapter's own turn takes over, as in a scroll.
+        if (pager && (pager.canTurn(dir) || !this.canTurn(dir))) {
+            touch.paging = true;
+            return;
+        }
         if (!this.canTurn(dir)) {
             touch.rubber = true;
             this.els.stage.addClass(c("reader-stage--rubber"));
@@ -2406,13 +2520,18 @@ export class ReaderView extends ItemView {
     /** Where the finger has the page: the turn's progress, or a third of the way at an end. */
     private applyTouch(touch: TouchState): void {
         const dx = touch.gesture.dx;
-        if (touch.scrub) touch.scrub.scrub(Math.max(0, -touch.dir * dx) / Math.max(1, touch.stage.width));
+        if (touch.paging) this.pager?.drag(dx);
+        else if (touch.scrub) touch.scrub.scrub(Math.max(0, -touch.dir * dx) / Math.max(1, touch.stage.width));
         else if (touch.rubber) this.els?.stage.setCssProps({ "--zf-scrub-x": `${Math.round(rubberBand(dx))}px` });
     }
 
     /** Let go: past a third or on a flick the chapter turns at that speed; short of it, it springs back. */
     private releaseSwipe(touch: TouchState): void {
         const { dx, vx } = touch.gesture;
+        if (touch.paging) {
+            this.pager?.release(vx);
+            return;
+        }
         if (touch.rubber) {
             this.springPage(rubberBand(dx));
             return;
@@ -2426,7 +2545,8 @@ export class ReaderView extends ItemView {
         }
         const progress = Math.max(0, -touch.dir * dx) / Math.max(1, width);
         touch.scrub?.release("complete", completionRate(progress, vx, width, touch.scrub.duration));
-        this.go(touch.dir);
+        // In pages, back into the previous chapter lands on its last page (#753 FR-2).
+        this.go(touch.dir, this.pagedNow() && touch.dir < 0 ? "end" : "start");
     }
 
     /**
@@ -2447,6 +2567,7 @@ export class ReaderView extends ItemView {
         const touch = this.touch;
         this.touch = null;
         if (!touch) return;
+        if (touch.paging) this.pager?.release(0, "spring");
         touch.scrub?.release("spring");
         if (touch.rubber) this.springPage(rubberBand(touch.gesture.dx));
     }
@@ -2487,14 +2608,17 @@ export class ReaderView extends ItemView {
             fn();
             return true;
         };
-        bind(none, "ArrowRight", taken(() => this.go(1)));
-        bind(none, "PageDown", taken(() => this.go(1)));
-        bind(none, "ArrowLeft", taken(() => this.go(-1)));
-        bind(none, "PageUp", taken(() => this.go(-1)));
+        // What a turning key means depends on the layout and the book's direction (#753): in a scroll
+        // the arrows are the chapters and Space a screen, as always; in pages they all turn a page.
+        const turning = (key: string, shifted: boolean) => taken(() => this.runIntent(keyIntent(this.effectiveLayout(), key, shifted, this.bookDirection())));
+        bind(none, "ArrowRight", turning("ArrowRight", false));
+        bind(none, "PageDown", turning("PageDown", false));
+        bind(none, "ArrowLeft", turning("ArrowLeft", false));
+        bind(none, "PageUp", turning("PageUp", false));
         bind(none, "ArrowDown", taken(() => this.scrollStage(0.12)));
         bind(none, "ArrowUp", taken(() => this.scrollStage(-0.12)));
-        bind(none, " ", taken(() => this.page(1)));
-        bind(shift, " ", taken(() => this.page(-1)));
+        bind(none, " ", turning(" ", false));
+        bind(shift, " ", turning(" ", true));
         bind(none, "Home", taken(() => this.show(0)));
         bind(none, "End", taken(() => this.show((this.path?.chapters.length ?? 1) - 1)));
         // Where the platform cannot go fullscreen, F is left alone (FR-10).
@@ -2505,7 +2629,7 @@ export class ReaderView extends ItemView {
         });
         bind(none, "V", () => {
             if (!this.source?.hasPageView) return false;
-            this.toggleLayout();
+            this.toggleView();
             return true;
         });
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
@@ -2570,6 +2694,13 @@ export class ReaderView extends ItemView {
             this.go(direction);
             return;
         }
+        // In pages (#753 FR-2): a page, two in a spread, and past the chapter's last page the next
+        // chapter, through the same `go`; back from the first page lands on the previous one's last.
+        const pager = this.pagedNow() ? this.pager : null;
+        if (pager) {
+            if (!pager.turn(direction)) this.go(direction, direction < 0 ? "end" : "start");
+            return;
+        }
         const fraction = readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         const canScroll = scrolls(stage.scrollHeight, stage.clientHeight);
         if (!canScroll || (direction > 0 ? fraction >= END_OF_CHAPTER : stage.scrollTop <= 0)) {
@@ -2607,7 +2738,7 @@ export class ReaderView extends ItemView {
         const list = card.createEl("dl", { cls: c("reader-shortcuts-list") });
         // F is not a key where the platform cannot go fullscreen (FR-10).
         const fullscreen = canFullscreen(this.ownDocument());
-        for (const row of SHORTCUTS) {
+        for (const row of shortcutsFor(this.effectiveLayout(), this.bookDirection())) {
             if (row.label === "reader_key_fullscreen" && !fullscreen) continue;
             const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
             for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
@@ -2644,6 +2775,12 @@ export class ReaderView extends ItemView {
         const stage = this.els?.stage;
         // A mark an embed re-render threw away has no place to scroll to.
         if (!stage || el.isConnected === false) return;
+        // In pages, the page that holds it, once the chapter being drawn is laid out (#753 FR-5).
+        if (this.pagedNow() && this.pager) {
+            if (this.pagesPending) this.pendingReveal = el;
+            else this.pager.reveal(el);
+            return;
+        }
         const top = el.getBoundingClientRect().top - stage.getBoundingClientRect().top + stage.scrollTop - stage.clientHeight / 3;
         stage.scrollTop = Math.max(0, top);
     }

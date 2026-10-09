@@ -152,3 +152,53 @@ describe("a chapter turned by the finger (#750)", () => {
         expect(rec.animations.every((a) => a.playState === "finished")).toBe(true);
     });
 });
+
+/** In pages (#753) every paragraph shares the view's top: the sheet must still hold only what shows. */
+describe("a turning sheet in pages (#753 T9)", () => {
+    let rec: AnimationRecord;
+    afterEach(() => {
+        endChapterTurn();
+        rec?.stop();
+    });
+
+    function paged() {
+        const { root, stage, page } = reader();
+        page.empty();
+        const at = (el: DomNode, box: { left: number; top: number; width: number; height: number }) => {
+            (el as unknown as { getBoundingClientRect: () => typeof box }).getBoundingClientRect = () => box;
+            return el;
+        };
+        at(stage, { left: 0, top: 0, width: 1000, height: 800 });
+        at(page, { left: 200, top: 0, width: 600, height: 800 });
+        const here = at(page.createEl("p", { text: "On this page." }), { left: 200, top: 40, width: 600, height: 60 });
+        at(page.createEl("p", { text: "On the next page." }), { left: 1200, top: 40, width: 600, height: 60 });
+        // A paragraph a page break cut: its first piece at the foot of this page, the rest on the next.
+        const cut = at(page.createEl("p", { text: "Cut across the break." }), { left: 200, top: 700, width: 1600, height: 800 });
+        (cut as unknown as { getClientRects: () => unknown[] }).getClientRects = () => [
+            { left: 200, top: 700, width: 600, height: 100 },
+            { left: 1200, top: 0, width: 600, height: 60 },
+        ];
+        return { root, stage, page, here };
+    }
+
+    it("copies a child on screen and skips one to the right of the view", () => {
+        rec = recordAnimations();
+        const { root, stage, page } = paged();
+        expect(playChapterTurn(root as never, stage as never, page as never, "stack", 1)).toBe(true);
+        const texts = sheetOf(root).findAll((el) => el.tag === "p").map((p) => p.textContent);
+        expect(texts).toContain("On this page.");
+        expect(texts).not.toContain("On the next page.");
+    });
+
+    it("copies a block a page break cut once per piece on screen, clipped to that piece", () => {
+        rec = recordAnimations();
+        const { root, stage, page } = paged();
+        playChapterTurn(root as never, stage as never, page as never, "stack", 1);
+        const pieces = sheetOf(root).byClass("turn-piece");
+        expect(pieces).toHaveLength(1);
+        expect(pieces[0].cssProps["--zf-turn-h"]).toBe("100px");
+        const copy = pieces[0].children[0];
+        expect(copy.textContent).toBe("Cut across the break.");
+        expect(copy.cssProps["--zf-turn-y"]).toBe("0px");
+    });
+});

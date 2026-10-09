@@ -66,6 +66,8 @@ export function makeEpub(book: {
     cover?: Uint8Array;
     extra?: Record<string, string | Uint8Array>;
     nav?: boolean;
+    /** `<spine page-progression-direction>` (#753): a book that reads right to left. */
+    direction?: "ltr" | "rtl";
 }): Uint8Array {
     const items = book.chapters
         .map((ch) => `<item id="${ch.id}" href="${ch.href}" media-type="application/xhtml+xml"/>`)
@@ -79,7 +81,7 @@ export function makeEpub(book: {
         mimetype: "application/epub+zip",
         "META-INF/container.xml":
             '<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
-        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}</manifest><spine>${spine}</spine></package>`,
+        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}</manifest><spine${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
         ...(book.nav === false
             ? {}
             : {

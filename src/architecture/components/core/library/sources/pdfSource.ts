@@ -4,7 +4,7 @@ import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
 import { titleFromName } from "application/library/shelf";
 import { declared, isTextItem, openPdf, type PdfDocument, type PdfOutlineNode } from "./pdfjs";
-import type { DrawnChapter, SourceDocument, SourceLayout, SourceTocEntry } from "./sourceDocument";
+import type { DrawnChapter, SourceDocument, SourceView, SourceTocEntry } from "./sourceDocument";
 
 /** The widest a page is drawn at, in CSS pixels — the Reader's column, and a little more. */
 const PAGE_WIDTH = 760;
@@ -107,8 +107,8 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         toc,
         imageOnly,
         hasPageView: !imageOnly,
-        async draw(index: number, body: HTMLElement, component: Component, layout: SourceLayout): Promise<DrawnChapter> {
-            if (layout === "page" || imageOnly) {
+        async draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter> {
+            if (view === "page" || imageOnly) {
                 await drawPicture(index, body, component);
                 return { words: 0, picture: true };
             }

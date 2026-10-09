@@ -666,6 +666,39 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
+/* A row of the Type panel (#753): a label you can read, then its answers. */
+.zettelkasten-flow__reader-type-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-type-label {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* The current answer's marker lies under its words, and slides to the next one you pick (FR-14). */
+.zettelkasten-flow__reader-type-seg .zettelkasten-flow__reader-type-option {
+    position: relative;
+    isolation: isolate;
+
+    &.is-active {
+        background-color: transparent;
+    }
+}
+
+.zettelkasten-flow__reader-type-marker {
+    @include chip-active;
+    position: absolute;
+    inset: calc(-1 * var(--border-width));
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
 .zettelkasten-flow__reader button.zettelkasten-flow__reader-context-row {
     display: block;
     width: 100%;
@@ -1642,6 +1675,90 @@ body.zettelkasten-flow__reader-covers-app {
         margin-top: 0;
         height: 100%;
     }
+}
+
+/* ── Pages or scroll, one page or a spread (#753) ───────────────────────────────────────────────
+   In *Page* and *Spread* the chapter is one strip of columns the size of the screen. The pager
+   (readerPager.ts) measures it once and sets the custom properties; a turn moves the strip with the
+   `translate` property, on the compositor. Lines are never split across two columns, so every page
+   holds whole lines. `overflow: clip` keeps the browser from scrolling the stage to a hidden page. */
+.zettelkasten-flow__reader--layout-page,
+.zettelkasten-flow__reader--layout-spread {
+    .zettelkasten-flow__reader-stage {
+        overflow: hidden;
+        overflow: clip;
+    }
+
+    .zettelkasten-flow__reader-stage > .zettelkasten-flow__reader-page {
+        box-sizing: border-box;
+        width: var(--zf-page-w, 100%);
+        max-width: none;
+        height: 100%;
+        margin: 0 auto;
+        padding: var(--size-4-6) 0;
+        column-width: var(--zf-page-col, 68ch);
+        column-gap: var(--zf-page-gap, var(--size-4-8));
+        column-fill: auto;
+        translate: var(--zf-page-x, 0) 0;
+    }
+
+    .zettelkasten-flow__reader-stage .zettelkasten-flow__reader-body {
+        max-width: none;
+    }
+
+    /* Pictures fit their page and are never cut across two (FR-8); a table too tall is scaled. */
+    .zettelkasten-flow__reader-body {
+        img,
+        svg,
+        canvas,
+        video {
+            max-width: 100%;
+            max-height: var(--zf-page-h, 100%);
+            object-fit: contain;
+        }
+
+        img,
+        svg,
+        canvas,
+        video,
+        figure,
+        table,
+        tr,
+        blockquote {
+            break-inside: avoid;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            break-after: avoid;
+        }
+    }
+
+    .zettelkasten-flow__reader-fit {
+        zoom: var(--zf-fit, 1);
+    }
+
+    /* The end of the chapter, its ornament and its way on, stays on one page. */
+    .zettelkasten-flow__reader-next {
+        break-inside: avoid;
+    }
+
+    .zettelkasten-flow__reader-margin:not(:empty) {
+        max-height: calc(100% - var(--size-4-16));
+        overflow-y: auto;
+    }
+}
+
+/* A spread has no room for the margin: the highlights are in *Around this chapter* (FR-5). */
+.zettelkasten-flow__reader--layout-spread .zettelkasten-flow__reader-margin:not(:empty) {
+    display: none;
+}
+
+/* A block a page break cut, on a turning sheet: each piece clipped to its own column. */
+.zettelkasten-flow__turn-piece {
+    overflow: hidden;
 }
 
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */

@@ -59,21 +59,53 @@ function releaseCanvases(el: Element): void {
     }
 }
 
+/** Whether a box is in the view: below its top and above its bottom, and — in pages — beside it (#753). */
+function inView(box: Box, view: Box): boolean {
+    if (box.top + box.height < view.top || box.top > view.top + view.height) return false;
+    return !(box.left + box.width < view.left || box.left > view.left + view.width);
+}
+
+/** The pieces of a block a page break cut (#753): one box per column it runs through. */
+function piecesOf(el: Element): Box[] {
+    const rects = (el as { getClientRects?: () => ArrayLike<DOMRect> }).getClientRects?.();
+    if (!rects || rects.length < 2) return [];
+    return Array.from(rects).map((r) => ({ left: r.left, top: r.top, width: r.width, height: r.height }));
+}
+
 /**
  * Only what is on screen, each piece where it is: a long chapter is not copied whole. A wrapper much
- * taller than the view is opened and its visible children placed inside a shallow copy of it (its
- * classes keep the type); anything else in view is copied whole, at its own place and width.
+ * taller than the view — or, in pages, running through many of them — is opened and its visible
+ * children placed inside a shallow copy of it (its classes keep the type). A block a page break cut is
+ * copied once per piece on screen, clipped to that piece and lifted by what the pieces before it held,
+ * so its lines fall where they are. Anything else in view is copied whole, at its own place and width.
  */
 function copyVisible(node: HTMLElement, into: HTMLElement, view: Box, depth = 0): void {
     const origin = rectOf(node);
     for (const child of Array.from(node.children) as HTMLElement[]) {
         const box = rectOf(child);
-        if (box.height === 0 || box.top + box.height < view.top || box.top > view.top + view.height) continue;
-        if (depth < 4 && box.height > view.height * 2 && child.children.length > 0) {
+        if (box.height === 0 || !inView(box, view)) continue;
+        const pieces = piecesOf(child);
+        const wrapper = child.children.length > 0 && (box.height > view.height * 2 || pieces.length > 2);
+        if (depth < 4 && wrapper) {
             const shell = child.cloneNode(false) as HTMLElement;
             place(shell, box, origin, true);
             into.appendChild(shell);
             copyVisible(child, shell, view, depth + 1);
+            continue;
+        }
+        if (pieces.length > 1) {
+            let before = 0;
+            for (const piece of pieces) {
+                if (inView(piece, view)) {
+                    const clip = into.createDiv({ cls: c("turn-piece") });
+                    place(clip, piece, origin, true);
+                    const copy = child.cloneNode(true) as HTMLElement;
+                    copyCanvases(child, copy);
+                    place(copy, { left: 0, top: -before, width: piece.width, height: 0 }, { left: 0, top: 0, width: 0, height: 0 }, false);
+                    clip.appendChild(copy);
+                }
+                before += piece.height;
+            }
             continue;
         }
         const copy = child.cloneNode(true) as HTMLElement;

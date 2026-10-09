@@ -85,6 +85,8 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   size, your theme. Lines are put back into paragraphs, a heading set larger stays a heading, a word
   broken across two lines with a hyphen is mended, a lone page number is left out, and a page in two
   columns is read one column, then the other. A page that is a figure is shown as its picture.
+  Reading view follows the Reader's **Layout** — Scroll, Page or Spread
+  ([pages or scroll](reader.md#pages-or-scroll)); Page view keeps its own pages for now (#767).
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
   whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
 - **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF

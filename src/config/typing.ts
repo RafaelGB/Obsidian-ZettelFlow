@@ -135,7 +135,15 @@ export interface ZettelFlowSettings {
      * How the Reader sets its type (#668): font, size and reading theme. Authored from the reader's
      * own *Type* panel — the place you are when you want to change it (§XIII).
      */
-    readerPrefs?: { font: "sans" | "serif"; size: "small" | "medium" | "large"; theme: "auto" | "light" | "sepia" | "dark" };
+    readerPrefs?: {
+        font: "sans" | "serif";
+        size: "small" | "medium" | "large";
+        theme: "auto" | "light" | "sepia" | "dark";
+        focus?: boolean;
+        timeLeft?: boolean;
+        /** Scroll, Page or Spread (#753). */
+        layout?: "scroll" | "page" | "spread";
+    };
     /**
      * Where each recent reading was left (#669): a kind and the note it started from, or a picked
      * set's fingerprint → the chapter, how many there were, when. Places only — never what you read.

@@ -32,13 +32,13 @@ const BOOK = makeEpub({
     extra: { "OEBPS/images/fig.png": new Uint8Array([137, 80, 78, 71]) },
 });
 
-function mount() {
+function mount(bytes: Uint8Array = BOOK) {
     const book = file("Books/tfs.epub");
     const app = {
         workspace: { requestSaveLayout: jest.fn(), openLinkText: jest.fn(), iterateAllLeaves: () => undefined, setActiveLeaf: jest.fn(), trigger: jest.fn() },
         vault: {
             getAbstractFileByPath: (path: string) => (path === book.path ? book : null),
-            readBinary: async () => BOOK.buffer.slice(BOOK.byteOffset, BOOK.byteOffset + BOOK.byteLength),
+            readBinary: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
             cachedRead: async () => "",
         },
         metadataCache: { getFirstLinkpathDest: () => null, on: () => ({}) },
@@ -82,8 +82,8 @@ describe("an EPUB in the Reader (#682)", () => {
     });
     beforeEach(() => resetReaderWorkspace());
 
-    async function open(chapter = 0) {
-        const m = mount();
+    async function open(chapter = 0, bytes?: Uint8Array) {
+        const m = mount(bytes);
         await m.view.setState({ source: "Books/tfs.epub", chapter }, {} as never);
         await m.view.onOpen();
         await settle(() => m.content.byClass("reader-next").length > 0 || m.content.byClass("reader-missing").length > 0);
@@ -145,5 +145,15 @@ describe("an EPUB in the Reader (#682)", () => {
         content.byClass("reader-toc-row")[1].click();
         await settle(() => content.oneByClass("reader-count").textContent === "Chapter 2 / 3");
         expect((host.settings.library as any)["Books/tfs.epub"]).toMatchObject({ chapter: 1, chapters: 3, title: "Thinking, Fast and Slow" });
+    });
+
+    it("reads a book written right to left as one, so its pages turn to the left (#753 FR-10)", async () => {
+        const rtl = makeEpub({ title: "كتاب", direction: "rtl", chapters: [{ id: "c1", href: "text/ch1.xhtml", title: "١", body: "<p>نص</p>" }] });
+        const { view, content } = await open(0, rtl);
+        expect((view as any).source.direction).toBe("rtl");
+        expect(content.oneByClass("reader-page").getAttribute("dir")).toBe("rtl");
+        const { view: ltr, content: ltrContent } = await open();
+        expect((ltr as any).source.direction).toBeUndefined();
+        expect(ltrContent.oneByClass("reader-page").getAttribute("dir")).toBeNull();
     });
 });

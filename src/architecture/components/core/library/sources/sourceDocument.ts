@@ -12,8 +12,12 @@ import { openEpubSource } from "./epubSource";
  * Opening a source reads it through the Vault API and never writes it (L5).
  */
 
-/** How a chapter is drawn: reflowed into the Reader's column, or the page as it was laid out. */
-export type SourceLayout = "reading" | "page";
+/**
+ * How a chapter is drawn: reflowed into the Reader's column (Reading view), or the page as it was laid
+ * out (Page view). Not the Reader's *layout* — Scroll, Page or Spread (#753) — which is how a reflowed
+ * chapter is laid out on screen.
+ */
+export type SourceView = "reading" | "page";
 
 export interface SourceChapter {
     /** How a reader cites it: `p. 42`, `Ch. 3 · The lazy controller`. */
@@ -48,8 +52,10 @@ export interface SourceDocument {
     imageOnly: boolean;
     /** Whether the source has a page layout worth keeping: PDFs do, EPUBs reflow by nature. */
     hasPageView: boolean;
+    /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
+    direction?: "ltr" | "rtl";
     /** Draw chapter `index` into `body`. Anything it holds is let go with `component`. */
-    draw(index: number, body: HTMLElement, component: Component, layout: SourceLayout): Promise<DrawnChapter>;
+    draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter>;
     /**
      * Where a link inside a chapter leads, when it stays in the book: the chapter, and the element
      * it names. `null` for a link that leaves it — which the Reader never follows (L1).

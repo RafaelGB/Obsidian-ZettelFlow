@@ -26,6 +26,7 @@ import { MOTION, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
 import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, type ChapterScrub } from "./readerTurn";
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
+import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
 import { placeAt, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
@@ -43,7 +44,7 @@ import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
-import { adoptHeldSides, coverApp, exitReader, heldSides, restoreWorkspace } from "./openReader";
+import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
@@ -123,7 +124,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["B"], label: "reader_key_bookmark" },
-    { keys: ["F"], label: "reader_key_fullscreen" },
+    { keys: ["F"], label: "reader_key_deep" },
     { keys: ["V"], label: "reader_key_layout" },
     { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
     { keys: ["reader_kbd_alt", "←"], label: "reader_key_back" },
@@ -315,6 +316,22 @@ export class ReaderView extends ItemView {
      */
     private pending: { seed: string; chapter: number } | null = null;
     private idleTimer: number | undefined;
+    /** Deep reading (#764): the page and nothing else. Never saved — each reading opens without it (FR-8). */
+    private deep = false;
+    /** Whether deep reading put the window in fullscreen, so leaving gives back only what it took (FR-6). */
+    private deepFullscreen = false;
+    /** The document whose fullscreen changes are watched — once per document. */
+    private deepWatched: Document | null = null;
+    /** Where the pointer last woke the chrome in deep reading: a jitter from here wakes nothing (FR-3). */
+    private deepPointer: { x: number; y: number } | null = null;
+    /** The last pointer on the page, so the hint speaks to a finger or to a mouse (FR-7). */
+    private lastPointerType: string | null = null;
+    private deepHint: HTMLElement | null = null;
+    private deepButton: HTMLElement | null = null;
+    private deepTimer: number | undefined;
+    /** The column travelling with the cover (#764 FR-10): one animation at a time. */
+    private deepTravel: Animation | null = null;
+    private deepHintTimer: number | undefined;
     /** Bumped on every chapter change, so a slow read never draws over a newer chapter. */
     private generation = 0;
     /**
@@ -659,8 +676,23 @@ export class ReaderView extends ItemView {
         // A mouse moving shows the bar. A finger's taps do not: iOS follows every tap with emulated
         // mouse events, which would wake the bar on each page turn (#750).
         this.registerDomEvent(this.contentEl, "pointermove", (event: PointerEvent) => {
-            if (event.pointerType === "mouse") this.wake();
+            if (event.pointerType !== "mouse") return;
+            this.lastPointerType = "mouse";
+            if (!this.deep) {
+                this.wake();
+                return;
+            }
+            // In deep reading a jitter is not a movement: the chrome comes back past a few pixels (FR-3).
+            const from = this.deepPointer;
+            if (from && !movedEnough(event.clientX - from.x, event.clientY - from.y)) return;
+            this.deepPointer = { x: event.clientX, y: event.clientY };
+            if (from) this.wake();
         });
+        // Deep reading belongs to the tab you read in: another tab taking the focus ends it (#764).
+        const away = this.app.workspace.on?.("active-leaf-change", (leaf: WorkspaceLeaf | null) => {
+            if (this.deep && leaf && leaf !== this.leaf) this.leaveDeep();
+        });
+        if (away) this.registerEvent(away);
         // On mobile the Reader covers Obsidian's chrome while it is the tab you read in (#750 D6).
         if (Platform.isMobile) {
             coverApp(true);
@@ -676,6 +708,8 @@ export class ReaderView extends ItemView {
     }
 
     async onClose(): Promise<void> {
+        // Closing the tab in deep reading still gives the window back as it was.
+        this.leaveDeep(true);
         window.clearTimeout(this.idleTimer);
         window.clearTimeout(this.placeTimer);
         this.touch = null;
@@ -786,8 +820,12 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
         view.addClass(c("reader-hidden"));
-        // No dead control (FR-10): where the platform cannot go fullscreen, there is no button for it.
-        if (canFullscreen(this.ownDocument())) this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
+        // Deep reading (#764 FR-1), where Fullscreen was and on every platform: the page alone does not
+        // need the window's fullscreen, so it is never a dead control.
+        const deep = this.iconButton(bar, "glasses", "reader_deep", () => this.toggleDeep());
+        deep.setAttribute("aria-pressed", "false");
+        deep.setAttribute("data-deep", "true");
+        this.deepButton = deep;
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
@@ -823,7 +861,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1619,6 +1657,8 @@ export class ReaderView extends ItemView {
     exit(): void {
         if (this.leaving) return;
         this.leaving = true;
+        // Leaving the Reader in deep reading gives the window back as it was (FR-6).
+        this.leaveDeep(true);
         const root = this.root;
         // Opened from the Library: the shot back to the book on its shelf (#734).
         if (root && this.els && this.back && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") {
@@ -2021,6 +2061,8 @@ export class ReaderView extends ItemView {
             this.searchInput?.select();
             return true;
         }
+        // Search over the page keeps the chrome with it, in deep reading too (#764 FR-3, FR-5).
+        this.wake();
         const scope = new Component();
         scope.load();
         this.searchScope = scope;
@@ -2350,6 +2392,8 @@ export class ReaderView extends ItemView {
         }
         this.panel = panel;
         this.renderPanel();
+        // A panel open over the page keeps the chrome with it, in deep reading too (#764 FR-3).
+        this.wake();
     }
 
     private renderPanel(): void {
@@ -2744,15 +2788,21 @@ export class ReaderView extends ItemView {
     // ── the place in the text, kept through a reshape (#750 D3) ──────────────
 
     /** The chapter's blocks, in the stage's scroll coordinates; a lone wrapper is looked into. */
-    private blocks(): PlaceBox[] {
-        const stage = this.els?.stage;
+    /** The chapter's blocks, as elements: the body's children, past a wrapper or two. */
+    private blockElements(): HTMLElement[] {
         let parent = this.els?.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? null;
-        if (!stage || !parent) return [];
+        if (!parent) return [];
         for (let depth = 0; depth < 3 && parent.children.length === 1 && (parent.firstElementChild?.children.length ?? 0) > 1; depth++) {
             parent = parent.firstElementChild as HTMLElement;
         }
+        return Array.from(parent.children) as HTMLElement[];
+    }
+
+    private blocks(): PlaceBox[] {
+        const stage = this.els?.stage;
+        if (!stage) return [];
         const origin = stage.getBoundingClientRect().top - stage.scrollTop;
-        return Array.from(parent.children).map((el) => {
+        return this.blockElements().map((el) => {
             const box = el.getBoundingClientRect();
             return { top: box.top - origin, height: box.height };
         });
@@ -2860,6 +2910,7 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerDown(event: PointerEvent): void {
+        if (event.pointerType) this.lastPointerType = event.pointerType;
         // Two fingers on the page are the trail's way back (#761 FR-10), never a turn: whatever the
         // first finger had started goes back.
         if (touchPointer(event)) {
@@ -3054,10 +3105,10 @@ export class ReaderView extends ItemView {
             return;
         }
         (root.win ?? window).clearTimeout(this.idleTimer);
-        if (!this.panel && !this.shortcuts) root.addClass(c("reader--idle"));
+        if (this.idleAllowed()) root.addClass(c("reader--idle"));
     }
 
-    // ── keys, idle bar, fullscreen ───────────────────────────────────────────
+    // ── keys, idle bar ───────────────────────────────────────────────────────
 
     /**
      * The reader's keys, on its own scope (#667). Each handler says whether it took the key: taken,
@@ -3071,7 +3122,9 @@ export class ReaderView extends ItemView {
         const bind = (modifiers: Modifier[] | null, key: string, run: () => boolean) =>
             scope.register(modifiers, key, (event: KeyboardEvent) => {
                 if (isTyping(event.target)) return true;
-                this.wake();
+                // In deep reading the keys that read turn quietly; any other brings the chrome back (FR-3, FR-4).
+                const quiet = this.deep && isReadingKey(event.key, { shift: event.shiftKey, ctrl: event.ctrlKey, meta: event.metaKey, alt: event.altKey });
+                if (!quiet) this.wake();
                 return !run();
             });
         const taken = (fn: () => void) => () => {
@@ -3091,12 +3144,8 @@ export class ReaderView extends ItemView {
         bind(shift, " ", turning(" ", true));
         bind(none, "Home", taken(() => this.show(0)));
         bind(none, "End", taken(() => this.show((this.path?.chapters.length ?? 1) - 1)));
-        // Where the platform cannot go fullscreen, F is left alone (FR-10).
-        bind(none, "F", () => {
-            if (!canFullscreen(this.ownDocument())) return false;
-            this.toggleFullscreen();
-            return true;
-        });
+        // Deep reading, in and out (#764 FR-1).
+        bind(none, "F", taken(() => this.toggleDeep()));
         bind(none, "V", () => {
             if (!this.source?.hasPageView) return false;
             this.toggleView();
@@ -3118,42 +3167,38 @@ export class ReaderView extends ItemView {
         bind(["Mod"], "F", () => this.openSearch());
     }
 
-    /** Esc: one thing at a time, nearest first — then the reader itself. */
+    /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
-        if (this.shortcuts) {
-            this.closeShortcuts();
-            return;
+        const step = escapeStep({
+            shortcuts: Boolean(this.shortcuts),
+            note: Boolean(this.notePop),
+            search: Boolean(this.searchEl),
+            popover: Boolean(this.highlights?.hasPopover()),
+            peek: Boolean(this.peek),
+            detour: this.detours.length > 0,
+            panel: Boolean(this.panel),
+            deep: this.deep,
+        });
+        switch (step) {
+            case "shortcuts":
+                return this.closeShortcuts();
+            case "note":
+                return this.closeNote();
+            case "search":
+                return this.closeSearch();
+            case "popover":
+                return this.highlights?.hidePopover();
+            case "peek":
+                return this.closePeek();
+            case "detour":
+                return void this.backFromDetour();
+            case "panel":
+                return this.closePanel();
+            case "deep":
+                return this.leaveDeep();
+            case "exit":
+                return this.exit();
         }
-        if (this.notePop) {
-            this.closeNote();
-            return;
-        }
-        if (this.searchEl) {
-            this.closeSearch();
-            return;
-        }
-        if (this.highlights?.hasPopover()) {
-            this.highlights.hidePopover();
-            return;
-        }
-        if (this.peek) {
-            this.closePeek();
-            return;
-        }
-        if (this.detours.length > 0) {
-            this.backFromDetour();
-            return;
-        }
-        if (this.panel) {
-            this.closePanel();
-            return;
-        }
-        // In fullscreen, Esc leaves fullscreen — the reader stays.
-        if (this.ownDocument()?.fullscreenElement) {
-            this.toggleFullscreen();
-            return;
-        }
-        this.exit();
     }
 
     /**
@@ -3208,10 +3253,7 @@ export class ReaderView extends ItemView {
         const card = sheet.createDiv({ cls: c("reader-shortcuts-card") });
         card.createDiv({ cls: c("reader-panel-title"), text: t("reader_shortcuts") });
         const list = card.createEl("dl", { cls: c("reader-shortcuts-list") });
-        // F is not a key where the platform cannot go fullscreen (FR-10).
-        const fullscreen = canFullscreen(this.ownDocument());
         for (const row of shortcutsFor(this.effectiveLayout(), this.bookDirection())) {
-            if (row.label === "reader_key_fullscreen" && !fullscreen) continue;
             const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
             for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
             list.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });
@@ -3270,17 +3312,218 @@ export class ReaderView extends ItemView {
         return (this.contentEl as HTMLElement & { doc?: Document }).doc;
     }
 
-    private toggleFullscreen(): void {
+    // ── deep reading (#764) ──────────────────────────────────────────────────
+
+    private toggleDeep(): void {
+        if (this.deep) this.leaveDeep();
+        else this.enterDeep();
+    }
+
+    /**
+     * The page and nothing else (FR-2): the chrome slides away in one gesture, the window goes
+     * fullscreen where the platform has it, and the line you read stays where it is: the stage's
+     * insets never change, and the reshape keeps your place (#750 D3) while the window grows (FR-10).
+     */
+    private enterDeep(): void {
+        const root = this.root;
+        if (!root || this.deep) return;
+        this.deep = true;
+        this.deepPointer = null;
         const doc = this.ownDocument();
-        const failed = (error: unknown) => log.debug(`[Reader] fullscreen unavailable: ${String(error)}`);
+        this.watchFullscreen(doc);
+        this.deepFullscreen = false;
+        if (doc && canFullscreen(doc) && !doc.fullscreenElement) this.requestWindowFullscreen(doc);
+        else if (Platform.isMobile) log.debug("[Reader] deep reading: no window fullscreen here; the Reader covers the app");
+        // On mobile the Reader already covers Obsidian's chrome while it is read (#750 D6); deep reading
+        // makes sure of it. The iPadOS status bar stays: a plugin cannot hide it.
+        if (Platform.isMobile) coverApp(true);
+        const win = this.viewWindow() ?? window;
+        win.clearTimeout(this.idleTimer);
+        win.clearTimeout(this.deepTimer);
+        root.removeClass(c("reader--deep-leaving"));
+        root.addClass(c("reader--deep"), c("reader--idle"));
+        // On a desktop Obsidian's own chrome leaves with the Reader's, then the leaf covers the window,
+        // your line held where it is (FR-2, FR-10).
+        const body = doc?.body;
+        if (this.motionAllowed()) {
+            root.addClass(c("reader--deep-entering"));
+            deepCover("hide", body);
+            // The column travels to where the cover will centre it inside the same gesture (FR-10, §XVI).
+            this.travelColumn(this.columnShift());
+            this.deepTimer = win.setTimeout(() => {
+                this.root?.removeClass(c("reader--deep-entering"));
+                if (this.deep) this.coverKeepingColumn(() => this.holdLine(() => deepCover("cover", body)));
+            }, MOTION.base);
+        } else {
+            this.holdLine(() => deepCover("cover", body));
+        }
+        this.setDeepButton(true);
+        this.showDeepHint();
+    }
+
+    /**
+     * Back to the ordinary Reader (FR-6, FR-12): the chrome comes back from where it went, in one
+     * gesture, and the window's fullscreen is given back only if deep reading took it. `instant` when
+     * the Reader itself is going.
+     */
+    private leaveDeep(instant = false): void {
+        if (!this.deep) return;
+        this.deep = false;
+        this.deepPointer = null;
+        const doc = this.ownDocument();
+        if (this.deepFullscreen && doc?.fullscreenElement) {
+            const failed = (error: unknown) => log.debug(`[Reader] could not leave fullscreen: ${String(error)}`);
+            try {
+                void doc.exitFullscreen()?.catch?.(failed);
+            } catch (error) {
+                failed(error);
+            }
+        }
+        this.deepFullscreen = false;
+        this.dropDeepHint();
+        this.setDeepButton(false);
+        // The leaf gives the window back with your line held, then Obsidian's chrome slides back in.
+        const body = doc?.body;
+        this.coverKeepingColumn(() => {
+            this.holdLine(() => deepCover("hide", body));
+            deepCover("off", body);
+        }, !instant && this.motionAllowed() ? MOTION.base : 0);
+        const root = this.root;
+        if (!root) return;
+        const win = this.viewWindow() ?? window;
+        win.clearTimeout(this.deepTimer);
+        root.removeClass(c("reader--deep"), c("reader--deep-entering"));
+        if (!instant && this.motionAllowed()) {
+            root.addClass(c("reader--deep-leaving"));
+            this.deepTimer = win.setTimeout(() => this.root?.removeClass(c("reader--deep-leaving")), MOTION.base);
+        }
+        if (!instant) this.wake();
+    }
+
+    /**
+     * The whole window, not the reader's box: modals, menus, page previews and notices are drawn on
+     * the document's body, and would vanish behind a fullscreen reader element. A refusal is caught:
+     * deep reading still hides the chrome.
+     */
+    private requestWindowFullscreen(doc: Document): void {
+        const failed = (error: unknown) => {
+            this.deepFullscreen = false;
+            log.debug(`[Reader] fullscreen unavailable: ${String(error)}`);
+        };
         try {
-            // The whole window, not the reader's box: modals, menus, page previews and notices are
-            // drawn on the document's body, and would vanish behind a fullscreen reader element.
-            const request = doc?.fullscreenElement ? doc.exitFullscreen() : (doc?.body ?? this.contentEl).requestFullscreen?.();
-            void request?.catch?.(failed);
+            this.deepFullscreen = true;
+            const request = doc.body.requestFullscreen();
+            void request
+                ?.then?.(() => {
+                    // Left again before the window got there: give it straight back.
+                    if (!this.deep && doc.fullscreenElement) void doc.exitFullscreen()?.catch?.(failed);
+                })
+                ?.catch?.(failed);
         } catch (error) {
             failed(error);
         }
+    }
+
+    /** A window that leaves fullscreen by itself (Esc in the app, F11) is not put back later (FR-6). */
+    private watchFullscreen(doc: Document | undefined): void {
+        if (!doc || doc === this.deepWatched || typeof doc.addEventListener !== "function") return;
+        this.deepWatched = doc;
+        this.registerDomEvent(doc, "fullscreenchange", () => {
+            if (!doc.fullscreenElement) this.deepFullscreen = false;
+        });
+    }
+
+    private setDeepButton(on: boolean): void {
+        const button = this.deepButton;
+        if (!button) return;
+        button.setAttribute("aria-pressed", on ? "true" : "false");
+        button.setAttribute("aria-label", t(on ? "reader_deep_leave" : "reader_deep"));
+    }
+
+    /** Said once per entry, on the page, for as long as the bar waits: a line, never a notice (FR-7). */
+    private showDeepHint(): void {
+        const root = this.root;
+        if (!root) return;
+        this.dropDeepHint();
+        const touch = this.lastPointerType ? this.lastPointerType !== "mouse" : Platform.isMobile;
+        this.deepHint = root.createDiv({
+            cls: c("reader-deep-hint"),
+            attr: { role: "status" },
+            text: t(touch ? "reader_deep_hint_touch" : "reader_deep_hint_pointer"),
+        });
+        const win = this.viewWindow() ?? window;
+        this.deepHintTimer = win.setTimeout(() => this.dropDeepHint(), IDLE_MS);
+    }
+
+    private dropDeepHint(): void {
+        (this.viewWindow() ?? window).clearTimeout(this.deepHintTimer);
+        this.deepHint?.remove();
+        this.deepHint = null;
+    }
+
+    /**
+     * How far the column will move when the Reader's leaf covers the window on a desktop: the stage
+     * then spans the window, so the column's centre moves to the window's (FR-10). None on mobile,
+     * where the Reader already covers.
+     */
+    private columnShift(): number {
+        const stage = this.els?.stage;
+        const win = this.viewWindow();
+        if (Platform.isMobile || !stage || !win || !(win.innerWidth > 0)) return 0;
+        const box = stage.getBoundingClientRect();
+        // The scrollbar takes its width from the column's box, before and after alike.
+        const bar = Math.max(0, (stage.offsetWidth || box.width) - (stage.clientWidth || box.width));
+        return Math.round((win.innerWidth - bar) / 2 - (box.left + (box.width - bar) / 2));
+    }
+
+    /** The column on its way to `dx`, in the entering gesture; held there until the cover lands. */
+    private travelColumn(dx: number): void {
+        const page = this.els?.page;
+        this.deepTravel?.cancel();
+        this.deepTravel = null;
+        if (!page || Math.abs(dx) < 1 || typeof page.animate !== "function") return;
+        this.deepTravel = page.animate([{ transform: "translateX(0px)" }, { transform: `translateX(${dx}px)` }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" });
+    }
+
+    /**
+     * A change that moves the column across the screen (the leaf covering the window, or giving it
+     * back), made without a step: wherever the column was on screen it is still there after the
+     * change, and travels from there to its new place in `ms` — at once when `ms` is 0 (FLIP).
+     */
+    private coverKeepingColumn(change: () => void, ms: number = MOTION.fast): void {
+        const page = this.els?.page;
+        const before = page?.getBoundingClientRect().left;
+        this.deepTravel?.cancel();
+        this.deepTravel = null;
+        change();
+        if (!page || before === undefined || ms <= 0 || typeof page.animate !== "function") return;
+        const dx = Math.round(before - page.getBoundingClientRect().left);
+        if (Math.abs(dx) < 1) return;
+        this.deepTravel = page.animate([{ transform: `translateX(${dx}px)` }, { transform: "translateX(0px)" }], { duration: ms, easing: MOTION.ease });
+    }
+
+    /**
+     * Keep the line you are reading where your eyes are while the Reader's box moves under it (the
+     * desktop cover, FR-10): in a scroll, the first block on screen is put back at the same height.
+     * In pages the pager keeps its own place through the reshape (#753).
+     */
+    private holdLine(change: () => void): void {
+        const stage = this.els?.stage;
+        const top = stage && !this.pagedNow() ? stage.getBoundingClientRect().top : null;
+        const el = top === null ? undefined : this.blockElements().find((block) => block.getBoundingClientRect().bottom > top);
+        const before = el?.getBoundingClientRect().top;
+        change();
+        if (!stage || !el || before === undefined) return;
+        const shift = el.getBoundingClientRect().top - before;
+        if (Math.abs(shift) >= 1) stage.scrollTop = Math.max(0, stage.scrollTop + shift);
+        // The place a reshape restores is the one you are now on.
+        const blocks = this.blocks();
+        if (blocks.length > 0) this.place = placeAt(blocks, stage.scrollTop);
+    }
+
+    /** The chrome may step back: nothing is open over the page that a control would be needed for. */
+    private idleAllowed(): boolean {
+        return !this.panel && !this.shortcuts && !this.searchEl && !this.notePop && !this.highlights?.hasPopover();
     }
 
     /** Show the bar, then let it fade when nothing moves — or, asked by a tap, keep it (#750). */
@@ -3290,7 +3533,7 @@ export class ReaderView extends ItemView {
         window.clearTimeout(this.idleTimer);
         if (stay) return;
         this.idleTimer = window.setTimeout(() => {
-            if (!this.panel && !this.shortcuts) this.root?.addClass(c("reader--idle"));
+            if (this.idleAllowed()) this.root?.addClass(c("reader--idle"));
         }, IDLE_MS);
     }
 }

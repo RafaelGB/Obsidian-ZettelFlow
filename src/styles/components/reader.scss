@@ -2018,8 +2018,204 @@ body.zettelkasten-flow__reader-covers-app {
     overflow: hidden;
 }
 
+/* ── deep reading (#764): the page and nothing else ─────────────────────── */
+
+/*
+ * Page only = `reader--deep` + `reader--idle`; the overlay = `reader--deep` alone. Every piece of
+ * chrome leaves the way it would naturally go — the top line up, the bar down, the margin to its
+ * side, the dots, the hairline, the back pill and the ribbon fade — on transform and opacity only.
+ * The stage and the page are never touched, so the line you read stays where it is (FR-10, FR-14).
+ */
+.zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle {
+    cursor: none;
+
+    .zettelkasten-flow__reader-top {
+        opacity: 0;
+        transform: translateY(calc(-100% - var(--size-4-4) - #{$safe-top}));
+        pointer-events: none;
+    }
+
+    .zettelkasten-flow__reader-bar {
+        opacity: 0;
+        transform: translateX(-50%) translateY(calc(100% + var(--size-4-4) + #{$safe-bottom}));
+        pointer-events: none;
+    }
+
+    .zettelkasten-flow__reader-margin {
+        opacity: 0;
+        transform: translateX(var(--size-4-4));
+        pointer-events: none;
+    }
+
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader-detour-pill,
+    button.zettelkasten-flow__reader-ribbon {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+/* Going again, once nothing moves: a slow fade, as the bar's today (FR-11). */
+.zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle {
+    .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader-detour-pill,
+    button.zettelkasten-flow__reader-ribbon {
+        transition: transform $motion-cover $ease-out, opacity $motion-cover $ease-out;
+    }
+}
+
+/* The overlay, when you move: quick to come, never in the way of a glance (FR-11). */
+.zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) {
+    .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader-detour-pill,
+    button.zettelkasten-flow__reader-ribbon {
+        transition: transform $motion-fast $ease-out, opacity $motion-fast $ease-out;
+    }
+}
+
+/* Entering and leaving: one gesture, in the shared beat, each piece back from where it went (FR-10, FR-12). */
+.zettelkasten-flow__reader--deep.zettelkasten-flow__reader--deep-entering.zettelkasten-flow__reader--idle,
+.zettelkasten-flow__reader.zettelkasten-flow__reader--deep-leaving {
+    .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader-detour-pill,
+    button.zettelkasten-flow__reader-ribbon {
+        transition: transform $motion-base $ease-out, opacity $motion-base $ease-out;
+    }
+}
+
+/* Said once, on the page, where the bar was: how to bring the controls back (FR-7). Not a notice. */
+.zettelkasten-flow__reader-deep-hint {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--size-4-8) + #{$safe-bottom});
+    transform: translateX(-50%);
+    max-width: calc(100% - var(--size-4-8));
+    padding: var(--size-4-1) var(--size-4-3);
+    border-radius: $radius-pill;
+    background-color: var(--reader-surface);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+    text-align: center;
+    pointer-events: none;
+    z-index: 3;
+    animation: zf-reader-deep-hint 2s $ease-out both;
+}
+
+/* In quickly, held, and gone over the last fifth: the bar's 400 ms fade. */
+@keyframes zf-reader-deep-hint {
+    0% {
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/*
+ * On a desktop, Obsidian's own chrome leaves with the Reader's, in the same gesture (FR-2): the ribbon
+ * to the left, the tab bar and the sidebar toggles up, the status bar down. Transform only.
+ */
+body.zettelkasten-flow__reader-deep-hides-app .workspace-ribbon.mod-primary,
+body.zettelkasten-flow__reader-deep-hides-app .workspace-tab-header-container,
+body.zettelkasten-flow__reader-deep-hides-app .sidebar-toggle-button,
+body.zettelkasten-flow__reader-deep-hides-app .status-bar,
+body.zettelkasten-flow__reader-deep-returning .workspace-ribbon.mod-primary,
+body.zettelkasten-flow__reader-deep-returning .workspace-tab-header-container,
+body.zettelkasten-flow__reader-deep-returning .sidebar-toggle-button,
+body.zettelkasten-flow__reader-deep-returning .status-bar {
+    transition: transform $motion-base $ease-out, opacity $motion-base $ease-out;
+}
+
+body.zettelkasten-flow__reader-deep-hides-app {
+    .workspace-ribbon.mod-primary {
+        transform: translateX(-100%);
+    }
+
+    .workspace-tab-header-container,
+    .sidebar-toggle-button {
+        transform: translateY(-100%);
+    }
+
+    .status-bar {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+/* ── end of deep reading */
+
+/* Then the Reader's leaf covers the window, as it does on mobile (see the cover above, #750 D6). */
+body.zettelkasten-flow__reader-deep-covers-app {
+    .workspace-leaf:has(> .workspace-leaf-content[data-type="zettelflow-reader"]) {
+        contain: size style !important;
+    }
+
+    .workspace-leaf-content[data-type="zettelflow-reader"] {
+        position: fixed;
+        inset: 0;
+        z-index: var(--layer-cover);
+    }
+}
+
+
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
+    /* Deep reading: the chrome is there or gone at once; the hint is simply shown (#764 FR-13). */
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-detour-pill,
+    .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) button.zettelkasten-flow__reader-ribbon,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-dots,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-hairline,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle .zettelkasten-flow__reader-detour-pill,
+    .zettelkasten-flow__reader--deep.zettelkasten-flow__reader--idle button.zettelkasten-flow__reader-ribbon,
+    .zettelkasten-flow__reader.zettelkasten-flow__reader--deep-leaving .zettelkasten-flow__reader-top,
+    .zettelkasten-flow__reader.zettelkasten-flow__reader--deep-leaving .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader.zettelkasten-flow__reader--deep-leaving .zettelkasten-flow__reader-margin,
+    .zettelkasten-flow__reader.zettelkasten-flow__reader--deep-leaving button.zettelkasten-flow__reader-ribbon {
+        transition: none;
+    }
+
+    .zettelkasten-flow__reader-deep-hint {
+        animation: none;
+    }
+
+    body.zettelkasten-flow__reader-deep-hides-app .workspace-ribbon.mod-primary,
+    body.zettelkasten-flow__reader-deep-hides-app .workspace-tab-header-container,
+    body.zettelkasten-flow__reader-deep-hides-app .sidebar-toggle-button,
+    body.zettelkasten-flow__reader-deep-hides-app .status-bar,
+    body.zettelkasten-flow__reader-deep-returning .workspace-ribbon.mod-primary,
+    body.zettelkasten-flow__reader-deep-returning .workspace-tab-header-container,
+    body.zettelkasten-flow__reader-deep-returning .sidebar-toggle-button,
+    body.zettelkasten-flow__reader-deep-returning .status-bar {
+        transition: none;
+    }
+
     /* You are here: shown at once, for a moment, then gone (HERE_REDUCED_MS). */
     .zettelkasten-flow__reader-here::after {
         animation: none;

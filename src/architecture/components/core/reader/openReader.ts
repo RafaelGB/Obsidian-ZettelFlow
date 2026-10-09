@@ -62,6 +62,34 @@ export function coverApp(on: boolean): void {
     body.win?.setTimeout(() => body.removeClass(CHROME_RETURNING), RETURN_MS);
 }
 
+/**
+ * **Deep reading on a desktop** (#764 FR-2): the page and nothing else, Obsidian's chrome included.
+ * Two classes on the body. *Hide* slides the ribbon, the tab bar, the sidebar toggles and the status
+ * bar off the screen (transform only, the Reader's own 250 ms gesture); *cover* then lets the Reader's
+ * leaf cover the window, exactly as on mobile. The view holds your line through the cover. Nothing of
+ * Obsidian's own state is touched, so taking the classes off gives back exactly what was there.
+ * Mobile already covers (`coverApp`): a no-op there.
+ */
+export const DEEP_HIDES_APP = "zettelkasten-flow__reader-deep-hides-app";
+export const DEEP_COVERS_APP = "zettelkasten-flow__reader-deep-covers-app";
+
+/** For the moment Obsidian's chrome slides back after deep reading: its transition lives only then. */
+export const DEEP_RETURNING = "zettelkasten-flow__reader-deep-returning";
+
+export function deepCover(state: "off" | "hide" | "cover", body: HTMLElement | null | undefined = mainBody()): void {
+    if (!body || Platform.isMobile || typeof body.toggleClass !== "function") return;
+    const hidden = body.hasClass(DEEP_HIDES_APP);
+    body.toggleClass(DEEP_HIDES_APP, state !== "off");
+    body.toggleClass(DEEP_COVERS_APP, state === "cover");
+    if (state !== "off") {
+        body.removeClass(DEEP_RETURNING);
+        return;
+    }
+    if (!hidden) return;
+    body.addClass(DEEP_RETURNING);
+    body.win?.setTimeout(() => body.removeClass(DEEP_RETURNING), RETURN_MS);
+}
+
 /** The sidebars the reader will give back, for a view that outlives a restart (see ReaderView). */
 export function heldSides(): ReaderSidesState | null {
     return held?.sides ?? null;
@@ -138,6 +166,7 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
 export function restoreWorkspace(app: App): void {
     // The chrome comes back as the camera returns to the shelf — even for a reading restored on launch.
     coverApp(false);
+    deepCover("off");
     const snapshot = held;
     held = null;
     if (!snapshot) return;

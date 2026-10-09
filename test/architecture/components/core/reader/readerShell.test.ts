@@ -304,31 +304,35 @@ describe("the Reader on iPad: the screen and the keys (#750)", () => {
         (m.content as unknown as { doc: unknown }).doc = { fullscreenEnabled, body: { requestFullscreen: jest.fn(() => Promise.resolve()) }, fullscreenElement: null };
         return m;
     }
+    const deepButton = (content: DomNode) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Deep reading");
     const fullscreenButton = (content: DomNode) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Fullscreen");
 
-    it("offers Fullscreen, and takes F, where the platform can go fullscreen", async () => {
+    it("offers Deep reading, and takes F, where the platform can go fullscreen (#764)", async () => {
         const { view, content, leaf } = withDoc(true);
         await view.setState({ seed: "a.md" }, {} as never);
         await view.onOpen();
-        expect(fullscreenButton(content)).toBeDefined();
+        expect(deepButton(content)).toBeDefined();
+        expect(fullscreenButton(content)).toBeUndefined();
         expect(press(leaf, "F", { target: content }).defaultPrevented).toBe(true);
     });
 
-    it("shows no dead control: no Fullscreen and F left alone where the platform cannot (AC-8)", async () => {
+    it("keeps Deep reading where the window cannot go fullscreen: the page alone is never a dead control (#764)", async () => {
         const off = withDoc(false);
         await off.view.setState({ seed: "a.md" }, {} as never);
         await off.view.onOpen();
-        expect(fullscreenButton(off.content)).toBeUndefined();
-        expect(press(off.leaf, "F", { target: off.content }).defaultPrevented).toBe(false);
+        expect(deepButton(off.content)).toBeDefined();
+        expect(press(off.leaf, "F", { target: off.content }).defaultPrevented).toBe(true);
         await withPlatform(IPAD, async () => {
             const ipad = withDoc(true);
             await ipad.view.setState({ seed: "a.md" }, {} as never);
             await ipad.view.onOpen();
+            expect(deepButton(ipad.content)).toBeDefined();
             expect(fullscreenButton(ipad.content)).toBeUndefined();
-            expect(press(ipad.leaf, "F", { target: ipad.content }).defaultPrevented).toBe(false);
-            // Nor does the shortcuts sheet list a key that does nothing.
+            expect(press(ipad.leaf, "F", { target: ipad.content }).defaultPrevented).toBe(true);
             press(ipad.leaf, "?", { target: ipad.content });
-            expect(ipad.content.byClass("reader-shortcuts-label").map((el) => el.textContent)).not.toContain("Fullscreen");
+            const labels = ipad.content.byClass("reader-shortcuts-label").map((el) => el.textContent);
+            expect(labels).toContain("Deep reading");
+            expect(labels).not.toContain("Fullscreen");
         });
     });
 

@@ -90,12 +90,12 @@ relations:
 | **Space** / **Shift+Space** | a screen down (up) the chapter, and the next (previous) chapter once you reach its end — in pages, a page on (back) |
 | **↓** / **↑** | scroll the chapter a little (nothing in pages: there is no scroll) |
 | **Home** / **End** | first / last chapter |
-| **F** | fullscreen, where the platform allows it (not on an iPad or a phone) |
+| **F** | deep reading: the page and nothing else, in and out (see [Deep reading](#deep-reading)) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
 | **B** | bookmark the place you are reading, or take away the bookmark on this screen (a book or a paper) |
 | **Alt+←** | back to where your last jump left from (a book or a paper) |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
-| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
+| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave deep reading, then leave the Reader |
 
 The keys work whenever the Reader is the active tab, wherever the focus is: they are registered the
 way Obsidian's own views register theirs, so they never fight a hotkey of yours. **Ctrl**, **Cmd**
@@ -121,11 +121,51 @@ hides it. It holds:
   **Where you've been** beside them);
 - **Type**;
 - **Around this chapter**, with what supports it, what argues back and its open questions;
-- **Fullscreen**, where the platform can go fullscreen;
+- **Deep reading**, the page and nothing else (**F**);
 - **Keyboard shortcuts**.
 
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
 way on lights up: **Next · *its name* · *how long it is***.
+
+### Deep reading
+
+![Deep reading: the ordinary Reader with its top line, dots, margin and bar; the same page alone, with the one line that says how to bring the controls back; and the controls slid back over the page after a movement of the pointer](../resources/reader/deep-reading.svg)
+
+**Deep reading** is the page and nothing else. Press **F**, or the *Deep reading* button in the bar
+(where *Fullscreen* used to be), and the top line slides up off the screen, the bar slides down,
+the margin of highlights slides to its side, and the chapter dots, the hairline, the back pill and
+the bookmark ribbon fade. The pointer hides. On a desktop the window also goes fullscreen. The line
+you were reading does not move, not even while the window grows around it.
+
+- **Said once.** For two seconds a line on the page says *Move the pointer for the controls · Esc to
+  leave*, or *Tap the middle for the controls* on a touch screen. It is not a notice.
+- **Everything comes back when you move.** Move the pointer (more than a jitter), tap the middle of
+  the page, or press any key that does not read (**H**, **B**, **1–4**, **?**, **Ctrl/⌘+F**), and the
+  controls slide back in, quickly. They fade again after two seconds of stillness, and they stay while
+  a panel, search or a popover is open.
+- **Reading keys stay quiet.** **Space**, **Shift+Space**, the arrows, **Page up/down**, **Home**,
+  **End** and a tap on the page's edges turn without bringing anything back.
+- **Nothing is lost.** Selecting and highlighting, footnotes, search, the panels, the end card and
+  the way back (the pill through the controls, or **Alt+←**) all work as they do outside it.
+- **Leaving.** **Esc** closes the nearest thing first, as always, then leaves deep reading, and only
+  then the Reader. **F** or *Leave deep reading* (the same button) leave at once. The window is given
+  back as it was: if it was fullscreen before, it stays fullscreen; if deep reading made it so, it
+  is put back.
+- **Beside focus mode.** *Focus mode* (in *Type*) is about the text, deep reading about the screen.
+  Either works with or without the other, and deep reading never changes it.
+- **Not remembered.** Every book opens in the ordinary Reader.
+- **Reduce Motion** is honoured: the controls appear and go at once, and your line still stays.
+
+On a desktop the window's fullscreen never takes **Esc** from the Reader: the Reader answers it
+first, so the order above holds. If the window leaves fullscreen some other way (**F11**, the system),
+the page stays in deep reading and is not put back into fullscreen when you leave.
+
+On a desktop, Obsidian's own ribbon, tab bar and status bar slide away with the Reader's controls,
+and come back as you leave.
+
+**On an iPad** the app cannot make the window fullscreen, so deep reading covers Obsidian's own
+toolbar instead (the Reader already does while you read) and takes the Reader's controls away too.
+The iPadOS status bar, with the clock and the battery, stays: a plugin cannot hide it.
 
 ### One continuous shot
 
@@ -199,8 +239,9 @@ nothing below changes: a click never turns a page.
   slides back as you leave, exactly as it was. The top line, the back pill, the dots, the bar and the
   sheet stay inside the safe area — in both orientations and in a Split View window — and rotating
   keeps the line you were reading in view.
-- **No dead control.** There is no *Fullscreen* button where the app cannot go fullscreen, and **F**
-  is left alone. The shortcuts sheet names **⌘** and **⌥** on Apple devices.
+- **No dead control.** The app cannot make the window fullscreen on an iPad, so there is no
+  *Fullscreen*; *Deep reading* is there instead and works (see below). The shortcuts sheet names
+  **⌘** and **⌥** on Apple devices.
 - **A big book opens, or says why not.** A whole book is held in memory while you read it. On an
   iPad or a phone, a PDF over 100 MB or an EPUB over 50 MB is not opened — not even read: the page
   says it is too large to open on this device, with the way back to the library, and nothing is
@@ -491,6 +532,19 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   `travelDuration`). They return how long they take, and `readerHere.ts` waits that long before the
   *you are here* mark (`markHereAt`, `markHereOn`; `zf-reader-here`, opacity only). The old
   `reader-highlight--flash` box-shadow ring is gone.
+- Deep reading (#764) is the idle bar grown up, not a new state: page only is `reader--deep` +
+  `reader--idle`, the overlay is `reader--deep` alone, so `wake()` and the `IDLE_MS` timer are the
+  ones the bar always had, and `idleAllowed()` keeps the chrome while a panel, search or a popover is
+  open. `readerDeep.ts` is pure: `isReadingKey` (the keys that turn quietly), `movedEnough` /
+  `JITTER_PX` and `escapeStep` (the one Esc order). The window's fullscreen is asked of `doc.body`
+  only where `canFullscreen(doc)` says so, and given back only if deep reading took it; a
+  `fullscreenchange` to windowed forgets that. `reader--deep-entering` / `reader--deep-leaving` carry
+  the 250 ms gesture; the stage's insets never change under `reader--deep`.
+  On a desktop, `deepCover` (in `openReader.ts`) slides Obsidian's ribbon, tab bar, sidebar toggles
+  and status bar away (`reader-deep-hides-app`), then lets the Reader's leaf cover the window
+  (`reader-deep-covers-app`); `holdLine` keeps the first block on screen at the same height
+  through the cover, both ways, and the column travels sideways to its new centre inside the same
+  250 ms gesture (`columnShift` + a FLIP in `coverKeepingColumn`), so the cover never steps.
 - On mobile, `coverApp` (in `openReader.ts`) puts `zettelkasten-flow__reader-covers-app` on the body:
   the stylesheet slides Obsidian's chrome away and lets the Reader's leaf cover the screen. The stage
   sets `data-ignore-swipe` for the touches it takes, which Obsidian's own drawer swipe respects.

@@ -340,7 +340,7 @@ describe("the Reader on iPad: the screen and the keys (#750)", () => {
 
     const caps = (content: DomNode) => content.byClass("reader-shortcuts-keys").map((dt) => dt.findAll((el) => el.tag === "kbd").map((k) => k.textContent).join("+"));
 
-    it("names the gestures in a group of their own: a line drawn across, and two fingers (#746 FR-10, G3)", async () => {
+    it("names the gestures in a group of their own: a line, a circle, an arrow, a scribble, the lasso and two fingers (#746 G3, #747 FR-9)", async () => {
         const pc = mountReader();
         await pc.view.setState({ seed: "a.md" }, {} as never);
         await pc.view.onOpen();
@@ -349,8 +349,15 @@ describe("the Reader on iPad: the screen and the keys (#750)", () => {
         const lists = pc.content.byClass("reader-shortcuts-list");
         expect(lists).toHaveLength(2);
         const gestures = lists[1].byClass("reader-shortcuts-label").map((el) => el.textContent);
-        expect(gestures).toEqual(["Draw across a line to highlight it", "Undo the last ink"]);
-        expect(caps(pc.content)).toEqual(expect.arrayContaining(["—", "Two-finger tap"]));
+        expect(gestures).toEqual([
+            "Draw across a line to highlight it",
+            "Circle words to keep them as a question",
+            "Draw an arrow between two marks to link them",
+            "Scribble back and forth over a mark to erase it",
+            "Loop words with the lasso to select them",
+            "Undo the last ink",
+        ]);
+        expect(caps(pc.content)).toEqual(expect.arrayContaining(["—", "○", "→", "≋", "◌", "Two-finger tap"]));
     });
 
     it("names ⌘ and ⌥ on Apple devices, Ctrl and Alt elsewhere (AC-9)", async () => {

@@ -381,3 +381,64 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
         animation: none;
     }
 }
+
+/* ── circle, arrow, scribble and lasso (#747) ─────────────────────────── */
+
+/*
+ * The lasso (FR-7, FR-15): a hairline in the accent colour while you loop, never ink; closed, it
+ * stays as a light dashed outline while what it caught is offered. Its width is set in the surface's
+ * own units, so it is a hairline on a printed page too.
+ */
+.zettelkasten-flow__reader-ink--lasso {
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink--lasso path,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--lasso path {
+    stroke-width: var(--zf-lasso-w, 1.5);
+}
+
+.zettelkasten-flow__reader-ink--lasso-closed {
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink-lasso-loop,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink-lasso-loop {
+    fill: color-mix(in srgb, var(--interactive-accent) 6%, transparent);
+    stroke-dasharray: calc(var(--zf-lasso-w, 1.5) * 4) calc(var(--zf-lasso-w, 1.5) * 3);
+}
+
+/*
+ * A circle becomes the mark (FR-12): a clean ring in the question's colour where it was drawn, which
+ * tightens toward its words — the script's origin — and fades as their wash sweeps in.
+ */
+.zettelkasten-flow__reader-ink-ring {
+    fill: none;
+    stroke: var(--zf-ink-solid, var(--interactive-accent));
+    transform-box: view-box;
+    transform-origin: var(--zf-ink-origin, center);
+    pointer-events: none;
+}
+
+/* An arrow joins two marks (FR-13): each brightens once, a wash over its words. Opacity only. */
+.zettelkasten-flow__reader-ink-flash {
+    position: absolute;
+    left: var(--zf-flash-x, 0);
+    top: var(--zf-flash-y, 0);
+    width: var(--zf-flash-w, 0);
+    height: var(--zf-flash-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Reduced motion (FR-17): no ring and no brightening — the marks appear or go, at once. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-ring,
+    .zettelkasten-flow__reader-ink-flash {
+        display: none;
+    }
+}

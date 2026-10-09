@@ -606,3 +606,83 @@ describe("one highlight engine: a stroke and a selection keep the same thought (
         expect(m.marks().map((mark) => mark.textContent).join("")).toBe("Event sourcing");
     });
 });
+
+describe("what the gestures ask of the one engine (#747)", () => {
+    it("keeps a circle's words as the same thought a selection with Question keeps, and leaves H's meaning alone (AC-3)", async () => {
+        const m = mount();
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const at = text.indexOf("stores changes");
+        const found = m.highlights.quoteFor(at, at + "stores changes".length)!;
+        await m.highlights.keepSpan(found.span, found.quote, { meaning: "question", origin: "stroke", status: "reader_ink_circled", remember: false });
+        expect(m.highlights.currentMeaning()).toBe("idea");
+        expect(m.host.find((el) => el.textContent === "Circled — kept as a question")).toBeDefined();
+        m.select("stores changes");
+        m.body.fire("mouseup");
+        m.button("Question").click();
+        await flush();
+        const [circled, selected] = m.store.write.mock.calls as unknown as [string, unknown][];
+        expect(selected).toEqual(circled);
+    });
+
+    it("offers the lasso's words in the selection popover — every meaning, the note and Copy — and writes nothing (FR-7, AC-6)", async () => {
+        const m = mount();
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const at = text.indexOf("Replay rebuilds");
+        const closed = jest.fn();
+        expect(m.highlights.offerSpan({ start: at, end: at + "Replay rebuilds".length }, { left: 10, top: 40, width: 80, height: 30 }, closed)).toBe(true);
+        expect(m.host.byClass("reader-hl-pop--select")).toHaveLength(1);
+        expect(m.host.byClass("reader-hl-pop--below")).toHaveLength(1);
+        for (const label of ["Idea", "Question", "Quote", "To discuss", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
+        expect(m.store.write).not.toHaveBeenCalled();
+        // 1–4 keep the lasso's words too, as they keep a selection's.
+        expect(m.highlights.chooseMeaning(0)).toBe(true);
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect((m.store.write.mock.calls[0] as unknown as [string, { quote: ThoughtQuote }])[1].quote.exact).toBe("Replay rebuilds");
+        expect(closed).toHaveBeenCalledTimes(1);
+    });
+
+    it("lets the lasso's popover go with nothing written, and says so to the lasso (the negative)", async () => {
+        const m = mount();
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const at = text.indexOf("stores");
+        const closed = jest.fn();
+        m.highlights.offerSpan({ start: at, end: at + 6 }, { left: 10, top: 40, width: 80 }, closed);
+        m.highlights.hidePopover();
+        expect(closed).toHaveBeenCalledTimes(1);
+        expect(m.store.write).not.toHaveBeenCalled();
+        expect(m.highlights.chooseMeaning(0)).toBe(false);
+    });
+
+    it("erases a highlight to the trash and brings it back, drawn again (FR-5)", async () => {
+        const m = mount();
+        await m.attach();
+        m.select("stores changes");
+        m.body.fire("mouseup");
+        m.button("Idea").click();
+        await flush();
+        const made = m.highlights.items()[0];
+        expect(await m.highlights.erase(made)).toBe(true);
+        expect(m.store.discard).toHaveBeenCalledWith(made);
+        expect(m.marks()).toHaveLength(0);
+        expect(m.highlights.sessionCounts().highlights).toBe(1);
+        const back = await m.highlights.unerase(made);
+        expect(back?.length).toBeGreaterThan(0);
+        expect(m.highlights.items().map((t) => t.id)).toEqual([made.id]);
+    });
+
+    it("adopts a highlight saved elsewhere, so a later change keeps its link (FR-4)", async () => {
+        const m = mount();
+        await m.attach();
+        m.select("stores changes");
+        m.body.fire("mouseup");
+        m.button("Idea").click();
+        await flush();
+        const made = m.highlights.items()[0];
+        m.highlights.adopt({ ...made, links: [{ to: "other" }] });
+        expect(m.highlights.items()[0].links).toEqual([{ to: "other" }]);
+    });
+});

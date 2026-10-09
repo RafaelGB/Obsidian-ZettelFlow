@@ -1,6 +1,8 @@
 import { describe, it } from "@jest/globals";
 import { appendPoint, newStroke, type InkPoint } from "application/reader/ink/inkStroke";
 import { placeInk, type Column, type InkAnchor } from "application/reader/ink/inkAnchor";
+import { recognise, type MarkBox } from "application/reader/ink/gestures";
+import type { WordBox } from "application/reader/ink/inkAnchor";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -60,5 +62,24 @@ describe("ink (#745)", () => {
             return (performance.now() - started) / 10;
         });
         assertBudget("ink.layout.200", ms);
+    });
+
+    it("recognises a 1,000-point stroke against a page of words and marks inside a frame (#747 AC-9)", () => {
+        // 400 words: 20 lines of 20, 16 px type on a 28 px line; 40 marks among them.
+        const words: WordBox[] = [];
+        for (let i = 0; i < 400; i++) words.push({ start: i * 6, end: i * 6 + 5, left: 100 + (i % 20) * 44, top: 100 + Math.floor(i / 20) * 28 + 6, width: 40, height: 16 });
+        const marks: MarkBox[] = Array.from({ length: 40 }, (_, i) => ({ ref: { kind: "highlight", id: `h${i}` }, rects: [words[i * 10]] }));
+        // The worst stroke there is: a closed loop round a quarter of the page, so every check runs to the end.
+        const loop = Array.from({ length: 1000 }, (_, i) => {
+            const a = (i / 999) * Math.PI * 2.05;
+            return { x: 540 + 300 * Math.cos(a) + Math.sin(i / 3), y: 380 + 120 * Math.sin(a) + Math.cos(i / 4) };
+        });
+        const ctx = { words, marks, linePx: 28, emPx: 16 };
+        const ms = best(5, () => {
+            const started = performance.now();
+            for (let round = 0; round < 10; round++) recognise({ strokes: [loop] }, ctx);
+            return (performance.now() - started) / 10;
+        });
+        assertBudget("ink.classify.1000", ms);
     });
 });

@@ -211,6 +211,11 @@ export function linkThoughts(left: Thought, right: Thought): [Thought, Thought] 
     return [add(left, right.id), add(right, left.id)];
 }
 
+/** A connection taken back from one side (#747): the thought without its link to `other`. */
+export function unlinkThought(thought: Thought, other: string): Thought {
+    return thought.links.some((link) => link.to === other) ? { ...thought, links: thought.links.filter((link) => link.to !== other) } : thought;
+}
+
 /** Newest first: where you were just working is where you want to be. */
 export function orderThoughts(thoughts: readonly Thought[]): Thought[] {
     return [...thoughts].sort((a, b) => b.at - a.at);

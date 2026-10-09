@@ -103,6 +103,13 @@ export interface KeepOptions {
     actions?: (thought: Thought) => StatusAction[];
     /** Called once the thought is written: a selection lets go of its words. */
     clear?: () => void;
+    /** What the status line says instead of the meaning's own line: a circle's *Circled* (#747). */
+    status?: LocaleKey;
+    /**
+     * Whether this keep becomes the meaning H and the next stroke use (#720). A gesture's fixed meaning
+     * — a circle's question (#747) — does not: it is a shortcut, never a choice of the pen's colour.
+     */
+    remember?: boolean;
 }
 
 /** The id a stroke's marks carry while their thought is being written (#746 FR-12). */
@@ -230,6 +237,10 @@ export class ReaderHighlights {
     private anchored: { thought: Thought; marks: HTMLElement[] }[] = [];
     private detached: Thought[] = [];
     private popover: HTMLElement | null = null;
+    /** Called when the popover on screen goes, whatever took it: the lasso's loop goes with it (#747). */
+    private popoverClosed: (() => void) | null = null;
+    /** Words offered by the lasso (#747 FR-7): a selection with no DOM selection behind it. */
+    private offered: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote } | null = null;
     /**
      * The passage a note is being written about, marked meanwhile: focusing the note box takes the
      * selection away, and the words lost their highlight while you typed. Gone with the popover.
@@ -438,6 +449,10 @@ export class ReaderHighlights {
     }
 
     hidePopover(): void {
+        this.offered = null;
+        const closed = this.popoverClosed;
+        this.popoverClosed = null;
+        closed?.();
         this.clearPending();
         ownWindow(this.view.host)?.clearTimeout(this.statusTimer);
         this.popover?.remove();
@@ -529,7 +544,8 @@ export class ReaderHighlights {
         const body = this.body;
         if (!body) return null;
         const selection = this.select(body);
-        if (!selection) return null;
+        // The lasso's words are a selection too, while their popover is up (#747 FR-7).
+        if (!selection) return this.offered;
         const found = this.quoteFor(selection.start, selection.end);
         return found ? { selection, ...found } : null;
     }
@@ -543,7 +559,28 @@ export class ReaderHighlights {
             return;
         }
         // A touch selection: below the words, beside the system's callout above them (FR-5).
-        const touch = touchPointer({ pointerType: this.pointer });
+        this.offerSelection(found, touchPointer({ pointerType: this.pointer }));
+    }
+
+    /**
+     * The lasso's words (#747 FR-7): the **same** popover a selection opens — the four meanings,
+     * *Highlight and note*, *Copy* — for exactly those words. It writes nothing by itself; `onClose` is
+     * called when the popover goes, whatever took it (a choice, Esc, a scroll, another popover).
+     */
+    offerSpan(span: TextSpan, rect: SelectionInfo["rect"], onClose?: () => void): boolean {
+        const found = this.quoteFor(span.start, span.end);
+        if (!found || !this.body) return false;
+        const selection: SelectionInfo = { start: found.span.start, end: found.span.end, rect, clear: () => undefined };
+        // Below the loop, as a touch selection's: the hand that drew it is above it. No system callout
+        // offers Copy here, so the popover does.
+        this.offerSelection({ selection, ...found }, true, false);
+        this.offered = { selection, ...found };
+        this.popoverClosed = onClose ?? null;
+        return true;
+    }
+
+    /** The selection popover over `found`: its meanings and its actions (#720, #750). */
+    private offerSelection(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }, touch: boolean, systemCopy = touch): void {
         const pop = this.openPopover(found.selection.rect, "select", touch);
         // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
         const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
@@ -552,8 +589,8 @@ export class ReaderHighlights {
         }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
-        // The system's callout already offers Copy to a finger (FR-6); a mouse has only ours.
-        if (touch) return;
+        // The system's callout already offers Copy to a finger (FR-6); a mouse — and a lasso — only ours.
+        if (systemCopy) return;
         this.button(actions, "reader_hl_copy", false, () => {
             if (this.body) this.copy(this.body, found.quote.exact);
             this.status("reader_hl_copied");
@@ -630,7 +667,7 @@ export class ReaderHighlights {
             this.status("reader_hl_failed");
             return undefined;
         }
-        this.counted(options.note ?? "", meaning);
+        this.counted(options.note ?? "", meaning, options.remember !== false);
         options.clear?.();
         if (this.body !== body) return made; // the chapter turned while the thought was written
         this.clearPending(); // the real marks take its place
@@ -645,7 +682,7 @@ export class ReaderHighlights {
         }
         this.insert(thought, marks, span.start);
         this.settleIntoMargin(marks[0], thought);
-        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
+        this.status(options.status ?? (stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved"), options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
         return thought;
     }
 
@@ -687,10 +724,10 @@ export class ReaderHighlights {
         return made;
     }
 
-    private counted(note: string, meaning: HighlightMeaning): void {
+    private counted(note: string, meaning: HighlightMeaning, remember = true): void {
         this.made++;
         if (note.trim()) this.noted++;
-        this.lastMeaning = meaning;
+        if (remember) this.lastMeaning = meaning;
     }
 
     /**
@@ -761,8 +798,95 @@ export class ReaderHighlights {
         }
         this.renderMargin();
         this.view.onChange();
-        this.hidePopover();
+        this.hideStatus();
         return true;
+    }
+
+    // ── what a gesture asks of the highlights (#747) ─────────────────────────
+
+    /** The chapter's highlights on screen: each thought with its marks' boxes (client px). */
+    markBoxes(): { thought: Thought; rects: { left: number; top: number; width: number; height: number }[] }[] {
+        return this.anchored.map((entry) => ({
+            thought: entry.thought,
+            rects: entry.marks
+                .filter((mark) => mark.isConnected !== false)
+                .flatMap((mark) => Array.from(mark.getClientRects?.() ?? []))
+                .filter((rect) => rect.width > 0 || rect.height > 0)
+                .map((rect) => ({ left: rect.left, top: rect.top, width: rect.width, height: rect.height })),
+        }));
+    }
+
+    /** The marks of a highlight on screen, by id: what a joined arrow brightens. */
+    marksOf(id: string): HTMLElement[] {
+        return this.anchored.find((entry) => entry.thought.id === id)?.marks.filter((mark) => mark.isConnected !== false) ?? [];
+    }
+
+    /** A highlight was saved elsewhere (an arrow's link, #747 FR-4): the one on screen is that one now. */
+    adopt(thought: Thought): void {
+        const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
+        if (entry) entry.thought = thought;
+    }
+
+    /**
+     * A scribble or the eraser over a highlight (#747 FR-5, FR-6): to the trash as removing one does,
+     * its wash fading. It stays counted — it was made, and an erase is not an undo. Joins the caller's
+     * batch, so a scribble over several marks is one recorded write.
+     */
+    async erase(thought: Thought): Promise<boolean> {
+        const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
+        // The wash goes with the scribble, before the write (FR-14, FR-16) — and comes back if it fails.
+        this.fadeMarks(entry?.marks ?? []);
+        this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== thought.id);
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.discard(thought));
+        } catch (error) {
+            log.error(`[Reader] could not erase a highlight: ${String(error)}`);
+            this.status("reader_hl_failed");
+            const body = this.body;
+            const span = body && thought.quote ? anchorAll(chapterText(body), [{ thought, quote: thought.quote }]).anchored[0]?.span : undefined;
+            if (span) this.insert(thought, this.draw(thought, span), span.start);
+            return false;
+        }
+        this.renderMargin();
+        this.view.onChange();
+        return true;
+    }
+
+    /** Undo of an erase: the highlight back from the trash and drawn again; its marks, to fade in. */
+    async unerase(thought: Thought): Promise<HTMLElement[] | null> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.restore(thought));
+        } catch (error) {
+            log.error(`[Reader] could not restore a highlight: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return null;
+        }
+        const body = this.body;
+        if (!body || !thought.quote) return [];
+        const { anchored } = anchorAll(chapterText(body), [{ thought, quote: thought.quote }]);
+        if (!anchored[0]) {
+            this.detached.push(thought);
+            this.renderMargin();
+            this.view.onChange();
+            return [];
+        }
+        const marks = this.draw(thought, anchored[0].span);
+        this.insert(thought, marks, anchored[0].span.start);
+        return marks;
+    }
+
+    /** Only a status line goes (#747): an undo from the palette never takes a note being written. */
+    hideStatus(): void {
+        if (this.popover?.hasClass(c("reader-hl-pop--status"))) this.hidePopover();
+    }
+
+    /**
+     * A gesture's line (#747 FR-8): what it did, low on the page, with its ways back. `onClose` when it
+     * goes: the lasso's loop goes with the *Delete* it offered.
+     */
+    say(key: LocaleKey, actions: StatusAction[] = [], onClose?: () => void): void {
+        this.status(key, actions, true);
+        this.popoverClosed = onClose ?? null;
     }
 
     /** Take back the highlight just made (#746 FR-7): to the trash, its marks fading, never counted. */
@@ -857,7 +981,8 @@ export class ReaderHighlights {
             // Taking back the highlight just made: it no longer counts for this reading.
             this.made = Math.max(0, this.made - 1);
             if (thought.text.trim()) this.noted = Math.max(0, this.noted - 1);
-            this.hidePopover();
+            // Its line goes; a popover of something else (a lasso's offer, a note) stays (#747).
+            this.hideStatus();
         }
         return true;
     }

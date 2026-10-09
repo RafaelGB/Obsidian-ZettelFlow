@@ -9,6 +9,7 @@ import {
     parseThought,
     renderThought,
     thoughtPath,
+    unlinkThought,
     type Thought,
 } from "application/thinking/thought";
 
@@ -250,5 +251,13 @@ describe("ink is a thought (#745 E6)", () => {
         expect(isHighlight(parsed)).toBe(true);
         const garbled = renderThought(text).replace("inkSide: right", "inkSide: up");
         expect(parseThought(garbled, "Lab/x.md").ink).toBeUndefined();
+    });
+});
+
+describe("a connection taken back (#747)", () => {
+    it("drops the one link, and keeps the rest of the thought as it is now", () => {
+        const t: Thought = { id: "a", at: 1, text: "x", links: [{ to: "b" }, { to: "c" }], meaning: "quote" };
+        expect(unlinkThought(t, "b")).toEqual({ ...t, links: [{ to: "c" }] });
+        expect(unlinkThought(t, "z")).toBe(t);
     });
 });

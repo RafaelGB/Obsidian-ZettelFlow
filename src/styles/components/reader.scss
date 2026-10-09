@@ -1347,8 +1347,10 @@ mark.zettelkasten-flow__reader-highlight {
     }
 }
 
-/* A highlight just made is drawn like a marker: swept across the words, left to right. */
-.zettelkasten-flow__reader-highlight--new {
+/* A highlight just made is drawn like a marker: swept across the words, left to right. `mark.`, as
+   the mark itself is, so its wash stays clear until the sweep draws it — over Obsidian 1.14's own
+   `.markdown-rendered mark` and the mark's ink alike (#747). */
+mark.zettelkasten-flow__reader-highlight--new {
     background-color: transparent;
     background-image: linear-gradient(var(--zf-ink, var(--highlight-background, var(--text-highlight-bg))), var(--zf-ink, var(--highlight-background, var(--text-highlight-bg))));
     background-repeat: no-repeat;

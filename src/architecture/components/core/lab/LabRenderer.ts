@@ -1176,7 +1176,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             const other = this.thoughts.find((entry) => entry.id === link.to);
             const chip = row.createEl("button", {
                 cls: c("lab-chip"),
-                text: other ? firstWords(other.text) : t("lab_link_gone"),
+                text: other ? linkLabel(other) : t("lab_link_gone"),
                 attr: { type: "button" },
             });
             if (!other) {
@@ -1625,4 +1625,14 @@ function weekdayInitials(weekStartsOn: number): string[] {
     return Array.from({ length: 7 }, (_unused, index) =>
         narrow.format(new Date(2024, 0, 7 + ((weekStartsOn + index) % 7)))
     );
+}
+
+/**
+ * What a connection chip says (#747): a thought's own words — or, for a highlight with no note, its
+ * passage, and for ink, that it is ink. An arrow between two marks links thoughts with no text.
+ */
+export function linkLabel(thought: Thought): string {
+    if (thought.text.trim()) return firstWords(thought.text);
+    if (isInk(thought)) return t("lab_link_ink");
+    return firstWords(thought.quote?.exact ?? "");
 }

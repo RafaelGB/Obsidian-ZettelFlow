@@ -4,15 +4,16 @@ import { t } from "architecture/lang";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { anchorAll, anchorQuote, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
-import { isHighlight, isInk, isPageInk, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
+import { isHighlight, isInk, isPageInk, linkThoughts, unlinkThought, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
 import { meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { bandWords, extendsHighlight, isLineStroke, linesOf, strokeMetrics } from "application/reader/ink/strokeHighlight";
 import { pageHeadingAt, type PageText } from "application/library/pdfWords";
-import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
+import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, INK_WIDTH_EM, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
 import { drawingBox, INK_COLOURS, isUnreadable, parseInkSvg, renderInkSvg, type InkColour, type InkDrawing, type InkStrokeData } from "application/reader/ink/inkSvg";
 import { anchorInk, keepOnPage, pageAnchor, placeInk, PAGE_EMS, type Box, type Column, type InkAnchor, type WordBox } from "application/reader/ink/inkAnchor";
 import { GROUP_IDLE_MS, InkGrouping, type FlushReason, type InkBox, type InkGroup } from "application/reader/ink/inkGroup";
 import { altitudeOf, routePointer, twoFingerTap, PALM_WINDOW_MS, type FingerTrace } from "application/reader/ink/inkInput";
+import { lassoHolds, lassoWords, recognise, type Gesture, type MarkBox } from "application/reader/ink/gestures";
 import { chapterText, pointAt, textNodes } from "./readerMarks";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { renderInkThumb } from "./readerInkThumb";
@@ -28,7 +29,7 @@ export const ERASER_RADIUS_PX = 10;
 const FALLBACK_NIB_PX = 24;
 /** How long a quiet line in the palette stays. */
 const STATUS_MS = 6000;
-const INK_TOOLS = ["pen", "highlighter", "eraser"] as const;
+const INK_TOOLS = ["pen", "highlighter", "lasso", "eraser"] as const;
 type InkTool = (typeof INK_TOOLS)[number];
 
 /** The colour names, as the palette says them. A literal map, so the locale guardrail sees each key. */
@@ -38,8 +39,10 @@ const COLOUR_LABEL: Record<InkColour, LocaleKey> = {
     blue: "reader_ink_colour_blue",
     green: "reader_ink_colour_green",
 };
-const TOOL_LABEL: Record<InkTool, LocaleKey> = { pen: "reader_ink_pen", highlighter: "reader_ink_highlighter", eraser: "reader_ink_eraser" };
-const TOOL_ICON: Record<InkTool, string> = { pen: "pen-line", highlighter: "highlighter", eraser: "eraser" };
+const TOOL_LABEL: Record<InkTool, LocaleKey> = { pen: "reader_ink_pen", highlighter: "reader_ink_highlighter", lasso: "reader_ink_lasso", eraser: "reader_ink_eraser" };
+const TOOL_ICON: Record<InkTool, string> = { pen: "pen-line", highlighter: "highlighter", lasso: "lasso", eraser: "eraser" };
+/** The lasso's loop, in px on screen: a hairline, dashed once it is closed (#747 FR-15). */
+const LASSO_WIDTH_PX = 1.5;
 
 /** Where ink is kept — the thought store, as far as the Reader's ink uses it (#745 E7). */
 export interface InkStore {
@@ -53,6 +56,8 @@ export interface InkStore {
     saveDrawing(thought: Thought, svg: string): Promise<void>;
     discard(thought: Thought): Promise<string | undefined | void>;
     restore(thought: Thought, drawing?: string): Promise<void>;
+    /** A thought written again — an arrow's link (#747 FR-4). */
+    save(thought: Thought): Promise<void>;
 }
 
 /** The parts of the view ink draws into and acts through. */
@@ -83,6 +88,16 @@ export interface InkHighlighter {
     extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions">): Promise<Thought | undefined>;
     unextend(grown: Thought, before: Thought): Promise<boolean>;
     takeBack(thought: Thought): Promise<boolean>;
+    /** The gestures' part (#747): the marks on screen, a link adopted, an erase and its undo, the lasso. */
+    markBoxes(): { thought: Thought; rects: Box[] }[];
+    marksOf(id: string): HTMLElement[];
+    adopt(thought: Thought): void;
+    erase(thought: Thought): Promise<boolean>;
+    unerase(thought: Thought): Promise<HTMLElement[] | null>;
+    offerSpan(span: TextSpan, rect: { left: number; top: number; width: number; height?: number }, onClose?: () => void): boolean;
+    say(key: LocaleKey, actions?: StatusAction[], onClose?: () => void): void;
+    hidePopover(): void;
+    hideStatus(): void;
 }
 
 /**
@@ -115,8 +130,11 @@ interface LastStroke {
 /** Seams for tests; the defaults are the real DOM, the real store and the real clock. */
 export interface InkDeps {
     store?: InkStore;
-    /** The words near `y` (client px) in `body`, in client coordinates, and the chapter's text. */
-    words?: (body: HTMLElement, y: number, linePx: number) => { words: WordBox[]; text: string };
+    /**
+     * The words near `y` (client px) in `body`, in client coordinates, and the chapter's text: within
+     * `reach` px of it, four lines when not said.
+     */
+    words?: (body: HTMLElement, y: number, linePx: number, reach?: number) => { words: WordBox[]; text: string };
     /** Where a span of the chapter's text is on screen, in client coordinates. */
     spanBox?: (body: HTMLElement, span: TextSpan) => Box | null;
     /** The reading type: its size and its line, in px. */
@@ -158,8 +176,21 @@ interface LiveInk {
     surface: Surface;
     box: InkBox;
     startedAt: number;
+    /** When the pen went down, by the note's clock: a head drawn soon after a shaft is an arrow's (#747). */
+    downAt: number;
+    /** Its step on the session's undo while it is ink — taken off when it becomes an arrow's shaft. */
+    drawn?: InkAction;
     /** Once written: the kept note it went into. */
     note?: KeptNote;
+}
+
+/** What a gesture's end lands on (#747): a highlight, a kept ink note, or the note being written. */
+type MarkTarget = { kind: "highlight"; thought: Thought } | { kind: "note"; note: KeptNote } | { kind: "open"; lives: LiveInk[] };
+
+/** The marks near a stroke, as the recogniser sees them, and what each one is. */
+interface MarksHere {
+    boxes: MarkBox[];
+    targets: Map<string, MarkTarget>;
 }
 
 interface KeptStroke {
@@ -216,11 +247,11 @@ function readMetrics(body: HTMLElement): { fontPx: number; linePx: number } {
 }
 
 /** The words of the chapter within a few lines of `y`, measured once — what a flush anchors to. */
-function readWords(body: HTMLElement, y: number, linePx: number): { words: WordBox[]; text: string } {
+function readWords(body: HTMLElement, y: number, linePx: number, within?: number): { words: WordBox[]; text: string } {
     const doc = body.ownerDocument;
     const words: WordBox[] = [];
     let pos = 0;
-    const reach = linePx * 4;
+    const reach = within ?? linePx * 4;
     for (const node of textNodes(body) as unknown as Text[]) {
         const length = node.data.length;
         const parent = node.parentElement;
@@ -292,7 +323,7 @@ export class ReaderInk {
     private livePointer: number | null = null;
     private queued: InkPoint[] = [];
     private frameAsked = false;
-    private erasing: { pointer: number; surface: Surface; hits: Set<LiveInk | KeptStroke>; last: [number, number] | null } | null = null;
+    private erasing: { pointer: number; surface: Surface; hits: Set<LiveInk | KeptStroke>; highlights: Map<string, Thought>; marks: MarksHere; last: [number, number] | null } | null = null;
     private rejected = new Set<number>();
     private penDown = false;
     private lastPenUpAt: number | null = null;
@@ -308,6 +339,10 @@ export class ReaderInk {
     private slots = new Map<number, { el: HTMLElement; svg: SVGSVGElement; aspect: number }>();
     /** The last highlight a stroke made, so the next line drawn soon after grows it (#746 FR-5). */
     private lastStroke: LastStroke | null = null;
+    /** The last stroke kept as ink, and when it lifted: an arrow's shaft, if a head follows (#747). */
+    private lastInk: { live: LiveInk; at: number } | null = null;
+    /** What is fading away now, so an undo that brings it back can call the fade off. */
+    private readonly fading = new WeakMap<Element, Animation>();
     /** A printed page's words, read as the page appears (#746 FR-9). */
     private pageTexts = new Map<number, PageText | null>();
     /** A printed page's highlight rectangles (#746 FR-9), by thought. */
@@ -521,6 +556,7 @@ export class ReaderInk {
         // Undo is the chapter's: it never reaches ink that is no longer on screen.
         this.undoStack.length = 0;
         this.lastStroke = null;
+        this.lastInk = null;
     }
 
     private allNotes(): KeptNote[] {
@@ -735,7 +771,9 @@ export class ReaderInk {
         this.capture(event);
         this.penDown = type === "pen";
         if (this.tool === "eraser") {
-            this.erasing = { pointer: event.pointerId, surface, hits: new Set(), last: null };
+            // The eraser reaches highlights too (#747 FR-6): their boxes, measured once as it goes down.
+            const marks = this.marksHere([], false);
+            this.erasing = { pointer: event.pointerId, surface, hits: new Set(), highlights: new Map(), marks, last: null };
             this.eraseAt(event);
             return true;
         }
@@ -854,6 +892,12 @@ export class ReaderInk {
             el.addClass(c("reader-ink--highlighter"), c(`reader-ink--hl-${meaning}`));
             el.setCssProps({ "--zf-hl-nib": String(round3(this.nibWidth(surface))) });
         }
+        if (this.tool === "lasso") {
+            // The lasso draws a hairline loop in the accent colour, never ink (#747 FR-7).
+            el.removeClass(c(`reader-ink--${this.colour}`));
+            el.addClass(c("reader-ink--lasso"));
+            el.setCssProps({ "--zf-lasso-w": String(round3(LASSO_WIDTH_PX * this.pxUnit(surface))) });
+        }
         const live: LiveInk = {
             colour: this.colour,
             pointerType: event.pointerType || "mouse",
@@ -863,6 +907,7 @@ export class ReaderInk {
             surface,
             box: { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity },
             startedAt: event.timeStamp ?? 0,
+            downAt: this.now(),
         };
         this.live = live;
         this.livePointer = event.pointerId;
@@ -932,8 +977,17 @@ export class ReaderInk {
         }
         live.provisional = null;
         this.penUpNow(event);
-        // Drawn across a line — or with the highlighter — it is a highlight, not ink (#746).
-        if (event && this.highlightStroke(live)) {
+        // The lasso selects, and is never ink (#747 FR-7).
+        if (this.tool === "lasso") {
+            this.grouping.cancel();
+            if (event) this.finishLasso(live);
+            else live.el.remove();
+            if (this.grouping.current()) this.armIdle();
+            return;
+        }
+        // Drawn across a line — or with the highlighter — it is a highlight, not ink (#746); a circle,
+        // an arrow between marks or a scribble is that gesture (#747).
+        if (event && (this.highlightStroke(live) || this.gesture(live))) {
             this.grouping.cancel();
             if (this.grouping.current()) this.armIdle();
             return;
@@ -942,7 +996,9 @@ export class ReaderInk {
         const box = { left: live.box.left - pad, top: live.box.top - pad, right: live.box.right + pad, bottom: live.box.bottom + pad };
         const closed = this.grouping.penUp(live, box, this.now(), live.surface.unit);
         if (closed) void this.writeGroup(closed);
-        this.undoStack.push(this.drawnAction(live));
+        live.drawn = this.drawnAction(live);
+        this.undoStack.push(live.drawn);
+        if (this.tool === "pen") this.lastInk = { live, at: this.now() };
         this.armIdle();
     }
 
@@ -1153,6 +1209,459 @@ export class ReaderInk {
         this.pageMarks.get(entry.page.index)?.marks.delete(thought.id);
         if (this.runInk) this.runInk.highlights = this.runInk.highlights.filter((t) => t.id !== thought.id);
         for (const rect of entry.page.marks) this.fadeOut(rect);
+    }
+
+    // ── circle, arrow, scribble and lasso (#747) ─────────────────────────────
+
+    /** Surface units per px on screen: 1 over the text, a printed page's ems per px on it. */
+    private pxUnit(surface: Surface): number {
+        return surface.page ? PAGE_EMS / Math.max(1, this.slotWidth(surface)) : 1;
+    }
+
+    /**
+     * The marks on the text a gesture can act on, in the page's own px: the highlights, the kept ink
+     * notes, and the note being written — never the strokes in `skip`, which are the gesture itself.
+     */
+    private marksHere(skip: readonly LiveInk[] = [], inkToo = true): MarksHere {
+        const boxes: MarkBox[] = [];
+        const targets = new Map<string, MarkTarget>();
+        const chapter = this.chapter;
+        if (!chapter || chapter.run) return { boxes, targets };
+        const page = chapter.page.getBoundingClientRect();
+        for (const { thought, rects } of this.view.highlights?.()?.markBoxes() ?? []) {
+            const id = `hl:${thought.id}`;
+            targets.set(id, { kind: "highlight", thought });
+            boxes.push({ ref: { kind: "highlight", id }, rects: rects.map((r) => ({ ...r, left: r.left - page.left, top: r.top - page.top })) });
+        }
+        if (!inkToo) return { boxes, targets };
+        this.notes.forEach((note, i) => {
+            const box = this.noteBox(note);
+            if (!box || (note.state === "unsaved" && !note.thought)) return;
+            const id = `ink:${i}`;
+            targets.set(id, { kind: "note", note });
+            boxes.push({ ref: { kind: "ink", id }, rects: [box] });
+        });
+        const open = (this.grouping.current()?.strokes ?? []).filter((live) => !skip.includes(live) && !live.surface.page);
+        if (open.length > 0) {
+            const box = open.reduce((b, live) => ({ left: Math.min(b.left, live.box.left), top: Math.min(b.top, live.box.top), right: Math.max(b.right, live.box.right), bottom: Math.max(b.bottom, live.box.bottom) }), { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+            targets.set("open", { kind: "open", lives: open });
+            boxes.push({ ref: { kind: "ink", id: "open" }, rects: [{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top }] });
+        }
+        return { boxes, targets };
+    }
+
+    /** Where a kept text note is now, in the page's px. */
+    private noteBox(note: KeptNote): Box | null {
+        if (note.surface !== "text" || !note.placed) return null;
+        const b = drawingBox({ strokes: note.strokes.map((s) => s.data) });
+        const { left, top, unit } = note.placed;
+        return { left: left + b.left * unit, top: top + b.top * unit, width: (b.right - b.left) * unit, height: (b.bottom - b.top) * unit };
+    }
+
+    /** Where a note is on a surface, in its units: what the lasso holds. */
+    private noteBoxOn(note: KeptNote, surface: Surface): Box | null {
+        if (!surface.page) return this.noteBox(note);
+        if (note.surface !== surface.page.index || !note.origin) return null;
+        const b = drawingBox({ strokes: note.strokes.map((s) => s.data) });
+        return { left: note.origin[0] + b.left, top: note.origin[1] + b.top, width: b.right - b.left, height: b.bottom - b.top };
+    }
+
+    /**
+     * At pen-up, after the line (#747 FR-1): a circle round words, an arrow between two marks, a
+     * scribble over marks — judged by the one recogniser. Returns whether the stroke was a gesture;
+     * otherwise it stays the ink it was drawn as. The reading view only: a printed page keeps its line.
+     */
+    private gesture(live: LiveInk): boolean {
+        const chapter = this.chapter;
+        if (this.tool !== "pen" || !chapter || chapter.run || live.surface.page) return false;
+        const points = live.stroke.points;
+        if (points.length < 3) return false;
+        const { fontPx, linePx } = this.metrics(chapter.body);
+        const page = chapter.page.getBoundingClientRect();
+        const box = live.box;
+        const near = this.words(chapter.body, page.top + (box.top + box.bottom) / 2, linePx, (box.bottom - box.top) / 2 + linePx * 2);
+        const words = near.words.map((w) => ({ ...w, left: w.left - page.left, top: w.top - page.top }));
+        const shaft = this.shaftFor(live);
+        // A short head drawn soon after a straight stroke: the two are one arrow (FR-4) — its shaft is
+        // no mark of its own.
+        if (shaft) {
+            const marks = this.marksHere([live, shaft]);
+            const two = recognise({ strokes: [shaft.stroke.points, points], gapMs: live.downAt - (this.lastInk?.at ?? live.downAt) }, { words, marks: marks.boxes, linePx, emPx: fontPx });
+            if (two.kind === "arrow") return this.linkGesture(two, [shaft, live], marks);
+            if (two.kind === "arrow-unanchored") {
+                this.status("reader_ink_arrow_needs_marks");
+                return false;
+            }
+        }
+        const marks = this.marksHere([live]);
+        const one = recognise({ strokes: [points] }, { words, marks: marks.boxes, linePx, emPx: fontPx });
+        if (one.kind === "circle") return this.circleGesture(live, one);
+        if (one.kind === "arrow") return this.linkGesture(one, [live], marks);
+        if (one.kind === "scribble") return this.scribbleGesture(live, one, marks);
+        if (one.kind === "arrow-unanchored") this.status("reader_ink_arrow_needs_marks");
+        return false;
+    }
+
+    /** The stroke just before this one, if it can be an arrow's shaft: still ink, on this page, and just now. */
+    private shaftFor(live: LiveInk): LiveInk | null {
+        const last = this.lastInk;
+        if (!last || last.live === live || last.live.surface.key !== live.surface.key) return null;
+        if (!this.grouping.current()?.strokes.includes(last.live)) return null;
+        return live.downAt - last.at <= GROUP_IDLE_MS ? last.live : null;
+    }
+
+    /**
+     * A gesture on the session's undo (FR-8): the palette's undo, Ctrl/⌘+Z and two fingers take it
+     * back, as its status line's Undo and *Keep as ink* do — once, whichever comes first. Returns the
+     * claim: `true` the first time.
+     */
+    private pushStep(undo: () => Promise<unknown>): () => boolean {
+        let done = false;
+        const action: InkAction = {
+            undo: async () => {
+                if (!settle()) return;
+                // Taken back from the palette or with two fingers: its line, and its Undo, go with it —
+                // never a note being written.
+                this.view.highlights?.()?.hideStatus();
+                await undo();
+            },
+        };
+        const settle = () => {
+            if (done) return false;
+            done = true;
+            const at = this.undoStack.indexOf(action);
+            if (at >= 0) this.undoStack.splice(at, 1);
+            return true;
+        };
+        this.undoStack.push(action);
+        return settle;
+    }
+
+    /**
+     * A circle round words keeps them as a **question** (FR-3): the one highlight engine, exactly as a
+     * selection with *Question* would — and the meaning H uses stays yours. Undo and *Keep as ink* are
+     * a stroke highlight's (#746).
+     */
+    private circleGesture(live: LiveInk, g: Extract<Gesture, { kind: "circle" }>): boolean {
+        const engine = this.view.highlights?.() ?? null;
+        const found = engine?.hasText() ? engine.quoteFor(g.span.start, g.span.end) : null;
+        if (!engine || !found) return false;
+        this.lastInk = null;
+        const entry = this.strokeEntry(live);
+        entry.result = engine.keepSpan(found.span, found.quote, { meaning: "question", origin: "stroke", status: "reader_ink_circled", remember: false, actions: () => this.strokeActions(entry) });
+        this.ring(live, g.words);
+        return true;
+    }
+
+    /**
+     * The circle becomes the mark (FR-12): your stroke gives way to a clean ring where you drew it,
+     * which tightens onto its words and fades as their question wash sweeps in. Transform and opacity
+     * only; under reduced motion the stroke simply goes and the mark is there.
+     */
+    private ring(live: LiveInk, words: readonly Box[]): void {
+        const host = live.el as unknown as HTMLElement;
+        if (!motionWelcome(host)) {
+            live.el.remove();
+            return;
+        }
+        const b = live.box;
+        const left = Math.min(...words.map((w) => w.left));
+        const top = Math.min(...words.map((w) => w.top));
+        const right = Math.max(...words.map((w) => w.left + w.width));
+        const bottom = Math.max(...words.map((w) => w.top + w.height));
+        const ring = live.surface.svg.createSvg("ellipse", {
+            cls: [c("reader-ink-ring"), c("reader-ink--hl-question")],
+            attr: {
+                cx: String(round3((b.left + b.right) / 2)),
+                cy: String(round3((b.top + b.bottom) / 2)),
+                rx: String(round3((b.right - b.left) / 2)),
+                ry: String(round3((b.bottom - b.top) / 2)),
+                "stroke-width": String(round3(INK_WIDTH_EM * 1.4 * live.surface.unit)),
+                "aria-hidden": "true",
+            },
+        });
+        // Toward the words' middle, so it tightens onto them.
+        ring.setCssProps({ "--zf-ink-origin": `${round3((left + right) / 2)}px ${round3((top + bottom) / 2)}px` });
+        this.fadeOut(live.el, MOTION.fast);
+        const ringHost = ring as unknown as HTMLElement;
+        const animation = ringHost.animate(
+            [
+                { opacity: 0, transform: "scale(1.03)" },
+                { opacity: 1, transform: "scale(1)", offset: 0.3 },
+                { opacity: 0, transform: "scale(0.92)" },
+            ],
+            { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" }
+        );
+        animation.onfinish = () => ring.remove();
+        ownWindow(ringHost).setTimeout(() => ring.remove(), MOTION.base + 200);
+    }
+
+    /**
+     * An arrow between two marks links their thoughts, both ways, with Think's plain connection
+     * (FR-4): no direction, never a relation. The arrow fades and the two marks brighten once (FR-13)
+     * before anything is written; both thoughts are saved in one recorded batch.
+     */
+    private linkGesture(g: Extract<Gesture, { kind: "arrow" }>, strokes: LiveInk[], marks: MarksHere): boolean {
+        const from = marks.targets.get(g.from.id);
+        const to = marks.targets.get(g.to.id);
+        const chapter = this.chapter;
+        if (!from || !to || !chapter) return false;
+        this.lastInk = null;
+        for (const live of strokes) {
+            this.grouping.remove(live);
+            this.fadeOut(live.el, MOTION.base);
+            // A shaft that was ink until its head came: its own undo step goes, the arrow's takes its place.
+            const at = live.drawn ? this.undoStack.indexOf(live.drawn) : -1;
+            if (at >= 0) this.undoStack.splice(at, 1);
+            live.drawn = undefined;
+        }
+        for (const id of [g.from.id, g.to.id]) this.flash(marks.boxes.find((box) => box.ref.id === id)?.rects ?? []);
+        const label = chapter.notePath;
+        const work = (async (): Promise<{ ids: string[]; added: boolean[]; fallback: Thought[] } | null> => {
+            const left = await this.thoughtOf(from);
+            const right = await this.thoughtOf(to);
+            if (!left || !right || left.id === right.id) return null;
+            const pair = linkThoughts(left, right);
+            // Which side the arrow added a link to: a link that was there already is not the arrow's.
+            const added = [pair[0] !== left, pair[1] !== right];
+            try {
+                await withWriteBatch({ kind: "manual", ref: "reader-ink", label }, async () => {
+                    for (const thought of pair) await this.store.save(thought);
+                });
+            } catch (error) {
+                log.error(`[Reader] could not link two marks: ${String(error)}`);
+                this.status("reader_hl_failed");
+                return null;
+            }
+            pair.forEach((thought) => this.adoptThought(thought));
+            return { ids: [left.id, right.id], added, fallback: pair };
+        })();
+        /**
+         * The link taken back (FR-8): the link the arrow added, and only it, dropped from each thought as
+         * it is **now** — a meaning or a note changed since stays. One batch. Whether it went.
+         */
+        const unlink = async (): Promise<boolean> => {
+            const done = await work;
+            if (!done) return true;
+            const now = done.ids.map((id, i) => this.currentThought(id) ?? done.fallback[i]);
+            const before = now.map((thought, i) => (done.added[i] ? unlinkThought(thought, done.ids[1 - i]) : thought));
+            try {
+                await withWriteBatch({ kind: "manual", ref: "reader-ink", label }, async () => {
+                    for (const [i, thought] of before.entries()) if (done.added[i]) await this.store.save(thought);
+                });
+            } catch (error) {
+                log.error(`[Reader] could not take a link back: ${String(error)}`);
+                this.status("reader_hl_failed");
+                return false;
+            }
+            before.forEach((thought) => this.adoptThought(thought));
+            return true;
+        };
+        const settle = this.pushStep(unlink);
+        void work.then((done) => {
+            if (!done) {
+                settle();
+                return;
+            }
+            this.say("reader_ink_linked", [
+                { key: "reader_hl_undo", run: () => void (settle() && unlink()) },
+                { key: "reader_ink_keep_as_ink", run: () => void (settle() && this.keepGestureAsInk(unlink, strokes)) },
+            ]);
+        });
+        return true;
+    }
+
+    /** *Keep as ink* after a gesture (FR-8, AC-7): it is taken back and its strokes kept as ink — one batch. */
+    private async keepGestureAsInk(undo: () => Promise<boolean>, strokes: LiveInk[]): Promise<void> {
+        const chapter = this.chapter;
+        if (!chapter) return;
+        let kept = false;
+        const box = strokes.reduce((b, live) => ({ left: Math.min(b.left, live.box.left), top: Math.min(b.top, live.box.top), right: Math.max(b.right, live.box.right), bottom: Math.max(b.bottom, live.box.bottom) }), { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter.notePath }, async () => {
+                // Never both, never neither: the ink is written only once the gesture is gone.
+                if (!(await undo())) return;
+                kept = true;
+                await this.writeGroup({ strokes, box, lastUpAt: this.now() }, true);
+            });
+        } catch (error) {
+            log.error(`[Reader] could not keep a gesture as ink: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        if (kept)
+            for (const live of strokes) {
+                live.drawn = this.drawnAction(live);
+                this.undoStack.push(live.drawn);
+            }
+    }
+
+    /** The thought a mark is — waiting for a note being written, and writing the open one first (G3). */
+    private async thoughtOf(target: MarkTarget): Promise<Thought | null> {
+        if (target.kind === "highlight") return target.thought;
+        let note: KeptNote | undefined;
+        if (target.kind === "open") {
+            if (this.grouping.current()?.strokes.some((live) => target.lives.includes(live))) await this.flush("turn", true);
+            note = target.lives.find((live) => live.note)?.note;
+        } else note = target.note;
+        if (note?.state === "saving") await note.saving;
+        return note?.thought ?? null;
+    }
+
+    /** The thought on screen by id, as it is now: a highlight's or an ink note's. */
+    private currentThought(id: string): Thought | null {
+        const highlight = this.view.highlights?.()?.markBoxes().find((box) => box.thought.id === id)?.thought;
+        return highlight ?? this.allNotes().find((note) => note.thought?.id === id)?.thought ?? null;
+    }
+
+    /** A thought saved again: the highlight or the ink note on screen is that one now. */
+    private adoptThought(thought: Thought): void {
+        this.view.highlights?.()?.adopt(thought);
+        for (const note of this.allNotes()) if (note.thought?.id === thought.id) note.thought = thought;
+        for (const entry of this.listed) if (entry.thought.id === thought.id) entry.thought = thought;
+    }
+
+    /** A mark brightens once (FR-13): a wash over each of its boxes, opacity only, gone at the end. */
+    private flash(rects: readonly Box[]): void {
+        const page = this.chapter?.page;
+        if (!page || !motionWelcome(page)) return;
+        for (const rect of rects) {
+            const wash = page.createDiv({ cls: c("reader-ink-flash"), attr: { "aria-hidden": "true" } });
+            wash.setCssProps({ "--zf-flash-x": px(rect.left), "--zf-flash-y": px(rect.top), "--zf-flash-w": px(rect.width), "--zf-flash-h": px(rect.height) });
+            const animation = wash.animate([{ opacity: 0 }, { opacity: 0.5, offset: 0.4 }, { opacity: 0 }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" });
+            animation.onfinish = () => wash.remove();
+            ownWindow(page).setTimeout(() => wash.remove(), MOTION.base + 200);
+        }
+    }
+
+    /**
+     * A scribble over marks erases them (FR-5): the ink strokes it touches and the highlights it
+     * crosses, fading with it, as one action. It is never kept itself; over nothing it erases nothing.
+     */
+    private scribbleGesture(live: LiveInk, g: Extract<Gesture, { kind: "scribble" }>, marks: MarksHere): boolean {
+        this.lastInk = null;
+        const highlights = g.hits.flatMap((ref) => {
+            const target = marks.targets.get(ref.id);
+            return target?.kind === "highlight" ? [target.thought] : [];
+        });
+        const hits = new Set<LiveInk | KeptStroke>();
+        const segments = new Map<LiveInk | KeptStroke, Segment[]>();
+        for (const pt of live.stroke.points) this.strokesAt(pt.x, pt.y, live.surface, hits, ERASER_RADIUS_PX / 2, [live], undefined, segments);
+        this.fadeOut(live.el, MOTION.fast);
+        if (highlights.length === 0 && hits.size === 0) {
+            this.status("reader_ink_nothing_to_erase");
+            return true;
+        }
+        this.eraseAll(hits, highlights, true);
+        return true;
+    }
+
+    /**
+     * The lasso, at pen-up (FR-7): words inside the loop open the selection popover for exactly those
+     * words; ink notes alone offer *Delete*; nothing says so. The lasso never writes by itself, and its
+     * loop stays, dashed, while what it caught is offered (FR-15).
+     */
+    private finishLasso(live: LiveInk): void {
+        const chapter = this.chapter;
+        const engine = this.view.highlights?.() ?? null;
+        const points = live.stroke.points;
+        const loop = this.closeLoop(live);
+        const surface = live.surface;
+        if (chapter && !surface.page && engine?.hasText()) {
+            const page = chapter.page.getBoundingClientRect();
+            const { linePx } = this.metrics(chapter.body);
+            const box = live.box;
+            const near = this.words(chapter.body, page.top + (box.top + box.bottom) / 2, linePx, (box.bottom - box.top) / 2 + linePx);
+            const held = lassoWords(
+                points,
+                near.words.map((w) => ({ ...w, left: w.left - page.left, top: w.top - page.top }))
+            );
+            const rect = { left: page.left + box.left, top: page.top + box.top, width: box.right - box.left, height: box.bottom - box.top };
+            if (held && engine.offerSpan(held.span, rect, () => this.fadeOut(loop, MOTION.fast))) return;
+        }
+        const notes = this.allNotes().filter((note) => {
+            const box = note.thought && note.state === "kept" ? this.noteBoxOn(note, surface) : null;
+            return box !== null && lassoHolds(points, box);
+        });
+        if (notes.length > 0 && engine) {
+            engine.say("reader_ink_lasso_held", [
+                    {
+                        key: "reader_ink_delete",
+                        run: () => {
+                            // Chosen: the offer and its loop go, and the notes with them.
+                            engine.hidePopover();
+                            void this.deleteNotes(notes);
+                        },
+                    },
+                ], () => this.fadeOut(loop, MOTION.fast));
+            return;
+        }
+        this.fadeOut(loop, MOTION.fast);
+        this.status("reader_ink_lasso_nothing");
+    }
+
+    /** The lasso's loop, closed: one dashed path where it was drawn, a shimmer as it closes (FR-15). */
+    private closeLoop(live: LiveInk): SVGGElement {
+        const el = live.el;
+        el.empty();
+        const d = live.stroke.points.map((pt, i) => `${i === 0 ? "M" : "L"}${round3(pt.x)} ${round3(pt.y)}`).join(" ");
+        el.createSvg("path", { cls: [c("reader-ink-lasso-loop")], attr: { d: `${d} Z` } });
+        el.addClass(c("reader-ink--lasso-closed"));
+        const host = el as unknown as HTMLElement;
+        if (motionWelcome(host)) host.animate([{ opacity: 1 }, { opacity: 0.4 }, { opacity: 1 }], { duration: MOTION.base, easing: MOTION.ease });
+        return el;
+    }
+
+    /** *Delete* for the ink notes a lasso caught: to the trash with their drawings, one batch, with Undo. */
+    private async deleteNotes(notes: KeptNote[]): Promise<void> {
+        const chapter = this.chapter;
+        const thrown: { note: KeptNote; thought: Thought; drawing: string | undefined }[] = [];
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter?.notePath ?? "" }, async () => {
+                for (const note of notes) {
+                    const thought = note.thought;
+                    if (!thought) continue;
+                    const drawing = (await this.store.discard(thought)) ?? undefined;
+                    thrown.push({ note, thought, drawing });
+                    this.fadeOut(note.el);
+                    this.forgetNote(note);
+                    this.listed = this.listed.filter((entry) => entry.thought.id !== thought.id);
+                }
+            });
+        } catch (error) {
+            log.error(`[Reader] could not delete ink: ${String(error)}`);
+            this.status("reader_hl_failed");
+        }
+        this.view.refreshList();
+        if (thrown.length === 0) return;
+        this.status("reader_ink_removed", () =>
+            void (async () => {
+                try {
+                    await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter?.notePath ?? "" }, async () => {
+                        for (const { thought, drawing } of thrown) await this.store.restore(thought, drawing);
+                    });
+                } catch (error) {
+                    log.error(`[Reader] could not restore ink: ${String(error)}`);
+                    this.status("reader_hl_failed");
+                    return;
+                }
+                for (const { note, thought, drawing } of thrown) {
+                    this.parentOf(note)?.appendChild(note.el);
+                    this.fadeIn(note.el);
+                    this.keepNote(note);
+                    const parsed = drawing ? parseInkSvg(drawing) : null;
+                    this.listed.push({ thought, drawing: parsed && !isUnreadable(parsed) ? parsed : null, reason: null });
+                }
+                this.view.refreshList();
+            })()
+        );
+    }
+
+    /** What a gesture says it did (FR-8), with its ways back: low on the page, as a stroke highlight's. */
+    private say(key: LocaleKey, actions: StatusAction[]): void {
+        const engine = this.view.highlights?.() ?? null;
+        if (engine) engine.say(key, actions);
+        else this.status(key, actions[0] ? () => actions[0].run() : undefined);
     }
 
     // ── keeping a note ───────────────────────────────────────────────────────
@@ -1382,28 +1891,56 @@ export class ReaderInk {
         const erasing = this.erasing;
         if (!erasing) return;
         const [x, y] = erasing.surface.local(event.clientX, event.clientY);
-        const reach = erasing.surface.page ? ERASER_RADIUS_PX * (PAGE_EMS / Math.max(1, this.slotWidth(erasing.surface))) : ERASER_RADIUS_PX;
+        const reach = ERASER_RADIUS_PX * this.pxUnit(erasing.surface);
+        this.strokesAt(x, y, erasing.surface, erasing.hits, reach, [], (hit) => hit.el.addClass(c("reader-ink--erasing")));
+        // A highlight under the eraser goes too (#747 FR-6), the way a scribble takes it.
+        for (const box of erasing.marks.boxes) {
+            const target = erasing.marks.targets.get(box.ref.id);
+            if (target?.kind !== "highlight" || erasing.highlights.has(box.ref.id)) continue;
+            const near = box.rects.some((r) => x >= r.left - reach && x <= r.left + r.width + reach && y >= r.top - reach && y <= r.top + r.height + reach);
+            if (near) erasing.highlights.set(box.ref.id, target.thought);
+        }
+        erasing.last = [x, y];
+    }
+
+    /** The strokes within `reach` of a point of a surface — the ones written now and the kept ones — into `hits`. */
+    private strokesAt(
+        x: number,
+        y: number,
+        surface: Surface,
+        hits: Set<LiveInk | KeptStroke>,
+        reach: number,
+        skip: readonly LiveInk[] = [],
+        onHit?: (hit: LiveInk | KeptStroke) => void,
+        /** A stroke's segments, measured once for a whole scribble rather than once per point. */
+        cache?: Map<LiveInk | KeptStroke, Segment[]>
+    ): void {
+        const segmentsFor = (stroke: LiveInk | KeptStroke, make: () => Segment[]) => {
+            if (!cache) return make();
+            let found = cache.get(stroke);
+            if (!found) cache.set(stroke, (found = make()));
+            return found;
+        };
         const hit = (segments: Segment[], sx: number, sy: number, scale: number) => segments.some((seg) => distanceToSegment(seg, sx, sy) <= reach / scale + seg.w / 2);
         for (const live of this.grouping.current()?.strokes ?? []) {
-            if (live.surface.key !== erasing.surface.key || erasing.hits.has(live)) continue;
-            if (hit(segmentsOf(live.stroke.points, live.pointerType).map((s) => ({ ...s, w: s.w * live.surface.unit })), x, y, 1)) {
-                erasing.hits.add(live);
-                live.el.addClass(c("reader-ink--erasing"));
+            if (live.surface.key !== surface.key || hits.has(live) || skip.includes(live)) continue;
+            if (hit(segmentsFor(live, () => segmentsOf(live.stroke.points, live.pointerType).map((seg) => ({ ...seg, w: seg.w * live.surface.unit }))), x, y, 1)) {
+                hits.add(live);
+                onHit?.(live);
             }
         }
         for (const note of this.allNotes()) {
             if (note.state === "saving") continue;
-            const local = this.inNote(note, x, y, erasing.surface);
+            const local = this.inNote(note, x, y, surface);
             if (!local) continue;
             for (const kept of note.strokes) {
-                if (erasing.hits.has(kept)) continue;
-                if (hit(segmentsOf(kept.data.points, kept.data.pointerType), local.x, local.y, local.scale)) {
-                    erasing.hits.add(kept);
-                    kept.el.addClass(c("reader-ink--erasing"));
+                if (hits.has(kept)) continue;
+                if (hit(segmentsFor(kept, () => segmentsOf(kept.data.points, kept.data.pointerType)), local.x, local.y, local.scale)) {
+                    hits.add(kept);
+                    onHit?.(kept);
                 }
             }
         }
-        erasing.last = [x, y];
     }
 
     private slotWidth(surface: Surface): number {
@@ -1436,12 +1973,22 @@ export class ReaderInk {
         const erasing = this.erasing;
         this.erasing = null;
         if (!erasing) return;
-        if (erasing.hits.size === 0) {
+        const highlights = [...erasing.highlights.values()];
+        if (erasing.hits.size === 0 && highlights.length === 0) {
             this.status("reader_ink_nothing_erased");
             return;
         }
-        const lives = [...erasing.hits].filter((hit): hit is LiveInk => "stroke" in hit);
-        const kept = [...erasing.hits].filter((hit): hit is KeptStroke => "data" in hit);
+        this.eraseAll(erasing.hits, highlights, highlights.length > 0);
+    }
+
+    /**
+     * Take strokes and highlights away as **one** action (#745 FR-7, #747 FR-5, FR-6): they fade
+     * together, the writes follow in one recorded batch, and one undo brings all of it back. `say`: the
+     * status line says *Erased*, with Undo — a scribble's, and an eraser's that took a highlight.
+     */
+    private eraseAll(hits: Set<LiveInk | KeptStroke>, highlights: Thought[], say: boolean): void {
+        const lives = [...hits].filter((hit): hit is LiveInk => "stroke" in hit);
+        const kept = [...hits].filter((hit): hit is KeptStroke => "data" in hit);
         for (const live of lives) {
             this.grouping.remove(live);
             this.fadeOut(live.el);
@@ -1451,6 +1998,8 @@ export class ReaderInk {
             const note = this.allNotes().find((candidate) => candidate.strokes.includes(stroke));
             if (note) byNote.set(note, [...(byNote.get(note) ?? []), stroke]);
         }
+        const engine = this.view.highlights?.() ?? null;
+        const label = this.chapter?.notePath ?? "";
         const undos: (() => Promise<void> | void)[] = [];
         for (const live of lives) {
             undos.push(() => {
@@ -1461,19 +2010,37 @@ export class ReaderInk {
                 this.armIdle();
             });
         }
-        for (const [note, strokes] of byNote) {
-            const before = note.strokes.map((s) => s.data);
-            const wasKept = note.state === "kept";
-            const gone = this.eraseFromNote(note, strokes, true);
-            undos.push(async () => {
-                const thrown = await gone;
-                await this.bringBack(note, before, wasKept, thrown);
+        let erased = lives.length;
+        const work = withWriteBatch({ kind: "manual", ref: "reader-ink", label }, async () => {
+            const notes = [...byNote].map(async ([note, strokes]) => {
+                const before = note.strokes.map((s) => s.data);
+                const wasKept = note.state === "kept";
+                const thrown = await this.eraseFromNote(note, strokes, say ? "silent" : true);
+                erased++;
+                undos.push(() => this.bringBack(note, before, wasKept, thrown));
             });
-        }
-        this.undoStack.push({
-            undo: async () => {
+            const marks = highlights.map(async (thought) => {
+                if (!(await engine?.erase(thought))) return;
+                erased++;
+                undos.push(async () => {
+                    // Undo draws the wash again, swept, as a mark is made: the words never fade.
+                    const back = await engine?.unerase(thought);
+                    back?.forEach((mark) => mark.addClass(c("reader-highlight--new")));
+                });
+            });
+            await Promise.all([...notes, ...marks]);
+        });
+        const undo = async () => {
+            await work;
+            await withWriteBatch({ kind: "manual", ref: "reader-ink", label }, async () => {
                 for (const run of undos) await run();
-            },
+            });
+        };
+        const settle = this.pushStep(undo);
+        void work.then(() => {
+            // Nothing went (every write failed, and said so): no *Erased*, and no step to undo.
+            if (erased === 0) settle();
+            else if (say) this.say("reader_ink_erased", [{ key: "reader_hl_undo", run: () => void (settle() && undo()) }]);
         });
     }
 
@@ -1481,7 +2048,7 @@ export class ReaderInk {
      * Take strokes out of a note (FR-7): the drawing is written again, or — the last stroke gone —
      * the note goes to the trash with its drawing, with Undo (AC-9). Returns the trashed drawing.
      */
-    private async eraseFromNote(note: KeptNote, strokes: KeptStroke[], quiet: boolean): Promise<string | undefined> {
+    private async eraseFromNote(note: KeptNote, strokes: KeptStroke[], quiet: boolean | "silent"): Promise<string | undefined> {
         for (const stroke of strokes) this.fadeOut(stroke.el);
         note.strokes = note.strokes.filter((s) => !strokes.includes(s));
         const thought = note.thought;
@@ -1508,8 +2075,9 @@ export class ReaderInk {
             this.listed = this.listed.filter((entry) => entry.thought.id !== thought.id);
             this.view.refreshList();
             const kept = drawing ?? renderInkSvg({ strokes: [] });
-            if (!quiet) this.status("reader_ink_removed", () => void this.restoreNote(note, thought, kept));
-            else this.status("reader_ink_removed", () => void this.undo());
+            // A gesture says *Erased* itself (#747); the eraser and an undo say the note went.
+            if (quiet === false) this.status("reader_ink_removed", () => void this.restoreNote(note, thought, kept));
+            else if (quiet === true) this.status("reader_ink_removed", () => void this.undo());
             return kept;
         } catch (error) {
             log.error(`[Reader] could not erase ink: ${String(error)}`);
@@ -1579,12 +2147,21 @@ export class ReaderInk {
             return;
         }
         const animation = host.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: MOTION.ease, fill: "forwards" });
-        animation.onfinish = () => el.remove();
-        ownWindow(host).setTimeout(() => el.remove(), duration + 200);
+        this.fading.set(el, animation);
+        // Gone at the end — unless an undo brought it back meanwhile (`fadeIn`).
+        const gone = () => {
+            if (this.fading.get(el) === animation) el.remove();
+        };
+        animation.onfinish = gone;
+        ownWindow(host).setTimeout(gone, duration + 200);
     }
 
     private fadeIn<T extends SVGElement>(el: T): T {
         const host = el as unknown as HTMLElement;
+        // Brought back while it was fading away: that fade, and its removal, are called off.
+        const fading = this.fading.get(el);
+        this.fading.delete(el);
+        fading?.cancel?.();
         if (motionWelcome(host)) host.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
         return el;
     }

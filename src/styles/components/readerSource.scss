@@ -118,12 +118,13 @@
 }
 
 /* ── a book's contents, nested as the book nests them ─────────────────── */
-.zettelkasten-flow__reader-toc-row--depth-1 {
+/* As specific as the row itself in reader.scss, which a tablet's button padding made it (#750). */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-row--depth-1 {
     padding-left: var(--size-4-6);
 }
 
-.zettelkasten-flow__reader-toc-row--depth-2,
-.zettelkasten-flow__reader-toc-row--depth-3 {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-row--depth-2,
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-row--depth-3 {
     padding-left: var(--size-4-10);
     font-size: var(--font-ui-small);
 }

@@ -138,7 +138,7 @@ function copyPage(rig: Rig, readerRoot: HTMLElement, stage: HTMLElement, page: H
         if (!target) return;
         target.width = canvas.width;
         target.height = canvas.height;
-        target.getContext("2d")?.drawImage(canvas, 0, 0);
+        target.getContext?.("2d")?.drawImage(canvas, 0, 0);
     });
     frame.appendChild(copy);
     rig.inner.appendChild(frame);
@@ -207,9 +207,18 @@ function wait(win: Window, ms: number): Promise<void> {
     return new Promise((resolve) => win.setTimeout(resolve, ms));
 }
 
+/** A rig is let go with its copied pictures (#750): WebKit counts the memory of every canvas on the page. */
+function removeRig(rig: Rig): void {
+    for (const canvas of Array.from(rig.root.querySelectorAll("canvas"))) {
+        canvas.width = 0;
+        canvas.height = 0;
+    }
+    rig.root.remove();
+}
+
 function endOpen(shot: Shot): void {
     shot.stopSkip();
-    shot.rig.root.remove();
+    removeRig(shot.rig);
     if (open === shot) open = null;
 }
 
@@ -354,7 +363,7 @@ export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page
     });
     const done = () => {
         stopSkip();
-        rig.root.remove();
+        removeRig(rig);
     };
     leave();
     void (async () => {

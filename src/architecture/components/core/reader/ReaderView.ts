@@ -3,6 +3,7 @@ import {
     ItemView,
     Keymap,
     MarkdownRenderer,
+    Platform,
     Scope,
     TFile,
     setIcon,
@@ -19,7 +20,12 @@ import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
-import { endChapterTurn, playChapterTurn } from "./readerTurn";
+import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, type ChapterScrub } from "./readerTurn";
+import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
+import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
+import { placeAt, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
+import { sourceFormat } from "application/library/sourceMeta";
 import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
@@ -33,7 +39,7 @@ import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
-import { adoptHeldSides, exitReader, heldSides, restoreWorkspace } from "./openReader";
+import { adoptHeldSides, coverApp, exitReader, heldSides, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
@@ -89,7 +95,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["F"], label: "reader_key_fullscreen" },
     { keys: ["V"], label: "reader_key_layout" },
-    { keys: ["reader_kbd_mod", "F"], label: "reader_key_search" },
+    { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
     { keys: ["reader_kbd_alt", "←"], label: "reader_key_back" },
     { keys: ["?"], label: "reader_key_help" },
     { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
@@ -102,9 +108,25 @@ const KBD_KEY: Record<string, LocaleKey> = {
     reader_kbd_home: "reader_kbd_home",
     reader_kbd_end: "reader_kbd_end",
     reader_kbd_esc: "reader_kbd_esc",
-    reader_kbd_mod: "reader_kbd_mod",
+    reader_kbd_ctrl: "reader_kbd_ctrl",
     reader_kbd_alt: "reader_kbd_alt",
 };
+
+/** On a Mac or an iPad the key caps are the glyphs on the keys themselves (FR-12). */
+const APPLE_CAPS: Record<string, string> = { reader_kbd_ctrl: "⌘", reader_kbd_alt: "⌥" };
+
+/** A key cap as this device's keyboard prints it: ⌘ and ⌥ on Apple, Ctrl and Alt elsewhere. */
+function kbdCap(key: string): string {
+    if (isApple() && APPLE_CAPS[key]) return APPLE_CAPS[key];
+    return KBD_KEY[key] ? t(KBD_KEY[key]) : key;
+}
+
+/** How long a tap's synthetic click is waited for, to be swallowed (#750): a tap is not also a click. */
+const TAP_CLICK_MS = 600;
+/** The page springs back from the end of the book in the shared beat (FR-18). */
+const SPRING_MS = MOTION.base;
+/** A finger's place is noted a moment after the scroll stops, for a rotation to keep (FR-11). */
+const PLACE_SAVE_MS = 150;
 
 /** Whether a key went to something you type in — a margin note, a save name — and is not ours. */
 function isTyping(target: EventTarget | null): boolean {
@@ -139,6 +161,20 @@ export type { ReaderHost };
 
 
 type Panel = "contents" | "type" | "context" | null;
+
+/** A finger or a pen on the page (#750): the gesture, the stage where it began, and what it drives. */
+interface TouchState {
+    gesture: Gesture;
+    stage: { left: number; top: number; width: number; height: number };
+    /** The way the turn goes once the swipe has locked: 1 forward (swipe left), -1 back. */
+    dir: 1 | -1 | 0;
+    /** The chapter's turn, held under the finger. */
+    scrub: ChapterScrub | null;
+    /** The page resisting at an end of the book. */
+    rubber: boolean;
+    /** A frame is already asked for. */
+    frame: boolean;
+}
 
 /** A note's body without its frontmatter: the properties are not part of what you read. */
 export const readableBody = stripFrontmatter;
@@ -280,6 +316,23 @@ export class ReaderView extends ItemView {
     private sourceLayout: SourceLayout = "reading";
     /** Bumped on every source opened, so a slow open never lands in a newer reading. */
     private sourceGeneration = 0;
+    /** A source too large for this device (#750 FR-13): not opened, and the page says so. */
+    private sourceTooLarge = false;
+    /**
+     * A finger or a pen on the page (#750): the gesture being decided, where the stage was when it
+     * began, and what it drives — a turn held under the finger, or the page resisting at an end.
+     */
+    private touch: TouchState | null = null;
+    /** Until then, the click a tap leaves behind is the tap's, and swallowed. */
+    private swallowClickUntil = 0;
+    /** The line you were reading, as a block and a share of it — kept for a rotation (FR-11). */
+    private place: Place | null = null;
+    private placeTimer: number | undefined;
+    /** The reading's size, last seen by the resize observer. */
+    private shape = { width: 0, height: 0 };
+    /** The panel as a bottom sheet (#750 D5): its height from the bottom, and the dim behind it. */
+    private sheet: { height: number; snaps: SheetSnaps } | null = null;
+    private scrim: HTMLElement | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -414,6 +467,16 @@ export class ReaderView extends ItemView {
         if (!this.source) {
             // Something to show at once: the source, opening.
             this.path = { seed: path, kind: "selection", chapters: [{ path, role: "context" }] };
+            // A source past what this device can hold is not attempted — not even read (FR-13).
+            const file = this.app.vault.getAbstractFileByPath(path);
+            const format = sourceFormat(path);
+            const size = file instanceof TFile ? file.stat?.size : undefined;
+            if (format && tooLarge(size, format)) {
+                log.info(`[Reader] ${path} is too large to open on this device (${size} bytes)`);
+                this.sourceTooLarge = true;
+                return;
+            }
+            this.sourceTooLarge = false;
             const generation = ++this.sourceGeneration;
             try {
                 const doc = await openSourceDocument(this.app, path, sourceMetaOf(this.plugin, path)?.imageOnly);
@@ -447,6 +510,7 @@ export class ReaderView extends ItemView {
         this.source = null;
         this.sourcePath = null;
         this.sourceFailed = false;
+        this.sourceTooLarge = false;
         this.sourceLayout = "reading";
     }
 
@@ -487,7 +551,17 @@ export class ReaderView extends ItemView {
             window.setTimeout(() => root.removeClass(c("reader--in-shot")), MOTION.shotPatience + MOTION.shotLand);
         }
         this.contentEl.setAttribute("tabindex", "-1");
-        this.registerDomEvent(this.contentEl, "mousemove", () => this.wake());
+        // A mouse moving shows the bar. A finger's taps do not: iOS follows every tap with emulated
+        // mouse events, which would wake the bar on each page turn (#750).
+        this.registerDomEvent(this.contentEl, "pointermove", (event: PointerEvent) => {
+            if (event.pointerType === "mouse") this.wake();
+        });
+        // On mobile the Reader covers Obsidian's chrome while it is the tab you read in (#750 D6).
+        if (Platform.isMobile) {
+            coverApp(true);
+            const changed = this.app.workspace.on?.("active-leaf-change", () => coverApp(this.app.workspace.getMostRecentLeaf?.() === this.leaf));
+            if (changed) this.registerEvent(changed);
+        }
         // A reading restored before the index is ready is read as soon as the model is built.
         this.app.workspace.onLayoutReady?.(() => this.resolvePending());
         const resolved = this.app.metadataCache.on?.("resolved", () => this.resolvePending());
@@ -498,7 +572,10 @@ export class ReaderView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.idleTimer);
+        window.clearTimeout(this.placeTimer);
+        this.touch = null;
         endChapterTurn();
+        this.dropSheet();
         this.leaveSource();
         this.highlights?.dispose();
         this.chapter?.unload();
@@ -552,7 +629,9 @@ export class ReaderView extends ItemView {
             this.highlights?.onScroll();
             this.closeNote();
             this.onStageScroll();
+            this.notePlace();
         });
+        this.wireTouch(stage);
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
@@ -578,7 +657,8 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const layout = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleLayout());
         layout.addClass(c("reader-hidden"));
-        this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
+        // No dead control (FR-10): where the platform cannot go fullscreen, there is no button for it.
+        if (canFullscreen(this.ownDocument())) this.iconButton(bar, "maximize", "reader_fullscreen", () => this.toggleFullscreen());
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
@@ -595,6 +675,7 @@ export class ReaderView extends ItemView {
             },
             this.highlightDeps
         );
+        this.watchShape(root);
         this.wake();
     }
 
@@ -812,6 +893,8 @@ export class ReaderView extends ItemView {
      */
     private turnFrom(page: HTMLElement): void {
         if (this.turn === 0 || !this.root || !this.els) return;
+        // A finger let a turn go past its third (#750): that turn is this chapter's, already playing.
+        if (adoptChapterScrub()) return;
         playChapterTurn(this.root, this.els.stage, page, readingMotion(this.plugin?.settings?.readingMotion).chapter, this.turn > 0 ? 1 : -1);
     }
 
@@ -1407,6 +1490,14 @@ export class ReaderView extends ItemView {
         // Links inside a book stay in the book, and only there (L1): one that leaves it is never followed.
         component.registerDomEvent(body, "click", (event) => this.onSourceLink(event), { capture: true });
 
+        if (!doc && this.sourceTooLarge) {
+            // One calm line in the page, and the way back to the shelf (FR-13, FR-23). Nothing is written.
+            const large = body.createDiv({ cls: [c("reader-missing"), c("reader-too-large")] });
+            large.createDiv({ cls: c("reader-too-large-text"), text: t("reader_source_too_large") });
+            const shelf = large.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_back_to_shelf") });
+            component.registerDomEvent(shelf, "click", () => this.backToShelf(path));
+            return;
+        }
         if (!doc) {
             body.createDiv({ cls: c("reader-missing"), text: t(this.sourceFailed ? "reader_source_failed" : "reader_source_opening") });
             return;
@@ -1461,6 +1552,16 @@ export class ReaderView extends ItemView {
         }
         next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(index + 1)) });
         component.registerDomEvent(next, "click", () => this.go(1));
+    }
+
+    /** Back to the shelf: the Library's own leaf as it was, or the Library opened on this source. */
+    private backToShelf(path: string): void {
+        if (this.back) {
+            exitReader(this.app, this.leaf, this.back);
+            return;
+        }
+        exitReader(this.app, this.leaf);
+        void openLibrary(this.app, path);
     }
 
     /** A link inside a source: to another place in the book, or nowhere (#682, L1). */
@@ -1859,7 +1960,11 @@ export class ReaderView extends ItemView {
     // ── panels ───────────────────────────────────────────────────────────────
 
     private toggle(panel: Exclude<Panel, null>): void {
-        this.panel = this.panel === panel ? null : panel;
+        if (this.panel === panel) {
+            this.closePanel();
+            return;
+        }
+        this.panel = panel;
         this.renderPanel();
     }
 
@@ -1872,6 +1977,11 @@ export class ReaderView extends ItemView {
         scope.load();
         this.panelScope = scope;
         host.toggleClass(c("reader-panel--open"), this.panel !== null);
+        // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); a card everywhere else.
+        const asSheet = this.panel !== null && this.panelIsSheet();
+        host.toggleClass(c("reader-panel--sheet"), asSheet);
+        if (asSheet) this.openSheet(host, scope);
+        else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
         else if (this.panel === "type") this.renderType(host);
         else if (this.panel === "context") this.renderContext(host);
@@ -1969,6 +2079,393 @@ export class ReaderView extends ItemView {
         }
     }
 
+    // ── the panel as a bottom sheet (#750 D5) ────────────────────────────────
+
+    /** Whether the panel opens as a sheet now: a mobile reading taller than it is wide. */
+    private panelIsSheet(): boolean {
+        const box = this.root?.getBoundingClientRect();
+        return Boolean(box) && panelShape({ width: box?.width ?? 0, height: box?.height ?? 0, mobile: Platform.isMobile }) === "sheet";
+    }
+
+    /** The status bar's height — the sheet's full height stays below it. */
+    private safeTop(): number {
+        const root = this.root;
+        const value = root ? root.win?.getComputedStyle?.(root)?.getPropertyValue?.("--safe-area-inset-top") : "";
+        return parseFloat(value ?? "") || 0;
+    }
+
+    /**
+     * Shape the panel as a sheet: anchored to the bottom, at half height on opening (or where you left
+     * it while it stays open), a grab handle on top, and the page behind dimmed. Its height is a
+     * transform (`--zf-sheet-y`), so opening, dragging and settling never lay anything out (FR-20).
+     */
+    private openSheet(host: HTMLElement, scope: Component): void {
+        const root = this.root;
+        if (!root) return;
+        const snaps = sheetSnaps(root.getBoundingClientRect().height, this.safeTop());
+        const kept = this.sheet?.height ?? 0;
+        this.sheet = { height: kept > 0 ? Math.min(kept, snaps.full) : snaps.half, snaps };
+        host.removeClass(c("reader-panel--closing"));
+        host.setCssProps({ "--zf-sheet-full": `${snaps.full}px`, "--zf-sheet-ms": `${MOTION.base}ms` });
+        this.placeSheet();
+        if (!this.scrim) {
+            const scrim = root.createDiv({ cls: c("reader-sheet-scrim"), attr: { "aria-hidden": "true" } });
+            root.insertBefore(scrim, host);
+            this.scrim = scrim;
+        }
+        // A tap on the page above closes the sheet. The dim stays across renders; its listener goes
+        // with each one.
+        scope.registerDomEvent(this.scrim, "click", () => this.closePanel());
+        const handle = host.createDiv({ cls: c("reader-sheet-handle"), attr: { role: "button", tabindex: "0", "aria-label": t("reader_sheet_handle") } });
+        handle.createSpan({ cls: c("reader-sheet-grip") });
+        scope.registerDomEvent(handle, "pointerdown", (event: PointerEvent) => this.dragSheet(event, handle));
+    }
+
+    /** The sheet at its height: a translation of its full height, never a new height. */
+    private placeSheet(): void {
+        const sheet = this.sheet;
+        if (!sheet) return;
+        this.els?.panel.setCssProps({ "--zf-sheet-y": `${Math.round(sheet.snaps.full - sheet.height)}px` });
+    }
+
+    /**
+     * The handle follows the finger 1:1 — under reduced motion too: direct manipulation is not
+     * animation — rubber-bands past the top, and on release settles to the nearest height at the speed
+     * it was let go, or closes.
+     */
+    private dragSheet(down: PointerEvent, handle: HTMLElement): void {
+        const sheet = this.sheet;
+        const host = this.els?.panel;
+        if (!sheet || !host) return;
+        down.preventDefault?.();
+        handle.setPointerCapture?.(down.pointerId);
+        const from = sheet.height;
+        const startY = down.clientY;
+        let last = { y: down.clientY, t: down.timeStamp };
+        let velocity = 0;
+        host.addClass(c("reader-panel--dragging"));
+        const move = (event: PointerEvent) => {
+            const dt = event.timeStamp - last.t;
+            if (dt > 0) velocity = (last.y - event.clientY) / dt;
+            last = { y: event.clientY, t: event.timeStamp };
+            sheet.height = dragSheet(from, event.clientY - startY, sheet.snaps);
+            this.placeSheet();
+        };
+        const up = () => {
+            handle.removeEventListener("pointermove", move);
+            handle.removeEventListener("pointerup", up);
+            handle.removeEventListener("pointercancel", up);
+            handle.removeEventListener("lostpointercapture", up);
+            if (!host.hasClass(c("reader-panel--dragging"))) return;
+            host.removeClass(c("reader-panel--dragging"));
+            const stop = settleSheet(sheet.height, velocity, sheet.snaps);
+            const target = stop === "closed" ? 0 : sheet.snaps[stop];
+            const ms = settleDuration(target - sheet.height, velocity);
+            host.setCssProps({ "--zf-sheet-ms": `${ms}ms` });
+            if (stop === "closed") {
+                this.closePanel(ms);
+                return;
+            }
+            sheet.height = target;
+            this.placeSheet();
+        };
+        handle.addEventListener("pointermove", move);
+        handle.addEventListener("pointerup", up);
+        handle.addEventListener("pointercancel", up);
+        // A capture lost without an up (the system took the touch) ends the drag too.
+        handle.addEventListener("lostpointercapture", up);
+    }
+
+    /** Close the panel. A sheet slides down and away first; a card, or reduced motion, goes at once. */
+    private closePanel(ms: number = MOTION.base): void {
+        const host = this.els?.panel;
+        if (!host || !this.panel) return;
+        if (!host.hasClass(c("reader-panel--sheet")) || !this.motionAllowed()) {
+            this.panel = null;
+            this.renderPanel();
+            return;
+        }
+        host.setCssProps({ "--zf-sheet-ms": `${ms}ms` });
+        host.addClass(c("reader-panel--closing"));
+        this.scrim?.addClass(c("reader-sheet-scrim--closing"));
+        const panel = this.panel;
+        (this.root?.win ?? window).setTimeout(() => {
+            if (this.panel !== panel || !host.hasClass(c("reader-panel--closing"))) return;
+            this.panel = null;
+            this.renderPanel();
+        }, ms);
+    }
+
+    /** No sheet: its dim goes with it. */
+    private dropSheet(): void {
+        this.sheet = null;
+        this.scrim?.remove();
+        this.scrim = null;
+        this.els?.panel.removeClass(c("reader-panel--closing"));
+        this.els?.panel.removeClass(c("reader-panel--dragging"));
+    }
+
+    // ── the place in the text, kept through a reshape (#750 D3) ──────────────
+
+    /** The chapter's blocks, in the stage's scroll coordinates; a lone wrapper is looked into. */
+    private blocks(): PlaceBox[] {
+        const stage = this.els?.stage;
+        let parent = this.els?.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? null;
+        if (!stage || !parent) return [];
+        for (let depth = 0; depth < 3 && parent.children.length === 1 && (parent.firstElementChild?.children.length ?? 0) > 1; depth++) {
+            parent = parent.firstElementChild as HTMLElement;
+        }
+        const origin = stage.getBoundingClientRect().top - stage.scrollTop;
+        return Array.from(parent.children).map((el) => {
+            const box = el.getBoundingClientRect();
+            return { top: box.top - origin, height: box.height };
+        });
+    }
+
+    /** The line you are reading, noted a moment after the scroll stops. */
+    private notePlace(): void {
+        const win = this.root?.win;
+        if (!win) return;
+        win.clearTimeout(this.placeTimer);
+        this.placeTimer = win.setTimeout(() => {
+            const stage = this.els?.stage;
+            const blocks = this.blocks();
+            this.place = stage && blocks.length > 0 ? placeAt(blocks, stage.scrollTop) : null;
+        }, PLACE_SAVE_MS);
+    }
+
+    /** Rotation, Split View, a window resized: the reading's shape is watched in its own window. */
+    private watchShape(root: HTMLElement): void {
+        const Observer = (root.win as unknown as { ResizeObserver?: typeof ResizeObserver } | undefined)?.ResizeObserver;
+        if (!Observer) return;
+        const observer = new Observer(() => this.onReshape());
+        observer.observe(root);
+        this.register(() => observer.disconnect());
+    }
+
+    /** The line you were reading stays in view, and an open panel takes the new shape (FR-11). */
+    private onReshape(): void {
+        const root = this.root;
+        const stage = this.els?.stage;
+        if (!root || !stage) return;
+        const box = root.getBoundingClientRect();
+        const next = { width: Math.round(box.width), height: Math.round(box.height) };
+        if (next.width === this.shape.width && next.height === this.shape.height) return;
+        const first = this.shape.width === 0 && this.shape.height === 0;
+        this.shape = next;
+        if (first) return;
+        const blocks = this.blocks();
+        if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
+        if (this.panel) this.renderPanel();
+    }
+
+    // ── touch: tap the edges, swipe a chapter (#750) ─────────────────────────
+
+    private wireTouch(stage: HTMLElement): void {
+        // Obsidian's drawer swipe starts anywhere on the workspace and steps aside for a touch inside an
+        // element marked `data-ignore-swipe` (T0, see `coverApp`). A touch on the page is the page's;
+        // one in the strip at either edge of the screen stays Obsidian's and iPadOS's (FR-3).
+        this.registerDomEvent(
+            stage,
+            "touchstart",
+            (event: TouchEvent) => {
+                const x = event.touches?.[0]?.clientX;
+                const width = stage.win?.innerWidth ?? 0;
+                const ours = typeof x === "number" && x >= SYSTEM_EDGE_PX && (width <= 0 || x <= width - SYSTEM_EDGE_PX);
+                if (ours) stage.setAttribute("data-ignore-swipe", "true");
+                else stage.removeAttribute("data-ignore-swipe");
+            },
+            { passive: true }
+        );
+        // A swipe that has locked is the page's alone: nothing scrolls or swipes under it (FR-4).
+        this.registerDomEvent(
+            stage,
+            "touchmove",
+            (event: TouchEvent) => {
+                if (this.touch?.gesture.kind === "swipe" && event.cancelable) event.preventDefault();
+            },
+            { passive: false }
+        );
+        this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => this.onPointerDown(event));
+        this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
+        this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
+        this.registerDomEvent(stage, "pointercancel", () => this.dropTouch());
+        // The click a handled tap leaves behind would follow what the page just turned past.
+        this.registerDomEvent(
+            stage,
+            "click",
+            (event: MouseEvent) => {
+                if (Date.now() > this.swallowClickUntil) return;
+                this.swallowClickUntil = 0;
+                event.preventDefault();
+                event.stopPropagation();
+            },
+            { capture: true }
+        );
+    }
+
+    /** Words are selected: a tap is the selection's, never a turn (FR-2). */
+    private hasSelection(): boolean {
+        const selection = this.root?.win?.getSelection?.();
+        return Boolean(selection && !selection.isCollapsed && selection.toString().trim());
+    }
+
+    private onPointerDown(event: PointerEvent): void {
+        this.dropTouch();
+        const stage = this.els?.stage;
+        // A mouse or a trackpad: desktop is unchanged (FR-1).
+        if (!stage || !touchPointer(event)) return;
+        if (isThing(event.target as Element | null, this.hasSelection())) return;
+        const gesture = startGesture(event, stage.win?.innerWidth ?? 0);
+        if (!gesture) return;
+        this.touch = { gesture, stage: stage.getBoundingClientRect(), dir: 0, scrub: null, rubber: false, frame: false };
+    }
+
+    private onPointerMove(event: PointerEvent): void {
+        const touch = this.touch;
+        if (!touch || !touchPointer(event)) return;
+        const kind = touch.gesture.update({ x: event.clientX, y: event.clientY, t: event.timeStamp });
+        // A scroll is the browser's (touch-action: pan-y), a long press the system's selection.
+        if (kind === "scroll" || kind === "press") {
+            this.touch = null;
+            return;
+        }
+        if (kind !== "swipe") return;
+        if (touch.dir === 0) this.beginSwipe(touch);
+        this.requestTouchFrame(touch);
+    }
+
+    private onPointerUp(event: PointerEvent): void {
+        const touch = this.touch;
+        this.touch = null;
+        if (!touch || !touchPointer(event)) return;
+        const kind = touch.gesture.end({ x: event.clientX, y: event.clientY, t: event.timeStamp });
+        if (kind === "tap") {
+            this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+            this.tapAt(event.clientX, touch.stage);
+            return;
+        }
+        if (kind !== "swipe") return;
+        this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+        if (touch.dir === 0) this.beginSwipe(touch);
+        this.applyTouch(touch);
+        this.releaseSwipe(touch);
+    }
+
+    /** The outer fifth on each side turns a screen, as Space does; the middle shows or hides the bar. */
+    private tapAt(x: number, stage: { left: number; width: number }): void {
+        const zone = edgeZone(x, stage);
+        if (zone === "forward") this.page(1);
+        else if (zone === "back") this.page(-1);
+        else this.toggleBar();
+    }
+
+    /** Whether a turn `dir` lands on a chapter: never past the first, nor past the last (FR-18). */
+    private canTurn(dir: 1 | -1): boolean {
+        if (!this.path) return false;
+        if (this.ended) return dir < 0;
+        const next = this.index + dir;
+        return next >= 0 && next < this.path.chapters.length;
+    }
+
+    /** The name of the chapter a turn `dir` leads to, shown on the paper under the sheet. */
+    private turnLabel(dir: 1 | -1): string {
+        if (!this.path) return "";
+        const i = this.ended ? this.index : this.index + dir;
+        if (this.sourcePath) return this.sourceLabel(i);
+        return noteName(this.path.chapters[i]?.path ?? "");
+    }
+
+    /** The swipe has locked: hold the chapter's turn under the finger, or resist at an end of the book. */
+    private beginSwipe(touch: TouchState): void {
+        const dir: 1 | -1 = touch.gesture.dx < 0 ? 1 : -1;
+        touch.dir = dir;
+        this.closeNote();
+        this.highlights?.hidePopover();
+        if (!this.root || !this.els) return;
+        if (!this.canTurn(dir)) {
+            touch.rubber = true;
+            this.els.stage.addClass(c("reader-stage--rubber"));
+            return;
+        }
+        const motion = readingMotion(this.plugin?.settings?.readingMotion).chapter;
+        touch.scrub = beginChapterScrub(this.root, this.els.stage, this.els.page, motion, dir, this.turnLabel(dir));
+    }
+
+    /** Moves are drawn once a frame, from the reader's own window (popout-safe). */
+    private requestTouchFrame(touch: TouchState): void {
+        const stage = this.els?.stage;
+        if (touch.frame || !stage) return;
+        touch.frame = true;
+        stage.win.requestAnimationFrame(() => {
+            touch.frame = false;
+            if (this.touch === touch) this.applyTouch(touch);
+        });
+    }
+
+    /** Where the finger has the page: the turn's progress, or a third of the way at an end. */
+    private applyTouch(touch: TouchState): void {
+        const dx = touch.gesture.dx;
+        if (touch.scrub) touch.scrub.scrub(Math.max(0, -touch.dir * dx) / Math.max(1, touch.stage.width));
+        else if (touch.rubber) this.els?.stage.setCssProps({ "--zf-scrub-x": `${Math.round(rubberBand(dx))}px` });
+    }
+
+    /** Let go: past a third or on a flick the chapter turns at that speed; short of it, it springs back. */
+    private releaseSwipe(touch: TouchState): void {
+        const { dx, vx } = touch.gesture;
+        if (touch.rubber) {
+            this.springPage(rubberBand(dx));
+            return;
+        }
+        const width = touch.stage.width;
+        // A finger that came back past where it started turns nothing.
+        const outcome = Math.sign(dx) === -touch.dir ? releaseTurn({ dx, width, vx }) : "spring";
+        if (outcome === "spring") {
+            touch.scrub?.release("spring");
+            return;
+        }
+        const progress = Math.max(0, -touch.dir * dx) / Math.max(1, width);
+        touch.scrub?.release("complete", completionRate(progress, vx, width, touch.scrub.duration));
+        this.go(touch.dir);
+    }
+
+    /**
+     * The end of the book: the page comes back from a third of the finger, in the shared beat. The
+     * stage moves, not the page inside it — a page translated inside its scroller would overflow it.
+     */
+    private springPage(x: number): void {
+        const stage = this.els?.stage;
+        if (!stage) return;
+        stage.removeClass(c("reader-stage--rubber"));
+        stage.setCssProps({ "--zf-scrub-x": "0px" });
+        if (x === 0 || typeof stage.animate !== "function" || !this.motionAllowed()) return;
+        stage.animate([{ transform: `translateX(${Math.round(x)}px)` }, { transform: "translateX(0px)" }], { duration: SPRING_MS, easing: MOTION.ease });
+    }
+
+    /** A gesture the system took (a scroll, a cancel): whatever it held goes back. */
+    private dropTouch(): void {
+        const touch = this.touch;
+        this.touch = null;
+        if (!touch) return;
+        touch.scrub?.release("spring");
+        if (touch.rubber) this.springPage(rubberBand(touch.gesture.dx));
+    }
+
+    /**
+     * A tap in the middle of the page: the bar, or the page alone. A bar a finger asked for stays until
+     * the next tap — it does not fade under a finger on its way to a button.
+     */
+    private toggleBar(): void {
+        const root = this.root;
+        if (!root) return;
+        if (root.hasClass(c("reader--idle"))) {
+            this.wake(true);
+            return;
+        }
+        (root.win ?? window).clearTimeout(this.idleTimer);
+        if (!this.panel && !this.shortcuts) root.addClass(c("reader--idle"));
+    }
+
     // ── keys, idle bar, fullscreen ───────────────────────────────────────────
 
     /**
@@ -2000,7 +2497,12 @@ export class ReaderView extends ItemView {
         bind(shift, " ", taken(() => this.page(-1)));
         bind(none, "Home", taken(() => this.show(0)));
         bind(none, "End", taken(() => this.show((this.path?.chapters.length ?? 1) - 1)));
-        bind(none, "F", taken(() => this.toggleFullscreen()));
+        // Where the platform cannot go fullscreen, F is left alone (FR-10).
+        bind(none, "F", () => {
+            if (!canFullscreen(this.ownDocument())) return false;
+            this.toggleFullscreen();
+            return true;
+        });
         bind(none, "V", () => {
             if (!this.source?.hasPageView) return false;
             this.toggleLayout();
@@ -2047,8 +2549,7 @@ export class ReaderView extends ItemView {
             return;
         }
         if (this.panel) {
-            this.panel = null;
-            this.renderPanel();
+            this.closePanel();
             return;
         }
         // In fullscreen, Esc leaves fullscreen — the reader stays.
@@ -2104,9 +2605,12 @@ export class ReaderView extends ItemView {
         const card = sheet.createDiv({ cls: c("reader-shortcuts-card") });
         card.createDiv({ cls: c("reader-panel-title"), text: t("reader_shortcuts") });
         const list = card.createEl("dl", { cls: c("reader-shortcuts-list") });
+        // F is not a key where the platform cannot go fullscreen (FR-10).
+        const fullscreen = canFullscreen(this.ownDocument());
         for (const row of SHORTCUTS) {
+            if (row.label === "reader_key_fullscreen" && !fullscreen) continue;
             const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
-            for (const key of row.keys) keys.createEl("kbd", { text: KBD_KEY[key] ? t(KBD_KEY[key]) : key });
+            for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
             list.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });
         }
         card.createDiv({ cls: c("reader-shortcuts-hint"), text: t("reader_shortcuts_commands") });
@@ -2161,11 +2665,12 @@ export class ReaderView extends ItemView {
         }
     }
 
-    /** Show the bar, then let it fade when nothing moves. */
-    private wake(): void {
+    /** Show the bar, then let it fade when nothing moves — or, asked by a tap, keep it (#750). */
+    private wake(stay = false): void {
         if (!this.root) return;
         this.root.removeClass(c("reader--idle"));
         window.clearTimeout(this.idleTimer);
+        if (stay) return;
         this.idleTimer = window.setTimeout(() => {
             if (!this.panel && !this.shortcuts) this.root?.addClass(c("reader--idle"));
         }, IDLE_MS);

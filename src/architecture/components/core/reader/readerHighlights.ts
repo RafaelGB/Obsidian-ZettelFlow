@@ -10,6 +10,7 @@ import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { MOTION, fly, motionWelcome } from "./readerMotion";
+import { touchPointer } from "./readerDevice";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -27,7 +28,8 @@ export interface HighlightStore {
 export interface SelectionInfo {
     start: number;
     end: number;
-    rect: { left: number; top: number; width: number };
+    /** Where it is on screen; `height` places a popover below the words (#750). */
+    rect: { left: number; top: number; width: number; height?: number };
     clear(): void;
 }
 
@@ -63,6 +65,12 @@ const MEANING_LABEL: Record<HighlightMeaning, LocaleKey> = {
     quote: "reader_hl_meaning_quote",
     discuss: "reader_hl_meaning_discuss",
 };
+
+/**
+ * A touch selection is offered once its handles have been still this long (#750 FR-5) — never while
+ * they are dragged. Provisional: the device walk on issue #750 confirms or tunes it.
+ */
+export const SELECTION_SETTLE_MS = 350;
 
 /** How long an answer (and its Undo) stays in the popover. */
 const STATUS_MS = 8000;
@@ -104,7 +112,7 @@ export function readSelection(body: HTMLElement): SelectionInfo | null {
     return {
         start,
         end,
-        rect: { left: rect.left, top: rect.top, width: rect.width },
+        rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
         clear: () => selection.removeAllRanges(),
     };
 }
@@ -193,6 +201,11 @@ export class ReaderHighlights {
     private filter: HighlightMeaning | null = null;
     /** Bumped on every chapter, so a slow load never draws over a newer one. */
     private generation = 0;
+    /**
+     * The last pointer that touched the page (#750): a finger or a pen selects beside iPadOS's own
+     * callout, which has its own Copy; a mouse selects as it always has.
+     */
+    private pointer = "mouse";
 
     constructor(
         private readonly view: HighlightView,
@@ -261,6 +274,7 @@ export class ReaderHighlights {
             // line: that mouseup lands on the document, and must still offer the popover. One that
             // lands inside the popover is a click on its buttons, never a new selection.
             let pressed = false;
+            component.registerDomEvent(doc, "pointerdown", (event: PointerEvent) => (this.pointer = event.pointerType || "mouse"), { capture: true });
             component.registerDomEvent(doc, "mousedown", () => (pressed = true), { capture: true });
             component.registerDomEvent(doc, "mouseup", (event: MouseEvent) => {
                 pressed = false;
@@ -275,7 +289,7 @@ export class ReaderHighlights {
                 window.clearTimeout(settle);
                 settle = window.setTimeout(() => {
                     if (this.body === body && !pressed) this.onSelect();
-                }, 350);
+                }, SELECTION_SETTLE_MS);
             });
             component.register(() => window.clearTimeout(settle));
         }
@@ -433,7 +447,9 @@ export class ReaderHighlights {
             if (this.popover?.hasClass(c("reader-hl-pop--select"))) this.hidePopover();
             return;
         }
-        const pop = this.openPopover(found.selection.rect, "select");
+        // A touch selection: below the words, beside the system's callout above them (FR-5).
+        const touch = touchPointer({ pointerType: this.pointer });
+        const pop = this.openPopover(found.selection.rect, "select", touch);
         // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
         const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
         for (const meaning of HIGHLIGHT_MEANINGS) {
@@ -441,6 +457,8 @@ export class ReaderHighlights {
         }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
+        // The system's callout already offers Copy to a finger (FR-6); a mouse has only ours.
+        if (touch) return;
         this.button(actions, "reader_hl_copy", false, () => {
             if (this.body) this.copy(this.body, found.quote.exact);
             this.status("reader_hl_copied");
@@ -792,18 +810,18 @@ export class ReaderHighlights {
 
     // ── popover ──────────────────────────────────────────────────────────────
 
-    private openPopover(rect: SelectionInfo["rect"], mode: "select" | "editing" | "mark" | "status"): HTMLElement {
+    private openPopover(rect: SelectionInfo["rect"], mode: "select" | "editing" | "mark" | "status", below = false): HTMLElement {
         this.hidePopover();
         const host = this.view.host;
         const pop = host.createDiv({
-            cls: [c("reader-hl-pop"), c(`reader-hl-pop--${mode}`)],
+            cls: [c("reader-hl-pop"), c(`reader-hl-pop--${mode}`), ...(below ? [c("reader-hl-pop--below")] : [])],
             attr: { role: "dialog", "aria-label": t("reader_hl_label") },
         });
         const box = host.getBoundingClientRect();
         // Positioned by two custom properties the stylesheet reads — no inline layout.
         pop.setCssProps?.({
             "--zf-hl-x": `${Math.round(rect.left + rect.width / 2 - box.left)}px`,
-            "--zf-hl-y": `${Math.round(rect.top - box.top)}px`,
+            "--zf-hl-y": `${Math.round(rect.top + (below ? (rect.height ?? 0) : 0) - box.top)}px`,
         });
         const scope = new Component();
         scope.load();

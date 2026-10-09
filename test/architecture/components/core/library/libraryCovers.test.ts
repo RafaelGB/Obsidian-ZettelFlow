@@ -5,6 +5,8 @@ import { declared } from "architecture/components/core/library/sources/pdfjs";
 import { makePdfJs, prose } from "../../../../support/fakePdf";
 import { makeEpub } from "../../../../support/zipFixture";
 import { isImageOnly } from "application/library/pdfText";
+import { DEVICE_LIMITS } from "architecture/components/core/reader/readerDevice";
+import { withPlatform, IPAD } from "../../../../support/platform";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const g = globalThis as any;
@@ -52,6 +54,16 @@ describe("covers and what a source declares (#680)", () => {
         expect(calls.getDocument[0].data).toBeInstanceOf(Uint8Array);
         expect(calls.getDocument[0].url).toBeUndefined();
         expect(calls.destroyed).toBe(1);
+    });
+
+    it("never reads a source too large for the device to draw its cover — the shelf is still there (#750 FR-13)", async () => {
+        let reads = 0;
+        const app = { vault: { readBinary: async () => (reads++, new ArrayBuffer(4)) } } as any;
+        const big = file("Books/huge.pdf");
+        (big as any).stat.size = DEVICE_LIMITS.pdf + 1;
+        const read = await withPlatform(IPAD, () => readCover(app, big, "pdf"));
+        expect(reads).toBe(0);
+        expect(read).toEqual({ url: null, facts: { chapters: 0 } });
     });
 
     it("marks a PDF with no text on its first pages as a scan", async () => {

@@ -58,6 +58,15 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
         }
     });
 
+    it("gives the iPad's motions an instant equivalent too (#750 AC-11)", () => {
+        const css = sheet("components/reader.scss");
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-panel--sheet", "reader-sheet-scrim", "reader-covers-app", "reader-page--under-scrub", ".mobile-navbar", ".workspace-tab-header-container"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+        expect(reduced).toMatch(/transition: none;\s*animation: none;/);
+    });
+
     it("keeps the motion tokens in one place", () => {
         const motion = sheet("utils/motion.scss");
         for (const token of ["$motion-fast", "$motion-base", "$motion-cover", "$ease-out"]) expect(motion).toContain(token);

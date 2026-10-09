@@ -90,7 +90,7 @@ relations:
 | **Space** / **Shift+Space** | a screen down (up) the chapter, and the next (previous) chapter once you reach its end |
 | **↓** / **↑** | scroll the chapter a little |
 | **Home** / **End** | first / last chapter |
-| **F** | fullscreen (desktop) |
+| **F** | fullscreen, where the platform allows it (not on an iPad or a phone) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
 | **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
@@ -110,14 +110,15 @@ appear only while a reading is the active tab, and none has a default hotkey:
 | **Reader: exit** | leave the Reader and get the workspace back |
 
 The **bar** at the bottom appears when you move the mouse and fades after two seconds, and the
-pointer fades with it. It holds:
+pointer fades with it. On a touch screen a tap in the middle of the page shows it, and the next one
+hides it. It holds:
 
 - the chapter you are on, your progress through the path, and **about how many minutes are left**
   in this chapter (at 220 words a minute, counted down as you scroll);
 - **Contents**, the chapters with their roles;
 - **Type**;
 - **Around this chapter**, with what supports it, what argues back and its open questions;
-- **Fullscreen**;
+- **Fullscreen**, where the platform can go fullscreen;
 - **Keyboard shortcuts**.
 
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
@@ -163,6 +164,52 @@ its shelf again. Any key or click jumps a shot to its end, and with reduced moti
 
 Chapters are drawn by Obsidian's own Markdown renderer, so callouts, embeds, math and your theme look
 as they do everywhere else.
+
+## On iPad
+
+The Reader is built to be read with a finger, a pen or a hardware keyboard. On a mouse or a trackpad
+nothing below changes: a click never turns a page.
+
+![The Reader on an iPad: the edge zones and a swipe mid-turn in landscape, the Contents sheet at half height in portrait](../resources/reader/ipad.svg)
+
+- **Tap the edges.** A tap in the outer fifth of the page turns a screen, the right edge forward
+  (as **Space**) and the left edge back. A tap in the middle shows the bar, and the next one hides
+  it. A tap on a link, a footnote, a highlight or a button is that thing, never a turn — and so is
+  any tap while words are selected.
+- **Swipe a chapter.** A sideways swipe holds the chapter's own turn — the leaf, the flowing text or
+  the sheet you chose in **Settings → Reading** — under your finger. Let go past a third of the
+  page, or with a flick, and it turns at the speed you let go; short of that it springs back. On the
+  first or last chapter the page follows a third of your finger and comes back. A vertical drag
+  scrolls, and a gesture is decided once: a diagonal drag never both scrolls and turns.
+- **The very edge is not ours.** A swipe that starts within a finger's width of the screen's edge is
+  left to iPadOS and to Obsidian, which opens its sidebars from there.
+- **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
+  own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
+  **below** it, clear of that callout, and without a second *Copy*.
+- **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Around this chapter* rise from
+  the bottom edge at half height over the dimmed page. Drag the handle up to nearly full height or
+  down to close it, or tap the page above it. In landscape they open as the usual card.
+- **The whole screen is the page.** While a book is open, Obsidian's own toolbar slides away, and it
+  slides back as you leave, exactly as it was. The top line, the back pill, the dots, the bar and the
+  sheet stay inside the safe area — in both orientations and in a Split View window — and rotating
+  keeps the line you were reading in view.
+- **No dead control.** There is no *Fullscreen* button where the app cannot go fullscreen, and **F**
+  is left alone. The shortcuts sheet names **⌘** and **⌥** on Apple devices.
+- **A big book opens, or says why not.** A whole book is held in memory while you read it. On an
+  iPad or a phone, a PDF over 100 MB or an EPUB over 50 MB is not opened — not even read: the page
+  says it is too large to open on this device, with the way back to the library, and nothing is
+  written. Those limits are deliberately cautious until a device has measured them.
+- **Reduce Motion** is honoured: taps and sheets are instant, and a swipe still follows your finger,
+  because moving something with your finger is not an animation.
+
+**What is proven so far.** All of the above is tested, and was walked in Obsidian with its mobile
+layout emulated at iPad sizes with touch. The walk on a real iPad — the one that settles iPadOS's
+own callout and Look Up, the Pencil, a hardware keyboard and the memory limits — is recorded on
+[issue #750](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/750); until it is, those rows
+are assumed, not claimed.
+
+**What a plugin cannot do on iPad.** Hide the status bar; hear the Pencil's double-tap or squeeze;
+keep reading aloud in the background. These are the app's, not a plugin's.
 
 ## Links, detours and context
 
@@ -289,6 +336,17 @@ adding a note to a reading — an added note lasts as long as the reading on scr
 
 - The view is `ReaderView` (`zettelflow-reader`), a standalone `ItemView` like *This note*, and
   `openReader(app, seed)` is its only opener.
+- Touch (#750) is decided in pure modules the later slices reuse: `readerDevice.ts` (what the device
+  is: `touchPointer`, `isApple`, `canFullscreen`, `panelShape`, `DEVICE_LIMITS`/`tooLarge`),
+  `readerGestures.ts` (the classifier: `startGesture` locks a tap, swipe, scroll or press once;
+  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`; `EDGE_BACK_SWIPE` stays off),
+  `readerPlace.ts` (`placeAt`/`scrollFor`: a block and a share of it, kept through a reshape) and
+  `readerSheet.ts` (the sheet's heights and settle). `beginChapterScrub` in `readerTurn.ts` builds
+  the clock's own turn paused and moves it by the finger; the chapter shown next adopts it
+  (`adoptChapterScrub`).
+- On mobile, `coverApp` (in `openReader.ts`) puts `zettelkasten-flow__reader-covers-app` on the body:
+  the stylesheet slides Obsidian's chrome away and lets the Reader's leaf cover the screen. The stage
+  sets `data-ignore-swipe` for the touches it takes, which Obsidian's own drawer swipe respects.
 - The opener snapshots the sidebars, folds them and opens one reader leaf. `restoreWorkspace` gives
   them back, once.
 - The snapshot also lives in the view state, so a reader left open across a restart still restores.

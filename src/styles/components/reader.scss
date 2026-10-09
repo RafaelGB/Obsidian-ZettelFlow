@@ -3,6 +3,18 @@
 @use '../utils/motion' as *;
 
 /*
+ * The safe area (#750): Obsidian's own insets — `--safe-area-inset-*`, read from env() and emulated by
+ * `app.emulateMobile` — falling back to the platform's env() where Obsidian sets none. Every fixed piece
+ * of the Reader sits inside them: the top line, the back pill, the stage, the dots, the bar, the sheet.
+ */
+$safe-top: var(--safe-area-inset-top, env(safe-area-inset-top));
+$safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
+$safe-left: var(--safe-area-inset-left, env(safe-area-inset-left));
+$safe-right: var(--safe-area-inset-right, env(safe-area-inset-right));
+/* Where the page is: under the top line, above the bar, inside the safe area. A turning sheet lies exactly there. */
+$stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-4-18) + #{$safe-bottom}) $safe-left;
+
+/*
  * The Reader (#668, epic #667) — a path across your notes, read the way you read a book.
  *
  * Every colour is the user's theme. *Light* and *dark* put Obsidian's own `theme-light` /
@@ -121,9 +133,9 @@
 /* ── top line: where you are, and the way out ─────────────────────────── */
 .zettelkasten-flow__reader-top {
     position: absolute;
-    top: var(--size-4-4);
-    left: var(--size-4-6);
-    right: var(--size-4-4);
+    top: calc(var(--size-4-4) + #{$safe-top});
+    left: calc(var(--size-4-6) + #{$safe-left});
+    right: calc(var(--size-4-4) + #{$safe-right});
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -138,8 +150,21 @@
 /* ── the page ─────────────────────────────────────────────────────────── */
 .zettelkasten-flow__reader-stage {
     position: absolute;
-    inset: var(--size-4-12) 0 var(--size-4-18) 0;
+    inset: $stage-inset;
     overflow-y: auto;
+    /* A vertical drag is the browser's scroll; a sideways one is the page's turn (#750 FR-4). */
+    touch-action: pan-y pinch-zoom;
+}
+
+/* A turn held under a finger (#750): the live page waits, unseen, under the sheet. */
+.zettelkasten-flow__reader-page--under-scrub {
+    opacity: 0;
+}
+
+/* The end of the book: the page follows a third of the finger (#750 FR-18). The stage moves, never
+   the page inside it, which would overflow its scroller and flash a scrollbar. */
+.zettelkasten-flow__reader-stage--rubber {
+    translate: var(--zf-scrub-x, 0) 0;
 }
 
 .zettelkasten-flow__reader-page {
@@ -299,6 +324,14 @@
     text-align: center;
 }
 
+/* A source too large for this device (#750 FR-13): one calm line, and the way back under it. */
+.zettelkasten-flow__reader-too-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-3);
+}
+
 /* The chapter's end: the ornament above, the way on under it (#724). */
 .zettelkasten-flow__reader-next {
     display: flex;
@@ -345,16 +378,18 @@ button.zettelkasten-flow__reader-next-button {
 /* ── dots and the bar ─────────────────────────────────────────────────── */
 .zettelkasten-flow__reader-dots {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: var(--size-4-16);
+    left: $safe-left;
+    right: $safe-right;
+    bottom: calc(var(--size-4-16) + #{$safe-bottom});
     display: flex;
     justify-content: center;
     gap: var(--size-4-2);
     transition: opacity 0.4s ease;
 }
 
-.zettelkasten-flow__reader-dot {
+/* Scoped to the Reader and to the button: a tablet's own `.is-tablet button:not(.clickable-icon)` padding and
+   mobile button colours would otherwise win (#750 walk: every dot was 40px wide and grey). */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-dot {
     width: var(--size-4-2);
     height: var(--size-4-2);
     padding: 0;
@@ -366,11 +401,11 @@ button.zettelkasten-flow__reader-next-button {
     transition: width 0.2s ease;
 }
 
-.zettelkasten-flow__reader-dot--done {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-dot--done {
     background-color: var(--reader-faint);
 }
 
-.zettelkasten-flow__reader-dot--current {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-dot--current {
     width: var(--size-4-6);
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
@@ -378,9 +413,11 @@ button.zettelkasten-flow__reader-next-button {
 
 .zettelkasten-flow__reader-bar {
     position: absolute;
-    left: 50%;
-    /* Above a phone's home indicator, never closer to the edge than on a desktop. */
-    bottom: max(var(--size-4-4), calc(var(--size-4-2) + env(safe-area-inset-bottom)));
+    /* Centred between the side insets (a notch in landscape), above the home indicator, never
+       closer to the edge than on a desktop. */
+    left: calc(50% + (#{$safe-left} - #{$safe-right}) / 2);
+    bottom: max(var(--size-4-4), calc(var(--size-4-2) + #{$safe-bottom}));
+    max-width: calc(100% - #{$safe-left} - #{$safe-right} - var(--size-4-4));
     transform: translateX(-50%);
     display: flex;
     align-items: center;
@@ -475,7 +512,7 @@ button.zettelkasten-flow__reader-next-button {
     display: none;
     position: absolute;
     left: 50%;
-    bottom: calc(var(--size-4-16) + var(--size-4-6));
+    bottom: calc(var(--size-4-16) + var(--size-4-6) + #{$safe-bottom});
     transform: translateX(-50%);
     width: min(28rem, calc(100% - var(--size-4-8)));
     max-height: 60%;
@@ -494,6 +531,80 @@ button.zettelkasten-flow__reader-next-button {
     display: flex;
 }
 
+/*
+ * The panel as a bottom sheet (#750 FR-7, FR-20): full width, anchored to the bottom, as tall as its
+ * top height and translated down to the height it is at — so it rises, follows the finger and settles
+ * by transform alone. It opens at half height; the handle drags it.
+ */
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--zf-sheet-full, 92%);
+    max-height: none;
+    padding: 0 calc(var(--size-4-4) + #{$safe-right}) calc(var(--size-4-4) + #{$safe-bottom}) calc(var(--size-4-4) + #{$safe-left});
+    border-bottom: none;
+    border-radius: var(--radius-l) var(--radius-l) 0 0;
+    transform: translateY(var(--zf-sheet-y, 50%));
+    /* How long a settle takes: the shared beat, or the release speed's (set while dragging). */
+    --zf-sheet-ms: #{$motion-base};
+    transition: transform var(--zf-sheet-ms) $ease-out;
+    animation: zf-reader-sheet-rise $motion-base $ease-out backwards;
+    z-index: 6;
+}
+
+@keyframes zf-reader-sheet-rise {
+    from {
+        transform: translateY(100%);
+    }
+}
+
+/* Under the finger: 1:1, no easing between the finger and the sheet. */
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--dragging {
+    transition: none;
+}
+
+/* Closing: down and away. */
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--closing {
+    transform: translateY(100%);
+}
+
+.zettelkasten-flow__reader-sheet-handle {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: center;
+    flex: 0 0 auto;
+    padding: var(--size-4-3) 0 var(--size-4-2);
+    background-color: var(--reader-surface);
+    cursor: grab;
+    touch-action: none;
+    z-index: 1;
+}
+
+.zettelkasten-flow__reader-sheet-grip {
+    width: var(--size-4-9);
+    height: var(--size-4-1);
+    border-radius: $radius-pill;
+    background-color: var(--reader-line);
+}
+
+/* The page behind a sheet dims slightly; a tap on it closes the sheet. */
+.zettelkasten-flow__reader-sheet-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background-color: var(--background-modifier-cover);
+    opacity: 0.5;
+    transition: opacity $motion-base $ease-out;
+    animation: zf-reader-fade $motion-base $ease-out both;
+}
+
+.zettelkasten-flow__reader-sheet-scrim--closing {
+    opacity: 0;
+}
+
 .zettelkasten-flow__reader-panel-title,
 .zettelkasten-flow__reader-context-heading {
     font-size: var(--font-ui-smaller);
@@ -502,7 +613,7 @@ button.zettelkasten-flow__reader-next-button {
     color: var(--reader-faint);
 }
 
-.zettelkasten-flow__reader-toc-row {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-row {
     display: flex;
     align-items: baseline;
     gap: var(--size-4-3);
@@ -522,7 +633,7 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
-.zettelkasten-flow__reader-toc-row--current {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-row--current {
     background-color: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
 }
 
@@ -555,7 +666,7 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
-.zettelkasten-flow__reader-context-row {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-context-row {
     display: block;
     width: 100%;
     height: auto;
@@ -591,7 +702,7 @@ button.zettelkasten-flow__reader-next-button {
 /* The way back from a detour: one press pops one level. */
 .zettelkasten-flow__reader-detour-pill {
     position: absolute;
-    top: calc(var(--size-4-12) + var(--size-4-1));
+    top: calc(var(--size-4-12) + var(--size-4-1) + #{$safe-top});
     left: 50%;
     transform: translateX(-50%);
     height: auto;
@@ -648,7 +759,7 @@ button.zettelkasten-flow__reader-notebook-link {
 /* Search inside the book (#719): a slim bar under the top, the results under it. */
 .zettelkasten-flow__reader-search {
     position: absolute;
-    top: calc(var(--size-4-12) + var(--size-4-1));
+    top: calc(var(--size-4-12) + var(--size-4-1) + #{$safe-top});
     left: 50%;
     transform: translateX(-50%);
     z-index: 6;
@@ -1015,6 +1126,12 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     box-shadow: var(--shadow-s);
 }
 
+/* A touch selection (#750 FR-5): below the words, clear of iPadOS's own callout above them. */
+.zettelkasten-flow__reader-hl-pop.zettelkasten-flow__reader-hl-pop--below {
+    transform: translate(-50%, var(--size-4-2));
+    transform-origin: top center;
+}
+
 .zettelkasten-flow__reader-hl-pop--status {
     flex-direction: row;
     align-items: center;
@@ -1174,10 +1291,23 @@ button.zettelkasten-flow__reader-hl-filter-chip {
    The page you were on, laid over the stage as a sheet of paper; it leaves as a leaf, keeps flowing
    or slides off. Placed exactly where the stage is, and only what was on screen is in it. */
 .zettelkasten-flow__turn-sheet,
-.zettelkasten-flow__turn-shade {
+.zettelkasten-flow__turn-shade,
+.zettelkasten-flow__turn-underlay {
     position: absolute;
-    inset: var(--size-4-12) 0 var(--size-4-18) 0;
+    inset: $stage-inset;
     pointer-events: none;
+}
+
+/* Under a sheet a finger lifts (#750): the paper, and the name of where the turn goes. Nothing is drawn yet. */
+.zettelkasten-flow__turn-underlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--reader-bg);
+    color: var(--reader-faint);
+    font-size: var(--font-ui-small);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .zettelkasten-flow__turn-clip {
@@ -1470,6 +1600,50 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     font-size: var(--font-ui-smaller);
 }
 
+/*
+ * Covering Obsidian's mobile chrome (#750 D6, FR-8, FR-21; audited in openReader.ts): while a book is
+ * open on mobile, the root's tab bar (a tablet) and the navigation bar (a phone) slide out of the
+ * screen, and the Reader's leaf covers it — under Obsidian's drawers, menus and modals. Taking the
+ * class off brings them back as they were, sliding the same way.
+ */
+body.zettelkasten-flow__reader-covers-app .workspace-tab-header-container,
+body.zettelkasten-flow__reader-covers-app .mobile-navbar,
+body.zettelkasten-flow__reader-chrome-returning .workspace-tab-header-container,
+body.zettelkasten-flow__reader-chrome-returning .mobile-navbar {
+    transition: transform $motion-base $ease-out;
+}
+
+body.zettelkasten-flow__reader-covers-app {
+    .workspace-tab-header-container {
+        transform: translateY(calc(-100% - #{$safe-top}));
+    }
+
+    .mobile-navbar {
+        transform: translateY(calc(100% + #{$safe-bottom}));
+    }
+
+    /* Obsidian contains every leaf (`.workspace-leaf { contain: strict !important }`, 1.14.4): layout
+       and paint containment would hold a fixed child inside the leaf, under the tab bar's empty place.
+       The Reader's own leaf keeps its size and style containment and lets the other two go, only while
+       it covers the screen. Obsidian's own `!important` is the only thing that can answer it. */
+    .workspace-leaf:has(> .workspace-leaf-content[data-type="zettelflow-reader"]) {
+        contain: size style !important;
+    }
+
+    .workspace-leaf-content[data-type="zettelflow-reader"] {
+        position: fixed;
+        inset: 0;
+        z-index: var(--layer-cover);
+    }
+
+    /* A phone keeps room above every view for its floating header (`--view-top-spacing`); the Reader
+       has none, and its page starts at the top of the screen, inside the safe area. */
+    .workspace-leaf-content[data-type="zettelflow-reader"] > .view-content {
+        margin-top: 0;
+        height: 100%;
+    }
+}
+
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__reader-highlight--flash {
@@ -1499,6 +1673,23 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 
     .zettelkasten-flow__reader-ornament {
         transition: none;
+    }
+
+    /* The sheet appears and goes at once — its drag still follows the finger (#750 FR-20). */
+    .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--sheet,
+    .zettelkasten-flow__reader-sheet-scrim {
+        transition: none;
+        animation: none;
+    }
+
+    /* The chrome Obsidian gives back, and the page a finger lifted, are simply there. */
+    body.zettelkasten-flow__reader-chrome-returning .workspace-tab-header-container,
+    body.zettelkasten-flow__reader-chrome-returning .mobile-navbar,
+    body.zettelkasten-flow__reader-covers-app .workspace-tab-header-container,
+    body.zettelkasten-flow__reader-covers-app .mobile-navbar,
+    .zettelkasten-flow__reader-page--under-scrub {
+        transition: none;
+        animation: none;
     }
 
     .zettelkasten-flow__reader-bar,

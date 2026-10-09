@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { MarkdownRenderer, Platform, TFile, WorkspaceLeaf } from "obsidian";
@@ -8,7 +8,8 @@ import { ReaderView, readableBody } from "architecture/components/core/reader/Re
 import { parseReaderState, READER_VIEW } from "architecture/components/core/reader/readerContract";
 import { normalizeReaderPrefs, readerClassNames, DEFAULT_READER_PREFS } from "architecture/components/core/reader/readerPrefs";
 import { collapseSides, restoreSides, snapshotSides, type SideLike } from "architecture/components/core/reader/readerWorkspace";
-import { openReader, restoreWorkspace, resetReaderWorkspace } from "architecture/components/core/reader/openReader";
+import { CHROME_RETURNING, COVERS_APP, openReader, restoreWorkspace, resetReaderWorkspace } from "architecture/components/core/reader/openReader";
+import { withPlatform, IPAD } from "../../../../support/platform";
 
 const ROOT = join(__dirname, "..", "..", "..", "..", "..");
 
@@ -259,5 +260,116 @@ describe("the reader writes no note (#667 R2)", () => {
         const writers = sources(dir).filter((f) => /\bstore\.(write|save|discard|restore)\(/.test(readFileSync(f, "utf8")));
         expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/"))).toEqual(["reader/readerHighlights.ts"]);
         expect(readFileSync(join(dir, "readerHighlights.ts"), "utf8")).toContain('from "architecture/plugin/thinking/ThoughtStore"');
+    });
+});
+
+/** Covering Obsidian's mobile chrome, a control that works, and the keys as the keyboard prints them (#750). */
+describe("the Reader on iPad: the screen and the keys (#750)", () => {
+    const body = new DomNode("body");
+    beforeEach(() => {
+        resetReaderWorkspace();
+        (Platform as { isMobile: boolean }).isMobile = false;
+        body.classes.clear();
+        (globalThis as { activeDocument?: unknown }).activeDocument = { body };
+    });
+    afterEach(() => {
+        delete (globalThis as { activeDocument?: unknown }).activeDocument;
+    });
+
+    it("covers Obsidian's mobile chrome while reading, and gives it back exactly on leaving (AC-6)", async () => {
+        await withPlatform(IPAD, async () => {
+            const { ws, left, right } = workspace();
+            await openReader({ workspace: ws } as never, "a.md");
+            expect(body.hasClass(COVERS_APP)).toBe(true);
+            // The drawers are Obsidian's: never moved on mobile.
+            expect([left.calls, right.calls]).toEqual([[], []]);
+            restoreWorkspace({ workspace: ws } as never);
+            expect(body.hasClass(COVERS_APP)).toBe(false);
+            // The chrome slides back: its transition lives only for that moment, then nothing is left.
+            expect([...body.classes]).toEqual([CHROME_RETURNING]);
+            await new Promise((resolve) => setTimeout(resolve, 350));
+            expect([...body.classes]).toEqual([]);
+        });
+    });
+
+    it("folds the sidebars on desktop, and covers nothing", async () => {
+        const { ws, left, right } = workspace();
+        await openReader({ workspace: ws } as never, "a.md");
+        expect([left.collapsed, right.collapsed]).toEqual([true, true]);
+        expect(body.hasClass(COVERS_APP)).toBe(false);
+    });
+
+    function withDoc(fullscreenEnabled: boolean) {
+        const m = mountReader();
+        (m.content as unknown as { doc: unknown }).doc = { fullscreenEnabled, body: { requestFullscreen: jest.fn(() => Promise.resolve()) }, fullscreenElement: null };
+        return m;
+    }
+    const fullscreenButton = (content: DomNode) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Fullscreen");
+
+    it("offers Fullscreen, and takes F, where the platform can go fullscreen", async () => {
+        const { view, content, leaf } = withDoc(true);
+        await view.setState({ seed: "a.md" }, {} as never);
+        await view.onOpen();
+        expect(fullscreenButton(content)).toBeDefined();
+        expect(press(leaf, "F", { target: content }).defaultPrevented).toBe(true);
+    });
+
+    it("shows no dead control: no Fullscreen and F left alone where the platform cannot (AC-8)", async () => {
+        const off = withDoc(false);
+        await off.view.setState({ seed: "a.md" }, {} as never);
+        await off.view.onOpen();
+        expect(fullscreenButton(off.content)).toBeUndefined();
+        expect(press(off.leaf, "F", { target: off.content }).defaultPrevented).toBe(false);
+        await withPlatform(IPAD, async () => {
+            const ipad = withDoc(true);
+            await ipad.view.setState({ seed: "a.md" }, {} as never);
+            await ipad.view.onOpen();
+            expect(fullscreenButton(ipad.content)).toBeUndefined();
+            expect(press(ipad.leaf, "F", { target: ipad.content }).defaultPrevented).toBe(false);
+            // Nor does the shortcuts sheet list a key that does nothing.
+            press(ipad.leaf, "?", { target: ipad.content });
+            expect(ipad.content.byClass("reader-shortcuts-label").map((el) => el.textContent)).not.toContain("Fullscreen");
+        });
+    });
+
+    const caps = (content: DomNode) => content.byClass("reader-shortcuts-keys").map((dt) => dt.findAll((el) => el.tag === "kbd").map((k) => k.textContent).join("+"));
+
+    it("names ⌘ and ⌥ on Apple devices, Ctrl and Alt elsewhere (AC-9)", async () => {
+        const pc = mountReader();
+        await pc.view.setState({ seed: "a.md" }, {} as never);
+        await pc.view.onOpen();
+        press(pc.leaf, "?", { target: pc.content });
+        expect(caps(pc.content)).toEqual(expect.arrayContaining(["Ctrl+F", "Alt+←"]));
+        await withPlatform({ isMacOS: true, isWin: false }, async () => {
+            const mac = mountReader();
+            await mac.view.setState({ seed: "a.md" }, {} as never);
+            await mac.view.onOpen();
+            press(mac.leaf, "?", { target: mac.content });
+            expect(caps(mac.content)).toEqual(expect.arrayContaining(["⌘+F", "⌥+←"]));
+            expect(caps(mac.content).join(" ")).not.toContain("Ctrl");
+        });
+    });
+});
+
+describe("the chrome is never left hidden (#750)", () => {
+    const body = new DomNode("body");
+    beforeEach(() => {
+        resetReaderWorkspace();
+        body.classes.clear();
+        (globalThis as { activeDocument?: unknown }).activeDocument = { body };
+    });
+    afterEach(() => {
+        delete (globalThis as { activeDocument?: unknown }).activeDocument;
+    });
+
+    it("gives it back when the Reader fails to open", async () => {
+        await withPlatform(IPAD, async () => {
+            const { ws, fresh } = workspace();
+            (fresh as unknown as { setViewState: unknown }).setViewState = jest.fn(async () => {
+                throw new Error("no view");
+            });
+            await expect(openReader({ workspace: ws } as never, "a.md")).rejects.toThrow("no view");
+            expect(body.hasClass(COVERS_APP)).toBe(false);
+        });
     });
 });

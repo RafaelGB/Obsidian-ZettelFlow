@@ -6,6 +6,8 @@ import { makePdfJs, prose } from "../../../../support/fakePdf";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState } from "architecture/components/core/reader/readerContract";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
+import { DEVICE_LIMITS } from "architecture/components/core/reader/readerDevice";
+import { withPlatform, IPAD } from "../../../../support/platform";
 import type { HighlightStore } from "architecture/components/core/reader/readerHighlights";
 import type { Thought } from "application/thinking/thought";
 
@@ -157,5 +159,67 @@ describe("a PDF in the Reader (#681)", () => {
         await m.view.onOpen();
         await flush();
         expect(m.content.oneByClass("reader-missing").textContent).toBe("This file could not be read.");
+    });
+});
+
+/** A big book opens, or says why not (#750 FR-13, FR-23, AC-10). */
+describe("a source too large for the device (#750)", () => {
+    beforeEach(() => resetReaderWorkspace());
+    afterAll(() => __setPdfJs(null));
+
+    function big(m: ReturnType<typeof mount>) {
+        const paper = m.app.vault.getAbstractFileByPath("Papers/cap.pdf") as unknown as { stat: { size: number } };
+        paper.stat.size = DEVICE_LIMITS.pdf + 1;
+        const readBinary = jest.fn(async () => new ArrayBuffer(4));
+        (m.app.vault as unknown as { readBinary: unknown }).readBinary = readBinary;
+        return readBinary;
+    }
+
+    it("is not read at all on an iPad: one calm line, and the way back to the shelf; nothing is written", async () => {
+        await withPlatform(IPAD, async () => {
+            const m = mount();
+            const readBinary = big(m);
+            const back = { focus: "Papers/cap.pdf" };
+            (m.app.workspace as unknown as { getLeavesOfType: unknown }).getLeavesOfType = () => [];
+            const setViewState = jest.fn(async () => undefined);
+            (m.view.leaf as unknown as { setViewState: unknown }).setViewState = setViewState;
+            await m.view.setState({ source: "Papers/cap.pdf", chapter: 0, back }, {} as never);
+            await m.view.onOpen();
+            await flush();
+            expect(readBinary).not.toHaveBeenCalled();
+            expect(m.content.oneByClass("reader-too-large-text").textContent).toBe("This file is too large to open on this device.");
+            const shelf = m.content.byText("Back to the library");
+            expect(shelf).toBeDefined();
+            shelf!.click();
+            expect(setViewState).toHaveBeenCalledWith({ type: "zettelflow-library", state: back, active: true });
+            expect(m.host.saveSettings).not.toHaveBeenCalled();
+            expect(m.host.settings.library).toBeUndefined();
+        });
+    });
+
+    it("opens the same file on a desktop, where there is no such limit — saying Opening… meanwhile", async () => {
+        const m = mount();
+        const readBinary = big(m);
+        await m.view.setState({ source: "Papers/cap.pdf", chapter: 0 }, {} as never);
+        await m.view.onOpen();
+        await settle(() => m.content.byClass("reader-next").length > 0);
+        expect(readBinary).toHaveBeenCalled();
+        expect(m.content.byClass("reader-too-large")).toHaveLength(0);
+    });
+
+    it("says Opening… while a book within the limit opens on an iPad", async () => {
+        await withPlatform(IPAD, async () => {
+            const m = mount();
+            let release: () => void = () => undefined;
+            (m.app.vault as unknown as { readBinary: unknown }).readBinary = () => new Promise<ArrayBuffer>((resolve) => (release = () => resolve(new ArrayBuffer(4))));
+            const opening = m.view.setState({ source: "Papers/cap.pdf", chapter: 0 }, {} as never);
+            await flush(2);
+            await m.view.onOpen();
+            expect(m.content.oneByClass("reader-missing").textContent).toBe("Opening…");
+            release();
+            await opening;
+            await settle(() => m.content.byClass("reader-next").length > 0);
+            expect(m.content.byClass("reader-too-large")).toHaveLength(0);
+        });
     });
 });

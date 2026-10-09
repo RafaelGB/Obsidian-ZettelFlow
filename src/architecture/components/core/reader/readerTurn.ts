@@ -7,6 +7,9 @@ import type { ChapterMotion } from "./readingMotion";
  * on top as a sheet of paper, the next chapter is drawn underneath, and the sheet leaves the way the
  * reader chose — a leaf turning on the spine, the text carrying on in the reading direction, or a sheet
  * sliding off the stack. Never a dissolve. Transform and opacity only; any key or click ends it.
+ *
+ * A finger can hold the same turn (#750): `beginChapterScrub` builds it paused and moves it with the
+ * finger; the clock's turn and the finger's are one shape, built in one place (`buildTurn`).
  */
 
 interface Box {
@@ -44,8 +47,16 @@ function copyCanvases(from: Element, to: Element): void {
         if (!target) return;
         target.width = canvas.width;
         target.height = canvas.height;
-        target.getContext("2d")?.drawImage(canvas, 0, 0);
+        target.getContext?.("2d")?.drawImage(canvas, 0, 0);
     });
+}
+
+/** A copied picture is let go with its sheet: WebKit counts the memory of every canvas on the page. */
+function releaseCanvases(el: Element): void {
+    for (const canvas of Array.from(el.querySelectorAll("canvas"))) {
+        canvas.width = 0;
+        canvas.height = 0;
+    }
 }
 
 /**
@@ -81,46 +92,32 @@ function sheetOf(root: HTMLElement, stage: HTMLElement, page: HTMLElement): HTML
     const clip = sheet.createDiv({ cls: c("turn-clip") });
     const copy = page.cloneNode(false) as HTMLElement;
     copy.removeClass(c("reader-page--enter"));
+    copy.removeClass(c("reader-page--under-scrub"));
     place(copy, rectOf(page), view, true);
     copyVisible(page, copy, view);
     clip.appendChild(copy);
     return sheet;
 }
 
-let running: { animations: Animation[]; cleanup: () => void } | null = null;
-
-/** Ends a turn still playing — a second → arrives before the first sheet has gone. */
-export function endChapterTurn(): void {
-    const turn = running;
-    running = null;
-    if (!turn) return;
-    for (const animation of turn.animations) {
-        try {
-            animation.finish();
-        } catch {
-            // Already gone.
-        }
-    }
-    turn.cleanup();
+interface Built {
+    sheet: HTMLElement;
+    shade: HTMLElement;
+    animations: Animation[];
+    duration: number;
 }
 
 /**
- * Lay the page you were on over the stage and play it out, `dir` the way you went (1 forward, -1
- * back). Call it before the page is emptied for the next chapter. Returns whether it plays; with
- * reduced motion, or nothing to show, the next chapter simply is there.
+ * The sheet, its shade and the turn's keyframes — the one place a turn is shaped, so a turn played by
+ * the clock and one driven by a finger are the same picture moving the same way.
  */
-export function playChapterTurn(root: HTMLElement, stage: HTMLElement, page: HTMLElement, motion: ChapterMotion, dir: 1 | -1): boolean {
-    endChapterTurn();
-    if (!motionWelcome(root) || !page.firstElementChild) return false;
-    const view = rectOf(stage);
-    if (!(view.width > 0) || !(view.height > 0)) return false;
-    const win = (root as El).win ?? window;
+function buildTurn(root: HTMLElement, stage: HTMLElement, page: HTMLElement, motion: ChapterMotion, dir: 1 | -1, view: Box): Built {
     const sheet = sheetOf(root, stage, page);
     sheet.addClass(c(`turn-sheet--${motion}`));
     const shade = root.createDiv({ cls: c("turn-shade"), attr: { "aria-hidden": "true" } });
     root.insertBefore(shade, sheet);
-    const timing = { duration: motion === "flow" ? MOTION.turnFlow : MOTION.turn, fill: "forwards" as const };
-    let animations: Animation[] = [];
+    const duration = motion === "flow" ? MOTION.turnFlow : MOTION.turn;
+    const timing = { duration, fill: "forwards" as const };
+    let animations: Animation[];
     if (motion === "leaf") {
         // A leaf turns on the spine: forward from the left edge, back from the right one.
         sheet.addClass(c(dir > 0 ? "turn-sheet--spine-left" : "turn-sheet--spine-right"));
@@ -149,33 +146,212 @@ export function playChapterTurn(root: HTMLElement, stage: HTMLElement, page: HTM
             shade.animate([{ opacity: 1 }, { opacity: 0 }], timing),
         ];
     }
-    const stopSkip = (() => {
-        const skip = () => endChapterTurn();
-        win.addEventListener("keydown", skip, true);
-        win.addEventListener("pointerdown", skip, true);
-        return () => {
-            win.removeEventListener("keydown", skip, true);
-            win.removeEventListener("pointerdown", skip, true);
-        };
-    })();
-    const turn = {
+    return { sheet, shade, animations, duration };
+}
+
+/** Any key or click ends a turn that plays: motion never stands between you and the page. */
+function armSkip(win: Window): () => void {
+    const skip = () => endChapterTurn();
+    win.addEventListener("keydown", skip, true);
+    win.addEventListener("pointerdown", skip, true);
+    return () => {
+        win.removeEventListener("keydown", skip, true);
+        win.removeEventListener("pointerdown", skip, true);
+    };
+}
+
+interface Turn {
+    animations: Animation[];
+    cleanup: () => void;
+    /** A finger's turn: the live page comes back from under the sheet, for the next chapter. */
+    reveal?: () => void;
+}
+
+let running: Turn | null = null;
+/** A turn a finger let go past its third: the chapter shown next takes it as its own (#750). */
+let adoptable: Turn | null = null;
+
+/** Ends a turn still playing — a second → arrives before the first sheet has gone. */
+export function endChapterTurn(): void {
+    const turn = running;
+    running = null;
+    adoptable = null;
+    if (!turn) return;
+    for (const animation of turn.animations) {
+        try {
+            animation.finish();
+        } catch {
+            // Already gone.
+        }
+    }
+    turn.cleanup();
+}
+
+/** Clean `turn` up once its animations have played — or a moment after they should have. */
+function whenPlayed(turn: Turn, win: Window): void {
+    void Promise.race([
+        Promise.all(turn.animations.map((animation) => animation.finished.catch(() => undefined))),
+        new Promise((resolve) => win.setTimeout(resolve, MOTION.turn * 3)),
+    ]).then(() => {
+        if (running !== turn) return;
+        running = null;
+        if (adoptable === turn) adoptable = null;
+        turn.cleanup();
+    });
+}
+
+/**
+ * Lay the page you were on over the stage and play it out, `dir` the way you went (1 forward, -1
+ * back). Call it before the page is emptied for the next chapter. Returns whether it plays; with
+ * reduced motion, or nothing to show, the next chapter simply is there.
+ */
+export function playChapterTurn(root: HTMLElement, stage: HTMLElement, page: HTMLElement, motion: ChapterMotion, dir: 1 | -1): boolean {
+    endChapterTurn();
+    if (!motionWelcome(root) || !page.firstElementChild) return false;
+    const view = rectOf(stage);
+    if (!(view.width > 0) || !(view.height > 0)) return false;
+    const win = (root as El).win ?? window;
+    const { sheet, shade, animations } = buildTurn(root, stage, page, motion, dir, view);
+    const stopSkip = armSkip(win);
+    const turn: Turn = {
         animations,
         cleanup: () => {
             stopSkip();
+            releaseCanvases(sheet);
             sheet.remove();
             shade.remove();
             for (const animation of animations) if (animation.effect && (animation.effect as KeyframeEffect).target === stage) animation.cancel();
         },
     };
     running = turn;
-    void Promise.race([
-        Promise.all(animations.map((animation) => animation.finished.catch(() => undefined))),
-        new Promise((resolve) => win.setTimeout(resolve, MOTION.turn * 3)),
-    ]).then(() => {
-        if (running === turn) {
-            running = null;
-            turn.cleanup();
-        }
-    });
+    whenPlayed(turn, win);
+    return true;
+}
+
+/** A turn held under a finger (#750 D4): moved by `scrub`, then completed or sprung back on release. */
+export interface ChapterScrub {
+    /** How long the turn takes when the clock plays it. */
+    readonly duration: number;
+    /** Where the finger has the turn: 0 (not begun) to 1 (turned). */
+    scrub(progress: number): void;
+    /**
+     * Let go. `complete` plays the rest at `rate` (the release speed; at once under reduced motion)
+     * and waits for the next chapter to adopt it (`adoptChapterScrub`); `spring` plays it back to its
+     * start in the shared beat and gives the page back exactly as it was.
+     */
+    release(outcome: "complete" | "spring", rate?: number): void;
+    /** Drop it now, leaving nothing on screen. */
+    cancel(): void;
+}
+
+/**
+ * **Turning by finger** (#750 D4, FR-17, FR-22): the chapter's own turn — the same sheet, the same
+ * keyframes — built paused and moved by the finger instead of a clock, on the compositor. The live
+ * page is hidden under the sheet (opacity) and an underlay shows the paper and `label`, the chapter the
+ * turn leads to: nothing is drawn or laid out until the finger lets go. Under reduced motion the sheet
+ * still follows the finger — direct manipulation is not animation — and the release lands at once.
+ *
+ * Returns `null` where the turn cannot be built (no Web Animations, nothing on the page, no size).
+ */
+export function beginChapterScrub(root: HTMLElement, stage: HTMLElement, page: HTMLElement, motion: ChapterMotion, dir: 1 | -1, label: string): ChapterScrub | null {
+    endChapterTurn();
+    if (typeof (root as { animate?: unknown }).animate !== "function" || !page.firstElementChild) return null;
+    const view = rectOf(stage);
+    if (!(view.width > 0) || !(view.height > 0)) return null;
+    const win = (root as El).win ?? window;
+    const welcome = motionWelcome(root);
+    const { sheet, shade, animations, duration } = buildTurn(root, stage, page, motion, dir, view);
+    for (const animation of animations) {
+        animation.pause();
+        animation.currentTime = 0;
+    }
+    // Under the lifted sheet: the paper, and the name of where the turn goes.
+    const underlay = root.createDiv({ cls: c("turn-underlay"), attr: { "aria-hidden": "true" } });
+    underlay.createSpan({ cls: c("turn-underlay-label"), text: label });
+    root.insertBefore(underlay, shade);
+    page.addClass(c("reader-page--under-scrub"));
+    let stopSkip: () => void = () => undefined;
+    const reveal = () => {
+        page.removeClass(c("reader-page--under-scrub"));
+        underlay.remove();
+    };
+    const turn: Turn = {
+        animations,
+        reveal,
+        cleanup: () => {
+            stopSkip();
+            reveal();
+            releaseCanvases(sheet);
+            sheet.remove();
+            shade.remove();
+            for (const animation of animations) {
+                try {
+                    animation.cancel();
+                } catch {
+                    // Already gone.
+                }
+            }
+        },
+    };
+    running = turn;
+    let released = false;
+    return {
+        duration,
+        scrub: (progress) => {
+            if (released || running !== turn) return;
+            const at = Math.min(1, Math.max(0, progress)) * duration;
+            for (const animation of animations) animation.currentTime = at;
+        },
+        release: (outcome, rate = 1) => {
+            if (released || running !== turn) return;
+            released = true;
+            if (outcome === "complete") {
+                adoptable = turn;
+                stopSkip = armSkip(win);
+                for (const animation of animations) {
+                    if (welcome) {
+                        animation.playbackRate = rate;
+                        animation.play();
+                    } else {
+                        animation.finish();
+                    }
+                }
+                whenPlayed(turn, win);
+                return;
+            }
+            // Back where it started, in the shared beat; at once where motion is not welcome.
+            if (!welcome) {
+                endChapterTurn();
+                return;
+            }
+            for (const animation of animations) {
+                const at = Number(animation.currentTime ?? 0);
+                if (at > 0) {
+                    animation.playbackRate = -(at / MOTION.base);
+                    animation.play();
+                } else {
+                    animation.finish();
+                }
+            }
+            whenPlayed(turn, win);
+        },
+        cancel: () => {
+            if (running === turn) endChapterTurn();
+            else turn.cleanup();
+        },
+    };
+}
+
+/**
+ * The chapter shown after a finger let a turn go takes the turn already playing as its own (#750 D4):
+ * the live page comes back from under the sheet, to be emptied and drawn with the next chapter. True
+ * once per release; any other chapter change plays a turn of its own.
+ */
+export function adoptChapterScrub(): boolean {
+    const turn = adoptable;
+    adoptable = null;
+    if (!turn || running !== turn) return false;
+    // Under the sheet, the next chapter is drawn on the live page now — no longer the paper.
+    turn.reveal?.();
     return true;
 }

@@ -16,6 +16,52 @@ function sides(app: App): { left: SideLike; right: SideLike } | null {
     return leftSplit && rightSplit ? { left: leftSplit, right: rightSplit } : null;
 }
 
+/**
+ * **Covering Obsidian's mobile chrome** (#750 D6, FR-8, FR-21) — the mobile counterpart of folding the
+ * sidebars. One class on the body; `reader.scss` slides the chrome away (transform only) and lets the
+ * Reader's leaf cover the screen. Nothing of Obsidian's own state is touched, so taking the class off
+ * gives back exactly what was there.
+ *
+ * Audited against Obsidian 1.14.4's own `app.css` / `app.js` (T0):
+ * - the chrome on a tablet is the root's tab bar, `.workspace-tab-header-container` (the leaf's own
+ *   `.view-header` the Reader already hides); on a phone it is `.mobile-navbar` (tablets hide it);
+ *   `.mobile-toolbar` only shows while editing, under the keyboard;
+ * - no ancestor of the leaf is transformed (`.app-container`, `.workspace`, `.mod-root`: `none`), and
+ *   the drawers are `position: fixed` overlays above `--layer-cover`, so the covering host is the
+ *   leaf's own `.workspace-leaf-content`, fixed at `--layer-cover` — under the drawers, menus and modals;
+ * - Obsidian's drawer swipe listens for `touchstart` on the workspace container, **anywhere**, not
+ *   only at the edge, and skips any touch inside an element with `data-ignore-swipe`: the Reader sets
+ *   it on the stage for a touch it takes, never for one in the system strip (see `ReaderView`);
+ * - Obsidian exposes the insets as `--safe-area-inset-*` (from `env()`, emulated by
+ *   `app.emulateMobile`); the stylesheet reads those, falling back to `env()`.
+ *
+ * If a selector is gone in a later Obsidian, the Reader still covers the screen; only the slide is lost.
+ */
+export const COVERS_APP = "zettelkasten-flow__reader-covers-app";
+/** For the moment the chrome slides back: its transition lives only while the Reader moves it. */
+export const CHROME_RETURNING = "zettelkasten-flow__reader-chrome-returning";
+const RETURN_MS = 300;
+
+function mainBody(): HTMLElement | null {
+    return typeof activeDocument === "undefined" ? null : (activeDocument.body ?? null);
+}
+
+/** Cover Obsidian's mobile chrome, or give it back. Mobile only; a no-op anywhere else. */
+export function coverApp(on: boolean): void {
+    if (!Platform.isMobile && on) return;
+    const body = mainBody();
+    if (!body) return;
+    if (on) {
+        body.removeClass(CHROME_RETURNING);
+        body.addClass(COVERS_APP);
+        return;
+    }
+    if (!body.hasClass(COVERS_APP)) return;
+    body.removeClass(COVERS_APP);
+    body.addClass(CHROME_RETURNING);
+    body.win?.setTimeout(() => body.removeClass(CHROME_RETURNING), RETURN_MS);
+}
+
 /** The sidebars the reader will give back, for a view that outlives a restart (see ReaderView). */
 export function heldSides(): ReaderSidesState | null {
     return held?.sides ?? null;
@@ -62,6 +108,8 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
         held = { sides: s ? snapshotSides(s.left, s.right) : null, leaf: workspace.getMostRecentLeaf() };
         if (s) collapseSides(s.left, s.right);
     }
+    // On mobile, the chrome slides away with the opening shot (FR-21).
+    coverApp(true);
     // There is only one reader: read in the leaf you are given (the Library's), closing any other.
     if (given) for (const other of workspace.getLeavesOfType(READER_VIEW)) if (other !== given) other.detach();
     const leaf = given ?? workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
@@ -73,8 +121,14 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     if (highlight) state.highlight = highlight;
     if (name) state.name = name;
     if (back) state.back = back;
-    await leaf.setViewState({ type: READER_VIEW, state, active: true });
-    await workspace.revealLeaf(leaf);
+    try {
+        await leaf.setViewState({ type: READER_VIEW, state, active: true });
+        await workspace.revealLeaf(leaf);
+    } catch (error) {
+        // A Reader that did not open never leaves the app's chrome hidden.
+        coverApp(false);
+        throw error;
+    }
 }
 
 /**
@@ -82,6 +136,8 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
  * Idempotent — closing the tab and pressing Esc both land here, and only the first one acts.
  */
 export function restoreWorkspace(app: App): void {
+    // The chrome comes back as the camera returns to the shelf — even for a reading restored on launch.
+    coverApp(false);
     const snapshot = held;
     held = null;
     if (!snapshot) return;

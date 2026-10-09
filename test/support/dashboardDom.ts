@@ -229,6 +229,14 @@ export class DomNode {
     get lastElementChild(): DomNode | null {
         return this.children[this.children.length - 1] ?? null;
     }
+    get firstElementChild(): DomNode | null {
+        return this.children[0] ?? null;
+    }
+    /** The next sibling, as `insertBefore(node, el.nextSibling)` reads it (#750: a chapter's sheet). */
+    get nextSibling(): DomNode | null {
+        const siblings = this.parent?.children ?? [];
+        return siblings[siblings.indexOf(this) + 1] ?? null;
+    }
     /** The DOM's `insertBefore(node, ref)`: before `ref`, or last when there is none (#686). */
     insertBefore(node: DomNode, ref: DomNode | null | undefined): DomNode {
         if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);

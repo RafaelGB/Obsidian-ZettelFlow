@@ -191,8 +191,8 @@ user, and legibility inside their choice is the whole job.
 ## XVI. One continuous shot
 
 The interface is one *plano secuencia* ([manifesto](../manifesto.md#one-continuous-shot)): moving
-between places is a camera move, never a cut. Born in the Library and the Reader (the
-[prototype](../resources/reader/prototype-one-shot.html) is the reference), it applies wherever one
+between places is a camera move, never a cut. Born in the Library and the Reader (their camera,
+`readerShot.ts`, and the physical chapter change, `readerTurn.ts`, are the reference), it applies wherever one
 view becomes another. Six consequences a reviewer can check on a diff:
 
 - **No cut between related views.** When one thing becomes another view (a cover becomes the

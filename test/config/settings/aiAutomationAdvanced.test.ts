@@ -138,9 +138,9 @@ describe("AI: one switch, the provider only when it is on (#663)", () => {
 
 describe("Advanced: every folder in one grid (#663)", () => {
     const folders = (p: ReturnType<typeof plugin>, go = jest.fn()) =>
-        itemsOf(foldersSettingsGroup(p as never, () => true, go));
+        itemsOf(foldersSettingsGroup(p as never, () => true, go, undefined, { dictionaries: { go }, bookNotes: { go } }));
 
-    it("lists the flow homes, scripts, templates and the thinking space, in that order", () => {
+    it("lists the flow homes, scripts, templates, the thinking space, the dictionaries and the book notes, in that order", () => {
         expect(folders(plugin()).map((item) => item.name)).toEqual([
             "Folder flows",
             "Event flows",
@@ -148,6 +148,8 @@ describe("Advanced: every folder in one grid (#663)", () => {
             "Scripts",
             "Markdown templates",
             "Thinking space",
+            "Dictionaries",
+            "Book notes",
         ]);
     });
 

@@ -7,6 +7,7 @@ import { DictionaryShelf, type DictionaryFiles, type DictionaryInfo } from "arch
 import { languageName } from "architecture/components/core/reader/readerLanguage";
 import { validLanguage } from "application/library/stardict/languages";
 import { DEFAULT_DICTIONARIES_FOLDER, dictionarySettings, translateChoices, type DictionarySettings } from "application/library/dictionarySettings";
+import { DEFAULT_SETTINGS } from "config/typing";
 import { addFolderField } from "./folderField";
 import {
     CHAPTER_MOTIONS,
@@ -30,11 +31,22 @@ const CHAPTER_LABEL: Record<ChapterMotion, LocaleKey> = {
     stack: "settings_reading_chapter_stack",
 };
 
+/** Where a book's note goes until you choose (#743). */
+export const BOOK_NOTES_DEFAULT = DEFAULT_SETTINGS.bookNotesFolder ?? "Library";
+
 /**
  * **Reading** (#732, epic #729): how a book opens from the Library and how one chapter gives way to
  * the next. Reduced motion still wins over both — the section's purpose line says so.
+ *
+ * And where a book's note is kept (#743): a folder field like the plugin's other folder rows,
+ * committed when you leave it, press Enter or pick a suggestion. Saving it creates no folder — the
+ * folder is made with the first book's note — and changing it moves no note.
  */
-export function readingSettingsGroup(plugin: Pick<ZettelFlow, "settings" | "saveSettings">): SettingDefinitionItem {
+export function readingSettingsGroup(
+    plugin: Pick<ZettelFlow, "settings" | "saveSettings">,
+    /** After the folder changes: the pointer in *Folders ZettelFlow uses* follows it. */
+    bookNotesChanged: () => void = () => undefined
+): SettingDefinitionItem {
     const save = async (change: Partial<ReadingMotion>) => {
         plugin.settings.readingMotion = { ...readingMotion(plugin.settings.readingMotion), ...change };
         await plugin.saveSettings();
@@ -62,6 +74,32 @@ export function readingSettingsGroup(plugin: Pick<ZettelFlow, "settings" | "save
                         dropdown.setValue(readingMotion(plugin.settings.readingMotion).chapter);
                         dropdown.onChange((value) => save({ chapter: value as ChapterMotion }));
                     });
+                },
+            },
+            {
+                name: t("settings_reading_book_notes_name"),
+                desc: t("settings_reading_book_notes_desc"),
+                render: (setting: Setting) => {
+                    // Room for a whole path, like the thinking space; the class is the grid's way here.
+                    setting.settingEl.addClass(c("settings-folder-wide"), c("settings-book-notes-row"));
+                    const commit = addFolderField(setting, {
+                        read: () => plugin.settings.bookNotesFolder ?? BOOK_NOTES_DEFAULT,
+                        accept: (value) => {
+                            plugin.settings.bookNotesFolder = value || BOOK_NOTES_DEFAULT;
+                            return true;
+                        },
+                        saved: async () => {
+                            await plugin.saveSettings();
+                            bookNotesChanged();
+                        },
+                        placeholder: BOOK_NOTES_DEFAULT,
+                    });
+                    setting.addExtraButton((button) =>
+                        button
+                            .setIcon("rotate-ccw")
+                            .setTooltip(t("reset_to_default"))
+                            .onClick(() => commit(BOOK_NOTES_DEFAULT))
+                    );
                 },
             },
         ],

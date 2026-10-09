@@ -1,4 +1,5 @@
 import { progressOf, sourceFormat, type LibraryMeta } from "./sourceMeta";
+import { BOOK_STATUSES, effectiveStatus, type BookDetails, type BookNoteEntry, type BookStatus } from "./bookNote";
 
 /**
  * **The Library shelf** (#680, epic #675) — pure: what is on it, in which order, and what came of
@@ -49,6 +50,17 @@ export interface ShelfItem {
     savedId?: string;
     seed?: string;
     paths?: string[];
+    /**
+     * Where it stands for you (#743): the status its note sets, or the one read from your reading —
+     * *finished* once you reached the end, *reading* once you opened it. Absent before either.
+     */
+    status?: BookStatus;
+    /** Its book's note (#743), found by the note's link to it — wherever the note is kept. */
+    note?: string;
+    /** What its note says. Absent while it has none. */
+    details?: BookDetails;
+    collections?: string[];
+    series?: string;
 }
 
 export interface ShelfSource {
@@ -74,6 +86,8 @@ export interface ShelfInputs {
     highlights: ReadonlyMap<string, number>;
     /** Notes citing each source, by the source's path. */
     born: ReadonlyMap<string, number>;
+    /** The book notes, by the source each links to (#743). Read from the metadata cache. */
+    notes?: ReadonlyMap<string, BookNoteEntry>;
 }
 
 /** What a file is called on the shelf before the file says otherwise: its name, tidied. */
@@ -90,12 +104,17 @@ export function buildShelf(inputs: ShelfInputs): ShelfItem[] {
         const meta = inputs.meta[source.path];
         const pages = meta?.chapters;
         const kind: ShelfKind = format === "epub" || (pages !== undefined && pages > BOOK_PAGES) ? "book" : "paper";
+        // The note's title and author win over the file's (#743 FR-9).
+        const note = inputs.notes?.get(source.path);
+        const details = note?.details;
+        const author = details?.author?.join(", ") ?? meta?.author;
+        const status = effectiveStatus(details, meta);
         items.push({
             id: source.path,
             kind,
             format,
-            title: meta?.title ?? titleFromName(source.basename),
-            ...(meta?.author ? { author: meta.author } : {}),
+            title: details?.title ?? meta?.title ?? titleFromName(source.basename),
+            ...(author ? { author } : {}),
             file: source.path,
             progress: progressOf(meta),
             highlights: inputs.highlights.get(source.path) ?? 0,
@@ -104,18 +123,25 @@ export function buildShelf(inputs: ShelfInputs): ShelfItem[] {
             ...(meta?.imageOnly ? { imageOnly: true } : {}),
             ...(pages ? { chapters: pages } : {}),
             ...(meta?.chapter !== undefined ? { place: meta.chapter } : {}),
+            ...(status ? { status } : {}),
+            ...(note ? { note: note.path, details: note.details } : {}),
+            ...(details?.collections ? { collections: [...details.collections] } : {}),
+            ...(details?.series ? { series: details.series } : {}),
         });
     }
     for (const saved of inputs.saved) {
         const place = inputs.pathPlaces?.get(saved.id);
         const total = saved.paths.length;
         const highlights = saved.paths.reduce((sum, path) => sum + (inputs.highlights.get(path) ?? 0), 0);
+        const progress = place && total > 0 ? Math.min(1, (place.chapter + 1) / total) : 0;
+        // A path has no note: where it stands is read from where you left it.
+        const status: BookStatus | null = progress >= 1 ? "finished" : place ? "reading" : null;
         items.push({
             id: `path:${saved.id}`,
             kind: "path",
             format: "path",
             title: saved.name,
-            progress: place && total > 0 ? Math.min(1, (place.chapter + 1) / total) : 0,
+            progress,
             highlights,
             born: 0,
             lastRead: Math.max(saved.at, place?.at ?? 0),
@@ -124,6 +150,7 @@ export function buildShelf(inputs: ShelfInputs): ShelfItem[] {
             savedId: saved.id,
             seed: saved.seed,
             paths: [...saved.paths],
+            ...(status ? { status } : {}),
         });
     }
     return items;
@@ -151,17 +178,35 @@ export function shelfCounts(items: readonly ShelfItem[]): Record<ShelfFilter, nu
     return counts;
 }
 
+export type StatusFilter = "all" | BookStatus;
+export const STATUS_FILTERS: readonly StatusFilter[] = ["all", ...BOOK_STATUSES];
+
 export interface ShelfQuery {
     filter: ShelfFilter;
     sort: ShelfSort;
     search: string;
+    /** Where it stands for you (#743); every status when absent. */
+    status?: StatusFilter;
+    /** One collection (#743); every collection when absent. */
+    collection?: string | null;
 }
 
-/** The shelf as asked for: one filter, a search over titles and authors, one order. */
+/** What the search reads (#743 FR-10): the title, the author, the series and the collections. */
+function haystack(item: ShelfItem): string {
+    return fold([item.title, item.author ?? "", item.series ?? "", ...(item.collections ?? [])].join(" "));
+}
+
+/** The shelf as asked for: one filter, a status, a collection, a search, one order. */
 export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): ShelfItem[] {
     const needle = fold(query.search.trim());
+    const status = query.status ?? "all";
+    const collection = query.collection ? fold(query.collection) : null;
     const shown = items.filter(
-        (item) => matchesFilter(item, query.filter) && (!needle || fold(`${item.title} ${item.author ?? ""}`).includes(needle))
+        (item) =>
+            matchesFilter(item, query.filter) &&
+            (status === "all" || item.status === status) &&
+            (!collection || (item.collections ?? []).some((name) => fold(name) === collection)) &&
+            (!needle || haystack(item).includes(needle))
     );
     const byTitle = (a: ShelfItem, b: ShelfItem) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id);
     if (query.sort === "title") return shown.sort(byTitle);
@@ -173,10 +218,32 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
 /** How many sources *Continue reading* offers. */
 export const CONTINUE_LIMIT = 2;
 
-/** What you were last in and have not finished — the reason to open the Library. */
+/**
+ * What you were last in and have not finished — the reason to open the Library. A book you said
+ * you finished, or put back to *Want to read*, is not offered again (#743).
+ */
 export function continueReading(items: readonly ShelfItem[]): ShelfItem[] {
     return items
-        .filter((item) => item.lastRead > 0 && item.progress < 1)
+        .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
         .sort((a, b) => b.lastRead - a.lastRead)
         .slice(0, CONTINUE_LIMIT);
+}
+
+/** What you said you want to read (#743 FR-9): the section that follows *Continue reading*. */
+export function wantToRead(items: readonly ShelfItem[]): ShelfItem[] {
+    return items.filter((item) => item.status === "to-read");
+}
+
+/** How many items each status chip would show (#743). */
+export function statusCounts(items: readonly ShelfItem[]): Record<StatusFilter, number> {
+    const counts: Record<StatusFilter, number> = { all: items.length, "to-read": 0, reading: 0, finished: 0 };
+    for (const item of items) if (item.status) counts[item.status]++;
+    return counts;
+}
+
+/** Every collection on the shelf, once each, alphabetically: the collection chips (#743). */
+export function shelfCollections(items: readonly ShelfItem[]): string[] {
+    const seen = new Map<string, string>();
+    for (const item of items) for (const name of item.collections ?? []) if (!seen.has(fold(name))) seen.set(fold(name), name);
+    return [...seen.values()].sort((a, b) => a.localeCompare(b));
 }

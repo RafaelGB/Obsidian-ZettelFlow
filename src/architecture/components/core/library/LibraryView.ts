@@ -5,18 +5,29 @@ import { t, tCount } from "architecture/lang";
 import {
     SHELF_FILTERS,
     SHELF_SORTS,
+    STATUS_FILTERS,
     continueReading,
+    fold,
+    shelfCollections,
     shelfCounts,
+    statusCounts,
+    titleFromName,
     viewShelf,
+    wantToRead,
     type ShelfFilter,
     type ShelfItem,
     type ShelfSort,
+    type StatusFilter,
 } from "application/library/shelf";
+import { BOOK_LINK_KEY, collectionsInUse, effectiveStatus, type BookDetails } from "application/library/bookNote";
 import { isFresh, normalizeLibrary, renameSource, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
+import { renderDetails, STATUS_KEY, type DetailsParts } from "./libraryDetails";
+import { dropIn, flipMove, FLIP_KEY } from "./libraryFlip";
+import { declaredMetadata } from "./sources/declared";
 import { beginOpenShot } from "architecture/components/core/reader/readerShot";
 import { readingMotion } from "architecture/components/core/reader/readingMotion";
 import { renderNotebook, type NotebookFilter } from "./libraryNotebook";
@@ -89,6 +100,13 @@ export class LibraryView extends ItemView {
     private filter: ShelfFilter = "all";
     private sort: ShelfSort = "recent";
     private search = "";
+    /** Where things stand for you, and one collection (#743): the second row of chips. */
+    private status: StatusFilter = "all";
+    private collection: string | null = null;
+    /** The collections the chip row last drew: a new one drops in (FR-16). */
+    private drawnCollections: Set<string> | null = null;
+    /** A refresh waiting to run keeps an open detail as it is (#743). */
+    private keepDetail = false;
     private detail: string | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
@@ -98,7 +116,7 @@ export class LibraryView extends ItemView {
     private pendingScroll: number | null = null;
     private notebookFilter: NotebookFilter = { meaning: null, withNotes: false };
     private notebookScope: Component | null = null;
-    private shelf: Shelf = { items: [], born: new Map(), meta: {} };
+    private shelf: Shelf = { items: [], born: new Map(), meta: {}, notes: new Map() };
     private root: HTMLElement | null = null;
     private body: HTMLElement | null = null;
     private aside: HTMLElement | null = null;
@@ -114,8 +132,8 @@ export class LibraryView extends ItemView {
     constructor(
         leaf: WorkspaceLeaf,
         private readonly plugin?: LibraryHost,
-        /** Seams for tests: the thought store the notebook reads. */
-        private readonly deps: { store?: Pick<ThoughtStore, "highlightsAbout"> } = {}
+        /** Seams for tests: the thought store the notebook reads, the writes and suggests of Details. */
+        private readonly deps: { store?: Pick<ThoughtStore, "highlightsAbout">; details?: Pick<DetailsParts, "port" | "suggest"> } = {}
     ) {
         super(leaf);
         this.scope = new Scope(this.app?.scope);
@@ -149,6 +167,8 @@ export class LibraryView extends ItemView {
             ...super.getState(),
             filter: this.filter,
             sort: this.sort,
+            ...(this.status !== "all" ? { status: this.status } : {}),
+            ...(this.collection ? { collection: this.collection } : {}),
             ...(this.detail ? { detail: this.detail } : {}),
             ...(this.notebook ? { notebook: this.notebook } : {}),
         };
@@ -159,6 +179,8 @@ export class LibraryView extends ItemView {
         const value = (state ?? {}) as Record<string, unknown>;
         if (typeof value.filter === "string" && (SHELF_FILTERS as readonly string[]).includes(value.filter)) this.filter = value.filter as ShelfFilter;
         if (typeof value.sort === "string" && (SHELF_SORTS as readonly string[]).includes(value.sort)) this.sort = value.sort as ShelfSort;
+        this.status = typeof value.status === "string" && (STATUS_FILTERS as readonly string[]).includes(value.status) ? (value.status as StatusFilter) : "all";
+        this.collection = typeof value.collection === "string" && value.collection ? value.collection : null;
         this.detail = typeof value.detail === "string" && value.detail ? value.detail : null;
         const notebook = typeof value.notebook === "string" && value.notebook ? value.notebook : null;
         if (notebook !== this.notebook) this.notebookFilter = { meaning: null, withNotes: false };
@@ -198,6 +220,16 @@ export class LibraryView extends ItemView {
                 this.scheduleRefresh();
             })
         );
+        // A book's note changed — here, in its editor, in a Base (#743): the shelf follows it, and a
+        // detail you are typing in is left alone.
+        const onNote = (file: unknown) => {
+            if (!(file instanceof TFile) || file.extension !== "md") return;
+            const known = [...this.shelf.notes.values()].some((note) => note.path === file.path);
+            const fm = this.app.metadataCache.getFileCache?.(file)?.frontmatter;
+            if (known || (fm && BOOK_LINK_KEY in fm)) this.scheduleRefresh(true);
+        };
+        if (typeof this.app.metadataCache?.on === "function") this.registerEvent(this.app.metadataCache.on("changed", onNote));
+        this.registerEvent(this.app.vault.on("delete", onNote));
         // Back from the Reader, the counts and the place have moved.
         this.registerEvent(
             this.app.workspace.on("active-leaf-change", (leaf) => {
@@ -222,23 +254,32 @@ export class LibraryView extends ItemView {
         this.root = null;
     }
 
-    /** Read the shelf again and draw it. */
-    refresh(): void {
+    /**
+     * Read the shelf again and draw it. `keepDetail`: a book's note changed under an open detail —
+     * the shelf follows, the detail you are typing in is not redrawn under you (#743).
+     */
+    refresh(keepDetail = false): void {
         if (!this.body) return;
         this.shelf = gatherShelf(this.app, this.plugin ?? null);
         if (this.notebook && this.renderNotebookPage()) return;
         this.notebook = null;
         this.render();
-        if (this.detail) this.openDetail(this.detail);
+        const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
+        if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
         if (this.pendingScroll !== null) {
             this.contentEl.scrollTop = this.pendingScroll;
             this.pendingScroll = null;
         }
     }
 
-    private scheduleRefresh(): void {
+    private scheduleRefresh(keepDetail = false): void {
+        // A full refresh already waiting wins over keeping the detail.
+        this.keepDetail = keepDetail && (this.refreshTimer === undefined || this.keepDetail);
         window.clearTimeout(this.refreshTimer);
-        this.refreshTimer = window.setTimeout(() => this.refresh(), 150);
+        this.refreshTimer = window.setTimeout(() => {
+            this.refreshTimer = undefined;
+            this.refresh(this.keepDetail);
+        }, 150);
     }
 
     // ── the shelf ────────────────────────────────────────────────────────────
@@ -291,6 +332,7 @@ export class LibraryView extends ItemView {
             });
         }
         const sort = bar.createEl("select", { cls: ["dropdown", c("shelf-sort")], attr: { "aria-label": t("shelf_sort_label") } });
+        this.renderNoteChips(body, scope);
         for (const option of SHELF_SORTS) sort.createEl("option", { text: t(SORT_KEY[option]), attr: { value: option } });
         sort.value = this.sort;
         scope.registerDomEvent(sort, "change", () => {
@@ -303,12 +345,61 @@ export class LibraryView extends ItemView {
         this.renderShelf(shelfHost, scope);
     }
 
-    /** *Continue reading* and the shelf itself — what the search and the sort redraw. */
+    /**
+     * The second row of chips (#743 FR-9): **All · Reading · Want to read · Finished**, each status
+     * once something stands there, and **Every collection** with each collection in use.
+     */
+    private renderNoteChips(body: HTMLElement, scope: Component): void {
+        const items = this.shelf.items;
+        const row = body.createDiv({ cls: [c("shelf-bar"), c("shelf-bar--notes")] });
+        const statuses = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_status_row") } });
+        const counts = statusCounts(items);
+        for (const status of STATUS_FILTERS) {
+            if (status !== "all" && counts[status] === 0 && this.status !== status) continue;
+            const on = status === this.status;
+            const chip = statuses.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--status"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on) },
+            });
+            chip.createSpan({ text: t(status === "all" ? "shelf_filter_all" : STATUS_KEY[status]) });
+            chip.createSpan({ cls: c("shelf-filter-count"), text: String(counts[status]) });
+            scope.registerDomEvent(chip, "click", () => {
+                this.status = status;
+                this.app.workspace.requestSaveLayout();
+                this.render();
+            });
+        }
+        const names = shelfCollections(items);
+        const chosen = this.collection;
+        if (chosen && !names.some((name) => fold(name) === fold(chosen))) names.push(chosen);
+        const groups = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_collection_row") } });
+        const known = this.drawnCollections;
+        for (const name of [null, ...names]) {
+            const on = name === null ? chosen === null : fold(name) === fold(chosen ?? "");
+            const chip = groups.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--collection"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on) },
+                text: name ?? t("shelf_filter_collection_all"),
+            });
+            scope.registerDomEvent(chip, "click", () => {
+                this.collection = name;
+                this.app.workspace.requestSaveLayout();
+                this.render();
+            });
+            // A collection you just gave a book drops into the row (FR-16); the first draw is still.
+            if (name !== null && known && !known.has(fold(name))) dropIn(chip);
+        }
+        this.drawnCollections = new Set(names.map(fold));
+    }
+
+    /** *Continue reading*, *Want to read* and the shelf itself — what the search and the sort redraw. */
     private renderShelf(host: HTMLElement, scope: Component): void {
         host.empty();
         this.observer?.disconnect();
         const items = this.shelf.items;
-        if (this.filter === "all" && !this.search.trim()) {
+        // Nothing narrowed: the shelf reads in sections.
+        const sectioned = this.filter === "all" && this.status === "all" && !this.collection && !this.search.trim();
+        if (sectioned) {
             const going = continueReading(items);
             if (going.length > 0) {
                 host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_continue") });
@@ -316,8 +407,17 @@ export class LibraryView extends ItemView {
                 for (const item of going) this.renderHeroCard(hero, item, scope);
             }
         }
+        // What you said you want to read, after what you are reading — only when it holds something (FR-9).
+        const want = sectioned ? viewShelf(wantToRead(items), { filter: "all", sort: this.sort, search: "" }) : [];
+        if (want.length > 0) {
+            host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_status_to_read") });
+            const grid = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--want")], attr: { role: "list" } });
+            for (const item of want) this.renderCard(grid, item, scope);
+        }
         host.createEl("h3", { cls: c("shelf-section"), text: t(SECTION_KEY[this.filter]) });
-        const shown = viewShelf(items, { filter: this.filter, sort: this.sort, search: this.search });
+        const query = { filter: this.filter, sort: this.sort, search: this.search, status: this.status, collection: this.collection };
+        const wanted = new Set(want.map((item) => item.id));
+        const shown = viewShelf(items, query).filter((item) => !wanted.has(item.id));
         if (shown.length === 0) {
             host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
             return;
@@ -348,7 +448,8 @@ export class LibraryView extends ItemView {
     private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component): void {
         const card = grid.createDiv({
             cls: [c("shelf-card"), ...(item.imageOnly ? [c("shelf-card--scanned")] : [])],
-            attr: { role: "listitem" },
+            // Known across a redraw, so a card that changes row is carried there (#743 FR-16).
+            attr: { role: "listitem", [FLIP_KEY]: item.id },
         });
         const open = card.createEl("button", {
             cls: c("shelf-card-open"),
@@ -374,7 +475,13 @@ export class LibraryView extends ItemView {
         if (byline) card.createDiv({ cls: c("shelf-card-author"), text: byline });
         this.renderFacts(card, item);
         const last = card.createDiv({ cls: c("shelf-meta") });
-        last.createSpan({ text: lastReadLabel(item.lastRead) });
+        // Where it stands for you, where it said *Never opened* (#743 FR-9) — and *Reading* you set on
+        // a book not opened yet, rather than a *Never opened* that contradicts it.
+        if (item.status === "to-read" || item.status === "finished" || (item.status === "reading" && item.lastRead === 0)) {
+            last.createSpan({ cls: c("shelf-card-status"), text: t(STATUS_KEY[item.status]) });
+        } else {
+            last.createSpan({ text: lastReadLabel(item.lastRead) });
+        }
         if (item.imageOnly) this.scannedBadge(last);
     }
 
@@ -518,10 +625,56 @@ export class LibraryView extends ItemView {
             open: (at) => this.openItem(item, at),
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
+            details: (parent) =>
+                renderDetails(parent, {
+                    app: this.app,
+                    scope,
+                    item,
+                    folder: () => this.plugin?.settings?.bookNotesFolder || "Library",
+                    collections: () => collectionsInUse(this.shelf.notes.values()),
+                    declared: async () => {
+                        const file = item.file ? this.app.vault.getAbstractFileByPath(item.file) : null;
+                        return file instanceof TFile ? declaredMetadata(this.app, file) : {};
+                    },
+                    saved: (details, note) => this.noteSaved(item.id, details, note),
+                    ...this.deps.details,
+                }),
         });
         aside.addClass(c("shelf-detail--open"));
         this.scrim?.addClass(c("shelf-scrim--on"));
         this.app.workspace.requestSaveLayout();
+    }
+
+    /**
+     * A book's note was written from its detail (#743): the shelf shows it at once — before the
+     * metadata cache has caught up — and a card that changes row is carried there by a translate.
+     */
+    private noteSaved(id: string, details: BookDetails, note: string | null): void {
+        const at = this.shelf.items.findIndex((candidate) => candidate.id === id);
+        const item = this.shelf.items[at];
+        if (!item?.file) return;
+        const meta = this.shelf.meta[item.file];
+        const status = effectiveStatus(note ? details : undefined, meta);
+        const author = (note ? details.author?.join(", ") : undefined) ?? meta?.author;
+        const next: ShelfItem = {
+            ...item,
+            title: (note ? details.title : undefined) ?? meta?.title ?? titleFromName(item.file.split("/").pop() ?? item.file),
+        };
+        for (const key of ["author", "status", "note", "details", "collections", "series"] as const) delete next[key];
+        if (author) next.author = author;
+        if (status) next.status = status;
+        if (note) {
+            next.note = note;
+            next.details = details;
+            if (details.collections) next.collections = [...details.collections];
+            if (details.series) next.series = details.series;
+            this.shelf.notes.set(item.file, { path: note, source: item.file, details });
+        } else {
+            this.shelf.notes.delete(item.file);
+        }
+        this.shelf.items[at] = next;
+        if (!this.body) return;
+        flipMove(this.body, () => this.render());
     }
 
     // ── the notebook (#721) ──────────────────────────────────────────────────

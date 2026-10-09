@@ -1,5 +1,6 @@
 import { describe, it } from "@jest/globals";
-import { buildShelf, continueReading, viewShelf, type ShelfInputs } from "application/library/shelf";
+import { buildShelf, continueReading, statusCounts, viewShelf, wantToRead, type ShelfInputs } from "application/library/shelf";
+import { indexBookNotes } from "application/library/bookNote";
 import { reflowPage, type TextRun } from "application/library/pdfText";
 import { ZipArchive } from "application/library/zip";
 import { chapterTitles, packagePath, parseNav, parsePackage, type XmlParse } from "application/library/epubPackage";
@@ -43,12 +44,19 @@ function shelfInputs(sources: number, paths: number): ShelfInputs {
     const highlights = new Map<string, number>();
     const born = new Map<string, number>();
     const list = [];
+    const notes: { path: string; source: string; frontmatter: unknown }[] = [];
     for (let i = 0; i < sources; i++) {
         const path = `Library/${i % 2 ? "Books" : "Papers"}/Source number ${i}.${i % 2 ? "epub" : "pdf"}`;
         list.push({ path, basename: path.split("/").pop() as string });
         meta[path] = { size: i, mtime: i, title: `Source ${i}`, author: `Author ${i % 37}`, chapters: 10 + (i % 300), chapter: i % 9, at: i * 1000 };
         highlights.set(path, i % 13);
         born.set(path, i % 3);
+        // A book's note for every source (#743 AC-8): read from the cache, never from a file.
+        notes.push({
+            path: `Library/Source number ${i}.md`,
+            source: path,
+            frontmatter: { title: `Source ${i}`, author: [`Author ${i % 37}`], series: `Series ${i % 11}`, status: ["to-read", "reading", "finished"][i % 3], collections: [`Collection ${i % 7}`, "Planning"] },
+        });
     }
     const saved = Array.from({ length: paths }, (_, i) => ({
         id: `r${i}`,
@@ -57,7 +65,7 @@ function shelfInputs(sources: number, paths: number): ShelfInputs {
         paths: Array.from({ length: 12 }, (_, j) => `n${i}-${j}.md`),
         at: i,
     }));
-    return { sources: list, meta, saved, highlights, born, pathPlaces: new Map() };
+    return { sources: list, meta, saved, highlights, born, pathPlaces: new Map(), notes: indexBookNotes(notes) };
 }
 
 describe("the Library (#675)", () => {
@@ -68,6 +76,9 @@ describe("the Library (#675)", () => {
             continueReading(items);
             viewShelf(items, { filter: "all", sort: "recent", search: "" });
             viewShelf(items, { filter: "all", sort: "highlighted", search: "author 3" });
+            viewShelf(items, { filter: "all", sort: "recent", search: "series 4", status: "reading", collection: "Planning" });
+            wantToRead(items);
+            statusCounts(items);
         });
         assertBudget("library.shelf.500", ms);
     });

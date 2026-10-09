@@ -82,7 +82,7 @@ describe("the Library (#680)", () => {
     it("filters with counts, searches titles and authors, and sorts", async () => {
         const { view, content } = mount(["Books/Thinking, Fast and Slow.epub", "Papers/cap.pdf", "Papers/scan.pdf"], { library });
         await view.onOpen();
-        const chips = content.byClass("shelf-filter");
+        const chips = content.oneByClass("shelf-bar").byClass("shelf-filter");
         expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Paths0"]);
         chips[2].click();
         expect(content.byClass("shelf-hero")).toHaveLength(0);
@@ -91,7 +91,7 @@ describe("the Library (#680)", () => {
         input.value = "kahneman";
         input.fire("input");
         expect(content.oneByClass("shelf-no-match").textContent).toBe("Nothing matches “kahneman”.");
-        content.byClass("shelf-filter")[0].click();
+        content.oneByClass("shelf-bar").byClass("shelf-filter")[0].click();
         expect(titles(content)).toEqual(["Thinking, Fast and Slow"]);
         input.value = "";
         content.oneByClass("shelf-search-input").value = "";

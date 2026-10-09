@@ -1,5 +1,5 @@
 ---
-description: Your Library — the PDFs and EPUBs already in your vault and the reading paths you saved, on one shelf, with what came of each one. Local only; your files are never modified.
+description: Your Library — the PDFs and EPUBs already in your vault and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never modified.
 ---
 
 # Your Library
@@ -44,14 +44,19 @@ Each card says **what came of it**:
 - **how many passages you highlighted** in it;
 - **how many notes were born from it** — the notes that cite it as their source (see
   [From passage to note](#from-passage-to-note));
-- **when you last read it**, or *Never opened*.
+- **when you last read it**, or *Never opened* — or, once it has one, where it stands for you:
+  *Want to read* or *Finished* (see [A book's note](#a-books-note)).
 
 **Continue reading** leads the shelf: the two things you were last in and have not finished, with
-where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**.
+where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**. A book you marked
+*Finished*, or put back to *Want to read*, is not offered there. **Want to read** follows it, only
+when something is in it, and the rest of the shelf comes after.
 
-Above the shelf: **All · Books · Papers · Paths**, each with its count; a search over titles and
-authors (*sonke* finds *Sönke*); and the order — **Recently read** (never-opened things come last,
-by title), **Most highlighted** or **Title**. The Library remembers the filter and the order.
+Above the shelf: **All · Books · Papers · Paths**, each with its count; a search over titles,
+authors, series and collections (*sonke* finds *Sönke*); and the order — **Recently read**
+(never-opened things come last, by title), **Most highlighted** or **Title**. Under them, a second
+row: **All · Reading · Want to read · Finished** — each status once something stands there — and
+**Every collection** with each collection in use. The Library remembers the filters and the order.
 
 ### A scanned PDF says so before you open it
 
@@ -67,6 +72,84 @@ facts — how far you have read and when, your highlights, and the notes born fr
 **notes born from it**, each one a click away (Ctrl/Cmd-hover to preview), and **your highlights,
 by chapter** — every passage with your note under it, each one opening the source at that passage.
 **Esc** or **Close** puts the detail away.
+
+The detail also holds the book's **Details** — see [A book's note](#a-books-note).
+
+## A book's note
+
+**Every book and paper can have a note of its own**: an ordinary Markdown note whose properties say
+what the book is — its title, author, series, publisher, year, language, ISBN and tags — and what
+it is *to you*: a **status** and its **collections**. You never write it by hand: it is edited from
+the book's detail, and the vault keeps it, so Bases, Dataview and search see your library as data.
+
+![A book's note: the Details section in the Library's detail, the note itself with its properties, and the shelf filtered by Want to read and a collection](../resources/library/book-note.svg)
+
+**Details**, in a source's detail (**⋯** on its card), shows the fields as quiet inline fields —
+already filled with the title and author the file declares. Change one and leave the field (or press
+**Enter**): it is saved, and a small check beside it fades in and out by itself. No dialog, no
+notice; if a write fails, your text stays in the field and a line under it says so.
+
+- **Status** is one of three: **Want to read**, **Reading**, **Finished** — stored as `to-read`,
+  `reading`, `finished`, whatever language the plugin speaks. While you have set none it is read
+  from your reading and nothing is written: *Finished* once you reached the end, *Reading* once you
+  opened it. One you set wins.
+- **Collections** are names you give — *Planning*, *Software design* — and a book can be in several.
+  **+ Collection** suggests the names you already use; **×** takes a book out of one. They are a list
+  of their own, never tags, so they do not mix with the tags you file the book under.
+- **Saved in Library/…** says where the note is and opens it. Right after a change, **Undo** beside it
+  takes the last one back — the whole note, if that change created it.
+
+**Nothing is written until you change something.** Opening, reading, highlighting or finishing a
+book creates no note. The first change creates one, named after the book, in the **Book notes
+folder** — **Settings → Reading → Book notes folder**, `Library` until you choose — and fills it
+with what the file declares (an EPUB's creator, publisher, date, language, ISBN and series; a PDF's
+title and author), plus your change. The folder is made then, with the first note, if it is missing;
+a note is never written over a file that is already there (`Thinking, Fast and Slow 1.md`). Every
+later change edits only the property you changed. Each write is on the write record, so it can be
+taken back.
+
+**A book's note is found by its link to the book, never by where it is kept.** Its `book` property
+links the book file — for a paper too:
+
+```yaml
+---
+book: "[[Books/Thinking, Fast and Slow.epub]]"
+author:
+  - "Daniel Kahneman"
+publisher: "Farrar, Straus and Giroux"
+year: 2011
+status: "to-read"
+collections:
+  - "Planning"
+---
+```
+
+Rename or move the book and Obsidian updates the link; move the note and it is still the book's
+note. **Changing the Book notes folder moves nothing**: new notes go to the new folder, the ones you
+have stay where they are and are still found. If two notes link the same book, the first by path is
+the one the Library shows, and *Saved in* names it.
+
+**Use a note you already have**, under Details while a book has no note, picks one of your notes and
+adds only the `book` link to it — its text and its other properties stay as they are. (Obsidian
+rewrites the properties block when any property changes, so the block's own layout may be tidied;
+the values and the note's body are untouched.)
+
+A book's note **is the book, not something that came of it**: it never counts among the *notes
+born* from the book — not on the card, not in the detail, not in *This note* — even when it also
+cites the book in a `source` property.
+
+Your library, as a Base — every book you want to read, by collection:
+
+```yaml
+filters:
+  and:
+    - note.status == "to-read"
+views:
+  - type: table
+    name: Want to read
+    groupBy: collections
+    order: [file.name, author, year]
+```
 
 ## Reading a PDF
 
@@ -314,8 +397,10 @@ note exists — see
 
 ## What it keeps, and where
 
-**Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no
-sidecar file next to it. What the Library remembers about a source is kept in the plugin's settings:
+**Your book files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation
+layer, nothing next to it. When you say something about a book, it gets an ordinary note in your
+Book notes folder ([A book's note](#a-books-note)) — the only thing the Library ever writes, and only
+then. What the Library remembers about a source is kept in the plugin's settings:
 the title, author and length the file declares, whether a PDF is only images, and where you are in
 it — each with the size and date of the file it was read from, so a replaced file is read again.
 Covers are kept for the session only, in memory: never in your vault, never in the settings.
@@ -375,7 +460,9 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 
 | Command | Proves |
 |---|---|
-| `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
+| `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package; a book's note read (string or list, an unknown status ignored), its status read from the reading, its first write and file name, found by its link, never born from its book |
+| `npx jest test/architecture/components/core/library/bookNoteWriter test/architecture/components/core/library/libraryDetails test/architecture/components/core/library/libraryBookNotes` | a book's note created at a free path in the Book notes folder with what the file declares, edited key by key, adopted with only its link (body to the byte), each one undone; Details saving on leaving a field or Enter, the status, collections, the check's fade and reduced motion; the status and collection chips, *Want to read*, a card carried to its new row, nothing written by opening |
+| `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses* |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
@@ -386,7 +473,7 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
 | `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
 | `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
+| `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -444,8 +531,16 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     *Page n / N* and a time left; the Reader's bar and top line are in your theme, not the comic's.
     A right-to-left sample turns with **←**. On an iPad (landscape) a spread, (portrait) one page; a
     pinch follows your fingers, a swipe the page. Close halfway and open again: the same page.
-13. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-   No file was created in the vault. A hostile fixed-layout page (a style sheet that imports, loads a
-   font and a picture from `https://example.com`, a `<script>`, a `position: fixed` overlay): with the
-   developer tools' network panel open, nothing is fetched, nothing runs, the overlay stays inside its
-   page, and the Reader's bar is unchanged.
+13. **A book's note.** In the Library, a book's **⋯** → **Details**: the title and author are filled
+    in. Set **Status → Want to read**: a check fades beside it, a `Library` folder appears holding a
+    note named after the book with `status: to-read` and `book:` linking it, and on the shelf a
+    *Want to read* section holds the book. **+ Collection** → *Planning* → **Enter**: a *Planning*
+    chip appears over the shelf; click it — only that book. Change **Settings → Reading → Book notes
+    folder** to `Reading notes`: no folder appears; give another book a status: its note is in
+    `Reading notes`, the first one still in `Library`, and both details say where. **Undo** on the
+    *Saved in* line takes the last change back.
+14. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+    Opening and reading a book created no note; only changing its Details did. A hostile fixed-layout
+    page (a style sheet that imports, loads a font and a picture from `https://example.com`, a
+    `<script>`, a `position: fixed` overlay): with the developer tools' network panel open, nothing is
+    fetched, nothing runs, the overlay stays inside its page, and the Reader's bar is unchanged.

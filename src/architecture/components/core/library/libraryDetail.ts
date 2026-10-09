@@ -20,6 +20,8 @@ export interface DetailParts {
     close(): void;
     /** Open the source's notebook (#721); absent for a saved path. */
     notebook?: () => void;
+    /** The book's note, edited in place (#743); absent for a saved path. */
+    details?: (parent: HTMLElement) => void;
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -74,7 +76,8 @@ export function groupHighlights(item: ShelfItem, thoughts: readonly Thought[]): 
 /**
  * **A source, in detail** (#680): its cover and what it is, what came of it — the reading, the
  * highlights, the notes born from it — and every highlight, grouped, each one a way back to the
- * passage. Writes nothing.
+ * passage. Writes nothing itself: its *Details* (#743) write the book's note, and only when you
+ * change something.
  */
 export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailParts): void {
     const { scope } = parts;
@@ -108,6 +111,9 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     stat(t("shelf_percent", String(Math.round(item.progress * 100))), t("shelf_detail_read", parts.lastRead));
     stat(String(item.highlights), t("shelf_detail_highlights"));
     if (item.kind !== "path") stat(String(item.born), t("shelf_detail_born"), item.born > 0 ? "shelf-detail-stat--born" : undefined);
+
+    // What the book is and what it is to you, part of the same sheet (#743 FR-14).
+    if (item.kind !== "path") parts.details?.(aside);
 
     if (parts.born.length > 0) {
         aside.createEl("h3", { cls: c("shelf-section"), text: t("shelf_detail_born_title") });

@@ -17,10 +17,16 @@ export interface CitingIdea {
     claims: readonly { sources: readonly { ref: string; kind?: string }[] }[];
 }
 
-/** The notes citing each PDF or EPUB, by the source's path, each list in path order. */
-export function notesBornFrom(ideas: Iterable<CitingIdea>): Map<string, string[]> {
+/**
+ * The notes citing each PDF or EPUB, by the source's path, each list in path order.
+ *
+ * A **book's note** (#743) is never one of them, even when it also cites its book: it is the book,
+ * not something that came of it. Its path is handed in `exclude`.
+ */
+export function notesBornFrom(ideas: Iterable<CitingIdea>, exclude: ReadonlySet<string> = new Set()): Map<string, string[]> {
     const out = new Map<string, Set<string>>();
     for (const idea of ideas) {
+        if (exclude.has(idea.path)) continue;
         for (const claim of idea.claims) {
             for (const source of claim.sources) {
                 if (source.kind !== "link" || !sourceFormat(source.ref)) continue;

@@ -4,10 +4,12 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { bornCounts, notesBornFrom } from "application/library/born";
 import { buildShelf, type ShelfItem } from "application/library/shelf";
+import type { BookNoteEntry } from "application/library/bookNote";
 import { normalizeLibrary, sourceFormat, type LibraryMeta } from "application/library/sourceMeta";
 import { normalizeSaved } from "architecture/components/core/reader/readerSaved";
 import { normalizeResume, readingKey, resumeOf } from "architecture/components/core/reader/readerResume";
 import type { LibraryHost } from "./libraryHost";
+import { gatherBookNotes } from "./bookNoteIndex";
 
 /**
  * The Library's one impure step (#680): read what the shelf is built from — the PDFs and EPUBs in
@@ -20,6 +22,8 @@ export interface Shelf {
     /** The notes citing each source, by path. */
     born: Map<string, string[]>;
     meta: LibraryMeta;
+    /** The book notes (#743), by the source each links to. */
+    notes: Map<string, BookNoteEntry>;
 }
 
 /** Every PDF and EPUB in the vault. */
@@ -43,8 +47,11 @@ export function gatherShelf(app: App, host: LibraryHost | null): Shelf {
     } catch (error) {
         log.debug(`[Library] no highlight counts: ${String(error)}`);
     }
+    const notes = gatherBookNotes(app);
+    // A book's note is the book, never a note born from it (#743 FR-12).
+    const bookNotes = new Set([...notes.values()].map((note) => note.path));
     const index = KnowledgeIndex.getInstance();
-    const born = index.status === "ready" ? notesBornFrom(index.getModel().all()) : new Map<string, string[]>();
+    const born = index.status === "ready" ? notesBornFrom(index.getModel().all(), bookNotes) : new Map<string, string[]>();
     const items = buildShelf({
         sources: sourceFiles(app).map((file) => ({ path: file.path, basename: file.name })),
         meta,
@@ -52,6 +59,7 @@ export function gatherShelf(app: App, host: LibraryHost | null): Shelf {
         pathPlaces,
         highlights,
         born: bornCounts(born),
+        notes,
     });
-    return { items, born, meta };
+    return { items, born, meta, notes };
 }

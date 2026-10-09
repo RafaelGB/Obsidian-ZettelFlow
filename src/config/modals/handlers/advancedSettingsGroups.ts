@@ -135,8 +135,11 @@ export function foldersSettingsGroup(
     goToThinking: () => void,
     /** Hands the tab a way to redraw the pointer when the thinking folder changes under Thinking. */
     onPointer: (refresh: () => void) => void = () => undefined,
-    /** The dictionaries folder (#766 FR-2): edited under Reading, shown here with a way there. */
-    dictionaries?: { go: () => void; onPointer: (refresh: () => void) => void }
+    /**
+     * The folders edited elsewhere, shown here with a way there — one setting, one editor: the
+     * dictionaries (#766 FR-2) and the book notes (#743 FR-6.4), both under Reading.
+     */
+    elsewhere: { dictionaries?: FolderPointer; bookNotes?: FolderPointer } = {}
 ): SettingDefinitionItem {
     return {
         type: "group",
@@ -171,31 +174,60 @@ export function foldersSettingsGroup(
                     );
                 },
             },
-            ...(dictionaries ? [dictionariesCell(plugin, dictionaries)] : []),
+            ...(elsewhere.dictionaries
+                ? [pointerCell({
+                    nameKey: "settings_folders_dictionaries_name",
+                    descKey: "settings_folders_dictionaries_desc",
+                    goKey: "settings_folders_dictionaries_go",
+                    path: () => dictionarySettings(plugin.settings.dictionaries).folder,
+                }, elsewhere.dictionaries)]
+                : []),
+            ...(elsewhere.bookNotes
+                ? [pointerCell({
+                    nameKey: "settings_folders_book_notes_name",
+                    descKey: "settings_folders_book_notes_desc",
+                    goKey: "settings_folders_book_notes_go",
+                    aliasKey: "settings_reading_book_notes_name",
+                    path: () => plugin.settings.bookNotesFolder || DEFAULT_SETTINGS.bookNotesFolder || "",
+                }, elsewhere.bookNotes)]
+                : []),
         ],
     };
 }
 
-/** The dictionaries folder, read here and edited under Reading (#766 FR-2) — as the thinking space is. */
-function dictionariesCell(plugin: ZettelFlow, dictionaries: { go: () => void; onPointer: (refresh: () => void) => void }): SettingGroupItem {
+/** A folder edited elsewhere in the tab: where it goes, and how its pointer is redrawn. */
+export interface FolderPointer {
+    go: () => void;
+    onPointer?: (refresh: () => void) => void;
+}
+
+/**
+ * A folder read here and edited under its own section (#766 FR-2, #743 FR-6.4) — as the thinking
+ * space is. The path is shown, cut short with the whole of it on hover; the arrow goes to its field.
+ */
+function pointerCell(
+    cell: { nameKey: LocaleKey; descKey: LocaleKey; goKey: LocaleKey; aliasKey?: LocaleKey; path: () => string },
+    pointer: FolderPointer
+): SettingGroupItem {
     return {
-        name: t("settings_folders_dictionaries_name"),
-        desc: t("settings_folders_dictionaries_desc"),
+        name: t(cell.nameKey),
+        desc: t(cell.descKey),
+        ...(cell.aliasKey ? { aliases: [t(cell.aliasKey)] } : {}),
         render: (setting: Setting) => {
             setting.settingEl.addClass(c("settings-folder-cell"));
             const shown = controlContainer(setting, "settings-folder-path");
             const show = () => {
-                const path = dictionarySettings(plugin.settings.dictionaries).folder;
+                const path = cell.path();
                 shown.setText(path);
                 shown.setAttribute("title", path);
             };
             show();
-            dictionaries.onPointer(show);
+            pointer.onPointer?.(show);
             setting.addExtraButton((button) =>
                 button
                     .setIcon("arrow-up-right")
-                    .setTooltip(t("settings_folders_dictionaries_go"))
-                    .onClick(() => dictionaries.go())
+                    .setTooltip(t(cell.goKey))
+                    .onClick(() => pointer.go())
             );
         },
     };

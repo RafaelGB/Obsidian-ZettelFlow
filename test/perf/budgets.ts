@@ -342,9 +342,9 @@ export const BUDGETS = {
             "it is built on the first settle after the vault changes (#754 FR-15); under 50 ms it needs no idle build, and a regression past that would make the first paragraph after an edit wait",
     },
     "library.shelf.500": {
-        name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
+        name: "build, order, filter and search the Library shelf of 500 sources, each with its book's note, and 30 saved paths",
         limit: 10,
-        measured: "1.7 ms",
+        measured: "1.1 ms",
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
@@ -372,8 +372,10 @@ export const BUDGETS = {
         // 2,700 → 2,800 (#756): R2's ink (#748, #749) and R3's provenance (#751), Alongside (#754) and the
         // vault's moves (#756) bring it to 2,719 KB — a WebGL library coming back is still a megabyte over.
         // The AI's six moves (#759) add 16 KB: 2,735 KB, under the same ceiling.
-        limit: 2_800,
-        measured: "2,735 KB",
+        // 2,800 → 2,900 (#743): R3's claim sheet (#762) and look-up (#766) bring main to 2,789 KB; the
+        // book's note (#743) adds 24 KB: 2,813 KB — a WebGL library coming back is still a megabyte over.
+        limit: 2_900,
+        measured: "2,813 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

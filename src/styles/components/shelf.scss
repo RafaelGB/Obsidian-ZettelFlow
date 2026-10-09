@@ -922,3 +922,168 @@ button.zettelkasten-flow__notebook-action {
 .zettelkasten-flow__shelf-cover.zettelkasten-flow__shelf-cover--in-shot {
     visibility: hidden;
 }
+
+/* ── a book's note (#743): status and collections over the shelf, Details in the detail ── */
+.zettelkasten-flow__shelf-bar--notes {
+    margin-top: calc(-1 * var(--size-4-2));
+    row-gap: var(--size-4-2);
+    column-gap: var(--size-4-4);
+}
+
+.zettelkasten-flow__shelf-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+/* Where a card stands for you, where it said Never opened. */
+.zettelkasten-flow__shelf-card-status {
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__shelf-details {
+    margin: var(--size-4-4) 0;
+}
+
+/* The fields sit where their values are: an input that looks like text until you go into it (FR-14). */
+.zettelkasten-flow__shelf-details-grid {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--size-4-1) var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-details-label {
+    @include hint;
+}
+
+.zettelkasten-flow__shelf-details-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    min-width: 0;
+}
+
+.zettelkasten-flow__shelf-details .zettelkasten-flow__shelf-details-input {
+    flex: 1;
+    min-width: 0;
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--text-normal);
+
+    &:hover {
+        border-color: var(--background-modifier-border);
+    }
+
+    &:focus,
+    &:focus-visible {
+        border-color: var(--background-modifier-border-focus);
+        background-color: var(--background-primary);
+    }
+
+    &[aria-invalid="true"] {
+        border-color: var(--background-modifier-error);
+    }
+}
+
+.zettelkasten-flow__shelf-details-status {
+    flex: 1;
+    min-width: 0;
+}
+
+/* The check that says a field is kept: present, quiet, gone by itself (FR-15). */
+.zettelkasten-flow__shelf-details-check {
+    flex: none;
+    width: 1em;
+    color: var(--text-success);
+    opacity: 0;
+
+    &::before {
+        content: "✓";
+    }
+}
+
+.zettelkasten-flow__shelf-details-check--on {
+    opacity: 1;
+}
+
+.zettelkasten-flow__shelf-details-collections-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-details-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf-details-chip {
+    @include chip;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-details-chip-remove {
+    padding: 0;
+    height: auto;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-details-add {
+    @include chip;
+    @include chip-clickable;
+    border-style: dashed;
+    box-shadow: none;
+}
+
+.zettelkasten-flow__shelf-details .zettelkasten-flow__shelf-details-add-input {
+    width: 14rem;
+    max-width: 100%;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-details-error {
+    @include hint;
+    margin-top: var(--size-4-2);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__shelf-details-where {
+    @include hint;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1) var(--size-4-2);
+    margin-top: var(--size-4-3);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__shelf-details-note {
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__shelf-details-undo,
+.zettelkasten-flow__shelf-details-adopt {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: none;
+        text-decoration: underline;
+    }
+}

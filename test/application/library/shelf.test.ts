@@ -3,7 +3,10 @@ import {
     BOOK_PAGES,
     buildShelf,
     continueReading,
+    shelfCollections,
     shelfCounts,
+    statusCounts,
+    wantToRead,
     titleFromName,
     viewShelf,
     type ShelfInputs,
@@ -21,6 +24,7 @@ import {
     LIBRARY_LIMIT,
 } from "application/library/sourceMeta";
 import { bornCounts, notesBornFrom } from "application/library/born";
+import { indexBookNotes } from "application/library/bookNote";
 
 const DAY = 86_400_000;
 
@@ -191,5 +195,83 @@ describe("notes born from a source (#680)", () => {
             ["Papers/cap.pdf", ["z/cap.md"]],
         ]);
         expect(bornCounts(born).get("Papers/cap.pdf")).toBe(1);
+    });
+});
+
+describe("the shelf reads the book notes (#743)", () => {
+    const BOOK = "Books/Thinking, Fast and Slow.epub";
+    const PAPER = "Papers/gilbert_lynch_cap.pdf";
+    const notes = indexBookNotes([
+        {
+            path: "Library/Thinking, Fast and Slow.md",
+            source: BOOK,
+            frontmatter: { title: "Thinking, fast and slow", author: ["Daniel Kahneman", "Amos Tversky"], series: "Penguin Psychology", status: "finished", collections: ["Planning"] },
+        },
+        { path: "Elsewhere/cap.md", source: PAPER, frontmatter: { status: "to-read", collections: ["Software design", "Planning"] } },
+    ]);
+
+    it("shows the note's title and author over the file's, and carries its status, collections and series (AC-6)", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const book = shelf.find((item) => item.id === BOOK)!;
+        expect(book).toMatchObject({
+            title: "Thinking, fast and slow",
+            author: "Daniel Kahneman, Amos Tversky",
+            status: "finished",
+            note: "Library/Thinking, Fast and Slow.md",
+            collections: ["Planning"],
+            series: "Penguin Psychology",
+        });
+        // Without a note, the file's own, and a status read from the reading.
+        const bare = buildShelf(inputs());
+        expect(bare.find((item) => item.id === BOOK)).toMatchObject({ title: "Thinking, Fast and Slow", author: "Daniel Kahneman", status: "reading" });
+        expect(bare.find((item) => item.id === BOOK)).not.toHaveProperty("note");
+        expect(bare.find((item) => item.id === "Papers/scan.pdf")).not.toHaveProperty("status");
+        expect(bare.find((item) => item.kind === "path")?.status).toBe("reading");
+    });
+
+    it("filters by status and by collection", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const ids = (query: Partial<Parameters<typeof viewShelf>[1]>) =>
+            viewShelf(shelf, { filter: "all", sort: "title", search: "", ...query }).map((item) => item.id);
+        expect(ids({ status: "to-read" })).toEqual([PAPER]);
+        expect(ids({ status: "finished" })).toEqual([BOOK]);
+        expect(ids({ status: "reading" })).toEqual(["path:r1"]);
+        expect(ids({ collection: "planning" })).toEqual([PAPER, BOOK]);
+        expect(ids({ collection: "Software design", status: "finished" })).toEqual([]);
+        expect(statusCounts(shelf)).toEqual({ all: 4, "to-read": 1, reading: 1, finished: 1 });
+        expect(shelfCollections(shelf)).toEqual(["Planning", "Software design"]);
+    });
+
+    it("offers Want to read only when something is in it", () => {
+        expect(wantToRead(buildShelf(inputs({ notes }))).map((item) => item.id)).toEqual([PAPER]);
+        expect(wantToRead(buildShelf(inputs()))).toEqual([]);
+    });
+
+    it("offers no Continue reading for a book you said you finished, or put back to Want to read", () => {
+        expect(continueReading(buildShelf(inputs())).map((item) => item.id)).toEqual([PAPER, BOOK]);
+        const set = indexBookNotes([
+            { path: "Library/T.md", source: BOOK, frontmatter: { status: "finished" } },
+            { path: "Library/C.md", source: PAPER, frontmatter: { status: "to-read" } },
+        ]);
+        expect(continueReading(buildShelf(inputs({ notes: set }))).map((item) => item.id)).toEqual(["path:r1"]);
+    });
+
+    it("finds a book by its series and by its collection (FR-10)", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const found = (search: string) => viewShelf(shelf, { filter: "all", sort: "title", search }).map((item) => item.id);
+        expect(found("penguin")).toEqual([BOOK]);
+        expect(found("software design")).toEqual([PAPER]);
+        expect(found("tversky")).toEqual([BOOK]);
+    });
+});
+
+describe("a book's note is never born from its book (#743 AC-7)", () => {
+    it("is left out even when it also cites the book", () => {
+        const ideas = [
+            { path: "Library/Thinking, Fast and Slow.md", claims: [{ sources: [{ ref: "Books/Thinking, Fast and Slow.epub", kind: "link" }] }] },
+            { path: "z/system 1.md", claims: [{ sources: [{ ref: "Books/Thinking, Fast and Slow.epub", kind: "link" }] }] },
+        ];
+        expect(notesBornFrom(ideas).get("Books/Thinking, Fast and Slow.epub")).toEqual(["Library/Thinking, Fast and Slow.md", "z/system 1.md"]);
+        expect(notesBornFrom(ideas, new Set(["Library/Thinking, Fast and Slow.md"])).get("Books/Thinking, Fast and Slow.epub")).toEqual(["z/system 1.md"]);
     });
 });

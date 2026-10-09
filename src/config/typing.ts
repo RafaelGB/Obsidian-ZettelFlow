@@ -167,6 +167,11 @@ export interface ZettelFlowSettings {
      */
     dictionaries?: { folder: string; languages: Record<string, { from: string; to?: string }>; translateInto: string };
     /**
+     * Where a book's note is created (#743, epic #742): the first time you say something about a
+     * book in the Library. Changing it moves nothing — a book's note is found by its link to the book.
+     */
+    bookNotesFolder?: string;
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */
@@ -445,6 +450,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
     readingMotion: { open: "shot", chapter: "leaf" }, // one continuous shot, a leaf that turns (#732).
     dictionaries: { folder: "Dictionaries", languages: {}, translateInto: "" }, // nothing found until you add one (#766).
+    bookNotesFolder: "Library", // a book's note lands here, made only with the first one (#743).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

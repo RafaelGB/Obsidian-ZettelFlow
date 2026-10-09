@@ -4,7 +4,12 @@ import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
 const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss"];
-const SCRIPTS = [join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"), join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources")];
+const SCRIPTS = [
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),
+    // The Library's own motion (#743): a book's Details, a card changing row, a chip dropping in.
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "library"),
+];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);
 

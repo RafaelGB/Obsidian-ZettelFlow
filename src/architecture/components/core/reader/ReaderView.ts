@@ -133,16 +133,24 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["B"], label: "reader_key_bookmark" },
-    // Ink (#745): the pencil in the bar is the door; P is the way back to it, Ctrl/⌘+Z and two fingers undo.
+    // Ink (#745): the pencil in the bar is the door; P is the way back to it, Ctrl/⌘+Z undoes.
     { keys: ["P"], label: "reader_key_ink" },
     { keys: ["reader_kbd_ctrl", "Z"], label: "reader_key_ink_undo" },
-    { keys: ["reader_kbd_two_fingers"], label: "reader_key_ink_undo" },
     { keys: ["F"], label: "reader_key_deep" },
     { keys: ["V"], label: "reader_key_layout" },
     { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
     { keys: ["reader_kbd_alt", "←"], label: "reader_key_back" },
     { keys: ["?"], label: "reader_key_help" },
     { keys: ["reader_kbd_esc"], label: "reader_key_exit" },
+];
+
+/**
+ * What the page does under a pen or a finger (#746 G3), a group of its own; #747 adds its rows here.
+ * The line is a glyph, like →.
+ */
+const GESTURES: { keys: string[]; label: LocaleKey }[] = [
+    { keys: ["—"], label: "reader_gesture_line" },
+    { keys: ["reader_kbd_two_fingers"], label: "reader_key_ink_undo" },
 ];
 
 /** Literal map, so the locale guardrail sees every key cap the sheet draws. */
@@ -847,6 +855,10 @@ export class ReaderView extends ItemView {
                 stage: () => stage,
                 owner: this,
                 refreshList: () => this.highlights?.refreshMargin(),
+                // A stroke across a line is a highlight (#746): the same engine a selection uses.
+                highlights: () => this.highlights,
+                pageWords: async (index) => (this.runMode() ? ((await this.pageRun?.words(index)) ?? null) : null),
+                pageLabel: (index) => this.sourceLabel(index),
             },
             this.inkDeps
         );
@@ -3877,6 +3889,14 @@ export class ReaderView extends ItemView {
             const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
             for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
             list.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });
+        }
+        // Gestures (#746 G3): what a pen or a finger does on the page.
+        card.createDiv({ cls: c("reader-shortcuts-group"), text: t("reader_shortcuts_gestures") });
+        const gestures = card.createEl("dl", { cls: c("reader-shortcuts-list") });
+        for (const row of GESTURES) {
+            const keys = gestures.createEl("dt", { cls: c("reader-shortcuts-keys") });
+            for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
+            gestures.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });
         }
         card.createDiv({ cls: c("reader-shortcuts-hint"), text: t("reader_shortcuts_commands") });
         // Anywhere closes it: it only explains, and asks nothing.

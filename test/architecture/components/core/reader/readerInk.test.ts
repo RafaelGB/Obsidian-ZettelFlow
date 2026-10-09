@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
+import { Component, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { log } from "architecture";
 import { DomNode, flush, installBrowserGlobals } from "../../../../support/dashboardDom";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
@@ -10,7 +10,16 @@ import { press } from "../../../../support/readerKeys";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { endChapterTurn } from "architecture/components/core/reader/readerTurn";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
-import { INK_STORAGE_KEY, type InkStore } from "architecture/components/core/reader/readerInk";
+import { INK_STORAGE_KEY, ReaderInk, type InkStore } from "architecture/components/core/reader/readerInk";
+import { ReaderHighlights } from "architecture/components/core/reader/readerHighlights";
+import { chapterText } from "architecture/components/core/reader/readerMarks";
+import { MOTION } from "architecture/components/core/reader/readerMotion";
+import { currentWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
+import { EXTEND_WINDOW_MS } from "application/reader/ink/strokeHighlight";
+import type { WordBox } from "application/reader/ink/inkAnchor";
+import type { PageText } from "application/library/pdfWords";
+import { FakeEl } from "../../../../support/textDom";
+import { loadInk } from "../../../../support/inkFixtures";
 import { GROUP_IDLE_MS } from "application/reader/ink/inkGroup";
 import { PALM_WINDOW_MS } from "application/reader/ink/inkInput";
 import { parseInkSvg, renderInkSvg, type InkDrawing } from "application/reader/ink/inkSvg";
@@ -129,6 +138,7 @@ const word = [
     { x: 340, y: 300 },
 ];
 const openPalette = (content: DomNode) => content.oneByClass("reader-ink-button").click();
+const tool = (content: DomNode, name: string) => palette(content).byClass("reader-ink-tool").find((b) => b.getAttribute("data-tool") === name)!;
 /** The note's clock and the window's timers move on together. */
 function wait(ms: number): void {
     clock += ms;
@@ -157,16 +167,16 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         delete (globalThis as any).innerWidth;
     });
 
-    it("opens the palette from the pencil in the bar: pen, eraser, four inks and undo, remembered on this device (FR-1, FR-6)", async () => {
+    it("opens the palette from the pencil in the bar: pen, highlighter, eraser, four inks and undo, remembered on this device (FR-1, FR-6)", async () => {
         const { content, app } = await open();
         expect(palette(content).hasClass("is-open")).toBe(false);
         openPalette(content);
         expect(palette(content).hasClass("is-open")).toBe(true);
         expect(content.oneByClass("reader-ink-button").hasClass("is-active")).toBe(true);
-        expect(palette(content).byClass("reader-ink-tool").map((b) => b.getAttribute("data-tool"))).toEqual(["pen", "eraser"]);
+        expect(palette(content).byClass("reader-ink-tool").map((b) => b.getAttribute("data-tool"))).toEqual(["pen", "highlighter", "eraser"]);
         expect(palette(content).byClass("reader-ink-colour").map((b) => b.getAttribute("data-colour"))).toEqual(["pencil", "red", "blue", "green"]);
         expect(palette(content).byClass("reader-ink-undo")).toHaveLength(1);
-        expect(palette(content).byClass("clickable-icon").length).toBeGreaterThanOrEqual(7);
+        expect(palette(content).byClass("clickable-icon").length).toBeGreaterThanOrEqual(8);
         expect(app.saveLocalStorage).toHaveBeenCalledWith(INK_STORAGE_KEY, "open");
         // Opening it is the stylesheet's slide, never a scripted animation.
         expect(rec.animations).toHaveLength(0);
@@ -410,7 +420,7 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         const { content, stage, store, drawings } = await open({ stored: [inkThought("k1")], drawings: { k1: renderInkSvg(TWO_STROKES) } });
         await flush();
         openPalette(content);
-        palette(content).byClass("reader-ink-tool")[1].click();
+        tool(content, "eraser").click();
         // The first stroke runs from (0, 180) to (32, 180) on the page.
         penStroke(stage, [{ x: 10, y: 182 }, { x: 20, y: 181 }], { pointerId: PEN });
         await flush();
@@ -426,7 +436,7 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         const { content, stage, store } = await open({ stored: [inkThought("k1")], drawings: { k1: renderInkSvg(one) } });
         await flush();
         openPalette(content);
-        palette(content).byClass("reader-ink-tool")[1].click();
+        tool(content, "eraser").click();
         penStroke(stage, [{ x: 10, y: 182 }, { x: 20, y: 181 }], { pointerId: PEN });
         await flush();
         expect(store.discard).toHaveBeenCalledTimes(1);
@@ -439,7 +449,7 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
     it("says so quietly when the eraser touches nothing", async () => {
         const { content, stage, store } = await open();
         openPalette(content);
-        palette(content).byClass("reader-ink-tool")[1].click();
+        tool(content, "eraser").click();
         penStroke(stage, [{ x: 600, y: 600 }, { x: 610, y: 600 }], { pointerId: PEN });
         expect(status(content).textContent).toBe("Nothing under the eraser");
         expect(store.saveDrawing).not.toHaveBeenCalled();
@@ -479,5 +489,435 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         await flush();
         expect(rec.animations).toHaveLength(0);
         expect(paths(content)).toHaveLength(0);
+    });
+});
+
+// ── #746: draw across a line and it is highlighted ──────────────────────────────────────────────
+
+/** The chapter: two paragraphs of words, laid out six words to a line, 8 px a letter, 28 px a line. */
+const PROSE = ["Event sourcing stores changes and not the state of things,", "so a replay rebuilds it from the log of every change made."];
+const TOP = 100;
+const LINE = 28;
+const LEFT = 100;
+
+function chapterEl(): FakeEl {
+    return new FakeEl(
+        "div",
+        PROSE.map((text) => new FakeEl("p", [text]))
+    );
+}
+
+/** Where each word of the chapter sits on screen: what the real page measures with a Range. */
+function layout(text: string): WordBox[] {
+    const words: WordBox[] = [];
+    let i = 0;
+    let x = LEFT;
+    for (const match of text.matchAll(/\S+/g)) {
+        const line = Math.floor(i / 6);
+        if (i % 6 === 0) x = LEFT;
+        const width = match[0].length * 8;
+        words.push({ start: match.index!, end: match.index! + match[0].length, left: x, top: TOP + line * LINE + 6, width, height: 16 });
+        x += width + 8;
+        i++;
+    }
+    return words;
+}
+const middle = (line: number) => TOP + line * LINE + 14;
+/** A pen drawn along line `line`, from `from` to `to`, with the slight tremor a hand has. */
+const along = (line: number, from = 90, to = 480) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: middle(line) + (k % 2 ? 1 : -1) }));
+
+function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean } = {}) {
+    const body = chapterEl();
+    const text = chapterText(body as never);
+    const words = layout(text);
+    const root = new DomNode();
+    const stage = new DomNode();
+    const page = new DomNode();
+    stage.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 700 });
+    page.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 2000 });
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 800 });
+    (body as any).getBoundingClientRect = () => ({ left: LEFT, top: 0, width: 600, height: 2000 });
+    const batches: Record<string, (string | undefined)[]> = { write: [], save: [], discard: [], writeInk: [] };
+    let n = 0;
+    let release: () => void = () => undefined;
+    const store = {
+        folder: () => options.lab ?? "Lab",
+        highlightsAbout: jest.fn(async () => [] as Thought[]),
+        write: jest.fn(async (note: string, o: any) => {
+            batches.write.push(currentWriteBatch());
+            if (options.writePending) await new Promise<void>((resolve) => (release = resolve));
+            const made: Thought = { id: `hl${++n}`, at: n, text: note, links: [], about: o.about, quote: o.quote, ...(o.locator ? { locator: o.locator } : {}), meaning: o.meaning };
+            return made;
+        }),
+        save: jest.fn(async (_t: Thought) => {
+            batches.save.push(currentWriteBatch());
+        }),
+        writeInk: jest.fn(async (input: any, _svg: string) => {
+            batches.writeInk.push(currentWriteBatch());
+            return { id: `ink${++n}`, at: n, text: "", links: [], about: input.about, ink: { ...input.ink, drawing: `${n}.svg` } } as unknown as Thought;
+        }),
+        drawingOf: jest.fn(async () => undefined),
+        saveDrawing: jest.fn(async () => undefined),
+        discard: jest.fn(async (_t: Thought) => {
+            batches.discard.push(currentWriteBatch());
+        }),
+        restore: jest.fn(async () => undefined),
+    };
+    const owner = new Component();
+    const highlights = new ReaderHighlights(
+        { app: {} as never, host: root as never, owner, scrollTo: jest.fn(), onChange: jest.fn() },
+        {
+            store: store as never,
+            selection: () => null,
+            headingAt: () => undefined,
+            makeMark: (id) => {
+                const mark = new FakeEl("mark");
+                mark.attrs["data-hl"] = id;
+                (mark as any).getClientRects = () => [{ left: 120, top: 134, width: 200, height: 16 }];
+                return mark as never;
+            },
+        }
+    );
+    const ink = new ReaderInk(
+        { app: {} as never, root: root as never, stage: () => stage as never, owner, refreshList: jest.fn(), highlights: () => highlights, pageWords: options.pageWords, pageLabel: (i) => `p. ${i + 1}` },
+        { store: store as never, words: () => ({ words, text }), spanBox: () => null, metrics: () => ({ fontPx: 16, linePx: LINE }), text: () => text, now: () => clock }
+    );
+    const component = new Component();
+    void highlights.attach(body as never, "a.md", component, null);
+    ink.attach({ body: body as never, page: page as never, notePath: "a.md", locator: null, component, run: options.run ?? false });
+    ink.openPalette(false);
+    let pointer = 40;
+    /** A stroke straight into the ink layer: down, through every point, up. */
+    const draw = (points: { x: number; y: number }[], o: { type?: string; target?: DomNode; lift?: boolean } = {}) => {
+        const id = ++pointer;
+        let t = clock;
+        const ev = (p: { x: number; y: number }, extra: Record<string, unknown> = {}) =>
+            ({ pointerType: o.type ?? "pen", pointerId: id, clientX: p.x, clientY: p.y, timeStamp: (t += 8), button: 0, buttons: 1, pressure: 0.5, target: o.target ?? stage, preventDefault: () => undefined, ...extra }) as unknown as PointerEvent;
+        ink.claims(ev(points[0]));
+        for (const p of points.slice(1)) ink.move(ev(p));
+        if (o.lift !== false) ink.up(ev(points[points.length - 1], { pressure: 0, buttons: 0 }));
+    };
+    const pick = (name: string) =>
+        root
+            .oneByClass("reader-ink-palette")
+            .byClass("reader-ink-tool")
+            .find((b) => b.getAttribute("data-tool") === name)!
+            .click();
+    const marks = () => body.all("mark");
+    const status = () => root.byClass("reader-hl-pop--status")[0];
+    const button = (label: string) => status()?.find((el) => el.tag === "button" && el.textContent === label);
+    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, marks, status, button, release: () => release() };
+}
+
+const LINE_1 = (m: { words: WordBox[]; text: string }) => {
+    const line = m.words.filter((w) => w.top === TOP + LINE + 6);
+    return m.text.slice(line[0].start, line[line.length - 1].end);
+};
+
+describe("draw across a line and it is highlighted (#746)", () => {
+    let rec: AnimationRecord;
+    beforeEach(() => {
+        installBrowserGlobals();
+        (globalThis as any).matchMedia = () => ({ matches: false });
+        clock = 10_000;
+        rec = recordAnimations();
+        jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick", "queueMicrotask"] });
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        rec.stop();
+        delete (globalThis as any).matchMedia;
+    });
+
+    it("keeps a pen stroke along a line as a highlight of its words: one write of a highlight, no ink (FR-1, FR-2)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        const [, options] = m.store.write.mock.calls[0] as [string, any];
+        expect(options.quote.exact).toBe(LINE_1(m));
+        expect(options).toMatchObject({ about: "a.md", meaning: "idea" });
+        expect(m.marks().map((mark) => mark.textContent).join("")).toBe(options.quote.exact);
+        wait(GROUP_IDLE_MS * 2);
+        await flush();
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("leaves handwriting as ink, over the words or in the margin (AC-1, the negative)", async () => {
+        const m = direct();
+        await flush();
+        const written = loadInk("write-flat-synth-01").strokes[0].points.map((p) => ({ x: 200 + p.x * 16, y: middle(1) - 4 + p.y * 16 }));
+        m.draw(written);
+        m.draw(along(1, 700, 990));
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(m.store.write).not.toHaveBeenCalled();
+        // Far apart: two ink notes, and no highlight.
+        expect(m.store.writeInk).toHaveBeenCalledTimes(2);
+        expect(m.marks()).toHaveLength(0);
+    });
+
+    it("takes the meaning H uses: an idea at first, then the one chosen last (FR-4, AC-4)", async () => {
+        const m = direct();
+        await flush();
+        const first = m.highlights.quoteFor(0, 5)!;
+        await m.highlights.keepSpan(first.span, first.quote, { meaning: "question", origin: "selection" });
+        m.draw(along(1));
+        await flush();
+        expect((m.store.write.mock.calls[1] as [string, any])[1].meaning).toBe("question");
+    });
+
+    it("turns any highlighter stroke over words into a highlight, and keeps nothing over the margin (FR-6, AC-6)", async () => {
+        const m = direct();
+        await flush();
+        m.pick("highlighter");
+        // A wiggle no pen line would be, still over the words of line 0.
+        m.draw([0, 1, 2, 3, 4, 5, 6].map((k) => ({ x: 110 + k * 40, y: middle(0) + (k % 2 ? 7 : -7) })));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        m.draw(along(0, 750, 990));
+        await flush();
+        expect(m.root.oneByClass("reader-ink-status").textContent).toBe("Nothing under the highlighter");
+        wait(GROUP_IDLE_MS * 2);
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("draws the highlighter as one, in the meaning's wash, while you draw (FR-15)", async () => {
+        const m = direct();
+        await flush();
+        m.pick("highlighter");
+        m.draw(along(0), { lift: false });
+        const g = m.page.find((el) => el.hasClass("zettelkasten-flow__reader-ink-live"))!;
+        expect(g.hasClass("zettelkasten-flow__reader-ink--highlighter")).toBe(true);
+        expect(g.hasClass("zettelkasten-flow__reader-ink--hl-idea")).toBe(true);
+        expect(Number(g.cssProps["--zf-hl-nib"])).toBeCloseTo(LINE * 0.9, 1);
+    });
+
+    it("says what it kept, with Undo and Keep as ink (FR-7, AC-7)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.status().textContent).toContain("Highlighted as an idea. Kept in Think.");
+        expect(m.button("Keep as ink")).toBeDefined();
+        m.button("Undo")!.click();
+        await flush();
+        expect(m.store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: "hl1" }));
+        expect(m.marks()).toHaveLength(0);
+        // Taken back: the palette's undo has nothing more of it to take.
+        expect(m.ink.undoKey()).toBe(false);
+    });
+
+    it("keeps the stroke as ink instead: the highlight to the trash and one ink note, in one batch (FR-7, AC-7)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        m.button("Keep as ink")!.click();
+        await flush();
+        expect(m.store.discard).toHaveBeenCalledTimes(1);
+        expect(m.store.writeInk).toHaveBeenCalledTimes(1);
+        expect(m.batches.discard[0]).toBeDefined();
+        expect(m.batches.writeInk[0]).toBe(m.batches.discard[0]);
+        const svg = (m.store.writeInk.mock.calls[0] as [any, string])[1];
+        expect((parseInkSvg(svg) as InkDrawing).strokes).toHaveLength(1);
+        expect(m.marks()).toHaveLength(0);
+        // The stroke comes back as a note: it fades in where it was drawn.
+        expect(rec.animations.some((a) => a.keyframes[0]?.opacity === 0 && a.keyframes[1]?.opacity === 1 && a.duration === MOTION.fast)).toBe(true);
+    });
+
+    it("keeps the highlight, and writes no ink, when Keep as ink cannot take it back: never both", async () => {
+        const error = jest.spyOn(log, "error").mockImplementation(() => undefined);
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        m.store.discard.mockImplementationOnce(async () => Promise.reject(new Error("locked")));
+        m.button("Keep as ink")!.click();
+        await flush();
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+        expect(m.marks().length).toBeGreaterThan(0);
+        error.mockRestore();
+    });
+
+    it("is the session's last ink action: the palette's undo and two fingers take it back (FR-7)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        m.root.oneByClass("reader-ink-undo").click();
+        await flush();
+        expect(m.store.discard).toHaveBeenCalledTimes(1);
+        m.draw(along(0));
+        await flush();
+        clock += 1000;
+        const finger = (id: number, x: number, t: number) => ({ pointerType: "touch", pointerId: id, clientX: x, clientY: 500, timeStamp: t, button: 0 }) as unknown as PointerEvent;
+        m.ink.claims(finger(91, 400, 5000));
+        m.ink.claims(finger(92, 500, 5005));
+        m.ink.up(finger(91, 400, 5100));
+        m.ink.up(finger(92, 500, 5105));
+        await flush();
+        expect(m.store.discard).toHaveBeenCalledTimes(2);
+    });
+
+    it("grows the same highlight onto the next line drawn soon after: one update, only the new words sweep (FR-5, FR-13, AC-5)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(0));
+        await flush();
+        m.marks().forEach((mark) => mark.removeClass("zettelkasten-flow__reader-highlight--new"));
+        clock += 3000;
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        expect((m.store.save.mock.calls[0] as [Thought])[0].id).toBe("hl1");
+        const fresh = m.marks().filter((mark) => mark.hasClass("zettelkasten-flow__reader-highlight--new"));
+        expect(fresh.map((mark) => mark.textContent).join("").trim()).toBe(LINE_1(m));
+        // Undo takes the extension back, and only it.
+        m.button("Undo")!.click();
+        await flush();
+        expect(m.store.save).toHaveBeenCalledTimes(2);
+        expect(m.store.discard).not.toHaveBeenCalled();
+    });
+
+    it("makes a second highlight when the next line comes too late (AC-5)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(0));
+        await flush();
+        clock += EXTEND_WINDOW_MS + 1;
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(2);
+        expect(m.store.save).not.toHaveBeenCalled();
+    });
+
+    it("turns the stroke into the mark: the ink fades as the mark sweeps from where it began, before the write answers (FR-11, FR-12)", async () => {
+        const m = direct({ writePending: true });
+        await flush();
+        m.draw(along(1, 480, 90)); // right to left
+        // The write is still pending: the marks are already on the words, sweeping from the right.
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.marks().length).toBeGreaterThan(0);
+        for (const mark of m.marks()) {
+            expect(mark.hasClass("zettelkasten-flow__reader-highlight--new")).toBe(true);
+            expect(mark.hasClass("zettelkasten-flow__reader-highlight--new-rtl")).toBe(true);
+        }
+        const fade = rec.animations.find((a) => a.target.hasClass?.("zettelkasten-flow__reader-ink-live"));
+        expect(fade?.keyframes).toEqual([{ opacity: 1 }, { opacity: 0 }]);
+        expect(fade?.duration).toBe(MOTION.base);
+        m.release();
+        await flush();
+        expect(m.marks()[0].attrs["data-hl"]).toBe("hl1");
+    });
+
+    it("fades the mark away on Undo: opacity only, 120 ms (FR-14)", async () => {
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        const before = rec.animations.length;
+        m.button("Undo")!.click();
+        await flush();
+        const washes = rec.animations.slice(before);
+        expect(washes.length).toBeGreaterThan(0);
+        for (const a of washes) {
+            expect(a.duration).toBe(MOTION.fast);
+            expect(new Set(a.keyframes.flatMap((k) => Object.keys(k)))).toEqual(new Set(["opacity"]));
+        }
+    });
+
+    it("is instant under reduced motion: the stroke goes and the mark is there (FR-16)", async () => {
+        (globalThis as any).matchMedia = () => ({ matches: true });
+        const m = direct();
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.marks().length).toBeGreaterThan(0);
+        expect(m.page.findAll((el) => el.hasClass("zettelkasten-flow__reader-ink-live") && el.isConnected)).toHaveLength(0);
+        m.button("Undo")!.click();
+        await flush();
+        expect(rec.animations).toHaveLength(0);
+    });
+});
+
+describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
+    let rec: AnimationRecord;
+    beforeEach(() => {
+        installBrowserGlobals();
+        (globalThis as any).matchMedia = () => ({ matches: false });
+        clock = 10_000;
+        rec = recordAnimations();
+        jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick", "queueMicrotask"] });
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        rec.stop();
+        delete (globalThis as any).matchMedia;
+    });
+
+    /** A printed page, its words in fractions: two printed lines of nine words, then eight. */
+    const PRINTED: PageText = (() => {
+        const text = "Page three says something about consistency here and there.Second line of the printed page goes on.";
+        const words = [...text.matchAll(/\S+/g)].map((m, i) => ({ start: m.index!, end: m.index! + m[0].length, left: 0.05 + (i % 9) * 0.1, top: i < 9 ? 0.2 : 0.23, width: 0.08, height: 0.02 }));
+        return { text, words, headings: [] };
+    })();
+
+    async function printed(text: PageText | null) {
+        const m = direct({ run: true, pageWords: async () => text });
+        const slot = new DomNode();
+        slot.addClass("zettelkasten-flow__reader-pv-slot");
+        slot.setAttribute("data-page", "2");
+        slot.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 520 });
+        m.page.appendChild(slot);
+        m.ink.decorateSlot(2, slot as never, 1.3);
+        // Uncropped, the page's ink surface lies exactly over its slot, as it is laid out.
+        for (const svg of slot.byClass("reader-ink-page")) (svg as any).getBoundingClientRect = slot.getBoundingClientRect;
+        await flush();
+        return { ...m, slot };
+    }
+    /** Along the first printed line (top 0.2, height 0.02 of 520 px). */
+    const printedLine = (from = 15, to = 385) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: 0.21 * 520 + (k % 2 ? 0.5 : -0.5) }));
+
+    it("keeps a line of a text page as a highlight cited at that page, drawn as rectangles over its words", async () => {
+        const m = await printed(PRINTED);
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        const [, options] = m.store.write.mock.calls[0] as [string, any];
+        expect(options.locator).toEqual({ at: 2, label: "p. 3" });
+        expect(options.quote.exact).toBe("Page three says something about consistency here and there.Second");
+        const rects = m.slot.byClass("reader-ink-pagemark");
+        expect(rects).toHaveLength(1);
+        expect(rects[0].hasClass("zettelkasten-flow__reader-ink-pagemark--new")).toBe(true);
+        expect(rects[0].cssProps["--zf-pm-y"]).toBe("20%");
+        wait(GROUP_IDLE_MS * 2);
+        await flush();
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("leaves a stroke on a page with no text, a scan, as ink, and makes no highlight (AC-8, the empty state)", async () => {
+        const m = await printed({ text: "", words: [], headings: [] });
+        m.draw(printedLine(), { target: m.slot });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(m.store.write).not.toHaveBeenCalled();
+        expect(m.store.writeInk).toHaveBeenCalledTimes(1);
+        expect((m.store.writeInk.mock.calls[0] as [any])[0].ink.page).toBeDefined();
+    });
+
+    it("takes the rectangles away with Undo", async () => {
+        const m = await printed(PRINTED);
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        m.button("Undo")!.click();
+        await flush();
+        rec.finishAll();
+        expect(m.store.discard).toHaveBeenCalledTimes(1);
+        expect(m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected)).toHaveLength(0);
     });
 });

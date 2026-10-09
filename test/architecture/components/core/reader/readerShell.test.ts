@@ -340,6 +340,19 @@ describe("the Reader on iPad: the screen and the keys (#750)", () => {
 
     const caps = (content: DomNode) => content.byClass("reader-shortcuts-keys").map((dt) => dt.findAll((el) => el.tag === "kbd").map((k) => k.textContent).join("+"));
 
+    it("names the gestures in a group of their own: a line drawn across, and two fingers (#746 FR-10, G3)", async () => {
+        const pc = mountReader();
+        await pc.view.setState({ seed: "a.md" }, {} as never);
+        await pc.view.onOpen();
+        press(pc.leaf, "?", { target: pc.content });
+        expect(pc.content.oneByClass("reader-shortcuts-group").textContent).toBe("Gestures");
+        const lists = pc.content.byClass("reader-shortcuts-list");
+        expect(lists).toHaveLength(2);
+        const gestures = lists[1].byClass("reader-shortcuts-label").map((el) => el.textContent);
+        expect(gestures).toEqual(["Draw across a line to highlight it", "Undo the last ink"]);
+        expect(caps(pc.content)).toEqual(expect.arrayContaining(["—", "Two-finger tap"]));
+    });
+
     it("names ⌘ and ⌥ on Apple devices, Ctrl and Alt elsewhere (AC-9)", async () => {
         const pc = mountReader();
         await pc.view.setState({ seed: "a.md" }, {} as never);

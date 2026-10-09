@@ -393,7 +393,7 @@ paragraph, the way you would on paper or a reMarkable.
 ![Ink in the margin: handwriting in the outer margin beside a paragraph, the palette strip with the pen, the eraser, four inks and undo, and the thinking-space folder holding the thought and its drawing](../resources/reader/ink.svg)
 
 - **The palette.** A small strip at the edge of the reading column, never over the text: **pen**,
-  **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
+  **highlighter**, **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
   **undo**. A marker glides to the tool in use. On a phone, an iPad in portrait or a paper in Page view
   — where there is no margin for it — the strip lies just above the reader bar. Whether it was open is
   remembered on this device, so an iPad you write on stays ready to write.
@@ -417,6 +417,46 @@ paragraph, the way you would on paper or a reMarkable.
   and near it, joins it; otherwise a new one begins. The note is kept when you pause, when you turn
   the page and when you close the Reader — never while you are writing — and its ink settles from its
   live tone into its kept tone. No toast.
+
+### Draw across a line
+
+On a reMarkable a highlight is one gesture: you draw across the line. In the Reader it is the same.
+With the palette open, **draw along a line of text with the pen** and the words under it are
+highlighted. The stroke itself turns into the mark: the ink fades while the marker sweeps across the
+words from the side you started on.
+
+![Draw across a line: a pen stroke along a line of text, the stroke fading as the marker sweeps from where it began, and the status line with Undo and Keep as ink](../resources/reader/ink-highlight.svg)
+
+- **What counts as a line.** A stroke that runs *along* the text: flatter than a line is tall, long
+  enough for a couple of words, straight and open. A word, a circle, an arrow or a diagonal stays ink.
+  The measures are in the text's own line height and em, so they hold at every type size.
+- **The words it takes.** The single line nearest the stroke, never two, even when you draw a little
+  above or below it; and every word whose middle lies under the stroke, whole.
+- **The highlighter.** The palette's **highlighter** turns any stroke over text into a highlight,
+  whatever its shape: the tool for a mouse, or for anyone who would rather not rely on recognition.
+  While you draw it is a wide, translucent nib in the highlight's colour, so what you see under the
+  pen is what you get. Over no text it keeps nothing, and says *Nothing under the highlighter*.
+- **Its meaning.** The one **H** uses: the meaning you chose last, an *Idea* the first time. Click
+  the highlight afterwards to change it, as for any highlight.
+- **Several lines.** Draw across the next line within a few seconds and the same highlight grows onto
+  it: a sentence that wraps is one highlight, saved as one update. Only the new words sweep.
+- **The same highlight.** It is exactly the thought a selection makes: the same passage, the same
+  place in the book, the same heading, in Think, in review and in the notebook.
+- **The way back.** A quiet line says *Highlighted as an idea. Kept in Think.* with **Undo** and
+  **Keep as ink**. Undo takes the highlight away, its mark fading. *Keep as ink* takes it away and
+  gives you back the stroke you drew, as an ink note. The palette's undo, **Ctrl/⌘+Z** and the
+  two-finger tap take it back too: it is your last ink action.
+- **Why it does not ask.** The stroke interprets your gesture, not the book: it is the choice you make
+  when you select words and press a meaning, and it writes your own mark. Asking on every stroke
+  would be friction where there is no judgement at stake; the instant Undo and *Keep as ink* are
+  the safety ([constitution §XII](constitution.md)).
+- **On a printed page.** In Page view the stroke reads the page's own text, so a PDF with text
+  highlights there too: the mark is drawn as a wash over the printed words, and every highlight of
+  that page is drawn the same way, so what you marked is there next time. On a page with no text, a
+  scan, a pen stroke stays ink. A highlight made in Page view is found again in the Reading view, and
+  the other way round. Growing a highlight onto the next line works in the Reading view.
+- **Reduced motion.** The stroke goes and the mark is there, at once; Undo and *Keep as ink* are
+  instant too.
 
 ### Where ink is kept
 

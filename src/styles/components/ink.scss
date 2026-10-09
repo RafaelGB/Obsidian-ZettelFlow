@@ -312,3 +312,72 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
 .zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--pencil {
     color: var(--color-base-100);
 }
+
+/* ── draw across a line and it is highlighted (#746) ──────────────────── */
+
+/*
+ * The highlighter (FR-15): while you draw, a wide translucent nib in the meaning's own wash — the
+ * theme variable the highlight itself reads (reader.scss) — so what is under the Pencil is already
+ * what you will get. The group is translucent, so where the stroke crosses itself it is not darker.
+ */
+.zettelkasten-flow__reader-ink--highlighter {
+    color: var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
+    opacity: 0.38;
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink--highlighter path,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--highlighter path {
+    stroke-width: var(--zf-hl-nib, 1em);
+    stroke-linecap: round;
+}
+
+/*
+ * A highlight in Page view (FR-9): the printed page has no text to mark, so its words get the wash
+ * as rectangles in fractions of the page — exact through every zoom. On paper the wash multiplies,
+ * as a marker does.
+ */
+.zettelkasten-flow__reader-ink-pagemarks {
+    position: absolute;
+    /* The whole page, as the ink beside it: larger than its slot with crop on (#769). */
+    left: var(--zf-page-x, 0);
+    top: var(--zf-page-y, 0);
+    width: var(--zf-page-w, 100%);
+    height: var(--zf-page-h, 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.zettelkasten-flow__reader-ink-pagemark {
+    position: absolute;
+    left: var(--zf-pm-x, 0);
+    top: var(--zf-pm-y, 0);
+    width: var(--zf-pm-w, 0);
+    height: var(--zf-pm-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
+    opacity: 0.38;
+    mix-blend-mode: multiply;
+    transform-origin: left center;
+}
+
+/* Just made: the marker draws across the words from the side the stroke began — transform only. */
+.zettelkasten-flow__reader-ink-pagemark--new {
+    animation: zf-ink-pagemark-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+
+.zettelkasten-flow__reader-ink-pagemark--rtl {
+    transform-origin: right center;
+}
+
+@keyframes zf-ink-pagemark-sweep {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* Reduced motion (FR-16): the stroke goes and the mark is there, at once. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-pagemark--new {
+        animation: none;
+    }
+}

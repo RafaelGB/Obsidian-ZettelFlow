@@ -3,8 +3,11 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
-import { anchorAll, type TextSpan } from "application/thinking/quoteAnchor";
-import { isInk, isPageInk, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
+import { anchorAll, anchorQuote, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
+import { isHighlight, isInk, isPageInk, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
+import { meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
+import { bandWords, extendsHighlight, isLineStroke, linesOf, strokeMetrics } from "application/reader/ink/strokeHighlight";
+import { pageHeadingAt, type PageText } from "application/library/pdfWords";
 import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
 import { drawingBox, INK_COLOURS, isUnreadable, parseInkSvg, renderInkSvg, type InkColour, type InkDrawing, type InkStrokeData } from "application/reader/ink/inkSvg";
 import { anchorInk, keepOnPage, pageAnchor, placeInk, PAGE_EMS, type Box, type Column, type InkAnchor, type WordBox } from "application/reader/ink/inkAnchor";
@@ -13,6 +16,7 @@ import { altitudeOf, routePointer, twoFingerTap, PALM_WINDOW_MS, type FingerTrac
 import { chapterText, pointAt, textNodes } from "./readerMarks";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { renderInkThumb } from "./readerInkThumb";
+import type { KeepOptions, StatusAction } from "./readerHighlights";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -20,9 +24,11 @@ type LocaleKey = Parameters<typeof t>[0];
 export const INK_STORAGE_KEY = "zettelflow-reader-ink";
 /** How close the eraser must pass to a stroke to take it, in px on screen (FR-7). */
 export const ERASER_RADIUS_PX = 10;
+/** The highlighter's nib before a chapter has said its line height, in px. */
+const FALLBACK_NIB_PX = 24;
 /** How long a quiet line in the palette stays. */
 const STATUS_MS = 6000;
-const INK_TOOLS = ["pen", "eraser"] as const;
+const INK_TOOLS = ["pen", "highlighter", "eraser"] as const;
 type InkTool = (typeof INK_TOOLS)[number];
 
 /** The colour names, as the palette says them. A literal map, so the locale guardrail sees each key. */
@@ -32,8 +38,8 @@ const COLOUR_LABEL: Record<InkColour, LocaleKey> = {
     blue: "reader_ink_colour_blue",
     green: "reader_ink_colour_green",
 };
-const TOOL_LABEL: Record<InkTool, LocaleKey> = { pen: "reader_ink_pen", eraser: "reader_ink_eraser" };
-const TOOL_ICON: Record<InkTool, string> = { pen: "pen-line", eraser: "eraser" };
+const TOOL_LABEL: Record<InkTool, LocaleKey> = { pen: "reader_ink_pen", highlighter: "reader_ink_highlighter", eraser: "reader_ink_eraser" };
+const TOOL_ICON: Record<InkTool, string> = { pen: "pen-line", highlighter: "highlighter", eraser: "eraser" };
 
 /** Where ink is kept — the thought store, as far as the Reader's ink uses it (#745 E7). */
 export interface InkStore {
@@ -59,6 +65,51 @@ export interface InkView {
     owner: Component;
     /** The margin's list changed. */
     refreshList(): void;
+    /** The highlights' engine (#746 FR-3): a stroke across a line keeps its words through it. */
+    highlights?(): InkHighlighter | null;
+    /** The words of a printed page in Page view (#746 FR-9), or none. */
+    pageWords?(index: number): Promise<PageText | null>;
+    /** How a printed page is cited: *p. 12*. */
+    pageLabel?(index: number): string;
+}
+
+/** What a stroke across a line asks of the highlights — the same engine a selection uses (#746). */
+export interface InkHighlighter {
+    currentMeaning(): HighlightMeaning;
+    hasText(): boolean;
+    quoteFor(start: number, end: number): { span: TextSpan; quote: ThoughtQuote } | null;
+    keepSpan(span: TextSpan, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
+    keepPassage(locator: ThoughtLocator, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
+    extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions">): Promise<Thought | undefined>;
+    unextend(grown: Thought, before: Thought): Promise<boolean>;
+    takeBack(thought: Thought): Promise<boolean>;
+}
+
+/**
+ * A highlight a stroke made (#746): kept until its status line goes, so *Undo* and *Keep as ink* can
+ * take it back — the second with the stroke itself, written as the ink you drew.
+ */
+interface StrokeHighlight {
+    live: LiveInk;
+    /** The thought, once written; `undefined` when the write failed. */
+    result: Promise<Thought | undefined>;
+    /** An extension: the highlight as it was before this stroke grew it. */
+    before?: Thought;
+    /** Page view: the printed page and the rectangles drawn for it there. */
+    page?: { index: number; marks: HTMLElement[] };
+    action: InkAction;
+    done: boolean;
+    /** What the last stroke highlight was before this one, for an undo to give back. */
+    previous?: LastStroke | null;
+}
+
+/** The last highlight a stroke made: the next line, drawn soon after on contiguous words, grows it. */
+interface LastStroke {
+    result: Promise<Thought | undefined>;
+    span: TextSpan;
+    at: number;
+    surface: string;
+    entry: StrokeHighlight;
 }
 
 /** Seams for tests; the defaults are the real DOM, the real store and the real clock. */
@@ -253,8 +304,14 @@ export class ReaderInk {
     private runNotes: KeptNote[] = [];
     private listed: ListedInk[] = [];
     /** A paper in Page view: its ink, read once per paper, drawn on each printed page as it appears. */
-    private runInk: { path: string; thoughts: Thought[]; drawings: Map<string, InkDrawing | null> } | null = null;
+    private runInk: { path: string; thoughts: Thought[]; drawings: Map<string, InkDrawing | null>; highlights: Thought[] } | null = null;
     private slots = new Map<number, { el: HTMLElement; svg: SVGSVGElement; aspect: number }>();
+    /** The last highlight a stroke made, so the next line drawn soon after grows it (#746 FR-5). */
+    private lastStroke: LastStroke | null = null;
+    /** A printed page's words, read as the page appears (#746 FR-9). */
+    private pageTexts = new Map<number, PageText | null>();
+    /** A printed page's highlight rectangles (#746 FR-9), by thought. */
+    private pageMarks = new Map<number, { layer: HTMLElement; marks: Map<string, HTMLElement[]> }>();
 
     constructor(
         private readonly view: InkView,
@@ -463,6 +520,7 @@ export class ReaderInk {
         this.listed = [];
         // Undo is the chapter's: it never reaches ink that is no longer on screen.
         this.undoStack.length = 0;
+        this.lastStroke = null;
     }
 
     private allNotes(): KeptNote[] {
@@ -483,7 +541,9 @@ export class ReaderInk {
         }
         // A paper in Page view: its ink is read once per paper and drawn on each page as it appears.
         if (this.runInk?.path !== chapter.notePath) {
-            this.runInk = { path: chapter.notePath, thoughts: [], drawings: new Map() };
+            this.runInk = { path: chapter.notePath, thoughts: [], drawings: new Map(), highlights: [] };
+            this.pageTexts.clear();
+            this.pageMarks.clear();
             this.runNotes = [];
             this.slots.clear();
             void this.loadRunInk(chapter.notePath);
@@ -537,15 +597,19 @@ export class ReaderInk {
 
     /** Ink of a paper in Page view, read once. */
     private async loadRunInk(path: string): Promise<void> {
-        let thoughts: Thought[] = [];
+        let all: Thought[] = [];
         try {
-            thoughts = (await this.store.highlightsAbout(path)).filter((thought) => thought.ink && isPageInk(thought.ink));
+            all = await this.store.highlightsAbout(path);
         } catch (error) {
             log.warn(`[Reader] could not read the ink of ${path}: ${String(error)}`);
         }
+        const thoughts = all.filter((thought) => thought.ink && isPageInk(thought.ink));
         const run = this.runInk;
         if (!run || run.path !== path) return;
         run.thoughts = thoughts;
+        // The paper's highlights, drawn on their printed pages as rectangles (#746 FR-9).
+        run.highlights = all.filter((thought) => isHighlight(thought) && typeof thought.locator?.at === "number");
+        for (const index of this.slots.keys()) this.drawPageMarks(index);
         for (const thought of thoughts) {
             try {
                 const text = await this.store.drawingOf(thought);
@@ -575,6 +639,52 @@ export class ReaderInk {
         // A page made again (scrolled away and back) is a fresh surface: its ink is drawn anew.
         this.runNotes = this.runNotes.filter((note) => note.surface !== index);
         this.drawPageInk(index, svg, aspect);
+        // Its words (#746 FR-9): read once it appears, so a stroke across a line finds them at once.
+        const layer = el.createDiv({ cls: c("reader-ink-pagemarks"), attr: { "aria-hidden": "true" } });
+        this.pageMarks.set(index, { layer, marks: new Map() });
+        if (!this.view.pageWords) return;
+        this.pageTexts.delete(index);
+        void this.view
+            .pageWords(index)
+            .catch(() => null)
+            .then((text) => {
+                if (this.slots.get(index)?.el !== el) return;
+                this.pageTexts.set(index, text);
+                this.drawPageMarks(index);
+            });
+    }
+
+    /** The highlights of a printed page, as rectangles over their words (#746 FR-9). */
+    private drawPageMarks(index: number): void {
+        const run = this.runInk;
+        const text = this.pageTexts.get(index);
+        const page = this.pageMarks.get(index);
+        if (!run || !text || !page) return;
+        for (const thought of run.highlights) {
+            if (thought.locator?.at !== index || !thought.quote || page.marks.has(thought.id)) continue;
+            const span = anchorQuote(text.text, thought.quote);
+            if (!span) continue;
+            page.marks.set(thought.id, this.pageRects(page.layer, text, span, meaningOf(thought)));
+        }
+    }
+
+    /** One rectangle per run of words on a line, in fractions of the page — exact through any zoom. */
+    private pageRects(layer: HTMLElement, text: PageText, span: TextSpan, meaning: HighlightMeaning, fresh?: "ltr" | "rtl"): HTMLElement[] {
+        const words = text.words.filter((w) => w.start < span.end && w.end > span.start);
+        const height = words.length ? words.reduce((sum, w) => sum + w.height, 0) / words.length : 0;
+        const rects: HTMLElement[] = [];
+        for (const line of linesOf(words, height)) {
+            const left = Math.min(...line.words.map((w) => w.left));
+            const right = Math.max(...line.words.map((w) => w.left + w.width));
+            const top = Math.min(...line.words.map((w) => w.top));
+            const bottom = Math.max(...line.words.map((w) => w.top + w.height));
+            const rect = layer.createDiv({
+                cls: [c("reader-ink-pagemark"), c(`reader-ink--hl-${meaning}`), ...(fresh ? [c("reader-ink-pagemark--new")] : []), ...(fresh === "rtl" ? [c("reader-ink-pagemark--rtl")] : [])],
+            });
+            rect.setCssProps({ "--zf-pm-x": pct(left), "--zf-pm-y": pct(top), "--zf-pm-w": pct(right - left), "--zf-pm-h": pct(bottom - top) });
+            rects.push(rect);
+        }
+        return rects;
     }
 
     private drawPageInk(index: number, svg: SVGSVGElement, aspect: number): void {
@@ -736,6 +846,14 @@ export class ReaderInk {
         const open = this.grouping.current();
         if (open && open.strokes[0]?.surface.key !== surface.key) void this.flush("turn", true);
         const el = surface.svg.createSvg("g", { cls: [c("reader-ink-live"), c(`reader-ink--${this.colour}`)] });
+        if (this.tool === "highlighter") {
+            // The highlighter looks like one while you draw (#746 FR-15): wide, translucent, in the
+            // meaning's own wash — what is under the nib is what you will get.
+            const meaning = this.view.highlights?.()?.currentMeaning() ?? "idea";
+            el.removeClass(c(`reader-ink--${this.colour}`));
+            el.addClass(c("reader-ink--highlighter"), c(`reader-ink--hl-${meaning}`));
+            el.setCssProps({ "--zf-hl-nib": String(round3(this.nibWidth(surface))) });
+        }
         const live: LiveInk = {
             colour: this.colour,
             pointerType: event.pointerType || "mouse",
@@ -814,6 +932,12 @@ export class ReaderInk {
         }
         live.provisional = null;
         this.penUpNow(event);
+        // Drawn across a line — or with the highlighter — it is a highlight, not ink (#746).
+        if (event && this.highlightStroke(live)) {
+            this.grouping.cancel();
+            if (this.grouping.current()) this.armIdle();
+            return;
+        }
         const pad = 0;
         const box = { left: live.box.left - pad, top: live.box.top - pad, right: live.box.right + pad, bottom: live.box.bottom + pad };
         const closed = this.grouping.penUp(live, box, this.now(), live.surface.unit);
@@ -841,6 +965,196 @@ export class ReaderInk {
         }, wait);
     }
 
+    // ── a stroke across a line is a highlight (#746) ─────────────────────────
+
+    /** The highlighter's nib: about a line tall, in the surface's own units. */
+    private nibWidth(surface: Surface): number {
+        const chapter = this.chapter;
+        if (surface.page) return this.pageLine(surface.page.index, surface.page.aspect) * 0.9;
+        return chapter ? this.metrics(chapter.body).linePx * 0.9 : FALLBACK_NIB_PX;
+    }
+
+    /** A printed page's line height, in its ems: from its words' heights, or a paper's usual line. */
+    private pageLine(index: number, aspect: number): number {
+        const words = this.pageTexts.get(index)?.words ?? [];
+        if (words.length === 0) return 0.8;
+        const heights = words.map((w) => w.height).sort((a, b) => a - b);
+        return heights[Math.floor(heights.length / 2)] * PAGE_EMS * aspect;
+    }
+
+    /**
+     * At pen-up (#746 FR-1, FR-6): a pen stroke that runs along a line of text — or any highlighter
+     * stroke over text — keeps the words under it as a highlight, through the one engine a selection
+     * uses. Returns whether it did: otherwise the stroke stays ink, as it was drawn.
+     */
+    private highlightStroke(live: LiveInk): boolean {
+        if (this.tool !== "pen" && this.tool !== "highlighter") return false;
+        const highlighter = this.tool === "highlighter";
+        const engine = this.view.highlights?.() ?? null;
+        const chapter = this.chapter;
+        if (!engine || !chapter) return highlighter && this.nothingUnder(live);
+        const points = live.stroke.points;
+        const metrics = strokeMetrics(points);
+        if (live.surface.page) return this.highlightOnPage(live, engine, metrics, highlighter);
+        if (!engine.hasText()) return highlighter && this.nothingUnder(live);
+        const { fontPx, linePx } = this.metrics(chapter.body);
+        if (!highlighter && !isLineStroke(metrics, { linePx, emPx: fontPx })) return false;
+        const page = chapter.page.getBoundingClientRect();
+        const near = this.words(chapter.body, page.top + metrics.meanY, linePx);
+        const words = near.words.map((w) => ({ ...w, left: w.left - page.left, top: w.top - page.top }));
+        const band = bandWords(points, words, linePx);
+        const found = band ? engine.quoteFor(band.span.start, band.span.end) : null;
+        if (!band || !found) return highlighter && this.nothingUnder(live);
+        const last = this.lastStroke;
+        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, this.now()) ? last : null;
+        const entry = this.strokeEntry(live);
+        if (extend) {
+            // One highlight, grown (FR-5): one recorded update of the one thought.
+            const keep = () => engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+            entry.result = extend.result.then(async (before) => {
+                // Nothing to grow any more (taken back, or its words gone): a highlight of its own.
+                if (!before) return keep();
+                entry.before = before;
+                const grown = await engine.extend(before, band.span, { direction: metrics.direction, actions: () => this.strokeActions(entry) });
+                if (grown) return grown;
+                entry.before = undefined;
+                return keep();
+            });
+        } else {
+            entry.result = engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+        }
+        // The ink becomes the mark (FR-11): the marks are on the words now, and the stroke fades.
+        this.fadeOut(live.el, MOTION.base);
+        const union = extend ? { start: Math.min(extend.span.start, band.span.start), end: Math.max(extend.span.end, band.span.end) } : found.span;
+        this.remember(entry, union, live.surface.key);
+        return true;
+    }
+
+    /**
+     * The same on a printed page in Page view (#746 FR-9): the page's own words, from its text runs.
+     * A page with none — a scan — leaves a pen stroke as ink (AC-8).
+     */
+    private highlightOnPage(live: LiveInk, engine: InkHighlighter, metrics: ReturnType<typeof strokeMetrics>, highlighter: boolean): boolean {
+        const page = live.surface.page;
+        const text = page ? this.pageTexts.get(page.index) : null;
+        const marks = page ? this.pageMarks.get(page.index) : undefined;
+        if (!page || !text || text.words.length === 0 || !marks) return highlighter && this.nothingUnder(live);
+        // The page's words in its own ems, as the stroke's points are.
+        const tall = PAGE_EMS * page.aspect;
+        const words = text.words.map((w) => ({ ...w, left: w.left * PAGE_EMS, top: w.top * tall, width: w.width * PAGE_EMS, height: w.height * tall }));
+        const line = this.pageLine(page.index, page.aspect) * 1.2;
+        const em = line / 1.2;
+        if (!highlighter && !isLineStroke(metrics, { linePx: line, emPx: em })) return false;
+        const band = bandWords(live.stroke.points, words, line);
+        const made = band ? quoteAt(text.text, band.span.start, band.span.end) : null;
+        if (!band || !made) return highlighter && this.nothingUnder(live);
+        const heading = pageHeadingAt(text, made.span.start);
+        const quote: ThoughtQuote = { ...made.quote, ...(heading ? { heading } : {}) };
+        const meaning = engine.currentMeaning();
+        // Marked at once (FR-12), sweeping from the side the stroke began; the write follows.
+        const rects = this.pageRects(marks.layer, text, made.span, meaning, metrics.direction);
+        const entry = this.strokeEntry(live);
+        entry.page = { index: page.index, marks: rects };
+        const locator: ThoughtLocator = { at: page.index, label: this.view.pageLabel?.(page.index) ?? this.chapter?.locator?.label ?? "" };
+        entry.result = engine.keepPassage(locator, quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) }).then((thought) => {
+            if (!thought) rects.forEach((rect) => rect.remove());
+            else {
+                marks.marks.set(thought.id, rects);
+                this.runInk?.highlights.push(thought);
+            }
+            return thought;
+        });
+        this.fadeOut(live.el, MOTION.base);
+        return true;
+    }
+
+    /** A highlighter stroke over no text (FR-6): nothing is kept, and the palette says so. */
+    private nothingUnder(live: LiveInk): boolean {
+        this.fadeOut(live.el, MOTION.base);
+        this.status("reader_ink_nothing_under");
+        return true;
+    }
+
+    /** A highlight a stroke made, on the session's undo (#745 E8): the palette, Ctrl/⌘+Z, two fingers. */
+    private strokeEntry(live: LiveInk): StrokeHighlight {
+        const entry: StrokeHighlight = { live, result: Promise.resolve(undefined), action: { undo: () => this.takeBackStroke(entry) }, done: false };
+        this.undoStack.push(entry.action);
+        return entry;
+    }
+
+    /** Remember the last stroke highlight — at once, its thought to come — for the next line to grow it. */
+    private remember(entry: StrokeHighlight, span: TextSpan, surface: string): void {
+        entry.previous = this.lastStroke;
+        this.lastStroke = { result: entry.result, span, at: this.now(), surface, entry };
+    }
+
+    /** What the status line offers (FR-7): *Undo*, and *Keep as ink*. */
+    private strokeActions(entry: StrokeHighlight): StatusAction[] {
+        return [
+            { key: "reader_hl_undo", run: () => void this.takeBackStroke(entry) },
+            { key: "reader_ink_keep_as_ink", run: () => void this.keepAsInk(entry) },
+        ];
+    }
+
+    private settleEntry(entry: StrokeHighlight): boolean {
+        if (entry.done) return false;
+        entry.done = true;
+        const at = this.undoStack.indexOf(entry.action);
+        if (at >= 0) this.undoStack.splice(at, 1);
+        // Taken back: the next line grows what was there before this stroke, if anything.
+        if (this.lastStroke?.entry === entry) this.lastStroke = entry.previous ?? null;
+        return true;
+    }
+
+    /** Undo (FR-7, FR-14): the highlight goes — an extension goes back to what it was — its mark fading. */
+    private async takeBackStroke(entry: StrokeHighlight): Promise<void> {
+        if (!this.settleEntry(entry)) return;
+        await this.unmake(entry);
+    }
+
+    /** Take a stroke's highlight back; whether it went (a failed write leaves it, and says so). */
+    private async unmake(entry: StrokeHighlight): Promise<boolean> {
+        const engine = this.view.highlights?.() ?? null;
+        const thought = await entry.result;
+        if (!engine || !thought) return true;
+        if (entry.before) return engine.unextend(thought, entry.before);
+        if (!(await engine.takeBack(thought))) return false;
+        this.dropPageMarks(entry, thought);
+        return true;
+    }
+
+    /**
+     * *Keep as ink* (FR-7, FR-14): the highlight goes and the stroke comes back where it was drawn,
+     * kept as an ink note — one action, recorded as one batch.
+     */
+    private async keepAsInk(entry: StrokeHighlight): Promise<void> {
+        if (!this.settleEntry(entry)) return;
+        const chapter = this.chapter;
+        const live = entry.live;
+        if (!chapter) return;
+        let kept = false;
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter.notePath }, async () => {
+                // The highlight stays when it could not be taken back: never both, never neither.
+                if (!(await this.unmake(entry))) return;
+                kept = true;
+                await this.writeGroup({ strokes: [live], box: live.box, lastUpAt: this.now() }, true);
+            });
+        } catch (error) {
+            log.error(`[Reader] could not keep a stroke as ink: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        if (kept) this.undoStack.push(this.drawnAction(live));
+    }
+
+    private dropPageMarks(entry: StrokeHighlight, thought: Thought): void {
+        if (!entry.page) return;
+        this.pageMarks.get(entry.page.index)?.marks.delete(thought.id);
+        if (this.runInk) this.runInk.highlights = this.runInk.highlights.filter((t) => t.id !== thought.id);
+        for (const rect of entry.page.marks) this.fadeOut(rect);
+    }
+
     // ── keeping a note ───────────────────────────────────────────────────────
 
     /**
@@ -862,7 +1176,7 @@ export class ReaderInk {
         return this.grouping.current()?.strokes.length ?? 0;
     }
 
-    private async writeGroup(group: InkGroup<LiveInk>): Promise<void> {
+    private async writeGroup(group: InkGroup<LiveInk>, appear = false): Promise<void> {
         const chapter = this.chapter;
         const first = group.strokes[0];
         if (!chapter || !first) return;
@@ -914,6 +1228,8 @@ export class ReaderInk {
             live.el.remove();
         });
         note.retry = { input };
+        // Kept as ink (#746 FR-14): the stroke fades back in where it was drawn.
+        if (appear) this.fadeIn(note.el);
         if (typeof note.surface === "number") this.runNotes.push(note);
         else if (this.chapter === chapter) this.notes.push(note);
         await this.save(note);
@@ -1256,15 +1572,15 @@ export class ReaderInk {
         this.view.refreshList();
     }
 
-    private fadeOut(el: SVGElement): void {
+    private fadeOut(el: Element, duration: number = MOTION.fast): void {
         const host = el as unknown as HTMLElement;
         if (!motionWelcome(host)) {
             el.remove();
             return;
         }
-        const animation = host.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.fast, easing: MOTION.ease, fill: "forwards" });
+        const animation = host.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: MOTION.ease, fill: "forwards" });
         animation.onfinish = () => el.remove();
-        ownWindow(host).setTimeout(() => el.remove(), MOTION.fast + 200);
+        ownWindow(host).setTimeout(() => el.remove(), duration + 200);
     }
 
     private fadeIn<T extends SVGElement>(el: T): T {
@@ -1363,9 +1679,16 @@ export class ReaderInk {
         this.runInk = null;
         this.runNotes = [];
         this.slots.clear();
+        this.pageTexts.clear();
+        this.pageMarks.clear();
     }
 }
 
 function round3(n: number): number {
     return Math.round(n * 1000) / 1000;
+}
+
+/** A fraction of a printed page as a CSS percentage. */
+function pct(n: number): string {
+    return `${Math.round(n * 100000) / 1000}%`;
 }

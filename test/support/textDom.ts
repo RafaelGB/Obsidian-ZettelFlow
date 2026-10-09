@@ -110,6 +110,10 @@ export class FakeEl {
         return this.attrs[name] ?? null;
     }
 
+    setAttribute(name: string, value: string): void {
+        this.attrs[name] = value;
+    }
+
     addEventListener(name: string, fn: (event: unknown) => void): void {
         (this.listeners[name] ??= []).push(fn);
     }

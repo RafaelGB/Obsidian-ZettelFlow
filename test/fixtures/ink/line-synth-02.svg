@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.352 -0.352 4.661 0.8" width="74.576" height="12.8">
+<metadata id="zettelflow-ink">{"v":1,"strokes":[{"c":"pencil","t":"pen","pts":[[3.957,0.054,0.357,1.175,0],[3.737,0.091,0.401,1.257,13],[3.517,0.086,0.446,1.139,24],[3.298,0.096,0.497,0.919,35],[3.078,0.072,0.578,1.18,46],[2.858,0.085,0.606,1.062,56],[2.638,0.064,0.576,1.156,62],[2.418,0.08,0.672,0.961,70],[2.198,0.063,0.67,1.13,81],[1.979,0.028,0.656,1.082,89],[1.759,0,0.661,1.208,97],[1.539,0.033,0.636,0.956,107],[1.319,0.016,0.578,1.252,117],[1.099,0.002,0.651,1.238,126],[0.879,0.065,0.574,1.186,132],[0.66,0.062,0.549,1.117,141],[0.44,0.064,0.532,0.902,147],[0.22,0.058,0.427,0.953,157],[0,0.051,0.371,1.117,163]]}]}</metadata>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M3.957 0.054 L3.847 0.073 Q3.737 0.091 3.627 0.089"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M3.627 0.089 Q3.517 0.086 3.407 0.091"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M3.407 0.091 Q3.298 0.096 3.188 0.084"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M3.188 0.084 Q3.078 0.072 2.968 0.079"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M2.968 0.079 Q2.858 0.085 2.748 0.075 Q2.638 0.064 2.528 0.072"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.179" d="M2.528 0.072 Q2.418 0.08 2.308 0.072"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M2.308 0.072 Q2.198 0.063 2.089 0.046 Q1.979 0.028 1.869 0.014"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M1.869 0.014 Q1.759 0 1.649 0.017"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M1.649 0.017 Q1.539 0.033 1.429 0.025"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M1.429 0.025 Q1.319 0.016 1.209 0.009"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M1.209 0.009 Q1.099 0.002 0.989 0.034"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M0.989 0.034 Q0.879 0.065 0.77 0.064 Q0.66 0.062 0.55 0.063"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M0.55 0.063 Q0.44 0.064 0.33 0.061"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M0.33 0.061 Q0.22 0.058 0.11 0.055"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M0.11 0.055 L0 0.051"/>
+</g>
+</svg>

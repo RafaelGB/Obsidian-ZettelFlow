@@ -1265,28 +1265,32 @@ button.zettelkasten-flow__reader-note-pop-go {
    colours are the theme's own, softened, so a theme that changes them changes these too. */
 .zettelkasten-flow__reader-highlight--idea,
 .zettelkasten-flow__reader-hl-item--idea,
-.zettelkasten-flow__reader-hl-swatch--idea {
+.zettelkasten-flow__reader-hl-swatch--idea,
+.zettelkasten-flow__reader-ink--hl-idea {
     --zf-ink: color-mix(in srgb, var(--color-yellow) 38%, transparent);
     --zf-ink-solid: var(--color-yellow);
 }
 
 .zettelkasten-flow__reader-highlight--question,
 .zettelkasten-flow__reader-hl-item--question,
-.zettelkasten-flow__reader-hl-swatch--question {
+.zettelkasten-flow__reader-hl-swatch--question,
+.zettelkasten-flow__reader-ink--hl-question {
     --zf-ink: color-mix(in srgb, var(--color-blue) 32%, transparent);
     --zf-ink-solid: var(--color-blue);
 }
 
 .zettelkasten-flow__reader-highlight--quote,
 .zettelkasten-flow__reader-hl-item--quote,
-.zettelkasten-flow__reader-hl-swatch--quote {
+.zettelkasten-flow__reader-hl-swatch--quote,
+.zettelkasten-flow__reader-ink--hl-quote {
     --zf-ink: color-mix(in srgb, var(--color-green) 32%, transparent);
     --zf-ink-solid: var(--color-green);
 }
 
 .zettelkasten-flow__reader-highlight--discuss,
 .zettelkasten-flow__reader-hl-item--discuss,
-.zettelkasten-flow__reader-hl-swatch--discuss {
+.zettelkasten-flow__reader-hl-swatch--discuss,
+.zettelkasten-flow__reader-ink--hl-discuss {
     --zf-ink: color-mix(in srgb, var(--color-purple) 32%, transparent);
     --zf-ink-solid: var(--color-purple);
 }
@@ -1358,6 +1362,26 @@ mark.zettelkasten-flow__reader-highlight {
     }
 }
 
+/* A stroke drawn right to left (#746 FR-11): the same sweep, from the side it began. */
+.zettelkasten-flow__reader-highlight--new-rtl {
+    background-position: right center;
+}
+
+/*
+ * A mark taken back (#746 FR-14): the mark goes at once, and a ghost of its wash fades where it was
+ * — opacity only, so the words under it never blink. Placed by four custom properties.
+ */
+.zettelkasten-flow__reader-hl-washout {
+    position: absolute;
+    left: var(--zf-hl-x, 0);
+    top: var(--zf-hl-y, 0);
+    width: var(--zf-hl-w, 0);
+    height: var(--zf-hl-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
+    pointer-events: none;
+    z-index: 2;
+}
 
 /* The four meanings in a popover (#720): a swatch and a name each; the one in use is marked. */
 .zettelkasten-flow__reader-hl-meanings {
@@ -1885,6 +1909,13 @@ button.zettelkasten-flow__reader-hl-filter-chip {
         border-bottom-width: var(--size-2-1);
         border-radius: var(--radius-s);
     }
+}
+
+/* Gestures (#746): a quiet group heading over its own rows. */
+.zettelkasten-flow__reader-shortcuts-group {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
 }
 
 .zettelkasten-flow__reader-shortcuts-hint {

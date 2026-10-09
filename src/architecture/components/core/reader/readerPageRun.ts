@@ -22,6 +22,7 @@ import {
     type CropBox,
     type PaperFrames,
 } from "application/library/pdfCrop";
+import type { PageText } from "application/library/pdfWords";
 import {
     RUN_GAP,
     RUN_PAD,
@@ -747,6 +748,11 @@ export class PdfPageRun {
         const box = pageBox(this.sizes[page] ?? this.pages.first, this.rotationOf(page));
         const frame = this.shownFrame(page);
         return frame === WHOLE_PAGE ? box : croppedBox(box, frame);
+    }
+
+    /** The words of a printed page as it is turned now (#746 FR-9); none where the paper has no text. */
+    async words(page: number): Promise<PageText | null> {
+        return (await this.pages.words?.(page, this.rotationOf(page))) ?? null;
     }
 
     private viewSize(): PageSize {

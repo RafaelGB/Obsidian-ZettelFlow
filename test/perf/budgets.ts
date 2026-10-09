@@ -352,8 +352,10 @@ export const BUDGETS = {
         name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
         // 2,450 → 2,600 (#767): 2,265 KB at #693; the Reader's epic #739 grew it to 2,467 KB before this slice, and
         // Page view adds 36 KB of its own code; a WebGL library coming back is still a megabyte over.
-        limit: 2_600,
-        measured: "2,503 KB",
+        // 2,600 → 2,700 (#746): 2,555 KB at the Reader's merge (#774); the ink layer (#745) adds 41 KB and
+        // a stroke as a highlight 16 KB more — still a megabyte under a WebGL library.
+        limit: 2_700,
+        measured: "2,613 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

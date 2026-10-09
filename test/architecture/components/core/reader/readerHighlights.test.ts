@@ -469,4 +469,140 @@ describe("a highlight across an equation (#770 AC-6)", () => {
         expect(math.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(false);
         expect(m.marks()).toHaveLength(0);
     });
+
+    it("tints an equation a stroke crosses, and takes the tint back with the highlight (#746)", async () => {
+        const { math, body } = withEquation();
+        const m = mount([], {}, body);
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("wrote");
+        const found = m.highlights.quoteFor(start, start + "wrote e=1 once".length)!;
+        const made = (await m.highlights.keepSpan(found.span, found.quote, { meaning: "question", origin: "stroke" }))!;
+        expect(made).toBeDefined();
+        expect(math.hasClass(FOREIGN)).toBe(true);
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--question")).toBe(true);
+        expect(await m.highlights.takeBack(made)).toBe(true);
+        expect(math.hasClass(FOREIGN)).toBe(false);
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--question")).toBe(false);
+    });
+
+    it("takes a stroke's tint off again when its write fails", async () => {
+        const { math, body } = withEquation();
+        const m = mount([], {}, body);
+        await m.attach();
+        m.store.write.mockImplementationOnce(async () => undefined as never);
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("wrote");
+        const found = m.highlights.quoteFor(start, start + "wrote e=1 once".length)!;
+        expect(await m.highlights.keepSpan(found.span, found.quote, { meaning: "idea", origin: "stroke" })).toBeUndefined();
+        expect(math.hasClass(FOREIGN)).toBe(false);
+    });
+});
+
+describe("one highlight engine: a stroke and a selection keep the same thought (#746 FR-3, AC-3)", () => {
+    /** Keep the same words twice — selected and *Idea*, then by a stroke — and say what each wrote. */
+    async function both(locator?: { at: number; label: string }) {
+        const batches: unknown[] = [];
+        const runs: { write: unknown[]; thought: Thought }[] = [];
+        for (const how of ["selection", "stroke"] as const) {
+            const m = mount();
+            const record = await import("architecture/plugin/writes/recordVaultWrite");
+            const write = m.store.write.getMockImplementation()!;
+            m.store.write.mockImplementation(async (...args: Parameters<typeof write>) => {
+                batches.push(record.currentWriteOrigin());
+                return write(...args);
+            });
+            await m.highlights.attach(m.body as never, locator ? "Books/es.pdf" : "Notes/es.md", new Component(), m.margin as never, locator ?? null);
+            const text = chapterText(m.body as never);
+            const start = text.indexOf("stores changes");
+            const end = start + "stores changes".length;
+            let made: Thought | undefined;
+            if (how === "selection") {
+                m.select("stores changes");
+                m.body.fire("mouseup");
+                m.button("Idea").click();
+                await flush();
+                made = (await m.store.write.mock.results[0].value) as Thought;
+            } else {
+                const found = m.highlights.quoteFor(start, end);
+                made = await m.highlights.keepSpan(found!.span, found!.quote, { meaning: m.highlights.currentMeaning(), origin: "stroke" });
+            }
+            expect(m.store.write).toHaveBeenCalledTimes(1);
+            runs.push({ write: m.store.write.mock.calls[0], thought: made! });
+        }
+        return { runs, batches };
+    }
+
+    it.each([undefined, { at: 6, label: "p. 7" }])("writes the same options and the same thought, but its id and time (locator %p)", async (locator) => {
+        const { runs, batches } = await both(locator);
+        expect(runs[1].write).toEqual(runs[0].write);
+        const strip = (t: Thought) => ({ ...t, id: undefined, at: undefined, path: undefined });
+        expect(strip(runs[1].thought)).toEqual(strip(runs[0].thought));
+        // Both in one recorded batch each, said as the same thing.
+        expect(batches).toEqual([expect.objectContaining({ kind: "manual", ref: "reader-highlight" }), expect.objectContaining({ kind: "manual", ref: "reader-highlight" })]);
+    });
+
+    it("takes the meaning H uses: an idea at first, then the one chosen last (#746 FR-4, AC-4)", async () => {
+        const m = mount();
+        await m.attach();
+        expect(m.highlights.currentMeaning()).toBe("idea");
+        m.select("Replay");
+        m.body.fire("mouseup");
+        m.button("Question").click();
+        await flush();
+        expect(m.highlights.currentMeaning()).toBe("question");
+    });
+
+    it("draws a stroke's marks before its write has answered, then binds them to the thought (#746 FR-12)", async () => {
+        const m = mount();
+        await m.attach();
+        let answer: (t: Thought) => void = () => undefined;
+        m.store.write.mockImplementationOnce(() => new Promise<Thought>((resolve) => (answer = resolve)) as never);
+        const text = chapterText(m.body as never);
+        const found = m.highlights.quoteFor(text.indexOf("Replay"), text.indexOf("Replay") + 6)!;
+        const kept = m.highlights.keepSpan(found.span, found.quote, { meaning: "quote", origin: "stroke", direction: "rtl" });
+        // Marked at once, sweeping from the right, in its meaning.
+        expect(m.marks().map((mark) => mark.textContent)).toEqual(["Replay"]);
+        const mark = m.marks()[0];
+        expect(mark.hasClass("zettelkasten-flow__reader-highlight--new")).toBe(true);
+        expect(mark.hasClass("zettelkasten-flow__reader-highlight--new-rtl")).toBe(true);
+        expect(mark.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(true);
+        answer(thought("hl-9", found.quote));
+        await kept;
+        expect(m.marks()[0].attrs["data-hl"]).toBe("hl-9");
+        expect(m.highlights.items().map((t) => t.id)).toEqual(["hl-9"]);
+    });
+
+    it("takes a stroke's marks off again when its write fails", async () => {
+        const m = mount();
+        await m.attach();
+        m.store.write.mockImplementationOnce(async () => undefined as never);
+        const text = chapterText(m.body as never);
+        const found = m.highlights.quoteFor(text.indexOf("Replay"), text.indexOf("Replay") + 6)!;
+        expect(await m.highlights.keepSpan(found.span, found.quote, { meaning: "idea", origin: "stroke" })).toBeUndefined();
+        expect(m.marks()).toHaveLength(0);
+        expect(m.host.textContent).toContain("Could not keep that");
+    });
+
+    it("extends a highlight as one update: only the added words are new marks (#746 FR-5, FR-13)", async () => {
+        const m = mount();
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const first = m.highlights.quoteFor(text.indexOf("Event sourcing"), text.indexOf("Event sourcing") + 14)!;
+        const made = (await m.highlights.keepSpan(first.span, first.quote, { meaning: "idea", origin: "stroke" }))!;
+        m.marks().forEach((mark) => mark.removeClass("zettelkasten-flow__reader-highlight--new"));
+        const next = text.indexOf("stores changes");
+        const grown = await m.highlights.extend(made, { start: next, end: next + 14 });
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        expect(grown?.quote?.exact).toBe("Event sourcing stores changes");
+        const marks = m.marks().filter((mark) => mark.attrs["data-hl"] === made.id);
+        expect(marks.map((mark) => mark.textContent).join("")).toBe("Event sourcing stores changes");
+        const fresh = marks.filter((mark) => mark.hasClass("zettelkasten-flow__reader-highlight--new")).map((mark) => mark.textContent).join("");
+        expect(fresh.trim()).toBe("stores changes");
+        // Taken back: the quote it had, and the added marks gone.
+        await m.highlights.unextend(grown!, made);
+        expect(m.store.save).toHaveBeenLastCalledWith(made);
+        expect(m.marks().map((mark) => mark.textContent).join("")).toBe("Event sourcing");
+    });
 });

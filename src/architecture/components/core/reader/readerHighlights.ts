@@ -75,11 +75,47 @@ const MEANING_LABEL: Record<HighlightMeaning, LocaleKey> = {
     discuss: "reader_hl_meaning_discuss",
 };
 
+/** What a stroke's highlight says it was kept as (#746 FR-7): the article differs per meaning (G2). */
+const HIGHLIGHTED: Record<HighlightMeaning, LocaleKey> = {
+    idea: "reader_ink_highlighted_idea",
+    question: "reader_ink_highlighted_question",
+    quote: "reader_ink_highlighted_quote",
+    discuss: "reader_ink_highlighted_discuss",
+};
+
+/** Where a highlight came from (#746): it chooses the status line and the motion, and is never stored. */
+export type HighlightOrigin = "selection" | "stroke";
+
+/** One way back the status line offers. */
+export interface StatusAction {
+    key: LocaleKey;
+    run: () => void;
+}
+
+/** How a span is kept — the one engine's options (#746 FR-3). */
+export interface KeepOptions {
+    note?: string;
+    meaning?: HighlightMeaning;
+    origin?: HighlightOrigin;
+    /** A stroke drawn right to left sweeps its mark from the right (FR-11). */
+    direction?: "ltr" | "rtl";
+    /** The ways back the status line offers for the thought kept; Undo when absent. */
+    actions?: (thought: Thought) => StatusAction[];
+    /** Called once the thought is written: a selection lets go of its words. */
+    clear?: () => void;
+}
+
+/** The id a stroke's marks carry while their thought is being written (#746 FR-12). */
+const PENDING_ID = "pending";
+
 /**
  * A touch selection is offered once its handles have been still this long (#750 FR-5) — never while
  * they are dragged. Provisional: the device walk on issue #750 confirms or tunes it.
  */
 export const SELECTION_SETTLE_MS = 350;
+
+/** How far above the page's foot a stroke's status line sits: over the reader bar and the docked palette. */
+const STROKE_STATUS_LIFT_PX = 200;
 
 /** How long an answer (and its Undo) stays in the popover. */
 const STATUS_MS = 8000;
@@ -209,6 +245,10 @@ export class ReaderHighlights {
     /** The listeners of the margin's rows, replaced when it redraws. */
     private marginScope: Component | null = null;
     private statusTimer: number | undefined;
+    /** The marks each extension added (#746 FR-5), so taking it back takes only them. */
+    private readonly extensions = new Map<Thought, { marks: HTMLElement[]; tint: string }>();
+    /** Numbers the tint keys of strokes and extensions in flight (#770): `stroke#3`, `<id>#4`. */
+    private tintSeq = 0;
     /** The meaning you chose last (#720): what H keeps and what *Highlight and note* uses. */
     private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
     /** The margin shows one meaning only, when you asked it to (#720). */
@@ -399,7 +439,7 @@ export class ReaderHighlights {
 
     hidePopover(): void {
         this.clearPending();
-        window.clearTimeout(this.statusTimer);
+        ownWindow(this.view.host)?.clearTimeout(this.statusTimer);
         this.popover?.remove();
         this.popover = null;
         this.popoverScope?.unload();
@@ -463,17 +503,35 @@ export class ReaderHighlights {
         }
     }
 
-    // ── selection ────────────────────────────────────────────────────────────
+    // ── one engine (#746 FR-3): a selection and a stroke keep words the same way ─
+
+    /** The meaning H keeps (#720): the one chosen last, an idea at first. */
+    currentMeaning(): HighlightMeaning {
+        return this.lastMeaning;
+    }
+
+    /** Whether a chapter with text is attached: a stroke has words to keep. */
+    hasText(): boolean {
+        return this.body !== null && this.notePath !== null;
+    }
+
+    /** The quote for a span of the chapter's text, with the heading it sits under. */
+    quoteFor(start: number, end: number): { span: TextSpan; quote: ThoughtQuote } | null {
+        const body = this.body;
+        if (!body) return null;
+        const made = quoteAt(chapterText(body), start, end);
+        if (!made) return null;
+        const heading = this.heading(body, made.span.start);
+        return { span: made.span, quote: { ...made.quote, ...(heading ? { heading } : {}) } };
+    }
 
     private currentQuote(): { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote } | null {
         const body = this.body;
         if (!body) return null;
         const selection = this.select(body);
         if (!selection) return null;
-        const made = quoteAt(chapterText(body), selection.start, selection.end);
-        if (!made) return null;
-        const heading = this.heading(body, made.span.start);
-        return { selection, span: made.span, quote: { ...made.quote, ...(heading ? { heading } : {}) } };
+        const found = this.quoteFor(selection.start, selection.end);
+        return found ? { selection, ...found } : null;
     }
 
     private onSelect(): void {
@@ -545,15 +603,78 @@ export class ReaderHighlights {
     // ── writes (all of them thoughts, never the note) ────────────────────────
 
     private async keep(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, note: string, meaning: HighlightMeaning = this.lastMeaning): Promise<void> {
+        await this.keepSpan(span, quote, { note, meaning, origin: "selection", clear: () => selection.clear() });
+    }
+
+    /**
+     * Keep a span of the chapter as a highlight — **the** highlight engine (#746 FR-3): a selection's
+     * *Idea* and a stroke across a line both come here, so the thought is the same, field for field.
+     * A stroke's marks are drawn at once and the write follows (FR-12); a selection's after it.
+     */
+    async keepSpan(span: TextSpan, quote: ThoughtQuote, options: KeepOptions = {}): Promise<Thought | undefined> {
         const notePath = this.notePath;
         const body = this.body;
-        if (!notePath || !body) return;
+        if (!notePath || !body) return undefined;
         if (!this.store.folder()) {
             this.status("reader_hl_no_lab");
-            return;
+            return undefined;
         }
+        const meaning = options.meaning ?? this.lastMeaning;
+        const stroke = options.origin === "stroke";
+        const tint = `stroke#${++this.tintSeq}`;
+        const early = stroke ? this.drawPending(span, meaning, options.direction, tint) : [];
+        const made = await this.writeHighlight(notePath, this.locator, quote, options.note ?? "", meaning);
+        if (!made) {
+            early.forEach((mark) => unwrapMark(mark));
+            this.untint(tint);
+            this.status("reader_hl_failed");
+            return undefined;
+        }
+        this.counted(options.note ?? "", meaning);
+        options.clear?.();
+        if (this.body !== body) return made; // the chapter turned while the thought was written
+        this.clearPending(); // the real marks take its place
+        this.retint(tint, made.id);
+        const thought = made;
+        let marks: HTMLElement[];
+        if (stroke) marks = this.decorate(thought, early);
+        else {
+            marks = this.draw(thought, span);
+            // A marker drawn across the words, once — only on the highlight just made (#667).
+            marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
+        }
+        this.insert(thought, marks, span.start);
+        this.settleIntoMargin(marks[0], thought);
+        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
+        return thought;
+    }
+
+    /**
+     * A passage of a printed page in Page view (#746 FR-9): the same write as any highlight, about the
+     * paper and cited at that page. Its marks are the ink layer's rectangles over the page.
+     */
+    async keepPassage(locator: ThoughtLocator, quote: ThoughtQuote, options: KeepOptions = {}): Promise<Thought | undefined> {
+        const notePath = this.notePath;
+        if (!notePath) return undefined;
+        if (!this.store.folder()) {
+            this.status("reader_hl_no_lab");
+            return undefined;
+        }
+        const meaning = options.meaning ?? this.lastMeaning;
+        const made = await this.writeHighlight(notePath, locator, quote, options.note ?? "", meaning);
+        if (!made) {
+            this.status("reader_hl_failed");
+            return undefined;
+        }
+        this.counted(options.note ?? "", meaning);
+        const thought = made;
+        this.status(HIGHLIGHTED[meaning], options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], true);
+        return thought;
+    }
+
+    /** The one write of a highlight: a thought about the note, its quote cited under its place. */
+    private async writeHighlight(notePath: string, locator: ThoughtLocator | null, quote: ThoughtQuote, note: string, meaning: HighlightMeaning): Promise<Thought | undefined> {
         let made: Thought | undefined;
-        const locator = this.locator;
         // In a source, the place is the heading a passage is cited under when its page has none.
         const cited = locator && !quote.heading && locator.label ? { ...quote, heading: locator.label } : quote;
         try {
@@ -563,23 +684,90 @@ export class ReaderHighlights {
         } catch (error) {
             log.error(`[Reader] could not keep a highlight on ${notePath}: ${String(error)}`);
         }
-        if (!made) {
-            this.status("reader_hl_failed");
-            return;
-        }
+        return made;
+    }
+
+    private counted(note: string, meaning: HighlightMeaning): void {
         this.made++;
         if (note.trim()) this.noted++;
         this.lastMeaning = meaning;
-        selection.clear();
-        if (this.body !== body) return; // the chapter turned while the thought was written
-        this.clearPending(); // the real marks take its place
-        const thought = made;
-        const marks = this.draw(thought, span);
-        // A marker drawn across the words, once — only on the highlight just made (#667).
-        marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
-        this.insert(thought, marks, span.start);
-        this.settleIntoMargin(marks[0], thought);
-        this.status("reader_hl_saved", () => void this.forget(thought, false));
+    }
+
+    /**
+     * Grow a highlight onto contiguous words (#746 FR-5): one recorded update of its quote, and marks
+     * for the added words only — they sweep, the earlier ones stay as they are (FR-13).
+     */
+    async extend(thought: Thought, span: TextSpan, options: Pick<KeepOptions, "direction" | "actions"> = {}): Promise<Thought | undefined> {
+        const body = this.body;
+        const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
+        if (!body || !entry || !thought.quote) return undefined;
+        const text = chapterText(body);
+        const old = anchorAll(text, [{ thought, quote: thought.quote }]).anchored[0]?.span;
+        if (!old) return undefined;
+        const union = { start: Math.min(old.start, span.start), end: Math.max(old.end, span.end) };
+        const found = this.quoteFor(union.start, union.end);
+        if (!found) return undefined;
+        const locator = this.locator;
+        const quote = locator && !found.quote.heading && locator.label ? { ...found.quote, heading: locator.label } : found.quote;
+        const next: Thought = { ...thought, quote };
+        const meaning = meaningOf(thought);
+        // What the added words cover of an equation or a drawing is tinted on its own key, so taking
+        // the extension back takes only that tint (#770).
+        const tint = `${thought.id}#${++this.tintSeq}`;
+        // The added words, marked at once (FR-12): before the old start, and after the old end.
+        const added = [
+            { start: union.start, end: old.start },
+            { start: old.end, end: union.end },
+        ]
+            .filter((part) => part.end > part.start)
+            .flatMap((part) => this.drawPending(part, meaning, options.direction, tint));
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not extend a highlight: ${String(error)}`);
+            added.forEach((mark) => unwrapMark(mark));
+            this.untint(tint);
+            this.status("reader_hl_failed");
+            return undefined;
+        }
+        this.decorate(next, added);
+        entry.thought = next;
+        entry.marks.push(...added);
+        this.extensions.set(next, { marks: added, tint });
+        this.renderMargin();
+        this.view.onChange();
+        this.status(HIGHLIGHTED[meaning], options.actions?.(next) ?? [], true);
+        return next;
+    }
+
+    /** Take an extension back: the quote it had, and the added marks fade away (FR-14). */
+    async unextend(grown: Thought, before: Thought): Promise<boolean> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(before));
+        } catch (error) {
+            log.error(`[Reader] could not take an extension back: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return false;
+        }
+        const extension = this.extensions.get(grown);
+        const added = extension?.marks ?? [];
+        this.extensions.delete(grown);
+        this.fadeMarks(added);
+        if (extension) this.untint(extension.tint);
+        const entry = this.anchored.find((candidate) => candidate.thought.id === before.id);
+        if (entry) {
+            entry.thought = before;
+            entry.marks = entry.marks.filter((mark) => !added.includes(mark));
+        }
+        this.renderMargin();
+        this.view.onChange();
+        this.hidePopover();
+        return true;
+    }
+
+    /** Take back the highlight just made (#746 FR-7): to the trash, its marks fading, never counted. */
+    async takeBack(thought: Thought): Promise<boolean> {
+        return this.forget(thought, false, true);
     }
 
     private async keepPageNote(text: string): Promise<void> {
@@ -610,7 +798,7 @@ export class ReaderHighlights {
         this.renderMargin();
         this.view.onChange();
         const thought = made;
-        this.status("reader_hl_page_saved", () => void this.forgetPageNote(thought));
+        this.status("reader_hl_page_saved", [{ key: "reader_hl_undo", run: () => void this.forgetPageNote(thought) }]);
     }
 
     private async forgetPageNote(thought: Thought): Promise<void> {
@@ -646,7 +834,7 @@ export class ReaderHighlights {
     }
 
     /** Take a highlight away — its thought goes to the trash, never lost — with an Undo. */
-    private async forget(thought: Thought, offerUndo = true): Promise<void> {
+    private async forget(thought: Thought, offerUndo = true, fade = false): Promise<boolean> {
         try {
             await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () =>
                 this.store.discard(thought)
@@ -654,22 +842,24 @@ export class ReaderHighlights {
         } catch (error) {
             log.error(`[Reader] could not remove a highlight: ${String(error)}`);
             this.status("reader_hl_failed");
-            return;
+            return false;
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
-        entry?.marks.forEach((mark) => unwrapMark(mark));
+        if (fade) this.fadeMarks(entry?.marks ?? []);
+        else entry?.marks.forEach((mark) => unwrapMark(mark));
         this.untint(thought.id);
         this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== thought.id);
         this.detached = this.detached.filter((candidate) => candidate.id !== thought.id);
         this.renderMargin();
         this.view.onChange();
-        if (offerUndo) this.status("reader_hl_removed", () => void this.bringBack(thought));
+        if (offerUndo) this.status("reader_hl_removed", [{ key: "reader_hl_undo", run: () => void this.bringBack(thought) }]);
         else {
             // Taking back the highlight just made: it no longer counts for this reading.
             this.made = Math.max(0, this.made - 1);
             if (thought.text.trim()) this.noted = Math.max(0, this.noted - 1);
             this.hidePopover();
         }
+        return true;
     }
 
     private async bringBack(thought: Thought): Promise<void> {
@@ -698,9 +888,30 @@ export class ReaderHighlights {
         const body = this.body;
         if (!body) return [];
         const marks = wrapSpan(body, span, () => this.makeMark(thought.id), this.tinter(thought.id, meaningOf(thought))) as unknown as HTMLElement[];
-        if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
         marks.forEach((mark) => mark.addClass(c(`reader-highlight--${meaningOf(thought)}`)));
+        return this.decorate(thought, marks);
+    }
+
+    /**
+     * A stroke's marks, drawn before their thought is written (#746 FR-12): in the meaning's colour,
+     * swept from the side the stroke began (FR-11). `decorate` binds them once the write answers.
+     */
+    private drawPending(span: TextSpan, meaning: HighlightMeaning, direction: "ltr" | "rtl" | undefined, tint: string): HTMLElement[] {
+        const body = this.body;
+        if (!body) return [];
+        const marks = wrapSpan(body, span, () => this.makeMark(PENDING_ID), this.tinter(tint, meaning)) as unknown as HTMLElement[];
         for (const mark of marks) {
+            mark.addClass(c(`reader-highlight--${meaning}`), c("reader-highlight--new"));
+            if (direction === "rtl") mark.addClass(c("reader-highlight--new-rtl"));
+        }
+        return marks;
+    }
+
+    /** Marks that belong to a thought: its id, its note's underline, and a click that opens it. */
+    private decorate(thought: Thought, marks: HTMLElement[]): HTMLElement[] {
+        if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
+        for (const mark of marks) {
+            mark.setAttribute("data-hl", thought.id);
             this.component?.registerDomEvent(mark, "click", (event: MouseEvent) => {
                 // Inside a link the mark wins: its popover, not the link's peek or navigation.
                 event.preventDefault();
@@ -726,11 +937,23 @@ export class ReaderHighlights {
         };
     }
 
+    /** What highlight `id` tints: its own key, and its extensions' (`<id>#n`). */
+    private tintsOf(id: string): HTMLElement[] {
+        return [...this.tints.entries()].filter(([key]) => key === id || key.startsWith(`${id}#`)).flatMap(([, list]) => list);
+    }
+
+    /** A stroke's tints, drawn before its thought was written, now belong to the thought. */
+    private retint(from: string, to: string): void {
+        const list = this.tints.get(from);
+        this.tints.delete(from);
+        if (list) this.tints.set(to, [...(this.tints.get(to) ?? []), ...list]);
+    }
+
     /** Take the tint of highlight `id` away — unless another highlight still covers the same root. */
     private untint(id: string): void {
-        const list = this.tints.get(id);
-        this.tints.delete(id);
-        if (!list) return;
+        const list = this.tintsOf(id);
+        for (const key of this.tints.keys()) if (key === id || key.startsWith(`${id}#`)) this.tints.delete(key);
+        if (!list.length) return;
         const still = new Set([...this.tints.values()].flat());
         for (const el of list) {
             if (still.has(el)) continue;
@@ -796,6 +1019,36 @@ export class ReaderHighlights {
         fly(host, ghost, from, to, { duration: MOTION.base, startOpacity: 0.6 });
     }
 
+    /**
+     * Marks taken away by an Undo (#746 FR-14): their wash fades in 120 ms, the words never do. The
+     * marks go at once and a ghost of each line's wash — a rectangle over the host — fades in their
+     * place; opacity only. Under reduced motion they simply go.
+     */
+    private fadeMarks(marks: HTMLElement[]): void {
+        const host = this.view.host;
+        const welcome = motionWelcome(host);
+        const box = welcome ? host.getBoundingClientRect() : null;
+        for (const mark of marks) {
+            if (box && mark.isConnected !== false) {
+                const meaning = HIGHLIGHT_MEANINGS.find((m) => mark.hasClass(c(`reader-highlight--${m}`))) ?? DEFAULT_MEANING;
+                for (const rect of Array.from(mark.getClientRects?.() ?? [])) {
+                    if (!(rect.width > 0)) continue;
+                    const ghost = host.createDiv({ cls: [c("reader-hl-washout"), c(`reader-highlight--${meaning}`)], attr: { "aria-hidden": "true" } });
+                    ghost.setCssProps?.({
+                        "--zf-hl-x": `${Math.round(rect.left - box.left)}px`,
+                        "--zf-hl-y": `${Math.round(rect.top - box.top)}px`,
+                        "--zf-hl-w": `${Math.round(rect.width)}px`,
+                        "--zf-hl-h": `${Math.round(rect.height)}px`,
+                    });
+                    const animation = ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.fast, easing: "ease-out", fill: "forwards" });
+                    animation.onfinish = () => ghost.remove();
+                    ownWindow(host)?.setTimeout(() => ghost.remove(), MOTION.fast + 200);
+                }
+            }
+            unwrapMark(mark);
+        }
+    }
+
     /** The meanings as chips with their counts; one click shows only that meaning, again for all (#720). */
     private renderFilter(host: HTMLElement, scope: Component): void {
         const counts = new Map<HighlightMeaning, number>();
@@ -852,7 +1105,7 @@ export class ReaderHighlights {
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) {
             entry.thought = next;
-            for (const mark of [...entry.marks, ...(this.tints.get(thought.id) ?? [])]) {
+            for (const mark of [...entry.marks, ...this.tintsOf(thought.id)]) {
                 for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
                 mark.addClass(c(`reader-highlight--${meaning}`));
             }
@@ -898,23 +1151,31 @@ export class ReaderHighlights {
         return pop;
     }
 
-    /** One line that says what happened, with its Undo when there is one, then goes. */
-    private status(key: LocaleKey, undo?: () => void): void {
+    /**
+     * One line that says what happened, with its ways back (an Undo, *Keep as ink*), then goes. A
+     * stroke's line sits low on the page (#746), clear of the lines you may draw across next.
+     */
+    private status(key: LocaleKey, actions: StatusAction[] = [], low = false): void {
         const rect = this.popover?.getBoundingClientRect();
         const box = this.view.host.getBoundingClientRect();
-        const where = rect
+        const where = low
+            ? { left: box.left + box.width / 2, top: Math.max(box.top + box.height / 2, box.top + box.height - STROKE_STATUS_LIFT_PX), width: 0 }
+            : rect
             ? { left: rect.left + rect.width / 2, top: rect.top + rect.height, width: 0 }
             : { left: box.left + box.width / 2, top: box.top + box.height / 2, width: 0 };
         const pop = this.openPopover(where, "status");
         pop.setAttribute("role", "status");
         pop.createSpan({ cls: c("reader-hl-status"), text: t(key) });
-        if (undo) {
-            const button = this.button(pop, "reader_hl_undo", false, () => {
-                button.setAttribute("disabled", "true");
-                undo();
+        const buttons: HTMLElement[] = [];
+        for (const action of actions) {
+            const button = this.button(pop, action.key, false, () => {
+                // One way back, once: the others go with it.
+                buttons.forEach((b) => b.setAttribute("disabled", "true"));
+                action.run();
             });
+            buttons.push(button);
         }
-        this.statusTimer = window.setTimeout(() => {
+        this.statusTimer = ownWindow(this.view.host)?.setTimeout(() => {
             if (this.popover === pop) this.hidePopover();
         }, STATUS_MS);
     }

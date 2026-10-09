@@ -2,6 +2,7 @@ import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
+import { pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
 import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/library/pdfCrop";
@@ -149,6 +150,19 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
             } catch (error) {
                 log.debug(`[Library] no links on page ${index + 1}: ${String(error)}`);
                 return [];
+            }
+        },
+        async words(index: number, rotation: number): Promise<PageText> {
+            try {
+                const p = await page(index);
+                const content = await p.getTextContent();
+                const viewport = p.getViewport({ scale: 1, rotation: turn(p, rotation) });
+                if (!viewport.convertToViewportRectangle) return { text: "", words: [], headings: [] };
+                const toViewport = (rect: number[]) => viewport.convertToViewportRectangle!(rect);
+                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport });
+            } catch (error) {
+                log.debug(`[Library] no words on page ${index + 1}: ${String(error)}`);
+                return { text: "", words: [], headings: [] };
             }
         },
         async destination(dest: unknown, rotation?: (page: number) => number) {

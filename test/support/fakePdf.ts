@@ -4,6 +4,8 @@
  * pages with text runs, metadata, an outline — shaped as pdf.js 5.3 answers, so the Library and the
  * Reader can be tested on a paper without a real PDF.
  */
+import { PDFJS_OPS } from "./pdfCropPaper";
+
 export interface FakeRun {
     str: string;
     x: number;
@@ -27,6 +29,8 @@ export interface FakePage {
     /** The page's own `/Rotate`. */
     rotate?: number;
     links?: FakeLink[];
+    /** What the page paints, as pdf.js 5.3's operator list (#769); nothing but its text when absent. */
+    ops?: { fnArray: number[]; argsArray: unknown[] };
 }
 
 export interface FakePdf {
@@ -39,6 +43,12 @@ export interface FakePdf {
     labels?: string[] | null;
     /** Hold every drawing until the test lets it go (`calls.release()`), to see what waits and what is cancelled. */
     holdRenders?: boolean;
+    /** Hold every operator list until `calls.releaseOps()` — the paper still being measured (#769). */
+    holdOps?: boolean;
+    /** Every operator list fails: the margins cannot be measured (#769). */
+    failOps?: boolean;
+    /** The library's `OPS` (#769); pdf.js 5.3's codes when absent. */
+    OPS?: Record<string, number> | null;
 }
 
 /** One drawing asked of the fake pdf.js: which page, at what scale and turn — and whether it was let go. */
@@ -46,6 +56,9 @@ export interface FakeRender {
     page: number;
     scale: number;
     rotation: number;
+    /** Where the viewport was moved to: a cropped page is drawn from its frame's corner (#769). */
+    offsetX: number;
+    offsetY: number;
     cancelled: boolean;
     done: boolean;
 }
@@ -62,7 +75,13 @@ export function prose(lines: string[], options: { top?: number; size?: number; g
 
 export function makePdfJs(pdf: FakePdf) {
     const held: (() => void)[] = [];
+    const heldOps: (() => void)[] = [];
     const calls = {
+        /** Operator lists asked for, by page number (#769). */
+        opLists: [] as number[],
+        releaseOps: () => {
+            for (const done of heldOps.splice(0)) done();
+        },
         getDocument: [] as any[],
         rendered: [] as number[],
         renders: [] as FakeRender[],
@@ -75,7 +94,7 @@ export function makePdfJs(pdf: FakePdf) {
     const page = (n: number) => {
         const spec = pdf.pages[n - 1];
         const own = spec.rotate ?? 0;
-        const viewport = ({ scale, rotation = own }: { scale: number; rotation?: number }) => {
+        const viewport = ({ scale, rotation = own, offsetX = 0, offsetY = 0 }: { scale: number; rotation?: number; offsetX?: number; offsetY?: number }) => {
             const w = (spec.width ?? 612) * scale;
             const h = (spec.height ?? 792) * scale;
             const quarter = (((rotation % 360) + 360) % 360) % 180 === 90;
@@ -86,6 +105,8 @@ export function makePdfJs(pdf: FakePdf) {
                 height,
                 scale,
                 rotation,
+                offsetX,
+                offsetY,
                 // PDF space (from the bottom-left of the upright page) to this viewport, as pdf.js does.
                 convertToViewportRectangle: (rect: number[]) => {
                     const point = (x: number, y: number): [number, number] => {
@@ -119,7 +140,8 @@ export function makePdfJs(pdf: FakePdf) {
             }),
             render: (options: any) => {
                 calls.rendered.push(n);
-                const record: FakeRender = { page: n, scale: options?.viewport?.scale ?? 1, rotation: options?.viewport?.rotation ?? own, cancelled: false, done: false };
+                const vp = options?.viewport ?? {};
+                const record: FakeRender = { page: n, scale: vp.scale ?? 1, rotation: vp.rotation ?? own, offsetX: vp.offsetX ?? 0, offsetY: vp.offsetY ?? 0, cancelled: false, done: false };
                 calls.renders.push(record);
                 let finish = () => undefined as void;
                 let fail = (_: unknown) => undefined as void;
@@ -141,6 +163,13 @@ export function makePdfJs(pdf: FakePdf) {
                     },
                 };
             },
+            getOperatorList: () => {
+                calls.opLists.push(n);
+                const list = spec.ops ?? { fnArray: [], argsArray: [] };
+                if (pdf.failOps) return Promise.reject(new Error("operator list failed"));
+                if (!pdf.holdOps) return Promise.resolve(list);
+                return new Promise((resolve) => heldOps.push(() => resolve(list)));
+            },
             cleanup: () => undefined,
         };
     };
@@ -157,6 +186,7 @@ export function makePdfJs(pdf: FakePdf) {
         },
     };
     const lib = {
+        OPS: pdf.OPS === undefined ? PDFJS_OPS : pdf.OPS,
         getDocument: (source: any) => {
             calls.getDocument.push(source);
             return { promise: Promise.resolve(doc) };

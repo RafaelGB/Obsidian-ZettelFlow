@@ -8,6 +8,8 @@ import { makeEpub } from "../support/zipFixture";
 import { parseXml } from "../support/miniXml";
 import { searchBook } from "architecture/components/core/reader/readerSearch";
 import { MAX_DRAWN, mostOnScreen, runLayout, visibleWindow } from "architecture/components/core/library/sources/pdfPageView";
+import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
+import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -157,5 +159,26 @@ describe("the Library (#675)", () => {
         if (drawn > MAX_DRAWN || drawn === 0) throw new Error(`drew ${drawn} pages at once`);
         if (most !== 599) throw new Error(`the last page most on screen was ${most}`);
         assertBudget("reader.pdf.window.600", ms);
+    });
+    it("library.pdf.crop.frames", () => {
+        // 24 dense sampled pages: ~1,000 text runs and ~2,000 operators each (a figure-heavy paper).
+        const ops = cropOpsOf(PDFJS_OPS)!;
+        const pages = Array.from({ length: 24 }, (_, p) => {
+            const items = Array.from({ length: 1_000 }, (_, i) => ({ str: "word", transform: [9, 0, 0, 9, 72 + (i % 4) * 120 + ((p + 1) % 2) * 30, 720 - Math.floor(i / 4) * 2.6], width: 100, height: 9 }));
+            const fnArray: number[] = [];
+            const argsArray: unknown[] = [];
+            for (let i = 0; i < 500; i++) {
+                fnArray.push(PDFJS_OPS.save, PDFJS_OPS.transform, PDFJS_OPS.constructPath, PDFJS_OPS.restore);
+                argsArray.push(null, [1, 0, 0, 1, 200 + (i % 10), 100 + (i % 37)], [PDFJS_OPS.fill, [new Float32Array([0, 0, 0, 1, 10, 10])], new Float32Array([0, 0, 10 + (i % 5), 10])], null);
+            }
+            return { items, list: { fnArray, argsArray } };
+        });
+        const toView = (rect: ArrayLike<number>) => [rect[0], 792 - rect[1], rect[2], 792 - rect[3]];
+        let frames = paperFrames([]);
+        const ms = best(3, () => {
+            frames = paperFrames(pages.map((page, index) => ({ index, ink: inkOf(measurePage(page.items, page.list, ops, toView, 612, 792)) })));
+        });
+        if (!frames || frames.right.x <= frames.left.x) throw new Error("the frames were not found");
+        assertBudget("library.pdf.crop.frames", ms);
     });
 });

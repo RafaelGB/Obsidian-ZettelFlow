@@ -139,8 +139,40 @@ an iPad (#767):
   its place, in plugin data. The PDF is never written.
 
 The Type panel's **Page view** group holds *Fit width · Fit page*, the zoom (−, the level, +), *Down ·
-Across* (in Scroll) and *Rotate page*; in Reading view none of it is shown. Under reduced motion every
-move is instant and nothing fades; a pinch still follows the fingers.
+Across* (in Scroll), *Rotate page* and *Crop margins*; in Reading view none of it is shown. Under
+reduced motion every move is instant and nothing fades; a pinch still follows the fingers.
+
+### Crop margins
+
+![Crop margins: a page at Fit width with its printed area framed, and the same page after the camera moved in — the text larger, the running head, the plot and the page number kept; a left-hand and a right-hand page with their own frames; and an iPad in portrait with the cropped page at reading size](../resources/library/pdf-crop.svg)
+
+A printed page is mostly margin, and at *Fit width* that margin is drawn at full size, so the text is
+smaller than it has to be — on an iPad in portrait, too small to read without zooming. **Type → Page
+view → Crop margins** frames each page on what is printed on it, and *Fit width* fits that (#769):
+
+- **Nothing printed is cut.** The frame holds the page's text, its pictures **and its drawn shapes**
+  (a plot is lines, not a picture): the running head, the page number, a footnote, a note in the
+  margin and every figure stay. A small, even border is left around them. A page whose drawing the
+  Reader cannot read for sure is shown whole rather than guessed at.
+- **The same size from page to page.** A paper gets one frame for its right-hand pages and one for its
+  left-hand pages, taken across its pages, so a printed book's alternating margins are followed and
+  the text never changes size as you turn. A title page or a short last page uses its side's frame,
+  never blown up. A page with more on it than its side's frame (a wide table) keeps all of it, and is
+  shown a little smaller than its neighbours — never cut wins over the same size.
+- **Measured once.** The first time it is turned on for a paper, the Reader reads up to 24 of its pages
+  (every page of a short paper): the switch says *Measuring the margins…* and the page does not move.
+  Then the camera moves in, once — the page grows from its sheet into its frame, the line you were
+  reading staying under your eyes. Turning it off is the same move backwards. Under reduced motion the
+  page is simply shown cropped (or whole), the line kept.
+- **Everything else still works**: *Scroll*, *Page* and *Spread*, the zoom, *Rotate page* (the frame
+  turns with the page), links (they stay on their words), the *Pages* tab (its pictures show the
+  cropped page) and every jump, which lands on the same line as without crop.
+- **A scan is not cropped.** It has no text to frame a page on; the switch says *Cropping needs a
+  page's text, and this PDF has none.* A page that is a picture in an otherwise printed paper is shown
+  whole.
+- **Kept with the paper.** The switch and the frames are kept beside its place, in plugin data, with
+  the file's size and date: a new copy of the PDF is measured again. The PDF is never written. If the
+  margins cannot be measured, the switch turns back off and says so once.
 
 ### A scan
 
@@ -267,7 +299,8 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
 | `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
 | `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn |
+| `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -290,6 +323,10 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link
    jumps with the back pill; a DOI shows its address with *Copy link* and opens nothing. **V** again
    comes back.
+   **Crop margins** (**Type → Page view**): the switch says it is measuring, the page waits, then moves
+   in on its printed area with your line kept; the running head and the page number are still there,
+   and the text is the same size on every page. Off is the same move back. Close and reopen the paper:
+   still cropped, at once.
 8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
    type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,

@@ -10,6 +10,7 @@
  */
 
 import type { ReaderLayout } from "architecture/components/core/reader/readerPrefs";
+import { normalizeCropBox, type CropBox } from "application/library/pdfCrop";
 
 export type PageFit = "width" | "page";
 export type PageRotation = 0 | 90 | 180 | 270;
@@ -328,6 +329,40 @@ export interface PageViewState {
     across?: boolean;
     /** The pages you turned, by index, a quarter at a time. The PDF itself is never written. */
     rotate?: Record<string, 90 | 180 | 270>;
+    /** *Crop margins* is on (#769 FR-6). */
+    crop?: true;
+    /**
+     * The paper's two frames once measured (#769 FR-10), with the fingerprint of the file they were
+     * measured on: a new copy of the PDF is measured again.
+     */
+    cropFrames?: CropFrames;
+}
+
+/** A paper's measured frames, kept with the file's size and modification time. */
+export interface CropFrames {
+    right: CropBox;
+    left: CropBox;
+    /** The sampled pages shown whole — a picture, or a page that could not be read — so none is measured again. */
+    whole?: number[];
+    size?: number;
+    mtime?: number;
+}
+
+/** Stored frames, read: both sides well-formed, or nothing (a malformed frame is measured again). */
+export function normalizeCropFrames(raw: unknown): CropFrames | undefined {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+    const v = raw as Record<string, unknown>;
+    const right = normalizeCropBox(v.right);
+    const left = normalizeCropBox(v.left);
+    if (!right || !left) return undefined;
+    const out: CropFrames = { right, left };
+    if (Array.isArray(v.whole)) {
+        const whole = [...new Set(v.whole.filter((n): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0))].slice(0, 64).sort((a, b) => a - b);
+        if (whole.length > 0) out.whole = whole;
+    }
+    if (typeof v.size === "number" && Number.isFinite(v.size)) out.size = v.size;
+    if (typeof v.mtime === "number" && Number.isFinite(v.mtime)) out.mtime = v.mtime;
+    return out;
 }
 
 /** A stored view, read: anything malformed reads as the default (AC-4). Never throws. */
@@ -345,6 +380,9 @@ export function normalizePageView(raw: unknown): PageViewState {
         }
         if (Object.keys(rotate).length > 0) out.rotate = rotate;
     }
+    if (v.crop === true) out.crop = true;
+    const frames = normalizeCropFrames(v.cropFrames);
+    if (frames) out.cropFrames = frames;
     // A level and a fit are one framing: the level wins only when no fit is named.
     if (out.fit) delete out.zoom;
     return out;

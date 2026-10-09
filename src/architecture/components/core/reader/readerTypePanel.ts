@@ -85,6 +85,11 @@ export interface PageViewControls {
     onZoom(dir: 1 | -1): void;
     onAcross(across: boolean): void;
     onRotate(): void;
+    /** *Crop margins* (#769): off, measuring, on — or not available, in a scan. */
+    crop: "off" | "busy" | "on" | "unavailable";
+    /** The paper could not be measured the last time it was turned on. */
+    cropFailed?: boolean;
+    onCrop(on: boolean): void;
 }
 
 /** What the panel says about the page, besides the choices (#757). */
@@ -148,6 +153,27 @@ function pageViewGroup(host: HTMLElement, controls: PageViewControls, scope: Com
     setIcon(rotate.createSpan({ cls: c("reader-focus-icon") }), "rotate-cw");
     rotate.createSpan({ text: t("reader_pv_rotate") });
     scope.registerDomEvent(rotate, "click", () => controls.onRotate());
+    cropSwitch(host, controls, scope);
+}
+
+/**
+ * *Crop margins* (#769 FR-1): a switch in Page view's group and nowhere else. While the paper is
+ * measured it says it is working and does nothing else (FR-10); in a scan it is not available, and
+ * says why in one line (FR-4); when the paper could not be measured, it says that once.
+ */
+function cropSwitch(host: HTMLElement, controls: PageViewControls, scope: Component): void {
+    const on = controls.crop === "on";
+    const busy = controls.crop === "busy";
+    const unavailable = controls.crop === "unavailable";
+    const button = host.createDiv({ cls: c("reader-type-group") }).createEl("button", {
+        cls: [c("reader-type-option"), c("reader-focus-toggle"), c("reader-pv-crop"), ...(on ? ["is-active"] : []), ...(busy ? ["is-busy"] : [])],
+        attr: { type: "button", "aria-pressed": String(on), ...(busy ? { "aria-busy": "true" } : {}), ...(unavailable ? { disabled: "true", "aria-disabled": "true" } : {}) },
+    });
+    setIcon(button.createSpan({ cls: c("reader-focus-icon") }), "crop");
+    button.createSpan({ text: t("reader_pv_crop") });
+    if (!unavailable) scope.registerDomEvent(button, "click", () => !busy && controls.onCrop(!on));
+    const says: LocaleKey | null = unavailable ? "reader_pv_crop_scanned" : busy ? "reader_pv_crop_measuring" : controls.cropFailed ? "reader_pv_crop_failed" : null;
+    if (says) host.createDiv({ cls: c("reader-type-hint"), text: t(says), attr: busy ? { "aria-live": "polite" } : {} });
 }
 
 /** Read every row's marker before the panel is emptied. */

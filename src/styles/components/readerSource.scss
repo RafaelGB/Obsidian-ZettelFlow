@@ -224,6 +224,61 @@
     transform: translate(-50%, -50%) rotate(var(--zf-turn, 0deg));
 }
 
+/* A picture of another frame — crop just turned on or off (#769) — sits where its part of the page now
+   is, clipped by the slot, until the page is drawn again on its frame. */
+.zettelkasten-flow__reader-pv-canvas--framed {
+    inset: auto;
+    left: var(--zf-cv-x, 0);
+    top: var(--zf-cv-y, 0);
+    width: var(--zf-cv-w, 100%);
+    height: var(--zf-cv-h, 100%);
+}
+
+/* Crop margins' camera move (#769 FR-9): a clip the size of the stage, over it; in it the camera,
+   larger than the stage so it still covers it while it draws back, holding a copy of each page on
+   screen. Only the camera's transform and opacity change. */
+.zettelkasten-flow__reader-pv-crop-clip {
+    overflow: hidden;
+}
+
+.zettelkasten-flow__reader-pv-crop-camera {
+    position: absolute;
+    inset: -100%;
+    background-color: var(--reader-bg);
+    transform-origin: var(--zf-crop-ox, 0) var(--zf-crop-oy, 0);
+    will-change: transform, opacity;
+}
+
+.zettelkasten-flow__reader-pv-crop-sheet {
+    position: absolute;
+    left: var(--zf-slot-x, 0);
+    top: var(--zf-slot-y, 0);
+    width: var(--zf-slot-w, 0);
+    height: var(--zf-slot-h, 0);
+    overflow: hidden;
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+}
+
+/* The switch while the paper is measured (FR-10): it says it is working; nothing on the page moves. */
+.zettelkasten-flow__reader-pv-crop.is-busy {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__reader-pv-crop:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-pv-crop-clip {
+        display: none;
+    }
+}
+
 .zettelkasten-flow__reader-pv-links {
     position: absolute;
     inset: 0;

@@ -302,6 +302,14 @@ export const BUDGETS = {
         because:
             "it runs on every scroll frame of a paper in Page view (#767 FR-14); each step must cost a sliver of a frame, and the test also holds the pages drawn at seven or fewer, so a 600-page PDF never holds more than seven pictures",
     },
+    "library.pdf.crop.frames": {
+        name: "find a paper's two crop frames: 24 sampled dense pages (1,000 runs and 2,000 operators each) measured and joined",
+        // ~4.5x the first measurement. Bound Math at module scope: a global looked up per call made it 150 ms here.
+        limit: 25,
+        measured: "5.5 ms",
+        because:
+            "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,

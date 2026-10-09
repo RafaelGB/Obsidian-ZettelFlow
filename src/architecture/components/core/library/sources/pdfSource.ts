@@ -4,7 +4,8 @@ import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
-import { declared, isTextItem, openPdf, type PdfDocument, type PdfOutlineNode, type PdfPage } from "./pdfjs";
+import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/library/pdfCrop";
+import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
 import { resolveDest, shareDown } from "./pdfPageView";
 
@@ -89,17 +90,24 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
         label(index: number): string {
             return labels?.[index] ?? String(index + 1);
         },
-        render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number }): SourcePageTask {
+        render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number; frame?: CropBox }): SourcePageTask {
             let cancelled = false;
             let inner: { cancel(): void } | null = null;
             const promise = (async () => {
                 const p = await page(index);
                 if (cancelled) return;
-                const viewport = p.getViewport({ scale: options.scale, rotation: turn(p, options.rotation) });
+                const rotation = turn(p, options.rotation);
+                const whole = p.getViewport({ scale: options.scale, rotation });
+                const frame = options.frame;
+                // A cropped page (#769): the viewport is moved so the frame's corner is the canvas's,
+                // and the canvas is the frame's size — the margins are never drawn.
+                const viewport = frame
+                    ? p.getViewport({ scale: options.scale, rotation, offsetX: -frame.x * whole.width, offsetY: -frame.y * whole.height })
+                    : whole;
                 const context = contextOf(canvas);
                 if (!context) return;
-                canvas.width = Math.max(1, Math.round(viewport.width));
-                canvas.height = Math.max(1, Math.round(viewport.height));
+                canvas.width = Math.max(1, Math.round(frame ? frame.w * whole.width : viewport.width));
+                canvas.height = Math.max(1, Math.round(frame ? frame.h * whole.height : viewport.height));
                 const task = p.render({ canvasContext: context, viewport });
                 inner = task;
                 await task.promise.catch(quietCancel);
@@ -111,6 +119,15 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
                     inner?.cancel();
                 },
             };
+        },
+        async ink(index: number): Promise<PageInk> {
+            const p = await page(index);
+            const viewport = p.getViewport({ scale: 1, rotation: turn(p, 0) });
+            const convert = viewport.convertToViewportRectangle?.bind(viewport);
+            const [content, list, ops] = await Promise.all([p.getTextContent(), p.getOperatorList?.() ?? Promise.resolve(null), pdfOps()]);
+            // Without a way to place a box on the page, nothing on it can be trusted: it is shown whole.
+            if (!convert) return { runs: [], marks: "unknown", aspect: viewport.height / Math.max(1, viewport.width) };
+            return measurePage(content.items.filter(isTextItem), list, cropOpsOf(ops), (rect) => convert(rect), viewport.width, viewport.height);
         },
         async links(index: number, rotation: number): Promise<SourcePageLink[]> {
             try {

@@ -1,5 +1,6 @@
 import { TFile, type App, type Component } from "obsidian";
 import { sourceFormat, type SourceFormat } from "application/library/sourceMeta";
+import type { CropBox, PageInk } from "application/library/pdfCrop";
 import { openPdfSource } from "./pdfSource";
 import { openEpubSource } from "./epubSource";
 
@@ -70,8 +71,17 @@ export interface SourcePages {
     size(index: number): Promise<{ width: number; height: number }>;
     /** How the paper names the page: its own label (*iv*, *12*), else its number. */
     label(index: number): string;
-    /** Draw the page into `canvas`, its pixels `scale` per point, turned `rotation` more. */
-    render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number }): SourcePageTask;
+    /**
+     * Draw the page into `canvas`, its pixels `scale` per point, turned `rotation` more — only its
+     * `frame` when one is given (#769: shares of the page as drawn at that turn), so the margins
+     * cropped away are never drawn at all.
+     */
+    render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number; frame?: CropBox }): SourcePageTask;
+    /**
+     * What is printed on the page (#769): its text runs, its pictures and its drawn shapes, as boxes
+     * on the page as drawn upright. Read once per page, when *Crop margins* asks.
+     */
+    ink?(index: number): Promise<PageInk>;
     links(index: number, rotation: number): Promise<SourcePageLink[]>;
     /** A link's destination: its page, and how far down it (0–1) when it says. */
     destination(dest: unknown, rotation?: (page: number) => number): Promise<{ page: number; share?: number } | null>;

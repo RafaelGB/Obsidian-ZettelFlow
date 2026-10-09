@@ -39,7 +39,10 @@ export interface PdfAnnotation {
 
 export interface PdfPage {
     /** `rotation` is the whole turn, the page's own `/Rotate` included (pdf.js reads it as absolute). */
-    getViewport(options: { scale: number; rotation?: number }): PdfViewport;
+    /** `offsetX`/`offsetY` move the drawing on the canvas: a cropped page is drawn from its frame (#769). */
+    getViewport(options: { scale: number; rotation?: number; offsetX?: number; offsetY?: number }): PdfViewport;
+    /** What the page paints, as pdf.js's operator list (`fnArray` codes from `OPS`, their `argsArray`) (#769). */
+    getOperatorList?(): Promise<{ fnArray: ArrayLike<number>; argsArray: ArrayLike<unknown> }>;
     getTextContent(): Promise<{ items: (PdfTextItem | { type: string })[] }>;
     render(options: { canvasContext: CanvasRenderingContext2D; viewport: PdfViewport }): { promise: Promise<void>; cancel(): void };
     getAnnotations?(options?: { intent?: string }): Promise<PdfAnnotation[]>;
@@ -68,6 +71,18 @@ export interface PdfDocument {
 
 interface PdfJsLib {
     getDocument(source: Record<string, unknown>): { promise: Promise<PdfDocument>; destroy?(): Promise<void> };
+    /** The operator codes the operator list is written in (#769). */
+    OPS?: Record<string, number>;
+}
+
+/** The loaded pdf.js's operator codes, or `null` where it gives none (#769): read once, Obsidian's own. */
+export async function pdfOps(): Promise<Record<string, number> | null> {
+    try {
+        const lib = (await loadPdfJs()) as PdfJsLib;
+        return lib.OPS ?? null;
+    } catch {
+        return null;
+    }
 }
 
 /**

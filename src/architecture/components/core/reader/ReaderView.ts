@@ -75,7 +75,6 @@ import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
 import { PdfPageRun } from "./readerPageRun";
 import { renderThumbs, type Thumbs } from "./readerThumbs";
 import { fly } from "./readerMotion";
-import { pageBox } from "architecture/components/core/library/sources/pdfPageView";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -2182,7 +2181,7 @@ export class ReaderView extends ItemView {
             stage,
             pages,
             layout: () => this.prefs.layout,
-            view: keptPageView(this.plugin, path),
+            view: keptPageView(this.app, this.plugin, path),
             onPage: (page) => this.onRunPage(page),
             onView: (view) => {
                 if (this.sourcePath) rememberPageView(this.app, this.plugin, this.sourcePath, view);
@@ -2191,6 +2190,9 @@ export class ReaderView extends ItemView {
             },
             onLink: (target) => this.jumpToPage(target.page, target.share ?? 0, "link"),
             onOutLink: (url, anchor) => this.openOutLink(url, anchor),
+            onCrop: () => {
+                if (this.panel === "type") this.renderPanel();
+            },
         });
         return this.pageRun;
     }
@@ -2356,14 +2358,13 @@ export class ReaderView extends ItemView {
         const run = this.runMode() ? this.pageRun : null;
         const scope = this.panelScope;
         if (!run || !scope) return;
-        const first = pageBox(run.pages.first, 0);
         this.thumbs = renderThumbs(
             list,
             {
                 count: run.pages.count,
                 current: this.index,
                 label: (page) => this.sourceLabel(page),
-                ratio: () => first.height / Math.max(1, first.width),
+                ratio: (page) => run.thumbRatio(page),
                 draw: (page, canvas, width, done) => run.drawThumb(page, canvas, width, done),
                 onPick: (page, thumb) => this.flyToPage(page, thumb),
             },
@@ -2799,6 +2800,10 @@ export class ReaderView extends ItemView {
                           onZoom: (dir: 1 | -1) => run.zoomStep(dir),
                           onAcross: (across: boolean) => run.setAcross(across),
                           onRotate: () => run.rotate(),
+                          // Crop margins (#769): a scan has no text to frame a page on, and says so.
+                          crop: this.source?.imageOnly || !run.canCrop() ? ("unavailable" as const) : run.cropState(),
+                          cropFailed: run.cropCouldNotMeasure(),
+                          onCrop: (on: boolean) => void run.setCrop(on),
                       },
                   }
                 : {}),

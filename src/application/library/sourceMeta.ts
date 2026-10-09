@@ -133,8 +133,21 @@ export function withPageView(map: LibraryMeta, path: string, view: PageViewState
     const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
     delete previous.view;
     const clean = normalizePageView(view);
+    // Measured frames carry the fingerprint of the file they were measured on (#769 FR-6).
+    if (clean.cropFrames && (size || mtime)) clean.cropFrames = { ...clean.cropFrames, size, mtime };
     const next: SourceMeta = Object.keys(clean).length > 0 ? { ...previous, view: clean } : previous;
     return prune({ ...map, [path]: next });
+}
+
+/**
+ * How the paper is read in Page view, for the file as it is now (#769): frames measured on another
+ * copy of it — a different size or modification time — are left out, so the paper is measured again.
+ */
+export function freshPageView(view: PageViewState | undefined, size: number, mtime: number): PageViewState {
+    const clean = normalizePageView(view);
+    const frames = clean.cropFrames;
+    if (frames && (frames.size !== size || frames.mtime !== mtime)) delete clean.cropFrames;
+    return clean;
 }
 
 /** The book's bookmarks, replaced by `list` (#761). An empty list leaves no field behind. */

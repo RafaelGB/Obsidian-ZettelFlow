@@ -1,10 +1,26 @@
 import { Component } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { MOTION, motionWelcome } from "./readerMotion";
+import { MOTION, flightTransform, motionWelcome } from "./readerMotion";
 import { scrollTravel, TRAVEL_FAINT } from "./readerTravel";
 import type { ReaderLayout } from "./readerPrefs";
 import type { SourcePageLink, SourcePages, SourcePageTask } from "architecture/components/core/library/sources/sourceDocument";
+import {
+    WHOLE_PAGE,
+    boxInFrame,
+    croppedBox,
+    frameFor,
+    inkOf,
+    paperFrames,
+    rotateFrame,
+    sameBox,
+    sampleIndices,
+    shareInFrame,
+    shareOfPage,
+    sharedFrameBox,
+    type CropBox,
+    type PaperFrames,
+} from "application/library/pdfCrop";
 import {
     RUN_GAP,
     RUN_PAD,
@@ -51,8 +67,14 @@ import {
  * - **Pages arrive quietly** (FR-23): a blank sheet with its label, its picture fading in (120 ms)
  *   the first time only.
  *
- * Nothing here writes: what is kept (zoom, direction, turned pages) is handed to `onView`, and the
- * Reader keeps it in plugin data — never in the PDF (L5).
+ * - **Crop margins** (#769): each page is framed on what is printed on it — one frame for the right-hand
+ *   pages, one for the left — and the run is laid out and drawn on the frames: a slot is its frame,
+ *   a canvas holds only the frame's pixels, links and places are mapped into it. The paper is
+ *   measured once (the switch says it is working; nothing moves), then one camera move flies the
+ *   page from its sheet into its frame, the line under your eyes kept (FR-9, FR-10).
+ *
+ * Nothing here writes: what is kept (zoom, direction, turned pages, the crop and its frames) is
+ * handed to `onView`, and the Reader keeps it in plugin data — never in the PDF (L5).
  */
 
 /** A gesture is over when it has not moved for this long. */
@@ -83,20 +105,28 @@ export interface PageRunHost {
     onLink(target: { page: number; share?: number }): void;
     /** A link that leaves the paper: shown, never followed (FR-12). */
     onOutLink(url: string, anchor: HTMLElement): void;
+    /** *Crop margins* changed state — measuring, on, off, or could not measure (#769): the switch follows. */
+    onCrop?(): void;
 }
+
+/** Where *Crop margins* is (#769): off, measuring the paper, or on. */
+export type CropState = "off" | "busy" | "on";
 
 interface Drawn {
     canvas: HTMLCanvasElement;
     /** Device pixels per point it was drawn at. */
     scale: number;
     rotation: number;
+    /** The part of the page it holds (#769), as drawn at its turn: the whole page uncropped. */
+    frame: CropBox;
+    page: number;
 }
 
 interface SlotView {
     el: HTMLElement;
     page: number;
-    /** The rotation the link layer was built for, or null when none was asked yet. */
-    linksAt: number | null;
+    /** The turn and frame the link layer was built for, or null when none was asked yet. */
+    linksAt: string | null;
     links: HTMLElement | null;
 }
 
@@ -123,6 +153,7 @@ interface Pending {
     canvas: HTMLCanvasElement;
     scale: number;
     rotation: number;
+    frame: CropBox;
 }
 
 interface ThumbRequest {
@@ -170,6 +201,13 @@ export class PdfPageRun {
     private flinging = false;
     private waits = 0;
     private disposed = false;
+    /** *Crop margins* (#769): on, the paper's two frames, and what each measured page has printed on it. */
+    private cropOn: boolean;
+    private frames: PaperFrames | null;
+    private readonly inks = new Map<number, CropBox | null>();
+    private readonly inking = new Set<number>();
+    private measuring = false;
+    private cropFailed = false;
 
     constructor(parent: HTMLElement, host: PageRunHost) {
         this.host = host;
@@ -180,6 +218,14 @@ export class PdfPageRun {
         this.level = view.zoom ?? 1;
         this.across = view.across === true;
         this.rotations = { ...view.rotate };
+        this.frames = view.cropFrames ? { right: view.cropFrames.right, left: view.cropFrames.left } : null;
+        if (this.frames) {
+            // The sampled pages were measured with the frames: their side's frame holds them, or they are whole.
+            const whole = new Set(view.cropFrames?.whole ?? []);
+            for (const index of sampleIndices(this.pages.count)) this.inks.set(index, whole.has(index) ? null : index % 2 === 0 ? this.frames.right : this.frames.left);
+        }
+        // Kept on, but measured on another copy of the file: measured again when it is turned on.
+        this.cropOn = view.crop === true && this.frames !== null;
         this.el = parent.createDiv({ cls: c("reader-pv-run") });
         this.el.remove();
         this.scope.load();
@@ -278,7 +324,10 @@ export class PdfPageRun {
         if (!slot) return 0;
         const scroll = this.scrollInRun();
         const across = this.across && this.host.layout() === "scroll";
-        const share = across ? (scroll.left - slot.x) / Math.max(1, slot.w) : (scroll.top - slot.y) / Math.max(1, slot.h);
+        const inSlot = Math.min(1, Math.max(0, across ? (scroll.left - slot.x) / Math.max(1, slot.w) : (scroll.top - slot.y) / Math.max(1, slot.h)));
+        // A share of the page, not of its frame: a place kept with crop on lands the same with it off.
+        const frame = this.shownFrame(this.current);
+        const share = across ? shareOfPage(inSlot, frame.x, frame.w) : shareOfPage(inSlot, frame.y, frame.h);
         return Math.round(Math.min(1, Math.max(0, share)) * 1000) / 1000;
     }
 
@@ -404,6 +453,178 @@ export class PdfPageRun {
         };
     }
 
+    /** Where *Crop margins* is (#769). */
+    cropState(): CropState {
+        if (this.measuring) return "busy";
+        return this.cropOn ? "on" : "off";
+    }
+
+    /** The paper could not be measured the last time crop was turned on (#769): the switch says so. */
+    cropCouldNotMeasure(): boolean {
+        return this.cropFailed;
+    }
+
+    /** A thumbnail's shape, height over width: the page as it is read — on its frame with crop on. */
+    thumbRatio(page: number): number {
+        const box = this.boxOf(page);
+        return box.height / Math.max(1e-6, box.width);
+    }
+
+    /** Whether the source can say what is printed on its pages at all. */
+    canCrop(): boolean {
+        return typeof this.pages.ink === "function";
+    }
+
+    /**
+     * *Crop margins* on or off (#769). The first time for a paper, its sampled pages are measured
+     * first — the switch says it is working and nothing moves (FR-10) — then **one camera move**: the
+     * page flies from its sheet into its frame, the line under your eyes kept (FR-9); off is the same
+     * move backwards; under reduced motion, at once (FR-11). A paper that cannot be measured stays
+     * uncropped, says so once, and logs why.
+     */
+    async setCrop(on: boolean): Promise<void> {
+        if (this.disposed || this.measuring || on === this.cropOn) return;
+        this.cropFailed = false;
+        if (on && !this.frames) {
+            this.measuring = true;
+            this.host.onCrop?.();
+            let frames: PaperFrames | null = null;
+            try {
+                frames = await this.measure();
+            } catch (error) {
+                log.warn(`[Reader] the margins could not be measured: ${String(error)}`);
+            }
+            this.measuring = false;
+            if (this.disposed) return;
+            if (!frames) {
+                this.cropFailed = true;
+                this.host.onCrop?.();
+                return;
+            }
+            this.frames = frames;
+        }
+        this.cropMove(on);
+        this.host.onCrop?.();
+    }
+
+    /** The frames as kept with the paper, with the sampled pages that are shown whole. */
+    private keptFrames(frames: PaperFrames): { right: CropBox; left: CropBox; whole?: number[] } {
+        const whole = sampleIndices(this.pages.count).filter((index) => this.inks.get(index) === null);
+        return { right: frames.right, left: frames.left, ...(whole.length > 0 ? { whole } : {}) };
+    }
+
+    /** The paper's sampled pages, measured; their frames — or `null` when not one page could be. */
+    private async measure(): Promise<PaperFrames | null> {
+        const ink = this.pages.ink?.bind(this.pages);
+        if (!ink) return null;
+        const indices = sampleIndices(this.pages.count);
+        const samples = await Promise.all(indices.map(async (index) => ({ index, ink: inkOf(await ink(index)) })));
+        for (const sample of samples) this.inks.set(sample.index, sample.ink);
+        const frames = paperFrames(samples);
+        if (!frames) log.warn("[Reader] the margins could not be measured: no sampled page has text that can be placed");
+        return frames;
+    }
+
+    /**
+     * The camera move into the frame, or out of it (FR-9, §XVI). What is on screen now is copied into
+     * a ghost over the stage; under it the run is laid out on the new frames at once, scrolled so the
+     * point at the middle of the screen is still there; then the ghost flies — scale and translate
+     * only, one animation — from where the page was to where that same part of the page now is, and
+     * fades into the page under it. The stage clips it. Under reduced motion there is no ghost.
+     */
+    private cropMove(on: boolean): void {
+        this.finishGesture();
+        const focal = this.middle();
+        const origin = this.originNow();
+        const before = this.pointAt(focal, 1, 0, 0, origin);
+        const page = before?.page ?? this.current;
+        const was = this.shownFrame(page);
+        const fromSlot = this.screenBox(page, origin);
+        const ghost = motionWelcome(this.el) && fromSlot ? this.cropGhost(origin) : null;
+        this.cropOn = on;
+        this.camera?.cancel();
+        this.camera = null;
+        this.relayout();
+        const now = this.shownFrame(page);
+        // The point under the eyes, as a share of the page, then of the page's new frame.
+        const kept = before
+            ? { page, fx: shareInFrame(shareOfPage(before.fx, was.x, was.w), now.x, now.w), fy: shareInFrame(shareOfPage(before.fy, was.y, was.h), now.y, now.h) }
+            : null;
+        this.land(kept, focal, 1, false);
+        this.keep();
+        const toSlot = this.screenBox(page, this.originNow());
+        if (!ghost || !fromSlot || !toSlot) {
+            ghost?.clip.remove();
+            return;
+        }
+        // Where the part of the page shown before now sits on screen.
+        const at = boxInFrame(was, now);
+        const to = { left: toSlot.left + at.x * toSlot.width, top: toSlot.top + at.y * toSlot.height, width: at.w * toSlot.width, height: at.h * toSlot.height };
+        this.flyGhost(ghost, fromSlot, to);
+    }
+
+    /** A page's slot on screen, from the layout (the DOM's own box may not be laid out yet). */
+    private screenBox(page: number, origin: { left: number; top: number }): { left: number; top: number; width: number; height: number } | null {
+        const slot = this.slotOf(page);
+        return slot ? { left: origin.left + slot.x, top: origin.top + slot.y, width: slot.w, height: slot.h } : null;
+    }
+
+    /**
+     * The ghost: a clip the size of the stage, over it, holding a camera layer (larger than the
+     * stage, so it still covers it while it draws back) with a copy of every page on screen.
+     */
+    private cropGhost(origin: { left: number; top: number }): { clip: HTMLElement; camera: HTMLElement; stage: DOMRect | { left: number; top: number; width: number; height: number } } | null {
+        const stage = this.host.stage;
+        const parent = stage.parentElement;
+        if (!parent) return null;
+        const box = stage.getBoundingClientRect();
+        const host = parent.getBoundingClientRect();
+        const clip = parent.createDiv({ cls: [c("motion-ghost"), c("reader-pv-crop-clip")], attr: { "aria-hidden": "true" } });
+        clip.setCssProps({ "--zf-ghost-x": px(box.left - host.left), "--zf-ghost-y": px(box.top - host.top), "--zf-ghost-w": px(box.width), "--zf-ghost-h": px(box.height) });
+        const camera = clip.createDiv({ cls: c("reader-pv-crop-camera") });
+        for (const [page, view] of this.slots) {
+            const slot = this.screenBox(page, origin);
+            if (!slot || slot.top > box.top + box.height || slot.top + slot.height < box.top || slot.left > box.left + box.width || slot.left + slot.width < box.left) continue;
+            // In the camera layer, which starts a stage's width and height before the stage.
+            const sheet = camera.createDiv({ cls: c("reader-pv-crop-sheet") });
+            sheet.setCssProps({
+                "--zf-slot-x": px(slot.left - box.left + box.width),
+                "--zf-slot-y": px(slot.top - box.top + box.height),
+                "--zf-slot-w": px(slot.width),
+                "--zf-slot-h": px(slot.height),
+            });
+            const drawn = this.drawn.get(page);
+            const picture = drawn?.canvas;
+            // A picture held turned (a page turned a moment ago) is left as its sheet.
+            if (!drawn || !picture || !(picture.width > 0) || picture.parentElement !== view.el || drawn.rotation !== this.rotationOf(page)) continue;
+            const framed = this.framedProps(drawn);
+            const copy = sheet.createEl("canvas", { cls: [c("reader-pv-canvas"), ...(framed ? [c("reader-pv-canvas--framed")] : [])] });
+            copy.width = picture.width;
+            copy.height = picture.height;
+            if (framed) copy.setCssProps(framed);
+            copy.getContext?.("2d")?.drawImage(picture, 0, 0);
+        }
+        return { clip, camera, stage: box };
+    }
+
+    private flyGhost(ghost: { clip: HTMLElement; camera: HTMLElement; stage: { left: number; top: number; width: number; height: number } }, from: { left: number; top: number; width: number; height: number }, to: { left: number; top: number; width: number; height: number }): void {
+        const { clip, camera, stage } = ghost;
+        // The move is about the page's corner, so `flightTransform` carries the page box onto its new box.
+        camera.setCssProps({ "--zf-crop-ox": px(from.left - stage.left + stage.width), "--zf-crop-oy": px(from.top - stage.top + stage.height) });
+        const done = () => clip.remove();
+        const animation = camera.animate(
+            [
+                { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+                { opacity: 1, offset: 0.7 },
+                { transform: flightTransform(from, to), opacity: 0 },
+            ],
+            { duration: MOTION.cover, easing: MOTION.ease, fill: "forwards" }
+        );
+        animation.onfinish = done;
+        animation.oncancel = done;
+        this.el.win.setTimeout(done, MOTION.cover + 300);
+    }
+
     /** The run is going: its drawings are cancelled and its canvases let go. */
     dispose(): void {
         if (this.disposed) return;
@@ -426,6 +647,25 @@ export class PdfPageRun {
 
     private rotationOf(page: number): number {
         return this.rotations[String(page)] ?? 0;
+    }
+
+    /** The part of a page shown, upright (#769): its frame with crop on, the whole page otherwise. */
+    private frameOf(page: number): CropBox {
+        if (!this.cropOn || !this.frames) return WHOLE_PAGE;
+        return frameFor(page, this.frames, this.inks.has(page) ? this.inks.get(page) : undefined);
+    }
+
+    /** The part of a page shown, at its turn. */
+    private shownFrame(page: number): CropBox {
+        const frame = this.frameOf(page);
+        return frame === WHOLE_PAGE ? WHOLE_PAGE : rotateFrame(frame, this.rotationOf(page));
+    }
+
+    /** A page's box as laid out: its size at its turn, cut to its frame. */
+    private boxOf(page: number): PageSize {
+        const box = pageBox(this.sizes[page] ?? this.pages.first, this.rotationOf(page));
+        const frame = this.shownFrame(page);
+        return frame === WHOLE_PAGE ? box : croppedBox(box, frame);
     }
 
     private viewSize(): PageSize {
@@ -463,10 +703,15 @@ export class PdfPageRun {
 
     /** The page the framing fits: the first page in Scroll (one scale for the paper), the view's otherwise. */
     private framed(layout: ReaderLayout): PageSize {
-        if (layout === "scroll") return pageBox(this.sizes[0] ?? this.pages.first, this.rotationOf(0));
-        const views = this.viewsNow();
-        const pages = views[viewIndexOf(views, this.current)] ?? [this.current];
-        const boxes = pages.map((p) => pageBox(this.sizes[p] ?? this.pages.first, this.rotationOf(p)));
+        const views = layout === "scroll" ? [[0]] : this.viewsNow();
+        const pages = layout === "scroll" ? [0] : (views[viewIndexOf(views, this.current)] ?? [this.current]);
+        const frames = this.cropOn ? this.frames : null;
+        // With crop on, the paper's frames — the wider and the taller of the two — and never one page's
+        // own: every page is drawn at one scale, so the text keeps its size as you turn (#769 FR-3).
+        const boxes = pages.map((p) => {
+            const box = pageBox(this.sizes[p] ?? this.pages.first, this.rotationOf(p));
+            return frames ? sharedFrameBox(box, frames, this.rotationOf(p)) : box;
+        });
         return { width: Math.max(...boxes.map((b) => b.width)), height: Math.max(...boxes.map((b) => b.height)) };
     }
 
@@ -493,7 +738,7 @@ export class PdfPageRun {
         const fitView = this.fitView(layout);
         const columns = this.columns(layout, view);
         this.scale = zoomFor(this.fit ?? this.level, this.framed(layout), fitView, columns);
-        const boxes = this.sizes.map((size, i) => pageBox(size, this.rotationOf(i)));
+        const boxes = this.sizes.map((_, i) => this.boxOf(i));
         this.layoutNow = runLayout(boxes, {
             layout,
             across: layout === "scroll" && this.across,
@@ -511,9 +756,14 @@ export class PdfPageRun {
         return this.layoutNow.slots.find((slot) => slot.page === page);
     }
 
-    private scrollToPage(page: number, share: number): void {
+    private scrollToPage(page: number, pageShare: number): void {
         const stage = this.host.stage;
         const slot = this.slotOf(page);
+        // A share of the page, as a share of its frame (#769): a jump lands on the same line, cropped or not.
+        const frame = this.shownFrame(page);
+        const alongX = this.host.layout() === "scroll" && this.across;
+        const mapped = pageShare > 0 ? shareInFrame(pageShare, alongX ? frame.x : frame.y, alongX ? frame.w : frame.h) : 0;
+        const share = Math.min(1, Math.max(0, mapped));
         const origin = this.originInStage();
         const view = this.viewSize();
         if (!slot) return;
@@ -614,13 +864,28 @@ export class PdfPageRun {
         if (!drawn) return;
         const delta = (((this.rotationOf(view.page) - drawn.rotation) % 360) + 360) % 360;
         drawn.canvas.toggleClass(c("reader-pv-canvas--turned"), delta !== 0);
+        // A picture of another frame (crop just turned on or off, #769) sits where its part of the page
+        // now is, clipped by the slot, until the page is drawn again on its frame.
+        const framed = delta === 0 ? this.framedProps(drawn) : null;
+        drawn.canvas.toggleClass(c("reader-pv-canvas--framed"), framed !== null);
+        if (framed) drawn.canvas.setCssProps(framed);
         if (delta === 0) return;
         const quarter = delta % 180 === 90;
         drawn.canvas.setCssProps({ "--zf-turn": `${delta}deg`, "--zf-turn-w": px(quarter ? slot.h : slot.w), "--zf-turn-h": px(quarter ? slot.w : slot.h) });
     }
 
+    /** Where a picture of another frame sits in its slot, as shares of it — `null` when it is the slot's own. */
+    private framedProps(drawn: Drawn): Record<string, string> | null {
+        const frame = this.shownFrame(drawn.page);
+        if (sameBox(drawn.frame, frame)) return null;
+        const at = boxInFrame(drawn.frame, frame);
+        const pct = (n: number) => `${Math.round(n * 100000) / 1000}%`;
+        return { "--zf-cv-x": pct(at.x), "--zf-cv-y": pct(at.y), "--zf-cv-w": pct(at.w), "--zf-cv-h": pct(at.h) };
+    }
+
     /** Every page starts as the first page's size; a page near the screen is read for its own. */
     private askSizes(near: readonly Slot[]): void {
+        for (const slot of near) this.askInk(slot.page);
         for (const slot of near) {
             const page = slot.page;
             if (this.known.has(page)) continue;
@@ -635,6 +900,29 @@ export class PdfPageRun {
                 })
                 .catch((error: unknown) => log.debug(`[Reader] no size for page ${page + 1}: ${String(error)}`));
         }
+    }
+
+    /**
+     * With crop on, a page not sampled is measured when it comes near (#769 FR-2): one with more
+     * printed on it than its side's frame keeps it all — laid out again like a page of another size.
+     */
+    private askInk(page: number): void {
+        const ink = this.pages.ink?.bind(this.pages);
+        if (!this.cropOn || !this.frames || !ink || this.inks.has(page) || this.inking.has(page)) return;
+        this.inking.add(page);
+        const before = this.frameOf(page);
+        void ink(page)
+            .then((measured) => inkOf(measured))
+            .catch((error: unknown) => {
+                log.debug(`[Reader] page ${page + 1} not measured, shown whole: ${String(error)}`);
+                return null;
+            })
+            .then((box) => {
+                this.inking.delete(page);
+                if (this.disposed) return;
+                this.inks.set(page, box);
+                if (this.cropOn && !sameBox(before, this.frameOf(page))) this.fixSizes(page);
+            });
     }
 
     /** Pages that turned out another size: laid out again once a frame, the page you read kept still. */
@@ -654,13 +942,14 @@ export class PdfPageRun {
     /** The device pixels per point a slot is drawn at: its size on screen, capped (FR-4, AC-2). */
     private wantedScale(slot: Slot): number {
         const ratio = this.el.win?.devicePixelRatio || 1;
-        const box = pageBox(this.sizes[slot.page] ?? this.pages.first, this.rotationOf(slot.page));
-        return drawSize(slot.w, slot.h, ratio).width / Math.max(1, box.width);
+        // The slot is the frame: the scale is its pixels over the frame's points (#769).
+        const box = this.boxOf(slot.page);
+        return drawSize(slot.w, slot.h, ratio).width / Math.max(1e-6, box.width);
     }
 
     private needsDrawing(slot: Slot): boolean {
         const drawn = this.drawn.get(slot.page);
-        if (!drawn || drawn.rotation !== this.rotationOf(slot.page)) return true;
+        if (!drawn || drawn.rotation !== this.rotationOf(slot.page) || !sameBox(drawn.frame, this.shownFrame(slot.page))) return true;
         const want = this.wantedScale(slot);
         return Math.abs(drawn.scale - want) / want > SHARP_ENOUGH;
     }
@@ -673,7 +962,7 @@ export class PdfPageRun {
         if (running) {
             const slot = near.find((s) => s.page === running.page);
             // A page that left the screen, or whose turn changed, is let go (FR-14).
-            if (!slot || running.rotation !== this.rotationOf(running.page)) {
+            if (!slot || running.rotation !== this.rotationOf(running.page) || !sameBox(running.frame, this.shownFrame(running.page))) {
                 running.task.cancel();
                 release(running.canvas);
                 this.pending = null;
@@ -697,10 +986,11 @@ export class PdfPageRun {
         const page = slot.page;
         const rotation = this.rotationOf(page);
         const scale = this.wantedScale(slot);
+        const frame = this.shownFrame(page);
         const canvas = this.el.createEl("canvas", { cls: c("reader-pv-canvas") });
         canvas.remove();
-        const task = this.pages.render(page, canvas, { scale, rotation });
-        const pending: Pending = { page, task, canvas, scale, rotation };
+        const task = this.pages.render(page, canvas, { scale, rotation, ...(frame === WHOLE_PAGE ? {} : { frame }) });
+        const pending: Pending = { page, task, canvas, scale, rotation, frame };
         this.pending = pending;
         void task.promise
             .then(() => {
@@ -722,7 +1012,7 @@ export class PdfPageRun {
     /** A drawing is in: it takes its slot's place — the first one fades in, a sharper one just replaces. */
     private takeDrawing(pending: Pending): void {
         const previous = this.drawn.get(pending.page);
-        this.drawn.set(pending.page, { canvas: pending.canvas, scale: pending.scale, rotation: pending.rotation });
+        this.drawn.set(pending.page, { canvas: pending.canvas, scale: pending.scale, rotation: pending.rotation, frame: pending.frame, page: pending.page });
         const view = this.slots.get(pending.page);
         if (!view) {
             if (previous) release(previous.canvas);
@@ -746,10 +1036,12 @@ export class PdfPageRun {
         const request = this.thumbs.shift();
         if (!request) return;
         this.thumbRunning = request;
-        const box = pageBox(this.sizes[request.page] ?? this.pages.first, this.rotationOf(request.page));
+        // A thumbnail shows the page as it is read: on its frame, with crop on (#769 FR-5).
+        const box = this.boxOf(request.page);
+        const frame = this.shownFrame(request.page);
         const ratio = this.el.win?.devicePixelRatio || 1;
-        const scale = (request.width * ratio) / Math.max(1, box.width);
-        const task = this.pages.render(request.page, request.canvas, { scale, rotation: this.rotationOf(request.page) });
+        const scale = (request.width * ratio) / Math.max(1e-6, box.width);
+        const task = this.pages.render(request.page, request.canvas, { scale, rotation: this.rotationOf(request.page), ...(frame === WHOLE_PAGE ? {} : { frame }) });
         void task.promise
             .then(() => {
                 if (!this.disposed) request.done();
@@ -766,27 +1058,31 @@ export class PdfPageRun {
     /** The page's links, as buttons over its picture: in the paper they jump; out of it they are shown. */
     private linksFor(view: SlotView): void {
         const rotation = this.rotationOf(view.page);
-        if (view.linksAt === rotation) return;
-        view.linksAt = rotation;
+        const frame = this.shownFrame(view.page);
+        const key = `${rotation}|${frame.x},${frame.y},${frame.w},${frame.h}`;
+        if (view.linksAt === key) return;
+        view.linksAt = key;
         void this.pages.links(view.page, rotation).then((links) => {
-            if (this.disposed || view.linksAt !== rotation || this.slots.get(view.page) !== view) return;
+            if (this.disposed || view.linksAt !== key || this.slots.get(view.page) !== view) return;
             view.links?.remove();
-            view.links = links.length > 0 ? this.linkLayer(view.el, links) : null;
+            view.links = links.length > 0 ? this.linkLayer(view.el, links, frame) : null;
         });
     }
 
-    private linkLayer(slot: HTMLElement, links: readonly SourcePageLink[]): HTMLElement {
+    private linkLayer(slot: HTMLElement, links: readonly SourcePageLink[], frame: CropBox): HTMLElement {
         const layer = slot.createDiv({ cls: c("reader-pv-links") });
         for (const link of links) {
             const button = layer.createEl("button", {
                 cls: [c("reader-pv-link"), ...(link.url ? [c("reader-pv-link--out")] : [])],
                 attr: { type: "button", "aria-label": link.url ? link.url : t("reader_pv_link_in") },
             });
+            // On a cropped page a link sits where its words are in the frame (#769 FR-5).
+            const rect = frame === WHOLE_PAGE ? link.rect : boxInFrame(link.rect, frame);
             button.setCssProps({
-                "--zf-link-x": `${(link.rect.x * 100).toFixed(3)}%`,
-                "--zf-link-y": `${(link.rect.y * 100).toFixed(3)}%`,
-                "--zf-link-w": `${(link.rect.w * 100).toFixed(3)}%`,
-                "--zf-link-h": `${(link.rect.h * 100).toFixed(3)}%`,
+                "--zf-link-x": `${(rect.x * 100).toFixed(3)}%`,
+                "--zf-link-y": `${(rect.y * 100).toFixed(3)}%`,
+                "--zf-link-w": `${(rect.w * 100).toFixed(3)}%`,
+                "--zf-link-h": `${(rect.h * 100).toFixed(3)}%`,
             });
             this.scope.registerDomEvent(button, "click", (event: MouseEvent) => {
                 event.preventDefault();
@@ -937,6 +1233,9 @@ export class PdfPageRun {
             ...(this.fit ? { fit: this.fit } : { zoom: Math.round(this.level * 1000) / 1000 }),
             ...(this.across ? { across: true } : {}),
             ...(Object.keys(this.rotations).length > 0 ? { rotate: { ...this.rotations } } : {}),
+            ...(this.cropOn ? { crop: true as const } : {}),
+            // The frames, once measured, are kept whether crop is on or off: turned on again, it moves at once.
+            ...(this.frames ? { cropFrames: this.keptFrames(this.frames) } : {}),
         };
         // *Fit width* is the default: nothing to keep for it.
         if (view.fit === "width") delete view.fit;

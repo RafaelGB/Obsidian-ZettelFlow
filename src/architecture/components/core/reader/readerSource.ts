@@ -1,7 +1,7 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { freshPageView, isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
 import type { PageViewState } from "architecture/components/core/library/sources/pdfPageView";
 import type { Bookmark } from "./readerBookmarks";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
@@ -69,9 +69,16 @@ export function rememberSourceBookmarks(app: App, host: ReaderHost | undefined, 
     void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the bookmark: ${String(error)}`));
 }
 
-/** How the paper is read in Page view (#767 FR-5): its zoom or fit, its direction, its turned pages. */
-export function keptPageView(host: ReaderHost | undefined, path: string): PageViewState {
-    return normalizeLibrary(host?.settings?.library)[path]?.view ?? {};
+/**
+ * How the paper is read in Page view (#767 FR-5): its zoom or fit, its direction, its turned pages,
+ * and whether its margins are cropped — with the frames measured, when they were measured on this
+ * very file (#769 FR-6).
+ */
+export function keptPageView(app: App, host: ReaderHost | undefined, path: string): PageViewState {
+    const view = normalizeLibrary(host?.settings?.library)[path]?.view;
+    const file = app.vault.getAbstractFileByPath(path);
+    const stat = file instanceof TFile ? file.stat : undefined;
+    return freshPageView(view, stat?.size ?? 0, stat?.mtime ?? 0);
 }
 
 /** Keep how the paper is read in Page view, in plugin data beside its place — never in the PDF (L5). */

@@ -295,6 +295,13 @@ export const BUDGETS = {
         because:
             "Ctrl/Cmd+F in the Reader searches the whole book on each pause in typing (#719); a long book must answer while you are still looking at the bar",
     },
+    "reader.pdf.window.600": {
+        name: "scroll a 600-page paper in Page view top to bottom (2,000 steps): the pages to draw and the page most on screen",
+        limit: 30,
+        measured: "7.6 ms",
+        because:
+            "it runs on every scroll frame of a paper in Page view (#767 FR-14); each step must cost a sliver of a frame, and the test also holds the pages drawn at seven or fewer, so a 600-page PDF never holds more than seven pictures",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,
@@ -319,8 +326,10 @@ export const BUDGETS = {
     },
     "view.graph.bundle.kb": {
         name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
-        limit: 2_450,
-        measured: "2,265 KB",
+        // 2,450 → 2,600 (#767): 2,265 KB at #693; the Reader's epic #739 grew it to 2,467 KB before this slice, and
+        // Page view adds 36 KB of its own code; a WebGL library coming back is still a megabyte over.
+        limit: 2_600,
+        measured: "2,503 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

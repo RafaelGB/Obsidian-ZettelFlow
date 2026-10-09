@@ -13,6 +13,7 @@
  */
 
 import { normalizeBookmarks, type Bookmark } from "architecture/components/core/reader/readerBookmarks";
+import { normalizePageView, type PageViewState } from "architecture/components/core/library/sources/pdfPageView";
 
 export type SourceFormat = "pdf" | "epub";
 
@@ -36,6 +37,11 @@ export interface SourceMeta {
     done?: boolean;
     /** The places you bookmarked (#761): places, never thoughts — kept beside where you are. */
     bookmarks?: Bookmark[];
+    /**
+     * How a paper is read in Page view (#767 FR-5, FR-9): its zoom or fit, Down or Across, and the
+     * pages you turned. Kept here, beside its place — the PDF itself is never written.
+     */
+    view?: PageViewState;
 }
 
 export type LibraryMeta = Record<string, SourceMeta>;
@@ -85,6 +91,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (v.done === true) meta.done = true;
         const bookmarks = normalizeBookmarks(v.bookmarks);
         if (bookmarks.length > 0) meta.bookmarks = bookmarks;
+        const view = normalizePageView(v.view);
+        if (Object.keys(view).length > 0) meta.view = view;
         out[path] = meta;
     }
     return out;
@@ -115,6 +123,17 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.done) next.done = true;
     // A new copy of the book keeps its bookmarks, as it keeps its place (#761 FR-2).
     if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
+    // And how you read it in Page view (#767).
+    if (previous?.view) next.view = previous.view;
+    return prune({ ...map, [path]: next });
+}
+
+/** How the paper is read in Page view, replaced by `view` (#767). The default leaves no field behind. */
+export function withPageView(map: LibraryMeta, path: string, view: PageViewState, size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    delete previous.view;
+    const clean = normalizePageView(view);
+    const next: SourceMeta = Object.keys(clean).length > 0 ? { ...previous, view: clean } : previous;
     return prune({ ...map, [path]: next });
 }
 

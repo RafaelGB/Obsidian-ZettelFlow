@@ -22,12 +22,29 @@ export interface PdfTextItem {
 export interface PdfViewport {
     width: number;
     height: number;
+    /** A rectangle in PDF space (`[x1, y1, x2, y2]`), where it falls on this viewport (#767). */
+    convertToViewportRectangle?(rect: number[]): number[];
+}
+
+/** An annotation on a page; the Reader reads only its links (#767 FR-11). */
+export interface PdfAnnotation {
+    subtype?: string;
+    rect?: number[];
+    /** Where an internal link goes: a named or an explicit destination. */
+    dest?: string | unknown[] | null;
+    /** Where an external link goes. */
+    url?: string;
+    unsafeUrl?: string;
 }
 
 export interface PdfPage {
-    getViewport(options: { scale: number }): PdfViewport;
+    /** `rotation` is the whole turn, the page's own `/Rotate` included (pdf.js reads it as absolute). */
+    getViewport(options: { scale: number; rotation?: number }): PdfViewport;
     getTextContent(): Promise<{ items: (PdfTextItem | { type: string })[] }>;
     render(options: { canvasContext: CanvasRenderingContext2D; viewport: PdfViewport }): { promise: Promise<void>; cancel(): void };
+    getAnnotations?(options?: { intent?: string }): Promise<PdfAnnotation[]>;
+    /** The page's own `/Rotate`, in degrees. */
+    rotate?: number;
     cleanup?(): void;
 }
 
@@ -44,6 +61,8 @@ export interface PdfDocument {
     getOutline(): Promise<PdfOutlineNode[] | null>;
     getDestination(name: string): Promise<unknown[] | null>;
     getPageIndex(ref: unknown): Promise<number>;
+    /** The labels the PDF gives its pages (*i*, *ii*, *1*…), or `null` when it gives none (#767). */
+    getPageLabels?(): Promise<string[] | null>;
     destroy(): Promise<void>;
 }
 

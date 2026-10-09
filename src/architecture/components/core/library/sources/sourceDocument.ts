@@ -43,6 +43,40 @@ export interface DrawnChapter {
     language?: string;
 }
 
+/** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */
+export interface SourcePageLink {
+    /** Left, top, width and height as shares (0–1) of the page as drawn at that turn. */
+    rect: { x: number; y: number; w: number; h: number };
+    /** A place in the paper (resolved by `destination`), or an address outside it — never followed (L1). */
+    dest?: unknown;
+    url?: string;
+}
+
+/** A drawing of a page under way: let go with `cancel` when the page has left the screen. */
+export interface SourcePageTask {
+    promise: Promise<void>;
+    cancel(): void;
+}
+
+/**
+ * **The printed pages of a source** (#767): what Page view's run of pages asks of a PDF, so the Reader
+ * never touches pdf.js. Sizes are in PDF points with the page's own turn; `rotation` is the reader's
+ * own quarter turns on top of it.
+ */
+export interface SourcePages {
+    count: number;
+    /** The first page's size, known at once: every page starts as it, until its own is read. */
+    first: { width: number; height: number };
+    size(index: number): Promise<{ width: number; height: number }>;
+    /** How the paper names the page: its own label (*iv*, *12*), else its number. */
+    label(index: number): string;
+    /** Draw the page into `canvas`, its pixels `scale` per point, turned `rotation` more. */
+    render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number }): SourcePageTask;
+    links(index: number, rotation: number): Promise<SourcePageLink[]>;
+    /** A link's destination: its page, and how far down it (0–1) when it says. */
+    destination(dest: unknown, rotation?: (page: number) => number): Promise<{ page: number; share?: number } | null>;
+}
+
 export interface SourceDocument {
     format: SourceFormat;
     path: string;
@@ -65,6 +99,8 @@ export interface SourceDocument {
      * it names. `null` for a link that leaves it — which the Reader never follows (L1).
      */
     resolveLink?(fromChapter: number, href: string): { chapter: number; fragment?: string } | null;
+    /** A PDF's printed pages, for Page view's run of pages (#767). */
+    pages?: SourcePages;
     close(): void;
 }
 

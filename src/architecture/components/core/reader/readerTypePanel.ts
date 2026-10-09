@@ -72,12 +72,82 @@ const MARGINS_KEY: Record<ReaderPrefs["margins"], LocaleKey> = {
     large: "reader_margins_large",
 };
 
+/** Page view's own rows (#767 FR-13): its framing, its zoom, its direction and the page's turn. */
+export interface PageViewControls {
+    /** *Fit width*, *Fit page*, or `null` at a level of its own. */
+    fit: "width" | "page" | null;
+    /** The zoom level, a share of *Fit width* (1 = 100 %). */
+    level: number;
+    across: boolean;
+    /** Down · Across is a row of *Scroll* only. */
+    scroll: boolean;
+    onFit(fit: "width" | "page"): void;
+    onZoom(dir: 1 | -1): void;
+    onAcross(across: boolean): void;
+    onRotate(): void;
+}
+
 /** What the panel says about the page, besides the choices (#757). */
 export interface TypePanelContext {
     /** The name of the language the words are hyphenated in, said while *Justify* is on (FR-7). */
     hyphenatedAs?: string;
     /** A PDF in Page view: drawn as printed, so the rows shape only the reading view (the empty state). */
     pageView?: boolean;
+    /** Page view's group, shown in Page view only — in Reading view none of it is (#767 FR-13). */
+    pageRun?: PageViewControls;
+}
+
+const FIT_KEY: Record<"width" | "page", LocaleKey> = { width: "reader_pv_fit_width", page: "reader_pv_fit_page" };
+const DIRECTION_KEY: Record<"down" | "across", LocaleKey> = { down: "reader_pv_down", across: "reader_pv_across" };
+
+/** The zoom level as the bar and the panel say it: `150%`. */
+export function zoomLabel(level: number): string {
+    return t("reader_pv_zoom_level", String(Math.round(level * 100)));
+}
+
+/**
+ * **Page view's group** (#767 FR-13), under Layout — whose *Scroll · Page · Spread* it reads, never a
+ * second control: *Fit width · Fit page*, the zoom (−, the level, +), *Down · Across* in Scroll, and
+ * *Rotate page*. Built from the same rows as the rest of the panel.
+ */
+function pageViewGroup(host: HTMLElement, controls: PageViewControls, scope: Component, before?: MarkerSnapshot): void {
+    host.createDiv({ cls: c("reader-type-section"), text: t("reader_pv_group") });
+    segmentedRow(
+        host,
+        { id: "pv-fit", label: "reader_pv_fit", options: ["width", "page"] as const, current: (controls.fit ?? "") as "width" | "page", key: (o) => FIT_KEY[o], onPick: (fit) => controls.onFit(fit) },
+        scope,
+        before
+    );
+    const row = host.createDiv({ cls: c("reader-type-row"), attr: { "data-zf-row": "pv-zoom" } });
+    row.createDiv({ cls: c("reader-type-label"), text: t("reader_pv_zoom"), attr: { id: "zf-reader-type-pv-zoom" } });
+    const group = row.createDiv({ cls: [c("reader-type-group"), c("reader-pv-zoom-row")], attr: { role: "group", "aria-labelledby": "zf-reader-type-pv-zoom" } });
+    const step = (icon: string, key: LocaleKey, dir: 1 | -1) => {
+        const button = group.createEl("button", { cls: [c("reader-type-option"), c("reader-pv-zoom-step")], attr: { type: "button", "aria-label": t(key) } });
+        setIcon(button, icon);
+        scope.registerDomEvent(button, "click", () => controls.onZoom(dir));
+    };
+    step("minus", "reader_pv_zoom_out", -1);
+    group.createSpan({ cls: c("reader-pv-zoom-level"), text: zoomLabel(controls.level), attr: { "aria-live": "polite" } });
+    step("plus", "reader_pv_zoom_in", 1);
+    if (controls.scroll) {
+        segmentedRow(
+            host,
+            {
+                id: "pv-direction",
+                label: "reader_pv_direction",
+                options: ["down", "across"] as const,
+                current: controls.across ? "across" : "down",
+                key: (o) => DIRECTION_KEY[o],
+                onPick: (direction) => controls.onAcross(direction === "across"),
+            },
+            scope,
+            before
+        );
+    }
+    const rotate = host.createDiv({ cls: c("reader-type-group") }).createEl("button", { cls: [c("reader-type-option"), c("reader-focus-toggle")], attr: { type: "button" } });
+    setIcon(rotate.createSpan({ cls: c("reader-focus-icon") }), "rotate-cw");
+    rotate.createSpan({ text: t("reader_pv_rotate") });
+    scope.registerDomEvent(rotate, "click", () => controls.onRotate());
 }
 
 /** Read every row's marker before the panel is emptied. */
@@ -157,6 +227,8 @@ export function renderTypePanel(
 ): void {
     host.createDiv({ cls: c("reader-panel-title"), text: t("reader_type") });
     segmentedRow(host, { id: "layout", label: "reader_layout", options: READER_LAYOUTS, current: prefs.layout, key: (o) => LAYOUT_KEY[o], onPick: (layout) => onPick({ ...prefs, layout }) }, scope, before);
+    // A paper in Page view: the layout above is read for its printed pages, and its own rows follow (#767).
+    if (context.pageRun) pageViewGroup(host, context.pageRun, scope, before);
     segmentedRow(host, { id: "theme", label: "reader_type_theme", options: READER_THEMES, current: prefs.theme, key: (o) => THEME_KEY[o], onPick: (theme) => onPick({ ...prefs, theme }) }, scope, before);
     segmentedRow(host, { id: "font", label: "reader_type_font", options: READER_FONTS, current: prefs.font, key: (o) => FONT_KEY[o], onPick: (font) => onPick({ ...prefs, font }) }, scope, before);
     segmentedRow(host, { id: "size", label: "reader_type_size", options: READER_SIZES, current: prefs.size, key: (o) => SIZE_KEY[o], onPick: (size) => onPick({ ...prefs, size }) }, scope, before);

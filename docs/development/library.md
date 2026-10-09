@@ -86,9 +86,10 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   broken across two lines with a hyphen is mended, a lone page number is left out, and a page in two
   columns is read one column, then the other. A page that is a figure is shown as its picture.
   Reading view follows the Reader's **Layout** — Scroll, Page or Spread
-  ([pages or scroll](reader.md#pages-or-scroll)); Page view keeps its own pages for now (#767).
+  ([pages or scroll](reader.md#pages-or-scroll)), and so does Page view.
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
   whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
+  It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
 - **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF
   without one lists its pages. The section you are in is shown above the page.
 - **Highlights and margin notes**, exactly as in a note: select words, **Highlight** or **Highlight and
@@ -101,12 +102,57 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 - **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
   **See it in the library** or **Read it again**.
 
+### Page view
+
+![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the Pages tab with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
+
+Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
+an iPad (#767):
+
+- **Zoom.** It opens at **Fit width**. **Ctrl/⌘ + wheel**, a trackpad pinch, a two-finger pinch on
+  touch, **Ctrl/⌘ +** and **Ctrl/⌘ −** zoom from 50 % to 400 %; **Ctrl/⌘ 0**, the level in the bar
+  and a double tap go back to **Fit width** (a double tap at Fit width goes to twice it). The page grows
+  around the point under the pointer or between the fingers, and follows them 1:1; past 400 % it
+  resists and springs back. While you zoom nothing is drawn again; when you stop, the pages on screen
+  are drawn sharp and only the blur clears. In Page view these keys are the paper's, and Obsidian's
+  own app zoom gives way (walked on Obsidian 1.14.4); anywhere else they stay Obsidian's.
+- **Fit page** shows the whole page. *Fit width*, *Fit page* and the bar's level are camera moves,
+  never cuts. At Fit width a landscape page in a portrait paper is fitted on its own.
+- **The same Layout as the text** (**Type → Layout**): *Scroll* is one continuous run of pages —
+  **Down**, or **Across** in a horizontal strip, where a plain wheel scrolls sideways; *Page* is one
+  page at a time, turned with the chapter motion you chose; *Spread* is two pages side by side, page 1
+  alone on the right as a printed book opens, and one page where the reading is not clearly wider than
+  it is tall (an iPad in portrait).
+- **Rotate page** (in **Type**) turns the page most on screen a quarter, into its new place, and draws
+  it upright.
+- **The Pages tab** in **Contents**: every page as a small picture, the current one marked, each with
+  the paper's own label (*p. iv*). Pictures are drawn as they scroll into view. Tapping one flies it to
+  its page, which it becomes; the place you left is kept in *Where you've been*.
+- **Links.** A link to a place in the paper — a reference, a citation, its own contents — shows as a
+  link under the pointer and jumps there, with the back pill and **Alt+←**. A link that leaves the
+  paper (a web address, a DOI) is never followed: clicking it shows its address with **Copy link**.
+- **Only what is near is drawn.** However long the paper, at most seven pages are drawn at once and
+  pages far away are let go, so a 600-page PDF scrolls without the app holding 600 pictures. A page not
+  drawn yet is a blank sheet with its number, and its picture fades in. A fling draws nothing until it
+  slows, so it keeps its frames.
+- **Kept with the paper.** The zoom (or the fit), Down or Across and the turned pages are kept beside
+  its place, in plugin data. The PDF is never written.
+
+The Type panel's **Page view** group holds *Fit width · Fit page*, the zoom (−, the level, +), *Down ·
+Across* (in Scroll) and *Rotate page*; in Reading view none of it is shown. Under reduced motion every
+move is instant and nothing fades; a pinch still follows the fingers.
+
 ### A scan
 
 A scanned PDF has no text, so every page is shown as its picture, and a quiet banner says so before
 you try: *This PDF is made of images, so there is no text to highlight. You can read it, and note in
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
+
+A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its *Pages*
+tab like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
+layer, and the Reader reads it as text today: Reading view, search and highlights work on it. A scan
+without one stays pictures, with notes by page.
 
 ### Where you left off, to the line
 
@@ -219,7 +265,9 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, SVG scripts, remote images, runaway nesting); an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter |
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget |
+| `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
+| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -238,7 +286,10 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    opens on its detail.
 7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
    reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
-   page as laid out, *Highlight in the reading view*); **V** again comes back.
+   page as laid out at the width of the screen, *100%* in the bar, *Highlight in the reading view*).
+   **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link
+   jumps with the back pill; a DOI shows its address with *Copy link* and opens nothing. **V** again
+   comes back.
 8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
    type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,

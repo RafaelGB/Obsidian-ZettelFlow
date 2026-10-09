@@ -7,6 +7,7 @@ import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/ep
 import { makeEpub } from "../support/zipFixture";
 import { parseXml } from "../support/miniXml";
 import { searchBook } from "architecture/components/core/reader/readerSearch";
+import { MAX_DRAWN, mostOnScreen, runLayout, visibleWindow } from "architecture/components/core/library/sources/pdfPageView";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -137,5 +138,24 @@ describe("the Library (#675)", () => {
         });
         if (found === 0) throw new Error("the search found nothing");
         assertBudget("reader.search.1k", ms);
+    });
+    it("reader.pdf.window.600", () => {
+        const view = { width: 1000, height: 800 };
+        const boxes = Array.from({ length: 600 }, (_, i) => (i % 50 === 7 ? { width: 792, height: 612 } : { width: 612, height: 792 }));
+        const run = runLayout(boxes, { layout: "scroll", across: false, scale: 968 / 612, view });
+        let most = 0;
+        let drawn = 0;
+        const ms = best(3, () => {
+            for (let step = 0; step <= 2_000; step++) {
+                const top = ((run.height - view.height) * step) / 2_000;
+                const near = visibleWindow(run.slots, { left: 0, top }, view);
+                most = Math.max(most, mostOnScreen(near, { left: 0, top }, view));
+                drawn = Math.max(drawn, near.length);
+            }
+        });
+        // FR-14: however long the paper, at most seven pages are ever drawn.
+        if (drawn > MAX_DRAWN || drawn === 0) throw new Error(`drew ${drawn} pages at once`);
+        if (most !== 599) throw new Error(`the last page most on screen was ${most}`);
+        assertBudget("reader.pdf.window.600", ms);
     });
 });

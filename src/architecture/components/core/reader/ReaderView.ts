@@ -50,7 +50,9 @@ import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
 import {
     chapterOfHighlight,
+    keptPageView,
     keptScroll,
+    rememberPageView,
     rememberSourceBookmarks,
     rememberSourceFacts,
     rememberSourcePlace,
@@ -69,7 +71,11 @@ import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent 
 import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
 import { pageShape } from "./readerPages";
-import { renderTypePanel, snapshotMarkers } from "./readerTypePanel";
+import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
+import { PdfPageRun } from "./readerPageRun";
+import { renderThumbs, type Thumbs } from "./readerThumbs";
+import { fly } from "./readerMotion";
+import { pageBox } from "architecture/components/core/library/sources/pdfPageView";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -100,7 +106,7 @@ const SEARCH_LIST_LIMIT = 60;
  * (#753 FR-11): in pages → and Space are the next page, then the next chapter — ← in a book that
  * reads right to left.
  */
-function shortcutsFor(layout: ReaderLayout, direction: BookDirection): { keys: string[]; label: LocaleKey }[] {
+function shortcutsFor(layout: ReaderLayout, direction: BookDirection, pageRun = false): { keys: string[]; label: LocaleKey }[] {
     const turning: { keys: string[]; label: LocaleKey }[] =
         layout === "scroll"
             ? [
@@ -115,7 +121,9 @@ function shortcutsFor(layout: ReaderLayout, direction: BookDirection): { keys: s
                   { keys: ["reader_kbd_space"], label: "reader_key_page_next" },
                   { keys: ["reader_kbd_shift", "reader_kbd_space"], label: "reader_key_page_previous" },
               ];
-    return [...turning, ...SHORTCUTS];
+    // Page view zooms (#767 FR-16): Ctrl/⌘ with + − 0, which Obsidian's own app zoom gives way to here.
+    const zoom: { keys: string[]; label: LocaleKey }[] = pageRun ? [{ keys: ["reader_kbd_ctrl", "+", "−", "0"], label: "reader_key_zoom" }] : [];
+    return [...turning, ...zoom, ...SHORTCUTS];
 }
 
 const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
@@ -180,12 +188,21 @@ export type { ReaderHost };
 type Panel = "contents" | "type" | "context" | null;
 
 /** The Contents panel of a book or a paper (#761 FR-4): its contents, its bookmarks, where you've been. */
-type ContentsTab = "contents" | "bookmarks" | "trail";
+type ContentsTab = "contents" | "pages" | "bookmarks" | "trail";
 const CONTENTS_TABS: { id: ContentsTab; label: LocaleKey }[] = [
     { id: "contents", label: "reader_contents" },
+    // A paper in Page view (#767 FR-10): its pages, at a glance.
+    { id: "pages", label: "reader_pages_tab" },
     { id: "bookmarks", label: "reader_tab_bookmarks" },
     { id: "trail", label: "reader_tab_trail" },
 ];
+
+/** Two taps this close in time are a double tap in Page view (#767 FR-2); a single one waits as long. */
+const DOUBLE_TAP_MS = 280;
+/** …and this close on the page. */
+const DOUBLE_TAP_PX = 32;
+/** The place in a paper scrolled in Page view is kept a moment after the page most on screen changes. */
+const RUN_PLACE_MS = 400;
 
 /** What took you away, as *Where you've been* says it (FR-7). */
 const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
@@ -278,6 +295,8 @@ export class ReaderView extends ItemView {
         view: HTMLElement;
         /** Search inside the book (#719), shown for a book or a paper. */
         search: HTMLElement;
+        /** Page view's zoom level, beside the Page view button (#767 FR-13): a click is *Fit width*. */
+        zoom: HTMLElement;
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
@@ -439,6 +458,21 @@ export class ReaderView extends ItemView {
     /** A chapter is being drawn: a place asked for now is landed on once its pages are laid out. */
     private pagesPending = false;
     private pendingReveal: PageAnchor | null = null;
+    /**
+     * A paper in Page view (#767): its run of printed pages, kept across the chapter's redraws so its
+     * pictures are not drawn twice. Let go when Page view is.
+     */
+    private pageRun: PdfPageRun | null = null;
+    /** The *Pages* tab's thumbnails, while it is open. */
+    private thumbs: Thumbs | null = null;
+    /** A tap waiting to see whether a second makes it a double tap (Page view only). */
+    private lastTap: { at: number; x: number; y: number } | null = null;
+    private tapTimer: number | undefined;
+    private runPlaceTimer: number | undefined;
+    /** The highlights of the page most on screen, drawn again when it changes in Scroll. */
+    private runHighlightScope: Component | null = null;
+    /** The next `show` is a thumbnail's flight, not a turn. */
+    private flight = false;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -634,6 +668,7 @@ export class ReaderView extends ItemView {
         this.sourceFailed = false;
         this.sourceTooLarge = false;
         this.sourceView = "reading";
+        this.dropRun();
     }
 
     /** Page view ↔ reading view, for a PDF (#681). The place is kept. */
@@ -820,6 +855,12 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
         view.addClass(c("reader-hidden"));
+        // The zoom level, beside it (#767 FR-13): the camera goes back to the width of the screen.
+        const zoom = bar.createEl("button", {
+            cls: [c("reader-bar-zoom"), c("reader-hidden")].join(" "),
+            attr: { type: "button", "aria-label": t("reader_pv_zoom_reset") },
+        });
+        this.registerDomEvent(zoom, "click", () => this.pageRun?.frame("width"));
         // Deep reading (#764 FR-1), where Fullscreen was and on every platform: the page alone does not
         // need the window's fullscreen, so it is never a dead control.
         const deep = this.iconButton(bar, "glasses", "reader_deep", () => this.toggleDeep());
@@ -829,7 +870,7 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, view, search };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, view, search, zoom };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -861,7 +902,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -874,6 +915,20 @@ export class ReaderView extends ItemView {
         // The finer type (#757 FR-13) keeps your line the same way, with a quicker, fainter settle.
         const fine = next.spacing !== before.spacing || next.width !== before.width || next.margins !== before.margins || next.justify !== before.justify;
         const reshapes = coarse || fine;
+        // A paper in Page view (#767): its printed pages take the new layout, the page you were on kept.
+        if (this.runMode() && this.pageRun) {
+            this.prefs = next;
+            this.applyPrefs();
+            this.applyLayout();
+            if (next.layout !== before.layout) this.pageRun.reshape();
+            this.renderZoom();
+            if (this.plugin?.settings) {
+                this.plugin.settings.readerPrefs = next;
+                void this.plugin.saveSettings?.();
+            }
+            if (this.panel === "type") this.renderPanel();
+            return;
+        }
         const pager = this.pager;
         const anchor = reshapes && pager && !this.ended ? pager.firstVisible() : null;
         const tops = anchor && pager ? pager.blockTops() : null;
@@ -905,7 +960,7 @@ export class ReaderView extends ItemView {
 
     /** *Scroll*, *Page* or *Spread* as it applies now: a PDF's Page view and the end card always scroll. */
     private effectiveLayout(): ReaderLayout {
-        if (this.ended || this.sourceView === "page" || (this.sourcePath && !this.source)) return "scroll";
+        if (this.ended || this.sourceView === "page" || this.runMode() || (this.sourcePath && !this.source)) return "scroll";
         return this.prefs.layout;
     }
 
@@ -926,6 +981,8 @@ export class ReaderView extends ItemView {
         const layout = this.effectiveLayout();
         root.toggleClass(c("reader--layout-page"), layout === "page");
         root.toggleClass(c("reader--layout-spread"), layout === "spread");
+        // A paper read as printed (#767): the run of pages takes the whole reading, not the column.
+        root.toggleClass(c("reader--page-run"), this.runMode());
         this.pager?.configure(layout, this.bookDirection(), this.pageShape());
     }
 
@@ -997,10 +1054,9 @@ export class ReaderView extends ItemView {
         els.view.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
         els.view.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
         els.view.setAttribute("aria-pressed", String(pageView));
+        this.renderZoom();
         const total = path?.chapters.length ?? 0;
-        els.label.setText(this.ended ? t("reader_finished") : total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
-        els.progress.max = Math.max(1, total);
-        els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
+        this.renderBarPlace();
 
         els.dots.empty();
         // A book of three hundred pages is not three hundred dots: the bar's count says where you are.
@@ -1026,6 +1082,21 @@ export class ReaderView extends ItemView {
         if (this.ended) this.renderEnd();
         else void this.renderChapter();
         if (this.panel) this.renderPanel();
+    }
+
+    /** Where you are, in the bar: its label, its progress, the current dot. Nothing else is drawn. */
+    private renderBarPlace(): void {
+        const els = this.els;
+        if (!els) return;
+        const total = this.path?.chapters.length ?? 0;
+        els.label.setText(this.ended ? t("reader_finished") : total ? t("reader_chapter_label", String(this.index + 1), String(total)) : "");
+        els.progress.max = Math.max(1, total);
+        els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
+        Array.from(els.dots.children).forEach((dot, i) => {
+            dot.toggleClass(c("reader-dot--done"), i < this.index || this.ended);
+            dot.toggleClass(c("reader-dot--current"), i === this.index && !this.ended);
+            dot.setAttribute("aria-selected", String(i === this.index));
+        });
     }
 
     private async renderChapter(): Promise<void> {
@@ -1222,7 +1293,9 @@ export class ReaderView extends ItemView {
         const win = this.root?.win ?? window;
         win.clearTimeout(this.scrollSaveTimer);
         this.scrollSaveTimer = win.setTimeout(() => {
-            if (this.sourcePath === path && this.index === chapter) rememberSourceScroll(this.app, this.plugin, path, chapter, this.source?.chapters.length ?? chapter + 1, fraction);
+            // In Page view the place is how far down the page most on screen you are (#767 FR-8).
+            const share = this.runMode() && this.pageRun ? this.pageRun.shareInPage() : fraction;
+            if (this.sourcePath === path && this.index === chapter) rememberSourceScroll(this.app, this.plugin, path, chapter, this.source?.chapters.length ?? chapter + 1, share);
         }, SCROLL_SAVE_MS);
     }
 
@@ -1321,6 +1394,8 @@ export class ReaderView extends ItemView {
 
     /** Where you are now: the first line on screen, as a place in the chapter's text. */
     private spotHere(): Spot {
+        // In Page view a place is a page, and how far down it you were (#767 FR-8).
+        if (this.runMode() && this.pageRun) return { chapter: this.index, offset: null, share: this.pageRun.shareInPage(), top: null };
         const body = this.chapterBody();
         const anchor = this.pager?.firstVisible() ?? null;
         const offset = body && anchor ? this.offsetOfAnchor(body, anchor) : null;
@@ -1369,7 +1444,10 @@ export class ReaderView extends ItemView {
      */
     private landOn(spot: Spot): void {
         this.closeNote();
-        if (spot.chapter !== this.index) {
+        if (this.runMode() && this.pageRun) {
+            // A page of a paper in Page view: travelled to in a scroll, turned to in pages (#767).
+            this.goToPage(spot.chapter, spot.share ?? 0);
+        } else if (spot.chapter !== this.index) {
             this.pendingLanding = spot;
             this.show(spot.chapter);
         } else {
@@ -1388,6 +1466,10 @@ export class ReaderView extends ItemView {
      * and show it with the *you are here* mark once it has landed (FR-17).
      */
     private landHere(spot: Spot, travel: boolean): void {
+        if (this.runMode() && this.pageRun) {
+            this.goToPage(spot.chapter, spot.share ?? 0, travel);
+            return;
+        }
         const stage = this.els?.stage;
         const pager = this.pager;
         const body = this.chapterBody();
@@ -1605,7 +1687,18 @@ export class ReaderView extends ItemView {
         this.pending = null;
         this.detours = [];
         const target = Math.max(0, Math.min(index, this.path.chapters.length - 1));
-        this.turn = this.ended || target < this.index ? -1 : target > this.index ? 1 : 0;
+        // A paper scrolled in Page view (#767 FR-19): another page is a camera move along the run,
+        // never a redraw.
+        if (this.runScrolls()) {
+            this.goToPage(target, 0);
+            this.app.workspace.requestSaveLayout();
+            this.rememberPlace();
+            return;
+        }
+        // A thumbnail flies to its page (FR-22): the flight is the camera, no chapter turn on top.
+        const flight = this.flight;
+        this.flight = false;
+        this.turn = flight ? 0 : this.ended || target < this.index ? -1 : target > this.index ? 1 : 0;
         this.ended = false;
         this.index = target;
         this.render();
@@ -1623,7 +1716,8 @@ export class ReaderView extends ItemView {
             if (delta < 0) this.show(this.index, land);
             return;
         }
-        const next = this.index + delta;
+        // A paper in Page view, in Page or Spread: a view at a time — page 1 alone, then pairs (#767 FR-6).
+        const next = this.runMode() && this.pageRun && this.prefs.layout !== "scroll" ? this.pageRun.stepFrom(this.index, delta > 0 ? 1 : -1) : this.index + delta;
         if (next >= this.path.chapters.length) {
             this.finish();
             return;
@@ -1853,14 +1947,20 @@ export class ReaderView extends ItemView {
         this.nextCard = null;
         const total = this.path.chapters.length;
         const chapter = doc?.chapters[index];
+        // A paper read as printed (#767): its pages run on, and the bar says which one you are on.
+        const asRun = this.runMode();
+        this.runHighlightScope?.unload();
+        this.runHighlightScope = null;
         // A book written right to left: its pages flow, and turn, to the left (#753 FR-10).
         if (this.bookDirection() === "rtl") page.setAttribute("dir", "rtl");
         else page.removeAttribute("dir");
-        page.createDiv({
-            cls: c("reader-count"),
-            text: doc ? t(doc.format === "pdf" ? "reader_source_count_page" : "reader_source_count_chapter", String(index + 1), String(total)) : "",
-        });
-        if (chapter?.section) {
+        if (!asRun) {
+            page.createDiv({
+                cls: c("reader-count"),
+                text: doc ? t(doc.format === "pdf" ? "reader_source_count_page" : "reader_source_count_chapter", String(index + 1), String(total)) : "",
+            });
+        }
+        if (chapter?.section && !asRun) {
             page.createDiv({ cls: c("reader-role") }).createSpan({ cls: [c("reader-role-tag"), c("reader-role-tag--source")], text: chapter.section });
         }
         if (doc?.imageOnly) {
@@ -1896,6 +1996,12 @@ export class ReaderView extends ItemView {
             body.createDiv({ cls: c("reader-missing"), text: t(this.sourceFailed ? "reader_source_failed" : "reader_source_opening") });
             return;
         }
+        const run = asRun ? this.ensureRun(doc) : null;
+        if (run) {
+            this.renderRunChapter(run, body, index, total);
+            return;
+        }
+        this.dropRun();
         let picture = false;
         this.pageLanguage = null;
         try {
@@ -2049,6 +2155,260 @@ export class ReaderView extends ItemView {
         scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment, "note"));
         this.notePop = pop;
         this.notePopScope = scope;
+    }
+
+    // ── Page view, grown up (#767) ───────────────────────────────────────────
+
+    /** A paper read as printed: in Page view, or a scan — which has no other view. Never the end card. */
+    private runMode(): boolean {
+        const doc = this.source;
+        return Boolean(!this.ended && this.sourcePath && doc?.pages && (this.sourceView === "page" || doc.imageOnly));
+    }
+
+    /** In *Scroll* the run is one scroll of pages: a page change is a camera move, never a redraw. */
+    private runScrolls(): boolean {
+        return this.runMode() && Boolean(this.pageRun) && this.prefs.layout === "scroll";
+    }
+
+    /** The paper's run of pages, made once per paper and kept across the chapter's redraws. */
+    private ensureRun(doc: SourceDocument): PdfPageRun | null {
+        const pages = doc.pages;
+        const stage = this.els?.stage;
+        const path = this.sourcePath;
+        if (!pages || !stage || !path) return null;
+        if (this.pageRun && this.pageRun.pages === pages) return this.pageRun;
+        this.dropRun();
+        this.pageRun = new PdfPageRun(stage, {
+            stage,
+            pages,
+            layout: () => this.prefs.layout,
+            view: keptPageView(this.plugin, path),
+            onPage: (page) => this.onRunPage(page),
+            onView: (view) => {
+                if (this.sourcePath) rememberPageView(this.app, this.plugin, this.sourcePath, view);
+                this.renderZoom();
+                if (this.panel === "type") this.renderPanel();
+            },
+            onLink: (target) => this.jumpToPage(target.page, target.share ?? 0, "link"),
+            onOutLink: (url, anchor) => this.openOutLink(url, anchor),
+        });
+        return this.pageRun;
+    }
+
+    /** Page view is over: the run's drawings are cancelled and its canvases let go (FR-14). */
+    private dropRun(): void {
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.runPlaceTimer);
+        win.clearTimeout(this.tapTimer);
+        this.lastTap = null;
+        this.runHighlightScope?.unload();
+        this.runHighlightScope = null;
+        if (!this.pageRun) return;
+        this.thumbs?.dispose();
+        this.thumbs = null;
+        this.pageRun.dispose();
+        this.pageRun = null;
+        if (this.els) this.els.stage.scrollLeft = 0;
+        this.renderZoom();
+    }
+
+    /** The bar's zoom level (FR-13): shown in Page view, as the run says it. */
+    private renderZoom(): void {
+        const button = this.els?.zoom;
+        if (!button) return;
+        const run = this.runMode() ? this.pageRun : null;
+        button.toggleClass(c("reader-hidden"), !run);
+        if (run) button.setText(zoomLabel(run.zoomLevel()));
+    }
+
+    /**
+     * The page of a paper drawn as printed (#767): the run put in the body and shown at the page — at
+     * the place a jump back, a bookmark or a resume asked for — then the end card. Page view reads the
+     * Reader's own layout: *Scroll* is the whole run, *Page* and *Spread* a view of it.
+     */
+    private renderRunChapter(run: PdfPageRun, body: HTMLElement, index: number, total: number): void {
+        const page = this.els?.page;
+        if (!page) return;
+        body.addClass(c("reader-source-body--picture"), c("reader-source-body--run"));
+        run.attach(body);
+        const landing = this.pendingLanding?.chapter === index ? this.pendingLanding : null;
+        this.pendingLanding = null;
+        const share = landing?.share ?? this.pendingShare ?? 0;
+        this.pendingShare = null;
+        this.chapterWords = 0;
+        this.seenWords.set(index, 0);
+        this.pageLanguage = null;
+        run.show(index, share);
+        this.landShot();
+        this.renderZoom();
+        this.attachRunHighlights();
+
+        const card = page.createDiv({ cls: c("reader-next") });
+        card.createDiv({ cls: c("reader-ornament"), attr: { "aria-hidden": "true" } }).createSpan({ cls: c("reader-ornament-mark") });
+        this.nextCard = card;
+        const next = card.createEl("button", { cls: c("reader-next-button"), attr: { type: "button" } });
+        // In a scroll of pages the card is at the end of the paper; in pages, after the view on show.
+        const after = this.prefs.layout === "scroll" ? total : run.stepFrom(index, 1);
+        if (after >= total) {
+            next.setText(t("reader_finish"));
+            this.chapter?.registerDomEvent(next, "click", () => this.finish());
+        } else {
+            next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(after)) });
+            this.chapter?.registerDomEvent(next, "click", () => this.go(1));
+        }
+        this.onStageScroll();
+        this.refreshRibbon();
+    }
+
+    /**
+     * The page most on screen changed as you scrolled (FR-8): the bar, the ribbon and the thumbnails
+     * follow at once, the place and the margin a moment later — nothing is redrawn.
+     */
+    private onRunPage(page: number): void {
+        if (page === this.index || !this.sourcePath) return;
+        this.index = page;
+        this.visited.add(`${this.sourcePath}#${page}`);
+        this.renderBarPlace();
+        this.refreshRibbon();
+        this.thumbs?.setCurrent(page);
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.runPlaceTimer);
+        this.runPlaceTimer = win.setTimeout(() => {
+            if (!this.runMode()) return;
+            this.rememberPlace();
+            this.app.workspace.requestSaveLayout();
+            this.attachRunHighlights();
+        }, RUN_PLACE_MS);
+    }
+
+    /** The margin notes of the page most on screen (a scan's *Note this page* is about it). */
+    private attachRunHighlights(): void {
+        const body = this.chapterBody();
+        const path = this.sourcePath;
+        if (!body || !path || !this.highlights) return;
+        this.runHighlightScope?.unload();
+        const scope = new Component();
+        scope.load();
+        this.runHighlightScope = scope;
+        void this.highlights.attach(body, path, scope, this.els?.margin ?? null, { at: this.index, label: this.sourceLabel(this.index) });
+    }
+
+    /** A page of the paper, as a camera move: along the run in a scroll, a turn in pages (§XVI). */
+    private goToPage(page: number, share = 0, travel = true): void {
+        const run = this.pageRun;
+        const total = this.path?.chapters.length ?? 0;
+        if (!run || total === 0) return;
+        const target = Math.max(0, Math.min(page, total - 1));
+        if (this.prefs.layout === "scroll" || run.inView(target)) {
+            run.travelTo(target, share, travel && this.motionAllowed());
+            if (target !== this.index && this.prefs.layout !== "scroll") {
+                this.index = target;
+                this.renderBarPlace();
+            }
+            return;
+        }
+        this.pendingShare = share;
+        this.show(target);
+    }
+
+    /** A link to a place in the paper (FR-11): where you were is kept on the trail, then the page. */
+    private jumpToPage(page: number, share: number, reason: TrailReason): void {
+        this.leaveTrail(reason);
+        this.closeNote();
+        this.goToPage(page, share);
+    }
+
+    /**
+     * A link that leaves the paper (FR-12, L1): never followed. Its address is shown beside it with
+     * *Copy link* — the clipboard on a click, as the selection's *Copy* already is. Nothing opens.
+     */
+    private openOutLink(url: string, anchor: HTMLElement): void {
+        const root = this.root;
+        if (!root) return;
+        this.closeNote();
+        log.debug(`[Reader] a link out of the paper, shown and not followed: ${url}`);
+        const pop = root.createDiv({ cls: [c("reader-note-pop"), c("reader-pv-outlink")], attr: { role: "dialog", "aria-label": t("reader_pv_link_out") } });
+        pop.createDiv({ cls: c("reader-pv-outlink-says"), text: t("reader_pv_link_out") });
+        pop.createDiv({ cls: c("reader-pv-outlink-url"), text: url });
+        const copy = pop.createEl("button", { cls: c("reader-note-pop-go"), text: t("reader_pv_copy_link"), attr: { type: "button" } });
+        const box = root.getBoundingClientRect();
+        const at = anchor.getBoundingClientRect();
+        pop.setCssProps?.({
+            "--zf-note-x": `${Math.round(at.left + at.width / 2 - box.left)}px`,
+            "--zf-note-y": `${Math.round(at.bottom - box.top)}px`,
+        });
+        const scope = new Component();
+        scope.load();
+        scope.registerDomEvent(copy, "click", () => {
+            const clipboard = (root.win ?? window).navigator?.clipboard;
+            void clipboard
+                ?.writeText(url)
+                ?.then(() => copy.setText(t("reader_pv_link_copied")))
+                ?.catch((error: unknown) => log.debug(`[Reader] could not copy the link: ${String(error)}`));
+        });
+        this.notePop = pop;
+        this.notePopScope = scope;
+        this.wake();
+    }
+
+    /** The *Pages* tab (FR-10): every page, drawn as it comes into view, the current one marked. */
+    private renderPages(list: HTMLElement): void {
+        const run = this.runMode() ? this.pageRun : null;
+        const scope = this.panelScope;
+        if (!run || !scope) return;
+        const first = pageBox(run.pages.first, 0);
+        this.thumbs = renderThumbs(
+            list,
+            {
+                count: run.pages.count,
+                current: this.index,
+                label: (page) => this.sourceLabel(page),
+                ratio: () => first.height / Math.max(1, first.width),
+                draw: (page, canvas, width, done) => run.drawThumb(page, canvas, width, done),
+                onPick: (page, thumb) => this.flyToPage(page, thumb),
+            },
+            scope
+        );
+    }
+
+    /**
+     * A thumbnail becomes its page (FR-22, §XVI): the page is put on screen at once, and the thumbnail
+     * flies from the grid to where it sits — as a cover becomes the book (#734). Under reduced motion
+     * the page is simply there.
+     */
+    private flyToPage(page: number, thumb: HTMLElement): void {
+        const run = this.pageRun;
+        const root = this.root;
+        if (!run || !root) return;
+        const r = thumb.getBoundingClientRect();
+        const from = { left: r.left, top: r.top, width: r.width, height: r.height };
+        this.leaveTrail("contents");
+        if (this.prefs.layout === "scroll" || run.inView(page)) {
+            run.travelTo(page, 0, false);
+            if (this.prefs.layout !== "scroll" && page !== this.index) {
+                this.index = page;
+                this.renderBarPlace();
+            }
+        } else {
+            this.flight = true;
+            this.show(page);
+        }
+        this.thumbs?.setCurrent(page);
+        const to = run.slotRect(page);
+        if (to && this.motionAllowed()) {
+            const ghost = root.createDiv({ cls: c("reader-pv-ghost") });
+            ghost.remove();
+            const picture = thumb.querySelector("canvas");
+            if (picture && picture.width > 0) {
+                const copy = ghost.createEl("canvas");
+                copy.width = picture.width;
+                copy.height = picture.height;
+                copy.getContext?.("2d")?.drawImage(picture, 0, 0);
+            }
+            fly(root, ghost, from, to, { duration: MOTION.cover });
+        }
+        // In a sheet the page is under the panel: it steps aside for the landing.
+        if (this.panelIsSheet()) this.closePanel();
     }
 
     // ── search inside the book (#719) ───────────────────────────────────────
@@ -2346,6 +2706,7 @@ export class ReaderView extends ItemView {
     /** The end of a source: what the reading added up to, and where to take what you marked. */
     private renderSourceEndCard(): void {
         if (!this.els || !this.sourcePath) return;
+        this.dropRun();
         this.highlights?.hidePopover();
         this.chapter?.unload();
         const component = new Component();
@@ -2401,6 +2762,8 @@ export class ReaderView extends ItemView {
         const host = this.els.panel;
         // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
         const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
+        this.thumbs?.dispose();
+        this.thumbs = null;
         host.empty();
         this.panelScope?.unload();
         const scope = new Component();
@@ -2420,9 +2783,25 @@ export class ReaderView extends ItemView {
     /** What the Type panel says besides its rows (#757): the language of the hyphens, Page view's note. */
     private typeContext() {
         const ui = getLanguage();
+        const run = this.runMode() ? this.pageRun : null;
         return {
             hyphenatedAs: languageName(this.pageLanguage ?? ui, ui),
             pageView: Boolean(this.sourcePath && this.sourceView === "page" && this.source?.hasPageView),
+            // Page view's own rows (#767 FR-13): shown in Page view only.
+            ...(run
+                ? {
+                      pageRun: {
+                          fit: run.framing(),
+                          level: run.zoomLevel(),
+                          across: run.isAcross(),
+                          scroll: this.prefs.layout === "scroll",
+                          onFit: (fit: "width" | "page") => run.frame(fit),
+                          onZoom: (dir: 1 | -1) => run.zoomStep(dir),
+                          onAcross: (across: boolean) => run.setAcross(across),
+                          onRotate: () => run.rotate(),
+                      },
+                  }
+                : {}),
         };
     }
 
@@ -2456,7 +2835,9 @@ export class ReaderView extends ItemView {
      */
     private renderSourceTabs(host: HTMLElement): void {
         const tabs = host.createDiv({ cls: c("reader-tabs"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
-        for (const tab of CONTENTS_TABS) {
+        // *Pages* is Page view's (#767 FR-10); anywhere else Contents opens on the contents.
+        if (this.contentsTab === "pages" && !this.runMode()) this.contentsTab = "contents";
+        for (const tab of CONTENTS_TABS.filter((entry) => entry.id !== "pages" || this.runMode())) {
             const on = tab.id === this.contentsTab;
             const button = tabs.createEl("button", {
                 cls: [c("reader-tab"), ...(on ? ["is-active"] : [])].join(" "),
@@ -2468,6 +2849,7 @@ export class ReaderView extends ItemView {
         const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
+        else if (this.contentsTab === "pages") this.renderPages(list);
         else this.renderSourceContents(list);
         const dir = this.tabSlide;
         this.tabSlide = 0;
@@ -2548,8 +2930,8 @@ export class ReaderView extends ItemView {
             this.saveBookmarks(removeBookmarks(list, here));
             return true;
         }
-        // In a PDF's Page view a bookmark is its page (FR-5).
-        const pageView = this.sourceView === "page";
+        // In a PDF's Page view a bookmark is its page (FR-5) — and in a scan, which has no other view.
+        const pageView = this.sourceView === "page" || this.runMode();
         const anchor = pageView ? null : (this.pager?.firstVisible() ?? null);
         const offset = anchor ? (this.offsetOfAnchor(body, anchor) ?? 0) : 0;
         const text = pageView ? "" : chapterText(body);
@@ -2842,6 +3224,12 @@ export class ReaderView extends ItemView {
         const first = this.shape.width === 0 && this.shape.height === 0;
         this.shape = next;
         if (first) return;
+        // A paper in Page view lays its pages out again, the page you were on kept (#767).
+        if (this.runMode() && this.pageRun) {
+            this.pageRun.reshape();
+            if (this.panel) this.renderPanel();
+            return;
+        }
         // In pages the pager lays the chapter out again on its own observer, keeping the line (#753).
         if (this.pagedNow()) {
             if (this.panel) this.renderPanel();
@@ -2947,6 +3335,11 @@ export class ReaderView extends ItemView {
             return;
         }
         if (kind !== "swipe") return;
+        // A paper in a scroll of pages, or zoomed wider than the screen, pans under the finger (#767).
+        if (this.pageRun && this.runMode() && (this.prefs.layout === "scroll" || this.pageRun.overflowsAcross())) {
+            this.touch = null;
+            return;
+        }
         if (touch.dir === 0) this.beginSwipe(touch);
         this.requestTouchFrame(touch);
     }
@@ -2961,7 +3354,8 @@ export class ReaderView extends ItemView {
             this.twoFinger = null;
             this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
             // Both fingers swept right: one step back along the trail.
-            if (twoFingerBack(moves)) this.backFromJump();
+            // A pinch in Page view is a zoom, never the way back (#767).
+            if (twoFingerBack(moves) && !this.pageRun?.pinchedRecently()) this.backFromJump();
             return;
         }
         const touch = this.touch;
@@ -2970,7 +3364,7 @@ export class ReaderView extends ItemView {
         const kind = touch.gesture.end({ x: event.clientX, y: event.clientY, t: event.timeStamp });
         if (kind === "tap") {
             this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
-            this.tapAt(event.clientX, touch.stage);
+            this.tapAt(event.clientX, touch.stage, event.clientY);
             return;
         }
         if (kind !== "swipe") return;
@@ -2981,7 +3375,30 @@ export class ReaderView extends ItemView {
     }
 
     /** The outer fifth on each side turns a screen, as Space does; the middle shows or hides the bar. */
-    private tapAt(x: number, stage: { left: number; width: number }): void {
+    private tapAt(x: number, stage: { left: number; width: number }, y = 0): void {
+        // Page view (#767 FR-2): two quick taps zoom about where you tapped, so a single one waits a moment.
+        const run = this.runMode() ? this.pageRun : null;
+        if (run) {
+            const win = this.root?.win ?? window;
+            const now = Date.now();
+            const last = this.lastTap;
+            win.clearTimeout(this.tapTimer);
+            if (last && now - last.at < DOUBLE_TAP_MS && Math.hypot(x - last.x, y - last.y) < DOUBLE_TAP_PX) {
+                this.lastTap = null;
+                run.doubleTap({ x, y });
+                return;
+            }
+            this.lastTap = { at: now, x, y };
+            this.tapTimer = win.setTimeout(() => {
+                this.lastTap = null;
+                this.singleTap(x, stage);
+            }, DOUBLE_TAP_MS);
+            return;
+        }
+        this.singleTap(x, stage);
+    }
+
+    private singleTap(x: number, stage: { left: number; width: number }): void {
         const zone = edgeZone(x, stage);
         // In pages the edge the book turns towards is forward: the left one in a right-to-left book.
         if (zone === "middle") this.toggleBar();
@@ -3165,6 +3582,20 @@ export class ReaderView extends ItemView {
         bind(["Alt"], "ArrowLeft", () => this.backFromJump());
         // Search inside the book (#719); in a note reading the key stays Obsidian's.
         bind(["Mod"], "F", () => this.openSearch());
+        // Page view zooms (#767 FR-2). Taken here, Obsidian's own app zoom gives way — walked on 1.14.4:
+        // the View menu's accelerators do not fire once the page has the key. Anywhere else it is the app's.
+        const zoom = (fn: (run: PdfPageRun) => void) => () => {
+            const run = this.runMode() ? this.pageRun : null;
+            if (!run) return false;
+            fn(run);
+            return true;
+        };
+        for (const key of ["=", "+"]) {
+            bind(["Mod"], key, zoom((run) => run.zoomStep(1)));
+            bind(["Mod", "Shift"], key, zoom((run) => run.zoomStep(1)));
+        }
+        bind(["Mod"], "-", zoom((run) => run.zoomStep(-1)));
+        bind(["Mod"], "0", zoom((run) => run.frame("width")));
     }
 
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
@@ -3253,7 +3684,7 @@ export class ReaderView extends ItemView {
         const card = sheet.createDiv({ cls: c("reader-shortcuts-card") });
         card.createDiv({ cls: c("reader-panel-title"), text: t("reader_shortcuts") });
         const list = card.createEl("dl", { cls: c("reader-shortcuts-list") });
-        for (const row of shortcutsFor(this.effectiveLayout(), this.bookDirection())) {
+        for (const row of shortcutsFor(this.effectiveLayout(), this.bookDirection(), this.runMode())) {
             const keys = list.createEl("dt", { cls: c("reader-shortcuts-keys") });
             for (const key of row.keys) keys.createEl("kbd", { text: kbdCap(key) });
             list.createEl("dd", { cls: c("reader-shortcuts-label"), text: t(row.label) });

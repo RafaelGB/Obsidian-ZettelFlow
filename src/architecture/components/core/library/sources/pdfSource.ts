@@ -4,8 +4,9 @@ import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
-import { declared, isTextItem, openPdf, type PdfDocument, type PdfOutlineNode } from "./pdfjs";
-import type { DrawnChapter, SourceDocument, SourceView, SourceTocEntry } from "./sourceDocument";
+import { declared, isTextItem, openPdf, type PdfDocument, type PdfOutlineNode, type PdfPage } from "./pdfjs";
+import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
+import { resolveDest, shareDown } from "./pdfPageView";
 
 /** The widest a page is drawn at, in CSS pixels — the Reader's column, and a little more. */
 const PAGE_WIDTH = 760;
@@ -41,6 +42,114 @@ async function outlineOf(doc: PdfDocument): Promise<SourceTocEntry[]> {
     return out;
 }
 
+/** The labels the PDF gives its pages, when it gives them and they say more than the page's number. */
+async function labelsOf(doc: PdfDocument): Promise<string[] | null> {
+    try {
+        const labels = (await doc.getPageLabels?.()) ?? null;
+        if (!Array.isArray(labels) || labels.length !== doc.numPages) return null;
+        return labels.some((label, i) => label !== String(i + 1)) ? labels.map((label, i) => (typeof label === "string" && label.trim() ? label.trim() : String(i + 1))) : null;
+    } catch (error) {
+        log.debug(`[Library] no page labels: ${String(error)}`);
+        return null;
+    }
+}
+
+/** A canvas's 2D context — absent where the platform cannot draw one. */
+function contextOf(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+    return (canvas as Partial<HTMLCanvasElement>).getContext?.("2d") ?? null;
+}
+
+/** A cancelled drawing is not a failure: a page that left the screen was let go on purpose. */
+function quietCancel(error: unknown): void {
+    if (!/cancel/i.test(String(error))) throw error;
+}
+
+/**
+ * The printed pages of a PDF (#767): sizes read as they are asked for, its own labels, drawings that
+ * can be let go, and its links — where they sit and where they go. pdf.js stays behind this seam.
+ */
+function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null): SourcePages {
+    const sizes = new Map<number, Promise<{ width: number; height: number }>>();
+    const page = (index: number): Promise<PdfPage> => doc.getPage(index + 1);
+    const turn = (p: PdfPage, rotation: number) => (((p.rotate ?? 0) + rotation) % 360 + 360) % 360;
+    return {
+        count: doc.numPages,
+        first,
+        size(index: number) {
+            let known = sizes.get(index);
+            if (!known) {
+                known = page(index).then((p) => {
+                    const box = p.getViewport({ scale: 1 });
+                    return { width: box.width, height: box.height };
+                });
+                sizes.set(index, known);
+            }
+            return known;
+        },
+        label(index: number): string {
+            return labels?.[index] ?? String(index + 1);
+        },
+        render(index: number, canvas: HTMLCanvasElement, options: { scale: number; rotation: number }): SourcePageTask {
+            let cancelled = false;
+            let inner: { cancel(): void } | null = null;
+            const promise = (async () => {
+                const p = await page(index);
+                if (cancelled) return;
+                const viewport = p.getViewport({ scale: options.scale, rotation: turn(p, options.rotation) });
+                const context = contextOf(canvas);
+                if (!context) return;
+                canvas.width = Math.max(1, Math.round(viewport.width));
+                canvas.height = Math.max(1, Math.round(viewport.height));
+                const task = p.render({ canvasContext: context, viewport });
+                inner = task;
+                await task.promise.catch(quietCancel);
+            })();
+            return {
+                promise,
+                cancel: () => {
+                    cancelled = true;
+                    inner?.cancel();
+                },
+            };
+        },
+        async links(index: number, rotation: number): Promise<SourcePageLink[]> {
+            try {
+                const p = await page(index);
+                const annotations = (await p.getAnnotations?.({ intent: "display" })) ?? [];
+                const viewport = p.getViewport({ scale: 1, rotation: turn(p, rotation) });
+                const out: SourcePageLink[] = [];
+                for (const a of annotations) {
+                    if (a.subtype !== "Link" || !Array.isArray(a.rect) || !viewport.convertToViewportRectangle) continue;
+                    const url = a.url ?? a.unsafeUrl;
+                    if (!url && (a.dest === undefined || a.dest === null)) continue;
+                    const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(a.rect);
+                    const w = Math.max(1, viewport.width);
+                    const h = Math.max(1, viewport.height);
+                    const rect = { x: Math.min(x1, x2) / w, y: Math.min(y1, y2) / h, w: Math.abs(x2 - x1) / w, h: Math.abs(y2 - y1) / h };
+                    out.push(url ? { rect, url } : { rect, dest: a.dest });
+                }
+                return out;
+            } catch (error) {
+                log.debug(`[Library] no links on page ${index + 1}: ${String(error)}`);
+                return [];
+            }
+        },
+        async destination(dest: unknown, rotation?: (page: number) => number) {
+            const found = await resolveDest(dest, doc);
+            if (!found || found.page >= doc.numPages) return null;
+            if (found.top === undefined) return { page: found.page };
+            try {
+                const p = await page(found.page);
+                const upright = p.getViewport({ scale: 1, rotation: 0 });
+                const share = shareDown(found.top, upright, turn(p, rotation?.(found.page) ?? 0));
+                return share === undefined ? { page: found.page } : { page: found.page, share };
+            } catch {
+                return { page: found.page };
+            }
+        },
+    };
+}
+
 /** The section a page sits in: the last top-level outline entry at or before it. */
 function sectionOf(toc: readonly SourceTocEntry[], page: number): string | undefined {
     let found: string | undefined;
@@ -59,9 +168,11 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     const doc = await openPdf(app, file);
     const info: Record<string, unknown> = (await doc.getMetadata().catch(() => ({ info: {} }))).info ?? {};
     const toc = await outlineOf(doc);
+    // A paper's own page labels (#753 FR-7, #767): *p. iv* where it says iv.
+    const labels = await labelsOf(doc);
     const chapters = Array.from({ length: doc.numPages }, (_, i) => {
         const section = sectionOf(toc, i);
-        return { label: t("reader_source_page", String(i + 1)), ...(section ? { section } : {}) };
+        return { label: t("reader_source_page", labels?.[i] ?? String(i + 1)), ...(section ? { section } : {}) };
     });
     let imageOnly = imageOnlyKnown ?? false;
     if (imageOnlyKnown === undefined) {
@@ -99,8 +210,12 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         });
     };
 
+    const firstBox = doc.numPages > 0 ? (await doc.getPage(1)).getViewport({ scale: 1 }) : { width: 612, height: 792 };
+    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels);
+
     return {
         format: "pdf",
+        pages,
         path: file.path,
         title: declared(info.Title) ?? titleFromName(file.name),
         ...(declared(info.Author) ? { author: declared(info.Author) } : {}),

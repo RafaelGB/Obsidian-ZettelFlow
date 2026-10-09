@@ -1,7 +1,8 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { isFresh, normalizeLibrary, withBookmarks, withFacts, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import type { PageViewState } from "architecture/components/core/library/sources/pdfPageView";
 import type { Bookmark } from "./readerBookmarks";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import type { Thought } from "application/thinking/thought";
@@ -66,6 +67,21 @@ export function rememberSourceBookmarks(app: App, host: ReaderHost | undefined, 
     const stat = file instanceof TFile ? file.stat : undefined;
     settings.library = withBookmarks(normalizeLibrary(settings.library), path, list, stat?.size ?? 0, stat?.mtime ?? 0);
     void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the bookmark: ${String(error)}`));
+}
+
+/** How the paper is read in Page view (#767 FR-5): its zoom or fit, its direction, its turned pages. */
+export function keptPageView(host: ReaderHost | undefined, path: string): PageViewState {
+    return normalizeLibrary(host?.settings?.library)[path]?.view ?? {};
+}
+
+/** Keep how the paper is read in Page view, in plugin data beside its place — never in the PDF (L5). */
+export function rememberPageView(app: App, host: ReaderHost | undefined, path: string, view: PageViewState): void {
+    const settings = host?.settings;
+    if (!settings) return;
+    const file = app.vault.getAbstractFileByPath(path);
+    const stat = file instanceof TFile ? file.stat : undefined;
+    settings.library = withPageView(normalizeLibrary(settings.library), path, view, stat?.size ?? 0, stat?.mtime ?? 0);
+    void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the page view: ${String(error)}`));
 }
 
 /** The share of `chapter` a resume should land on, when that is the chapter the place was kept for. */

@@ -133,3 +133,245 @@
 .zettelkasten-flow__reader-hl-item--page {
     border-left-color: var(--color-orange);
 }
+
+/* ── Page view, grown up (#767): a run of printed pages drawn only where you look ── */
+
+/* The run takes the whole reading, not the column; it scrolls both ways once zoomed past the screen,
+   and the web view never zooms the app under a pinch — the run does (FR-2, FR-17). */
+.zettelkasten-flow__reader--page-run {
+    .zettelkasten-flow__reader-stage {
+        overflow: auto;
+        /* The scrollbar's room is kept from the first frame: a run laid out before it came would overflow. */
+        scrollbar-gutter: stable;
+        touch-action: pan-x pan-y;
+    }
+
+    .zettelkasten-flow__reader-stage > .zettelkasten-flow__reader-page {
+        max-width: none;
+        padding: var(--size-4-3) 0 var(--size-4-12);
+    }
+
+    .zettelkasten-flow__reader-body {
+        max-width: none;
+    }
+
+    .zettelkasten-flow__reader-source-hint,
+    .zettelkasten-flow__reader-source-banner,
+    .zettelkasten-flow__reader-next {
+        max-width: var(--reader-page-max);
+        margin-inline: auto;
+    }
+
+    .zettelkasten-flow__reader-source-hint,
+    .zettelkasten-flow__reader-source-banner {
+        margin-bottom: 0;
+    }
+}
+
+/* Sized to every page; only the slots near the screen are in it. A gesture moves it on the compositor:
+   three custom properties, no layout, no paint (FR-17). */
+.zettelkasten-flow__reader-pv-run {
+    position: relative;
+    width: var(--zf-run-w, 100%);
+    height: var(--zf-run-h, 0);
+    margin: 0 auto;
+    transform-origin: 0 0;
+    transform: translate(var(--zf-run-x, 0), var(--zf-run-y, 0)) scale(var(--zf-run-scale, 1));
+}
+
+.zettelkasten-flow__reader-pv-run--zooming {
+    will-change: transform;
+}
+
+/* A page waiting to be drawn is a blank sheet of its size with its number — paper, not a spinner (FR-23). */
+.zettelkasten-flow__reader-pv-slot {
+    position: absolute;
+    left: var(--zf-slot-x, 0);
+    top: var(--zf-slot-y, 0);
+    width: var(--zf-slot-w, 0);
+    height: var(--zf-slot-h, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+    user-select: none;
+}
+
+.zettelkasten-flow__reader-pv-slot-label {
+    color: var(--text-faint);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+}
+
+.zettelkasten-flow__reader-pv-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* A picture drawn before the page turned sits turned in its new slot until it is drawn upright (FR-21). */
+.zettelkasten-flow__reader-pv-canvas--turned {
+    inset: auto;
+    left: 50%;
+    top: 50%;
+    width: var(--zf-turn-w);
+    height: var(--zf-turn-h);
+    transform: translate(-50%, -50%) rotate(var(--zf-turn, 0deg));
+}
+
+.zettelkasten-flow__reader-pv-links {
+    position: absolute;
+    inset: 0;
+}
+
+/* A link in the paper shows as one under the pointer (FR-11); it is a button, never an anchor. */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-pv-link {
+    position: absolute;
+    left: var(--zf-link-x);
+    top: var(--zf-link-y);
+    width: var(--zf-link-w);
+    height: var(--zf-link-h);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-s);
+    background-color: transparent;
+    box-shadow: none;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: color-mix(in srgb, var(--text-accent) 14%, transparent);
+        box-shadow: inset 0 calc(-1 * var(--border-width)) 0 var(--text-accent);
+    }
+}
+
+/* The address of a link that leaves the paper, beside it, with *Copy link* (FR-12). */
+.zettelkasten-flow__reader-pv-outlink-says {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-pv-outlink-url {
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+    word-break: break-all;
+}
+
+/* The bar's zoom level, beside Page view: a click is *Fit width* (FR-13). */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-bar-zoom {
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--reader-fg);
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+/* Page view's group in the Type panel: its title, and the zoom between − and + (FR-13). */
+.zettelkasten-flow__reader-type-section {
+    margin-top: var(--size-4-2);
+    padding-top: var(--size-4-3);
+    border-top: var(--border-width) solid var(--reader-line);
+    color: var(--reader-fg);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-pv-zoom-row {
+    align-items: center;
+}
+
+.zettelkasten-flow__reader-pv-zoom-step {
+    display: inline-flex;
+    align-items: center;
+}
+
+.zettelkasten-flow__reader-pv-zoom-level {
+    min-width: var(--size-4-12);
+    text-align: center;
+    color: var(--reader-fg);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The *Pages* tab (FR-10): the pages at a glance, the current one marked, each with its label. */
+.zettelkasten-flow__reader-pv-thumbs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--size-4-12) * 2), 1fr));
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-pv-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--size-4-1);
+    height: auto;
+    padding: var(--size-2-2);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--radius-m);
+    background-color: transparent;
+    box-shadow: none;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__reader-pv-thumb-sheet {
+    position: relative;
+    aspect-ratio: 1 / var(--zf-thumb-ratio, 1.294);
+    overflow: hidden;
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+}
+
+.zettelkasten-flow__reader-pv-thumb-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* A landscape page in a portrait sheet keeps its shape. */
+    object-fit: contain;
+}
+
+.zettelkasten-flow__reader-pv-thumb-label {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+/* A thumbnail on its way to its page (FR-22): the paper, and the picture over it. */
+.zettelkasten-flow__reader-pv-ghost {
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+}

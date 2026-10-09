@@ -94,6 +94,7 @@ relations:
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
 | **B** | bookmark the place you are reading, or take away the bookmark on this screen (a book or a paper) |
 | **Alt+←** | back to where your last jump left from (a book or a paper) |
+| **Ctrl/⌘ +** / **−** / **0** | in a PDF's Page view: zoom in, zoom out, back to Fit width ([Page view](library.md#page-view)); elsewhere they stay Obsidian's |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
 | **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave deep reading, then leave the Reader |
 

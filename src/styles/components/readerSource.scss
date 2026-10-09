@@ -55,6 +55,45 @@
         text-decoration: none;
         cursor: text;
     }
+
+    /* An equation (#770): drawn by the platform at the reading size, in the theme's text colour. */
+    math {
+        font-size: inherit;
+        color: inherit;
+    }
+
+    /* A display equation: on its own line, centred, scrolling sideways rather than overflowing the
+       column — with room above and below, so a root or a script is never clipped. */
+    math[display="block"] {
+        margin: var(--size-4-2) 0;
+        padding: var(--size-4-1) 0;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        text-align: center;
+    }
+
+    /* A book's drawing: never wider than the column, with its own proportions; `currentColor` is
+       the theme's text colour. Its own colours are its content (FR-6). */
+    svg[data-zf-drawing] {
+        max-width: 100%;
+        height: auto;
+        color: inherit;
+    }
+}
+
+/* No mark goes inside an equation or a drawing: a highlight (in its meaning's ink) or a match tints
+   it whole. Never animated. */
+.zettelkasten-flow__reader-highlight-foreign {
+    background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-search-foreign {
+    background-color: var(--highlight-background, var(--text-highlight-bg));
+    border-radius: var(--radius-s);
+    outline: var(--size-2-1) solid var(--interactive-accent);
+    outline-offset: var(--size-2-1);
 }
 
 /* A page with no text to select: nothing dims, nothing is a reading line. */

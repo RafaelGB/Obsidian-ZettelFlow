@@ -194,6 +194,11 @@ export class ReaderHighlights {
      * selection away, and the words lost their highlight while you typed. Gone with the popover.
      */
     private pending: HTMLElement[] = [];
+    /**
+     * Equations and drawings a highlight covers (#770), by thought id (`pending` for the one being
+     * written): no mark goes inside one, so the whole equation or drawing is tinted instead.
+     */
+    private tints = new Map<string, HTMLElement[]>();
     /** The listeners of the popover on screen, gone with it. */
     private popoverScope: Component | null = null;
     /** The listeners of the margin's rows, replaced when it redraws. */
@@ -263,6 +268,7 @@ export class ReaderHighlights {
         this.component = component;
         this.margin = margin;
         this.anchored = [];
+        this.tints.clear();
         this.detached = [];
         this.renderMargin();
 
@@ -332,6 +338,7 @@ export class ReaderHighlights {
         this.locator = null;
         this.pageNotes = [];
         this.anchored = [];
+        this.tints.clear();
         this.detached = [];
         this.renderMargin();
     }
@@ -480,7 +487,7 @@ export class ReaderHighlights {
         const pop = this.openPopover(selection.rect, "editing");
         // Marked before the box takes focus — and the selection with it.
         if (this.body) {
-            this.pending = wrapSpan(this.body, span, () => this.makeMark("pending")) as unknown as HTMLElement[];
+            this.pending = wrapSpan(this.body, span, () => this.makeMark("pending"), this.tinter("pending", meaning)) as unknown as HTMLElement[];
             this.pending.forEach((mark) => mark.addClass(c("reader-highlight--pending"), c(`reader-highlight--${meaning}`)));
         }
         this.noteForm(pop, "", (text) => void this.keep(selection, span, quote, text, meaning));
@@ -489,6 +496,7 @@ export class ReaderHighlights {
     private clearPending(): void {
         this.pending.forEach((mark) => unwrapMark(mark));
         this.pending = [];
+        this.untint("pending");
     }
 
     /** A small form for a margin note: Ctrl/Cmd-Enter saves, Esc cancels. */
@@ -631,6 +639,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         entry?.marks.forEach((mark) => unwrapMark(mark));
+        this.untint(thought.id);
         this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== thought.id);
         this.detached = this.detached.filter((candidate) => candidate.id !== thought.id);
         this.renderMargin();
@@ -669,7 +678,7 @@ export class ReaderHighlights {
     private draw(thought: Thought, span: TextSpan): HTMLElement[] {
         const body = this.body;
         if (!body) return [];
-        const marks = wrapSpan(body, span, () => this.makeMark(thought.id)) as unknown as HTMLElement[];
+        const marks = wrapSpan(body, span, () => this.makeMark(thought.id), this.tinter(thought.id, meaningOf(thought))) as unknown as HTMLElement[];
         if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
         marks.forEach((mark) => mark.addClass(c(`reader-highlight--${meaningOf(thought)}`)));
         for (const mark of marks) {
@@ -681,6 +690,33 @@ export class ReaderHighlights {
             });
         }
         return marks;
+    }
+
+    /**
+     * Tint an equation or a drawing the highlight `id` covers, whole and in its meaning's ink (#770).
+     * Static: never animated.
+     */
+    private tinter(id: string, meaning: HighlightMeaning): (foreign: unknown) => void {
+        return (foreign) => {
+            const el = foreign as HTMLElement;
+            for (const other of HIGHLIGHT_MEANINGS) el.removeClass(c(`reader-highlight--${other}`));
+            el.addClass(c("reader-highlight-foreign"), c(`reader-highlight--${meaning}`));
+            const list = this.tints.get(id) ?? [];
+            list.push(el);
+            this.tints.set(id, list);
+        };
+    }
+
+    /** Take the tint of highlight `id` away — unless another highlight still covers the same root. */
+    private untint(id: string): void {
+        const list = this.tints.get(id);
+        this.tints.delete(id);
+        if (!list) return;
+        const still = new Set([...this.tints.values()].flat());
+        for (const el of list) {
+            if (still.has(el)) continue;
+            el.removeClass(c("reader-highlight-foreign"), ...HIGHLIGHT_MEANINGS.map((meaning) => c(`reader-highlight--${meaning}`)));
+        }
     }
 
     private insert(thought: Thought, marks: HTMLElement[], start: number): void {
@@ -797,7 +833,7 @@ export class ReaderHighlights {
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) {
             entry.thought = next;
-            for (const mark of entry.marks) {
+            for (const mark of [...entry.marks, ...(this.tints.get(thought.id) ?? [])]) {
                 for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
                 mark.addClass(c(`reader-highlight--${meaning}`));
             }

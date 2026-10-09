@@ -228,6 +228,38 @@ contents, nested as the book nests them.
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
 
+### Equations and drawings
+
+An EPUB 3 may write its **equations in MathML** and its **diagrams in inline SVG**. Both are drawn by
+the platform itself (Chromium on the desktop, WebKit on an iPad), so they follow your reading size
+and stay sharp at any zoom.
+
+![Equations and drawings in a book: an inline fraction in a sentence under a highlight that tints the whole equation, a centred display equation with a square root, and a labelled diagram fitted to the column, its label found by search](../resources/library/epub-equations.svg)
+
+- **An equation is an equation.** Presentation MathML is kept — fractions, roots, scripts,
+  under/over, tables, fences and spacing — inline in a sentence or as a display equation on its own
+  line, centred, in your theme's text colour. Content MathML and every annotation (the TeX source a
+  converter leaves behind) are dropped; an equation that is only Content MathML is shown as its
+  alternative text, or else its words — never as an empty gap. The `alttext` is kept for screen
+  readers.
+- **A drawing is there.** Inline SVG is kept and scaled to the column, never wider than it, with its
+  own proportions. Shapes, paths, labels, groups, gradients, patterns, clip paths, markers and
+  pictures *from inside the book* are kept, with the drawing's own colours (a chart's legend means
+  something); a drawing that uses the current colour takes your theme's text colour. Colours an
+  editor wrote in a `style` attribute are kept as the drawing's colours; the `style` itself is not.
+- **Nothing in it runs, moves or reaches the network.** Scripts, `foreignObject`, event handlers,
+  `style` elements, filters, masks and animation are dropped with everything inside them — the page
+  is still, as a page should be. A reference may only name something inside the same drawing; a
+  `use`, a picture or a paint that points anywhere else is dropped. A link to a place in the book
+  is followed like any link in the book; one that leaves the book is its text and nothing else.
+- **The cover keeps working.** A cover drawn as `<svg><image/></svg>` (with at most a title, a
+  description or empty definitions beside it) is still shown as a plain picture.
+- **Search and highlights see their words.** Search finds a word in a diagram's label and tints the
+  drawing. A highlight across an inline equation keeps the equation's characters in its quote and
+  tints the whole equation — no mark is drawn inside one. Selecting part of a drawing, or part of an
+  equation, is not supported. A highlight made before this release whose quote held an equation's
+  TeX source may now be listed as *detached*: it is never drawn in the wrong place.
+
 ## The book notebook
 
 Everything you marked in one book, in one place. Open it from the book's detail (**⋯ → Notebook**)
@@ -294,7 +326,7 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
-| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, SVG scripts, remote images, runaway nesting); an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter |
+| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
 | `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
@@ -337,6 +369,13 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
     the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
     Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.
+    In a book with MathML and inline SVG: a fraction is drawn as a fraction inside its sentence, a
+    display equation sits centred on its own line, and a diagram is drawn no wider than the column, in
+    your theme's text colour where it uses the current colour. Search for a diagram's label: it is
+    found and the drawing is tinted. Highlight a sentence holding an inline equation: the equation is
+    tinted whole and its characters are in the quote. A book whose chapter holds a script or a
+    `foreignObject` inside an SVG shows neither, and the developer tools' network panel shows nothing
+    fetched.
 11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
     the title → **Create**. Expect a new note quoting the passage, ending with
     `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click

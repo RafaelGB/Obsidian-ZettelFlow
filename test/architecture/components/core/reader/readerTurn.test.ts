@@ -201,4 +201,26 @@ describe("a turning sheet in pages (#753 T9)", () => {
         expect(copy.textContent).toBe("Cut across the break.");
         expect(copy.cssProps["--zf-turn-y"]).toBe("0px");
     });
+
+    it("carries a drawing and an equation into the sheet, in their namespaces (#770)", () => {
+        rec = recordAnimations();
+        const { root, stage, page } = paged();
+        const box = (el: DomNode, top: number) => {
+            (el as unknown as { getBoundingClientRect: () => unknown }).getBoundingClientRect = () => ({ left: 200, top, width: 600, height: 40 });
+            return el;
+        };
+        box(page.createSvg("svg", { attr: { "data-zf-drawing": "true" } }), 120).createSvg("circle");
+        // MathML: Obsidian gives HTML and SVG elements setCssProps, never an equation.
+        const math = box(new DomNode("math"), 180);
+        math.namespaceURI = "http://www.w3.org/1998/Math/MathML";
+        (math as unknown as { setCssProps?: unknown }).setCssProps = undefined;
+        page.appendChild(math);
+        expect(() => playChapterTurn(root as never, stage as never, page as never, "stack", 1)).not.toThrow();
+        const sheet = sheetOf(root);
+        expect(sheet.find((el) => el.tag === "svg")?.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        const copied = sheet.find((el) => el.tag === "math");
+        expect(copied?.namespaceURI).toBe("http://www.w3.org/1998/Math/MathML");
+        // Placed by a holder, since the equation itself cannot be.
+        expect(copied?.parent?.cssProps["--zf-turn-y"]).toBe("180px");
+    });
 });

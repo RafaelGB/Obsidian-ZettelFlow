@@ -404,6 +404,8 @@ export class ReaderView extends ItemView {
     private searchResult: SearchResult | null = null;
     private searchAt = -1;
     private searchMarks: HTMLElement[] = [];
+    /** Equations and drawings a match is in (#770): tinted whole, since no mark goes inside one. */
+    private searchTints: HTMLElement[] = [];
     /** The current match is brought into view: a travel in the chapter on screen, or landed in a new one. */
     private searchReveal: "travel" | "land" | null = null;
     private searchTimer: number | undefined;
@@ -2609,13 +2611,25 @@ export class ReaderView extends ItemView {
         let currentMark: HTMLElement | null = null;
         for (let k = spans.length - 1; k >= 0; k--) {
             const isCurrent = k === ordinal;
-            const marks = wrapSpan(body, spans[k], () => {
-                const mark = body.createSpan({ cls: [c("reader-search-hit"), ...(isCurrent ? [c("reader-search-hit--current")] : [])].join(" ") });
-                mark.remove();
-                return mark;
-            }) as unknown as HTMLElement[];
+            let foreign: HTMLElement | null = null;
+            const marks = wrapSpan(
+                body,
+                spans[k],
+                () => {
+                    const mark = body.createSpan({ cls: [c("reader-search-hit"), ...(isCurrent ? [c("reader-search-hit--current")] : [])].join(" ") });
+                    mark.remove();
+                    return mark;
+                },
+                (root) => {
+                    const el = root as unknown as HTMLElement;
+                    el.addClass(c("reader-search-foreign"));
+                    this.searchTints.push(el);
+                    foreign ??= el;
+                }
+            ) as unknown as HTMLElement[];
             this.searchMarks.push(...marks);
-            if (isCurrent && marks[0]) currentMark = marks[0];
+            // A word in a drawing's label has no mark of its own: the drawing is where it is.
+            if (isCurrent) currentMark = marks[0] ?? foreign;
         }
         if (currentMark && this.searchReveal) this.scrollToEl(currentMark, this.searchReveal === "travel");
         this.searchReveal = null;
@@ -2624,6 +2638,8 @@ export class ReaderView extends ItemView {
     private unmarkSearch(): void {
         for (const mark of this.searchMarks) unwrapMark(mark);
         this.searchMarks = [];
+        for (const el of this.searchTints) el.removeClass(c("reader-search-foreign"));
+        this.searchTints = [];
     }
 
     private closeSearch(): void {

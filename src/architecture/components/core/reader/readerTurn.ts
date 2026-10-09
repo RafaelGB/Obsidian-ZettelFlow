@@ -79,11 +79,23 @@ function piecesOf(el: Element): Box[] {
  * copied once per piece on screen, clipped to that piece and lifted by what the pieces before it held,
  * so its lines fall where they are. Anything else in view is copied whole, at its own place and width.
  */
+/** Whether the turn can place an element itself: Obsidian gives HTML and SVG `setCssProps`, not MathML. */
+function placeable(el: Element): boolean {
+    return typeof (el as HTMLElement).setCssProps === "function";
+}
+
 function copyVisible(node: HTMLElement, into: HTMLElement, view: Box, depth = 0): void {
     const origin = rectOf(node);
     for (const child of Array.from(node.children) as HTMLElement[]) {
         const box = rectOf(child);
         if (box.height === 0 || !inView(box, view)) continue;
+        if (!placeable(child)) {
+            // A display equation (#770): copied whole, placed by a holder of its own.
+            const holder = into.createDiv();
+            place(holder, box, origin, false);
+            holder.appendChild(child.cloneNode(true));
+            continue;
+        }
         const pieces = piecesOf(child);
         const wrapper = child.children.length > 0 && (box.height > view.height * 2 || pieces.length > 2);
         if (depth < 4 && wrapper) {

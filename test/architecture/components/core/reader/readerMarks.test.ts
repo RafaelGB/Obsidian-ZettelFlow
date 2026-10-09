@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { chapterText, textNodes, unwrapMark, wrapSpan, type ParentLike } from "architecture/components/core/reader/readerMarks";
+import { chapterText, readableText, textNodes, unwrapMark, wrapSpan, type ParentLike } from "architecture/components/core/reader/readerMarks";
 import { FakeEl } from "../../../../support/textDom";
 
 /** <p>Event sourcing <a>stores</a> changes, not <b>state</b>.</p><p>Next one.</p> */
@@ -83,5 +83,40 @@ describe("drawing a highlight over rendered markdown (#671)", () => {
     it("draws nothing for a span outside the text", () => {
         const root = chapter();
         expect(wrapSpan(root as never, { start: 500, end: 510 }, makeMark)).toEqual([]);
+    });
+});
+
+describe("a book's equations and drawings, as highlights and search see them (#770)", () => {
+    const drawing = (...labels: string[]) => {
+        const svg = new FakeEl("svg", labels.map((label) => new FakeEl("text", [label])));
+        svg.attrs["data-zf-drawing"] = "true";
+        return svg;
+    };
+
+    it("reads a book's drawing, flagged by the sanitiser, and never an icon of the app", () => {
+        const root = new FakeEl("div", [new FakeEl("p", ["See "]), drawing("Input", "Output"), new FakeEl("svg", ["an icon"])]);
+        expect(chapterText(root as never)).toBe("See InputOutput");
+        // Two labels are two words to a search.
+        expect(readableText(root as never)).toBe("See Input Output");
+    });
+
+    it("never wraps a mark inside an equation: it tints the whole equation, and the text is unchanged", () => {
+        const math = new FakeEl("math", [new FakeEl("mi", ["x"])]);
+        const root = new FakeEl("div", [new FakeEl("p", ["a ", math, " b"])]);
+        const before = chapterText(root as never);
+        const foreign: unknown[] = [];
+        const marks = wrapSpan(root as never, { start: 0, end: before.length }, makeMark, (el) => foreign.push(el));
+        expect(marks).toHaveLength(2);
+        expect(math.all("mark")).toHaveLength(0);
+        expect(foreign).toEqual([math]);
+        expect(chapterText(root as never)).toBe(before);
+    });
+
+    it("tints a drawing once, however many of its labels the span covers", () => {
+        const svg = drawing("In", "Out");
+        const root = new FakeEl("div", [svg]);
+        const foreign: unknown[] = [];
+        expect(wrapSpan(root as never, { start: 0, end: 5 }, makeMark, (el) => foreign.push(el))).toEqual([]);
+        expect(foreign).toEqual([svg]);
     });
 });

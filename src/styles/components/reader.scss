@@ -1291,7 +1291,9 @@ button.zettelkasten-flow__reader-note-pop-go {
     --zf-ink-solid: var(--color-purple);
 }
 
-.zettelkasten-flow__reader-highlight {
+/* `mark.` so the meaning's ink wins over Obsidian's own `.markdown-rendered mark` (1.14): an
+   equation the highlight tints whole (#770) takes the same ink as the words beside it. */
+mark.zettelkasten-flow__reader-highlight {
     background-color: var(--zf-ink, var(--text-highlight-bg));
     color: inherit;
     border-radius: var(--radius-s);

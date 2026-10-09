@@ -42,6 +42,9 @@ export class DomNode {
     cssProps: Record<string, string> = {};
     private detached = false;
 
+    /** The element's namespace (#770): XHTML, unless made by `createSvg` (or set by a test). */
+    namespaceURI: string | null = "http://www.w3.org/1999/xhtml";
+
     constructor(tag = "div") {
         this.tag = tag;
     }
@@ -88,6 +91,7 @@ export class DomNode {
         }
         const el = this.createEl(tag, { ...options, cls: Array.isArray(options.cls) ? options.cls.join(" ") : options.cls });
         el.svg = true;
+        el.namespaceURI = "http://www.w3.org/2000/svg";
         // Like Obsidian: only HTML elements have isShown(); an SVG element does not.
         el.isShown = undefined;
         return el;

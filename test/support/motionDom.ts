@@ -77,6 +77,10 @@ function cloneNode(this: DomNode, deep = false): DomNode {
     copy.classes = new Set(this.classes);
     copy.text = this.text;
     copy.cssProps = { ...this.cssProps };
+    // An equation and a drawing keep their namespace (#770); MathML has no `setCssProps` (see the turn).
+    copy.namespaceURI = this.namespaceURI;
+    copy.svg = this.svg;
+    if (Object.prototype.hasOwnProperty.call(this, "setCssProps")) (copy as any).setCssProps = (this as any).setCssProps;
     if (deep) for (const child of this.children) copy.appendChild(cloneNode.call(child, true));
     return copy;
 }

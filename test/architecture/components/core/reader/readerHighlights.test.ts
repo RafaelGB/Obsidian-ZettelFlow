@@ -51,11 +51,10 @@ function memoryStore(initial: Thought[] = []) {
     return store;
 }
 
-function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}) {
+function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body: FakeEl = chapter()) {
     const store = memoryStore(initial);
     const host = new DomNode();
     const margin = new DomNode();
-    const body = chapter();
     const owner = new Component();
     const component = new Component();
     let selection: SelectionInfo | null = null;
@@ -438,5 +437,36 @@ describe("a touch selection, beside the system's menu (#750)", () => {
         expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(false);
         expect(pop.cssProps["--zf-hl-y"]).toBe("200px");
         expect(m.labels()).toContain("Copy");
+    });
+});
+
+describe("a highlight across an equation (#770 AC-6)", () => {
+    const FOREIGN = "zettelkasten-flow__reader-highlight-foreign";
+    /** <p>Euler wrote <math><mi>e</mi><mo>=</mo><mn>1</mn></math> once.</p> */
+    function withEquation() {
+        const math = new FakeEl("math", [new FakeEl("mi", ["e"]), new FakeEl("mo", ["="]), new FakeEl("mn", ["1"])]);
+        return { math, body: new FakeEl("div", [new FakeEl("p", ["Euler wrote ", math, " once."])]) };
+    }
+
+    it("keeps the equation's characters in the quote, tints the equation whole, and clears it with the highlight", async () => {
+        const { math, body } = withEquation();
+        const m = mount([], {}, body);
+        await m.attach();
+        m.select("wrote e=1 once");
+        m.body.fire("mouseup");
+        m.button("Quote").click();
+        await flush();
+        const quote = m.store.write.mock.calls[0][1].quote as ThoughtQuote;
+        expect(quote.exact).toBe("wrote e=1 once");
+        expect(math.all("mark")).toHaveLength(0);
+        expect(m.marks().map((mark) => mark.textContent)).toEqual(["wrote ", " once"]);
+        expect(math.hasClass(FOREIGN)).toBe(true);
+        // In the highlight's own ink, as its marks are.
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(true);
+        m.button("Undo").click();
+        await flush();
+        expect(math.hasClass(FOREIGN)).toBe(false);
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(false);
+        expect(m.marks()).toHaveLength(0);
     });
 });

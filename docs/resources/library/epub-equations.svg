@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Equations and drawings in an EPUB: a sentence with an inline fraction under a highlight that tints the whole equation, a centred display equation with a square root, and a labelled diagram fitted to the column, its label found by search">
+<rect width="1200" height="820" fill="#141416"/>
+<rect x="30" y="20" width="1140" height="780" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="52" cy="40" r="5.5" fill="#fb464c" />
+<circle cx="70" cy="40" r="5.5" fill="#e9973f" />
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e" />
+<text x="600.0" y="45" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="31" y="61" width="1138" height="738" fill="#151517" />
+<text x="60" y="92" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.8">A SMALL PHYSICS  ·  OPEN TEXTBOOK</text>
+<text x="1142" y="94" fill="#5f6168" font-family="sans-serif" font-size="20" text-anchor="middle">×</text>
+<rect x="31" y="61" width="240" height="3" fill="#7f6df2" />
+<rect x="430" y="104" width="340" height="34" rx="10" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1" />
+<text x="452" y="126" fill="#dcddde" font-family="sans-serif" font-size="13">input</text>
+<text x="752" y="126" fill="#8b8e94" font-family="sans-serif" font-size="12" text-anchor="end">1 result · in 1 chapter</text>
+<text x="600" y="176" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle" letter-spacing="2">CHAPTER 4 / 12</text>
+<text x="330" y="222" fill="#dcddde" font-family="Georgia, serif" font-size="30" font-weight="700">Rates and roots</text>
+<text x="330" y="266" fill="#dcddde" font-family="Georgia, serif" font-size="16.5">When a quantity changes, what we usually care about is its rate:</text>
+<rect x="328" y="282" width="244" height="44" rx="3" fill="#e0a351" fill-opacity="0.32"/>
+<text x="330" y="310" fill="#dcddde" font-family="Georgia, serif" font-size="16.5">the speed is the ratio</text>
+<rect x="502" y="284" width="68" height="40" rx="4" fill="#e0a351" fill-opacity="0.22" stroke="#e0a351" stroke-opacity="0.5" stroke-width="1"/>
+<text x="536" y="300" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-style="italic" text-anchor="middle">Δx</text>
+<line x1="514" y1="305" x2="558" y2="305" stroke="#dcddde" stroke-width="1.2"/>
+<text x="536" y="321" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-style="italic" text-anchor="middle">Δt</text>
+<text x="580" y="310" fill="#dcddde" font-family="Georgia, serif" font-size="16.5">over a short time, and it reads inside</text>
+<text x="330" y="346" fill="#dcddde" font-family="Georgia, serif" font-size="16.5">the sentence like any other word.</text>
+<text x="860" y="300" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">the highlight tints the</text>
+<text x="860" y="316" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">equation whole; its quote</text>
+<text x="860" y="332" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">keeps “Δx Δt”</text>
+<text x="550" y="420" fill="#dcddde" font-family="Georgia, serif" font-size="22" font-style="italic">v</text>
+<text x="572" y="420" fill="#dcddde" font-family="Georgia, serif" font-size="22">=</text>
+<path d="M600 408 l6 -4 l8 22 l12 -44 h70" fill="none" stroke="#dcddde" stroke-width="1.6"/>
+<text x="632" y="420" fill="#dcddde" font-family="Georgia, serif" font-size="22">2</text>
+<text x="648" y="420" fill="#dcddde" font-family="Georgia, serif" font-size="22" font-style="italic">g h</text>
+<text x="860" y="414" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">a display equation, centred</text>
+<rect x="400" y="460" width="400" height="200" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1" />
+<rect x="430" y="520" width="110" height="60" rx="8" fill="none" stroke="#7f6df2" stroke-width="1.6"/>
+<rect x="452" y="536" width="66" height="28" rx="4" fill="#e0a351" fill-opacity="0.22" stroke="#7f6df2" stroke-width="2"/>
+<text x="485" y="555" fill="#dcddde" font-family="sans-serif" font-size="14" text-anchor="middle">Input</text>
+<line x1="540" y1="550" x2="640" y2="550" stroke="#8b8e94" stroke-width="1.6"/>
+<path d="M640 550 l-10 -6 v12 z" fill="#8b8e94"/>
+<circle cx="700" cy="550" r="50" fill="#44cf6e" fill-opacity="0.18" stroke="#44cf6e" stroke-width="1.6"/>
+<text x="700" y="555" fill="#dcddde" font-family="sans-serif" font-size="14" text-anchor="middle">Output</text>
+<text x="600" y="640" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">Figure 4.2 · the book's own colours, fitted to the column</text>
+<text x="860" y="550" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">search finds a label;</text>
+<text x="860" y="566" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic">nothing in it runs or loads</text>
+<rect x="370" y="728" width="460" height="46" rx="14" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1" />
+<text x="396" y="757" fill="#8b8e94" font-family="sans-serif" font-size="20" text-anchor="middle">‹</text>
+<text x="460" y="756" fill="#8b8e94" font-family="sans-serif" font-size="12.5" text-anchor="middle">Chapter 4 of 12</text>
+<rect x="520" y="749" width="130" height="4" rx="2" fill="#3a3a3a" />
+<rect x="520" y="749" width="43" height="4" rx="2" fill="#7f6df2" />
+<text x="668" y="757" fill="#8b8e94" font-family="sans-serif" font-size="20" text-anchor="middle">›</text>
+<text x="752" y="757" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Aa</text>
+<text x="800" y="756" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">9 min</text>
+</svg>

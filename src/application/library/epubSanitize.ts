@@ -1,4 +1,21 @@
 import { fragmentOf, leavesTheBook, resolveHref } from "./epubPackage";
+import {
+    MATH_DROP,
+    MATH_ELEMENTS,
+    MATH_TOKENS,
+    MAX_ALTTEXT,
+    MAX_USE,
+    SVG_TEXT,
+    localRef,
+    mathAttribute,
+    promoteStyle,
+    scopedId,
+    svgAttributeName,
+    svgDropped,
+    svgElementName,
+    svgValue,
+    type SvgValue,
+} from "./epubForeign";
 
 /**
  * **A book's chapter, rebuilt node by node** (#682, epic #675, L4) — pure.
@@ -13,8 +30,9 @@ import { fragmentOf, leavesTheBook, resolveHref } from "./epubPackage";
  * - **No look of its own** — no `style`, no `class`: the book reads in your theme (§XV).
  * - **No network** (L1) — an image is only ever a file inside the book, handed back as its path for
  *   the caller to read from the archive; a link either stays in the book or is not a link.
- * - **No SVG** — except the one thing a book uses it for, a cover drawn as `<svg><image/></svg>`,
- *   which becomes a plain image.
+ * - **Only SVG and MathML that draw** (#770) — presentation MathML and inline SVG are rebuilt from
+ *   their own closed lists (`epubForeign`): no script, `foreignObject`, `style`, animation, or any
+ *   reference that leaves the drawing. A cover drawn as `<svg><image/></svg>` is still a plain image.
  *
  * An element that is not allowed but is harmless (`<nav>`, `<center>`, an unknown tag) gives up its
  * tag and keeps its text; one that is dangerous goes with everything inside it.
@@ -35,7 +53,8 @@ export interface SourceNode {
 
 /** How the clean chapter is built — `createEl` in the app, a recorder in the tests. */
 export interface ChapterBuilder<E> {
-    element(parent: E, tag: string, attrs: Record<string, string>): E;
+    /** `ns` is set for an element of an equation (`math`) or a drawing (`svg`); absent for HTML. */
+    element(parent: E, tag: string, attrs: Record<string, string>, ns?: "svg" | "math"): E;
     text(parent: E, text: string): void;
 }
 
@@ -111,6 +130,335 @@ function imageIn(chapterHref: string, src: string): string | null {
     return resolveHref(chapterHref, src);
 }
 
+/** An id a link (or a drawing's own reference) can name. */
+const ID = /^[\w.:-]{1,120}$/;
+
+/** The HTML an equation may hold (a `span` in an `mi`): it gives up its tag and keeps its text. */
+const HTML_NAMES: ReadonlySet<string> = new Set([...KEEP, ...Object.keys(RENAME)]);
+
+/** What the foreign walkers share with the chapter's: the builder, the budget, where the chapter is. */
+interface Foreign<E> {
+    builder: ChapterBuilder<E>;
+    result: SanitizeResult;
+    chapterHref: string;
+    /** `use` kept so far in the chapter (at most `MAX_USE`). */
+    uses: number;
+}
+
+/** One drawing being rebuilt: its number (for scoped ids) and the ids it declares. */
+interface Drawing {
+    draw: number;
+    ids: Map<string, SourceNode>;
+    holdsUse: Map<SourceNode, boolean>;
+}
+
+function elementChildren(node: SourceNode): SourceNode[] {
+    const out: SourceNode[] = [];
+    for (let i = 0; i < node.childNodes.length; i++) if (node.childNodes[i].nodeType === ELEMENT) out.push(node.childNodes[i]);
+    return out;
+}
+
+function rawAttr(node: SourceNode, name: string): string | null {
+    return node.getAttribute?.(name) ?? attributesOf(node).find((a) => a.name === name)?.value ?? null;
+}
+
+function hrefOf(node: SourceNode): string {
+    return attr(node, "href") || attr(node, "xlink:href");
+}
+
+/** A link inside the book, as the place it names (`path#fragment`). */
+function placeIn(chapterHref: string, href: string): string {
+    const fragment = fragmentOf(href);
+    const inside = href.startsWith("#") ? chapterHref : resolveHref(chapterHref, href);
+    return fragment ? `${inside}#${fragment}` : inside;
+}
+
+// ── MathML ───────────────────────────────────────────────────────────────
+
+function mathAttrs(node: SourceNode): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const { name, value } of attributesOf(node)) {
+        const kept = mathAttribute(name, value);
+        if (kept) out[kept[0]] = kept[1];
+        const key = name.toLowerCase();
+        if ((key === "id" || key === "xml:id") && ID.test(value)) out["data-zf-id"] = value;
+    }
+    return out;
+}
+
+/** The child of `maction` it shows: its `selection`-th (1 by default). */
+function selected(node: SourceNode): SourceNode | undefined {
+    const kids = elementChildren(node);
+    const n = parseInt(attr(node, "selection"), 10);
+    return kids[(n >= 1 ? n : 1) - 1] ?? kids[0];
+}
+
+/** Whether an element of an equation draws anything once cleaned (FR-3). */
+function mathDrawsOne(node: SourceNode, depth: number): boolean {
+    if (depth >= MAX_DEPTH) return false;
+    const name = nameOf(node);
+    if (MATH_ELEMENTS.has(name) && name !== "math") return true;
+    if (name === "mfenced" || name === "mlabeledtr") return true;
+    if (name === "semantics") {
+        const first = elementChildren(node)[0];
+        return first ? mathDrawsOne(first, depth + 1) : false;
+    }
+    if (name === "maction") {
+        const one = selected(node);
+        return one ? mathDrawsOne(one, depth + 1) : false;
+    }
+    if (DROP.has(name) || MATH_DROP.has(name)) return false;
+    if (name === "math" || HTML_NAMES.has(name)) return elementChildren(node).some((child) => mathDrawsOne(child, depth + 1));
+    return false;
+}
+
+/** An equation's words, for one that draws nothing: never its annotations' TeX. */
+function mathText(node: SourceNode, depth = 0): string {
+    if (depth >= MAX_DEPTH) return "";
+    let out = "";
+    for (let i = 0; i < node.childNodes.length && out.length < 2000; i++) {
+        const child = node.childNodes[i];
+        if (child.nodeType === TEXT || child.nodeType === CDATA) out += child.data ?? child.textContent ?? "";
+        else if (child.nodeType === ELEMENT) {
+            const name = nameOf(child);
+            if (!MATH_DROP.has(name) && !DROP.has(name) && name !== "svg") out += mathText(child, depth + 1);
+        }
+    }
+    return out.slice(0, 2000);
+}
+
+function sanitizeEquation<E>(math: SourceNode, into: E, f: Foreign<E>, depth: number): void {
+    if (f.result.elements >= MAX_ELEMENTS) return;
+    if (!elementChildren(math).some((child) => mathDrawsOne(child, depth + 1))) {
+        // Nothing the platform could draw (Content MathML only): its words, as plain text (FR-3).
+        const text = attr(math, "alttext").slice(0, MAX_ALTTEXT) || mathText(math).trim();
+        if (text) f.builder.text(into, text);
+        return;
+    }
+    f.result.elements++;
+    mathWalk(math, f.builder.element(into, "math", mathAttrs(math), "math"), f, depth + 1, false);
+}
+
+function mathWalk<E>(node: SourceNode, into: E, f: Foreign<E>, depth: number, inToken: boolean): void {
+    for (let i = 0; i < node.childNodes.length; i++) {
+        if (f.result.elements >= MAX_ELEMENTS) return;
+        const child = node.childNodes[i];
+        if (child.nodeType === TEXT || child.nodeType === CDATA) {
+            const text = child.data ?? child.textContent ?? "";
+            // Only a token's text is drawn; the whitespace between elements is not the equation's.
+            if (text && (inToken || text.trim())) f.builder.text(into, text);
+        } else if (child.nodeType === ELEMENT) mathOne(child, into, f, depth, inToken);
+    }
+}
+
+function mathOne<E>(node: SourceNode, into: E, f: Foreign<E>, depth: number, inToken: boolean): void {
+    if (depth >= MAX_DEPTH || f.result.elements >= MAX_ELEMENTS) return;
+    const name = nameOf(node);
+    if (MATH_DROP.has(name) || name === "svg" || DROP.has(name)) return;
+    const make = (tag: string, attrs: Record<string, string>, under: E = into): E => {
+        f.result.elements++;
+        return f.builder.element(under, tag, attrs, "math");
+    };
+    if (name === "semantics") {
+        const first = elementChildren(node)[0];
+        if (first) mathOne(first, into, f, depth + 1, inToken);
+        return;
+    }
+    if (name === "maction") {
+        const one = selected(node);
+        if (one) mathOne(one, into, f, depth + 1, inToken);
+        return;
+    }
+    if (name === "mfenced") {
+        // MathML Core does not draw mfenced: a row between its fences, its separators drawn.
+        const row = make("mrow", mathAttrs(node));
+        const fence = (text: string) => {
+            if (!text || f.result.elements >= MAX_ELEMENTS) return;
+            f.builder.text(make("mo", {}, row), text);
+        };
+        const open = (rawAttr(node, "open") ?? "(").trim().slice(0, 4);
+        const close = (rawAttr(node, "close") ?? ")").trim().slice(0, 4);
+        const separators = Array.from((rawAttr(node, "separators") ?? ",").replace(/\s/g, "")).slice(0, 32);
+        const kids = elementChildren(node);
+        fence(open);
+        kids.forEach((kid, i) => {
+            mathOne(kid, row, f, depth + 1, inToken);
+            if (i < kids.length - 1 && separators.length > 0) fence(separators[Math.min(i, separators.length - 1)]);
+        });
+        fence(close);
+        return;
+    }
+    if (name === "mlabeledtr") {
+        // A numbered row: the row, without its label cell.
+        const row = make("mtr", mathAttrs(node));
+        for (const kid of elementChildren(node).slice(1)) mathOne(kid, row, f, depth + 1, inToken);
+        return;
+    }
+    if (MATH_ELEMENTS.has(name) && name !== "math") {
+        mathWalk(node, make(name, mathAttrs(node)), f, depth + 1, inToken || MATH_TOKENS.has(name));
+        return;
+    }
+    // HTML inside an equation (or an equation inside one): its text, without its element.
+    if (name === "math" || HTML_NAMES.has(name)) mathWalk(node, into, f, depth + 1, inToken);
+    // Anything else — Content MathML, an unknown element — goes with what is inside it.
+}
+
+// ── SVG ──────────────────────────────────────────────────────────────────
+
+/** Drawings rebuilt so far: each one's ids are scoped by its number, never reused (a chapter turn). */
+let drawings = 0;
+
+/**
+ * The pictures of a cover drawn as SVG (FR-7): when the only things it draws are `image` elements
+ * (beside `title`, `desc`, `defs` and what is dropped anyway), each is handed to `each` and the
+ * answer is `true`. Anything else that draws makes it a drawing.
+ */
+function coverPictures(svg: SourceNode, each: (picture: SourceNode) => void): boolean {
+    const pictures: SourceNode[] = [];
+    let draws = false;
+    const visit = (node: SourceNode, depth: number) => {
+        if (depth > 8) return;
+        for (const child of elementChildren(node)) {
+            const name = nameOf(child);
+            if (svgDropped(name) || name === "title" || name === "desc" || name === "defs") continue;
+            if (name === "image") pictures.push(child);
+            else if (name === "g" || name === "a" || name === "switch") visit(child, depth + 1);
+            else draws = true;
+        }
+    };
+    visit(svg, 0);
+    if (draws || pictures.length === 0) return false;
+    pictures.forEach(each);
+    return true;
+}
+
+/** Every id a drawing declares on an element it keeps — the only things its references may name. */
+function drawingIds(svg: SourceNode): Map<string, SourceNode> {
+    const ids = new Map<string, SourceNode>();
+    const visit = (node: SourceNode, depth: number) => {
+        const id = attr(node, "id") || attr(node, "xml:id");
+        if (id && ID.test(id) && !ids.has(id)) ids.set(id, node);
+        if (depth >= MAX_DEPTH) return;
+        for (const child of elementChildren(node)) if (svgElementName(nameOf(child))) visit(child, depth + 1);
+    };
+    visit(svg, 0);
+    return ids;
+}
+
+/** Whether a `use`'s target is, or holds, a `use`: nested `use` could expand without end. */
+function holdsUse(node: SourceNode, d: Drawing, depth = 0): boolean {
+    const known = d.holdsUse.get(node);
+    if (known !== undefined) return known;
+    const answer =
+        nameOf(node) === "use" ||
+        (depth < MAX_DEPTH && elementChildren(node).some((child) => svgElementName(nameOf(child)) !== null && holdsUse(child, d, depth + 1)));
+    d.holdsUse.set(node, answer);
+    return answer;
+}
+
+/** A kept value, its reference into the drawing scoped — or `null` when it names nothing inside it. */
+function resolved(kept: SvgValue, d: Drawing): string | null {
+    if (!kept.ref) return kept.value;
+    if (d.ids.has(kept.ref)) return `url(#${scopedId(d.draw, kept.ref)})${kept.fallback ? ` ${kept.fallback}` : ""}`;
+    return kept.fallback ?? kept.missing ?? null;
+}
+
+function svgAttrs(node: SourceNode, d: Drawing): Record<string, string> {
+    const out: Record<string, string> = {};
+    let style = "";
+    for (const { name, value } of attributesOf(node)) {
+        const lower = name.toLowerCase();
+        if (lower === "style") {
+            style = value;
+            continue;
+        }
+        if (lower === "id" || lower === "xml:id") {
+            if (d.ids.get(value) === node) {
+                out.id = scopedId(d.draw, value);
+                out["data-zf-id"] = value;
+            }
+            continue;
+        }
+        const canonical = svgAttributeName(name);
+        const kept = canonical ? svgValue(canonical, value) : null;
+        const final = kept ? resolved(kept, d) : null;
+        if (canonical && final !== null) out[canonical] = final;
+    }
+    // Inkscape and Illustrator write a diagram's colours in `style`: promoted, never copied.
+    for (const [prop, kept] of Object.entries(promoteStyle(style))) {
+        const final = resolved(kept, d);
+        if (final !== null) out[prop] = final;
+    }
+    return out;
+}
+
+/** Elements whose `href` may only name something inside the same drawing. */
+const REFERRING = new Set(["textPath", "linearGradient", "radialGradient", "pattern"]);
+
+function sanitizeDrawing<E>(svg: SourceNode, into: E, f: Foreign<E>, depth: number): void {
+    if (depth >= MAX_DEPTH || f.result.elements >= MAX_ELEMENTS) return;
+    const d: Drawing = { draw: ++drawings, ids: drawingIds(svg), holdsUse: new Map() };
+    f.result.elements++;
+    // A fixed flag, never the book's value: what tells a book's drawing from the app's icons.
+    const root = f.builder.element(into, "svg", { ...svgAttrs(svg, d), "data-zf-drawing": "true" }, "svg");
+    svgWalk(svg, root, f, d, depth + 1, false);
+}
+
+function svgWalk<E>(node: SourceNode, into: E, f: Foreign<E>, d: Drawing, depth: number, inText: boolean): void {
+    for (let i = 0; i < node.childNodes.length; i++) {
+        if (f.result.elements >= MAX_ELEMENTS) return;
+        const child = node.childNodes[i];
+        if (child.nodeType === TEXT || child.nodeType === CDATA) {
+            // Only a label's words are drawn: text loose between shapes is not the drawing's.
+            const text = child.data ?? child.textContent ?? "";
+            if (inText && text) f.builder.text(into, text);
+        } else if (child.nodeType === ELEMENT) svgOne(child, into, f, d, depth, inText);
+    }
+}
+
+function svgOne<E>(node: SourceNode, into: E, f: Foreign<E>, d: Drawing, depth: number, inText: boolean): void {
+    if (depth >= MAX_DEPTH || f.result.elements >= MAX_ELEMENTS) return;
+    let tag = svgElementName(nameOf(node));
+    if (!tag) return; // HTML, script, foreignObject, animation, a filter: gone with what is inside
+    const attrs = svgAttrs(node, d);
+    if (tag === "use") {
+        const ref = localRef(hrefOf(node));
+        const target = ref ? d.ids.get(ref) : undefined;
+        if (!ref || !target || holdsUse(target, d) || f.uses >= MAX_USE) return;
+        f.uses++;
+        attrs.href = `#${scopedId(d.draw, ref)}`;
+    } else if (tag === "image") {
+        // A picture only from inside the book, read from the archive by the caller (L1).
+        const path = imageIn(f.chapterHref, hrefOf(node));
+        if (!path) return;
+        attrs["data-zf-src"] = path;
+        f.result.images.push(path);
+    } else if (tag === "a") {
+        const href = hrefOf(node);
+        if (href && !leavesTheBook(href)) attrs["data-zf-href"] = placeIn(f.chapterHref, href);
+        else {
+            // A link that leaves the book is its text and nothing else.
+            tag = inText ? "tspan" : "g";
+            attrs["data-zf-outlink"] = "true";
+        }
+    } else if (REFERRING.has(tag)) {
+        const ref = localRef(hrefOf(node));
+        if (ref && d.ids.has(ref)) attrs.href = `#${scopedId(d.draw, ref)}`;
+    }
+    f.result.elements++;
+    svgWalk(node, f.builder.element(into, tag, attrs, "svg"), f, d, depth + 1, inText || SVG_TEXT.has(tag));
+}
+
+/**
+ * One inline drawing, rebuilt with the chapter's rules (#770) — for a caller that meets an `<svg>`
+ * outside a chapter's flow (the fixed-layout pages of #771). Its pictures are listed in the result.
+ */
+export function sanitizeSvg<E>(svg: SourceNode, parent: E, builder: ChapterBuilder<E>, chapterHref: string): SanitizeResult {
+    const result: SanitizeResult = { images: [], elements: 0 };
+    sanitizeDrawing(svg, parent, { builder, result, chapterHref, uses: 0 }, 0);
+    return result;
+}
+
 /**
  * Rebuild `root`'s children under `parent`. `chapterHref` is the chapter's path in the archive, so
  * relative images and links resolve inside the book.
@@ -123,6 +471,8 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
         result.elements++;
         builder.element(into, "img", { "data-zf-src": path, alt, loading: "lazy" });
     };
+
+    const foreign: Foreign<E> = { builder, result, chapterHref, uses: 0 };
 
     const walk = (node: SourceNode, into: E, depth: number) => {
         for (let i = 0; i < node.childNodes.length; i++) {
@@ -138,22 +488,15 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
             if (DROP.has(name)) continue;
             if (depth >= MAX_DEPTH) continue;
             if (name === "svg") {
-                // A cover drawn as SVG: its one picture, as a plain image. Anything else in it is gone.
-                const pictures: SourceNode[] = [];
-                const find = (n: SourceNode, d: number) => {
-                    if (d > 8) return;
-                    for (let j = 0; j < n.childNodes.length; j++) {
-                        const c = n.childNodes[j];
-                        if (c.nodeType !== ELEMENT) continue;
-                        if (nameOf(c) === "image") pictures.push(c);
-                        else find(c, d + 1);
-                    }
-                };
-                find(child, 0);
-                for (const picture of pictures) {
-                    const path = imageIn(chapterHref, attr(picture, "xlink:href") || attr(picture, "href"));
+                const cover = coverPictures(child, (picture) => {
+                    const path = imageIn(chapterHref, hrefOf(picture));
                     if (path) image(into, path, "");
-                }
+                });
+                if (!cover) sanitizeDrawing(child, into, foreign, depth);
+                continue;
+            }
+            if (name === "math") {
+                sanitizeEquation(child, into, foreign, depth);
                 continue;
             }
             if (name === "img") {
@@ -163,7 +506,7 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
             }
             const tag = KEEP.has(name) ? name : RENAME[name];
             if (!tag) {
-                // Harmless and unknown (`math`, a custom tag): its text, without its element.
+                // Harmless and unknown (a custom tag): its text, without its element.
                 walk(child, into, depth + 1);
                 continue;
             }
@@ -188,11 +531,8 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
             let element = tag;
             if (tag === "a") {
                 const href = attr(child, "href");
-                if (href && !leavesTheBook(href)) {
-                    const fragment = fragmentOf(href);
-                    const inside = href.startsWith("#") ? chapterHref : resolveHref(chapterHref, href);
-                    attrs["data-zf-href"] = fragment ? `${inside}#${fragment}` : inside;
-                } else {
+                if (href && !leavesTheBook(href)) attrs["data-zf-href"] = placeIn(chapterHref, href);
+                else {
                     // A link that leaves the book is its text and nothing else (L1).
                     element = "span";
                     attrs["data-zf-outlink"] = "true";

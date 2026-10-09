@@ -4,22 +4,36 @@ import { t } from "architecture/lang";
 import { titleFromName } from "application/library/shelf";
 import { fragmentOf, spineIndexOf } from "application/library/epubPackage";
 import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
+import { MATH_NS, SVG_NS } from "application/library/epubForeign";
+import { MOTION } from "architecture/components/core/reader/readerMotion";
 import { domParse, imageType, openEpub } from "./epub";
 import type { DrawnChapter, SourceDocument, SourceTocEntry } from "./sourceDocument";
 
-/** The clean chapter, built with Obsidian's own element helpers — never `innerHTML` (L4). */
-const domBuilder: ChapterBuilder<HTMLElement> = {
-    element(parent, tag, attrs) {
+/**
+ * The clean chapter, built with Obsidian's own element helpers — never `innerHTML` (L4). A drawing
+ * is made with `createSvg`, an equation in the MathML namespace of the chapter's own document (a
+ * pop-out window has its own); Obsidian has no MathML helper (#770).
+ */
+const domBuilder: ChapterBuilder<Element> = {
+    element(parent, tag, attrs, ns) {
         const { ["data-zf-outlink"]: outlink, ...rest } = attrs;
-        return parent.createEl(tag as keyof HTMLElementTagNameMap, {
-            attr: rest,
-            ...(outlink ? { cls: c("reader-source-outlink") } : {}),
-        });
+        const cls = outlink ? { cls: c("reader-source-outlink") } : {};
+        if (ns === "svg") return parent.createSvg(tag as keyof SVGElementTagNameMap, { attr: rest, ...cls });
+        if (ns === "math") {
+            const el = parent.doc.createElementNS(MATH_NS, tag);
+            for (const [name, value] of Object.entries(rest)) el.setAttr(name, value);
+            parent.appendChild(el);
+            return el;
+        }
+        return parent.createEl(tag as keyof HTMLElementTagNameMap, { attr: rest, ...cls });
     },
     text(parent, text) {
         parent.appendText(text);
     },
 };
+
+/** How long a turned chapter's pictures outlive it: the longest chapter turn, and a beat more. */
+const RELEASE_AFTER_MS = MOTION.turn + MOTION.base;
 
 /**
  * **An EPUB in the Reader** (#682, epic #675): chapters are the book's spine, named from its own
@@ -63,8 +77,11 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             const { images } = sanitizeChapter(bodyOf(root), body, domBuilder, href);
             if (images.length > 0) {
                 const urls: string[] = [];
-                component.register(() => urls.forEach((url) => URL.revokeObjectURL(url)));
-                for (const img of Array.from(body.querySelectorAll("img"))) {
+                // Let go once the chapter turn has played: its sheet is a copy of this page, and a
+                // drawing's picture in that copy reads the same URL again (#770) — an `<img>` does not.
+                component.register(() => (body.win ?? window).setTimeout(() => urls.forEach((url) => URL.revokeObjectURL(url)), RELEASE_AFTER_MS));
+                // A picture, and a drawing's own: both read from the archive, never from a URL (#770).
+                for (const img of Array.from(body.querySelectorAll("img, image"))) {
                     const path = img.getAttribute("data-zf-src");
                     if (!path) continue;
                     try {
@@ -72,7 +89,7 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
                         if (!bytes) continue;
                         const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: imageType(book, path) }));
                         urls.push(url);
-                        img.setAttribute("src", url);
+                        img.setAttribute(img.namespaceURI === SVG_NS ? "href" : "src", url);
                     } catch (error) {
                         log.debug(`[Reader] an image of ${file.path} cannot be read: ${String(error)}`);
                     }

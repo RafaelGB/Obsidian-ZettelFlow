@@ -3,7 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { titleFromName } from "application/library/shelf";
 import { fragmentOf, spineIndexOf } from "application/library/epubPackage";
-import { bodyOf, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
+import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
 import { domParse, imageType, openEpub } from "./epub";
 import type { DrawnChapter, SourceDocument, SourceTocEntry } from "./sourceDocument";
 
@@ -52,6 +52,7 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
         imageOnly: false,
         hasPageView: false,
         ...(book.pkg.direction === "rtl" ? { direction: "rtl" as const } : {}),
+        ...(book.pkg.language ? { language: book.pkg.language } : {}),
         async draw(index: number, body: HTMLElement, component: Component): Promise<DrawnChapter> {
             const href = spine[index]?.href;
             const xhtml = href ? await book.archive.text(href) : null;
@@ -78,7 +79,8 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
                 }
             }
             const text = body.textContent ?? "";
-            return { words: text.split(/\s+/).filter(Boolean).length, picture: false };
+            const language = chapterLanguage(root);
+            return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(language ? { language } : {}) };
         },
         resolveLink(_from: number, href: string) {
             const [path] = href.split("#");

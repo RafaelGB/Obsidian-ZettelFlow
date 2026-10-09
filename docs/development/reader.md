@@ -339,11 +339,46 @@ for the margin: the highlights are in **Around this chapter**.
 A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,
 a swipe right), and its pages flow from the right. PDF Page view keeps its own pages (#767).
 
-## Type and reading themes
+## Type you can tune
 
-The **Type** panel sets the layout (above), the font (your theme's own, or a serif), three sizes, a
-reading theme and **Focus mode**. Each row has its name, and the marker under your choice slides to
-the next one you pick. The choices are kept for next time.
+The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading
+theme), **Font** (your theme's own, or a serif), **Size**, then the finer type — **Line spacing**,
+**Width**, **Margins** and **Justify** — then **Focus mode** and the time left. Each row has its
+name, and the marker under your choice slides to the next one you pick. Every change applies at
+once, so you choose by looking, and the choices are kept for every book, next time too.
+
+![Type you can tune: the Type panel with its rows, Line spacing, Width, Margins and Justify with "Hyphenated as Spanish" under it; beside it the same paragraph tight and airy, narrow and wide, ragged and justified with its Spanish words broken at Spanish syllables](../resources/reader/typography.svg)
+
+| Row | The three steps | The default |
+|---|---|---|
+| **Line spacing** | Tight · Normal · Airy (1.5 · 1.75 · 2) | Normal |
+| **Width** | Narrow · Medium · Wide (about 56 · 68 · 80 characters a line) | Medium |
+| **Margins** | Small · Medium · Large (the room between the text and the edges) | Medium |
+| **Justify** | off · on | off |
+
+- **The defaults are the page as it always was.** Someone who never opens these rows sees exactly
+  3.6's page, and preferences saved before them read as they did.
+- **Width is in characters**, so it follows the size. *Wide* stops at about 80: a longer line is hard
+  to find your way back along. On a narrow screen (a phone, an iPad in portrait) *Wide* is as wide
+  as the page allows, and stays chosen for when there is room.
+- **Margins** show where the screen is narrow: on an iPad, *Large* leaves somewhere to hold it
+  without a thumb on a word. In *Page* and *Spread* they are also the air between the pages, and
+  Width is the pages' line.
+- **Justify** evens the right edge and breaks long words with hyphens — in **the book's own
+  language**. The column declares what you are reading: an EPUB's language (its package, or a
+  chapter's or a passage's own `lang` / `xml:lang`), a PDF's when it declares one. A PDF that
+  declares none, and a note reading, keep Obsidian's language, as before. Under the switch the panel
+  says, quietly, which language the words are hyphenated in (*Hyphenated as Spanish*), so a wrong
+  guess can be seen. The hyphenation itself is the platform's: a language it has no dictionary for
+  is justified without hyphens. The iPad and macOS app hyphenate. The Windows desktop app ships
+  without hyphenation dictionaries (measured in Obsidian 1.14.4), so there the text is justified
+  but no word is broken.
+- **Your line stays.** A change lays the page out once, puts the line you were reading back where
+  your eyes are, and the lines around it settle in (a 120 ms fade from 0.85). Width, margins and
+  spacing are never animated as such. Under reduced motion it is all instant, and the line is still
+  kept.
+- **PDF Page view** draws the page as printed: these rows shape the reading view only, and the panel
+  says so in one line.
 
 | Theme | Looks like |
 |---|---|

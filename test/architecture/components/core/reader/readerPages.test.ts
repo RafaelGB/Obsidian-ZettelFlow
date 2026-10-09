@@ -7,6 +7,8 @@ import {
     pageCount,
     pageForShare,
     pageGeometry,
+    pageShape,
+    DEFAULT_PAGE_SHAPE,
     pageHolding,
     scrollTopFor,
     shareOfPage,
@@ -134,5 +136,29 @@ describe("a page under a finger (#753 FR-13, on the rules of #750)", () => {
 
     it("rubber-bands at a third", () => {
         expect(rubberBand(90)).toBe(30);
+    });
+});
+
+describe("the type shapes the pages too (#757 FR-2, FR-3, FR-8)", () => {
+    it("is 3.6's shape at Medium width and margins", () => {
+        expect(pageShape("medium", "medium")).toEqual(DEFAULT_PAGE_SHAPE);
+        expect(pageGeometry({ layout: "page", width: 1400, chPx: 9, shape: DEFAULT_PAGE_SHAPE })).toEqual(pageGeometry({ layout: "page", width: 1400, chPx: 9 }));
+        expect(pageGeometry({ layout: "spread", width: 1600, chPx: 9, shape: DEFAULT_PAGE_SHAPE })).toEqual(pageGeometry({ layout: "spread", width: 1600, chPx: 9 }));
+    });
+
+    it("measures a page in characters: Narrow shorter, Wide longer", () => {
+        const page = (width: "narrow" | "medium" | "wide") => pageGeometry({ layout: "page", width: 1600, chPx: 9, shape: pageShape(width, "medium") }).columnPx;
+        expect(page("narrow")).toBe(56 * 9);
+        expect(page("medium")).toBe(68 * 9);
+        expect(page("wide")).toBe(80 * 9);
+    });
+
+    it("puts more air between the pages with Large margins, less with Small", () => {
+        const gap = (margins: "small" | "medium" | "large") => pageShape("medium", margins).gapScale;
+        expect(gap("small")).toBeLessThan(1);
+        expect(gap("large")).toBeGreaterThan(1);
+        const tight = pageGeometry({ layout: "page", width: 400, chPx: 9, shape: pageShape("medium", "small") });
+        const roomy = pageGeometry({ layout: "page", width: 400, chPx: 9, shape: pageShape("medium", "large") });
+        expect(roomy.columnPx).toBeLessThan(tight.columnPx);
     });
 });

@@ -2,7 +2,7 @@ import { setIcon, type Component } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
-import { READER_FONTS, READER_LAYOUTS, READER_SIZES, READER_THEMES, type ReaderPrefs } from "./readerPrefs";
+import { READER_FONTS, READER_LAYOUTS, READER_MARGINS, READER_SIZES, READER_SPACINGS, READER_THEMES, READER_WIDTHS, type ReaderPrefs } from "./readerPrefs";
 
 /**
  * **The Type panel** (#668, extracted in #753): how you set the page — its layout, face, size and
@@ -55,6 +55,30 @@ const THEME_KEY: Record<ReaderPrefs["theme"], LocaleKey> = {
     sepia: "reader_theme_sepia",
     dark: "reader_theme_dark",
 };
+
+const SPACING_KEY: Record<ReaderPrefs["spacing"], LocaleKey> = {
+    tight: "reader_spacing_tight",
+    normal: "reader_spacing_normal",
+    airy: "reader_spacing_airy",
+};
+const WIDTH_KEY: Record<ReaderPrefs["width"], LocaleKey> = {
+    narrow: "reader_width_narrow",
+    medium: "reader_width_medium",
+    wide: "reader_width_wide",
+};
+const MARGINS_KEY: Record<ReaderPrefs["margins"], LocaleKey> = {
+    small: "reader_margins_small",
+    medium: "reader_margins_medium",
+    large: "reader_margins_large",
+};
+
+/** What the panel says about the page, besides the choices (#757). */
+export interface TypePanelContext {
+    /** The name of the language the words are hyphenated in, said while *Justify* is on (FR-7). */
+    hyphenatedAs?: string;
+    /** A PDF in Page view: drawn as printed, so the rows shape only the reading view (the empty state). */
+    pageView?: boolean;
+}
 
 /** Read every row's marker before the panel is emptied. */
 export function snapshotMarkers(host: HTMLElement): MarkerSnapshot {
@@ -119,15 +143,31 @@ function toggleRow(host: HTMLElement, icon: string, key: LocaleKey, on: boolean,
 }
 
 /**
- * The whole panel: **Layout** first (Scroll · Page · Spread, #753), then the face, the size and the
- * look, then focus mode and the time left. Every pick hands the next prefs to `onPick`.
+ * The whole panel, read top to bottom (#757 FR-10): **Layout** first (Scroll · Page · Spread, #753),
+ * then the look, the face and the size, then the finer type — line spacing, width, margins, justify —
+ * then focus mode and the time left. Every pick hands the next prefs to `onPick`.
  */
-export function renderTypePanel(host: HTMLElement, prefs: ReaderPrefs, scope: Component, onPick: (next: ReaderPrefs) => void, before?: MarkerSnapshot): void {
+export function renderTypePanel(
+    host: HTMLElement,
+    prefs: ReaderPrefs,
+    scope: Component,
+    onPick: (next: ReaderPrefs) => void,
+    before?: MarkerSnapshot,
+    context: TypePanelContext = {}
+): void {
     host.createDiv({ cls: c("reader-panel-title"), text: t("reader_type") });
     segmentedRow(host, { id: "layout", label: "reader_layout", options: READER_LAYOUTS, current: prefs.layout, key: (o) => LAYOUT_KEY[o], onPick: (layout) => onPick({ ...prefs, layout }) }, scope, before);
+    segmentedRow(host, { id: "theme", label: "reader_type_theme", options: READER_THEMES, current: prefs.theme, key: (o) => THEME_KEY[o], onPick: (theme) => onPick({ ...prefs, theme }) }, scope, before);
     segmentedRow(host, { id: "font", label: "reader_type_font", options: READER_FONTS, current: prefs.font, key: (o) => FONT_KEY[o], onPick: (font) => onPick({ ...prefs, font }) }, scope, before);
     segmentedRow(host, { id: "size", label: "reader_type_size", options: READER_SIZES, current: prefs.size, key: (o) => SIZE_KEY[o], onPick: (size) => onPick({ ...prefs, size }) }, scope, before);
-    segmentedRow(host, { id: "theme", label: "reader_type_theme", options: READER_THEMES, current: prefs.theme, key: (o) => THEME_KEY[o], onPick: (theme) => onPick({ ...prefs, theme }) }, scope, before);
+    // A PDF in Page view is drawn as printed: what follows shapes the reading view (the empty state).
+    if (context.pageView) host.createDiv({ cls: c("reader-type-note"), text: t("reader_type_page_view_note") });
+    segmentedRow(host, { id: "spacing", label: "reader_spacing", options: READER_SPACINGS, current: prefs.spacing, key: (o) => SPACING_KEY[o], onPick: (spacing) => onPick({ ...prefs, spacing }) }, scope, before);
+    segmentedRow(host, { id: "width", label: "reader_width", options: READER_WIDTHS, current: prefs.width, key: (o) => WIDTH_KEY[o], onPick: (width) => onPick({ ...prefs, width }) }, scope, before);
+    segmentedRow(host, { id: "margins", label: "reader_margins", options: READER_MARGINS, current: prefs.margins, key: (o) => MARGINS_KEY[o], onPick: (margins) => onPick({ ...prefs, margins }) }, scope, before);
+    toggleRow(host, "align-justify", "reader_justify", prefs.justify, scope, () => onPick({ ...prefs, justify: !prefs.justify }));
+    // Quietly, which language the words break by, so a wrong guess can be seen (FR-7).
+    if (prefs.justify && context.hyphenatedAs) host.createDiv({ cls: c("reader-type-hint"), text: t("reader_hyphenated_as", context.hyphenatedAs) });
     toggleRow(host, "focus", "reader_focus", prefs.focus, scope, () => onPick({ ...prefs, focus: !prefs.focus }));
     toggleRow(host, "hourglass", "reader_time_left_toggle", prefs.timeLeft, scope, () => onPick({ ...prefs, timeLeft: !prefs.timeLeft }));
 }

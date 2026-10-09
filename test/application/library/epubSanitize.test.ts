@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { bodyOf, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
+import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
 import { parseXml } from "../../support/miniXml";
 
 /** What the sanitizer built: a tree of plain records, serialised to read like markup. */
@@ -106,5 +106,21 @@ describe("an EPUB chapter, rebuilt node by node — never innerHTML (#682)", () 
         const deep = "<div>".repeat(200) + "deep" + "</div>".repeat(200);
         const { out } = clean(deep);
         expect(out.split("<div>").length - 1).toBeLessThanOrEqual(64);
+    });
+});
+
+describe("a passage's own language (#757 AC-3)", () => {
+    it("keeps xml:lang as lang, and drops a value that is not a language", () => {
+        expect(clean('<p xml:lang="fr">Bonjour</p>').out).toBe('<p lang="fr">Bonjour</p>');
+        expect(clean('<p xml:lang="not a tag">x</p>').out).toBe("<p>x</p>");
+        expect(clean('<p lang="de" xml:lang="fr">x</p>').out).toBe('<p lang="de">x</p>');
+    });
+
+    it("reads a chapter's language from its body, else from its html", () => {
+        const chapter = (open: string, body = "<body>") => parseXml(`${open}<head><title>t</title></head>${body}<p>x</p></body></html>`).documentElement as unknown as SourceNode;
+        expect(chapterLanguage(chapter('<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ca">'))).toBe("ca");
+        expect(chapterLanguage(chapter('<html xmlns="http://www.w3.org/1999/xhtml" lang="es">', '<body lang="gl">'))).toBe("gl");
+        expect(chapterLanguage(chapter('<html xmlns="http://www.w3.org/1999/xhtml">'))).toBeUndefined();
+        expect(chapterLanguage(chapter('<html xmlns="http://www.w3.org/1999/xhtml" lang="x y">'))).toBeUndefined();
     });
 });

@@ -37,6 +37,12 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
 
 .zettelkasten-flow__reader {
     @include reader-palette;
+    /* The type you can tune (#757): 3.6's look is the default, and only a choice away from it wears a
+       class. Never transitioned: a change lays the page out once, and the text settles (FR-14). */
+    --reader-leading: 1.75;
+    --reader-measure: 68ch;
+    --reader-gutter: var(--size-4-6);
+    --reader-page-max: 48rem;
     position: absolute;
     inset: 0;
     background-color: var(--reader-bg);
@@ -130,6 +136,53 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
     --reader-font: Georgia, "Iowan Old Style", "Times New Roman", serif;
 }
 
+/* Line spacing, a step either side of 3.6's 1.75 (#757 FR-1). */
+.zettelkasten-flow__reader--spacing-tight {
+    --reader-leading: 1.5;
+}
+
+.zettelkasten-flow__reader--spacing-airy {
+    --reader-leading: 2;
+}
+
+/* The measure, in characters so it follows the size (FR-2). Wide raises the page's cap with it, to
+   about 80 characters and no further: a longer line is hard to follow back. */
+.zettelkasten-flow__reader--width-narrow {
+    --reader-measure: 56ch;
+}
+
+.zettelkasten-flow__reader--width-wide {
+    --reader-measure: 80ch;
+    --reader-page-max: 62rem;
+}
+
+/* The room between the text and the page's edges (FR-3): on an iPad, Large is where a thumb holds it. */
+.zettelkasten-flow__reader--margins-small {
+    --reader-gutter: var(--size-4-3);
+}
+
+.zettelkasten-flow__reader--margins-large {
+    --reader-gutter: var(--size-4-12);
+}
+
+/* Justified, and hyphenated in the language the column declares (FR-5, FR-6). Headings and
+   captions keep their own edge. */
+.zettelkasten-flow__reader--justify .zettelkasten-flow__reader-body {
+    text-align: justify;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    figcaption,
+    th,
+    td {
+        text-align: start;
+    }
+}
+
 /* ── top line: where you are, and the way out ─────────────────────────── */
 .zettelkasten-flow__reader-top {
     position: absolute;
@@ -168,9 +221,9 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
 }
 
 .zettelkasten-flow__reader-page {
-    max-width: 48rem;
+    max-width: var(--reader-page-max);
     margin: 0 auto;
-    padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
+    padding: var(--size-4-6) var(--reader-gutter) var(--size-4-16);
 }
 
 /* A reading that just opened rises. A chapter that turns is already under its sheet (#735). */
@@ -267,11 +320,11 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
 
 /* A book's measure: about 68 characters a line, ragged edges evened out, long words broken. */
 .zettelkasten-flow__reader-body {
-    max-width: 68ch;
+    max-width: var(--reader-measure);
     margin: 0 auto;
     font-family: var(--reader-font);
     font-size: var(--reader-size);
-    line-height: 1.75;
+    line-height: var(--reader-leading);
     color: var(--reader-fg);
     text-wrap: pretty;
     hyphens: auto;
@@ -678,6 +731,18 @@ button.zettelkasten-flow__reader-next-button {
     font-size: var(--font-ui-smaller);
     letter-spacing: 0.06em;
     text-transform: uppercase;
+}
+
+/* Said quietly under its switch (#757 FR-7): the language the words are hyphenated in. And, in a
+   PDF's Page view, that the rows below shape the reading view. */
+.zettelkasten-flow__reader-type-hint,
+.zettelkasten-flow__reader-type-note {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-type-hint {
+    margin-top: calc(-1 * var(--size-4-1));
 }
 
 /* The current answer's marker lies under its words, and slides to the next one you pick (FR-14). */
@@ -1506,7 +1571,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
         position: absolute;
         top: var(--size-4-8);
         right: var(--size-4-6);
-        width: calc((100% - 48rem) / 2 - var(--size-4-12));
+        width: calc((100% - var(--reader-page-max)) / 2 - var(--size-4-12));
     }
 }
 

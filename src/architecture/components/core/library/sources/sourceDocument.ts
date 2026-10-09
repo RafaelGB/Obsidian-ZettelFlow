@@ -39,6 +39,8 @@ export interface DrawnChapter {
     words: number;
     /** The chapter was drawn as a picture of its page: nothing in it can be highlighted. */
     picture: boolean;
+    /** The language the chapter declares for itself, over the book's (#757). */
+    language?: string;
 }
 
 export interface SourceDocument {
@@ -54,6 +56,8 @@ export interface SourceDocument {
     hasPageView: boolean;
     /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
     direction?: "ltr" | "rtl";
+    /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */
+    language?: string;
     /** Draw chapter `index` into `body`. Anything it holds is let go with `component`. */
     draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter>;
     /**

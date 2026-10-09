@@ -47,6 +47,19 @@ export function sourceFormat(path: string): SourceFormat | null {
     return null;
 }
 
+/** A BCP 47 shape, as the chapter sanitiser keeps it: letters, then dash-separated parts. */
+const LANGUAGE_TAG = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
+
+/**
+ * A language a source declares (#757): an EPUB's `dc:language`, a PDF's `/Lang`. The tag, trimmed,
+ * or nothing for a value that is not one.
+ */
+export function languageTag(raw: unknown): string | undefined {
+    if (typeof raw !== "string") return undefined;
+    const tag = raw.trim();
+    return LANGUAGE_TAG.test(tag) ? tag : undefined;
+}
+
 const num = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const text = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
 

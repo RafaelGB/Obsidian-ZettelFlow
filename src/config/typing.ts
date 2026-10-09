@@ -143,6 +143,11 @@ export interface ZettelFlowSettings {
         timeLeft?: boolean;
         /** Scroll, Page or Spread (#753). */
         layout?: "scroll" | "page" | "spread";
+        /** The type you can tune (#757): line spacing, width, margins, justified. */
+        spacing?: "tight" | "normal" | "airy";
+        width?: "narrow" | "medium" | "wide";
+        margins?: "small" | "medium" | "large";
+        justify?: boolean;
     };
     /**
      * Where each recent reading was left (#669): a kind and the note it started from, or a picked

@@ -98,3 +98,35 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
         for (const token of ["$motion-fast", "$motion-base", "$motion-cover", "$ease-out"]) expect(motion).toContain(token);
     });
 });
+
+describe("the type you can tune is never animated (#757 FR-14, AC-8)", () => {
+    const TYPE_PROPS = ["--reader-leading", "--reader-measure", "--reader-gutter", "--reader-page-max"];
+
+    it("sets line spacing, width and margins at once: no rule that sets them transitions", () => {
+        const offenders: string[] = [];
+        for (const path of SHEETS) {
+            // Every innermost rule: its selector and its declarations.
+            for (const rule of sheet(path).matchAll(/([^{};]+)\{([^{}]*)\}/g)) {
+                const body = rule[2];
+                if (TYPE_PROPS.some((prop) => new RegExp(`${prop}\\s*:`).test(body)) && /transition\s*:/.test(body)) offenders.push(`${path}: ${rule[1].trim()}`);
+            }
+            for (const match of sheet(path).matchAll(/transition:\s*([^;]+);/g)) {
+                for (const part of match[1].split(",")) {
+                    const prop = part.trim().split(/\s+/)[0];
+                    if (["line-height", "max-width", "padding", "text-align", "all"].includes(prop)) offenders.push(`${path}: transition ${prop}`);
+                }
+            }
+        }
+        expect(offenders).toEqual([]);
+    });
+
+    it("keeps 3.6's page width in one place, the --reader-page-max default (Risk 2)", () => {
+        const css = sheet("components/reader.scss");
+        const literal = css.split("\n").filter((line) => line.includes("48rem")).map((line) => line.trim());
+        expect(literal).toEqual(["--reader-page-max: 48rem;"]);
+        expect(css).toContain("--reader-leading: 1.75;");
+        expect(css).toContain("--reader-measure: 68ch;");
+        expect(css).toContain("--reader-gutter: var(--size-4-6);");
+    });
+});
+

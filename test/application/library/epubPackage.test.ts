@@ -18,3 +18,17 @@ describe("the direction a book reads in (#753 FR-10)", () => {
         expect("direction" in parsePackage(opf('<spine page-progression-direction="default"><itemref idref="c1"/></spine>'), "OEBPS/content.opf", parse)).toBe(false);
     });
 });
+
+describe("the language a book is written in (#757 AC-3)", () => {
+    const withMeta = (metadata: string) =>
+        `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" version="3.0"><metadata>${metadata}</metadata><manifest><item id="c1" href="ch1.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="c1"/></spine></package>`;
+
+    it("reads dc:language, the first one when there are several", () => {
+        expect(parsePackage(withMeta("<dc:title>Niebla</dc:title><dc:language> es </dc:language><dc:language>en</dc:language>"), "OEBPS/content.opf", parse).language).toBe("es");
+    });
+
+    it("says nothing for a book that declares none, or declares something that is not a language", () => {
+        expect("language" in parsePackage(withMeta("<dc:title>x</dc:title>"), "OEBPS/content.opf", parse)).toBe(false);
+        expect("language" in parsePackage(withMeta("<dc:language>not a tag</dc:language>"), "OEBPS/content.opf", parse)).toBe(false);
+    });
+});

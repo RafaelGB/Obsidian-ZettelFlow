@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Type you can tune. The Type panel reads Layout, Look, Font, Size, then Line spacing (Tight, Normal, Airy), Width (Narrow, Medium, Wide), Margins (Small, Medium, Large) and a Justify switch, with Hyphenated as Spanish said quietly under it. Beside it, the same paragraph three ways: tight lines and airy lines; a narrow column and a wide one; a ragged right edge and a justified one, its Spanish words broken at Spanish syllables, re-pre-sen-ta-ción.">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">TYPE YOU CAN TUNE</text>
+
+<!-- ── the Type panel ─────────────────────────────────────────────────────── -->
+<rect x="40" y="76" width="340" height="704" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<text x="64" y="112" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="700">Type</text>
+
+<g font-family="sans-serif">
+<text x="64" y="148" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">LAYOUT</text>
+<rect x="64" y="156" width="292" height="28" rx="14" fill="#2a2a30"/>
+<rect x="66" y="158" width="94" height="24" rx="12" fill="#3a3a44"/>
+<text x="113" y="175" fill="#dcddde" font-size="12" text-anchor="middle">Scroll</text>
+<text x="210" y="175" fill="#8b8e94" font-size="12" text-anchor="middle">Page</text>
+<text x="306" y="175" fill="#8b8e94" font-size="12" text-anchor="middle">Spread</text>
+
+<text x="64" y="214" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">LOOK · FONT · SIZE</text>
+<rect x="64" y="222" width="292" height="28" rx="14" fill="#2a2a30"/>
+<text x="210" y="241" fill="#8b8e94" font-size="12" text-anchor="middle">as before, in its place</text>
+
+<!-- the finer rows, new -->
+<text x="64" y="288" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">LINE SPACING</text>
+<rect x="64" y="296" width="292" height="28" rx="14" fill="#2a2a30"/>
+<text x="113" y="315" fill="#8b8e94" font-size="12" text-anchor="middle">Tight</text>
+<text x="210" y="315" fill="#8b8e94" font-size="12" text-anchor="middle">Normal</text>
+<rect x="260" y="298" width="94" height="24" rx="12" fill="#7f6df2"/>
+<text x="307" y="315" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Airy</text>
+<path d="M 210 330 q 48 16 96 0" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="258" y="352" fill="#a99cf5" font-size="10" text-anchor="middle">the marker slides, 120 ms</text>
+
+<text x="64" y="384" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">WIDTH</text>
+<rect x="64" y="392" width="292" height="28" rx="14" fill="#2a2a30"/>
+<text x="113" y="411" fill="#8b8e94" font-size="12" text-anchor="middle">Narrow</text>
+<rect x="163" y="394" width="94" height="24" rx="12" fill="#3a3a44"/>
+<text x="210" y="411" fill="#dcddde" font-size="12" text-anchor="middle">Medium</text>
+<text x="306" y="411" fill="#8b8e94" font-size="12" text-anchor="middle">Wide</text>
+
+<text x="64" y="450" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">MARGINS</text>
+<rect x="64" y="458" width="292" height="28" rx="14" fill="#2a2a30"/>
+<text x="113" y="477" fill="#8b8e94" font-size="12" text-anchor="middle">Small</text>
+<rect x="163" y="460" width="94" height="24" rx="12" fill="#3a3a44"/>
+<text x="210" y="477" fill="#dcddde" font-size="12" text-anchor="middle">Medium</text>
+<text x="306" y="477" fill="#8b8e94" font-size="12" text-anchor="middle">Large</text>
+
+<rect x="64" y="510" width="292" height="32" rx="8" fill="#7f6df2" fill-opacity="0.18" stroke="#7f6df2"/>
+<g stroke="#dcddde" stroke-width="1.6" stroke-linecap="round"><line x1="80" y1="520" x2="94" y2="520"/><line x1="80" y1="526" x2="94" y2="526"/><line x1="80" y1="532" x2="94" y2="532"/></g>
+<text x="104" y="531" fill="#dcddde" font-size="12" font-weight="600">Justify</text>
+<text x="64" y="562" fill="#b3b5ba" font-size="11">Hyphenated as Spanish</text>
+<text x="64" y="578" fill="#5f6168" font-size="10">the book's own language, never a guess you cannot see</text>
+
+<rect x="64" y="604" width="292" height="32" rx="8" fill="#2a2a30"/>
+<text x="104" y="625" fill="#8b8e94" font-size="12">Focus mode</text>
+<rect x="64" y="644" width="292" height="32" rx="8" fill="#2a2a30"/>
+<text x="104" y="665" fill="#8b8e94" font-size="12">Time left</text>
+
+<text x="210" y="722" fill="#5f6168" font-size="10" text-anchor="middle">Normal · Medium · Medium · Justify off</text>
+<text x="210" y="738" fill="#5f6168" font-size="10" text-anchor="middle">is the page as it always was</text>
+</g>
+
+<!-- ── the same paragraph, three ways ─────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="620" y="96" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Tight</text>
+<text x="960" y="96" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Airy</text>
+</g>
+<rect x="420" y="108" width="400" height="180" rx="10" fill="#18181b" stroke="#3a3a3a"/>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="450" y1="136" x2="790" y2="136"/><line x1="450" y1="154" x2="782" y2="154"/><line x1="450" y1="172" x2="790" y2="172"/><line x1="450" y1="190" x2="770" y2="190"/><line x1="450" y1="208" x2="790" y2="208"/><line x1="450" y1="226" x2="786" y2="226"/><line x1="450" y1="244" x2="790" y2="244"/><line x1="450" y1="262" x2="690" y2="262"/>
+</g>
+<rect x="860" y="108" width="300" height="180" rx="10" fill="#18181b" stroke="#7f6df2" stroke-width="1.5"/>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="884" y1="136" x2="1136" y2="136"/><line x1="884" y1="160" x2="1128" y2="160"/><line x1="884" y1="184" x2="1136" y2="184"/><line x1="884" y1="208" x2="1116" y2="208"/><line x1="884" y1="232" x2="1136" y2="232"/><line x1="884" y1="256" x2="1060" y2="256"/>
+</g>
+
+<g font-family="sans-serif">
+<text x="620" y="336" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Narrow</text>
+<text x="960" y="336" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Wide</text>
+</g>
+<rect x="420" y="348" width="400" height="180" rx="10" fill="#18181b" stroke="#3a3a3a"/>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="520" y1="378" x2="720" y2="378"/><line x1="520" y1="398" x2="714" y2="398"/><line x1="520" y1="418" x2="720" y2="418"/><line x1="520" y1="438" x2="700" y2="438"/><line x1="520" y1="458" x2="720" y2="458"/><line x1="520" y1="478" x2="716" y2="478"/><line x1="520" y1="498" x2="640" y2="498"/>
+</g>
+<text x="620" y="520" fill="#5f6168" font-family="sans-serif" font-size="10" text-anchor="middle">about 56 characters</text>
+<rect x="860" y="348" width="300" height="180" rx="10" fill="#18181b" stroke="#7f6df2" stroke-width="1.5"/>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="874" y1="378" x2="1146" y2="378"/><line x1="874" y1="398" x2="1140" y2="398"/><line x1="874" y1="418" x2="1146" y2="418"/><line x1="874" y1="438" x2="1146" y2="438"/><line x1="874" y1="458" x2="1080" y2="458"/>
+</g>
+<text x="1010" y="520" fill="#5f6168" font-family="sans-serif" font-size="10" text-anchor="middle">about 80, and no further</text>
+
+<g font-family="sans-serif">
+<text x="620" y="576" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Ragged</text>
+<text x="960" y="576" fill="#dcddde" font-size="13" font-weight="700" text-anchor="middle">Justified, in Spanish</text>
+</g>
+<rect x="420" y="588" width="400" height="192" rx="10" fill="#18181b" stroke="#3a3a3a"/>
+<g fill="#b3b5ba" font-family="Georgia, serif" font-size="15">
+<text x="446" y="622">La niebla no era sino la</text>
+<text x="446" y="648">representación de lo que</text>
+<text x="446" y="674">Augusto no se atrevía a</text>
+<text x="446" y="700">pensar, y la ciudad entera</text>
+<text x="446" y="726">se le volvía extraña.</text>
+</g>
+<rect x="860" y="588" width="300" height="192" rx="10" fill="#18181b" stroke="#7f6df2" stroke-width="1.5"/>
+<g fill="#b3b5ba" font-family="Georgia, serif" font-size="15">
+<text x="884" y="622" textLength="252" lengthAdjust="spacing">La niebla no era sino la re-</text>
+<text x="884" y="648" textLength="252" lengthAdjust="spacing">pre<tspan fill="#a99cf5">·</tspan>sen<tspan fill="#a99cf5">·</tspan>ta<tspan fill="#a99cf5">·</tspan>ción de lo que Au-</text>
+<text x="884" y="674" textLength="252" lengthAdjust="spacing">gusto no se atrevía a pen-</text>
+<text x="884" y="700" textLength="252" lengthAdjust="spacing">sar, y la ciudad entera se</text>
+<text x="884" y="726">le volvía extraña.</text>
+</g>
+<text x="1010" y="764" fill="#a99cf5" font-family="sans-serif" font-size="10" text-anchor="middle">broken at Spanish syllables: lang="es" on the column</text>
+
+<!-- the line you were reading stays -->
+<path d="M 836 196 h 16" stroke="#a99cf5" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="844" y="300" fill="#a99cf5" font-family="sans-serif" font-size="10" text-anchor="middle">your line stays; the rest settles</text>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#a99cf5"/>
+</marker>
+</defs>
+</svg>

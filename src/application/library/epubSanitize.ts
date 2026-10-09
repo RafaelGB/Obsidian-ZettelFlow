@@ -172,6 +172,9 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
                 const key = raw.toLowerCase();
                 const rule = ATTRS[key];
                 if (rule && rule.test(value)) attrs[key] = value;
+                // EPUB's XHTML often says a passage's language as `xml:lang` (#757): kept as `lang`,
+                // which is what the page hyphenates by. A `lang` of its own wins.
+                if (key === "xml:lang" && ATTRS.lang.test(value) && !attributesOf(child).some((a) => a.name.toLowerCase() === "lang")) attrs.lang = value;
                 // An element a link can name, kept as data so it never collides with the app's ids.
                 if ((key === "id" || key === "xml:id") && /^[\w.:-]{1,120}$/.test(value)) attrs["data-zf-id"] = value;
                 // What marks a footnote (#718): EPUB 3 `epub:type` or ARIA `role`, read for its
@@ -202,6 +205,19 @@ export function sanitizeChapter<E>(root: SourceNode, parent: E, builder: Chapter
 
     walk(root, parent, 0);
     return result;
+}
+
+/**
+ * The language a chapter declares for itself (#757 FR-6): its `<body>`'s `lang` / `xml:lang`, else its
+ * `<html>`'s. Nothing when it declares none, or something that is not a language.
+ */
+export function chapterLanguage(root: SourceNode): string | undefined {
+    const declared = (node: SourceNode): string | undefined => {
+        const value = attr(node, "lang") || attr(node, "xml:lang");
+        return value && ATTRS.lang.test(value) ? value : undefined;
+    };
+    const body = bodyOf(root);
+    return (body !== root ? declared(body) : undefined) ?? declared(root);
 }
 
 /** The `<body>` of a parsed chapter, or the root when there is none. */

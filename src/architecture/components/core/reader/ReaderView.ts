@@ -6,6 +6,7 @@ import {
     Platform,
     Scope,
     TFile,
+    getLanguage,
     setIcon,
     type Modifier,
     type ViewStateResult,
@@ -51,7 +52,9 @@ import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, no
 import { normalizeReaderPrefs, readerClassNames, type ReaderLayout, type ReaderPrefs } from "./readerPrefs";
 import { ReaderPager, type Landing, type PageAnchor } from "./readerPager";
 import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent } from "./readerPages";
-import { settleAround } from "./readerSettle";
+import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
+import { languageName, readingLanguage } from "./readerLanguage";
+import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers } from "./readerTypePanel";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -315,6 +318,8 @@ export class ReaderView extends ItemView {
     private source: SourceDocument | null = null;
     private sourceFailed = false;
     private sourceView: SourceView = "reading";
+    /** The language the chapter on screen declares (#757), or `null` when it keeps Obsidian's. */
+    private pageLanguage: string | null = null;
     /** Bumped on every source opened, so a slow open never lands in a newer reading. */
     private sourceGeneration = 0;
     /** A source too large for this device (#750 FR-13): not opened, and the page says so. */
@@ -662,7 +667,7 @@ export class ReaderView extends ItemView {
                 this.onStageScroll();
             },
         });
-        this.pager.configure(this.effectiveLayout(), this.bookDirection());
+        this.pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
         // A picture arrives after the text and moves it: the pages are counted again, your line kept.
         this.registerDomEvent(page, "load", () => this.pager?.contentChanged(), { capture: true });
         const dots = root.createDiv({ cls: c("reader-dots"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
@@ -727,18 +732,21 @@ export class ReaderView extends ItemView {
         if (next.theme !== before.theme) this.crossFadeTheme();
         // A new shape for the chapter keeps the line you were reading where your eyes are (FR-6, FR-14):
         // noted before the change, landed on after it, and the text around it settles.
-        const reshapes = next.layout !== before.layout || next.font !== before.font || next.size !== before.size;
+        const coarse = next.layout !== before.layout || next.font !== before.font || next.size !== before.size;
+        // The finer type (#757 FR-13) keeps your line the same way, with a quicker, fainter settle.
+        const fine = next.spacing !== before.spacing || next.width !== before.width || next.margins !== before.margins || next.justify !== before.justify;
+        const reshapes = coarse || fine;
         const pager = this.pager;
         const anchor = reshapes && pager && !this.ended ? pager.firstVisible() : null;
         const tops = anchor && pager ? pager.blockTops() : null;
         this.prefs = next;
         this.applyPrefs();
         if (pager && anchor && tops) {
-            pager.configure(this.effectiveLayout(), this.bookDirection());
+            pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
             if (pager.paged) pager.relayout({ anchor });
             else pager.reveal(anchor);
             const keep = pager.blockOf(anchor);
-            settleAround(keep, pager.visibleBlocks().map((el) => ({ el, oldTop: tops.get(el) ?? null })));
+            settleAround(keep, pager.visibleBlocks().map((el) => ({ el, oldTop: tops.get(el) ?? null })), coarse ? LAYOUT_SETTLE : TYPE_SETTLE);
             this.onStageScroll();
         } else if (reshapes) {
             this.applyLayout();
@@ -750,6 +758,11 @@ export class ReaderView extends ItemView {
         }
         if (next.timeLeft !== before.timeLeft) this.onStageScroll();
         if (this.panel === "type") this.renderPanel();
+    }
+
+    /** What the type asks of a page in *Page* and *Spread* (#757): its measure and its margins. */
+    private pageShape() {
+        return pageShape(this.prefs.width, this.prefs.margins);
     }
 
     /** *Scroll*, *Page* or *Spread* as it applies now: a PDF's Page view and the end card always scroll. */
@@ -775,7 +788,7 @@ export class ReaderView extends ItemView {
         const layout = this.effectiveLayout();
         root.toggleClass(c("reader--layout-page"), layout === "page");
         root.toggleClass(c("reader--layout-spread"), layout === "spread");
-        this.pager?.configure(layout, this.bookDirection());
+        this.pager?.configure(layout, this.bookDirection(), this.pageShape());
     }
 
     /**
@@ -914,6 +927,8 @@ export class ReaderView extends ItemView {
         });
         page.createEl("h1", { cls: c("reader-chapter-title"), text: noteName(reading) });
         const body = page.createDiv({ cls: ["markdown-rendered", c("reader-body")].join(" ") });
+        // A note reading keeps Obsidian's language, as it always has (#757 FR-6).
+        this.pageLanguage = null;
         stage.scrollTop = 0;
         this.onStageScroll();
         // Before the render, and in the capture phase: an embed's own link handler would otherwise
@@ -1637,9 +1652,13 @@ export class ReaderView extends ItemView {
             return;
         }
         let picture = false;
+        this.pageLanguage = null;
         try {
             const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
+            // The column says what it is written in, so it hyphenates by the book's rules (#757 FR-6).
+            this.pageLanguage = readingLanguage({ format: doc.format, bookLanguage: doc.language, chapterLanguage: drawn.language });
+            if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
             this.chapterWords = drawn.words;
             this.seenWords.set(index, drawn.words);
         } catch (error) {
@@ -2122,8 +2141,17 @@ export class ReaderView extends ItemView {
         if (asSheet) this.openSheet(host, scope);
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
-        else if (this.panel === "type") renderTypePanel(host, this.prefs, scope, (next) => this.savePrefs(next), markers);
+        else if (this.panel === "type") renderTypePanel(host, this.prefs, scope, (next) => this.savePrefs(next), markers, this.typeContext());
         else if (this.panel === "context") this.renderContext(host);
+    }
+
+    /** What the Type panel says besides its rows (#757): the language of the hyphens, Page view's note. */
+    private typeContext() {
+        const ui = getLanguage();
+        return {
+            hyphenatedAs: languageName(this.pageLanguage ?? ui, ui),
+            pageView: Boolean(this.sourcePath && this.sourceView === "page" && this.source?.hasPageView),
+        };
     }
 
     private renderContents(host: HTMLElement): void {

@@ -307,12 +307,14 @@ describe("focus mode (#667)", () => {
     it("is a switch in the type panel, worn at once and kept", async () => {
         const { content, plugin } = await open();
         content.find((el) => el.getAttribute("aria-label") === "Type")!.click();
-        const toggle = content.oneByClass("reader-focus-toggle");
+        // Justify (#757) is the first switch of the panel; focus mode follows it.
+        const focusToggle = () => content.byClass("reader-focus-toggle").find((b) => b.textContent === "Focus mode")!;
+        const toggle = focusToggle();
         expect(toggle.getAttribute("aria-pressed")).toBe("false");
         toggle.click();
         expect(root(content).hasClass("zettelkasten-flow__reader--focus")).toBe(true);
         expect((plugin.settings as { readerPrefs: { focus: boolean } }).readerPrefs.focus).toBe(true);
-        expect(content.oneByClass("reader-focus-toggle").getAttribute("aria-pressed")).toBe("true");
+        expect(focusToggle().getAttribute("aria-pressed")).toBe("true");
         // The block at the reading line is the one left lit.
         expect(content.oneByClass("reader-body").children[0].hasClass("zettelkasten-flow__reader-focus-current")).toBe(true);
     });

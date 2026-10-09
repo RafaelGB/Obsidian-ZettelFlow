@@ -10,6 +10,8 @@ import {
     pageGeometry,
     pageHolding,
     scrollTopFor,
+    DEFAULT_PAGE_SHAPE,
+    type PageShape,
     shareOfPage,
     stripOffset,
     viewCount,
@@ -76,6 +78,8 @@ function connected(anchor: PageAnchor | null): anchor is PageAnchor {
 export class ReaderPager {
     private layout: ReaderLayout = "scroll";
     private direction: BookDirection = "ltr";
+    /** What the type asks of a page: its measure and its margins (#757). */
+    private shape: PageShape = DEFAULT_PAGE_SHAPE;
     private geometry: PageGeometry | null = null;
     private pages = 1;
     private view = 0;
@@ -127,10 +131,14 @@ export class ReaderPager {
         return this.view;
     }
 
-    /** The layout and the book's direction. Back to *Scroll*, the strip is put back at its start. */
-    configure(layout: ReaderLayout, direction: BookDirection): void {
+    /**
+     * The layout, the book's direction and the type's shape of a page (#757). Back to *Scroll*, the
+     * strip is put back at its start.
+     */
+    configure(layout: ReaderLayout, direction: BookDirection, shape: PageShape = this.shape): void {
         this.layout = layout;
         this.direction = direction;
+        this.shape = shape;
         if (this.paged) return;
         this.finishRunning();
         this.dragging = null;
@@ -173,7 +181,7 @@ export class ReaderPager {
         const style = (this.stage as El).win?.getComputedStyle?.(this.page);
         const padTop = parseFloat(style?.paddingTop ?? "") || 0;
         const padBottom = parseFloat(style?.paddingBottom ?? "") || 0;
-        const geometry = pageGeometry({ width: size.width, chPx: this.chPx(), layout: this.layout });
+        const geometry = pageGeometry({ width: size.width, chPx: this.chPx(), layout: this.layout, shape: this.shape });
         this.geometry = geometry;
         // Writes first — the strip at its start, in its new shape — then one read.
         this.x = 0;

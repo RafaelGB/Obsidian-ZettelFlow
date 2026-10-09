@@ -20,6 +20,12 @@ export interface SettleOptions {
 /** A layout change: the shared beat, from a faint text, a drift of at most 8 px. */
 export const LAYOUT_SETTLE: SettleOptions = { duration: MOTION.base, fromOpacity: 0.55, shiftCapPx: 8 };
 
+/**
+ * The type's finer rows (#757 FR-13): line spacing, width, margins, justify. Quicker and fainter — the
+ * text was already where you are reading — and opacity alone: nothing drifts.
+ */
+export const TYPE_SETTLE: SettleOptions = { duration: MOTION.fast, fromOpacity: 0.85, shiftCapPx: 0 };
+
 /** The two frames of one block's settle, from where it was (`null`: it was not on screen) to where it is. */
 export function settleFrames(oldTop: number | null, newTop: number, capPx: number, fromOpacity: number): Keyframe[] {
     const cap = Math.max(0, capPx);

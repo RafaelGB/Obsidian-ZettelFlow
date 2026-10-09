@@ -3,6 +3,7 @@ import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
 import { titleFromName } from "application/library/shelf";
+import { languageTag } from "application/library/sourceMeta";
 import { declared, isTextItem, openPdf, type PdfDocument, type PdfOutlineNode } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourceView, SourceTocEntry } from "./sourceDocument";
 
@@ -103,6 +104,8 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         path: file.path,
         title: declared(info.Title) ?? titleFromName(file.name),
         ...(declared(info.Author) ? { author: declared(info.Author) } : {}),
+        // pdf.js reads the catalog's `/Lang` into the document info as `Language` (#757).
+        ...(languageTag(info.Language) ? { language: languageTag(info.Language) } : {}),
         chapters,
         toc,
         imageOnly,

@@ -1,3 +1,5 @@
+import { languageTag } from "./sourceMeta";
+
 /**
  * **An EPUB's package** (#680, #682, epic #675) — pure, over parsed XML.
  *
@@ -46,6 +48,8 @@ export interface EpubPackage {
     ncxHref?: string;
     /** `<spine page-progression-direction="rtl">`: a book that turns to the left (#753). */
     direction?: "ltr" | "rtl";
+    /** `dc:language`: what the book is written in, so the page hyphenates by its rules (#757). */
+    language?: string;
 }
 
 export interface TocEntry {
@@ -145,6 +149,7 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
     const metadata = firstNamed(root, "metadata");
     const title = metadata ? clean(firstNamed(metadata, "title")?.textContent) : "";
     const author = metadata ? clean(firstNamed(metadata, "creator")?.textContent) : "";
+    const language = metadata ? languageTag(firstNamed(metadata, "language")?.textContent) : undefined;
 
     const manifest: ManifestItem[] = [];
     const byId = new Map<string, ManifestItem>();
@@ -193,6 +198,7 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         ...(nav ? { navHref: nav.href } : {}),
         ...(ncx ? { ncxHref: ncx.href } : {}),
         ...(progression === "rtl" || progression === "ltr" ? { direction: progression } : {}),
+        ...(language ? { language } : {}),
     };
 }
 

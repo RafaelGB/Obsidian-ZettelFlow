@@ -1,4 +1,4 @@
-import type { ReaderLayout } from "./readerPrefs";
+import type { ReaderLayout, ReaderMargins, ReaderWidth } from "./readerPrefs";
 
 /**
  * **Pages or scroll, one page or a spread** (#753, epic #739) — the decisions, pure. A chapter in
@@ -23,6 +23,25 @@ export const MIN_GAP_PX = 32;
 /** A spread is an open book: a shorter line than a single page, and a real gutter (walked, #753). */
 export const SPREAD_MAX_CH = 60;
 export const SPREAD_GAP_PX = 64;
+
+/**
+ * What the type asks of a page (#757): its line in characters — alone, and in a spread — and how much
+ * air the margins put between and beside the pages. *Medium* and *Medium* are 3.6's pages.
+ */
+export interface PageShape {
+    measureCh: number;
+    spreadCh: number;
+    gapScale: number;
+}
+
+export const DEFAULT_PAGE_SHAPE: PageShape = { measureCh: MAX_MEASURE_CH, spreadCh: SPREAD_MAX_CH, gapScale: 1 };
+
+/** The width's measure (the stylesheet's `--reader-measure`) and the margins' air, for the pages. */
+export function pageShape(width: ReaderWidth, margins: ReaderMargins): PageShape {
+    const [measureCh, spreadCh] = width === "narrow" ? [56, 50] : width === "wide" ? [80, 70] : [MAX_MEASURE_CH, SPREAD_MAX_CH];
+    const gapScale = margins === "small" ? 0.5 : margins === "large" ? 1.5 : 1;
+    return { measureCh, spreadCh, gapScale };
+}
 
 export interface PageGeometry {
     /** Pages on screen: two in a spread that fits, one otherwise. */
@@ -49,13 +68,14 @@ export function spreadFits(width: number, chPx: number, gapPx: number = MIN_GAP_
  * The pages for a reading `width` wide. The gap beside the pages equals the gap between them, so the
  * page before and the page after lie exactly off either edge: nothing of them shows.
  */
-export function pageGeometry(input: { width: number; chPx: number; layout: ReaderLayout; minGapPx?: number }): PageGeometry {
+export function pageGeometry(input: { width: number; chPx: number; layout: ReaderLayout; minGapPx?: number; shape?: PageShape }): PageGeometry {
     const width = Math.max(1, input.width);
-    const spread = input.layout === "spread" && spreadFits(width, input.chPx, input.minGapPx ?? SPREAD_GAP_PX);
-    const minGap = input.minGapPx ?? (spread ? SPREAD_GAP_PX : MIN_GAP_PX);
+    const shape = input.shape ?? DEFAULT_PAGE_SHAPE;
+    const spread = input.layout === "spread" && spreadFits(width, input.chPx, input.minGapPx ?? SPREAD_GAP_PX * shape.gapScale);
+    const minGap = input.minGapPx ?? (spread ? SPREAD_GAP_PX : MIN_GAP_PX) * shape.gapScale;
     const perView: 1 | 2 = spread ? 2 : 1;
     const widest = (width - (perView + 1) * minGap) / perView;
-    const measure = input.chPx > 0 ? (spread ? SPREAD_MAX_CH : MAX_MEASURE_CH) * input.chPx : widest;
+    const measure = input.chPx > 0 ? (spread ? shape.spreadCh : shape.measureCh) * input.chPx : widest;
     const columnPx = Math.max(1, Math.floor(Math.min(measure, widest)));
     const gapPx = Math.max(0, (width - perView * columnPx) / (perView + 1));
     const stridePx = columnPx + gapPx;

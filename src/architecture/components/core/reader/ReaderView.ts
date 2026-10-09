@@ -28,7 +28,9 @@ import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, 
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
-import { placeAt, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
+import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
 import { sourceFormat } from "application/library/sourceMeta";
 import { readingMotion } from "./readingMotion";
@@ -44,7 +46,7 @@ import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
-import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, restoreWorkspace } from "./openReader";
+import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, originLandsAt, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
@@ -63,7 +65,8 @@ import {
     sourceReading,
 } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
-import { openSourceDocument, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
+import { openSourceDocument, type SourceChapter, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
+import type { ThoughtLocator } from "application/thinking/thought";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
@@ -232,6 +235,9 @@ const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
     passage: "reader_trail_passage",
 };
 
+/** How long the *not found in this edition* line stays before it leaves (#751 FR-14). */
+const PASSAGE_MISSING_MS = 6000;
+
 /** How far a list slides in when its tab is chosen (FR-16). */
 const TAB_SLIDE_PX = 24;
 /** A bookmark made less than a minute ago was made *now*. */
@@ -249,6 +255,11 @@ interface Spot {
     top: number | null;
     /** A bookmark is found again by its words, in the chapter as it is drawn now (FR-3). */
     bookmark?: Bookmark;
+    /**
+     * A passage a note goes back to (#751): found by its words, and put at the reading line — or, when
+     * the words are not there, the chapter's top and one inline line saying so (FR-7). Never a guess.
+     */
+    passage?: TextQuote;
 }
 
 /** A place on the trail, with what took you away from it (FR-6, FR-7). */
@@ -392,9 +403,16 @@ export class ReaderView extends ItemView {
     private readonly trail = new ReaderTrail<TrailEntry>();
     /** The jump pill goes away by itself; the way back stays on Alt+← and in the list. */
     private jumpPillTimer: number | undefined;
+    /** The *not found in this edition* line's leaving (#751): one at a time, gone with the view. */
+    private missingTimer: number | undefined;
     private jumpPillShown = false;
     /** A place to land on once the chapter it is in is drawn (#761). */
     private pendingLanding: Spot | null = null;
+    /**
+     * A passage just landed on (#751): held at the reading line through a reshape — the sidebars
+     * folding as the Reader opens, a window resized — until you move the page yourself.
+     */
+    private passageHold: number | null = null;
     /** The Contents panel's tab, and the way its list slides in when it changes (FR-16). */
     private contentsTab: ContentsTab = "contents";
     private tabSlide: 1 | -1 | 0 = 0;
@@ -568,14 +586,24 @@ export class ReaderView extends ItemView {
         if (parsed.back) this.back = parsed.back;
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.source) {
+            // A place a note goes back to (#751): its chapter and its words, in this source only.
+            const read = parsed.at ? parsePlace(parsed.at) : null;
+            const place = read && read.file === parsed.source ? read : null;
             // A passage opened from Think or *This note* while the book is open is a jump (#761 FR-6):
             // where you were is kept first, and the camera moves there — never a fresh draw.
-            const passage = Boolean(parsed.highlight) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
+            const passage = (Boolean(parsed.highlight) || Boolean(place)) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
             const before = this.index;
-            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
+            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
             if (!this.els) return;
             if (passage && this.index === before && parsed.highlight && this.highlights?.reveal(parsed.highlight, true)) {
                 this.pendingHighlight = null;
+                return;
+            }
+            // In the chapter on screen: one eased glide to the passage (#751 FR-12), never a redraw.
+            const landing = this.pendingLanding;
+            if (passage && this.index === before && landing?.chapter === before) {
+                this.pendingLanding = null;
+                this.landHere(landing, true);
                 return;
             }
             // In another chapter: the chapter turns towards it, the way it turns today (#735).
@@ -621,7 +649,7 @@ export class ReaderView extends ItemView {
      * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
      * Library. A highlight a deep link names is landed on, whichever page it is on.
      */
-    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string): Promise<void> {
+    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string, place: PassagePlace | null = null): Promise<void> {
         const fresh = path !== this.sourcePath;
         if (fresh) {
             this.leaveSource();
@@ -641,7 +669,7 @@ export class ReaderView extends ItemView {
             this.pageDwells = [];
             this.pageShownAt = 0;
             // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
-            this.pendingShare = highlight ? null : keptScroll(this.plugin, path, chapter);
+            this.pendingShare = highlight || place ? null : keptScroll(this.plugin, path, chapter);
         }
         this.ended = false;
         this.detours = [];
@@ -685,7 +713,24 @@ export class ReaderView extends ItemView {
             const at = await chapterOfHighlight(path, highlight, this.highlightDeps.store);
             if (at !== null) this.index = at;
         }
+        if (place && this.source) this.aimAt(place, this.source.chapters);
         this.index = Math.max(0, Math.min(this.index, (this.path?.chapters.length ?? 1) - 1));
+    }
+
+    /**
+     * Aim the reading at a place a note goes back to (#751 FR-6, AC-4): its chapter — by its key, else
+     * the label the book gave it, else its page — and, when it has words, the passage in it. A place
+     * whose chapter is gone opens where it was going to; its words are still looked for, never guessed.
+     */
+    private aimAt(place: PassagePlace, chapters: readonly SourceChapter[]): void {
+        const at = resolveChapter(place, chapters);
+        if (at !== null) this.index = Math.max(0, Math.min(at, chapters.length - 1));
+        this.pendingShare = null;
+        this.pendingLanding = place.quote
+            ? { chapter: this.index, offset: null, share: 0, top: 0, passage: place.quote }
+            : at !== null
+              ? { chapter: this.index, offset: null, share: 0, top: 0 }
+              : null;
     }
 
     /** Close the source being read, before another reading takes its place. */
@@ -779,6 +824,7 @@ export class ReaderView extends ItemView {
         this.leaveDeep(true);
         window.clearTimeout(this.idleTimer);
         window.clearTimeout(this.placeTimer);
+        (this.root?.win ?? window).clearTimeout(this.missingTimer);
         this.touch = null;
         endChapterTurn();
         this.pager?.dispose();
@@ -863,6 +909,7 @@ export class ReaderView extends ItemView {
                 highlights: () => this.highlights,
                 pageWords: async (index) => (this.runMode() ? ((await this.pageRun?.words(index)) ?? null) : null),
                 pageLabel: (index) => this.sourceLabel(index),
+                pageLocator: (index) => this.locatorOf(index),
             },
             this.inkDeps
         );
@@ -1580,10 +1627,21 @@ export class ReaderView extends ItemView {
         const pager = this.pager;
         const body = this.chapterBody();
         if (!stage || !pager) return;
-        const offset = body && spot.bookmark ? landingOffset(chapterText(body), spot.bookmark) : spot.offset;
+        this.passageHold = null;
+        let offset = body && spot.bookmark ? landingOffset(chapterText(body), spot.bookmark) : spot.offset;
+        if (spot.passage && body) {
+            // A passage is found by its words, exactly as they were written (whitespace forgiven), and
+            // nowhere else (#751 AC-4): the text is folded the way its source entry folds it, one
+            // character for one, so the offset is the text's own.
+            const span = anchorQuote(foldMarks(chapterText(body)), spot.passage);
+            offset = span ? span.start : null;
+            if (!span) this.passageMissing(spot.passage);
+        }
         // The mark first: the caret made for the place is then inside it.
         const here = body && offset !== null ? markHereAt(body, offset) : null;
         const anchor = body && offset !== null ? this.anchorAt(body, offset) : null;
+        // A passage sits at the reading line, where the eye reads (#751 FR-6); any other place at the top.
+        const line = spot.passage ? READING_LINE : 0;
         let ms = 0;
         if (this.pagedNow()) {
             if (this.pagesPending) {
@@ -1593,7 +1651,13 @@ export class ReaderView extends ItemView {
             } else if (anchor) ms = pager.reveal(anchor, travel);
             else ms = pager.goToShare(spot.share ?? 0, travel);
         } else if (anchor) {
-            ms = pager.reveal(anchor, travel);
+            ms = pager.reveal(anchor, travel, line);
+            if (spot.passage && offset !== null) {
+                this.passageHold = offset;
+                // A chapter drawn in a leaf that is only now being shown has no layout yet to land on:
+                // once it has, the column settles on the passage — a glide, never a jump (§XVI).
+                if (!travel) this.settleOnPassage();
+            }
         } else {
             const top = spot.top ?? resumeScroll(spot.share ?? 0, stage.scrollHeight, stage.clientHeight);
             if (travel) ms = pager.glideTo(top);
@@ -1605,9 +1669,61 @@ export class ReaderView extends ItemView {
         if (landed > 0) (this.root?.win ?? window).setTimeout(() => this.refreshRibbon(), landed + 40);
     }
 
+    /**
+     * The words of a passage are not in this edition (#751 FR-7, FR-14): said once, inline at the top
+     * of the column — it slides in 8 px with a fade, and leaves the same way. No mark anywhere, no guess.
+     */
+    private passageMissing(quote: TextQuote): void {
+        log.debug(`[Reader] the passage "${quote.exact.slice(0, 40)}" was not found in ${this.sourcePath ?? "this reading"}; opened at its chapter`);
+        const page = this.els?.page;
+        const body = this.chapterBody();
+        if (!page || !body) return;
+        page.querySelector(`.${c("reader-passage-missing")}`)?.remove();
+        const line = page.createDiv({ cls: c("reader-passage-missing"), attr: { role: "status" }, text: t("reader_passage_not_found") });
+        page.insertBefore(line, body);
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.missingTimer);
+        this.missingTimer = win.setTimeout(() => {
+            line.addClass(c("reader-passage-missing--leaving"));
+            this.missingTimer = win.setTimeout(() => line.remove(), motionWelcome(line) ? MOTION.fast + 40 : 0);
+        }, PASSAGE_MISSING_MS);
+    }
+
+    /** The passage held at the reading line, found again where it is now (a fresh caret: marks come and go). */
+    private heldPassage(): PageAnchor | null {
+        const body = this.chapterBody();
+        return body && this.passageHold !== null ? this.anchorAt(body, this.passageHold) : null;
+    }
+
+    /** Land a held passage again once the leaf has its layout: a frame from now, and once settled. */
+    private settleOnPassage(): void {
+        const win = this.root?.win ?? window;
+        const generation = this.generation;
+        const again = () => {
+            const stage = this.els?.stage;
+            const held = this.heldPassage();
+            if (generation !== this.generation || !stage || !held || !this.pager || this.pagedNow()) return;
+            const before = stage.scrollTop;
+            // Measured where it would land; glided there only if it is not there already.
+            this.pager.reveal(held, false, READING_LINE);
+            const top = stage.scrollTop;
+            if (Math.abs(top - before) < 2) return;
+            stage.scrollTop = before;
+            this.pager.glideTo(top);
+        };
+        win.requestAnimationFrame?.(again);
+        win.setTimeout(again, RESUME_SETTLE_MS);
+    }
+
+    /** You moved: a move under way ends where it was going, and the page is yours again (#751 FR-15). */
+    private takeOver(): void {
+        this.pager?.settle();
+        this.passageHold = null;
+    }
+
     /** How long a mark waits: for the travel, or for the chapter turn still playing. */
     private hereDelay(ms: number): number {
-        return Math.max(0, ms, this.turnLandsAt - Date.now());
+        return Math.max(0, ms, this.turnLandsAt - Date.now(), originLandsAt() - Date.now());
     }
 
     /** The chapter's body on the page, where its text is. */
@@ -2041,6 +2157,12 @@ export class ReaderView extends ItemView {
         return this.source?.chapters[index]?.label ?? String(index + 1);
     }
 
+    /** Where a highlight of chapter `index` is (#681, #751 FR-5): its place, its label, its key and page. */
+    private locatorOf(index: number): ThoughtLocator {
+        const chapter = this.source?.chapters[index];
+        return { at: index, label: this.sourceLabel(index), ...(chapter?.key ? { chapter: chapter.key } : {}), ...(chapter?.page ? { page: chapter.page } : {}) };
+    }
+
     private async renderSourceChapter(): Promise<void> {
         if (!this.els || !this.path || !this.sourcePath) return;
         const generation = ++this.generation;
@@ -2055,6 +2177,7 @@ export class ReaderView extends ItemView {
         const component = new Component();
         component.load();
         this.chapter = component;
+        this.passageHold = null;
 
         // The ink note being written is kept with the page it was written on still there (#745 FR-9).
         this.ink?.leave("turn");
@@ -2127,10 +2250,12 @@ export class ReaderView extends ItemView {
         }
         this.dropRun();
         let picture = false;
+        let pageMarks: PageMark[] = [];
         this.pageLanguage = null;
         try {
             const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
+            pageMarks = drawn.pageMarks ?? [];
             // The column says what it is written in, so it hyphenates by the book's rules (#757 FR-6).
             this.pageLanguage = readingLanguage({ format: doc.format, bookLanguage: doc.language, chapterLanguage: drawn.language });
             if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
@@ -2169,9 +2294,9 @@ export class ReaderView extends ItemView {
         this.onStageScroll();
         this.watchFocus(body, component);
         // The ink layer of this page or chapter (#745).
-        this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component, run: false });
+        this.ink?.attach({ body, page, notePath: path, locator: this.locatorOf(index), component, run: false });
         // The highlights of this page or chapter, found again by their words (#681).
-        void this.highlights?.attach(body, path, component, this.els?.margin ?? null, { at: index, label: this.sourceLabel(index) }).then(() => {
+        void this.highlights?.attach(body, path, component, this.els?.margin ?? null, this.locatorOf(index), pageMarks).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
             if (this.highlights?.reveal(this.pendingHighlight)) this.pendingHighlight = null;
         });
@@ -2386,7 +2511,7 @@ export class ReaderView extends ItemView {
         // Page ink lives on the printed pages (#745 E2): fractions of each page, through every zoom —
         // attached before the pages are shown, so each page made now gets its ink.
         const path = this.sourcePath;
-        if (path && this.chapter) this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component: this.chapter, run: true });
+        if (path && this.chapter) this.ink?.attach({ body, page, notePath: path, locator: this.locatorOf(index), component: this.chapter, run: true });
         run.show(index, share);
         this.landShot();
         this.renderZoom();
@@ -3419,7 +3544,10 @@ export class ReaderView extends ItemView {
             return;
         }
         const blocks = this.blocks();
-        if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
+        // A passage just landed on stays at the reading line (#751); anything else keeps its top line.
+        const held = this.passageHold !== null ? this.heldPassage() : null;
+        if (held && this.pager) this.pager.reveal(held, false, READING_LINE);
+        else if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
         if (this.panel) this.renderPanel();
         this.refreshRibbon();
     }
@@ -3451,7 +3579,14 @@ export class ReaderView extends ItemView {
             },
             { passive: false }
         );
-        this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => this.onPointerDown(event));
+        // Input during a move jumps it to its end (#751 FR-15): the place is already set under it. And
+        // from then on the page is yours: a landed passage is no longer held at the reading line.
+        this.registerDomEvent(stage, "wheel", () => this.takeOver(), { passive: true });
+        this.registerDomEvent(this.contentEl, "keydown", () => this.takeOver(), { capture: true });
+        this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => {
+            this.takeOver();
+            this.onPointerDown(event);
+        });
         this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
         this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
@@ -3950,7 +4085,7 @@ export class ReaderView extends ItemView {
             return this.pager.reveal(el, travel);
         }
         const box = stage.getBoundingClientRect();
-        const top = Math.max(0, (el.getBoundingClientRect().top - box.top) / stageScale(stage, box.height) + stage.scrollTop - stage.clientHeight / 3);
+        const top = Math.max(0, (el.getBoundingClientRect().top - box.top) / stageScale(stage, box.height) + stage.scrollTop - stage.clientHeight * READING_LINE);
         if (travel && this.pager) return this.pager.glideTo(top);
         stage.scrollTop = top;
         return 0;

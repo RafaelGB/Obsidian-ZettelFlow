@@ -12,6 +12,7 @@ import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning }
 import { MOTION, fly, motionWelcome } from "./readerMotion";
 import { touchPointer } from "./readerDevice";
 import { markHereOn } from "./readerHere";
+import { printPageAt, type PageMark } from "application/library/provenance";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -230,6 +231,8 @@ export class ReaderHighlights {
     private notePath: string | null = null;
     /** Where in a source the chapter on screen is (#681); absent for a note. */
     private locator: ThoughtLocator | null = null;
+    /** The print pages of the chapter on screen (#751): a passage is cited on the page it starts on. */
+    private pageMarks: readonly PageMark[] = [];
     /** Notes written in the margin of a page with no text (#681): a place, and no passage. */
     private pageNotes: Thought[] = [];
     private component: Component | null = null;
@@ -313,13 +316,16 @@ export class ReaderHighlights {
         component: Component,
         margin: HTMLElement | null,
         /** The chapter's place, when it is a page of a PDF or a chapter of an EPUB (#681). */
-        locator: ThoughtLocator | null = null
+        locator: ThoughtLocator | null = null,
+        /** Where the print pages the book declares begin in this chapter's text (#751 FR-3). */
+        pageMarks: readonly PageMark[] = []
     ): Promise<void> {
         const generation = ++this.generation;
         this.hidePopover();
         this.body = body;
         this.notePath = notePath;
         this.locator = locator;
+        this.pageMarks = pageMarks;
         this.pageNotes = [];
         this.component = component;
         this.margin = margin;
@@ -395,6 +401,7 @@ export class ReaderHighlights {
         this.body = null;
         this.notePath = null;
         this.locator = null;
+        this.pageMarks = [];
         this.pageNotes = [];
         this.anchored = [];
         this.tints.clear();
@@ -660,7 +667,11 @@ export class ReaderHighlights {
         const stroke = options.origin === "stroke";
         const tint = `stroke#${++this.tintSeq}`;
         const early = stroke ? this.drawPending(span, meaning, options.direction, tint) : [];
-        const made = await this.writeHighlight(notePath, this.locator, quote, options.note ?? "", meaning);
+        // The place, exactly (#751 FR-5): the chapter's identity rides with it, and the print page the
+        // passage starts on — only when the book declares one (FR-3).
+        const page = this.locator ? (this.locator.page ?? printPageAt(this.pageMarks, span.start)) : undefined;
+        const placed = this.locator ? { ...this.locator, ...(page ? { page } : {}) } : null;
+        const made = await this.writeHighlight(notePath, placed, quote, options.note ?? "", meaning);
         if (!made) {
             early.forEach((mark) => unwrapMark(mark));
             this.untint(tint);

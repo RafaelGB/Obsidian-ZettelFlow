@@ -1,5 +1,6 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
+@use '../utils/motion' as *;
 
 /*
  * This note (#640, epic #639) — the note you are reading, from the right sidebar.
@@ -469,23 +470,42 @@ button.zettelkasten-flow__note-companion-step-next {
 }
 
 .zettelkasten-flow__note-companion .zettelkasten-flow__note-companion-origin-source {
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    color: var(--text-accent);
+    @include text-link-button;
     font-size: $text-small;
-    cursor: pointer;
-    text-align: left;
-
-    &:hover {
-        text-decoration: underline;
-    }
 }
 
 .zettelkasten-flow__note-companion-origin-gone {
     color: $text-faint;
+}
+
+/* Copy link to passage (#751 FR-8): a quiet icon after the source, Obsidian's own clickable icon. */
+.zettelkasten-flow__note-companion .zettelkasten-flow__note-companion-origin-copy {
+    padding: var(--size-2-1);
+    color: $text-faint;
+
+    &:hover {
+        color: var(--text-accent);
+    }
+}
+
+/* *Link copied* takes the row's label for a moment, arriving with a fade (#751 FR-14). */
+.zettelkasten-flow__note-companion-origin-label--copied {
+    color: var(--text-accent);
+    animation: zf-note-companion-copied $motion-fast $ease-out both;
+}
+
+@keyframes zf-note-companion-copied {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__note-companion-origin-label--copied,
+    .zettelkasten-flow__note-companion-origin-copy {
+        animation: none;
+        transition: none;
+    }
 }
 
 /* One companion write at a time (#639): while one is in flight, the others wait visibly. */

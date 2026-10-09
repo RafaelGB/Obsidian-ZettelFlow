@@ -3,6 +3,7 @@ import { sourceFormat, type SourceFormat } from "application/library/sourceMeta"
 import type { CropBox, PageInk } from "application/library/pdfCrop";
 import type { SpreadView } from "application/library/epubFixedLayout";
 import type { PageText } from "application/library/pdfWords";
+import type { PageMark } from "application/library/provenance";
 import { openPdfSource } from "./pdfSource";
 import { openEpubSource } from "./epubSource";
 
@@ -29,6 +30,13 @@ export interface SourceChapter {
     section?: string;
     /** A designed page (#771): it has no text to search, highlight or count. */
     designed?: true;
+    /**
+     * The chapter's identity inside the file (#751 P1): an EPUB spine item's own path, a PDF's
+     * `page:<index>`. What a passage's source cites, so a reordered spine still lands.
+     */
+    key?: string;
+    /** A PDF page's print label, when the paper gives its pages labels (#751 FR-3). */
+    page?: string;
 }
 
 export interface SourceTocEntry {
@@ -48,6 +56,8 @@ export interface DrawnChapter {
     language?: string;
     /** A designed page (#771): drawn as it was made, in its own boundary — nothing in it is read or kept. */
     designed?: boolean;
+    /** Where each print page the book declares begins in the chapter's text (#751 FR-3). */
+    pageMarks?: PageMark[];
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */

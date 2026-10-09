@@ -374,6 +374,26 @@
     font-size: var(--font-ui-smaller);
 }
 
+/* Where each passage is, as the note will cite it, and the way back to it (#751 FR-6). */
+.zettelkasten-flow__crystallize-sources {
+    margin: var(--size-4-1) 0 var(--size-4-2);
+    padding-left: var(--size-4-5);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__crystallize-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--size-4-1) var(--size-4-3);
+}
+
+.zettelkasten-flow__crystallize .zettelkasten-flow__crystallize-source-open {
+    @include text-link-button;
+    font-size: var(--font-ui-smaller);
+}
+
 .zettelkasten-flow__crystallize-keeps {
     color: var(--text-faint);
     font-size: var(--font-ui-smaller);

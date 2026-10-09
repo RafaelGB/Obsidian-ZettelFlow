@@ -1,7 +1,12 @@
 import { Platform, type App, type WorkspaceLeaf } from "obsidian";
+import { c } from "architecture";
 import { READER_VIEW, type ReaderBack, type ReaderKind, type ReaderSidesState } from "./readerContract";
 import { LIBRARY_VIEW } from "architecture/components/core/library/libraryHost";
 import { collapseSides, restoreSides, snapshotSides, type SideLike } from "./readerWorkspace";
+import { fly, MOTION, motionWelcome } from "./readerMotion";
+import { READING_LINE } from "./readerPlace";
+import { readerHost } from "./readerHost";
+import { readingMotion } from "./readingMotion";
 
 /**
  * What the workspace looked like before the reader took it: the sidebars and the leaf you were in.
@@ -126,11 +131,60 @@ export interface ReaderRequest {
     leaf?: WorkspaceLeaf;
     /** The Library's state to give the leaf back to on exit (#733). */
     back?: ReaderBack;
+    /** A passage to land on (#751): a place, as `serializePlace` writes it. */
+    at?: string;
+    /**
+     * What was clicked to open it (#751 FR-12): the camera moves from it into the Reader — the #734
+     * shot — when the Reader is not already open and the opening is a shot. Never a cut.
+     */
+    from?: HTMLElement;
+}
+
+/**
+ * **The origin lifts and travels** (#751 FR-12): a ghost of what was clicked — *Born from*'s book —
+ * leaves its row and flies to the reading line of the main area, where the passage is about to land,
+ * growing a little and fading as the Reader arrives under it. Transform and opacity only; nothing
+ * under reduced motion. Never a cut, and never a book cover pushed into a button.
+ */
+let flightLandsAt = 0;
+
+/** When the origin's flight lands (#751): the passage's *you are here* mark waits for it. */
+export function originLandsAt(): number {
+    return flightLandsAt;
+}
+
+export function flyOrigin(from: HTMLElement): void {
+    if (!motionWelcome(from)) return;
+    const doc = (from as HTMLElement & { doc?: Document }).doc ?? from.ownerDocument;
+    const host = doc?.body;
+    const area = doc?.querySelector<HTMLElement>(".workspace-split.mod-root") ?? host;
+    if (!host || !area) return;
+    const start = from.getBoundingClientRect();
+    const stage = area.getBoundingClientRect();
+    if (!(start.width > 0) || !(stage.width > 0)) return;
+    const grow = 1.4;
+    const width = start.width * grow;
+    const height = start.height * grow;
+    const to = { left: stage.left + (stage.width - width) / 2, top: stage.top + stage.height * READING_LINE - height / 2, width, height };
+    const ghost = from.cloneNode(true) as HTMLElement;
+    ghost.addClass(c("reader-origin-ghost"));
+    // A picture of the button, not a button: never focused, never announced.
+    ghost.setAttribute("aria-hidden", "true");
+    ghost.setAttribute("tabindex", "-1");
+    ghost.setAttribute("inert", "");
+    fly(host, ghost, { left: start.left, top: start.top, width: start.width, height: start.height }, to, { duration: MOTION.shotPush });
+    flightLandsAt = Date.now() + MOTION.shotPush;
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back, at, from } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
+    // One continuous shot (#751 FR-12): what you clicked lifts and travels to where the passage will
+    // be read — only when the Reader is not open yet; an open one moves its own camera (a glide, or a
+    // chapter turn). The book-cover shot is the Library's own: a chip is not a cover.
+    if (from && workspace.getLeavesOfType(READER_VIEW).length === 0 && readingMotion(readerHost()?.settings?.readingMotion).open === "shot") {
+        flyOrigin(from);
+    }
     if (!held) {
         const s = sides(app);
         held = { sides: s ? snapshotSides(s.left, s.right) : null, leaf: workspace.getMostRecentLeaf() };
@@ -149,6 +203,7 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     if (highlight) state.highlight = highlight;
     if (name) state.name = name;
     if (back) state.back = back;
+    if (book && at) state.at = at;
     try {
         await leaf.setViewState({ type: READER_VIEW, state, active: true });
         await workspace.revealLeaf(leaf);

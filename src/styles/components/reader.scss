@@ -838,6 +838,39 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
+/*
+ * The passage is not in this edition (#751 FR-7, FR-14): one calm line at the top of the column, no
+ * mark anywhere. It arrives like the back pill — 8 px down and a fade, in `fast` — and leaves the same way.
+ */
+.zettelkasten-flow__reader-passage-missing {
+    margin-bottom: var(--size-4-4);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-m);
+    background-color: var(--background-modifier-hover);
+    color: var(--reader-muted, var(--text-muted));
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-small);
+    animation: zf-reader-passage-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-passage-missing--leaving {
+    animation: zf-reader-passage-out $motion-fast $ease-out both;
+}
+
+@keyframes zf-reader-passage-in {
+    from {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
+@keyframes zf-reader-passage-out {
+    to {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
 /* ── bookmarks and where you've been (#761) ─────────────────────────────── */
 
 /*
@@ -1706,6 +1739,23 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     transform-origin: top left;
 }
 
+/* Born from's book, lifting and travelling to where its passage is read (#751 FR-12). */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-origin-ghost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    box-shadow: var(--shadow-s);
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
+    overflow: hidden;
+    z-index: var(--layer-popover);
+}
+
 .zettelkasten-flow__reader-hl-ghost {
     border-radius: var(--radius-s);
     background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
@@ -2249,6 +2299,12 @@ body.zettelkasten-flow__reader-deep-covers-app {
     body.zettelkasten-flow__reader-deep-returning .sidebar-toggle-button,
     body.zettelkasten-flow__reader-deep-returning .status-bar {
         transition: none;
+    }
+
+    /* Not in this edition (#751): simply there, then simply gone. */
+    .zettelkasten-flow__reader-passage-missing,
+    .zettelkasten-flow__reader-passage-missing--leaving {
+        animation: none;
     }
 
     /* You are here: shown at once, for a moment, then gone (HERE_REDUCED_MS). */

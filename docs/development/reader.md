@@ -619,6 +619,79 @@ and later versions can read it. The colour is kept by name, and drawn from your 
 - **No thinking space?** The pencil is still there; the palette says that ink is kept in Think and how
   to choose a folder, and nothing draws.
 
+## Every note goes back to its paragraph
+
+A note you make from a passage of a PDF or an EPUB remembers **which paragraph** it came from, in
+the note itself, for as long as the note exists — so you can always check a sentence against its
+source. That is what makes a note citable.
+
+![Every note goes back to its paragraph: the note's Properties with its source entry; This note's Born from with the copy-link icon, the chip lifting towards the Reader; the Reader landed with the passage at the reading line, marked for a moment; the line another edition gets; and the passage link](../resources/reader/provenance.svg)
+
+- **Written once, when the note is made.** Crystallizing a highlight writes a `source` property —
+  a list, so one note can cite several passages — that reads like a citation:
+
+  ```yaml
+  source:
+    - "[[Books/Thinking, Fast and Slow.epub#OEBPS/ch03.xhtml|Thinking, Fast and Slow]] p. 143 · 3 · The lazy controller · “…physical exertion. ‹A general law of least effort applies› to cognitive…”"
+    - "[[Papers/cap.pdf#page=6|CAP twelve years later]] p. 6 · “‹Partitions are rare› but…”"
+  ```
+
+  From left to right: the book, as a link whose subpath is **the chapter's own path inside the
+  file** (an EPUB's spine item) or Obsidian's own `#page=N` for a PDF; the **print page**, only when
+  the source has one; the chapter as the book names it; and the **opening words of the passage**
+  between `‹ ›`, inside a few words of context. The `source::` line the note always had is still
+  written under its text, so the note still counts as sourced and as born from the book.
+- **A quote, not a CFI.** An EPUB CFI counts element steps in the book's original XHTML, but the
+  Reader draws a cleaned copy of it: it would be a coordinate the Reader could not check, broken
+  silently by any change to the cleaning. A few words survive both. The opening words are bounded
+  (twelve words, 90 characters, a little context each side), so the property stays readable.
+- **The page is never invented.** A PDF gives its page, and its printed label when it has one. An
+  EPUB gives a print page only when the book declares its print pages — an EPUB 3 page list, an EPUB 2
+  NCX page list, or page-break marks in its text. A book that declares none cites its chapter.
+- **Highlights carry the same place.** A highlight remembers the chapter's identity and the page,
+  and crystallizing copies them into the note, so the way back never depends on the highlight still
+  being in Think.
+- **Open source passage.** In [This note](this-note.md), **Born from** names the book and the page;
+  click it and the Reader opens on that chapter with the passage at the **reading line** (a third of
+  the way down), marked for a moment under the words. The preview of the note, before it exists,
+  shows the same source with **↗ Open source passage**. It is one camera move: from This note the
+  book's chip lifts and travels into the Reader; when the Reader is already open on the book, the
+  column glides there; when the passage is in another chapter, the chapter turns the way it always
+  does and then settles. A key, the wheel or a touch during the move ends it at once. The place you
+  left is on the trail, so **← Back** returns there.
+- **Another edition.** When the words are not there (another edition, a re-exported PDF), the
+  Reader opens the chapter at its top and says so once, inline: *The passage was not found in this
+  edition. Opened at its chapter.* It never guesses a nearby paragraph. A spine that was reordered
+  still lands: the chapter is found by its path, not its number.
+- **Old notes.** A note made before this keeps its `source::` line, is never rewritten, and now
+  opens at its EPUB chapter too — the chapter the book labels so (`3 · The lazy controller`), never
+  the third file in the book.
+- **Under reduced motion** the landing is instant, and the mark shows for 1.5 s without fading.
+
+### Passage links
+
+**Copy link to passage**, the link icon on the *Born from* row, puts on the clipboard an Obsidian
+URI that opens the Reader at that passage — pasted in any note, or clicked from outside Obsidian.
+The row reads *Link copied* for a moment.
+
+```
+obsidian://zettelflow-read?vault=<vault>&file=<vault path>&chapter=<chapter>&q=<opening words>[&pre=<before>][&suf=<after>][&page=<print page>]
+```
+
+| Field | What it is | Cap |
+|---|---|---|
+| `vault` | The vault's name (Obsidian routes the link by it) | — |
+| `file` | The PDF or EPUB's path in the vault | 1024 characters |
+| `chapter` | The chapter's identity: an EPUB spine item's path (`OEBPS/ch03.xhtml`), or `page:<index from 0>` for a PDF | 512 |
+| `q` | The passage's opening words | 90 |
+| `pre`, `suf` | A few words before and after them | 24 each |
+| `page` | The print page, when the source has one | 32 |
+
+The link carries the path and the anchor's few words, nothing more. One that names a file that is
+not a PDF or an EPUB, or not in the vault, is over a cap, misses `file`, `chapter` or `q`, or has a
+field not listed here opens nothing and shows nothing (it is logged at debug). **This shape is a
+public surface:** later versions keep reading it, and any change to it is additive.
+
 ## The end of a path
 
 Past the last chapter — **Next**, **Space** or **Finish** — the reading does not just close. An
@@ -747,7 +820,10 @@ you can make while reading — a highlight, or ink — are **thoughts** in Think
 thought store like every other thought, and a second test holds that line too. Ink adds one file to
 its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
 same recorded batch. An older version of the plugin reads an ink note as a highlight with no note;
-nothing is lost. The only things it remembers are where you are in a reading (in the workspace
+nothing is lost. A note made from a passage — through the same preview as everywhere, create-only —
+carries its `source` list from the start; a crystallize flow's note gets it added once the flow has
+built the note, as one recorded property write you can undo (its own row in *Recent*, after the
+note's). The book itself is never written. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings), your type choices and the paths you saved
 (in the plugin's settings), and the places you bookmarked in a book or a paper (beside its resume
 place, in the plugin's settings — an older version of the plugin reads past them, so going back to
@@ -790,6 +866,18 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   `travelDuration`). They return how long they take, and `readerHere.ts` waits that long before the
   *you are here* mark (`markHereAt`, `markHereOn`; `zf-reader-here`, opacity only). The old
   `reader-highlight--flash` box-shadow ring is gone.
+- Provenance (#751) has one producer and one reader, both pure in `application/library/provenance.ts`:
+  `PassagePlace` (`file`, `chapter` key, `label`, `page`, bounded `quote`), `placeOf(thought)`,
+  `boundQuote`, `samePlace`, `sourceEntry(place, title?)` / `readSourceEntry(value)` (the written
+  form), `serializePlace` / `parsePlace` (the view state's one-shot `at`), `passageLink` /
+  `parsePassageLink` (the URI), `resolveChapter` / `chapterFromLabel`, `printPageAt` and
+  `mergeSourceEntries`. The one property writer is `addSourceEntries(file, entries)` in
+  `architecture/plugin/library/sourceWrites.ts` (through `FrontmatterService`, in a `reader-source`
+  batch). `SourceChapter.key` / `.page` and `DrawnChapter.pageMarks` come from the sources;
+  `ThoughtLocator.chapter` / `.page` from the highlight. The view lands an `at` through the same
+  `landHere` as a bookmark — a `Spot` with a `passage` quote, anchored on `foldMarks(chapterText)` and
+  put at `READING_LINE` (`readerPlace.ts`) with `ReaderPager.reveal(anchor, travel, line)` — or shows
+  `reader-passage-missing`. The protocol handler lives in `ReaderComponent` (`readerLink.ts`).
 - Deep reading (#764) is the idle bar grown up, not a new state: page only is `reader--deep` +
   `reader--idle`, the overlay is `reader--deep` alone, so `wake()` and the `IDLE_MS` timer are the
   ones the bar always had, and `idleAllowed()` keeps the chrome while a panel, search or a popover is

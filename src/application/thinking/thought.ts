@@ -63,6 +63,13 @@ export interface ThoughtLocator {
     at: number;
     /** How a reader cites it. */
     label: string;
+    /**
+     * The chapter's identity inside the file (#751 P1): an EPUB spine item's own path, a PDF's
+     * `page:<index>`. Absent on a highlight made before #751.
+     */
+    chapter?: string;
+    /** The print page the passage is on, only when the source declares one (#751 FR-3). */
+    page?: string;
 }
 
 /**
@@ -269,6 +276,8 @@ export function renderThought(thought: Thought): string {
     }
     if (thought.locator) {
         lines.push(`  locatorAt: ${thought.locator.at}`, `  locatorLabel: ${JSON.stringify(thought.locator.label)}`);
+        if (thought.locator.chapter) lines.push(`  locatorChapter: ${JSON.stringify(thought.locator.chapter)}`);
+        if (thought.locator.page) lines.push(`  locatorPage: ${JSON.stringify(thought.locator.page)}`);
     }
     if (thought.ink?.drawing) {
         const ink = thought.ink;
@@ -375,7 +384,9 @@ function readLocator(read: (field: string) => string | undefined): ThoughtLocato
     const raw = read("locatorAt");
     const at = Number(raw);
     if (raw === undefined || !Number.isInteger(at) || at < 0) return undefined;
-    return { at, label: readString(read("locatorLabel")) ?? "" };
+    const chapter = readString(read("locatorChapter"));
+    const page = readString(read("locatorPage"));
+    return { at, label: readString(read("locatorLabel")) ?? "", ...(chapter ? { chapter } : {}), ...(page ? { page } : {}) };
 }
 
 /** A highlight's review (#678), when the file carries one. A garbled one is no review at all. */

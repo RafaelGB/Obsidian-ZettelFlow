@@ -188,3 +188,29 @@ describe("ink moves like the rest of the Reader (#745 AC-14, FR-20–FR-25)", ()
         expect(reduced).toMatch(/transition: none;/);
     });
 });
+
+describe("a passage a note goes back to arrives like the rest of the Reader (#751 AC-9)", () => {
+    const css = sheet("components/reader.scss");
+    const companion = sheet("components/noteCompanion.scss");
+    const keyframes = (from: string, name: string) => {
+        const start = from.indexOf(`@keyframes ${name} {`);
+        return start < 0 ? "" : from.slice(start, from.indexOf("\n}", start));
+    };
+    const props = (block: string) => [...new Set([...block.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]))];
+
+    it("slides the not-found line 8 px and fades it, in and out, at the fast beat", () => {
+        for (const name of ["zf-reader-passage-in", "zf-reader-passage-out"]) {
+            expect({ name, props: props(keyframes(css, name)).sort() }).toEqual({ name, props: ["opacity", "translate"] });
+            expect(keyframes(css, name)).toContain("var(--size-4-2)");
+        }
+        expect(css).toMatch(/reader-passage-missing \{[^}]*animation: zf-reader-passage-in \$motion-fast/);
+        expect(props(keyframes(companion, "zf-note-companion-copied"))).toEqual(["opacity"]);
+    });
+
+    it("gives the not-found line and Link copied an instant equivalent", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain("reader-passage-missing");
+        const companionReduced = companion.slice(companion.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(companionReduced).toContain("note-companion-origin-label--copied");
+    });
+});

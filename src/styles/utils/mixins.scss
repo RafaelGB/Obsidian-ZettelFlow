@@ -67,6 +67,22 @@
 
 /// A **hint**: the small quiet line under a control that says what it will do, or what just
 /// failed. Never a `Notice` — a thing about what is in front of you is said in front of you.
+// A button that reads as a link (#751): *Born from*'s source, the preview's *Open source passage*.
+@mixin text-link-button {
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 @mixin hint {
     color: $text-quiet;
     font-size: $text-small;

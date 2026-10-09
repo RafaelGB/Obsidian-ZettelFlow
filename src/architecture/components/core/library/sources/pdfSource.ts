@@ -203,7 +203,8 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     const labels = await labelsOf(doc);
     const chapters = Array.from({ length: doc.numPages }, (_, i) => {
         const section = sectionOf(toc, i);
-        return { label: t("reader_source_page", labels?.[i] ?? String(i + 1)), ...(section ? { section } : {}) };
+        // Its identity is its index (#751 P1); its print page, the paper's own label or its number.
+        return { label: t("reader_source_page", labels?.[i] ?? String(i + 1)), key: `page:${i}`, page: labels?.[i] ?? String(i + 1), ...(section ? { section } : {}) };
     });
     let imageOnly = imageOnlyKnown ?? false;
     if (imageOnlyKnown === undefined) {

@@ -325,6 +325,7 @@ export default {
     crystallize_title: 'Una nota, antes de existir',
     crystallize_intro: 'Reescríbela como quieras. No se escribe nada hasta que confirmes.',
     crystallize_note_title: 'Título',
+    crystallize_source_label: 'Fuente',
     crystallize_born_from: 'Nació de',
     crystallize_and_more: 'y {0} más',
     crystallize_keeps_thoughts: 'Los pensamientos que uses se apartan a tu estante: no se borra nada y puedes recuperarlos.',
@@ -2750,6 +2751,10 @@ export default {
     reader_source_chapter: 'Capítulo {0}',
     reader_hl_crystallize: 'Cristalizar en una nota',
     note_companion_born_from: 'Nacida de',
+    reader_open_source_passage: 'Abrir el pasaje de origen',
+    reader_copy_passage_link: 'Copiar enlace al pasaje',
+    reader_passage_link_copied: 'Enlace copiado',
+    reader_passage_not_found: 'No se encontró el pasaje en esta edición. Abierto en su capítulo.',
     note_companion_born_open: 'Abrir en este lugar en el lector',
     // One family (#702, epic #701).
     family_keep: 'Guardarlo',

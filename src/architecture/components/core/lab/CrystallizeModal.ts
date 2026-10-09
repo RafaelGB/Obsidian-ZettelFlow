@@ -5,7 +5,12 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { scopeReasonName } from "architecture/components/core/scope/ruleSentence";
 import { crystallize, crystallizeInto } from "architecture/plugin/thinking/crystallizeThought";
 import { crystallizeFlowPath, crystallizeThroughFlow } from "architecture/plugin/thinking/crystallizeThroughFlow";
-import { destinationsFor, type Crystallization, type Destination } from "application/thinking/crystallize";
+import { destinationsFor, withSourceTitles, type Crystallization, type Destination } from "application/thinking/crystallize";
+import { readerHost } from "architecture/components/core/reader/readerHost";
+import { sourceMetaOf } from "architecture/components/core/reader/readerSource";
+import { serializePlace, sourceTitle } from "application/library/provenance";
+import { sourceFormat } from "application/library/sourceMeta";
+import { openReader } from "architecture/components/core/reader/openReader";
 
 /**
  * The note, before it exists (#468, epic #465).
@@ -20,19 +25,22 @@ import { destinationsFor, type Crystallization, type Destination } from "applica
 export class CrystallizeModal extends Modal {
     private title: string;
     private body: string;
+    private readonly plan: Crystallization;
 
     /** Where it lands. `back` only exists when the thread had a subject that still does. */
     private destination: Destination;
 
     constructor(
         app: App,
-        private readonly plan: Crystallization,
+        plan: Crystallization,
         /** Given the path it wrote, so the caller can record what the thinking became (#492). */
         private readonly onDone: (path?: string) => void,
         /** The note the thread was about, when it had one (#474). */
         private readonly subject?: string
     ) {
         super(app);
+        // A passage's source is cited by the title the book declares, as the Library knows it (#751).
+        this.plan = withSourceTitles(plan, (path) => sourceMetaOf(readerHost() ?? undefined, path)?.title);
         this.title = plan.title;
         this.body = plan.body;
         // No default when both are open: where a piece of thinking belongs is the decision, and
@@ -105,6 +113,10 @@ export class CrystallizeModal extends Modal {
         }
         contentEl.createDiv({ cls: c("crystallize-keeps"), text: t("crystallize_keeps_thoughts") });
 
+        // Where each passage is, as the note will cite it (#751 FR-1, FR-6) — and the way back to it,
+        // before the note even exists.
+        this.renderSources(contentEl);
+
         // A new note with a crystallize flow continues in it (#712): it decides where and how.
         const flow = this.flowName();
         if (flow) {
@@ -124,6 +136,27 @@ export class CrystallizeModal extends Modal {
                     .onClick(() => void this.apply())
             )
             .addButton((button) => button.setButtonText(t("crystallize_cancel")).onClick(() => this.close()));
+    }
+
+    /** The passages' sources: the book, the chapter and the page, each with *Open source passage*. */
+    private renderSources(contentEl: HTMLElement): void {
+        const places = this.plan.places ?? [];
+        if (places.length === 0) return;
+        contentEl.createEl("h3", { text: t("crystallize_source_label") });
+        const list = contentEl.createEl("ul", { cls: c("crystallize-sources") });
+        for (const place of places) {
+            const item = list.createEl("li", { cls: c("crystallize-source") });
+            const where = [place.title ?? sourceTitle(place.file), sourceFormat(place.file) === "pdf" ? "" : place.label, place.page ? t("reader_source_page", place.page) : ""].filter(Boolean);
+            item.createDiv({ cls: c("crystallize-source-where"), text: where.join(" · ") });
+            const open = item.createEl("button", { cls: c("crystallize-source-open"), attr: { type: "button" } });
+            open.createSpan({ text: "↗ ", attr: { "aria-hidden": "true" } });
+            open.createSpan({ text: t("reader_open_source_passage") });
+            open.addEventListener("click", () => {
+                // The passage, not the preview: nothing is written, exactly as cancelling.
+                this.close();
+                void openReader(this.app, { seed: place.file, source: place.file, at: serializePlace(place) });
+            });
+        }
     }
 
     /** The crystallize flow a new note would continue in, by its canvas name; "" when none. */

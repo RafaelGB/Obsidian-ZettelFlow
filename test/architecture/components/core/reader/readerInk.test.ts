@@ -23,7 +23,7 @@ import { loadInk } from "../../../../support/inkFixtures";
 import { GROUP_IDLE_MS } from "application/reader/ink/inkGroup";
 import { PALM_WINDOW_MS } from "application/reader/ink/inkInput";
 import { parseInkSvg, renderInkSvg, type InkDrawing } from "application/reader/ink/inkSvg";
-import type { Thought } from "application/thinking/thought";
+import type { Thought, ThoughtLocator } from "application/thinking/thought";
 
 function file(path: string): TFile {
     const f = new TFile();
@@ -526,7 +526,7 @@ const middle = (line: number) => TOP + line * LINE + 14;
 /** A pen drawn along line `line`, from `from` to `to`, with the slight tremor a hand has. */
 const along = (line: number, from = 90, to = 480) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: middle(line) + (k % 2 ? 1 : -1) }));
 
-function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean } = {}) {
+function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean; pageLocator?: (index: number) => ThoughtLocator } = {}) {
     const body = chapterEl();
     const text = chapterText(body as never);
     const words = layout(text);
@@ -580,7 +580,7 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
         }
     );
     const ink = new ReaderInk(
-        { app: {} as never, root: root as never, stage: () => stage as never, owner, refreshList: jest.fn(), highlights: () => highlights, pageWords: options.pageWords, pageLabel: (i) => `p. ${i + 1}` },
+        { app: {} as never, root: root as never, stage: () => stage as never, owner, refreshList: jest.fn(), highlights: () => highlights, pageWords: options.pageWords, pageLabel: (i) => `p. ${i + 1}`, pageLocator: options.pageLocator },
         { store: store as never, words: () => ({ words, text }), spanBox: () => null, metrics: () => ({ fontPx: 16, linePx: LINE }), text: () => text, now: () => clock }
     );
     const component = new Component();
@@ -882,8 +882,8 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
         return { text, words, headings: [] };
     })();
 
-    async function printed(text: PageText | null) {
-        const m = direct({ run: true, pageWords: async () => text });
+    async function printed(text: PageText | null, pageLocator?: (index: number) => ThoughtLocator) {
+        const m = direct({ run: true, pageWords: async () => text, pageLocator });
         const slot = new DomNode();
         slot.addClass("zettelkasten-flow__reader-pv-slot");
         slot.setAttribute("data-page", "2");
@@ -924,6 +924,14 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
         expect((again.byClass("reader-ink-page")[0] as DomNode).hasClass("theme-light")).toBe(true);
         // Text ink never asks: its layer follows the theme.
         expect(m.page.byClass("reader-ink-layer").every((layer: any) => !layer.hasClass("theme-dark"))).toBe(true);
+    });
+
+    it("cites a line of a printed page exactly: its key and its print page ride with it (#751 FR-5)", async () => {
+        const m = await printed(PRINTED, (at) => ({ at, label: "p. iii", chapter: `page:${at}`, page: "iii" }));
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        const [, options] = m.store.write.mock.calls[0] as [string, any];
+        expect(options.locator).toEqual({ at: 2, label: "p. iii", chapter: "page:2", page: "iii" });
     });
 
     it("keeps a line of a text page as a highlight cited at that page, drawn as rectangles over its words", async () => {

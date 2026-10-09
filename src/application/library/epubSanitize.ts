@@ -472,6 +472,17 @@ export function sanitizeSvg<E>(svg: SourceNode, parent: E, builder: ChapterBuild
 }
 
 /**
+ * A page-break mark's label (`epub:type="pagebreak"`, `role="doc-pagebreak"`): its `title`, its
+ * `aria-label`, else its text. `null` when the element is not one; `""` when it names no page.
+ */
+function pageBreakLabel(node: SourceNode): string | null {
+    const kinds = `${attr(node, "epub:type")} ${attr(node, "type")} ${attr(node, "role")}`.toLowerCase().split(/\s+/);
+    if (!kinds.some((kind) => kind === "pagebreak" || kind === "doc-pagebreak")) return null;
+    const label = (attr(node, "title") || attr(node, "aria-label") || (node.textContent ?? "")).replace(/\s+/g, " ").trim();
+    return /^[\p{L}\p{N}.\- ]{1,32}$/u.test(label) ? label : "";
+}
+
+/**
  * Rebuild `root`'s children under `parent`. `chapterHref` is the chapter's path in the archive, so
  * relative images and links resolve inside the book.
  */
@@ -527,6 +538,17 @@ export function sanitizeChapter<E>(
             if (name === "img") {
                 const path = imageIn(chapterHref, attr(child, "src"));
                 if (path) image(into, path, attr(child, "alt").slice(0, 500), designed ? designedAttributes(child, result.inline ?? []) : {});
+                continue;
+            }
+            const page = pageBreakLabel(child);
+            if (page !== null) {
+                // A print page's mark (#751 FR-3): kept as an empty span that says which page starts
+                // here — the page number the book printed is not part of what you read. One that
+                // names no page says nothing, and goes.
+                if (page) {
+                    result.elements++;
+                    builder.element(into, "span", { "data-zf-page": page });
+                }
                 continue;
             }
             const tag = KEEP.has(name) ? name : RENAME[name];

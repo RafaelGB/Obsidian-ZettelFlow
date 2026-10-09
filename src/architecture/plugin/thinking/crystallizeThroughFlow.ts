@@ -2,7 +2,8 @@ import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import type { Flow } from "architecture/plugin/canvas";
-import { crystallizeSeed, type Crystallization, type CrystallizeSeed } from "application/thinking/crystallize";
+import { crystallizeSeed, sourceEntries, type Crystallization, type CrystallizeSeed } from "application/thinking/crystallize";
+import { addSourceEntries } from "architecture/plugin/library/sourceWrites";
 import { recordCrystallizedThroughFlow } from "./crystallizeThought";
 
 /**
@@ -29,6 +30,11 @@ export interface ThroughFlowDeps {
     loadFlow(path: string): Promise<Flow>;
     openWizard(flow: Flow, seed: CrystallizeSeed, onBuilt: (path: string) => void): void | Promise<void>;
     record(path: string, plan: Crystallization): void;
+    /**
+     * The passages' `source` entries, added to the built note (#751 P6): the flow's template owns the
+     * properties, so they arrive once the note exists — one recorded property write, undoable.
+     */
+    addSources?(path: string, entries: string[]): Promise<unknown>;
 }
 
 const LIVE: ThroughFlowDeps = {
@@ -41,6 +47,10 @@ const LIVE: ThroughFlowDeps = {
         new SelectorMenuModal(plugin.app, plugin, flow).seedCrystallization(seed, onBuilt).open();
     },
     record: (path, plan) => recordCrystallizedThroughFlow(path, plan),
+    addSources: async (path, entries) => {
+        const file = ObsidianApi.vault().getFileByPath(path);
+        return file ? addSourceEntries(file, entries) : false;
+    },
 };
 
 export interface ThroughFlowRequest {
@@ -70,6 +80,10 @@ export async function crystallizeThroughFlow(
         const flow = await deps.loadFlow(request.flowPath);
         await deps.openWizard(flow, seed, (path) => {
             deps.record(path, request.plan);
+            const entries = sourceEntries(request.plan);
+            if (entries.length > 0 && deps.addSources) {
+                void deps.addSources(path, entries).catch((error: unknown) => log.error(`[lab] could not cite the passages in ${path}`, error));
+            }
             request.onDone(path);
         });
         return "opened";

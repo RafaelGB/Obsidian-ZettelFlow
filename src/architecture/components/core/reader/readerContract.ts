@@ -41,6 +41,11 @@ export interface ReaderState {
      * leaf back to on exit — its filter, sort, scroll and the book to come back to. Flat values only.
      */
     back?: ReaderBack;
+    /**
+     * One-shot (#751): land on this place — a passage a note goes back to, serialised by
+     * `serializePlace` (its file, chapter and opening words). Resolved when the source is read.
+     */
+    at?: string;
 }
 
 /** The Library's view state a reading returns to (#733): flat, so a restored workspace can carry it. */
@@ -66,6 +71,7 @@ export function parseReaderState(raw: unknown): ReaderState {
     if (typeof value.name === "string" && value.name.trim().length > 0) state.name = value.name.trim();
     if (typeof value.source === "string" && /\.(pdf|epub)$/i.test(value.source)) state.source = value.source;
     if (value.layout === "page") state.layout = "page";
+    if (typeof value.at === "string" && value.at.length > 0 && value.at.length <= 4096) state.at = value.at;
     if (value.back !== null && typeof value.back === "object" && !Array.isArray(value.back)) {
         const back: ReaderBack = {};
         for (const [key, item] of Object.entries(value.back as Record<string, unknown>)) {

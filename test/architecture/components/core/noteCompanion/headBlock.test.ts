@@ -236,6 +236,105 @@ describe("where a note came from (#683)", () => {
     });
 });
 
+describe("every note made from a book goes back to its paragraph (#751 AC-5, FR-8, FR-14)", () => {
+    const ENTRY = "[[Books/tfs.epub#OEBPS/ch03.xhtml|tfs]] p. 143 · 3 · The lazy controller · “…exertion. ‹A general law of least effort applies› to…”";
+
+    async function origin(markdown: string, frontmatter: Record<string, unknown> | null = null, books = ["Books/tfs.epub"]) {
+        const { TFile } = await import("obsidian");
+        const note = new TFile();
+        note.path = "zettel/A.md";
+        const files = new Map(books.map((path) => {
+            const book = new TFile();
+            book.path = path;
+            return [path, book] as const;
+        }));
+        const host = new DomNode();
+        const block = new HeadBlock(host as never);
+        const setViewState = jest.fn(async (_state: unknown) => undefined);
+        const leaf = { setViewState };
+        const ctx = {
+            app: {
+                workspace: { trigger: jest.fn(), getMostRecentLeaf: () => null, getLeavesOfType: () => [], getLeaf: () => leaf, revealLeaf: jest.fn(async () => undefined) },
+                vault: { getAbstractFileByPath: (path: string) => (path === note.path ? note : null), cachedRead: async () => markdown, getName: () => "My vault" },
+                metadataCache: { getFirstLinkpathDest: (link: string) => files.get(link) ?? null, getFileCache: () => (frontmatter ? { frontmatter } : null) },
+            },
+            screen: { kind: "note", model: model() },
+            pinned: false,
+            owner: new Component(),
+            menu: jest.fn(() => []),
+        };
+        block.load();
+        block.update(ctx as unknown as CompanionContext);
+        await new Promise((resolve) => setImmediate(resolve));
+        const state = async () => {
+            await new Promise((resolve) => setImmediate(resolve));
+            return (setViewState.mock.calls.at(-1)?.[0] as { state: Record<string, unknown> } | undefined)?.state;
+        };
+        return { host, setViewState, state };
+    }
+
+    it("opens the Reader on the passage: its source, its place, and the row as the shot's origin", async () => {
+        const { parsePlace } = await import("application/library/provenance");
+        const o = await origin("Text.\n\nsource:: [[Books/tfs.epub]] 3 · The lazy controller\n", { source: [ENTRY] });
+        // One row for the book: the passage takes the plain line's place.
+        expect(o.host.byClass("note-companion-origin-source").map((b) => b.textContent)).toEqual(["tfs · p. 143"]);
+        o.host.oneByClass("note-companion-origin-source").click();
+        const state = await o.state();
+        expect(state?.source).toBe("Books/tfs.epub");
+        expect(parsePlace(state?.at)).toMatchObject({ file: "Books/tfs.epub", chapter: "OEBPS/ch03.xhtml", page: "143", quote: { exact: "A general law of least effort applies" } });
+    });
+
+    it("an old EPUB citation opens the chapter its label names; a missing book is not a button", async () => {
+        const { parsePlace } = await import("application/library/provenance");
+        const o = await origin("source:: [[Books/tfs.epub]] 3 · The lazy controller\nsource:: [[Gone.epub]] 1 · Away\n");
+        expect(o.host.byClass("note-companion-origin-copy")).toHaveLength(0);
+        expect(o.host.oneByClass("note-companion-origin-gone").textContent).toBe("Gone · 1 · Away");
+        o.host.oneByClass("note-companion-origin-source").click();
+        const state = await o.state();
+        expect(parsePlace(state?.at)).toEqual({ file: "Books/tfs.epub", label: "3 · The lazy controller" });
+        expect(state?.chapter).toBe(0);
+    });
+
+    it("copies a link to the passage, says Link copied for a moment, and never a Notice", async () => {
+        const obsidian = await import("obsidian");
+        const notice = jest.spyOn(obsidian, "Notice" as never);
+        const writeText = jest.fn(async (_text: string) => undefined);
+        const g = globalThis as unknown as { navigator?: unknown };
+        const before = g.navigator;
+        Object.defineProperty(globalThis, "navigator", { configurable: true, value: { clipboard: { writeText } } });
+        try {
+            const o = await origin("Text.", { source: [ENTRY] });
+            jest.useFakeTimers({ doNotFake: ["setImmediate", "nextTick", "queueMicrotask"] });
+            const copy = o.host.oneByClass("note-companion-origin-copy");
+            expect(copy.getAttribute("aria-label")).toBe("Copy link to passage");
+            copy.click();
+            // Said once the clipboard took it.
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(writeText).toHaveBeenCalledTimes(1);
+            const link = writeText.mock.calls[0][0];
+            expect(link.startsWith("obsidian://zettelflow-read?vault=My%20vault&file=Books%2Ftfs.epub&chapter=OEBPS%2Fch03.xhtml&page=143&q=A%20general")).toBe(true);
+            const label = o.host.oneByClass("note-companion-origin-label");
+            expect(label.textContent).toBe("Link copied");
+            expect(label.hasClass("zettelkasten-flow__note-companion-origin-label--copied")).toBe(true);
+            jest.advanceTimersByTime(1500);
+            expect(label.textContent).toBe("Born from");
+            expect(notice).not.toHaveBeenCalled();
+            // A write the platform refuses says nothing.
+            writeText.mockImplementationOnce(async () => {
+                throw new Error("denied");
+            });
+            copy.click();
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(label.textContent).toBe("Born from");
+        } finally {
+            jest.useRealTimers();
+            Object.defineProperty(globalThis, "navigator", { configurable: true, value: before });
+        }
+    });
+});
+
 describe("a note outside ZettelFlow (#688)", () => {
     it("says so calmly, names the rule that left it out and the others, and offers one way out (#713)", () => {
         openSettings.mockClear();

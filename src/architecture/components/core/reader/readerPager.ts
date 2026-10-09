@@ -265,6 +265,11 @@ export class ReaderPager {
         this.page.setCssProps({ "--zf-page-x": px(x) });
     }
 
+    /** Input during a move (#751 FR-15): the move jumps to its end — the place is already set under it. */
+    settle(): void {
+        this.finishRunning();
+    }
+
     private finishRunning(): void {
         const running = this.running;
         this.running = null;
@@ -486,13 +491,15 @@ export class ReaderPager {
      * At once for a chapter just drawn; with `travel`, the camera moves there (#761). Returns the
      * travel's length in ms.
      */
-    reveal(anchor: PageAnchor, travel = false): number {
+    reveal(anchor: PageAnchor, travel = false, line = 0): number {
         if (!this.paged) {
             const box = firstBox(anchor);
             if (!box) return 0;
             const stage = this.stage.getBoundingClientRect();
             const k = stageScale(this.stage, stage.height);
-            const top = scrollTopFor(stage.top + (box.top - stage.top) / k, stage.top, this.stage.scrollTop);
+            // `line`: where on the stage the place lands, as a share of its height (#751: the reading line).
+            const below = line > 0 ? (this.stage.clientHeight || stage.height / k) * line : 0;
+            const top = Math.max(0, scrollTopFor(stage.top + (box.top - stage.top) / k, stage.top, this.stage.scrollTop) - Math.round(below));
             if (travel) return this.glideTo(top);
             this.stage.scrollTop = top;
             return 0;

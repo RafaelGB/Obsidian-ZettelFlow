@@ -5,7 +5,10 @@ import {
     packagePath,
     parseNav,
     parseNcx,
+    parseNcxPageList,
     parsePackage,
+    parsePageList,
+    type PageTarget,
     type EpubPackage,
     type TocEntry,
     type XmlParse,
@@ -21,6 +24,8 @@ export interface OpenEpub {
     toc: TocEntry[];
     /** Each spine item's name from the contents, or `null`. */
     titles: (string | null)[];
+    /** The print pages the book declares (#751 FR-3): its page-list, or its NCX pageList. */
+    pages: PageTarget[];
 }
 
 /**
@@ -41,15 +46,20 @@ export async function openEpub(app: App, file: TFile, parse: XmlParse = domParse
     const opf = opfPath ? await archive.text(opfPath) : null;
     const pkg = opf && opfPath ? parsePackage(opf, opfPath, parse) : { manifest: [], spine: [] };
     let toc: TocEntry[] = [];
+    let pages: PageTarget[] = [];
     if (pkg.navHref) {
         const nav = await archive.text(pkg.navHref);
-        if (nav) toc = parseNav(nav, pkg.navHref, parse);
+        if (nav) {
+            toc = parseNav(nav, pkg.navHref, parse);
+            pages = parsePageList(nav, pkg.navHref, parse);
+        }
     }
-    if (toc.length === 0 && pkg.ncxHref) {
+    if ((toc.length === 0 || pages.length === 0) && pkg.ncxHref) {
         const ncx = await archive.text(pkg.ncxHref);
-        if (ncx) toc = parseNcx(ncx, pkg.ncxHref, parse);
+        if (ncx && toc.length === 0) toc = parseNcx(ncx, pkg.ncxHref, parse);
+        if (ncx && pages.length === 0) pages = parseNcxPageList(ncx, pkg.ncxHref, parse);
     }
-    return { archive, pkg, toc, titles: chapterTitles(pkg.spine, toc) };
+    return { archive, pkg, toc, titles: chapterTitles(pkg.spine, toc), pages };
 }
 
 /** The media type of an image inside the book, from its manifest entry or its extension. */

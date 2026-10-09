@@ -1,5 +1,5 @@
 import { Menu, TFile, setIcon } from "obsidian";
-import { c } from "architecture";
+import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { STATE_EMOJI } from "architecture/knowledge";
@@ -8,9 +8,25 @@ import type { HeaderAction } from "architecture/components/core/surface/ModeHead
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
 import { openReader } from "architecture/components/core/reader/openReader";
 import { openZettelFlowSettings } from "architecture/components/core/surface/openSettings";
-import { noteOrigins, pageOf } from "application/library/born";
+import { noteOrigins, pageOf, type NoteOrigin } from "application/library/born";
+import { passageLink, serializePlace, type PassagePlace } from "application/library/provenance";
+import { sourceFormat } from "application/library/sourceMeta";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
+
+/** How long the row says *Link copied* (#751 FR-14). */
+export const LINK_COPIED_MS = 1500;
+
+/**
+ * Where a *Born from* row opens the Reader (#751): a passage at its place; an old EPUB citation at the
+ * chapter its label names; an old PDF one at its page — as 3.6 did.
+ */
+export function originRequest(origin: NoteOrigin, file: string): { at?: string; chapter?: number } {
+    if (origin.place) return { at: serializePlace({ ...origin.place, file }) };
+    const page = pageOf(origin.locator);
+    const byLabel = sourceFormat(file) === "epub" && origin.locator ? { at: serializePlace({ file, label: origin.locator }) } : {};
+    return { ...(page !== null ? { chapter: page } : {}), ...byLabel };
+}
 
 /** The state the card would move the note to, when advancing is one of its moves. */
 function proposedStep(model: CompanionModel): string | null {
@@ -205,20 +221,26 @@ export class HeadBlock extends CompanionBlock {
      * Where the note came from (#683): the book or paper it cites — a crystallized passage, or a
      * `source::` you wrote — and the page, one click back into the Reader at that place. Read from
      * the note's own lines, so it is what the note says, not a guess.
+     *
+     * Since #751 a passage goes back to its paragraph: the Reader opens on its chapter with the
+     * passage at the reading line, as one camera move from this row (FR-6, FR-12), and *Copy link to
+     * passage* puts an `obsidian://` link to it on the clipboard (FR-8). An old EPUB citation opens
+     * the chapter its label names; an old PDF one, its page.
      */
     private async renderOrigin(head: HTMLElement, ctx: CompanionContext, path: string): Promise<void> {
         const file = ctx.app.vault?.getAbstractFileByPath?.(path);
         if (!(file instanceof TFile)) return;
-        let origins: { link: string; locator: string }[] = [];
+        let origins: NoteOrigin[] = [];
         try {
-            origins = noteOrigins(await ctx.app.vault.cachedRead(file));
+            const frontmatter = ctx.app.metadataCache?.getFileCache?.(file)?.frontmatter ?? null;
+            origins = noteOrigins(await ctx.app.vault.cachedRead(file), frontmatter);
         } catch {
             return;
         }
         if (origins.length === 0 || head.isConnected === false) return;
         const row = head.createDiv({ cls: c("note-companion-origin") });
         setIcon(row.createSpan({ cls: c("note-companion-origin-icon") }), "library");
-        row.createSpan({ cls: c("note-companion-origin-label"), text: t("note_companion_born_from") });
+        const said = row.createSpan({ cls: c("note-companion-origin-label"), text: t("note_companion_born_from") });
         for (const origin of origins.slice(0, 3)) {
             const source = ctx.app.metadataCache.getFirstLinkpathDest(origin.link, path);
             const name = (origin.link.split("/").pop() ?? origin.link).replace(/\.(pdf|epub)$/i, "");
@@ -230,11 +252,45 @@ export class HeadBlock extends CompanionBlock {
             const button = row.createEl("button", {
                 cls: c("note-companion-origin-source"),
                 text: label,
-                attr: { type: "button", title: t("note_companion_born_open") },
+                attr: { type: "button", title: t(origin.place ? "reader_open_source_passage" : "note_companion_born_open") },
             });
-            const page = pageOf(origin.locator);
-            this.on(button, "click", () => void openReader(ctx.app, { seed: source.path, source: source.path, ...(page !== null ? { chapter: page } : {}) }));
+            this.on(button, "click", () => void openReader(ctx.app, { seed: source.path, source: source.path, ...originRequest(origin, source.path), from: button }));
+            const place = origin.place;
+            if (place?.chapter && place.quote) {
+                const copy = row.createEl("button", {
+                    cls: ["clickable-icon", c("note-companion-origin-copy")],
+                    attr: { type: "button", "aria-label": t("reader_copy_passage_link"), title: t("reader_copy_passage_link") },
+                });
+                setIcon(copy, "link");
+                this.on(copy, "click", () => this.copyPassageLink(ctx, { ...place, file: source.path }, said));
+            }
         }
+    }
+
+    /**
+     * *Copy link to passage* (#751 FR-8, FR-14): the link on the clipboard, and the row says *Link
+     * copied* for a moment, with a fade — never a Notice (#546).
+     */
+    private copyPassageLink(ctx: CompanionContext, place: PassagePlace, said: HTMLElement): void {
+        const win = (said as HTMLElement & { win?: Window }).win ?? window;
+        const link = passageLink(place, ctx.app.vault?.getName?.() ?? "");
+        const clipboard = win.navigator?.clipboard;
+        if (!clipboard) {
+            log.debug("[This note] no clipboard to copy a passage link to");
+            return;
+        }
+        // Said only once it is true: a write the platform refused says nothing.
+        void clipboard.writeText(link).then(
+            () => {
+                said.setText(t("reader_passage_link_copied"));
+                said.addClass(c("note-companion-origin-label--copied"));
+                this.later(LINK_COPIED_MS, () => {
+                    said.setText(t("note_companion_born_from"));
+                    said.removeClass(c("note-companion-origin-label--copied"));
+                });
+            },
+            (error: unknown) => log.debug(`[This note] the passage link was not copied: ${String(error)}`)
+        );
     }
 
     /**

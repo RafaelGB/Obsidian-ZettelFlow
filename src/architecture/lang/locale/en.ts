@@ -325,6 +325,7 @@ export default {
     crystallize_title: 'A note, before it exists',
     crystallize_intro: 'Rewrite this however you like. Nothing is written until you confirm.',
     crystallize_note_title: 'Title',
+    crystallize_source_label: 'Source',
     crystallize_born_from: 'Born from',
     crystallize_and_more: 'and {0} more',
     crystallize_keeps_thoughts: 'The thoughts you used move to your set-aside shelf — nothing is deleted, and you can pick them back up.',
@@ -2751,6 +2752,10 @@ export default {
     reader_source_chapter: 'Chapter {0}',
     reader_hl_crystallize: 'Crystallize into a note',
     note_companion_born_from: 'Born from',
+    reader_open_source_passage: 'Open source passage',
+    reader_copy_passage_link: 'Copy link to passage',
+    reader_passage_link_copied: 'Link copied',
+    reader_passage_not_found: 'The passage was not found in this edition. Opened at its chapter.',
     note_companion_born_open: 'Open at this place in the reader',
     // One family (#702, epic #701).
     family_keep: 'Keep it',

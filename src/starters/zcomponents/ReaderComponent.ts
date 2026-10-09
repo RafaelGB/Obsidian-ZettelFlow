@@ -7,6 +7,8 @@ import { notesUnder } from "architecture/components/core/reader/readerPaths";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import ZettelFlow from "main";
 import { KnowledgeIndex } from "architecture/knowledge";
+import { PASSAGE_ACTION } from "application/library/provenance";
+import { openPassageLink } from "architecture/components/core/reader/readerLink";
 
 /**
  * The doors into the Reader (#668, #669, epic #667). No MOC, no setup:
@@ -16,6 +18,8 @@ import { KnowledgeIndex } from "architecture/knowledge";
  * - **Read these**, on a multi-selection in the file explorer — the picked notes, in the order
  *   their links suggest;
  * - **Read this folder**, on a folder's menu — every note under it, the same way.
+ *
+ * - **A link to a passage** (#751), `obsidian://zettelflow-read?…`, from any note or outside Obsidian.
  *
  * The command is the first door for a hotkey. The component also hands the Reader its plugin, so
  * every door can offer to resume a reading left part-way.
@@ -31,6 +35,11 @@ export class ReaderComponent extends PluginComponent {
     onLoad(): void {
         setReaderHost(this.plugin);
         const app = this.plugin.app;
+
+        // A link to a passage (#751 FR-8): `obsidian://zettelflow-read?…` opens the Reader there.
+        this.plugin.registerObsidianProtocolHandler(PASSAGE_ACTION, (params) => {
+            openPassageLink(app, params);
+        });
 
         this.plugin.addCommand({
             id: "open-reader",

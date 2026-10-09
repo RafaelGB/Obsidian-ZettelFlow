@@ -1117,14 +1117,14 @@ button.zettelkasten-flow__reader-search-result {
 }
 
 .zettelkasten-flow__reader-search-snippet-hit {
-    background-color: var(--text-highlight-bg);
+    background-color: var(--highlight-background, var(--text-highlight-bg));
     border-radius: var(--radius-s);
 }
 
 /* The matches in the chapter on screen: tinted; the current one outlined, and it breathes once. */
 .zettelkasten-flow__reader-search-hit {
     position: relative;
-    background-color: var(--text-highlight-bg);
+    background-color: var(--highlight-background, var(--text-highlight-bg));
     border-radius: var(--radius-s);
 }
 
@@ -1294,7 +1294,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 /* `mark.` so the meaning's ink wins over Obsidian's own `.markdown-rendered mark` (1.14): an
    equation the highlight tints whole (#770) takes the same ink as the words beside it. */
 mark.zettelkasten-flow__reader-highlight {
-    background-color: var(--zf-ink, var(--text-highlight-bg));
+    background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
     color: inherit;
     border-radius: var(--radius-s);
     cursor: pointer;
@@ -1346,7 +1346,7 @@ mark.zettelkasten-flow__reader-highlight {
 /* A highlight just made is drawn like a marker: swept across the words, left to right. */
 .zettelkasten-flow__reader-highlight--new {
     background-color: transparent;
-    background-image: linear-gradient(var(--zf-ink, var(--text-highlight-bg)), var(--zf-ink, var(--text-highlight-bg)));
+    background-image: linear-gradient(var(--zf-ink, var(--highlight-background, var(--text-highlight-bg))), var(--zf-ink, var(--highlight-background, var(--text-highlight-bg))));
     background-repeat: no-repeat;
     background-size: 100% 100%;
     animation: zf-reader-highlight-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
@@ -1682,7 +1682,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 
 .zettelkasten-flow__reader-hl-ghost {
     border-radius: var(--radius-s);
-    background-color: var(--zf-ink, var(--text-highlight-bg));
+    background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
 }
 
 /* Day, sepia, night: the old theme's surface fading away over the new one (#724). */
@@ -1789,7 +1789,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     background-color: var(--reader-surface);
     color: var(--reader-fg);
     border: var(--border-width) solid var(--reader-line);
-    border-left: var(--size-2-1) solid var(--zf-ink-solid, var(--text-highlight-bg));
+    border-left: var(--size-2-1) solid var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
     border-radius: var(--radius-s);
     box-shadow: none;
 }

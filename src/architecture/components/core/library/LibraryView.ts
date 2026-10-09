@@ -564,6 +564,7 @@ export class LibraryView extends ItemView {
             back: () => this.closeNotebook(),
             open: (at) => this.openItem(item, at ?? {}),
             toNote: (thought) => crystallizeHighlight(this.app, thought),
+            drawing: (thought) => ThoughtStore.getInstance().drawingOf(thought),
             folder: this.plugin?.settings?.readingNoteFolder ?? "",
             rememberFolder: (folder) => {
                 if (!this.plugin?.settings) return;

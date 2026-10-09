@@ -117,6 +117,7 @@ export const CAPABILITIES = [
     "moves",
     "think-about",
     "reader",
+    "reader-ink",
     "library",
     "highlights-review",
     "claim-door",
@@ -365,6 +366,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
             CONTROL("architecture/components/core/home/HomeModeRenderer.ts", HOME),
             CMD("open-reader"),
         ],
+    },
+    "reader-ink": {
+        // Ink in the margin (#745, epic #740): the pencil in the reader bar opens the palette, and a pen
+        // (or a mouse) writes on the page you are reading. You are already where you want to write, so
+        // the door is the control on the page itself; P in the shortcuts sheet is a way back to it.
+        nameKey: "reader_ink",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerInk.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

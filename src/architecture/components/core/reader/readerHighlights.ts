@@ -2,7 +2,7 @@ import { Component, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { anchorAll, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
-import type { Thought, ThoughtLocator, ThoughtQuote } from "application/thinking/thought";
+import { isInk, type Thought, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
@@ -21,8 +21,9 @@ export interface HighlightStore {
     highlightsAbout(notePath: string): Promise<Thought[]>;
     write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator; meaning?: HighlightMeaning }): Promise<Thought | undefined>;
     save(thought: Thought): Promise<void>;
-    discard(thought: Thought): Promise<void>;
-    restore(thought: Thought): Promise<void>;
+    /** An ink note's drawing goes with it, and comes back as the answer (#745 E7). */
+    discard(thought: Thought): Promise<string | undefined | void>;
+    restore(thought: Thought, drawing?: string): Promise<void>;
 }
 
 /** What the current selection covers, in chapter-text offsets, and where it is on screen. */
@@ -48,6 +49,10 @@ export interface HighlightView {
     scrollTo(el: HTMLElement, travel?: boolean): number | void;
     /** Something changed that a panel might show. */
     onChange(): void;
+    /** The chapter's ink notes (#745 E9): from the same one read, handed to the ink layer. */
+    onInk?(thoughts: Thought[]): void;
+    /** The ink notes' rows, beside the highlights in the margin's list. */
+    renderInk?(host: HTMLElement, scope: Component): void;
 }
 
 /** Seams for tests; the defaults are the real DOM and the real thought store. */
@@ -312,7 +317,10 @@ export class ReaderHighlights {
         }
         if (generation !== this.generation || this.body !== body) return;
         // A source's passages are found again only on their own page or chapter (#681).
-        const here = thoughts.filter((thought) => (locator ? thought.locator?.at === locator.at : !thought.locator));
+        const inChapter = thoughts.filter((thought) => (locator ? thought.locator?.at === locator.at : !thought.locator));
+        // Ink is drawn by the ink layer and listed beside the highlights, never anchored as one (#745 E9).
+        const here = inChapter.filter((thought) => !isInk(thought));
+        this.view.onInk?.(inChapter.filter(isInk));
         this.pageNotes = here.filter((thought) => !thought.quote?.exact && thought.text.trim());
         const text = chapterText(body);
         const { anchored, detached } = anchorAll(
@@ -409,8 +417,19 @@ export class ReaderHighlights {
         this.noteForm(pop, "", (text) => void this.keepPageNote(text));
     }
 
+    /** Draw the margin's list again: an ink note was kept or taken away (#745). */
+    refreshMargin(): void {
+        this.renderMargin();
+        this.view.onChange();
+    }
+
     /** The highlights as a list — the margin's content, and the context panel's on a narrow pane. */
     renderList(host: HTMLElement, scope: Component): void {
+        this.renderHighlightList(host, scope);
+        this.view.renderInk?.(host, scope);
+    }
+
+    private renderHighlightList(host: HTMLElement, scope: Component): void {
         if (this.pageNotes.length > 0) {
             host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_page_notes") });
             for (const thought of this.pageNotes) {

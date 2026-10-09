@@ -48,6 +48,7 @@ import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, restoreWork
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
+import { ReaderInk, type InkDeps } from "./readerInk";
 import {
     chapterOfHighlight,
     keptPageView,
@@ -132,6 +133,10 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
     { keys: ["B"], label: "reader_key_bookmark" },
+    // Ink (#745): the pencil in the bar is the door; P is the way back to it, Ctrl/⌘+Z and two fingers undo.
+    { keys: ["P"], label: "reader_key_ink" },
+    { keys: ["reader_kbd_ctrl", "Z"], label: "reader_key_ink_undo" },
+    { keys: ["reader_kbd_two_fingers"], label: "reader_key_ink_undo" },
     { keys: ["F"], label: "reader_key_deep" },
     { keys: ["V"], label: "reader_key_layout" },
     { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
@@ -149,6 +154,7 @@ const KBD_KEY: Record<string, LocaleKey> = {
     reader_kbd_esc: "reader_kbd_esc",
     reader_kbd_ctrl: "reader_kbd_ctrl",
     reader_kbd_alt: "reader_kbd_alt",
+    reader_kbd_two_fingers: "reader_kbd_two_fingers",
 };
 
 /** On a Mac or an iPad the key caps are the glyphs on the keys themselves (FR-12). */
@@ -319,6 +325,8 @@ export class ReaderView extends ItemView {
     private shortcuts: HTMLElement | null = null;
     /** Highlights and margin notes (#671): drawn over each chapter, kept as thoughts in Think. */
     private highlights: ReaderHighlights | null = null;
+    /** Ink in the margin (#745): the palette, the ink layer, and where ink is kept. */
+    private ink: ReaderInk | null = null;
     /** A highlight a deep link asked to land on — consumed by the next chapter that holds it. */
     private pendingHighlight: string | null = null;
     /** The listeners and renders of the chapter on screen; replaced with it. */
@@ -485,7 +493,9 @@ export class ReaderView extends ItemView {
         leaf: WorkspaceLeaf,
         private readonly plugin?: ReaderHost,
         /** Seams for tests: the thought store, the selection, the mark factory. */
-        private readonly highlightDeps: HighlightDeps = {}
+        private readonly highlightDeps: HighlightDeps = {},
+        /** Seams for tests: ink's store, its words and its clock (#745). */
+        private readonly inkDeps: InkDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -762,6 +772,8 @@ export class ReaderView extends ItemView {
         this.pager?.dispose();
         this.pager = null;
         this.dropSheet();
+        // The ink note being written is kept before the page goes (#745 FR-9).
+        this.ink?.dispose();
         this.leaveSource();
         this.highlights?.dispose();
         this.chapter?.unload();
@@ -827,6 +839,17 @@ export class ReaderView extends ItemView {
             this.notePlace();
         });
         this.wireTouch(stage);
+        // Ink (#745): its palette floats over the reading, docked in the margin.
+        this.ink = new ReaderInk(
+            {
+                app: this.app,
+                root,
+                stage: () => stage,
+                owner: this,
+                refreshList: () => this.highlights?.refreshMargin(),
+            },
+            this.inkDeps
+        );
         // A peek is read in place; clicking elsewhere puts it away.
         this.registerDomEvent(root, "mousedown", (event) => {
             const target = event.target as HTMLElement | null;
@@ -848,7 +871,15 @@ export class ReaderView extends ItemView {
         });
         this.pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
         // A picture arrives after the text and moves it: the pages are counted again, your line kept.
-        this.registerDomEvent(page, "load", () => this.pager?.contentChanged(), { capture: true });
+        this.registerDomEvent(
+            page,
+            "load",
+            () => {
+                this.pager?.contentChanged();
+                this.layoutInk();
+            },
+            { capture: true }
+        );
         const dots = root.createDiv({ cls: c("reader-dots"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
 
         const bar = root.createDiv({ cls: c("reader-bar"), attr: { role: "toolbar", "aria-label": t("reader_title") } });
@@ -861,6 +892,8 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
         const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
         search.addClass(c("reader-hidden"));
+        // The pencil (#745 FR-1): the page takes ink while the palette is open.
+        this.ink.mountButton(bar);
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
         this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
@@ -890,6 +923,8 @@ export class ReaderView extends ItemView {
                 onChange: () => {
                     if (this.panel === "context") this.renderPanel();
                 },
+                onInk: (thoughts) => this.ink?.onInk(thoughts),
+                renderInk: (host, scope) => this.ink?.renderList(host, scope),
             },
             this.highlightDeps
         );
@@ -940,6 +975,8 @@ export class ReaderView extends ItemView {
             return;
         }
         const pager = this.pager;
+        // Ink keeps its place through a change of type, in the same frame (#745 FR-22).
+        if (reshapes || next.theme !== before.theme) this.layoutInk();
         const anchor = reshapes && pager && !this.ended ? pager.firstVisible() : null;
         const tops = anchor && pager ? pager.blockTops() : null;
         this.prefs = next;
@@ -960,7 +997,17 @@ export class ReaderView extends ItemView {
             void this.plugin.saveSettings?.();
         }
         if (next.timeLeft !== before.timeLeft) this.onStageScroll();
+        if (reshapes) this.layoutInk();
         if (this.panel === "type") this.renderPanel();
+    }
+
+    /** Ink goes to its words again: now, and once more after the pages have been laid out (#745 FR-22). */
+    private layoutInk(): void {
+        const ink = this.ink;
+        if (!ink) return;
+        ink.layout();
+        const win = this.root?.win;
+        if (win && typeof win.requestAnimationFrame === "function") win.requestAnimationFrame(() => ink.layout());
     }
 
     /** What the type asks of a page in *Page* and *Spread* (#757): its measure and its margins. */
@@ -1128,6 +1175,8 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        // The ink note being written is kept with the page it was written on still there (#745 FR-9).
+        this.ink?.leave("turn");
         this.turnFrom(page);
         page.empty();
         // In pages the strip goes back to its start before the next chapter is drawn on it (#753).
@@ -1177,6 +1226,8 @@ export class ReaderView extends ItemView {
         this.seenWords.set(this.index, this.chapterWords);
         this.landShot();
         this.watchFocus(body, component);
+        // The ink layer, inside the page so a turn carries it (#745 FR-22).
+        this.ink?.attach({ body, page, notePath: reading, locator: null, component, run: false });
         // The note's highlights, found again by their words; a deep link lands on one (#671).
         void this.highlights?.attach(body, reading, component, this.els?.margin ?? null).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
@@ -1800,6 +1851,8 @@ export class ReaderView extends ItemView {
     exit(): void {
         if (this.leaving) return;
         this.leaving = true;
+        // What you were writing is kept before the Reader goes (#745 FR-9).
+        void this.ink?.flush("close");
         // Leaving the Reader in deep reading gives the window back as it was (FR-6).
         this.leaveDeep(true);
         const root = this.root;
@@ -1835,6 +1888,7 @@ export class ReaderView extends ItemView {
 
     private renderEnd(): void {
         if (!this.els || !this.path) return;
+        this.ink?.leave("turn");
         if (this.sourcePath) return this.renderSourceEndCard();
         this.highlights?.hidePopover();
         this.chapter?.unload();
@@ -1986,6 +2040,8 @@ export class ReaderView extends ItemView {
         component.load();
         this.chapter = component;
 
+        // The ink note being written is kept with the page it was written on still there (#745 FR-9).
+        this.ink?.leave("turn");
         this.turnFrom(page);
         page.empty();
         // In pages the strip goes back to its start before the next chapter is drawn on it (#753).
@@ -2096,6 +2152,8 @@ export class ReaderView extends ItemView {
         if (this.searchEl) this.markSearch();
         this.onStageScroll();
         this.watchFocus(body, component);
+        // The ink layer of this page or chapter (#745).
+        this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component, run: false });
         // The highlights of this page or chapter, found again by their words (#681).
         void this.highlights?.attach(body, path, component, this.els?.margin ?? null, { at: index, label: this.sourceLabel(index) }).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
@@ -2260,6 +2318,7 @@ export class ReaderView extends ItemView {
             onCrop: () => {
                 if (this.panel === "type") this.renderPanel();
             },
+            onSlot: (page, el, aspect) => this.ink?.decorateSlot(page, el, aspect),
         });
         return this.pageRun;
     }
@@ -2307,6 +2366,10 @@ export class ReaderView extends ItemView {
         this.chapterWords = 0;
         this.seenWords.set(index, 0);
         this.pageLanguage = null;
+        // Page ink lives on the printed pages (#745 E2): fractions of each page, through every zoom —
+        // attached before the pages are shown, so each page made now gets its ink.
+        const path = this.sourcePath;
+        if (path && this.chapter) this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component: this.chapter, run: true });
         run.show(index, share);
         this.landShot();
         this.renderZoom();
@@ -3331,6 +3394,8 @@ export class ReaderView extends ItemView {
             if (this.panel) this.renderPanel();
             return;
         }
+        // Ink goes with its words through a rotation or a Split View (#745 FR-11).
+        this.layoutInk();
         // In pages the pager lays the chapter out again on its own observer, keeping the line (#753).
         if (this.pagedNow()) {
             if (this.panel) this.renderPanel();
@@ -3373,6 +3438,7 @@ export class ReaderView extends ItemView {
         this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
         this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
+            this.ink?.cancel(event);
             // The system took a finger (a pinch, a gesture of its own): no two-finger back from it.
             this.fingers.delete(event?.pointerId);
             this.twoFinger = null;
@@ -3400,6 +3466,12 @@ export class ReaderView extends ItemView {
 
     private onPointerDown(event: PointerEvent): void {
         if (event.pointerType) this.lastPointerType = event.pointerType;
+        // Ink is asked before a gesture starts (#745): a pen or a mouse with the palette open writes,
+        // and a palm on the glass does nothing at all. A finger goes on as it always has.
+        if (this.ink?.claims(event)) {
+            this.dropTouch();
+            return;
+        }
         // Two fingers on the page are the trail's way back (#761 FR-10), never a turn: whatever the
         // first finger had started goes back.
         if (touchPointer(event)) {
@@ -3421,6 +3493,7 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerMove(event: PointerEvent): void {
+        if (this.ink?.move(event)) return;
         const finger = this.fingers.get(event.pointerId);
         if (finger) {
             finger.x = event.clientX;
@@ -3446,6 +3519,11 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerUp(event: PointerEvent): void {
+        if (this.ink?.up(event)) {
+            // A stroke that ended on a link is a stroke, never a click on the link.
+            this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+            return;
+        }
         const finger = this.fingers.get(event.pointerId);
         this.fingers.delete(event.pointerId);
         if (this.twoFinger) {
@@ -3677,6 +3755,9 @@ export class ReaderView extends ItemView {
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
         // B bookmarks the place you are reading, or takes the bookmark on this screen away (#761).
         bind(none, "B", () => this.toggleBookmark());
+        // P opens and closes the ink palette (#745); Ctrl/⌘+Z undoes the last ink while it is open.
+        bind(none, "P", taken(() => this.ink?.togglePalette()));
+        bind(["Mod"], "Z", () => this.ink?.undoKey() ?? false);
         // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
         for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
@@ -3711,6 +3792,7 @@ export class ReaderView extends ItemView {
             search: Boolean(this.searchEl),
             popover: Boolean(this.highlights?.hasPopover()),
             peek: Boolean(this.peek),
+            palette: Boolean(this.ink?.isOpen()),
             detour: this.detours.length > 0,
             panel: Boolean(this.panel),
             deep: this.deep,
@@ -3726,6 +3808,8 @@ export class ReaderView extends ItemView {
                 return this.highlights?.hidePopover();
             case "peek":
                 return this.closePeek();
+            case "palette":
+                return this.ink?.closePalette();
             case "detour":
                 return void this.backFromDetour();
             case "panel":

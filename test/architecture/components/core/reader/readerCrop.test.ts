@@ -399,6 +399,28 @@ describe("everything else works on a cropped page (#769 FR-5)", () => {
         expect(m.stage.scrollTop).toBeCloseTo(target.y + ((share - left.y) / left.h) * target.h, 0);
     });
 
+    it("keeps a page's ink surface on the whole page, larger than its cropped slot (#745 FR-11, AC-2)", async () => {
+        const m = await open();
+        const inkOf = (page: number) => slotOf(m.content, page)!.byClass("reader-ink-page")[0];
+        const aspect = (svg: DomNode) => {
+            const [, , w, h] = (svg.getAttribute("viewBox") ?? "").split(" ").map(Number);
+            return h / w;
+        };
+        // Uncropped, the page is the slot.
+        expect(slotOf(m.content, 0)!.cssProps["--zf-page-w"]).toBe("100%");
+        expect(aspect(inkOf(0))).toBeCloseTo(PAGE_H / PAGE_W, 3);
+        await cropOn(m);
+        const frame = kept(m.host).cropFrames.right;
+        const props = slotOf(m.content, 0)!.cssProps;
+        // The whole page, as shares of the slot that holds only its frame.
+        expect(num(props["--zf-page-x"]) / 100).toBeCloseTo(-frame.x / frame.w, 3);
+        expect(num(props["--zf-page-y"]) / 100).toBeCloseTo(-frame.y / frame.h, 3);
+        expect(num(props["--zf-page-w"]) / 100).toBeCloseTo(1 / frame.w, 3);
+        expect(num(props["--zf-page-h"]) / 100).toBeCloseTo(1 / frame.h, 3);
+        // And the surface is the page's shape, never the frame's.
+        expect(aspect(inkOf(0))).toBeCloseTo(PAGE_H / PAGE_W, 3);
+    });
+
     it("draws the thumbnails on the frame", async () => {
         const m = await open();
         await cropOn(m);

@@ -1,0 +1,314 @@
+@use '../utils/motion' as *;
+
+/*
+ * Ink in the margin (#745, epic #740): the palette, the ink layer and its strokes.
+ *
+ * Every colour is the theme's (§XV): an ink is stored by name and drawn here from the theme's own
+ * variable, so a theme that changes its red changes the red ink too. Positions come from custom
+ * properties the script sets (never an inline style); motion is transform and opacity only, on the
+ * shared tokens, and instant under reduced motion. Nothing animates while you write: the ink is the nib.
+ */
+
+$safe-left: var(--safe-area-inset-left, env(safe-area-inset-left));
+$safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
+
+/* ── the inks, by name ─────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-ink--pencil {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__reader-ink--red {
+    color: var(--color-red);
+}
+
+.zettelkasten-flow__reader-ink--blue {
+    color: var(--color-blue);
+}
+
+.zettelkasten-flow__reader-ink--green {
+    color: var(--color-green);
+}
+
+/* ── the ink layer: inside the page, so a turn carries it (FR-22) ──────── */
+.zettelkasten-flow__reader-page {
+    position: relative;
+}
+
+.zettelkasten-flow__reader-ink-layer,
+.zettelkasten-flow__reader-ink-page {
+    position: absolute;
+    /* The whole page, which with crop on is larger than its slot and clipped by it (#769). */
+    left: var(--zf-page-x, 0);
+    top: var(--zf-page-y, 0);
+    width: var(--zf-page-w, 100%);
+    height: var(--zf-page-h, 100%);
+    overflow: visible;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.zettelkasten-flow__reader-ink-layer path,
+.zettelkasten-flow__reader-ink-page path,
+.zettelkasten-flow__reader-ink-thumb path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* A kept note goes to its words: the place and the scale the script measured, in one transform. */
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink-note {
+    transform: translate(var(--zf-ink-x, 0), var(--zf-ink-y, 0)) scale(var(--zf-ink-scale, 16));
+    transform-origin: 0 0;
+}
+
+/* Kept, quietly (FR-23): the live tone settles into the kept tone. Opacity only. */
+.zettelkasten-flow__reader-ink-note {
+    transition: opacity $motion-base $ease-out;
+}
+
+.zettelkasten-flow__reader-ink--live {
+    opacity: 1;
+}
+
+.zettelkasten-flow__reader-ink--kept {
+    opacity: 0.86;
+}
+
+/* Under the eraser, before it lifts: the strokes it will take. */
+.zettelkasten-flow__reader-ink-stroke,
+.zettelkasten-flow__reader-ink-live {
+    transition: opacity $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__reader-ink--erasing {
+    opacity: 0.3;
+}
+
+/* While the page takes ink, the mouse writes instead of selecting (FR-2). */
+.zettelkasten-flow__reader-stage--inking {
+    cursor: crosshair;
+
+    .zettelkasten-flow__reader-body {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+}
+
+.zettelkasten-flow__reader-stage--erasing {
+    cursor: cell;
+}
+
+/* A desktop pen (a Wacom, a Surface) would pan the page under `pan-y`; there a finger has the wheel. */
+.zettelkasten-flow__reader-stage--ink-desktop {
+    touch-action: none;
+}
+
+/* ── the palette: a strip in the outer margin, never over the text ─────── */
+.zettelkasten-flow__reader-ink-palette {
+    --zf-ink-cell: var(--size-4-8);
+    --zf-ink-gap: var(--size-4-1);
+    position: absolute;
+    left: calc(var(--size-4-3) + #{$safe-left});
+    top: 50%;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    /* Closed: 8 px back towards its edge, and gone. Opening plays it forwards, closing backwards (FR-20). */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(calc(-1 * var(--size-4-2)), -50%);
+    transition:
+        transform $motion-fast $ease-out,
+        opacity $motion-fast $ease-out,
+        visibility $motion-fast;
+}
+
+.zettelkasten-flow__reader-ink-palette.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(0, -50%);
+}
+
+.zettelkasten-flow__reader-ink-tools,
+.zettelkasten-flow__reader-ink-colours {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--zf-ink-gap);
+}
+
+.zettelkasten-flow__reader-ink-colours {
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--reader-line);
+}
+
+.zettelkasten-flow__reader-ink-palette .clickable-icon {
+    width: var(--zf-ink-cell);
+    height: var(--zf-ink-cell);
+    justify-content: center;
+}
+
+/* The tool in use: a marker that glides between the tools (transform only), under the active one. */
+.zettelkasten-flow__reader-ink-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--zf-ink-cell);
+    height: var(--zf-ink-cell);
+    border-radius: var(--radius-m);
+    background-color: var(--background-modifier-active-hover);
+    transform: translateY(calc(var(--zf-ink-marker, 0) * (var(--zf-ink-cell) + var(--zf-ink-gap))));
+    transition: transform $motion-fast $ease-out;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-ink-tool.is-active {
+    background-color: transparent;
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-swatch {
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.zettelkasten-flow__reader-ink-colour.is-active {
+    background-color: var(--background-modifier-active-hover);
+}
+
+.zettelkasten-flow__reader-ink-colour.is-active .zettelkasten-flow__reader-ink-swatch {
+    box-shadow: 0 0 0 var(--size-2-1) var(--background-primary), 0 0 0 var(--size-2-2) var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-button.is-active {
+    color: var(--interactive-accent);
+}
+
+/* One quiet line beside the strip, never a toast over the page. */
+.zettelkasten-flow__reader-ink-status {
+    display: none;
+    position: absolute;
+    left: calc(100% + var(--size-4-2));
+    top: 50%;
+    width: max-content;
+    max-width: 16rem;
+    transform: translateY(-50%);
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__reader-ink-status.is-shown {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-ink-palette--explain .zettelkasten-flow__reader-ink-status {
+    color: var(--text-normal);
+}
+
+/* No margin wide enough for it (G4: a phone, an iPad in portrait), or a printed page that fills the
+   screen (Page view): the strip lies above the reader bar instead — never over the text. 56rem is the
+   48rem page plus the strip on each side. */
+@mixin palette-above-bar {
+    .zettelkasten-flow__reader-ink-palette {
+        left: 50%;
+        top: auto;
+        bottom: calc(var(--size-4-18) + var(--size-4-2) + #{$safe-bottom});
+        flex-direction: row;
+        transform: translate(-50%, var(--size-4-2));
+    }
+
+    .zettelkasten-flow__reader-ink-palette.is-open {
+        transform: translate(-50%, 0);
+    }
+
+    .zettelkasten-flow__reader-ink-tools,
+    .zettelkasten-flow__reader-ink-colours {
+        flex-direction: row;
+    }
+
+    .zettelkasten-flow__reader-ink-colours {
+        padding-top: 0;
+        padding-left: var(--size-4-2);
+        border-top: none;
+        border-left: var(--border-width) solid var(--reader-line);
+    }
+
+    .zettelkasten-flow__reader-ink-marker {
+        transform: translateX(calc(var(--zf-ink-marker, 0) * (var(--zf-ink-cell) + var(--zf-ink-gap))));
+    }
+
+    .zettelkasten-flow__reader-ink-status {
+        left: 50%;
+        top: auto;
+        bottom: calc(100% + var(--size-4-2));
+        transform: translateX(-50%);
+    }
+}
+
+@container zf-reader (max-width: 56rem) {
+    @include palette-above-bar;
+}
+
+.zettelkasten-flow__reader--page-run {
+    @include palette-above-bar;
+}
+
+/* ── ink in a list: the margin, Think, the notebook ────────────────────── */
+.zettelkasten-flow__reader-ink-thumb {
+    display: block;
+    width: 100%;
+    height: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-ink-item-thumb {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-ink-item-reason {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Reduced motion (FR-24): the palette appears and goes, strokes vanish and return and kept ink
+   settles — all at once. Drawing is unchanged: it never animates. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-palette,
+    .zettelkasten-flow__reader-ink-marker,
+    .zettelkasten-flow__reader-ink-note,
+    .zettelkasten-flow__reader-ink-stroke,
+    .zettelkasten-flow__reader-ink-live {
+        transition: none;
+        animation: none;
+    }
+}
+
+.zettelkasten-flow__notebook-ink .zettelkasten-flow__reader-ink-thumb {
+    height: var(--size-4-16);
+}
+
+/* On a printed page (Page view) the paper is white in any theme: pencil is the light palette's ink. */
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--pencil {
+    color: var(--color-base-100);
+}

@@ -39,6 +39,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Make a move…** — make a cognitive move on the note you are reading — challenge, reframe, branch. [docs →](../development/cultivate.md#the-moves)
 - **Think about this note** — open a thread about a note without writing to it. [docs →](../architecture/thought-lab.md)
 - **Read from here** — right-click a note and read a path across your notes, the way you read a book — no MOC, nothing written. [docs →](../development/reader.md)
+- **Write in the margin** — write in the margin of what you read with a pen (or a mouse) — kept beside its words as a thought and its drawing, the book never written. [docs →](../development/reader.md)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
 - **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)

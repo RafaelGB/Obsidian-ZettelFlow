@@ -256,8 +256,19 @@ own callout and Look Up, the Pencil, a hardware keyboard and the memory limits �
 [issue #750](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/750); until it is, those rows
 are assumed, not claimed.
 
-**What a plugin cannot do on iPad.** Hide the status bar; hear the Pencil's double-tap or squeeze;
-keep reading aloud in the background. These are the app's, not a plugin's.
+**What a plugin cannot do on iPad.** Hide the status bar; keep reading aloud in the background. These
+are the app's, not a plugin's. The Pencil's native gestures are the same — a web view never hears them:
+
+| On iPad | In the Reader | Instead |
+|---|---|---|
+| Pencil double-tap to switch tools | ✗ native only | the palette's pen and eraser |
+| Pencil squeeze (Pencil Pro) for a palette | ✗ native only | the pencil in the reader bar |
+| PencilKit's ink | ✗ native only | the Reader's own ink, drawn from the points |
+| Apple's tool picker | ✗ native only | the palette: pen, eraser, four inks, undo |
+| Undo from the Pencil | ✗ native only | a two-finger tap on the page |
+
+Ink is drawn from what WebKit reports (about 120–240 Hz, with no predicted points): good ink, honestly
+not PencilKit ink.
 
 ## Links, detours and context
 
@@ -372,6 +383,70 @@ you write the note, the passage stays marked; cancel and the mark goes.
   still think so? See [A few things you marked](highlights-review.md).
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
+
+## Ink in the margin
+
+With an Apple Pencil in hand, selecting words with a finger and typing is the wrong tool. Tap the
+**pencil** in the reader bar (or press **P**) and the page takes ink: write in the margin beside the
+paragraph, the way you would on paper or a reMarkable.
+
+![Ink in the margin: handwriting in the outer margin beside a paragraph, the palette strip with the pen, the eraser, four inks and undo, and the thinking-space folder holding the thought and its drawing](../resources/reader/ink.svg)
+
+- **The palette.** A small strip at the edge of the reading column, never over the text: **pen**,
+  **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
+  **undo**. A marker glides to the tool in use. On a phone, an iPad in portrait or a paper in Page view
+  — where there is no margin for it — the strip lies just above the reader bar. Whether it was open is
+  remembered on this device, so an iPad you write on stays ready to write.
+- **What draws.** A **pen** draws (an Apple Pencil, a Wacom or a Surface pen), and so does a
+  **mouse**, so you can write a margin arrow at a desk. A **finger never draws**: it scrolls, turns the
+  page and taps exactly as it does with the palette closed. While the palette is open the mouse writes
+  instead of selecting words; close it to select again.
+- **Your hand can rest on the glass.** While the pen is down, and for a moment after it lifts, a
+  touch does nothing — no scroll, no turn, no tap.
+- **The line follows the nib.** Each movement is drawn in the next frame, the newest piece always
+  ending under the nib, smoothed only behind it. Press harder and the line is thicker; lean the pen and
+  it widens a little, like a pencil on its side. Lift the pen and nothing moves: the stroke you see is
+  the stroke that is kept.
+- **Undo, three ways.** The palette's undo, **Ctrl/⌘+Z** while the palette is open, or a **two-finger
+  tap** on the page take back the last stroke drawn or erased, newest first. A stroke undone before it
+  was kept leaves nothing behind. A pinch or a two-finger scroll is never an undo, and a two-finger
+  tap asks nothing: the stroke fading away is the answer.
+- **The eraser takes whole strokes.** Drag it across your ink and every stroke it touches goes. Over
+  nothing, it says so quietly.
+- **Strokes written together are one ink note.** A stroke that starts soon after the last one lifted,
+  and near it, joins it; otherwise a new one begins. The note is kept when you pause, when you turn
+  the page and when you close the Reader — never while you are writing — and its ink settles from its
+  live tone into its kept tone. No toast.
+
+### Where ink is kept
+
+**In Think, as a thought, with its drawing beside it.** Each ink note is a
+[thought](../architecture/thought-lab.md) in your thinking space (the folder in **Settings ›
+Thinking**), about the book you were reading — and, with the same name, an **SVG file** of the
+drawing. The SVG opens anywhere an SVG does; inside it, the raw points (where the nib was, how hard
+and how leaned) are kept as data, so the Reader draws it again exactly, erases it stroke by stroke,
+and later versions can read it. The colour is kept by name, and drawn from your theme.
+
+- **It stays with its words.** Ink is anchored to the words nearest its first stroke — the same
+  anchor highlights use — and to which side of them it was written on. Make the type larger and it
+  grows with the text; narrow the column and it keeps its side; change the theme and it takes the
+  theme's colour; let the text re-flow and it follows its words. A note written in a wide margin
+  moves in to stay on screen when the margin narrows.
+- **On a printed page** (a PDF in Page view) ink is kept as a place on that page, so it stays on the
+  same spot through any zoom.
+- **Listed where it cannot be drawn.** Ink whose words have changed is listed in the margin under
+  **Ink notes**, with a small drawing and *Detached — the passage has changed*. Ink written in Page
+  view is listed in the reading view as *Written in Page view*, and the other way round. A drawing from
+  a newer version of the plugin is listed, never thrown away.
+- **Shown, never counted.** Ink appears beside the highlights in the margin, in Think as a card of
+  your handwriting, and in the book notebook (where a reading note embeds the drawing) — but it is not
+  a highlight: it is not counted on the shelf and never comes back for review.
+- **The book is never written.** Only the thinking space is.
+- **Taking it back.** **Delete ink** on its row sends the thought and its drawing to Obsidian's trash
+  together, with **Undo**. Erasing an ink note's last stroke does the same. A kept ink note is one
+  recorded batch in the [write record](../architecture/reversibility.md), undone as one.
+- **No thinking space?** The pencil is still there; the palette says that ink is kept in Think and how
+  to choose a folder, and nothing draws.
 
 ## The end of a path
 
@@ -496,9 +571,12 @@ No colour is invented: every look comes from your theme.
 
 **Nothing, to any note you read.** Reading is the whole job, and a test holds the line: nothing in
 the Reader reaches a file writer — except **Export**, the one button that makes a note, and only
-when you press it: create-only, through `FileService`, in a recorded batch you can undo. The one
-thing you can make while reading — a highlight — is a **thought** in Think, written through the
-thought store like every other thought, and a second test holds that line too. The only things it remembers are where you are in a reading (in the workspace
+when you press it: create-only, through `FileService`, in a recorded batch you can undo. The things
+you can make while reading — a highlight, or ink — are **thoughts** in Think, written through the
+thought store like every other thought, and a second test holds that line too. Ink adds one file to
+its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
+same recorded batch. An older version of the plugin reads an ink note as a highlight with no note;
+nothing is lost. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings), your type choices and the paths you saved
 (in the plugin's settings), and the places you bookmarked in a book or a paper (beside its resume
 place, in the plugin's settings — an older version of the plugin reads past them, so going back to

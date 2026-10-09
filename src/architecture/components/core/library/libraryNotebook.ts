@@ -9,6 +9,7 @@ import { exportFileName, freeExportPath } from "architecture/components/core/rea
 import { HIGHLIGHT_MEANINGS, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { buildNotebook, filterNotebook, readingNoteMarkdown, type Notebook, type NotebookGroup } from "application/library/notebook";
 import type { Thought } from "application/thinking/thought";
+import { renderInkThumb } from "architecture/components/core/reader/readerInkThumb";
 import type { ShelfItem } from "application/library/shelf";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -39,6 +40,8 @@ export interface NotebookParts {
     open: (at?: { chapter?: number; highlight?: string }) => void;
     /** One passage into a note, through the crystallize preview (#683). */
     toNote: (thought: Thought) => void;
+    /** An ink note's drawing (#745), for its small rendering. */
+    drawing?: (thought: Thought) => Promise<string | undefined>;
     /** Where the last reading note went, so the next one goes there too. */
     folder: string;
     rememberFolder: (folder: string) => void;
@@ -132,9 +135,20 @@ function renderGroups(host: HTMLElement, groups: readonly NotebookGroup[], parts
         for (const entry of group.entries) {
             const card = section.createDiv({ cls: [c("notebook-entry"), c(`reader-hl-item--${entry.meaning}`)] });
             if (entry.quote) card.createDiv({ cls: c("notebook-quote"), text: entry.quote });
+            if (entry.ink) {
+                // Ink (#745): the handwriting itself, drawn from its points.
+                const picture = card.createDiv({ cls: c("notebook-ink") });
+                void parts
+                    .drawing?.(entry.thought)
+                    .then((text) => {
+                        if (text !== undefined) renderInkThumb(picture, text);
+                    })
+                    .catch((error: unknown) => log.warn(`[Library] could not draw an ink note: ${String(error)}`));
+            }
             if (entry.note) card.createDiv({ cls: c("notebook-note"), text: entry.note });
             const foot = card.createDiv({ cls: c("notebook-foot") });
-            foot.createSpan({ cls: c("notebook-where"), text: entry.quote ? `${entry.label} · ${t(MEANING_LABEL[entry.meaning])}` : entry.label });
+            const where = entry.quote ? `${entry.label} · ${t(MEANING_LABEL[entry.meaning])}` : entry.ink ? [entry.label, t("notebook_ink")].filter(Boolean).join(" · ") : entry.label;
+            foot.createSpan({ cls: c("notebook-where"), text: where });
             const go = foot.createEl("button", { cls: c("notebook-action"), attr: { type: "button" }, text: t("notebook_open_reader") });
             scope.registerDomEvent(go, "click", () => parts.open({ ...(entry.at !== null ? { chapter: entry.at } : {}), highlight: entry.id }));
             if (entry.quote) {

@@ -8,7 +8,8 @@ import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { isInk, linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { renderInkCard } from "./labInkCard";
 import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { searchThreads, isEmptyQuery, type LabQuery } from "application/thinking/labSearch";
 import { parseTags } from "application/thinking/tags";
@@ -972,8 +973,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 );
         }
 
+        // Ink written in the Reader (#745): the handwriting itself, never a passage.
+        if (isInk(thought) && thought.about) this.renderInk(box, thought, thought.about);
         // A highlight made in the Reader (#671): the passage first, then your note about it.
-        if (thought.quote?.exact && thought.about) this.renderQuote(box, thought);
+        else if (thought.quote?.exact && thought.about) this.renderQuote(box, thought);
 
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
         area.value = thought.text;
@@ -1152,6 +1155,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
             attr: { type: "button" },
         });
         this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id }));
+    }
+
+    /** An ink note (#745 FR-13): its drawing, where it was written, and the way back to it. */
+    private renderInk(box: HTMLElement, thought: Thought, about: string): void {
+        const reachable = Boolean(this.app.vault.getAbstractFileByPath(about));
+        renderInkCard(box, thought, {
+            drawing: (ink) => ThoughtStore.getInstance().drawingOf(ink),
+            name: displayName(about, ObsidianApi.getOwnPlugin()?.settings.library),
+            ...(reachable ? { open: () => void openReader(this.app, { seed: about, highlight: thought.id }) } : {}),
+            listen: (el, run) => this.registerDomEvent(el, "click", run),
+        });
     }
 
     /** The thoughts this one is connected to, as chips that take you to them. */

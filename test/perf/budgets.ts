@@ -427,6 +427,20 @@ export const BUDGETS = {
         because:
             "the graph's lenses became questions (#696): region:, bridge, alone and contradiction read these facts. Once per model revision, and the Louvain communities underneath are shared with the graph, so a click never pays it",
     },
+    "ink.append.scaling": {
+        name: "add points 1,901–2,000 of a stroke, as a multiple of adding points 1–100",
+        limit: 2,
+        measured: "1.05",
+        because:
+            "the nib leads (#745 FR-18): smoothing revisits only the last point, so a point costs the same late in a long sentence as at its first letter; a full re-smooth per point would read about 20",
+    },
+    "ink.layout.200": {
+        name: "place 200 ink notes of a chapter at their words after a change of type",
+        limit: 20,
+        measured: "0.09 ms",
+        because:
+            "ink moves with its words in the same frame as a change of size or column (#745 FR-22); 200 notes is a heavily annotated chapter, and a frame is 16 ms",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

@@ -37,15 +37,17 @@ export interface OpenOverPage {
     search?: boolean;
     popover?: boolean;
     peek?: boolean;
+    /** The ink palette (#745 G3): nearer than a detour, a panel or deep reading. */
+    palette?: boolean;
     detour?: boolean;
     panel?: boolean;
     deep?: boolean;
 }
 
-export type EscapeStep = "shortcuts" | "note" | "search" | "popover" | "peek" | "detour" | "panel" | "deep" | "exit";
+export type EscapeStep = "shortcuts" | "note" | "search" | "popover" | "peek" | "palette" | "detour" | "panel" | "deep" | "exit";
 
 /** The Esc order: today's nearest-first order, with deep reading just before leaving the Reader (FR-6). */
-const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["shortcuts", "note", "search", "popover", "peek", "detour", "panel", "deep"];
+const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["shortcuts", "note", "search", "popover", "peek", "palette", "detour", "panel", "deep"];
 
 /** The one thing the next Esc closes: the nearest open thing, and the Reader itself when nothing is. */
 export function escapeStep(open: OpenOverPage): EscapeStep {

@@ -30,10 +30,13 @@ export const RUBBER_BAND = 1 / 3;
 /** The velocity is read over the last moment of the drag, not the whole of it. */
 const VELOCITY_WINDOW_MS = 50;
 /**
- * The trail's back-swipe from the left system strip (#761 FR-10). Off until the device walk's
- * P8b row proves Obsidian opens nothing from that strip while the Reader is open.
+ * The trail's back-swipe from the left system strip (#761 FR-10). Off for good: the T0 audit and the
+ * #750 walk showed the strip is Obsidian's (its drawer opens from there), so #761 goes back with two
+ * fingers instead (`twoFingerBack`).
  */
 export const EDGE_BACK_SWIPE = false;
+/** How far two fingers sweep right to go back one step along the trail (#761 FR-10). */
+export const BACK_SWIPE_PX = 60;
 
 export interface PointerSample {
     x: number;
@@ -172,4 +175,13 @@ export function completionRate(progress: number, vx: number, width: number, dura
     if (!(width > 0) || !(duration > 0) || progress >= 1) return 1;
     const rate = (Math.abs(vx) * duration) / width;
     return Math.min(3, Math.max(1, rate));
+}
+
+/**
+ * Two fingers swept right, together and mostly sideways (#761 FR-10): back one step along the trail.
+ * The left edge strip is Obsidian's, and one finger is the page's turn, so the way back is two fingers
+ * anywhere on the page — what each finger moved, from where it came down to where it lifted.
+ */
+export function twoFingerBack(moves: readonly { dx: number; dy: number }[]): boolean {
+    return moves.length >= 2 && moves.every((move) => move.dx >= BACK_SWIPE_PX && move.dx > LOCK_RATIO * Math.abs(move.dy));
 }

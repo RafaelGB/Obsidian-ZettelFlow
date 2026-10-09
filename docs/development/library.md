@@ -138,10 +138,15 @@ contents, nested as the book nests them.
   matches are tinted in the page and the current one is outlined. A match in another chapter is a
   jump, with its way back. **Esc** closes the search and takes every tint away. A scan says it has
   no text to search.
-- **Every jump has a way back.** A cross-reference, **Go to note** or a **Contents** entry moves you,
-  and a **← Back to …** pill shows where you came from. Click it, or press **Alt+←**, to return to
-  the very line. The pill fades by itself after a few seconds; Alt+← keeps working until your next
-  page turn. In a PDF the pill follows Contents jumps.
+- **Every jump has a way back.** A cross-reference, **Go to note**, a **Contents** entry, a search, a
+  bookmark or a passage opened from Think moves you — the camera travels there, it never cuts — and a
+  **← Back to …** pill shows where you came from. Click it, or press **Alt+←** (two fingers swept
+  right on a touch screen), to return to the very line. The pill fades by itself after a few seconds;
+  the way back stays in **Contents → Where you've been**, through page turns, until you close the
+  book. In a PDF the pill follows Contents jumps.
+- **Bookmarks.** The ribbon at the page's corner, or **B**, keeps a place without highlighting
+  anything; **Contents → Bookmarks** lists them. See
+  [Bookmarks and where you've been](reader.md#bookmarks-and-where-youve-been).
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
 

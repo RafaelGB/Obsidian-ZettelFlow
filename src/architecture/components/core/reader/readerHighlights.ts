@@ -11,6 +11,7 @@ import { crystallizeHighlight } from "architecture/components/core/library/cryst
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { MOTION, fly, motionWelcome } from "./readerMotion";
 import { touchPointer } from "./readerDevice";
+import { markHereOn } from "./readerHere";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -40,8 +41,11 @@ export interface HighlightView {
     host: HTMLElement;
     /** What lives as long as the reader does. */
     owner: Component;
-    /** Bring an element of the chapter into view, inside the reader's own scroller. */
-    scrollTo(el: HTMLElement): void;
+    /**
+     * Bring an element of the chapter into view, inside the reader's own scroller — with `travel`, as
+     * a camera move (#761). Returns how long until it has landed (ms), for a mark to wait for.
+     */
+    scrollTo(el: HTMLElement, travel?: boolean): number | void;
     /** Something changed that a panel might show. */
     onChange(): void;
 }
@@ -344,14 +348,21 @@ export class ReaderHighlights {
         if (this.popover && !this.popover.hasClass(c("reader-hl-pop--editing"))) this.hidePopover();
     }
 
-    /** Scroll to a highlight and make it flash, when a deep link asked for one. */
-    reveal(id: string): boolean {
+    /**
+     * Go to a highlight a deep link asked for, and show it is there: the *you are here* mark (#761
+     * FR-17), once the move has landed. `travel`: its chapter is the one on screen, so the camera moves
+     * there (§XVI) instead of landing at once.
+     */
+    reveal(id: string, travel = false): boolean {
         const entry = this.anchored.find((candidate) => candidate.thought.id === id);
         // An embed that re-rendered drops the marks drawn in it: only a live one can be shown.
         const mark = entry?.marks.find((m) => m.isConnected !== false);
         if (!entry || !mark) return false;
-        this.view.scrollTo(mark);
-        entry.marks.forEach((m) => m.addClass(c("reader-highlight--flash")));
+        const landed = this.view.scrollTo(mark, travel);
+        markHereOn(
+            entry.marks.filter((m) => m.isConnected !== false),
+            typeof landed === "number" ? landed : 0
+        );
         return true;
     }
 

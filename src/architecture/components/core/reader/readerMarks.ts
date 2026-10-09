@@ -155,3 +155,58 @@ export function unwrapMark(mark: ParentLike): void {
     parent.removeChild(mark);
     parent.normalize?.();
 }
+
+/**
+ * Where a DOM position is in `chapterText(root)` (#761): a caret in a text node, or before the
+ * `offset`-th child of an element (the first text from there on). `null` when it is not in `root`.
+ * One walk in reading order, the way `textNodes` reads the chapter.
+ */
+export function offsetAt(root: NodeLike, node: NodeLike | null, offset = 0): number | null {
+    if (!node) return null;
+    const isText = node.nodeType === TEXT_NODE;
+    // An element: the caret sits before that child, or after the last one.
+    const children = isText ? null : (node as ParentLike).childNodes;
+    const start: NodeLike = isText ? node : (children?.[offset] ?? node);
+    const afterAll = !isText && !children?.[offset];
+    let pos = 0;
+    let reached = false;
+    let answer: number | null = null;
+    const walk = (at: NodeLike): boolean => {
+        if (at === start && !afterAll) reached = true;
+        if (at.nodeType === TEXT_NODE) {
+            const text = at as TextLike;
+            if (at === node) {
+                answer = pos + Math.max(0, Math.min(offset, text.data.length));
+                return true;
+            }
+            if (reached && !isText) {
+                answer = pos;
+                return true;
+            }
+            pos += text.data.length;
+            return false;
+        }
+        if (at !== root && skipped(at as ParentLike)) return false;
+        const kids = (at as ParentLike).childNodes;
+        if (kids) for (let i = 0; i < kids.length; i++) if (walk(kids[i])) return true;
+        // Past the end of the element the caret is after: the next text is where it is.
+        if (at === start && afterAll) reached = true;
+        return false;
+    };
+    walk(root);
+    if (answer !== null) return answer;
+    return reached && !isText ? pos : null;
+}
+
+/** The text node, and the offset in it, where `chapterText(root)`'s `offset` falls. */
+export function pointAt(root: NodeLike, offset: number): { node: TextLike; offset: number } | null {
+    let pos = 0;
+    let last: TextLike | null = null;
+    for (const text of textNodes(root)) {
+        const end = pos + text.data.length;
+        if (offset < end) return { node: text, offset: Math.max(0, offset - pos) };
+        pos = end;
+        last = text;
+    }
+    return last ? { node: last, offset: last.data.length } : null;
+}

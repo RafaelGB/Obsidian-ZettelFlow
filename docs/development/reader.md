@@ -92,6 +92,8 @@ relations:
 | **Home** / **End** | first / last chapter |
 | **F** | fullscreen, where the platform allows it (not on an iPad or a phone) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
+| **B** | bookmark the place you are reading, or take away the bookmark on this screen (a book or a paper) |
+| **Alt+←** | back to where your last jump left from (a book or a paper) |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
 | **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave fullscreen, then leave the Reader |
 
@@ -115,7 +117,8 @@ hides it. It holds:
 
 - the chapter you are on, your progress through the path, and **about how many minutes are left**
   in this chapter (at 220 words a minute, counted down as you scroll);
-- **Contents**, the chapters with their roles;
+- **Contents**, the chapters with their roles (in a book or a paper, with its **Bookmarks** and
+  **Where you've been** beside them);
 - **Type**;
 - **Around this chapter**, with what supports it, what argues back and its open questions;
 - **Fullscreen**, where the platform can go fullscreen;
@@ -183,6 +186,9 @@ nothing below changes: a click never turns a page.
   scrolls, and a gesture is decided once: a diagonal drag never both scrolls and turns.
 - **The very edge is not ours.** A swipe that starts within a finger's width of the screen's edge is
   left to iPadOS and to Obsidian, which opens its sidebars from there.
+- **Back with two fingers.** Two fingers swept right anywhere on the page go back one step along
+  [where you've been](#bookmarks-and-where-youve-been), as the back pill and Alt+← do. (The
+  screen's left edge would be the obvious place, but it is Obsidian's.)
 - **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
   own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
   **below** it, clear of that callout, and without a second *Copy*.
@@ -217,8 +223,10 @@ Getting lost is the main way reading fails in a linked vault: you follow a link,
 the thread is gone. So a link in the Reader is a **peek**, not a jump.
 
 In a book or a paper it is the same idea. A **footnote** opens over the page, at its mark, and any
-**jump** (a cross-reference, Contents, *Go to note*) leaves a **← Back to …** pill and Alt+← to return
-to the line you left. See [Your Library](library.md#reading-an-epub).
+**jump** (a cross-reference, Contents, a search, *Go to note*, a bookmark, a passage opened from
+Think) leaves a **← Back to …** pill, Alt+← and a row in **Where you've been** to return to the line
+you left — see [Bookmarks and where you've been](#bookmarks-and-where-youve-been) and
+[Your Library](library.md#reading-an-epub).
 
 ![A peek under a paragraph, a detour with its way back, and the context of the chapter](../resources/reader/peek.svg)
 
@@ -242,6 +250,50 @@ Click a link and a card opens right under the paragraph that holds it. It says w
 The **Contents** panel lists the chapters with their roles, ticks the ones you have read and marks
 where you are. **Around this chapter** lists what supports it, what argues back and its open
 questions, read from the same model as [This note](this-note.md). Each of those is a peek too.
+
+## Bookmarks and where you've been
+
+Two small tools every reading app has, made so that following a reference is never a risk to your
+place. In a book or a paper (an EPUB or a PDF); a note reading keeps its place in the notes
+themselves.
+
+![Bookmarks, and where you've been: the ribbon filled at the page's corner and the line you landed on marked under the words; the Contents panel on its Bookmarks tab; the Where you've been tab with its reasons, and the pill, Alt+← and two fingers that walk it; and a far page reached by sliding the last three pages](../resources/reader/bookmarks.svg)
+
+- **The ribbon.** At the page's top-right corner. Tap it — or press **B** — and it drops in: the
+  place you are reading is kept, the chapter and the first line on screen. It shows filled on any
+  screen that holds a bookmark; tap it there and it lifts out again. An empty ribbon steps back with
+  the bar while you read; a filled one stays, as a ribbon in a book does.
+- **A place, not a thought.** A bookmark writes nothing to Think, nothing to a note and never touches
+  the book's file. It is kept in the plugin's data beside where the book resumes, for this vault, so
+  it syncs only when your plugin settings do. Replacing the book's file with a new copy keeps its
+  bookmarks, as it keeps its place.
+- **Found by its words.** A bookmark keeps where it is in the text, and the words there — the way a
+  highlight is found again — so a change of font, size, layout or device lands on the same line. In
+  a PDF's Page view a bookmark is its page.
+- **Contents · Bookmarks · Where you've been.** The Contents panel has three tabs. **Bookmarks** lists
+  the book's bookmarks in reading order: the chapter or page, the first words of the line and when it
+  was made (*now*, *2 days ago*); tap one to go there, or remove it in place. Neither tab counts
+  anything.
+- **Where you've been.** Before any jump the Reader remembers where you were, and why you left: a
+  link in the book (*Before a link*), a Contents entry, a search (once per search, in any chapter),
+  *Go to note* in a footnote, a bookmark, and a passage opened from Think or *This note* while the book
+  is open (*Before an opened passage*). The list is newest first; tap a row to go back there, and it
+  leaves the trail.
+- **One trail.** The back pill, **Alt+←** and, on a touch screen, two fingers swept right walk the
+  same trail one step at a time. An ordinary page or chapter turn puts the pill away but keeps the
+  trail. It lives for the reading in progress and is forgotten when you close the book (the last
+  twenty places).
+
+### Going to a place is a camera move
+
+None of these moves cuts ([constitution §XVI](constitution.md#xvi-one-continuous-shot)). In the
+chapter you are reading, in **Page** and **Spread** the strip travels to the page that holds the
+place — in proportion to the distance, and a far page by its last three, faint at first, rather than
+dozens of pages flashing past. In **Scroll** the column glides there, two screens at most. In another
+chapter it is the chapter turn you chose in **Settings → Reading**, towards the place, and the way
+back is its reverse. On landing, the line is marked for a moment by a quiet wash under the words —
+*you are here* — and then nothing. Under reduced motion every move is instant, and the mark shows for
+a moment without fading.
 
 ## Highlights and notes in the margin
 
@@ -331,8 +383,10 @@ screen, and the text around it settles into its new shape. Under reduced motion 
 
 There are **no page numbers**: an EPUB has none of its own, and a number would change with your
 font size. The place is the chapter, and the hairline across the top fills page by page. A
-search hit, a jump and its way back (**Alt+←**), a resumed reading and a highlight opened from Think
-all land on the page that holds them. A selection can run across a page break and be highlighted.
+search hit, a jump and its way back (**Alt+←**), a bookmark and a highlight opened from Think all
+land on the page that holds them — and the strip **travels** there, never cuts (see
+[Going to a place](#going-to-a-place-is-a-camera-move)). A resumed reading opens on its page, inside
+the opening shot. A selection can run across a page break and be highlighted.
 Pictures and tables are scaled to fit a page, never cut across two. In a spread there is no room
 for the margin: the highlights are in **Around this chapter**.
 
@@ -396,7 +450,9 @@ when you press it: create-only, through `FileService`, in a recorded batch you c
 thing you can make while reading — a highlight — is a **thought** in Think, written through the
 thought store like every other thought, and a second test holds that line too. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings), your type choices and the paths you saved
-(in the plugin's settings). Choosing a way through a note writes nothing either, and neither do peeks, detours or
+(in the plugin's settings), and the places you bookmarked in a book or a paper (beside its resume
+place, in the plugin's settings — an older version of the plugin reads past them, so going back to
+one forgets them). Choosing a way through a note writes nothing either, and neither do peeks, detours or
 adding a note to a reading — an added note lasts as long as the reading on screen.
 
 ## For contributors
@@ -406,7 +462,8 @@ adding a note to a reading — an added note lasts as long as the reading on scr
 - Touch (#750) is decided in pure modules the later slices reuse: `readerDevice.ts` (what the device
   is: `touchPointer`, `isApple`, `canFullscreen`, `panelShape`, `DEVICE_LIMITS`/`tooLarge`),
   `readerGestures.ts` (the classifier: `startGesture` locks a tap, swipe, scroll or press once;
-  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`; `EDGE_BACK_SWIPE` stays off),
+  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`, `twoFingerBack`;
+  `EDGE_BACK_SWIPE` stays off: the left strip is Obsidian's),
   `readerPlace.ts` (`placeAt`/`scrollFor`: a block and a share of it, kept through a reshape) and
   `readerSheet.ts` (the sheet's heights and settle). `beginChapterScrub` in `readerTurn.ts` builds
   the clock's own turn paused and moves it by the finger; the chapter shown next adopts it
@@ -421,6 +478,19 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   the DOM is never rebuilt. `readerSettle.ts` settles the text around that line after a change;
   `readerTypePanel.ts` draws the Type panel with `segmentedRow` — the one control later rows reuse.
   Page turns at a chapter's ends go through the view's `go(±1)`, where the chapter turn is played.
+- The trail and bookmarks (#761): `ReaderTrail` in `readerJumps.ts` (one trail: `push`, `pop`,
+  `list` newest first, `takeAt`; per reading, at most 20) holds a *spot* — the chapter and an offset
+  into `chapterText` (`offsetAt`/`pointAt` in `readerMarks.ts`), with the share and scroll as
+  fallbacks — and its `TrailReason`. Bookmarks are pure in `readerBookmarks.ts` (`bookmarkAt` keeps the
+  offset and an ~80-character `TextQuote`; `landingOffset` finds it again by its words; at most 200 a
+  book) and kept in `SourceMeta.bookmarks` (`withBookmarks`; `withFacts` carries them through a
+  replaced file) by `rememberSourceBookmarks`. Every move goes through the view's `landOn` /
+  `landHere`: another chapter is `show()` with its turn, then a landing at once; this chapter is a
+  travel — `ReaderPager.travelTo` / `reveal(anchor, true)` in pages and `glideTo` in a scroll, both
+  on `translate`, planned by the pure `readerTravel.ts` (`pageTravel`, `scrollTravel`,
+  `travelDuration`). They return how long they take, and `readerHere.ts` waits that long before the
+  *you are here* mark (`markHereAt`, `markHereOn`; `zf-reader-here`, opacity only). The old
+  `reader-highlight--flash` box-shadow ring is gone.
 - On mobile, `coverApp` (in `openReader.ts`) puts `zettelkasten-flow__reader-covers-app` on the body:
   the stylesheet slides Obsidian's chrome away and lets the Reader's leaf cover the screen. The stage
   sets `data-ignore-swipe` for the touches it takes, which Obsidian's own drawer swipe respects.

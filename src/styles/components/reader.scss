@@ -838,6 +838,173 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
+/* ── bookmarks and where you've been (#761) ─────────────────────────────── */
+
+/*
+ * The ribbon at the page's top-right corner (FR-1): quiet and empty, or filled with the accent where
+ * the screen holds a bookmark. It hangs from the top of the page, so it drops in — and lifts out —
+ * through its own box (FR-14): transform only, never across the top line. Its corner follows the
+ * column or the pages on show (`--zf-ribbon-right`, measured by the view).
+ */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-ribbon {
+    position: absolute;
+    /* It hangs in the band above the page, never over a line; clear of the way out (×) on a narrow screen. */
+    top: calc(var(--size-4-3) + #{$safe-top});
+    right: max(calc(var(--zf-ribbon-right, #{$safe-right}) + var(--size-4-4)), calc(#{$safe-right} + var(--size-4-16)));
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: var(--size-4-8);
+    height: var(--size-4-10);
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    box-shadow: none;
+    background: none;
+    color: var(--reader-faint);
+    transition: opacity 0.4s ease;
+    z-index: 3;
+
+    &:hover {
+        background: none;
+        color: var(--reader-fg);
+    }
+}
+
+.zettelkasten-flow__reader-ribbon-mark {
+    display: flex;
+
+    svg {
+        width: var(--icon-l);
+        height: var(--icon-l);
+    }
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-ribbon--filled {
+    color: var(--interactive-accent);
+
+    &:hover {
+        color: var(--interactive-accent-hover);
+    }
+
+    svg {
+        fill: currentColor;
+    }
+}
+
+/* A ribbon falling into a book: down from the edge, a small settle at the end. */
+.zettelkasten-flow__reader-ribbon--drop .zettelkasten-flow__reader-ribbon-mark {
+    animation: zf-reader-ribbon-drop $motion-base $ease-out both;
+}
+
+.zettelkasten-flow__reader-ribbon--lift .zettelkasten-flow__reader-ribbon-mark {
+    animation: zf-reader-ribbon-lift $motion-base $ease-out both;
+}
+
+@keyframes zf-reader-ribbon-drop {
+    0% {
+        transform: translateY(-100%);
+    }
+    75% {
+        transform: translateY(8%);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes zf-reader-ribbon-lift {
+    to {
+        transform: translateY(-100%);
+    }
+}
+
+/* Idle: an empty ribbon steps back with the bar; a filled one stays, as a ribbon in a book does. */
+.zettelkasten-flow__reader--idle button.zettelkasten-flow__reader-ribbon:not(.zettelkasten-flow__reader-ribbon--filled) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Contents · Bookmarks · Where you've been (FR-4): Obsidian's chips, the chosen one on. */
+.zettelkasten-flow__reader-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-tab {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__reader-tab-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+/* An empty tab says what to do, fading in (FR-11, FR-16). */
+.zettelkasten-flow__reader-empty {
+    @include empty-state;
+    animation: zf-reader-fade $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-mark-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-mark-go,
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-trail-row {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: baseline;
+    /* Obsidian's tablet buttons centre and embolden their label: a row reads from the start. */
+    justify-content: flex-start;
+    font-weight: var(--font-normal);
+    gap: var(--size-4-1) var(--size-4-3);
+    min-width: 0;
+    height: auto;
+    padding: var(--size-4-2);
+    border: none;
+    box-shadow: none;
+    background: none;
+    border-radius: var(--radius-s);
+    color: var(--reader-fg);
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__reader-mark-where,
+.zettelkasten-flow__reader-trail-where,
+.zettelkasten-flow__reader-mark-when {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-mark-snippet {
+    flex: 1 1 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__reader-trail-reason {
+    flex: 1;
+}
+
 /* Contents → Notebook (#721): everything you marked in this book, in the Library. */
 button.zettelkasten-flow__reader-notebook-link {
     display: inline-flex;
@@ -1137,8 +1304,41 @@ button.zettelkasten-flow__reader-note-pop-go {
     text-underline-offset: 0.25em;
 }
 
-.zettelkasten-flow__reader-highlight--flash {
-    animation: zf-reader-highlight-flash 1.6s ease-out 1;
+/*
+ * You are here (#761 FR-17; #751 relies on it): the place a move landed on, marked for a moment by a
+ * quiet wash drawn *under* the words — in after the move (its delay), held, gone. Opacity alone; it
+ * replaces the old box-shadow flash. Under reduced motion it is simply there for a moment.
+ */
+.zettelkasten-flow__reader-here {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: calc(-1 * var(--size-2-1)) calc(-1 * var(--size-2-2));
+        border-radius: var(--radius-s);
+        background-color: color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+        animation: zf-reader-here 2.3s linear var(--zf-here-delay, 0ms) both;
+    }
+}
+
+/* 120 ms in, about a second held, about 1.2 s out (HERE_MS in readerHere.ts). */
+@keyframes zf-reader-here {
+    0% {
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    48% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 /* A highlight just made is drawn like a marker: swept across the words, left to right. */
@@ -1156,14 +1356,6 @@ button.zettelkasten-flow__reader-note-pop-go {
     }
 }
 
-@keyframes zf-reader-highlight-flash {
-    from {
-        box-shadow: 0 0 0 var(--size-4-1) color-mix(in srgb, var(--interactive-accent) 55%, transparent);
-    }
-    to {
-        box-shadow: 0 0 0 var(--size-4-3) transparent;
-    }
-}
 
 /* The four meanings in a popover (#720): a swatch and a name each; the one in use is marked. */
 .zettelkasten-flow__reader-hl-meanings {
@@ -1828,9 +2020,19 @@ body.zettelkasten-flow__reader-covers-app {
 
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__reader-highlight--flash {
+    /* You are here: shown at once, for a moment, then gone (HERE_REDUCED_MS). */
+    .zettelkasten-flow__reader-here::after {
         animation: none;
-        outline: var(--border-width) solid var(--interactive-accent);
+        opacity: 1;
+    }
+
+    /* The ribbon is simply filled or empty; the tabs' lists and the empty states are simply there. */
+    .zettelkasten-flow__reader-ribbon,
+    .zettelkasten-flow__reader-ribbon .zettelkasten-flow__reader-ribbon-mark,
+    .zettelkasten-flow__reader-tab-list,
+    .zettelkasten-flow__reader-empty {
+        animation: none;
+        transition: none;
     }
 
     .zettelkasten-flow__reader,

@@ -19,6 +19,7 @@ import {
     type PageGeometry,
 } from "./readerPages";
 import type { ReaderLayout } from "./readerPrefs";
+import { pageTravel, scrollTravel, TRAVEL_FAINT } from "./readerTravel";
 
 /**
  * **The chapter in pages** (#753, epic #739) — the DOM side of `readerPages`. In *Page* and *Spread*
@@ -67,6 +68,15 @@ function firstBox(anchor: PageAnchor): Box | null {
     if (pieces && pieces.length > 0) return boxOf(pieces[0]);
     const rect = anchor.getBoundingClientRect?.();
     return rect ? boxOf(rect) : null;
+}
+
+/**
+ * How much the stage is scaled on screen now — a chapter turn scales it a little (#735). A place
+ * measured on a scaled stage is divided back, or it lands lines away from where it is (#761 walk).
+ */
+export function stageScale(stage: HTMLElement, shownHeight: number): number {
+    const laid = stage.offsetHeight;
+    return laid > 0 && shownHeight > 0 ? shownHeight / laid : 1;
 }
 
 function connected(anchor: PageAnchor | null): anchor is PageAnchor {
@@ -314,7 +324,10 @@ export class ReaderPager {
         return true;
     }
 
-    /** Straight to a screen, with no motion: a jump, a search hit, a resumed place. */
+    /**
+     * Straight to a screen, with no motion: a chapter just drawn (under its turning sheet, or the
+     * opening shot), or a resize. A move you can see travels instead (`travelTo`).
+     */
     goTo(view: number): void {
         if (!this.paged) return;
         this.finishRunning();
@@ -323,8 +336,93 @@ export class ReaderPager {
         this.turned();
     }
 
-    goToShare(share: number): void {
-        this.goTo(pageForShare(share, this.pages, this.perView));
+    /**
+     * Travel to a screen (#761 FR-15, §XVI): the strip slides there in proportion to the distance —
+     * a far screen by its last few pages, faint at first — with an ease-out. Instant under reduced
+     * motion. Returns how long the travel takes (0 when there is none), for a landing to wait for.
+     */
+    travelTo(view: number): number {
+        if (!this.paged) return 0;
+        this.finishRunning();
+        this.dragging = null;
+        const target = Math.min(Math.max(0, view), this.views - 1);
+        const from = this.view;
+        if (target === from) return 0;
+        const travel = pageTravel(from, target);
+        const start = travel.compressed ? this.offsetOf(travel.from) : this.x;
+        this.view = target;
+        const to = this.offsetOf(target);
+        this.setX(to);
+        let ms = 0;
+        if (motionWelcome(this.page)) {
+            const faint = travel.compressed ? { opacity: TRAVEL_FAINT } : {};
+            const animation = this.page.animate([{ translate: `${px(start)} 0`, ...faint }, { translate: `${px(to)} 0`, ...(travel.compressed ? { opacity: 1 } : {}) }], {
+                duration: travel.duration,
+                easing: MOTION.ease,
+            });
+            this.running = animation;
+            animation.onfinish = () => {
+                if (this.running === animation) this.running = null;
+            };
+            ms = travel.duration;
+        }
+        this.turned();
+        return ms;
+    }
+
+    goToShare(share: number, travel = false): number {
+        const view = pageForShare(share, this.pages, this.perView);
+        if (travel) return this.travelTo(view);
+        this.goTo(view);
+        return 0;
+    }
+
+    /**
+     * In *Scroll*: the column glides to `top` (#761 FR-15). The scroll is set at once — so everything
+     * that reads it reads the place — and the page is carried from where it was to where it lands on
+     * `translate`, on the compositor: proportional, capped at two screens, compressed past them.
+     * Instant under reduced motion. Returns how long the glide takes.
+     */
+    glideTo(top: number): number {
+        if (this.paged) return 0;
+        const before = this.stage.scrollTop;
+        this.stage.scrollTop = Math.max(0, Math.round(top));
+        const moved = this.stage.scrollTop - before;
+        this.finishRunning();
+        if (moved === 0 || !motionWelcome(this.page)) return 0;
+        const screen = this.stage.clientHeight || this.stage.getBoundingClientRect().height;
+        const travel = scrollTravel(moved, screen);
+        const faint = travel.compressed ? { opacity: TRAVEL_FAINT } : {};
+        const animation = this.page.animate([{ translate: `0px ${px(travel.from)}`, ...faint }, { translate: "0px 0px", ...(travel.compressed ? { opacity: 1 } : {}) }], {
+            duration: travel.duration,
+            easing: MOTION.ease,
+        });
+        this.running = animation;
+        animation.onfinish = () => {
+            if (this.running === animation) this.running = null;
+        };
+        return travel.duration;
+    }
+
+    /** Whether a place is on the screen you are looking at: its page on show, or its line in the view. */
+    onScreen(anchor: PageAnchor): boolean {
+        const box = firstBox(anchor);
+        if (!box) return false;
+        if (this.paged) return this.viewHolding(anchor) === this.view;
+        const stage = this.stage.getBoundingClientRect();
+        return box.top + Math.max(1, box.height) > stage.top && box.top < stage.top + stage.height;
+    }
+
+    /** The box of what is on screen: the pages on show, or the column in a scroll (the ribbon's corner). */
+    screenBox(): Box {
+        if (this.paged && this.geometry) {
+            const strip = this.page.getBoundingClientRect();
+            const stage = this.stage.getBoundingClientRect();
+            // The pages on show sit where the strip's box is when it is not moved.
+            const left = this.direction === "rtl" ? strip.left - this.x + strip.width - this.geometry.viewPx : strip.left - this.x;
+            return { left, top: stage.top, width: this.geometry.viewPx, height: stage.height };
+        }
+        return boxOf(this.page.getBoundingClientRect());
     }
 
     /**
@@ -383,15 +481,27 @@ export class ReaderPager {
         return pageHolding(offset + 1, geometry.stridePx, geometry.perView, this.views);
     }
 
-    /** Bring a place on screen: the page that holds it, or — in *Scroll* — the stage scrolled to it. */
-    reveal(anchor: PageAnchor): void {
+    /**
+     * Bring a place on screen: the page that holds it, or — in *Scroll* — the stage scrolled to it.
+     * At once for a chapter just drawn; with `travel`, the camera moves there (#761). Returns the
+     * travel's length in ms.
+     */
+    reveal(anchor: PageAnchor, travel = false): number {
         if (!this.paged) {
             const box = firstBox(anchor);
-            if (box) this.stage.scrollTop = scrollTopFor(box.top, this.stage.getBoundingClientRect().top, this.stage.scrollTop);
-            return;
+            if (!box) return 0;
+            const stage = this.stage.getBoundingClientRect();
+            const k = stageScale(this.stage, stage.height);
+            const top = scrollTopFor(stage.top + (box.top - stage.top) / k, stage.top, this.stage.scrollTop);
+            if (travel) return this.glideTo(top);
+            this.stage.scrollTop = top;
+            return 0;
         }
         const view = this.viewHolding(anchor);
-        if (view !== null) this.goTo(view);
+        if (view === null) return 0;
+        if (travel) return this.travelTo(view);
+        this.goTo(view);
+        return 0;
     }
 
     /** The chapter's blocks: the body's children, a lone wrapper looked into (as Obsidian draws one). */

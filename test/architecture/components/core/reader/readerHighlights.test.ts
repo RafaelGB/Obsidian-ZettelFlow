@@ -316,11 +316,12 @@ describe("highlights are found again on every visit (#671)", () => {
         expect(m.openThink).toHaveBeenCalledWith({}, "Notes/es.md");
     });
 
-    it("a deep link scrolls to its highlight and makes it flash", async () => {
+    it("a deep link scrolls to its highlight and shows you are there (#761 FR-17)", async () => {
         const m = mount([anchored()]);
         await m.attach();
         expect(m.highlights.reveal("a")).toBe(true);
-        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--flash")).toBe(true);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-here")).toBe(true);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--flash")).toBe(false);
         expect(m.highlights.reveal("nope")).toBe(false);
     });
 });

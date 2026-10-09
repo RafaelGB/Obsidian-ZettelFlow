@@ -18,18 +18,21 @@ import { KnowledgeIndex } from "architecture/knowledge";
 import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
-import { isNoteLink, noteExcerpt, JumpStack } from "./readerJumps";
+import { isNoteLink, noteExcerpt, ReaderTrail, type TrailReason } from "./readerJumps";
+import { addBookmark, bookmarkAt, bookmarkSnippet, inReadingOrder, landingOffset, removeBookmarks, wordStart, type Bookmark } from "./readerBookmarks";
+import { markHereAt } from "./readerHere";
+import { relativeLabel } from "architecture/components/core/noteCompanion/storyFormat";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
 import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, type ChapterScrub } from "./readerTurn";
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
-import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
+import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
 import { placeAt, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
 import { sourceFormat } from "application/library/sourceMeta";
 import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
-import { readableText, readableWithMap, unwrapMark, wrapSpan } from "./readerMarks";
+import { chapterText, offsetAt, pointAt, readableText, readableWithMap, unwrapMark, wrapSpan, type NodeLike } from "./readerMarks";
 import { stripFrontmatter } from "./readerDocument";
 import { KIND_KEY } from "./readerLabels";
 import { renderEndCard, renderSourceEnd, type EndCard } from "./readerEnd";
@@ -44,13 +47,23 @@ import { adoptHeldSides, coverApp, exitReader, heldSides, restoreWorkspace } fro
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
-import { chapterOfHighlight, keptScroll, rememberSourceFacts, rememberSourcePlace, rememberSourceScroll, sourceMetaOf, sourceReading } from "./readerSource";
+import {
+    chapterOfHighlight,
+    keptScroll,
+    rememberSourceBookmarks,
+    rememberSourceFacts,
+    rememberSourcePlace,
+    rememberSourceScroll,
+    sourceBookmarks,
+    sourceMetaOf,
+    sourceReading,
+} from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
 import { openSourceDocument, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, normalizePace, paceWpm, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { normalizeReaderPrefs, readerClassNames, type ReaderLayout, type ReaderPrefs } from "./readerPrefs";
-import { ReaderPager, type Landing, type PageAnchor } from "./readerPager";
+import { ReaderPager, stageScale, type Landing, type PageAnchor } from "./readerPager";
 import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent } from "./readerPages";
 import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
@@ -109,6 +122,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
+    { keys: ["B"], label: "reader_key_bookmark" },
     { keys: ["F"], label: "reader_key_fullscreen" },
     { keys: ["V"], label: "reader_key_layout" },
     { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
@@ -163,6 +177,49 @@ export type { ReaderHost };
 
 
 type Panel = "contents" | "type" | "context" | null;
+
+/** The Contents panel of a book or a paper (#761 FR-4): its contents, its bookmarks, where you've been. */
+type ContentsTab = "contents" | "bookmarks" | "trail";
+const CONTENTS_TABS: { id: ContentsTab; label: LocaleKey }[] = [
+    { id: "contents", label: "reader_contents" },
+    { id: "bookmarks", label: "reader_tab_bookmarks" },
+    { id: "trail", label: "reader_tab_trail" },
+];
+
+/** What took you away, as *Where you've been* says it (FR-7). */
+const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
+    link: "reader_trail_link",
+    contents: "reader_trail_contents",
+    search: "reader_trail_search",
+    note: "reader_trail_note",
+    bookmark: "reader_trail_bookmark",
+    passage: "reader_trail_passage",
+};
+
+/** How far a list slides in when its tab is chosen (FR-16). */
+const TAB_SLIDE_PX = 24;
+/** A bookmark made less than a minute ago was made *now*. */
+const NOW_MS = 60_000;
+
+/**
+ * A place in a book (#761): its chapter, where its first line on screen is in the chapter's text,
+ * and — where the text cannot be read — how far through the chapter it is and its scroll.
+ */
+interface Spot {
+    chapter: number;
+    /** An offset into `chapterText` of the chapter, or `null` where it has no text. */
+    offset: number | null;
+    share: number | null;
+    top: number | null;
+    /** A bookmark is found again by its words, in the chapter as it is drawn now (FR-3). */
+    bookmark?: Bookmark;
+}
+
+/** A place on the trail, with what took you away from it (FR-6, FR-7). */
+interface TrailEntry extends Spot {
+    label: string;
+    reason: TrailReason;
+}
 
 /** A finger or a pen on the page (#750): the gesture, the stage where it began, and what it drives. */
 interface TouchState {
@@ -272,13 +329,29 @@ export class ReaderView extends ItemView {
     /** Bumped on every peek, so a slow excerpt never lands in a newer one. */
     private peekGeneration = 0;
     private pill: HTMLElement | null = null;
-    /** Where you were before each jump inside a book (#718): the pill and Alt+← return there. */
-    private readonly jumps = new JumpStack<{ chapter: number; top: number; share: number; anchor: PageAnchor | null; label: string }>();
-    /** The jump pill goes away by itself; the way back stays on Alt+←. */
+    /**
+     * Where you've been in a book (#718, #761): the place before each jump, and why you left it. One
+     * trail for the pill, Alt+←, a two-finger swipe and the *Where you've been* list.
+     */
+    private readonly trail = new ReaderTrail<TrailEntry>();
+    /** The jump pill goes away by itself; the way back stays on Alt+← and in the list. */
     private jumpPillTimer: number | undefined;
     private jumpPillShown = false;
-    /** A scroll to restore once the chapter a Back returns to is drawn. */
-    private pendingTop: number | null = null;
+    /** A place to land on once the chapter it is in is drawn (#761). */
+    private pendingLanding: Spot | null = null;
+    /** The Contents panel's tab, and the way its list slides in when it changes (FR-16). */
+    private contentsTab: ContentsTab = "contents";
+    private tabSlide: 1 | -1 | 0 = 0;
+    /** The bookmark ribbon at the page's corner (#761 FR-1). */
+    private ribbon: HTMLElement | null = null;
+    private ribbonLifting = false;
+    /** This search already left its mark on the trail: stepping through its hits is one detour. */
+    private searchLeft = false;
+    /** Fingers on the page (#761 FR-10): two swiping right go back one step along the trail. */
+    private readonly fingers = new Map<number, { x0: number; y0: number; x: number; y: number }>();
+    private twoFinger: { dx: number; dy: number }[] | null = null;
+    /** When the chapter turn now playing lands: a mark waits for it. */
+    private turnLandsAt = 0;
     /** How far into the chapter a resume lands, once it is drawn (a share of it, 0–1). */
     private pendingShare: number | null = null;
     private scrollSaveTimer: number | undefined;
@@ -296,8 +369,8 @@ export class ReaderView extends ItemView {
     private searchResult: SearchResult | null = null;
     private searchAt = -1;
     private searchMarks: HTMLElement[] = [];
-    /** The next drawn chapter brings the current match into view. */
-    private searchReveal = false;
+    /** The current match is brought into view: a travel in the chapter on screen, or landed in a new one. */
+    private searchReveal: "travel" | "land" | null = null;
     private searchTimer: number | undefined;
     /** The reading is over and its end card is on screen (#672). */
     private ended = false;
@@ -415,8 +488,19 @@ export class ReaderView extends ItemView {
         if (parsed.back) this.back = parsed.back;
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.source) {
+            // A passage opened from Think or *This note* while the book is open is a jump (#761 FR-6):
+            // where you were is kept first, and the camera moves there — never a fresh draw.
+            const passage = Boolean(parsed.highlight) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
+            const before = this.index;
             await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
-            if (this.els) this.render();
+            if (!this.els) return;
+            if (passage && this.index === before && parsed.highlight && this.highlights?.reveal(parsed.highlight, true)) {
+                this.pendingHighlight = null;
+                return;
+            }
+            // In another chapter: the chapter turns towards it, the way it turns today (#735).
+            if (passage && this.index !== before) this.turn = this.index > before ? 1 : -1;
+            this.render();
             return;
         }
         if (parsed.seed && this.sourcePath) this.leaveSource();
@@ -467,7 +551,12 @@ export class ReaderView extends ItemView {
             this.savedId = undefined;
             this.endStatus = undefined;
             this.sourcePath = path;
-            this.jumps.clear();
+            // A new reading: its own trail (FR-9), and Contents opens on its contents.
+            this.trail.clear();
+            this.jumpPillShown = false;
+            this.pendingLanding = null;
+            this.contentsTab = "contents";
+            this.searchLeft = false;
             // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
             this.pendingShare = highlight ? null : keptScroll(this.plugin, path, chapter);
         }
@@ -641,6 +730,15 @@ export class ReaderView extends ItemView {
         this.registerDomEvent(pill, "click", () => (this.detours.length > 0 ? this.backFromDetour() : this.backFromJump()));
         this.pill = pill;
 
+        // The bookmark ribbon at the page's top-right corner (#761 FR-1): a book's or a paper's only.
+        const ribbon = root.createEl("button", {
+            cls: ["clickable-icon", c("reader-ribbon"), c("reader-hidden")].join(" "),
+            attr: { type: "button", "aria-pressed": "false", "aria-label": t("reader_bookmark_add") },
+        });
+        setIcon(ribbon.createSpan({ cls: c("reader-ribbon-mark") }), "bookmark");
+        this.registerDomEvent(ribbon, "click", () => void this.toggleBookmark());
+        this.ribbon = ribbon;
+
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
         this.registerDomEvent(stage, "scroll", () => {
@@ -665,6 +763,8 @@ export class ReaderView extends ItemView {
                 this.highlights?.onScroll();
                 this.closeNote();
                 this.onStageScroll();
+                // The ribbon says whether the page you turned to holds a bookmark.
+                this.notePlace();
             },
         });
         this.pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
@@ -697,7 +797,7 @@ export class ReaderView extends ItemView {
                 app: this.app,
                 host: root,
                 owner: this,
-                scrollTo: (el) => this.scrollToEl(el),
+                scrollTo: (el, travel) => this.scrollToEl(el, travel),
                 onChange: () => {
                     if (this.panel === "context") this.renderPanel();
                 },
@@ -805,7 +905,6 @@ export class ReaderView extends ItemView {
         this.landing = "start";
         if (!pager || !this.pagedNow()) return;
         this.pendingShare = null;
-        this.pendingTop = null;
         const land: Landing = reveal ? { anchor: reveal } : share !== null ? { share } : landing;
         pager.relayout(land);
     }
@@ -885,6 +984,7 @@ export class ReaderView extends ItemView {
             scope.registerDomEvent(dot, "click", () => this.show(i));
         });
         this.renderPill();
+        this.refreshRibbon();
         if (this.ended) this.renderEnd();
         else void this.renderChapter();
         if (this.panel) this.renderPanel();
@@ -1019,6 +1119,8 @@ export class ReaderView extends ItemView {
     private turnFrom(page: HTMLElement): void {
         if (this.turn === 0 || !this.root || !this.els) return;
         // A finger let a turn go past its third (#750): that turn is this chapter's, already playing.
+        // A place landed on in the new chapter shows itself once the page has turned (#761).
+        this.turnLandsAt = this.motionAllowed() ? Date.now() + MOTION.turn : 0;
         if (adoptChapterScrub()) return;
         playChapterTurn(this.root, this.els.stage, page, readingMotion(this.plugin?.settings?.readingMotion).chapter, this.turn > 0 ? 1 : -1);
     }
@@ -1160,55 +1262,158 @@ export class ReaderView extends ItemView {
             return;
         }
         // A jump inside a book (#718): where you were, until it fades by itself.
-        const back = this.jumpPillShown ? this.jumps.peek() : undefined;
+        const back = this.jumpPillShown ? this.trail.peek() : undefined;
         this.pill.toggleClass(c("reader-hidden"), !back);
         this.pill.toggleClass(c("reader-jump-pill"), Boolean(back));
         this.pill.setText(back ? `← ${t("reader_back_to", back.label)}` : "");
     }
 
     /**
+     * Remember where you are before a jump (#718, #761 FR-6) — the first line on screen, by its place
+     * in the chapter's text — and why you leave. False where there is no book to leave a trail in.
+     */
+    private leaveTrail(reason: TrailReason): boolean {
+        const stage = this.els?.stage;
+        if (!this.sourcePath || !this.path || !stage || this.ended) return false;
+        this.trail.push({ ...this.spotHere(), label: this.sourceLabel(this.index), reason });
+        this.flashJumpPill();
+        if (this.panel === "contents" && this.contentsTab === "trail") this.renderPanel();
+        return true;
+    }
+
+    /** Where you are now: the first line on screen, as a place in the chapter's text. */
+    private spotHere(): Spot {
+        const body = this.chapterBody();
+        const anchor = this.pager?.firstVisible() ?? null;
+        const offset = body && anchor ? this.offsetOfAnchor(body, anchor) : null;
+        return { chapter: this.index, offset, share: this.currentShare(), top: this.els?.stage.scrollTop ?? 0 };
+    }
+
+    /**
      * A jump inside a book (#718): a link, Contents, *Go to note*. Where you were is kept first, so
      * the pill — or Alt+← — brings you back to the very line.
      */
-    private jumpTo(chapter: number, fragment?: string): void {
-        const stage = this.els?.stage;
-        if (!this.path || !stage) return;
-        this.jumps.push({
-            chapter: this.index,
-            top: stage.scrollTop,
-            share: this.currentShare(),
-            // In pages, the line itself: the way back lands on the page that holds it (#753).
-            anchor: this.pagedNow() ? (this.pager?.firstVisible() ?? null) : null,
-            label: this.sourceLabel(this.index),
-        });
+    private jumpTo(chapter: number, fragment: string | undefined, reason: TrailReason): void {
+        if (!this.path || !this.els) return;
+        this.leaveTrail(reason);
         this.closeNote();
-        if (chapter !== this.index) this.show(chapter);
-        if (fragment) this.scrollToFragment(fragment);
-        this.flashJumpPill();
+        if (chapter !== this.index) {
+            this.show(chapter);
+            if (fragment) this.scrollToFragment(fragment, false);
+        } else if (fragment) {
+            this.scrollToFragment(fragment, true);
+        } else {
+            // This very chapter, from its start: the camera goes back up to it.
+            this.landHere({ chapter, offset: 0, share: 0, top: 0 }, true);
+        }
     }
 
     /** Back to where the last jump left from. False when there is nowhere to go back to. */
     private backFromJump(): boolean {
-        const back = this.jumps.pop();
-        const stage = this.els?.stage;
-        if (!back || !stage) return false;
-        this.closeNote();
-        const paged = this.pagedNow() ? this.pager : null;
-        if (back.chapter !== this.index) {
-            // The chapter is drawn again: in pages the way back is its share, in a scroll its line.
-            if (paged) this.pendingShare = back.share;
-            else this.pendingTop = back.top;
-            this.show(back.chapter);
-        } else if (paged) {
-            const node = back.anchor && ("startContainer" in back.anchor ? back.anchor.startContainer : back.anchor);
-            if (back.anchor && node?.isConnected !== false) paged.reveal(back.anchor);
-            else paged.goToShare(back.share);
-        } else {
-            stage.scrollTop = back.top;
-        }
-        this.jumpPillShown = this.jumps.size > 0;
-        this.renderPill();
+        const back = this.trail.pop();
+        if (!back || !this.els) return false;
+        this.landOn(back);
         return true;
+    }
+
+    /** A row of *Where you've been*: back there, and that place leaves the trail (FR-8). */
+    private backTo(index: number): void {
+        const back = this.trail.takeAt(index);
+        if (!back) return;
+        this.landOn(back);
+        if (this.panel === "contents") this.renderPanel();
+    }
+
+    /**
+     * Go to a place (#761 FR-15): in this chapter the camera travels there; in another, the chapter
+     * turns towards it the way you chose (#735) — back along the trail that is the reverse of the turn
+     * that brought you — and the page lands on it.
+     */
+    private landOn(spot: Spot): void {
+        this.closeNote();
+        if (spot.chapter !== this.index) {
+            this.pendingLanding = spot;
+            this.show(spot.chapter);
+        } else {
+            this.landHere(spot, true);
+        }
+        // The next step back stays one press away, for a while; with none left the pill goes.
+        if (this.trail.size > 0) this.flashJumpPill();
+        else {
+            this.jumpPillShown = false;
+            this.renderPill();
+        }
+    }
+
+    /**
+     * Put a place of the chapter on screen — travelling there, or at once in a chapter just drawn —
+     * and show it with the *you are here* mark once it has landed (FR-17).
+     */
+    private landHere(spot: Spot, travel: boolean): void {
+        const stage = this.els?.stage;
+        const pager = this.pager;
+        const body = this.chapterBody();
+        if (!stage || !pager) return;
+        const offset = body && spot.bookmark ? landingOffset(chapterText(body), spot.bookmark) : spot.offset;
+        // The mark first: the caret made for the place is then inside it.
+        const here = body && offset !== null ? markHereAt(body, offset) : null;
+        const anchor = body && offset !== null ? this.anchorAt(body, offset) : null;
+        let ms = 0;
+        if (this.pagedNow()) {
+            if (this.pagesPending) {
+                // Laid out in pages once the chapter is complete: there, on the page that holds it.
+                if (anchor) this.pendingReveal = anchor;
+                else this.pendingShare = spot.share ?? 0;
+            } else if (anchor) ms = pager.reveal(anchor, travel);
+            else ms = pager.goToShare(spot.share ?? 0, travel);
+        } else if (anchor) {
+            ms = pager.reveal(anchor, travel);
+        } else {
+            const top = spot.top ?? resumeScroll(spot.share ?? 0, stage.scrollHeight, stage.clientHeight);
+            if (travel) ms = pager.glideTo(top);
+            else stage.scrollTop = top;
+        }
+        const landed = this.hereDelay(ms);
+        here?.after(landed);
+        // The ribbon is asked once the move has landed: mid-travel the page is somewhere else.
+        if (landed > 0) (this.root?.win ?? window).setTimeout(() => this.refreshRibbon(), landed + 40);
+    }
+
+    /** How long a mark waits: for the travel, or for the chapter turn still playing. */
+    private hereDelay(ms: number): number {
+        return Math.max(0, ms, this.turnLandsAt - Date.now());
+    }
+
+    /** The chapter's body on the page, where its text is. */
+    private chapterBody(): HTMLElement | null {
+        return this.els?.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? null;
+    }
+
+    /** A place in the chapter's text, as a caret on the page — or the element holding it, where no caret can be made. */
+    private anchorAt(body: HTMLElement, offset: number): PageAnchor | null {
+        const point = pointAt(body, offset);
+        if (!point) return null;
+        const node = point.node as unknown as Node;
+        const doc = (body as HTMLElement & { doc?: Document }).doc;
+        if (doc?.createRange) {
+            const range = doc.createRange();
+            range.setStart(node, point.offset);
+            range.collapse(true);
+            return range;
+        }
+        return (point.node.parentNode as unknown as Element | null) ?? null;
+    }
+
+    /** Where a caret or a block is in the chapter's text. */
+    private offsetOfAnchor(body: HTMLElement, anchor: PageAnchor): number | null {
+        const root = body as unknown as NodeLike;
+        if ("startContainer" in anchor) {
+            // The caret is asked a few pixels into the line: back to the start of its word, inside its text.
+            const node = anchor.startContainer;
+            const data = node.nodeType === 3 ? (node as Text).data : "";
+            return offsetAt(root, node, data ? wordStart(data, anchor.startOffset) : anchor.startOffset);
+        }
+        return offsetAt(root, anchor, 0);
     }
 
     /** The way back, for a while: it goes away by itself, and an ordinary turn puts it away. */
@@ -1372,8 +1577,8 @@ export class ReaderView extends ItemView {
 
     private go(delta: number, land: "start" | "end" = "start"): void {
         if (!this.path) return;
-        // An ordinary turn: the way back from a jump is no longer where you are reading (#718).
-        this.jumps.clear();
+        // An ordinary turn puts the pill away (#718); the trail stays, in *Where you've been* and on
+        // Alt+← (#761 G1: a visible trail that vanished on every turn would not be one).
         this.jumpPillShown = false;
         if (this.ended) {
             // Back from the end card lands on the last chapter; forward stays on the end.
@@ -1667,19 +1872,22 @@ export class ReaderView extends ItemView {
         }
         if (generation !== this.generation) return;
         body.toggleClass(c("reader-source-body--picture"), picture);
-        // Back from a jump lands on the very line it left (#718). In pages that is `layPages`' to do.
-        if (this.pagedNow()) {
+        // A place asked for in this chapter — the way back from a jump, a bookmark (#718, #761) — is
+        // landed on below, once the whole chapter (its end card too) is on the page.
+        const landing = this.pendingLanding?.chapter === index ? this.pendingLanding : null;
+        this.pendingLanding = null;
+        if (landing) {
+            this.pendingShare = null;
+        } else if (this.pagedNow()) {
             // Landed once the chapter is laid out in pages, below.
-        } else if (this.pendingTop !== null) {
-            stage.scrollTop = this.pendingTop;
-            this.pendingTop = null;
         } else if (this.pendingShare !== null && index === this.index) {
             const share = this.pendingShare;
             this.pendingShare = null;
             stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
-            // Pictures arrive after the text and move the page: land again once they have.
+            // Pictures arrive after the text and move the page: land again once they have — gliding
+            // the little they moved it, never a jump (§XVI).
             stage.win.setTimeout(() => {
-                if (generation === this.generation) stage.scrollTop = resumeScroll(share, stage.scrollHeight, stage.clientHeight);
+                if (generation === this.generation) this.pager?.glideTo(resumeScroll(share, stage.scrollHeight, stage.clientHeight));
             }, RESUME_SETTLE_MS);
         }
         // The shot from the Library lands here: the page is drawn, and at your place (#734).
@@ -1706,8 +1914,11 @@ export class ReaderView extends ItemView {
             next.createSpan({ cls: c("reader-next-label"), text: t("reader_next_named", this.sourceLabel(index + 1)) });
             component.registerDomEvent(next, "click", () => this.go(1));
         }
+        // At once: the chapter turn already moved the camera. In pages, `layPages` lands it.
+        if (landing) this.landHere(landing, false);
         this.layPages();
         this.onStageScroll();
+        this.refreshRibbon();
     }
 
     /** Back to the shelf: the Library's own leaf as it was, or the Library opened on this source. */
@@ -1741,7 +1952,7 @@ export class ReaderView extends ItemView {
             void this.openNote(link, resolved.chapter, resolved.fragment);
             return;
         }
-        this.jumpTo(resolved.chapter, resolved.fragment);
+        this.jumpTo(resolved.chapter, resolved.fragment, "link");
     }
 
     /** The note a footnote mark points at, in this chapter or another one (endnotes). */
@@ -1778,7 +1989,7 @@ export class ReaderView extends ItemView {
         const text = await this.findNote(chapter, fragment);
         if (generation !== this.generation || !this.root) return;
         if (!text) {
-            this.jumpTo(chapter, fragment);
+            this.jumpTo(chapter, fragment, "note");
             return;
         }
         this.closeNote();
@@ -1795,7 +2006,7 @@ export class ReaderView extends ItemView {
         });
         const scope = new Component();
         scope.load();
-        scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment));
+        scope.registerDomEvent(go, "click", () => this.jumpTo(chapter, fragment, "note"));
         this.notePop = pop;
         this.notePopScope = scope;
     }
@@ -1906,6 +2117,8 @@ export class ReaderView extends ItemView {
         }
         this.searchResult = searchBook(texts, query);
         this.searchAt = -1;
+        // Another search: its first hit leaves its own place on the trail.
+        this.searchLeft = false;
         this.renderSearch();
         this.markSearch();
     }
@@ -1947,10 +2160,18 @@ export class ReaderView extends ItemView {
         this.renderSearch();
         // Out of the way while you look at the match; typing brings the list back.
         this.searchList?.addClass(c("reader-search-results--folded"));
-        this.searchReveal = true;
-        // A match in another chapter is a jump, with its way back (#718).
-        if (match.chapter !== this.index) this.jumpTo(match.chapter);
-        else this.markSearch();
+        // A search is a jump, in any chapter, with its way back (#718, #761 FR-6): the place you
+        // searched from is kept once — stepping through its hits is one detour, not twenty.
+        if (!this.searchLeft) this.searchLeft = this.leaveTrail("search");
+        if (match.chapter !== this.index) {
+            this.searchReveal = "land";
+            this.closeNote();
+            this.show(match.chapter);
+        } else {
+            // In this chapter the camera travels to the hit (§XVI).
+            this.searchReveal = "travel";
+            this.markSearch();
+        }
     }
 
     /** Enter / Shift+Enter: the next match from where you are, wrapping round the book. */
@@ -1993,8 +2214,8 @@ export class ReaderView extends ItemView {
             this.searchMarks.push(...marks);
             if (isCurrent && marks[0]) currentMark = marks[0];
         }
-        if (currentMark && this.searchReveal) this.scrollToEl(currentMark);
-        this.searchReveal = false;
+        if (currentMark && this.searchReveal) this.scrollToEl(currentMark, this.searchReveal === "travel");
+        this.searchReveal = null;
     }
 
     private unmarkSearch(): void {
@@ -2014,6 +2235,7 @@ export class ReaderView extends ItemView {
         this.searchScope = null;
         this.searchResult = null;
         this.searchAt = -1;
+        this.searchLeft = false;
     }
 
     private closeNote(): void {
@@ -2023,8 +2245,11 @@ export class ReaderView extends ItemView {
         this.notePopScope = null;
     }
 
-    /** Bring an element a link named into view, once its chapter is drawn. */
-    private scrollToFragment(fragment: string, tries = 20): void {
+    /**
+     * Bring an element a link named into view, once its chapter is drawn — travelling there in the
+     * chapter on screen (#761 FR-15) — and show you are there (FR-17).
+     */
+    private scrollToFragment(fragment: string, travel: boolean, tries = 20): void {
         let el: HTMLElement | null = null;
         try {
             const id = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(fragment) : fragment.replace(/["\\]/g, "");
@@ -2034,10 +2259,13 @@ export class ReaderView extends ItemView {
             return;
         }
         if (el) {
-            this.scrollToEl(el);
+            const body = this.chapterBody();
+            const offset = body ? offsetAt(body, el, 0) : null;
+            const here = body && offset !== null ? markHereAt(body, offset) : null;
+            here?.after(this.hereDelay(this.scrollToEl(el, travel)));
             return;
         }
-        if (tries > 0) window.setTimeout(() => this.scrollToFragment(fragment, tries - 1), 50);
+        if (tries > 0) window.setTimeout(() => this.scrollToFragment(fragment, travel, tries - 1), 50);
     }
 
     /** The source's own contents — a paper's outline, a book's nav — or its pages, when it has none. */
@@ -2068,7 +2296,7 @@ export class ReaderView extends ItemView {
             if (i === current) row.setAttribute("aria-current", "step");
             // A Contents entry is a jump: where you were stays one press away (#718).
             this.panelScope?.registerDomEvent(row, "click", () =>
-                this.jumpTo(entry.chapter, "fragment" in entry && typeof entry.fragment === "string" ? entry.fragment : undefined)
+                this.jumpTo(entry.chapter, "fragment" in entry && typeof entry.fragment === "string" ? entry.fragment : undefined, "contents")
             );
         });
     }
@@ -2155,11 +2383,11 @@ export class ReaderView extends ItemView {
     }
 
     private renderContents(host: HTMLElement): void {
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_contents") });
         if (this.sourcePath) {
-            this.renderSourceContents(host);
+            this.renderSourceTabs(host);
             return;
         }
+        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_contents") });
         this.path?.chapters.forEach((chapter, i) => {
             const row = host.createEl("button", {
                 cls: [c("reader-toc-row"), ...(i === this.index ? [c("reader-toc-row--current")] : [])].join(" "),
@@ -2175,6 +2403,184 @@ export class ReaderView extends ItemView {
             if (i === this.index) row.setAttribute("aria-current", "step");
             this.panelScope?.registerDomEvent(row, "click", () => this.show(i));
         });
+    }
+
+    /**
+     * A book's or a paper's Contents (#761 FR-4): **Contents · Bookmarks · Where you've been**, as
+     * tabs of Obsidian's own chips. Changing tab slides the list in from the side of the tab, in one
+     * gesture (FR-16). No tab counts anything (FR-12).
+     */
+    private renderSourceTabs(host: HTMLElement): void {
+        const tabs = host.createDiv({ cls: c("reader-tabs"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
+        for (const tab of CONTENTS_TABS) {
+            const on = tab.id === this.contentsTab;
+            const button = tabs.createEl("button", {
+                cls: [c("reader-tab"), ...(on ? ["is-active"] : [])].join(" "),
+                attr: { type: "button", role: "tab", "aria-selected": String(on) },
+                text: t(tab.label),
+            });
+            this.panelScope?.registerDomEvent(button, "click", () => this.chooseTab(tab.id));
+        }
+        const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
+        if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
+        else if (this.contentsTab === "trail") this.renderTrail(list);
+        else this.renderSourceContents(list);
+        const dir = this.tabSlide;
+        this.tabSlide = 0;
+        if (dir !== 0 && motionWelcome(list)) {
+            list.animate(
+                [
+                    { transform: `translateX(${dir * TAB_SLIDE_PX}px)`, opacity: 0 },
+                    { transform: "translateX(0px)", opacity: 1 },
+                ],
+                { duration: MOTION.base, easing: MOTION.ease }
+            );
+        }
+    }
+
+    private chooseTab(tab: ContentsTab): void {
+        if (tab === this.contentsTab) return;
+        const order = (id: ContentsTab) => CONTENTS_TABS.findIndex((entry) => entry.id === id);
+        this.tabSlide = order(tab) > order(this.contentsTab) ? 1 : -1;
+        this.contentsTab = tab;
+        this.renderPanel();
+    }
+
+    /** The book's bookmarks in reading order: where, the first words, when (FR-4); each removable. */
+    private renderBookmarks(list: HTMLElement): void {
+        const path = this.sourcePath;
+        const marks = path ? inReadingOrder(sourceBookmarks(this.plugin, path)) : [];
+        if (marks.length === 0) {
+            list.createDiv({ cls: c("reader-empty"), text: t("reader_bookmarks_empty") });
+            return;
+        }
+        const now = Date.now();
+        for (const bookmark of marks) {
+            const row = list.createDiv({ cls: c("reader-mark-row") });
+            const go = row.createEl("button", { cls: c("reader-mark-go"), attr: { type: "button" } });
+            go.createSpan({ cls: c("reader-mark-where"), text: this.sourceLabel(bookmark.chapter) });
+            const snippet = bookmarkSnippet(bookmark);
+            if (snippet) go.createSpan({ cls: c("reader-mark-snippet"), text: snippet });
+            go.createSpan({ cls: c("reader-mark-when"), text: now - bookmark.at < NOW_MS ? t("reader_bookmark_now") : relativeLabel(bookmark.at, now) });
+            this.panelScope?.registerDomEvent(go, "click", () => this.goToBookmark(bookmark));
+            const remove = row.createEl("button", {
+                cls: ["clickable-icon", c("reader-mark-remove")].join(" "),
+                attr: { type: "button", "aria-label": t("reader_bookmark_row_remove") },
+            });
+            setIcon(remove, "x");
+            this.panelScope?.registerDomEvent(remove, "click", () => this.saveBookmarks(removeBookmarks(sourceBookmarks(this.plugin, path ?? ""), [bookmark])));
+        }
+    }
+
+    /** Where you've been, newest first, each with what took you away (FR-7). */
+    private renderTrail(list: HTMLElement): void {
+        const entries = this.trail.list();
+        if (entries.length === 0) {
+            list.createDiv({ cls: c("reader-empty"), text: t("reader_trail_empty") });
+            return;
+        }
+        entries.forEach((entry, i) => {
+            const row = list.createEl("button", { cls: c("reader-trail-row"), attr: { type: "button" } });
+            row.createSpan({ cls: c("reader-trail-reason"), text: t(TRAIL_KEY[entry.reason]) });
+            row.createSpan({ cls: c("reader-trail-where"), text: entry.label });
+            this.panelScope?.registerDomEvent(row, "click", () => this.backTo(i));
+        });
+    }
+
+    // ── bookmarks (#761) ─────────────────────────────────────────────────────
+
+    /**
+     * The ribbon, or **B**: bookmark the place you are reading — the chapter and the first line on
+     * screen — or, on a screen that holds one, take it away. Writes plugin data only (FR-2).
+     */
+    private toggleBookmark(): boolean {
+        const path = this.sourcePath;
+        const body = this.chapterBody();
+        if (!path || !this.source || this.ended || !body) return false;
+        const list = sourceBookmarks(this.plugin, path);
+        const here = this.bookmarksOnScreen(list, body);
+        if (here.length > 0) {
+            this.ribbonMotion("lift");
+            this.saveBookmarks(removeBookmarks(list, here));
+            return true;
+        }
+        // In a PDF's Page view a bookmark is its page (FR-5).
+        const pageView = this.sourceView === "page";
+        const anchor = pageView ? null : (this.pager?.firstVisible() ?? null);
+        const offset = anchor ? (this.offsetOfAnchor(body, anchor) ?? 0) : 0;
+        const text = pageView ? "" : chapterText(body);
+        this.ribbonMotion("drop");
+        this.saveBookmarks(addBookmark(list, bookmarkAt(text, this.index, offset, Date.now())));
+        return true;
+    }
+
+    private saveBookmarks(list: Bookmark[]): void {
+        if (!this.sourcePath) return;
+        rememberSourceBookmarks(this.app, this.plugin, this.sourcePath, list);
+        this.refreshRibbon();
+        if (this.panel === "contents" && this.contentsTab === "bookmarks") this.renderPanel();
+    }
+
+    /** The bookmarks on the screen you are looking at (the whole page where it has no text). */
+    private bookmarksOnScreen(list: readonly Bookmark[], body: HTMLElement): Bookmark[] {
+        const mine = list.filter((bookmark) => bookmark.chapter === this.index);
+        if (mine.length === 0 || !this.pager) return [];
+        const text = chapterText(body);
+        if (!text) return mine;
+        return mine.filter((bookmark) => {
+            const anchor = this.anchorAt(body, landingOffset(text, bookmark));
+            return !anchor || this.pager?.onScreen(anchor) === true;
+        });
+    }
+
+    /** A bookmark from the list: kept on the trail first, then the camera goes there (FR-15, FR-17). */
+    private goToBookmark(bookmark: Bookmark): void {
+        this.leaveTrail("bookmark");
+        this.landOn({ chapter: bookmark.chapter, offset: bookmark.offset, share: 0, top: null, bookmark });
+    }
+
+    /**
+     * The ribbon as it is for this screen: shown for a book or a paper being read, filled when the
+     * screen holds a bookmark, and at the page's top-right corner. No count, ever (FR-12).
+     */
+    private refreshRibbon(): void {
+        const ribbon = this.ribbon;
+        if (!ribbon) return;
+        const path = this.sourcePath;
+        const body = this.chapterBody();
+        const shown = Boolean(path && this.source && !this.ended && body);
+        ribbon.toggleClass(c("reader-hidden"), !shown);
+        if (!shown || !path || !body) return;
+        const filled = this.bookmarksOnScreen(sourceBookmarks(this.plugin, path), body).length > 0;
+        if (!this.ribbonLifting) ribbon.toggleClass(c("reader-ribbon--filled"), filled);
+        ribbon.setAttribute("aria-pressed", String(filled));
+        ribbon.setAttribute("aria-label", t(filled ? "reader_bookmark_remove" : "reader_bookmark_add"));
+        // At the corner of what is on screen: the column, or the pages on show.
+        const root = this.root?.getBoundingClientRect();
+        const box = this.pager?.screenBox();
+        if (root && box && box.width > 0) ribbon.setCssProps({ "--zf-ribbon-right": `${Math.max(0, Math.round(root.left + root.width - (box.left + box.width)))}px` });
+    }
+
+    /**
+     * The ribbon drops into the book (250 ms, a small settle), or lifts back out of it (FR-14) — CSS
+     * keyframes on transform alone; nothing under reduced motion.
+     */
+    private ribbonMotion(kind: "drop" | "lift"): void {
+        const ribbon = this.ribbon;
+        if (!ribbon) return;
+        ribbon.removeClass(c("reader-ribbon--drop"));
+        ribbon.removeClass(c("reader-ribbon--lift"));
+        if (!this.motionAllowed()) return;
+        void ribbon.offsetWidth;
+        ribbon.addClass(c(`reader-ribbon--${kind}`));
+        this.ribbonLifting = kind === "lift";
+        (this.root?.win ?? window).setTimeout(() => {
+            ribbon.removeClass(c(`reader-ribbon--${kind}`));
+            if (kind === "lift") {
+                this.ribbonLifting = false;
+                this.refreshRibbon();
+            }
+        }, MOTION.base);
     }
 
     private renderContext(host: HTMLElement): void {
@@ -2361,6 +2767,8 @@ export class ReaderView extends ItemView {
             const stage = this.els?.stage;
             const blocks = this.blocks();
             this.place = stage && blocks.length > 0 ? placeAt(blocks, stage.scrollTop) : null;
+            // Whether this screen holds a bookmark (#761 FR-1).
+            this.refreshRibbon();
         }, PLACE_SAVE_MS);
     }
 
@@ -2392,6 +2800,7 @@ export class ReaderView extends ItemView {
         const blocks = this.blocks();
         if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
         if (this.panel) this.renderPanel();
+        this.refreshRibbon();
     }
 
     // ── touch: tap the edges, swipe a chapter (#750) ─────────────────────────
@@ -2424,7 +2833,12 @@ export class ReaderView extends ItemView {
         this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => this.onPointerDown(event));
         this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
-        this.registerDomEvent(stage, "pointercancel", () => this.dropTouch());
+        this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
+            // The system took a finger (a pinch, a gesture of its own): no two-finger back from it.
+            this.fingers.delete(event?.pointerId);
+            this.twoFinger = null;
+            this.dropTouch();
+        });
         // The click a handled tap leaves behind would follow what the page just turned past.
         this.registerDomEvent(
             stage,
@@ -2446,6 +2860,16 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerDown(event: PointerEvent): void {
+        // Two fingers on the page are the trail's way back (#761 FR-10), never a turn: whatever the
+        // first finger had started goes back.
+        if (touchPointer(event)) {
+            this.fingers.set(event.pointerId, { x0: event.clientX, y0: event.clientY, x: event.clientX, y: event.clientY });
+            if (this.fingers.size >= 2) {
+                this.dropTouch();
+                this.twoFinger ??= [];
+                return;
+            }
+        }
         this.dropTouch();
         const stage = this.els?.stage;
         // A mouse or a trackpad: desktop is unchanged (FR-1).
@@ -2457,6 +2881,12 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerMove(event: PointerEvent): void {
+        const finger = this.fingers.get(event.pointerId);
+        if (finger) {
+            finger.x = event.clientX;
+            finger.y = event.clientY;
+        }
+        if (this.twoFinger) return;
         const touch = this.touch;
         if (!touch || !touchPointer(event)) return;
         const kind = touch.gesture.update({ x: event.clientX, y: event.clientY, t: event.timeStamp });
@@ -2471,6 +2901,18 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerUp(event: PointerEvent): void {
+        const finger = this.fingers.get(event.pointerId);
+        this.fingers.delete(event.pointerId);
+        if (this.twoFinger) {
+            if (finger) this.twoFinger.push({ dx: event.clientX - finger.x0, dy: event.clientY - finger.y0 });
+            if (this.fingers.size > 0) return;
+            const moves = this.twoFinger;
+            this.twoFinger = null;
+            this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+            // Both fingers swept right: one step back along the trail.
+            if (twoFingerBack(moves)) this.backFromJump();
+            return;
+        }
         const touch = this.touch;
         this.touch = null;
         if (!touch || !touchPointer(event)) return;
@@ -2663,6 +3105,8 @@ export class ReaderView extends ItemView {
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
         bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
+        // B bookmarks the place you are reading, or takes the bookmark on this screen away (#761).
+        bind(none, "B", () => this.toggleBookmark());
         // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
         for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
@@ -2798,19 +3242,28 @@ export class ReaderView extends ItemView {
         return !win.matchMedia("(prefers-reduced-motion: reduce)").matches;
     }
 
-    /** Bring an element of the chapter into view inside the reader's own scroller, never its ancestors. */
-    private scrollToEl(el: HTMLElement): void {
+    /**
+     * Bring an element of the chapter into view inside the reader's own scroller, never its ancestors:
+     * at once in a chapter just drawn, or — `travel`, in the chapter on screen — as a camera move
+     * (#761 FR-15, §XVI). Returns how long the move takes.
+     */
+    private scrollToEl(el: HTMLElement, travel = false): number {
         const stage = this.els?.stage;
         // A mark an embed re-render threw away has no place to scroll to.
-        if (!stage || el.isConnected === false) return;
+        if (!stage || el.isConnected === false) return 0;
         // In pages, the page that holds it, once the chapter being drawn is laid out (#753 FR-5).
         if (this.pagedNow() && this.pager) {
-            if (this.pagesPending) this.pendingReveal = el;
-            else this.pager.reveal(el);
-            return;
+            if (this.pagesPending) {
+                this.pendingReveal = el;
+                return 0;
+            }
+            return this.pager.reveal(el, travel);
         }
-        const top = el.getBoundingClientRect().top - stage.getBoundingClientRect().top + stage.scrollTop - stage.clientHeight / 3;
-        stage.scrollTop = Math.max(0, top);
+        const box = stage.getBoundingClientRect();
+        const top = Math.max(0, (el.getBoundingClientRect().top - box.top) / stageScale(stage, box.height) + stage.scrollTop - stage.clientHeight / 3);
+        if (travel && this.pager) return this.pager.glideTo(top);
+        stage.scrollTop = top;
+        return 0;
     }
 
     private ownDocument(): Document | undefined {

@@ -12,6 +12,8 @@
  * read is stored here — that is Think's job, as thoughts you can open.
  */
 
+import { normalizeBookmarks, type Bookmark } from "architecture/components/core/reader/readerBookmarks";
+
 export type SourceFormat = "pdf" | "epub";
 
 export interface SourceMeta {
@@ -32,6 +34,8 @@ export interface SourceMeta {
     at?: number;
     /** You reached the end at least once. */
     done?: boolean;
+    /** The places you bookmarked (#761): places, never thoughts — kept beside where you are. */
+    bookmarks?: Bookmark[];
 }
 
 export type LibraryMeta = Record<string, SourceMeta>;
@@ -79,6 +83,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (num(v.scroll) && v.scroll >= 0 && v.scroll <= 1) meta.scroll = v.scroll;
         if (num(v.at) && v.at > 0) meta.at = v.at;
         if (v.done === true) meta.done = true;
+        const bookmarks = normalizeBookmarks(v.bookmarks);
+        if (bookmarks.length > 0) meta.bookmarks = bookmarks;
         out[path] = meta;
     }
     return out;
@@ -107,6 +113,16 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.chapter !== undefined) next.chapter = Math.min(previous.chapter, next.chapters! - 1);
     if (previous?.at) next.at = previous.at;
     if (previous?.done) next.done = true;
+    // A new copy of the book keeps its bookmarks, as it keeps its place (#761 FR-2).
+    if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
+    return prune({ ...map, [path]: next });
+}
+
+/** The book's bookmarks, replaced by `list` (#761). An empty list leaves no field behind. */
+export function withBookmarks(map: LibraryMeta, path: string, list: readonly Bookmark[], size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    delete previous.bookmarks;
+    const next: SourceMeta = list.length > 0 ? { ...previous, bookmarks: [...list] } : previous;
     return prune({ ...map, [path]: next });
 }
 

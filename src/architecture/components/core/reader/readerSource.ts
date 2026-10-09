@@ -1,7 +1,8 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { isFresh, normalizeLibrary, withFacts, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { isFresh, normalizeLibrary, withBookmarks, withFacts, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import type { Bookmark } from "./readerBookmarks";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import type { Thought } from "application/thinking/thought";
 import type { SourceDocument } from "architecture/components/core/library/sources/sourceDocument";
@@ -47,6 +48,24 @@ export function rememberSourceScroll(app: App, host: ReaderHost | undefined, pat
     const next = withScroll(map, path, chapter, share);
     settings.library = next;
     void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the place: ${String(error)}`));
+}
+
+/** The book's bookmarks (#761): what the Library keeps, in reading order. */
+export function sourceBookmarks(host: ReaderHost | undefined, path: string): Bookmark[] {
+    return normalizeLibrary(host?.settings?.library)[path]?.bookmarks ?? [];
+}
+
+/**
+ * Keep the book's bookmarks beside its place, in plugin data (#761 FR-2) — never in Think, never in
+ * a note, never in the book's file.
+ */
+export function rememberSourceBookmarks(app: App, host: ReaderHost | undefined, path: string, list: readonly Bookmark[]): void {
+    const settings = host?.settings;
+    if (!settings) return;
+    const file = app.vault.getAbstractFileByPath(path);
+    const stat = file instanceof TFile ? file.stat : undefined;
+    settings.library = withBookmarks(normalizeLibrary(settings.library), path, list, stat?.size ?? 0, stat?.mtime ?? 0);
+    void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the bookmark: ${String(error)}`));
 }
 
 /** The share of `chapter` a resume should land on, when that is the chapter the place was kept for. */

@@ -17,7 +17,6 @@ const COMPOSITOR = new Set(["transform", "opacity", "scale", "translate", "rotat
  */
 const LEGACY_KEYFRAMES = new Set([
     "zf-reader-highlight-sweep", // the marker drawn across a new highlight: background-size
-    "zf-reader-highlight-flash", // a deep-linked highlight's ring: box-shadow
 ]);
 const LEGACY_TRANSITIONS = new Set(["width", "box-shadow", "border-color"]);
 
@@ -130,3 +129,41 @@ describe("the type you can tune is never animated (#757 FR-14, AC-8)", () => {
     });
 });
 
+
+describe("bookmarks and the trail move like the rest of the Reader (#761 AC-8)", () => {
+    const css = sheet("components/reader.scss");
+    /** A keyframes block, to its closing brace at the start of a line. */
+    const keyframes = (name: string) => {
+        const start = css.indexOf(`@keyframes ${name} {`);
+        return start < 0 ? "" : css.slice(start, css.indexOf("\n}", start));
+    };
+
+    it("drops the ribbon in and lifts it out on transform alone, in the shared beat", () => {
+        for (const name of ["zf-reader-ribbon-drop", "zf-reader-ribbon-lift"]) {
+            const props = [...keyframes(name).matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]);
+            expect({ name, props: [...new Set(props)] }).toEqual({ name, props: ["transform"] });
+        }
+        // A small settle at the end: the drop overshoots before it rests.
+        expect(keyframes("zf-reader-ribbon-drop")).toMatch(/translateY\(8%\)/);
+        expect(css).toMatch(/reader-ribbon--drop[^{]*\{\s*animation: zf-reader-ribbon-drop \$motion-base \$ease-out both;/);
+    });
+
+    it("fades an empty tab in at the fast beat, and marks a landing with opacity alone", () => {
+        expect(css).toMatch(/reader-empty \{[^}]*animation: zf-reader-fade \$motion-fast/);
+        const here = [...keyframes("zf-reader-here").matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]);
+        expect([...new Set(here)]).toEqual(["opacity"]);
+    });
+
+    it("gives the ribbon, the tabs, the empty states and the landing mark an instant equivalent", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-ribbon", "reader-ribbon-mark", "reader-tab-list", "reader-empty", "reader-here::after"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("retires the box-shadow flash: the legacy motion only ever shrinks", () => {
+        expect(css).not.toContain("zf-reader-highlight-flash");
+        expect(css).not.toContain("reader-highlight--flash");
+        expect([...LEGACY_KEYFRAMES]).toEqual(["zf-reader-highlight-sweep"]);
+    });
+});

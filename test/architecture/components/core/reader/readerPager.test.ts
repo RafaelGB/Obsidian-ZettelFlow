@@ -5,6 +5,7 @@ import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../
 import { ReaderPager } from "architecture/components/core/reader/readerPager";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
 import { lastSample } from "architecture/monitoring/measure";
+import { TRAVEL_FAINT, TRAVEL_PAGES, pageTravel, scrollTravel, travelDuration } from "architecture/components/core/reader/readerTravel";
 
 /**
  * A stage and a chapter laid out as ten columns. No browser here: the stage's box, the strip's
@@ -218,5 +219,86 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         pager.drag(-500);
         expect(pager.release(0, "spring")).toBe("spring");
         expect(pager.current).toBe(4);
+    });
+});
+
+describe("going to a place travels, never cuts (#761 FR-15, §XVI)", () => {
+    let rec: AnimationRecord;
+    let motion: () => void;
+    beforeEach(() => {
+        rec = recordAnimations();
+        motion = reducedMotion(false);
+    });
+    afterEach(() => {
+        rec.stop();
+        motion();
+    });
+
+    function paged() {
+        const c = chapter(1000, 30);
+        const pager = new ReaderPager(c.stage, c.page);
+        pager.configure("page", "ltr");
+        pager.relayout("start");
+        return { ...c, pager };
+    }
+
+    it("plans a travel in proportion to the distance, capped, and compresses a far one", () => {
+        expect(pageTravel(2, 4)).toMatchObject({ from: 2, steps: 2, compressed: false });
+        expect(pageTravel(0, 20)).toMatchObject({ from: 20 - TRAVEL_PAGES, steps: TRAVEL_PAGES, compressed: true, duration: MOTION.shotPush });
+        expect(pageTravel(20, 0).from).toBe(TRAVEL_PAGES);
+        expect(travelDuration(1)).toBe(MOTION.page);
+        expect(travelDuration(3)).toBeGreaterThan(travelDuration(2));
+        expect(travelDuration(40)).toBe(MOTION.shotPush);
+        expect(scrollTravel(-450, 700)).toMatchObject({ from: -450, compressed: false });
+        expect(scrollTravel(5000, 700)).toMatchObject({ from: 1400, compressed: true });
+    });
+
+    it("slides the strip to a near page from where it is, on translate, and says how long it takes", () => {
+        const { pager, page, stride } = paged();
+        const ms = pager.travelTo(2);
+        expect(pager.current).toBe(2);
+        expect(ms).toBe(travelDuration(2));
+        expect(rec.animations).toHaveLength(1);
+        expect(rec.animations[0].keyframes).toEqual([{ translate: "0px 0" }, { translate: `${-2 * stride()}px 0` }]);
+        expect(rec.animations[0].options).toMatchObject({ duration: ms, easing: MOTION.ease });
+        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(-2 * stride(), 1);
+    });
+
+    it("reaches a far page by its last few, faint at first: speed, not dozens of pages", () => {
+        const { pager, stride } = paged();
+        pager.travelTo(25);
+        const [frameFrom, frameTo] = rec.animations[0].keyframes as Record<string, unknown>[];
+        expect(parseFloat(String(frameFrom.translate))).toBeCloseTo(-(25 - TRAVEL_PAGES) * stride(), 0);
+        expect(frameFrom.opacity).toBe(TRAVEL_FAINT);
+        expect(frameTo).toMatchObject({ opacity: 1 });
+        expect(rec.animations[0].options.duration).toBe(MOTION.shotPush);
+    });
+
+    it("reveals a place with travel, and is instant under reduced motion", () => {
+        const { pager, placeIn } = paged();
+        expect(pager.reveal(placeIn(4), true)).toBeGreaterThan(0);
+        expect(pager.current).toBe(4);
+        motion();
+        motion = reducedMotion(true);
+        rec.animations.length = 0;
+        expect(pager.travelTo(9)).toBe(0);
+        expect(pager.current).toBe(9);
+        expect(rec.animations).toHaveLength(0);
+    });
+
+    it("in Scroll, glides the column there: the scroll set at once, the page carried from where it was", () => {
+        const c = chapter();
+        c.stage.clientHeight = 700;
+        const pager = new ReaderPager(c.stage, c.page);
+        pager.configure("scroll", "ltr");
+        c.stage.scrollTop = 1000;
+        const ms = pager.glideTo(400);
+        expect(c.stage.scrollTop).toBe(400);
+        expect(rec.animations[0].keyframes).toEqual([{ translate: "0px -600px" }, { translate: "0px 0px" }]);
+        expect(rec.animations[0].options.duration).toBe(ms);
+        // Far: capped at two screens, faint at first.
+        pager.glideTo(9000);
+        expect(rec.animations[1].keyframes[0]).toEqual({ translate: "0px 1400px", opacity: TRAVEL_FAINT });
+        expect(pager.glideTo(9000)).toBe(0);
     });
 });

@@ -64,6 +64,7 @@ const CONNECTION_TYPES = new Set(["link", "supports", "expands", "inspired-by", 
 const SHARED_PER_NOTE = 3;
 
 const WHY_RANK: Record<AlongsideWhy, number> = {
+    "linked-here": -1,
     named: 0,
     "born-chapter": 1,
     "born-book": 2,

@@ -57,6 +57,12 @@ that opens a form is a gesture nobody repeats.
 There is **no command** for it: the palette is where you go looking for something you know is there,
 never where you discover anything (#496).
 
+**A claim can also be born from a book.** In the Reader, select a passage of a PDF or an EPUB and
+choose **Claim** ([make it a claim](reader.md#make-it-a-claim-or-link-it-to-an-idea)): the same
+sentence box — *One sentence you would defend* — creates a **new** note holding the claim, the
+passage quoted and its exact page as its `source`. It is sourced from the start, so it never counts
+as unsourced, and it comes back blind like any other claim.
+
 ## Asked again, before it shows you
 
 Weeks later, **Home** shows one line: *something you wrote is ready to be looked at again*, with the

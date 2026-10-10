@@ -25,7 +25,7 @@ import { JudgementLog, type JudgementEntry } from "architecture/plugin/judgement
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { hoverPreview } from "architecture/components/core/a11y";
 import { notesBornFrom } from "application/library/born";
-import { placeLabel, readSourceEntry, sourceTitle } from "application/library/provenance";
+import { placeLabel, readSourceEntry, sourceTitle, type PassagePlace } from "application/library/provenance";
 import { sourceFormat } from "application/library/sourceMeta";
 import { isHighlight, thoughtPath, type Thought } from "application/thinking/thought";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
@@ -92,6 +92,7 @@ const NAMED_KEY: Record<NearKind, LocaleKey> = {
 };
 const WHY_KEY: Record<Exclude<AlongsideWhy, "named" | "born-chapter">, LocaleKey> = {
     "born-book": "reader_why_born_book",
+    "linked-here": "reader_why_linked_here",
     mark: "reader_why_highlight",
     linked: "reader_why_linked",
     shared: "reader_why_shared",
@@ -172,15 +173,28 @@ interface Kept {
 
 /** What a move you accepted in this reading left (#756 FR-17): a line at the bottom of Alongside. */
 export interface FromReadingEntry {
-    kind: "tension" | "connection" | "thought";
+    kind: "tension" | "connection" | "thought" | "claim" | "link";
     /** The note it is about, which a click reads. */
     path: string;
     title: string;
+    /**
+     * *Claim* beside the row (#762 FR-1): an accepted *What's the claim* opens the claim sheet with its
+     * sentence. Absent on every other row.
+     */
+    claim?: (from: { left: number; top: number; width: number; height: number }) => void;
+    /**
+     * *Undo* beside the row (#762): what you made yourself from a passage is taken back where it is
+     * listed — the claim note to the trash, the link's source entry removed. True when it all went.
+     */
+    undo?: () => Promise<boolean>;
 }
 
 const FROM_KEY: Record<FromReadingEntry["kind"], LocaleKey> = {
     tension: "reader_from_tension",
     connection: "reader_from_connection",
+    // What you made yourself from a passage (#762 FR-8): a claim note, a link to an idea.
+    claim: "reader_from_claim",
+    link: "reader_from_link",
     // An answer of your AI provider you kept (#759 FR-7): the move, and that its first words were AI's.
     thought: "lab_made_by_ai",
 };
@@ -221,6 +235,12 @@ export class ReaderAlongside {
     private els: { near: HTMLElement; chips: HTMLElement; proposals: HTMLElement; marks: HTMLElement; state: HTMLElement; list: HTMLElement; more: HTMLElement; from: HTMLElement } | null = null;
     /** What the moves you accepted left, this session only (#756 FR-12, FR-17). */
     private readonly fromReading: FromReadingEntry[] = [];
+    /**
+     * The ideas you linked to a passage in this reading (#762 FR-8) — *Link to an idea*, or *Connect*
+     * accepted. Only these say *You linked it to this passage*: a note born from the passage cites it
+     * the same way, and is *Born from* it.
+     */
+    private readonly linkedHere = new Set<string>();
     private readonly cards = new WeakMap<HTMLElement, CardParts>();
     /** The items now drawn, by key: a card's listeners read the item through here. */
     private readonly items = new Map<string, AlongsideItem>();
@@ -456,7 +476,7 @@ export class ReaderAlongside {
         const marks = this.view.marks().map((thought) => this.toAlongside(thought));
         return nearPassage(model, vocabulary, {
             text,
-            ...(reading.source ? { book: reading.book, bookTitle: reading.bookTitle, chapterKey: reading.chapterKey, born: this.bornOf(model, reading.book) } : {}),
+            ...(reading.source ? { book: reading.book, bookTitle: reading.bookTitle, chapterKey: reading.chapterKey, born: this.linkedOf(this.bornOf(model, reading.book)) } : {}),
             ...(reading.chapterNote ? { chapterNote: reading.chapterNote } : {}),
             marks,
             ruledOut,
@@ -498,6 +518,10 @@ export class ReaderAlongside {
     addFromReading(entry: FromReadingEntry): void {
         this.fromReading.push(entry);
         this.drawFromReading();
+        if (entry.kind === "link" || entry.kind === "connection") {
+            this.linkedHere.add(entry.path);
+            this.refresh();
+        }
     }
 
     /** Where an accepted candidate lands: *From this reading*, its last line once there is one. */
@@ -518,15 +542,52 @@ export class ReaderAlongside {
         from.toggleClass(c("reader-hidden"), this.fromReading.length === 0);
         from.createDiv({ cls: c("reader-from-reading-title"), text: t("reader_from_this_reading") });
         for (const entry of this.fromReading) {
-            const row = from.createEl("button", { cls: c("reader-from-reading-row"), attr: { type: "button" }, text: t(FROM_KEY[entry.kind], entry.title) });
+            const line = entry.claim || entry.undo ? from.createDiv({ cls: c("reader-from-reading-item") }) : from;
+            const row = line.createEl("button", { cls: c("reader-from-reading-row"), attr: { type: "button", "data-kind": entry.kind }, text: t(FROM_KEY[entry.kind], entry.title) });
             row.addEventListener("click", () => this.view.peek(row, entry.path, basename(entry.path)));
+            const undo = entry.undo;
+            if (undo) {
+                const back = line.createEl("button", { cls: c("reader-from-reading-claim"), attr: { type: "button", "data-zf-undo": "" }, text: t("changes_undo") });
+                back.addEventListener("click", () => {
+                    back.disabled = true;
+                    void undo().then((done) => {
+                        if (!done) {
+                            back.setText(t("note_next_undo_failed"));
+                            return;
+                        }
+                        this.forget(entry);
+                    });
+                });
+            }
+            const claim = entry.claim;
+            if (!claim) continue;
+            const make = line.createEl("button", { cls: c("reader-from-reading-claim"), attr: { type: "button", "data-zf-claim": "" }, text: t("reader_hl_claim") });
+            make.addEventListener("click", () => {
+                const r = make.getBoundingClientRect();
+                claim({ left: r.left, top: r.top, width: r.width, height: r.height });
+            });
         }
+    }
+
+    /** A row taken back (#762): it leaves the list, and a link no longer says you made it. */
+    private forget(entry: FromReadingEntry): void {
+        const at = this.fromReading.indexOf(entry);
+        if (at >= 0) this.fromReading.splice(at, 1);
+        if (entry.kind === "link" && !this.fromReading.some((other) => other.kind === "link" && other.path === entry.path)) this.linkedHere.delete(entry.path);
+        this.drawFromReading();
+        this.refresh();
     }
 
     private ruledOut(reading: AlongsideReading, history: Judgement[]): Set<string> {
         const out = ruledOutInChapter(history, reading.book, reading.chapterKey);
         for (const path of this.ruled.get(`${reading.book}#${reading.chapterKey}`) ?? []) out.add(path);
         return out;
+    }
+
+    /** The born notes, each passage it cites kept only for an idea you linked in this reading (#762). */
+    private linkedOf(notes: BornNote[]): BornNote[] {
+        if (this.linkedHere.size === 0) return notes.map(({ places: _places, ...note }) => note);
+        return notes.map(({ places, ...note }) => (places && this.linkedHere.has(note.path) ? { ...note, places } : note));
     }
 
     /** The notes born from this book, and where in it each says it came from (#751). Once per revision. */
@@ -539,8 +600,11 @@ export class ReaderAlongside {
             const file = this.view.app.vault?.getAbstractFileByPath?.(path);
             const front = file instanceof TFile ? this.view.app.metadataCache?.getFileCache?.(file)?.frontmatter : undefined;
             const values = front ? [front.source, front.sources].flat() : [];
-            const place = values.map((value) => readSourceEntry(value)).find((entry) => entry && (entry.file === book || basename(entry.file) === name));
-            notes.push({ path, ...(place?.chapter ? { chapterKey: place.chapter } : {}), ...(place ? { label: placeLabel(place) } : {}) });
+            const cited = values.map((value) => readSourceEntry(value)).filter((entry): entry is PassagePlace => Boolean(entry && (entry.file === book || basename(entry.file) === name)));
+            const place = cited[0];
+            // Every passage of the book it cites (#762): a link you made to this passage says so.
+            const places = cited.filter((entry) => entry.quote?.exact).map((entry) => ({ ...(entry.chapter ? { chapterKey: entry.chapter } : {}), quote: entry.quote?.exact ?? "" }));
+            notes.push({ path, ...(place?.chapter ? { chapterKey: place.chapter } : {}), ...(place ? { label: placeLabel(place) } : {}), ...(places.length > 0 ? { places } : {}) });
         }
         this.born = { model, revision: model.revision(), book, notes };
         return notes;

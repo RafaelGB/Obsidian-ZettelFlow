@@ -148,6 +148,12 @@ export interface Thought {
      * was an AI's (#759).
      */
     madeBy?: ThoughtMadeBy;
+    /**
+     * The claim notes made from this highlight (#762): *Make it a claim* keeps the highlight — a claim
+     * is not a crystallization, so it is never set aside — and it points at what it became. Absent on
+     * every thought that made none.
+     */
+    claims?: string[];
 }
 
 /** The Reader's moves a thought can be accepted from (#756, #759). */
@@ -308,6 +314,8 @@ export function renderThought(thought: Thought): string {
         lines.push(`  madeBy: ${thought.madeBy.move}`);
         if (thought.madeBy.ai) lines.push("  madeByAi: true");
     }
+    // Paths are prose too — a comma, a colon — so the list is JSON, which YAML reads as a flow list.
+    if (thought.claims && thought.claims.length > 0) lines.push(`  claims: ${JSON.stringify(thought.claims)}`);
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -352,6 +360,7 @@ export function parseThought(content: string, path: string): Thought {
         ? { move: move as ReaderMoveId, ...(read("madeByAi") === "true" ? { ai: true as const } : {}) }
         : undefined;
     const meaning = readString(read("meaning"));
+    const claims = readClaims(read("claims"));
     const revisesOf = read("revisesOf");
     const revises: ThoughtRevision | undefined = revisesOf
         ? { of: revisesOf, quote: readString(read("revisesQuote")) ?? "" }
@@ -385,7 +394,21 @@ export function parseThought(content: string, path: string): Thought {
         ...(ink ? { ink } : {}),
         ...(layer ? { layer } : {}),
         ...(madeBy ? { madeBy } : {}),
+        ...(claims ? { claims } : {}),
     };
+}
+
+/** The claim notes a highlight made (#762): a JSON list of paths; anything else is none. */
+function readClaims(raw: string | undefined): string[] | undefined {
+    if (!raw) return undefined;
+    try {
+        const value: unknown = JSON.parse(raw);
+        if (!Array.isArray(value)) return undefined;
+        const paths = value.filter((item): item is string => typeof item === "string" && item.length > 0);
+        return paths.length > 0 ? paths : undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 /** Where an ink note is (#745), when the file says. A garbled place is no ink at all — just a thought. */

@@ -138,6 +138,8 @@ export interface ReaderRequest {
      * shot — when the Reader is not already open and the opening is a shot. Never a cut.
      */
     from?: HTMLElement;
+    /** An accepted *What's the claim* (#762): the claim sheet opens for it once the passage is read. */
+    claimFrom?: string;
 }
 
 /**
@@ -177,7 +179,7 @@ export function flyOrigin(from: HTMLElement): void {
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back, at, from } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back, at, from, claimFrom } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     // One continuous shot (#751 FR-12): what you clicked lifts and travels to where the passage will
     // be read — only when the Reader is not open yet; an open one moves its own camera (a glide, or a
@@ -204,6 +206,7 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     if (name) state.name = name;
     if (back) state.back = back;
     if (book && at) state.at = at;
+    if (book && claimFrom) state.claimFrom = claimFrom;
     try {
         await leaf.setViewState({ type: READER_VIEW, state, active: true });
         await workspace.revealLeaf(leaf);

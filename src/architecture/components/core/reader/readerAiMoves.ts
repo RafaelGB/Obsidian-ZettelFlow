@@ -84,6 +84,8 @@ export interface AiMovesView {
     openAlongside(): { host: HTMLElement; opened: boolean } | null;
     fromReadingBox(): ProposalBox | null;
     addFromReading(entry: FromReadingEntry): void;
+    /** *Claim* on an accepted *What's the claim* (#762 FR-1): the claim sheet, its sentence prefilled. */
+    claim?(thought: Thought, from?: ProposalBox): void;
     /** A dot on Alongside's button: an answer landed while it was closed (FR-14). */
     dot(on: boolean): void;
     /** Your Obsidian language, as a tag (`es`): the answer is asked in it (FR-5). */
@@ -378,7 +380,9 @@ export class ReaderAiMoves implements ProposalOwner {
             // Recorded once the thought exists: a kept verdict always has its thought.
             this.judgements.record(verdict);
             this.moves.record({ primitive: primitiveOf(move), verb: move.verb, subject: thought.id });
-            this.view.addFromReading({ kind: "thought", path: thoughtPath(this.store.folder(), thought), title: t(AI_MOVE_KEY[move.id]) });
+            // A claim you accepted is one step from a claim note (#762): *Claim* beside its row.
+            const made = move.id === "claim" && this.view.claim ? { claim: (from: ProposalBox) => this.view.claim?.(thought, from) } : {};
+            this.view.addFromReading({ kind: "thought", path: thoughtPath(this.store.folder(), thought), title: t(AI_MOVE_KEY[move.id]), ...made });
         } catch (error) {
             log.warn(`[reader] an AI move was not kept: ${error instanceof Error ? error.name : "error"}`);
         }

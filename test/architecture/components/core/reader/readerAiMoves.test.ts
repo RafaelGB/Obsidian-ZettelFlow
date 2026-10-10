@@ -401,6 +401,24 @@ describe("the verdicts, and what each writes (#759 FR-7, FR-8, AC-4, AC-5)", () 
         expect(h.moves.record).toHaveBeenCalledWith({ primitive: "transform", verb: "compress", subject: "t1" });
     });
 
+    it("What's the claim, accepted: Claim beside its row opens the claim sheet with that thought (#762 FR-1)", async () => {
+        const h = await landed("claim", {}, "Claim: Plans ignore the base rate.\nKind: causal");
+        const claim = jest.fn();
+        h.view.claim = claim;
+        h_accept(h);
+        await flush();
+        const entry = (h.view.addFromReading as jest.Mock).mock.calls[0][0] as any;
+        expect(entry).toEqual(expect.objectContaining({ kind: "thought", title: "What's the claim" }));
+        entry.claim(FROM);
+        expect(claim).toHaveBeenCalledWith(expect.objectContaining({ id: "t1", madeBy: { move: "claim", ai: true } }), FROM);
+        // Only What's the claim: the other moves' rows carry no Claim.
+        const why = await landed("why");
+        why.view.claim = jest.fn();
+        h_accept(why);
+        await flush();
+        expect(((why.view.addFromReading as jest.Mock).mock.calls[0][0] as any).claim).toBeUndefined();
+    });
+
     it("Reject: nothing written, no move, one rejected verdict", async () => {
         const h = await landed("question");
         h.button(h.cards()[0], "Reject").click();
@@ -519,7 +537,7 @@ describe("the same vocabulary, and the same Esc (#759 AC-10, #756)", () => {
 
     it("joins the Reader's one proposal step: Esc takes the newest card of all its owners", () => {
         const src = readFileSync(join(__dirname, "../../../../../src/architecture/components/core/reader/ReaderView.ts"), "utf8");
-        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves])");
+        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink])");
         expect(src).toContain("this.aiMoves?.hasCards()");
     });
 

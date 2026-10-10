@@ -46,6 +46,11 @@ export interface ReaderState {
      * `serializePlace` (its file, chapter and opening words). Resolved when the source is read.
      */
     at?: string;
+    /**
+     * One-shot (#762): open the claim sheet for this thought — an accepted *What's the claim* — its
+     * sentence prefilled. Think's *Claim* opens the Reader on the passage with it.
+     */
+    claimFrom?: string;
 }
 
 /** The Library's view state a reading returns to (#733): flat, so a restored workspace can carry it. */
@@ -72,6 +77,7 @@ export function parseReaderState(raw: unknown): ReaderState {
     if (typeof value.source === "string" && /\.(pdf|epub)$/i.test(value.source)) state.source = value.source;
     if (value.layout === "page") state.layout = "page";
     if (typeof value.at === "string" && value.at.length > 0 && value.at.length <= 4096) state.at = value.at;
+    if (typeof value.claimFrom === "string" && value.claimFrom.length > 0 && value.claimFrom.length <= 512) state.claimFrom = value.claimFrom;
     if (value.back !== null && typeof value.back === "object" && !Array.isArray(value.back)) {
         const back: ReaderBack = {};
         for (const [key, item] of Object.entries(value.back as Record<string, unknown>)) {

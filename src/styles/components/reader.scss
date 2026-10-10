@@ -1155,7 +1155,24 @@ button.zettelkasten-flow__reader-next-button {
     display: flex;
     flex-direction: column;
     gap: var(--size-4-1);
-    transform-origin: 0 0;
+    /* It grows from the button it was asked from (#762 FR-14), else from its corner. */
+    transform-origin: var(--zf-origin-x, 0) var(--zf-origin-y, 0);
+}
+
+/* What an empty list says (#762 FR-9), the one way on, and *Already linked* (FR-7). */
+.zettelkasten-flow__reader-idea-picker-empty,
+.zettelkasten-flow__reader-idea-picker-line {
+    padding: var(--size-4-1) var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-idea-picker-action {
+    @include text-link-button;
+    align-self: flex-start;
+    padding: var(--size-4-1) var(--size-4-2);
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
 }
 
 .zettelkasten-flow__reader-idea-picker-input {
@@ -1169,9 +1186,13 @@ button.zettelkasten-flow__reader-next-button {
 
 .zettelkasten-flow__reader button.zettelkasten-flow__reader-idea-picker-row {
     @include text-link-button;
+    justify-content: flex-start;
+    height: auto;
     padding: var(--size-4-1) var(--size-4-2);
     border-radius: var(--radius-s);
     color: var(--reader-fg, var(--text-normal));
+    white-space: normal;
+    text-align: start;
 
     &.is-selected {
         background-color: var(--background-modifier-hover);
@@ -1196,8 +1217,167 @@ button.zettelkasten-flow__reader-next-button {
 
 .zettelkasten-flow__reader button.zettelkasten-flow__reader-from-reading-row {
     @include text-link-button;
+    height: auto;
     color: var(--reader-fg, var(--text-normal));
     font-size: var(--font-ui-small);
+    /* A claim is a whole sentence: it wraps in the panel, never pushes it sideways (#762). */
+    white-space: normal;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+/* *Claim* beside an accepted *What's the claim* (#762 FR-1): the row, and its one way on. */
+.zettelkasten-flow__reader-from-reading-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-from-reading-claim {
+    @include text-link-button;
+    flex: 0 0 auto;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+/*
+ * The claim sheet (#762 FR-12): in the margin's place — over Alongside, in its own slot — never a
+ * centred modal. It covers the panel while it is open, so what is under it waits; its slide is
+ * scripted (transform and opacity). In portrait on a tablet it is #750's bottom sheet, below the grip.
+ */
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--claiming {
+    overflow: hidden;
+}
+
+.zettelkasten-flow__reader-claim-sheet {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    padding: var(--size-4-4);
+    overflow-y: auto;
+    background-color: var(--reader-surface);
+    border-radius: inherit;
+    /* Above Alongside's cards, which move by transform and so stack on their own. */
+    z-index: 2;
+}
+
+/* The bottom sheet's grip stays above it: the sheet is still dragged by it. */
+.zettelkasten-flow__reader-panel--claiming .zettelkasten-flow__reader-sheet-handle {
+    z-index: 3;
+}
+
+.zettelkasten-flow__reader-panel--sheet .zettelkasten-flow__reader-claim-sheet {
+    bottom: auto;
+    /* Only the part of the sheet that is up: its height less what is still below the screen. */
+    height: calc(var(--zf-sheet-full, 100%) - var(--zf-sheet-y, 0%));
+    padding-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__reader-claim-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-claim-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-claim-label {
+    color: var(--reader-faint, var(--text-faint));
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-claim-box,
+.zettelkasten-flow__reader-claim-title,
+.zettelkasten-flow__reader-claim-folder {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-claim-box {
+    resize: vertical;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__reader-claim-quote {
+    margin: 0;
+    padding-left: var(--size-4-3);
+    border-left: var(--size-2-1) solid var(--interactive-accent);
+    color: var(--reader-fg, var(--text-normal));
+    font-family: var(--reader-font, inherit);
+}
+
+.zettelkasten-flow__reader-claim-source {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-claim-taken {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--size-4-2);
+    color: var(--text-error);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-claim-open {
+    @include text-link-button;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__reader-claim-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: auto;
+}
+
+/* The words travelling from the page into the sheet's quote, and back (#762 FR-12, FR-13). */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-claim-ghost {
+    overflow: hidden;
+    color: var(--reader-fg, var(--text-normal));
+    font-family: var(--reader-font, inherit);
+    background-color: var(--background-modifier-hover);
+    border-radius: var(--radius-s);
+}
+
+/* A passage that became a claim (#762 FR-13): a small tick where it begins, faded in over `fast`. */
+.zettelkasten-flow__reader-highlight--claim-start::before {
+    content: "";
+    display: inline-block;
+    width: var(--size-2-3);
+    height: var(--size-2-3);
+    margin-right: var(--size-2-2);
+    background-color: var(--interactive-accent);
+    /* No text sits on it, but a filled accent always names its foreground (#431). */
+    color: var(--text-on-accent);
+    vertical-align: middle;
+    transform: rotate(45deg);
+    animation: zf-reader-claim-in $motion-fast $ease-out backwards;
+}
+
+/* Drawn again with its chapter, it is simply there: it faded in once, when the claim was made. */
+.zettelkasten-flow__reader-highlight--claim-kept.zettelkasten-flow__reader-highlight--claim-start::before {
+    animation: none;
+}
+
+@keyframes zf-reader-claim-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.zettelkasten-flow__reader-hl-claim {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
 }
 
 /* An accepted tension ticks the highlight it answers (FR-17): a mark at its end, faded in. */
@@ -1240,6 +1420,8 @@ button.zettelkasten-flow__reader-next-button {
     .zettelkasten-flow__reader-idea-picker,
     .zettelkasten-flow__reader-from-reading,
     .zettelkasten-flow__reader-highlight--tension:last-of-type::after,
+    .zettelkasten-flow__reader-claim-sheet,
+    .zettelkasten-flow__reader-highlight--claim-start::before,
     .zettelkasten-flow__reader-bar-dot {
         animation: none;
         transition: none;

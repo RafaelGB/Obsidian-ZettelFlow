@@ -277,6 +277,31 @@ describe("moves answered by your vault move like the rest of the Reader (#756 AC
     });
 });
 
+describe("the claim sheet and its tick move like the rest of the Reader (#762 AC-7)", () => {
+    const css = sheet("components/reader.scss");
+    const own = css.slice(css.indexOf("── Moves answered by your vault (#756)"), css.indexOf("── peeks and detours (#670)"));
+
+    it("gives the sheet, the picker and the claim tick an instant equivalent", () => {
+        const reduced = own.slice(own.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-claim-sheet", "reader-highlight--claim", "reader-idea-picker"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("fades the claim tick in on opacity alone, at the fast beat, and only once", () => {
+        const start = own.indexOf("@keyframes zf-reader-claim-in {");
+        const frames = own.slice(start, own.indexOf("\n}", start));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1])).toEqual(["opacity"]);
+        expect(own).toContain("animation: zf-reader-claim-in $motion-fast $ease-out backwards;");
+        const kept = own.slice(own.indexOf(".zettelkasten-flow__reader-highlight--claim-kept"));
+        expect(kept.slice(0, kept.indexOf("}"))).toContain("animation: none;");
+    });
+
+    it("grows the picker from the button it was asked from", () => {
+        expect(own).toContain("transform-origin: var(--zf-origin-x, 0) var(--zf-origin-y, 0);");
+    });
+});
+
 describe("waiting on your AI provider feels like a pen about to write (#759 FR-13, FR-16, AC-8)", () => {
     const css = sheet("components/reader.scss");
     const keyframes = (name: string) => {

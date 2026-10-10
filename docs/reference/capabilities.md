@@ -44,6 +44,8 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Contradict** — select a passage and ask which of your notes stand against it — answered by your vault, no AI; a tension is kept only if you accept it. [docs →](../development/reader.md#moves-answered-by-your-vault)
 - **Connect** — select a passage and ask which of your ideas it belongs with — accept one and the idea cites the passage, undoable. [docs →](../development/reader.md#moves-answered-by-your-vault)
 - **Moves by your AI provider** — select a passage and ask your AI provider why, what it assumes, what it claims, or what follows — one short answer per click, kept only if you accept it. [docs →](../development/reader.md#moves-by-your-ai-provider)
+- **Make it a claim** — select a passage and say in one sentence what you would defend — a new claim note, sourced to its page, ready for every claim reader. [docs →](../development/reader.md#make-it-a-claim-or-link-it-to-an-idea)
+- **Link to an idea** — select a passage and name the idea it belongs to — the idea gains the passage as a source, undoable; no AI. [docs →](../development/reader.md#make-it-a-claim-or-link-it-to-an-idea)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
 - **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)

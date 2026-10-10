@@ -50,8 +50,10 @@ import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, originLandsAt, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
-import { ReaderHighlights, type HighlightDeps, type ThinkMove, type ThinkPassage } from "./readerHighlights";
-import { ReaderVaultMoves, type VaultMoveId, type VaultMovesDeps, type VaultMovesView } from "./readerVaultMoves";
+import { ReaderHighlights, type HighlightDeps, type PassageActions, type ThinkMove, type ThinkPassage } from "./readerHighlights";
+import { ReaderVaultMoves, type VaultMoveId, type VaultMovePassage, type VaultMovesDeps, type VaultMovesView } from "./readerVaultMoves";
+import { ReaderClaimLink, type ClaimLinkDeps, type ClaimLinkView } from "./readerClaimLink";
+import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { dismissNewestOf, type ProposalBox } from "./readerProposal";
 import { ReaderAiMoves, type AiMovesDeps, type AiMovesView } from "./readerAiMoves";
 import type { ReaderAiMoveId } from "application/thinking/readerMovePrompts";
@@ -71,7 +73,7 @@ import {
 } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
 import { openSourceDocument, type SourceChapter, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
-import type { ThoughtLocator } from "application/thinking/thought";
+import type { Thought, ThoughtLocator } from "application/thinking/thought";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
@@ -369,6 +371,8 @@ export class ReaderView extends ItemView {
     private vaultMoves: ReaderVaultMoves | null = null;
     /** The six moves by your AI provider (#759): their cards live in Alongside, kept while it is closed. */
     private aiMoves: ReaderAiMoves | null = null;
+    /** *Make it a claim* and *Link to an idea* (#762): the sheet over Alongside, the picker in the popover. */
+    private claimLink: ReaderClaimLink | null = null;
     /** Alongside's button in the bar: a dot on it says an answer landed while it was closed (#759 FR-14). */
     private alongsideDot: HTMLElement | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
@@ -548,7 +552,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the moves' stores, record and property write (#756). */
         private readonly vaultMovesDeps: VaultMovesDeps = {},
         /** Seams for tests: the AI layer, the stores and the queue of the AI moves (#759). */
-        private readonly aiMovesDeps: AiMovesDeps = {}
+        private readonly aiMovesDeps: AiMovesDeps = {},
+        /** Seams for tests: the claim's create, the link's write and the record (#762). */
+        private readonly claimLinkDeps: ClaimLinkDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -618,6 +624,8 @@ export class ReaderView extends ItemView {
             const before = this.index;
             await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
             if (!this.els) return;
+            // Think's *Claim* (#762 FR-1): the sheet, once the passage is read — never a second sheet in Think.
+            if (parsed.claimFrom) void this.claimFromId(parsed.claimFrom);
             if (passage && this.index === before && parsed.highlight && this.highlights?.reveal(parsed.highlight, true)) {
                 this.pendingHighlight = null;
                 return;
@@ -845,6 +853,7 @@ export class ReaderView extends ItemView {
         this.alongside = new ReaderAlongside(this.alongsideView(), this.alongsideDeps);
         this.vaultMoves = new ReaderVaultMoves(this.vaultMovesView(), this.vaultMovesDeps);
         this.aiMoves = new ReaderAiMoves(this.aiMovesView(), this.aiMovesDeps);
+        this.claimLink = new ReaderClaimLink(this.claimLinkView(), this.claimLinkDeps);
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
@@ -877,6 +886,9 @@ export class ReaderView extends ItemView {
         // Waiting answers are discarded with the Reader: nothing shown, nothing recorded (#759 AC-5).
         this.aiMoves?.dispose();
         this.aiMoves = null;
+        // A claim not yet created goes with the Reader: nothing written (#762).
+        this.claimLink?.dispose();
+        this.claimLink = null;
         this.alongside?.dispose();
         this.alongside = null;
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
@@ -1031,6 +1043,7 @@ export class ReaderView extends ItemView {
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
                 thinkMoves: () => this.thinkMoves(),
+                passageActions: () => this.passageActions(),
             },
             this.highlightDeps
         );
@@ -3134,6 +3147,8 @@ export class ReaderView extends ItemView {
         this.vaultMoves?.dismissAll();
         // The AI moves' cards are kept: their answers are still coming (#759 FR-14).
         this.aiMoves?.detach();
+        // The claim sheet stays while Alongside does — drawn again, it goes back in; otherwise it goes.
+        if (this.panel !== "context") this.claimLink?.drop();
         this.alongside?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
@@ -3161,6 +3176,7 @@ export class ReaderView extends ItemView {
         else if (this.panel === "context") {
             this.alongside?.mount(host, scope);
             this.aiMoves?.attach(this.alongside?.proposalsHost() ?? null);
+            this.claimLink?.attach(host);
         }
     }
 
@@ -3226,6 +3242,65 @@ export class ReaderView extends ItemView {
         ];
     }
 
+    /** *Claim* and *Link to an idea* (#762 FR-1): in a book or a paper, where a passage has a page. */
+    private passageActions(): PassageActions | null {
+        const book = this.sourcePath;
+        const claimLink = this.claimLink;
+        if (!book || !claimLink) return null;
+        const full = (passage: ThinkPassage): VaultMovePassage => ({ ...passage, book, bookTitle: this.source?.title ?? noteName(book) });
+        return {
+            claim: (passage, from) => claimLink.claim(full(passage), from),
+            link: (passage, container, from, close) => void claimLink.link({ ...full(passage), paragraph: this.highlights?.contextOf(passage.quote).paragraph }, container, from, close),
+        };
+    }
+
+    /**
+     * *Claim* on an accepted *What's the claim* (#762 FR-1): the sheet, its sentence prefilled — from
+     * its row in *From this reading*, or from Think, which opened the Reader for it.
+     */
+    private claimFromThought(thought: Thought, from?: ProposalBox): void {
+        const book = this.sourcePath;
+        if (!book || thought.about !== book || !thought.quote || !thought.locator || !this.claimLink) return;
+        const stage = this.els?.stage.getBoundingClientRect();
+        const origin = from ?? (stage ? { left: stage.left + stage.width / 2 - 40, top: stage.top + stage.height * READING_LINE, width: 80, height: 24 } : { left: 0, top: 0, width: 0, height: 0 });
+        this.claimLink.claim({ quote: thought.quote, locator: thought.locator, book, bookTitle: this.source?.title ?? noteName(book) }, origin, { accepted: thought });
+    }
+
+    /** The thought `id` names, from Think's store, and the sheet for it. */
+    private async claimFromId(id: string): Promise<void> {
+        try {
+            const store = this.vaultMovesDeps.store ?? ThoughtStore.getInstance();
+            const thought = (await store.all()).find((candidate) => candidate.id === id);
+            if (thought?.madeBy?.move === "claim") this.claimFromThought(thought);
+        } catch (error) {
+            log.warn(`[Reader] the claim could not be opened: ${error instanceof Error ? error.name : "error"}`);
+        }
+    }
+
+    /** What the two gestures lend of the Reader (#762): Alongside's panel, its rows, the peek. */
+    private claimLinkView(): ClaimLinkView {
+        const vault = this.vaultMovesView();
+        return {
+            app: this.app,
+            host: () => this.root ?? this.contentEl,
+            openAlongside: () => {
+                const closed = this.panel !== "context";
+                if (closed || this.alongsideLeaving !== undefined) this.toggle("context");
+                const panel = this.els?.panel;
+                return panel && this.panel === "context" ? { panel, opened: closed } : null;
+            },
+            closeAlongside: () => {
+                if (this.panel === "context") this.closePanel();
+            },
+            nearFor: (text) => vault.nearFor(text),
+            fromReadingBox: () => vault.fromReadingBox(),
+            addFromReading: (entry) => vault.addFromReading(entry),
+            claimed: (id, path) => void this.highlights?.markClaimed(id, path),
+            unclaimed: (id, path) => void this.highlights?.markClaimed(id, path, false),
+            peek: (anchor, path, name) => this.openPeek(anchor, path, name),
+        };
+    }
+
     /** What the AI moves lend of the Reader (#759): Alongside, as the vault moves have it, and its dot. */
     private aiMovesView(): AiMovesView {
         const vault = this.vaultMovesView();
@@ -3235,6 +3310,7 @@ export class ReaderView extends ItemView {
             fromReadingBox: () => vault.fromReadingBox(),
             addFromReading: (entry) => vault.addFromReading(entry),
             dot: (on) => this.alongsideDot?.toggleClass("is-shown", on),
+            claim: (thought, from) => this.claimFromThought(thought, from),
             language: () => getLanguage(),
         };
     }
@@ -4167,7 +4243,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -4181,7 +4257,8 @@ export class ReaderView extends ItemView {
         switch (step) {
             case "proposal":
                 // The newest card of all, whoever opened it — ink's reading or a move (#748, #756, #759).
-                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves]);
+                // The claim sheet is one of them (#762): Esc takes it away, nothing written.
+                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink]);
                 return;
             case "shortcuts":
                 return this.closeShortcuts();

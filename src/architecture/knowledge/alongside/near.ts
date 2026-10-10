@@ -9,14 +9,16 @@ import { namedIn, type Vocabulary } from "./vocabulary";
  * - **a.** its title or an alias is **named** in the passage, as whole words (`vocabulary.ts`);
  * - **b.** it was **born from this book**: its source (#751) is this chapter first, then the rest;
  * - **c.** one of **your marks** in this chapter — a highlight, a margin note — links it or names it;
- * - **d.** in a note reading, it is the chapter's **own note**.
+ * - **d.** in a note reading, it is the chapter's **own note**;
+ * - **e.** you **linked it to this passage** (#762): one of its sources cites these very words — the
+ *   strongest reason of all after the chapter's own note, because you gave it yourself.
  *
  * Only notes in the model count, and the model holds only the notes in scope (#529): an excluded
  * folder never appears, whatever the caller hands in. Each note is near once, for its strongest
  * reason. Pure and Obsidian-free.
  */
 
-export type NearReason = "named" | "chapter-note" | "born-chapter" | "born-book" | "mark";
+export type NearReason = "named" | "chapter-note" | "linked-here" | "born-chapter" | "born-book" | "mark";
 
 export interface NearItem {
     path: string;
@@ -31,6 +33,11 @@ export interface BornNote {
     path: string;
     chapterKey?: string;
     label?: string;
+    /**
+     * Every passage of the book its sources cite (#762): the chapter and the opening words. A passage
+     * whose words are in the text Alongside is near makes the note *linked to this passage*.
+     */
+    places?: readonly { chapterKey?: string; quote: string }[];
 }
 
 /**
@@ -92,7 +99,7 @@ export function namedBy(vocabulary: Vocabulary, thought: AlongsideThought): read
     return thought.named ?? namedIn(vocabulary, thought.text);
 }
 
-const RANK: Record<NearReason, number> = { "chapter-note": -1, named: 0, "born-chapter": 1, "born-book": 2, mark: 5 };
+const RANK: Record<NearReason, number> = { "chapter-note": -2, "linked-here": -1, named: 0, "born-chapter": 1, "born-book": 2, mark: 5 };
 
 export function nearPassage(model: KnowledgeModel, vocabulary: Vocabulary, input: NearInput): NearItem[] {
     const found = new Map<string, NearItem>();
@@ -106,9 +113,12 @@ export function nearPassage(model: KnowledgeModel, vocabulary: Vocabulary, input
 
     if (input.chapterNote) add(input.chapterNote, "chapter-note");
     for (const path of namedIn(vocabulary, input.text)) add(path, "named");
+    const text = foldText(input.text);
     for (const born of input.born ?? []) {
         const here = Boolean(input.chapterKey) && born.chapterKey === input.chapterKey;
         add(born.path, here ? "born-chapter" : "born-book", here ? born.label : undefined);
+        const linked = (born.places ?? []).some((place) => Boolean(input.chapterKey) && place.chapterKey === input.chapterKey && cites(text, place.quote));
+        if (linked) add(born.path, "linked-here");
     }
     for (const mark of input.marks ?? []) {
         for (const link of mark.links) add(link.to, "mark", input.bookTitle);
@@ -116,6 +126,17 @@ export function nearPassage(model: KnowledgeModel, vocabulary: Vocabulary, input
     }
 
     return [...found.values()].sort(byReasonThenTitle);
+}
+
+/** Words compared as read: case and whitespace folded. */
+function foldText(text: string): string {
+    return text.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/** Whether the passage holds a cited passage's opening words. */
+function cites(text: string, quote: string): boolean {
+    const words = foldText(quote);
+    return words.length > 0 && text.includes(words);
 }
 
 function byReasonThenTitle(a: NearItem, b: NearItem): number {

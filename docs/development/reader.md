@@ -573,6 +573,99 @@ answer's fade is 120 ms; Accept folds the card into *From this reading*, Modify 
 Reject slides it aside. Under reduced motion the lines stand still, half-faint, and everything is
 instant.
 
+## Make it a claim, or link it to an idea
+
+Two things a careful reader does all the time, each one gesture from the selection, each **your
+own act** — not a proposal, so there is nothing to accept: a **claim**, one sentence you would
+defend, sourced to its exact page; and a **link**, so an idea you already hold gains this passage
+as a source.
+
+![Make it a claim, or link it to an idea: the selection's popover with Claim and Link to an idea after Highlight and note; the claim sheet beside the page, in Alongside's place, the selected words travelling into its quote, with the claim, the title, the passage, the source and the folder, and Create; and the picker grown from Link to an idea, with Planning fallacy at the top and Already linked to this passage under a second pick](../resources/reader/claim-link.svg)
+
+**Where they are.** Select words in a book or a paper, or click one of your highlights: the first
+row of the popover reads *Highlight and note*, **Claim**, **Link to an idea**. A reading of notes
+has neither: a passage of a note has no page to be sourced to. *Claim* is also beside an accepted
+[*What's the claim*](#moves-by-your-ai-provider) — on its row in *From this reading*, and on its card
+in Think, which opens the Reader on the passage with the sheet already open. There is no command.
+
+**Make it a claim.** *Claim* opens a sheet **beside the page, in Alongside's place** — never a
+centred window — sliding in the way Alongside does while the selected words travel from the page
+into its quote, as one gesture. It holds:
+
+- **the claim** — *One sentence you would defend*, the words of the claim form. It starts as the
+  words you selected, or as the sentence of the *What's the claim* you accepted: both are already
+  yours. Blank, there is no *Create*.
+- **the title** — the claim, until you write one of your own;
+- **the passage**, quoted;
+- **the source**, exactly as it will be written ([every note goes back to its
+  paragraph](#every-note-goes-back-to-its-paragraph));
+- **the folder** — the vault's root unless you choose one; the next claim starts where the last went;
+- **Create** (Ctrl/Cmd-Enter), and **Cancel** (Esc).
+
+Nothing is written before *Create*. The note it creates is **new** — create-only, never an append:
+
+```markdown
+---
+claim: "Big projects fail by underestimating complexity"
+source:
+  - "[[Books/How Big Things Get Done.epub#OEBPS/ch02.xhtml|How Big Things Get Done]] p. 143 · 2 · Think slow, act fast · “…cases. ‹This is the planning fallacy›, or the planning…”"
+---
+
+> This is the planning fallacy, or the planning bias, as some call it.
+```
+
+You never write that YAML: the sheet does. The claim parser reads it at once, so the claim is under
+*Research* in Alongside, in the evidence map and in [claim returns](claim-returns.md) — sourced to
+the book. **A taken name is never overwritten**: *Create* says *A note with this name already
+exists*, offers **Open it**, and writes nothing. The sheet folds into its row under *From this
+reading* — *Claim: Big projects fail by underestimating complexity* — and a click reads the note in a
+peek.
+
+**Taken back where it is listed.** Each row you made yourself in *From this reading* — *Claim: …*,
+*Linked to …* — has **Undo**: the claim note goes to Obsidian's trash (and the highlight stops
+pointing at it), a link's source entry is removed, each as one batch of the
+[write record](../architecture/reversibility.md). If the note changed since, it says *Could not take
+it back — the note changed since.* and leaves it.
+
+**The highlight is kept.** A claim is not a crystallization: made from one of your highlights, the
+highlight stays a highlight — it is **not** set aside — takes a small claim tick on the page, and its
+row in the margin says *Claim: …*. *Crystallize into a note* is still there, for a whole note from
+the passage.
+
+**Link to an idea.** The popover becomes a search box over your notes, growing from the button.
+Before you type, it lists what [Alongside](#alongside-your-vault-beside-the-page) finds near this
+passage; then it searches every note in your knowledge scope, by title or alias. ↑ ↓ and Enter pick,
+Esc goes back. Choosing one makes the link with the very write an accepted
+[*Connect*](#moves-answered-by-your-vault) makes: the idea's `source` list gains this passage — one
+property write, in the [write record](../architecture/reversibility.md), the rest of the note
+byte-identical. It is your choice, so there is no proposal and no verdict
+to record. The idea's name flies to *From this reading* — *Linked to Optimism bias* — and Alongside's
+*Connections* shows the idea with **You linked it to this passage**.
+
+- **Already linked.** An idea that already cites this passage says *Already linked to this passage*,
+  and nothing is written.
+- **Nothing in scope.** *No notes yet. Make it a claim to create the first.*
+- **No match.** *No note by that name.*, with **Make it a claim**, which opens the sheet with what you
+  typed as the claim.
+
+**One claim path, not two.** [*What's the claim*](#moves-by-your-ai-provider) asks your AI provider
+what a passage claims, and keeps the answer as a thought only if you accept it. *Make it a claim* is
+the one door from a passage to a **claim note**: an accepted *What's the claim* only prefills it.
+There is no AI in either gesture — neither calls your provider — and no move is logged for them:
+they are what you did, not a proposal you judged. *Make it a claim* records one verdict, a human
+accepting the claim (subject `reader-claim`, no text), the way crystallizing does.
+
+**The book is never written.** The claim writes one new note; the link writes one property of an
+idea. The EPUB or the PDF is never touched.
+
+**It moves like the rest of the Reader.** The sheet slides in at the base beat (250 ms) while the
+words fly into its quote; if Alongside was closed, it slides in carrying the sheet. *Create* folds
+the sheet into its row in *From this reading*, and the claim tick fades in over 120 ms. *Cancel*
+slides the sheet back out the way it came, and the words fly back to the page; if Alongside opened
+for the sheet, it goes with it. The picker grows from its button (0.96 → 1 and a fade, 120 ms) and
+closes the way it came. In portrait on an iPad the sheet is the panel's bottom sheet. A key or a
+click during a move ends it; under reduced motion everything is instant.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your
@@ -1082,7 +1175,10 @@ one forgets them). Choosing a way through a note writes nothing either, and neit
 adding a note to a reading — an added note lasts as long as the reading on screen. **Alongside**
 writes nothing while you read, scroll or switch lenses; its *Not related* is one verdict in the
 judgement record, never a write to a note, and whether it is open and its lens are kept on this
-device only. A move by your AI provider writes only what you accept: one thought.
+device only. A move by your AI provider writes only what you accept: one thought. **Make it a
+claim** writes one new note when you press *Create* — create-only, through the claim's one writer
+(`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
+the idea's `source` list, through #751's one writer.
 
 ## For contributors
 

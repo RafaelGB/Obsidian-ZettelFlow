@@ -1201,6 +1201,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (!place || !this.app.vault.getAbstractFileByPath(about)) return;
         const open = meta.createEl("button", { cls: c("lab-quote-open"), text: t("lab_highlight_open_reader"), attr: { type: "button" } });
         this.registerDomEvent(open, "click", () => void openReader(this.app, { source: about, seed: about, at: serializePlace(place), from: open }));
+        // An accepted *What's the claim* is one step from a claim note (#762 FR-1): the Reader opens on
+        // the passage with the claim sheet, its sentence prefilled — one sheet, in one place.
+        if (thought.madeBy?.move !== "claim") return;
+        const claim = meta.createEl("button", { cls: c("lab-quote-open"), text: t("reader_hl_claim"), attr: { type: "button", "data-zf-claim": "" } });
+        this.registerDomEvent(claim, "click", () => void openReader(this.app, { source: about, seed: about, at: serializePlace(place), from: claim, claimFrom: thought.id }));
     }
 
     /** An ink note (#745 FR-13): its drawing, where it was written, and the way back to it. */

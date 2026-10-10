@@ -122,6 +122,8 @@ export const CAPABILITIES = [
     "reader-contradict",
     "reader-connect",
     "reader-ai-moves",
+    "reader-claim",
+    "reader-link-idea",
     "library",
     "highlights-review",
     "claim-door",
@@ -405,6 +407,19 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // Reflect and Explain, after Contradict and Connect in the same Think row — offered only
         // while AI is turned on, which is the opt-in. Each answer is a proposal (§XII).
         nameKey: "reader_ai_moves_name",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-claim": {
+        // Make it a claim (#762, epic #741): the selection's and a mark's popover, after *Highlight and
+        // note* — and on an accepted *What's the claim*, in Alongside and in Think. Your own act.
+        nameKey: "reader_claim_sheet_title",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
+    },
+    "reader-link-idea": {
+        // Link to an idea (#762): beside *Claim* — the idea you have in mind gains this passage.
+        nameKey: "reader_hl_link_idea",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },

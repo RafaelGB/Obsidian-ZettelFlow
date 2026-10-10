@@ -116,6 +116,21 @@ describe("what is near a passage (#754 FR-3, AC-1)", () => {
         expect(ruled).toEqual([]);
     });
 
+    it("says *you linked it to this passage* when a source cites these words, here only (#762 FR-8)", () => {
+        const model = vault();
+        const vocabulary = buildVocabulary(model);
+        const linked = [{ path: "Notes/Optimism.md", chapterKey: "OEBPS/ch09.xhtml", places: [{ chapterKey: "OEBPS/ch03.xhtml", quote: "Every   time we SHIP" }] }];
+        const here = nearPassage(model, vocabulary, { text: PASSAGE, book: "Books/b.epub", chapterKey: "OEBPS/ch03.xhtml", born: linked });
+        // The strongest reason after the chapter's own note: above *named*, and only once.
+        expect(here[0]).toEqual({ path: "Notes/Optimism.md", title: "Optimism", reason: "linked-here" });
+        expect(here.filter((item) => item.path === "Notes/Optimism.md")).toHaveLength(1);
+        // Another chapter, or words the passage does not hold: born from the book, not linked here.
+        const elsewhere = nearPassage(model, vocabulary, { text: PASSAGE, book: "Books/b.epub", chapterKey: "OEBPS/ch04.xhtml", born: linked });
+        expect(elsewhere.find((item) => item.path === "Notes/Optimism.md")?.reason).toBe("born-book");
+        const other = nearPassage(model, vocabulary, { text: "A different paragraph.", book: "Books/b.epub", chapterKey: "OEBPS/ch03.xhtml", born: linked });
+        expect(other.find((item) => item.path === "Notes/Optimism.md")?.reason).toBe("born-book");
+    });
+
     it("counts the chapter's own note as near in a note reading, and is the same twice", () => {
         const model = vault();
         const vocabulary = buildVocabulary(model);

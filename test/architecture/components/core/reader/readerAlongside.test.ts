@@ -475,6 +475,71 @@ describe("Alongside beside a paper (#754 FR-2, FR-3b)", () => {
         expect(why(content, "Born note")).toBe("Born from p. 1");
     });
 
+    it("says You linked it to this passage for an idea you linked in this reading, and only then (#762 FR-8)", async () => {
+        const { view, content } = await openPaper();
+        alongsideButton(content).click();
+        await flush();
+        expect(why(content, "Born note")).toBe("Born from p. 1");
+        (view as any).alongside.addFromReading({ kind: "link", path: "born.md", title: "Born note" });
+        await flush();
+        expect(why(content, "Born note")).toBe("You linked it to this passage");
+        expect(content.byClass("reader-from-reading-row").map((row) => row.textContent)).toEqual(["Linked to Born note"]);
+    });
+
+    it("takes back a claim or a link from its row: Undo, and the row goes (#762)", async () => {
+        const { view, content } = await openPaper();
+        alongsideButton(content).click();
+        await flush();
+        let ok = false;
+        const undo = jest.fn(async () => ok);
+        (view as any).alongside.addFromReading({ kind: "link", path: "born.md", title: "Born note", undo });
+        await flush();
+        const back = () => content.find((el) => el.getAttribute("data-zf-undo") !== null)!;
+        back().click();
+        await flush();
+        expect(back().textContent).toBe("Could not take it back — the note changed since.");
+        ok = true;
+        (view as any).alongside.addFromReading({ kind: "claim", path: "A.md", title: "A", undo });
+        await flush();
+        content.findAll((el) => el.getAttribute("data-zf-undo") !== null)[1].click();
+        await flush();
+        expect(content.byClass("reader-from-reading-row").map((row) => row.textContent)).toEqual(["Linked to Born note"]);
+    });
+
+    it("puts Claim beside an accepted What's the claim in From this reading (#762 FR-1)", async () => {
+        const { view, content } = await openPaper();
+        alongsideButton(content).click();
+        await flush();
+        const claim = jest.fn();
+        (view as any).alongside.addFromReading({ kind: "thought", path: "Lab/1-t1.md", title: "What's the claim", claim });
+        (view as any).alongside.addFromReading({ kind: "claim", path: "A claim.md", title: "A claim" });
+        expect(content.byClass("reader-from-reading-row").map((row) => row.textContent)).toEqual(["What's the claim · AI", "Claim: A claim"]);
+        const buttons = content.byClass("reader-from-reading-claim");
+        expect(buttons.map((b) => b.textContent)).toEqual(["Claim"]);
+        buttons[0].click();
+        expect(claim).toHaveBeenCalledWith({ left: 0, top: 0, width: 100, height: 100 });
+    });
+
+    it("opens the claim sheet in Alongside's panel, opening Alongside for it; Esc takes it, nothing written (#762)", async () => {
+        const { view, content } = await openPaper();
+        const actions = (view as any).passageActions();
+        actions.claim({ quote: { exact: "Seth Gilbert and Nancy Lynch", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1", chapter: "page:0" } }, { left: 10, top: 10, width: 50, height: 20 });
+        await flush();
+        const panel = content.byClass("reader-panel")[0];
+        expect(panel.hasClass("zettelkasten-flow__reader-panel--open")).toBe(true);
+        expect(panel.byClass("reader-claim-sheet")).toHaveLength(1);
+        expect(panel.byClass("reader-alongside-lenses")).toHaveLength(1);
+        expect(panel.oneByClass("reader-claim-source").textContent).toContain("[[Papers/cap.pdf#page=1|Brewer's Conjecture]]");
+        (view as any).escape();
+        expect(content.byClass("reader-claim-sheet")).toHaveLength(0);
+    });
+
+    it("offers no Claim and no Link in a note reading", async () => {
+        const { view } = await openPaper();
+        (view as any).sourcePath = null;
+        expect((view as any).passageActions()).toBeNull();
+    });
+
     it("rules a note out of this page only, by the book and the page's key", async () => {
         const { content, record } = await openPaper();
         alongsideButton(content).click();

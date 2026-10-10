@@ -1,5 +1,6 @@
 import { describe, it } from "@jest/globals";
-import { buildShelf, continueReading, statusCounts, viewShelf, wantToRead, type ShelfInputs } from "application/library/shelf";
+import { buildShelf, continueReading, recentlyAdded, statusCounts, viewShelf, wantToRead, type ShelfInputs } from "application/library/shelf";
+import { articleAdded, articleFields, isArticle } from "application/library/article";
 import { indexBookNotes } from "application/library/bookNote";
 import { reflowPage, type TextRun } from "application/library/pdfText";
 import { ZipArchive } from "application/library/zip";
@@ -68,11 +69,38 @@ function shelfInputs(sources: number, paths: number): ShelfInputs {
     return { sources: list, meta, saved, highlights, born, pathPlaces: new Map(), notes: indexBookNotes(notes) };
 }
 
+/** 200 clippings as the metadata cache holds them (#744 AC-8): what Web Clipper's default template writes. */
+const CLIPPINGS = Array.from({ length: 200 }, (_, i) => ({
+    path: `Clippings/Article number ${i}.md`,
+    ctime: i * 1000,
+    frontmatter: {
+        title: `Article ${i}`,
+        source: `https://site${i % 17}.example.com/post/${i}`,
+        author: [`[[Writer ${i % 23}]]`],
+        published: `20${10 + (i % 15)}-03-02`,
+        created: `2026-${String(1 + (i % 12)).padStart(2, "0")}-04`,
+        description: `What article ${i} is about.`,
+        tags: ["clippings"],
+        ...(i % 4 === 0 ? { status: "to-read", collections: ["Planning"] } : {}),
+    },
+}));
+
+/** What `gatherArticles` does with the cache: the rule, the fields, the date — no file read. */
+function articlesFromCache(): NonNullable<ShelfInputs["articles"]> {
+    return CLIPPINGS.filter((clip) => isArticle(clip.path, clip.frontmatter, "Clippings")).map((clip) => {
+        const fields = articleFields(clip.frontmatter);
+        return { path: clip.path, basename: clip.path.split("/").pop() as string, details: fields.details, ...(fields.host ? { host: fields.host } : {}), added: articleAdded(fields.created, clip.ctime) };
+    });
+}
+
 describe("the Library (#675)", () => {
     it("library.shelf.500", () => {
         const inputs = shelfInputs(500, 30);
         const ms = best(5, () => {
-            const items = buildShelf(inputs);
+            // And 200 articles, read off the cache (#744 AC-8).
+            const items = buildShelf({ ...inputs, articles: articlesFromCache() });
+            recentlyAdded(items, Date.now());
+            viewShelf(items, { filter: "articles", sort: "added", search: "writer 4" });
             continueReading(items);
             viewShelf(items, { filter: "all", sort: "recent", search: "" });
             viewShelf(items, { filter: "all", sort: "highlighted", search: "author 3" });

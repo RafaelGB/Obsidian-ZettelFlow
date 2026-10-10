@@ -18,6 +18,7 @@ import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
 import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
 import { dictionariesSettingsGroup, readingSettingsGroup } from "./handlers/readingSettingsGroup";
+import { LIBRARY_VIEW } from "architecture/components/core/library/libraryHost";
 import { settingsGlance } from "config/settingsSummary";
 import {
     SETTINGS_SECTIONS,
@@ -134,7 +135,14 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── 5 · AI (optional, off by default): one switch, and the provider only when it is on ──
             // ── 5 · Reading: how a book opens and how a chapter turns (#732, epic #729) ─────────
             this.sectionHead("reading"),
-            readingSettingsGroup(plugin, () => this.bookNotesPointer?.()),
+            readingSettingsGroup(
+                plugin,
+                () => this.bookNotesPointer?.(),
+                // An open Library shows the shelf the new articles folder makes (#744 AC-7).
+                () => {
+                    for (const leaf of this.app.workspace.getLeavesOfType(LIBRARY_VIEW)) (leaf.view as { refresh?: () => void }).refresh?.();
+                }
+            ),
             // Look up and Translate (#766): your dictionaries folder, what is in it, the target language.
             dictionariesSettingsGroup(plugin, { onFolder: () => this.dictionariesPointer?.() }),
 

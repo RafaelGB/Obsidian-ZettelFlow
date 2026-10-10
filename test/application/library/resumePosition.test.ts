@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { freshPageView, normalizeLibrary, withFacts, withPageView, withPlace, withScroll, resumeScroll } from "application/library/sourceMeta";
+import { forgetMissing, freshPageView, libraryKey, normalizeLibrary, renameSource, withFacts, withPageView, withPlace, withScroll, resumeScroll } from "application/library/sourceMeta";
 
 describe("resuming where you were inside a chapter, not at its start", () => {
     it("keeps how far into the chapter you are, as a share of it", () => {
@@ -75,5 +75,25 @@ describe("Crop margins is kept per paper, with the frames measured on that very 
         expect(freshPageView(map["p.pdf"].view, 10, 21)).toEqual({ crop: true });
         // A new copy keeps the switch on, as it keeps the zoom.
         expect(withFacts(map, "p.pdf", { chapters: 10 }, 11, 21)["p.pdf"].view?.crop).toBe(true);
+    });
+});
+
+describe("an article's place (#744 FR-6)", () => {
+    it("is kept under the note's path, and reaching its last section makes it finished", () => {
+        expect(libraryKey("Clippings/a.md")).toBe(true);
+        expect(libraryKey("Books/a.epub")).toBe(true);
+        expect(libraryKey("notes/a.canvas")).toBe(false);
+        let map = withPlace({}, "Clippings/a.md", 1, 3, 5, 10, 20);
+        map = withScroll(map, "Clippings/a.md", 1, 0.5);
+        const kept = normalizeLibrary(JSON.parse(JSON.stringify(map)));
+        expect(kept["Clippings/a.md"]).toMatchObject({ chapter: 1, chapters: 3, scroll: 0.5, at: 5 });
+        expect(kept["Clippings/a.md"].done).toBeUndefined();
+        expect(withPlace(kept, "Clippings/a.md", 2, 3, 6)["Clippings/a.md"].done).toBe(true);
+    });
+
+    it("follows the note when it is renamed, and is forgotten when it leaves", () => {
+        const map = withPlace({}, "Clippings/a.md", 1, 3, 5);
+        expect(Object.keys(renameSource(map, "Clippings/a.md", "Clippings/2025/a.md"))).toEqual(["Clippings/2025/a.md"]);
+        expect(forgetMissing(map, new Set())).toEqual({});
     });
 });

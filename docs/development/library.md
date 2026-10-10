@@ -1,5 +1,5 @@
 ---
-description: Your Library — the PDFs and EPUBs already in your vault and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never modified.
+description: Your Library — the PDFs and EPUBs already in your vault, the articles you clip with Web Clipper and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never modified.
 ---
 
 # Your Library
@@ -24,12 +24,13 @@ a sidebar: the shelf narrows, the cards get smaller and *Continue reading* stack
 
 ## The shelf
 
-Three kinds of things share the shelf:
+Four kinds of things share the shelf:
 
 | Kind | What it is | Its cover |
 |---|---|---|
 | **Books** | the EPUBs in your vault, and any PDF longer than sixty pages | the book's own cover |
 | **Papers** | the PDFs in your vault up to sixty pages | the PDF's first page |
+| **Articles** | the pages you saved with Obsidian Web Clipper (see [Articles from Web Clipper](#articles-from-web-clipper)) | drawn, in one of your theme's colours |
 | **Paths** | the [reading paths](reader.md) you saved at the end of one | a constellation of its notes |
 
 **Nothing is imported.** A source is a file that is already in your vault, in any folder: drop a book
@@ -52,9 +53,17 @@ where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**.
 *Finished*, or put back to *Want to read*, is not offered there. **Want to read** follows it, only
 when something is in it, and the rest of the shelf comes after.
 
-Above the shelf: **All · Books · Papers · Paths**, each with its count; a search over titles,
+**Recently added** follows *Continue reading*: what came into the vault in the last thirty days and
+is not finished, newest first — one row, as many as fit. A book you dropped in yesterday is found
+the day it lands, not among five hundred. *Added* is when the file came into the vault, or an
+article's `created` when Web Clipper wrote one. The row is hidden when nothing came in, and while
+the shelf is filtered or searched. A file that arrives while the Library is open settles into the
+row — a touch smaller and clear, to itself — and the cards beside it make room; nothing moves when
+the shelf is first drawn, and under reduced motion it is simply there.
+
+Above the shelf: **All · Books · Papers · Articles · Paths**, each with its count; a search over titles,
 authors, series and collections (*sonke* finds *Sönke*); and the order — **Recently read**
-(never-opened things come last, by title), **Most highlighted** or **Title**. Under them, a second
+(never-opened things come last, by title), **Most highlighted**, **Title** or **Recently added**. Under them, a second
 row: **All · Reading · Want to read · Finished** — each status once something stands there — and
 **Every collection** with each collection in use. The Library remembers the filters and the order.
 
@@ -150,6 +159,59 @@ views:
     groupBy: collections
     order: [file.name, author, year]
 ```
+
+## Articles from Web Clipper
+
+**What you clip joins what you read.** A long read saved from the web with
+[Obsidian Web Clipper](https://obsidian.md/clipper) is an ordinary note in your vault. The Library
+shelves it as an **Article**, beside the books, and the Reader reads it like one — its column, your
+type, highlights with meanings, search, footnotes, time left and bookmarks — with no import and no
+copy: the clipping stays the note it is.
+
+![Articles from Web Clipper: the Articles chip and where articles come from, the Recently added row with a new card settling in, and a clipping read in the Reader with its headings in Contents](../resources/library/articles.svg)
+
+**What is an article.** A note in the **articles folder** — or any folder inside it — whose `source`
+property is a web address (`https://…`). That is exactly what Web Clipper's default template
+writes, into its default folder, `Clippings`. A `clippings` tag alone is not enough: a note outside
+the folder is never an article, whatever it carries, and neither is a note in it whose `source` is a
+`[[link]]` or plain text.
+
+**Where articles come from** is one setting, in two places: under the **Articles** chip on the shelf
+(*Articles come from Clippings · Change*) and in **Settings → Reading → Articles folder**. Both edit
+the same value. Empty it to turn articles off (*Articles are off*). The Library reads articles from
+the metadata cache — it never opens a clipping to put it on the shelf.
+
+**On the shelf**, an article's card shows its `title`, its author — Web Clipper writes a list of
+links (`[[Jane Doe]]`), and their names are shown — or, when nobody signed it, the site it came from
+(`example.com`), and the year it was `published`. Its cover is drawn in one of your theme's colours,
+as a book's is before its cover is read.
+
+**Reading one.** Click it, or **Resume**: the camera pushes into its drawn cover and it opens in the
+Reader, in the Library's tab, as [one continuous shot](reader.md#one-continuous-shot) — closing plays
+it back onto its card. Its **sections are its headings** at the shallowest level it uses (its H1s,
+or its H2s when it has no H1), and the text before the first one is a section of its own, named
+after the article. **Contents** lists every heading. The corner says *Section 2 / 5*. The Library
+remembers where you are, like a book's place, and reaching the last section makes it *Finished* —
+read, not written. A footnote is read where it is referenced. A link to the web or to another note
+is not followed from the page, as in a book.
+
+**Notes born from it.** A note that cites the clipping — `source:: [[Clippings/The case for slow
+software]]` — is born from it, counted on its card and listed in its detail. Crystallizing a
+passage writes exactly that, with the section after it.
+
+**Its status and collections are its own properties.** An article has no separate
+[book's note](#a-books-note): its own frontmatter is its note. **Details** offers its **Status** and
+**Collections** only, and writes those keys into the clipping — through the same recorded write,
+with **Undo** — and nothing else in it. (Obsidian rewrites the properties block when a property
+changes, so its layout may be tidied; the values and the body are untouched.)
+
+**Reading never writes it.** No highlight, no place, nothing reaches the clipping's body or
+properties — only a status or a collection you set. Highlights are thoughts in Think, the place is
+plugin data.
+
+**Network.** None of ZettelFlow's own: Web Clipper saved the page, and ZettelFlow never fetches a
+URL. A remote picture inside a clipping is loaded by Obsidian's own Markdown renderer, exactly as it
+is in the editor.
 
 ## Reading a PDF
 
@@ -403,6 +465,8 @@ Book notes folder ([A book's note](#a-books-note)) — the only thing the Librar
 then. What the Library remembers about a source is kept in the plugin's settings:
 the title, author and length the file declares, whether a PDF is only images, and where you are in
 it — each with the size and date of the file it was read from, so a replaced file is read again.
+An article's place is kept the same way, under the clipping's path; a status or a collection you
+set on an article is the one thing written into it.
 Covers are kept for the session only, in memory: never in your vault, never in the settings.
 
 What you *mark* — highlights and margin notes — is not kept by the Library at all: those are
@@ -462,7 +526,9 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 |---|---|
 | `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package; a book's note read (string or list, an unknown status ignored), its status read from the reading, its first write and file name, found by its link, never born from its book |
 | `npx jest test/architecture/components/core/library/bookNoteWriter test/architecture/components/core/library/libraryDetails test/architecture/components/core/library/libraryBookNotes` | a book's note created at a free path in the Book notes folder with what the file declares, edited key by key, adopted with only its link (body to the byte), each one undone; Details saving on leaving a field or Enter, the status, collections, the check's fade and reduced motion; the status and collection chips, *Want to read*, a card carried to its new row, nothing written by opening |
-| `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses* |
+| `npx jest test/application/library/article test/application/library/shelf test/application/library/passageToNote` | what an article is (the folder and a web `source`, never a tag alone, none when the folder is empty), its fields (authors' names from links, the year, the site), its sections (H1s, else H2s, a lede, code blocks, footnotes carried), its kind, byline and count on the shelf; *Recently added* (30 days, unfinished, newest first, one row) and its order; a note citing an article born from it |
+| `npx jest test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle test/architecture/components/core/library/bookNoteWriter` | the *Articles* chip and *Change* writing the same setting as Settings → Reading, articles off; an article opened with the shot from its drawn cover; a clipping in the Reader (its sections, Contents, no Page view, highlights at their section, its place kept, the note never written); its status written alone into its own frontmatter, recorded, undone; *Recently added* and its fourth order, a card settling in, nothing at the first draw, reduced motion |
+| `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses*; the *Articles folder* row: `Clippings` by default, emptied to turn articles off, a reset |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
@@ -473,7 +539,7 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
 | `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
 | `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
-| `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
+| `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, and 200 articles read off the cache, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -539,7 +605,14 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     folder** to `Reading notes`: no folder appears; give another book a status: its note is in
     `Reading notes`, the first one still in `Library`, and both details say where. **Undo** on the
     *Saved in* line takes the last change back.
-14. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+14. **An article.** Clip a long page with Web Clipper (or put a note in `Clippings` with
+    `source: https://example.com/slow-software`, `author: ["[[Jane Doe]]"]`, a few paragraphs and two
+    headings). Expect it in **Recently added** and under **Articles**, by *Jane Doe*. Open it: the
+    camera pushes into its cover; **Contents** lists its headings; highlight a sentence; close it: the
+    camera pulls back onto its card, which says *1 highlight*. Its file is unchanged. Set its
+    **Status → Finished** in Details: only `status` is added to it. A note in `Clippings` whose
+    `source` is `[[Some note]]` is not on the shelf.
+15. **Negative.** Compare each source file before and after (size and modification date): unchanged.
     Opening and reading a book created no note; only changing its Details did. A hostile fixed-layout
     page (a style sheet that imports, loads a font and a picture from `https://example.com`, a
     `<script>`, a `position: fixed` overlay): with the developer tools' network panel open, nothing is

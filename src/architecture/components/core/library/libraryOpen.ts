@@ -11,8 +11,8 @@ export interface OpenAt {
     highlight?: string;
 }
 
-/** The formats the Reader reads (#681, #682). */
-export const READABLE: readonly string[] = ["pdf", "epub"];
+/** The formats the Reader reads (#681, #682) — and an article, a note read like a book (#744). */
+export const READABLE: readonly string[] = ["pdf", "epub", "article"];
 
 /**
  * Open something on the shelf (#680) — in the Reader, where you left it (#681): a saved path at its

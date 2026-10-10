@@ -57,6 +57,14 @@ export function sourceFormat(path: string): SourceFormat | null {
     return null;
 }
 
+/**
+ * Whether plugin data may keep a place under this path (#744): a PDF, an EPUB — and a Markdown note,
+ * for an article read in the Reader. Not {@link sourceFormat}, which says what is a book *file*.
+ */
+export function libraryKey(path: string): boolean {
+    return sourceFormat(path) !== null || path.toLowerCase().endsWith(".md");
+}
+
 /** A BCP 47 shape, as the chapter sanitiser keeps it: letters, then dash-separated parts. */
 const LANGUAGE_TAG = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
 
@@ -79,7 +87,7 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
     const out: LibraryMeta = {};
     for (const [path, value] of Object.entries(raw as Record<string, unknown>)) {
         const v = value as Record<string, unknown> | null;
-        if (!v || !sourceFormat(path) || !num(v.size) || !num(v.mtime)) continue;
+        if (!v || !libraryKey(path) || !num(v.size) || !num(v.mtime)) continue;
         const meta: SourceMeta = { size: v.size, mtime: v.mtime };
         if (text(v.title)) meta.title = v.title.trim();
         if (text(v.author)) meta.author = v.author.trim();
@@ -191,7 +199,7 @@ export function resumeScroll(share: number, scrollHeight: number, clientHeight: 
 
 /** A source renamed in the vault keeps everything the Library knew about it. */
 export function renameSource(map: LibraryMeta, from: string, to: string): LibraryMeta {
-    if (!map[from] || !sourceFormat(to)) return map;
+    if (!map[from] || !libraryKey(to)) return map;
     const next = { ...map, [to]: map[from] };
     delete next[from];
     return next;

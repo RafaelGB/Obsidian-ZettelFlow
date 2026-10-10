@@ -298,6 +298,13 @@ interface TouchState {
 /** A note's body without its frontmatter: the properties are not part of what you read. */
 export const readableBody = stripFrontmatter;
 
+/** Where you are in a source, as the page's corner says it: a paper's page, a book's chapter, an article's section (#744). */
+const COUNT_KEY: Record<SourceDocument["format"], Parameters<typeof t>[0]> = {
+    pdf: "reader_source_count_page",
+    epub: "reader_source_count_chapter",
+    article: "reader_source_count_section",
+};
+
 function noteName(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
 }
@@ -1292,8 +1299,13 @@ export class ReaderView extends ItemView {
         const els = this.els;
         if (!els) return;
         const total = this.path?.chapters.length ?? 0;
-        // A designed book is counted in pages (#771): a comic has no chapters to speak of.
-        const counted = this.source?.designed ? "reader_source_count_page" : "reader_chapter_label";
+        // A designed book is counted in pages (#771): a comic has no chapters to speak of. An article's
+        // chapters are its sections, in the bar as in the corner of the page (#744).
+        const counted = this.source?.designed
+            ? "reader_source_count_page"
+            : this.source?.format === "article"
+              ? "reader_source_count_section"
+              : "reader_chapter_label";
         els.label.setText(this.ended ? t("reader_finished") : total ? t(counted, String(this.index + 1), String(total)) : "");
         els.progress.max = Math.max(1, total);
         els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
@@ -2289,7 +2301,7 @@ export class ReaderView extends ItemView {
         if (!asRun) {
             page.createDiv({
                 cls: c("reader-count"),
-                text: doc ? t(doc.format === "pdf" ? "reader_source_count_page" : "reader_source_count_chapter", String(index + 1), String(total)) : "",
+                text: doc ? t(COUNT_KEY[doc.format], String(index + 1), String(total)) : "",
             });
         }
         if (chapter?.section && !asRun) {
@@ -3066,18 +3078,23 @@ export class ReaderView extends ItemView {
             this.panelScope?.registerDomEvent(notebook, "click", () => void openLibrary(this.app, undefined, sourcePath));
         }
         const entries = doc.toc.length > 0 ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
-        // The entry you are in: the last one that starts at or before the chapter on screen.
-        let current = -1;
-        entries.forEach((entry, i) => {
-            if (entry.chapter <= this.index) current = i;
-        });
+        // The entry you are in: the first one of the chapter on screen — its own heading, not the last
+        // heading inside it — or, when the chapter has none, the last one before it.
+        let current = entries.findIndex((entry) => entry.chapter === this.index);
+        if (current < 0) {
+            entries.forEach((entry, i) => {
+                if (entry.chapter < this.index) current = i;
+            });
+        }
         entries.forEach((entry, i) => {
             const row = host.createEl("button", {
                 cls: [c("reader-toc-row"), c(`reader-toc-row--depth-${Math.min(entry.depth, 3)}`), ...(i === current ? [c("reader-toc-row--current")] : [])].join(" "),
                 attr: { type: "button" },
             });
             row.createSpan({ cls: c("reader-toc-name"), text: entry.title });
-            if (doc.toc.length > 0) row.createSpan({ cls: c("reader-toc-role"), text: this.sourceLabel(entry.chapter) });
+            // Where the entry is, when its own name does not already say it (an article's section is its heading).
+            const where = this.sourceLabel(entry.chapter);
+            if (doc.toc.length > 0 && where !== entry.title) row.createSpan({ cls: c("reader-toc-role"), text: where });
             if (i === current) row.setAttribute("aria-current", "step");
             // A Contents entry is a jump: where you were stays one press away (#718).
             this.panelScope?.registerDomEvent(row, "click", () =>

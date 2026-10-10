@@ -344,7 +344,8 @@ export const BUDGETS = {
     "library.shelf.500": {
         name: "build, order, filter and search the Library shelf of 500 sources, each with its book's note, and 30 saved paths",
         limit: 10,
-        measured: "1.1 ms",
+        // With 200 Web Clipper articles read off the cache on top (#744 AC-8); 2.9 ms without them on the same machine.
+        measured: "3.5 ms",
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
@@ -374,8 +375,9 @@ export const BUDGETS = {
         // The AI's six moves (#759) add 16 KB: 2,735 KB, under the same ceiling.
         // 2,800 → 2,900 (#743): R3's claim sheet (#762) and look-up (#766) bring main to 2,789 KB; the
         // book's note (#743) adds 24 KB: 2,813 KB — a WebGL library coming back is still a megabyte over.
+        // Articles (#744) add 12 KB: 2,825 KB, under the same ceiling.
         limit: 2_900,
-        measured: "2,813 KB",
+        measured: "2,825 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

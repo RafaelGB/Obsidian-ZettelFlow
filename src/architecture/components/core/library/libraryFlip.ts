@@ -47,3 +47,19 @@ export function dropIn(el: HTMLElement): void {
         { duration: MOTION.fast, easing: MOTION.ease }
     );
 }
+
+/**
+ * A card arriving in *Recently added* while the shelf is open (#744 FR-13): it settles into its row
+ * from a touch smaller and clear, on the shared curve — the cards beside it make room by
+ * {@link flipMove}. Under reduced motion it is simply there.
+ */
+export function arriveIn(el: HTMLElement): void {
+    if (!motionWelcome(el)) return;
+    el.animate(
+        [
+            { opacity: 0, transform: "scale(0.96)" },
+            { opacity: 1, transform: "scale(1)" },
+        ],
+        { duration: MOTION.base, easing: MOTION.ease }
+    );
+}

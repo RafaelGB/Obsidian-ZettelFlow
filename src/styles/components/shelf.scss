@@ -374,6 +374,53 @@
     }
 }
 
+/*
+ * Recently added (#744 FR-8): one row of the shelf's own cards, as many as fit — the row is laid out
+ * like the shelf, and every row after the first is folded to nothing. No measuring: it is the grid.
+ * The breathing room above and beside it keeps a lifted cover and a focus ring from being clipped.
+ */
+.zettelkasten-flow__shelf-shelf--recent {
+    grid-template-rows: auto;
+    grid-auto-rows: 0;
+    row-gap: 0;
+    overflow: hidden;
+    // Room above and beside, never below: the folded rows start right under the first and must not show.
+    padding: var(--size-4-2) var(--size-4-2) 0;
+    margin: calc(-1 * var(--size-4-2)) calc(-1 * var(--size-4-2)) 0;
+
+    // A folded row starts a hair below the first, so not even its top edge is drawn.
+    > .zettelkasten-flow__shelf-card {
+        margin-top: var(--size-2-1);
+    }
+}
+
+/* Where articles come from (#744 FR-2), under the Articles chip: one quiet line, and Change. */
+.zettelkasten-flow__shelf-articles-from {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin: calc(-1 * var(--size-4-2)) 0 var(--size-4-4);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+
+    .setting-item {
+        flex: 0 1 32rem;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+}
+
+.zettelkasten-flow__shelf-empty .zettelkasten-flow__shelf-articles-from {
+    justify-content: center;
+    margin: var(--size-4-4) 0 0;
+}
+
+.zettelkasten-flow__shelf-articles-dot {
+    color: var(--text-faint);
+}
+
 .zettelkasten-flow__shelf-card {
     position: relative;
     display: flex;
@@ -1071,8 +1118,10 @@ button.zettelkasten-flow__notebook-action {
     color: var(--text-accent);
 }
 
-.zettelkasten-flow__shelf-details-undo,
-.zettelkasten-flow__shelf-details-adopt {
+/* As buttons, so they outrank Obsidian's own `button:not(.clickable-icon)` and read as the links they are. */
+button.zettelkasten-flow__shelf-details-undo,
+button.zettelkasten-flow__shelf-details-adopt,
+button.zettelkasten-flow__shelf-articles-change {
     height: auto;
     padding: 0;
     border: none;

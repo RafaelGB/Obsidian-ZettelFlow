@@ -140,6 +140,7 @@ both choices are camera moves, never a cut.
 | **Opening a book** | *Camera shot*: the shelf zooms into the book, the cover opens on the page you were on, and that page becomes the Reader. Closing plays it backwards. *Instant*: the same places, no movement. | Camera shot |
 | **Changing chapter** | *Leaf turns* on the spine; *Keeps flowing*, where the chapter carries on up and the next one rises behind it; or *Sheet slides off* the stack. | Leaf turns |
 | **Book notes folder** | Where [a book's note](library.md) is created, the first time you say something about the book in its Details. A folder field with suggestions and a reset; saving it creates no folder, and changing it moves no note — a book's note is found by its link to the book. *Advanced › Folders ZettelFlow uses* shows it, with a way back here. | `Library` |
+| **Articles folder** | The notes in this folder whose `source` is a web address — as [Web Clipper](library.md) saves them — are on the shelf as articles. Leave it empty to turn articles off. An open Library redraws its shelf when it changes. | `Clippings` |
 
 With your system's **reduced motion** on, both are instant whatever you pick.
 

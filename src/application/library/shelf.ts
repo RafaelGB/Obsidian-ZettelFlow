@@ -5,19 +5,19 @@ import { BOOK_STATUSES, effectiveStatus, type BookDetails, type BookNoteEntry, t
  * **The Library shelf** (#680, epic #675) — pure: what is on it, in which order, and what came of
  * each thing on it.
  *
- * Three kinds share the shelf (owner, 2026-10-06): **books** and **papers** — the EPUBs and PDFs
- * already in your vault (L1) — and **paths**, the readings across your own notes you saved at the
- * end of one (#672). Each item says how far you are, how many passages you marked and how many
+ * Four kinds share the shelf (owner, 2026-10-06): **books** and **papers** — the EPUBs and PDFs
+ * already in your vault (L1) — **articles**, the pages you saved with Web Clipper (#744), and
+ * **paths**, the readings across your own notes you saved at the end of one (#672). Each item says how far you are, how many passages you marked and how many
  * notes were **born** from it — the last one is the point of the whole loop.
  */
 
-export type ShelfKind = "book" | "paper" | "path";
-export type ShelfFormat = "pdf" | "epub" | "path";
-export type ShelfFilter = "all" | "books" | "papers" | "paths";
-export type ShelfSort = "recent" | "highlighted" | "title";
+export type ShelfKind = "book" | "paper" | "article" | "path";
+export type ShelfFormat = "pdf" | "epub" | "article" | "path";
+export type ShelfFilter = "all" | "books" | "papers" | "articles" | "paths";
+export type ShelfSort = "recent" | "highlighted" | "title" | "added";
 
-export const SHELF_FILTERS: readonly ShelfFilter[] = ["all", "books", "papers", "paths"];
-export const SHELF_SORTS: readonly ShelfSort[] = ["recent", "highlighted", "title"];
+export const SHELF_FILTERS: readonly ShelfFilter[] = ["all", "books", "papers", "articles", "paths"];
+export const SHELF_SORTS: readonly ShelfSort[] = ["recent", "highlighted", "title", "added"];
 
 /**
  * A PDF this long is a book, not a paper. Most papers run under forty pages and most books over
@@ -40,6 +40,13 @@ export interface ShelfItem {
     born: number;
     /** When you last read it; 0 when never. */
     lastRead: number;
+    /**
+     * When it came into the vault (#744 FR-8): the file's creation, or an article's `created`. Absent
+     * for a saved path, which is not a file.
+     */
+    added?: number;
+    /** An article's site (#744), its byline when nobody signed it. */
+    host?: string;
     /** A PDF with no text layer. */
     imageOnly?: boolean;
     /** Pages, spine items or notes. */
@@ -66,6 +73,21 @@ export interface ShelfItem {
 export interface ShelfSource {
     path: string;
     basename: string;
+    /** When the file came into the vault (its ctime). */
+    added?: number;
+}
+
+/**
+ * An article (#744): a note in the articles folder whose `source` is a web address, with what its
+ * own frontmatter says — read from the metadata cache, never from the file.
+ */
+export interface ShelfArticle {
+    path: string;
+    basename: string;
+    details: BookDetails;
+    host?: string;
+    /** Web Clipper's `created`, else the file's ctime. */
+    added: number;
 }
 
 export interface ShelfSaved {
@@ -88,11 +110,13 @@ export interface ShelfInputs {
     born: ReadonlyMap<string, number>;
     /** The book notes, by the source each links to (#743). Read from the metadata cache. */
     notes?: ReadonlyMap<string, BookNoteEntry>;
+    /** The articles (#744). */
+    articles?: readonly ShelfArticle[];
 }
 
 /** What a file is called on the shelf before the file says otherwise: its name, tidied. */
 export function titleFromName(basename: string): string {
-    const name = basename.replace(/\.(pdf|epub)$/i, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
+    const name = basename.replace(/\.(pdf|epub|md)$/i, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
     return name || basename;
 }
 
@@ -120,6 +144,7 @@ export function buildShelf(inputs: ShelfInputs): ShelfItem[] {
             highlights: inputs.highlights.get(source.path) ?? 0,
             born: inputs.born.get(source.path) ?? 0,
             lastRead: meta?.at ?? 0,
+            ...(source.added ? { added: source.added } : {}),
             ...(meta?.imageOnly ? { imageOnly: true } : {}),
             ...(pages ? { chapters: pages } : {}),
             ...(meta?.chapter !== undefined ? { place: meta.chapter } : {}),
@@ -127,6 +152,33 @@ export function buildShelf(inputs: ShelfInputs): ShelfItem[] {
             ...(note ? { note: note.path, details: note.details } : {}),
             ...(details?.collections ? { collections: [...details.collections] } : {}),
             ...(details?.series ? { series: details.series } : {}),
+        });
+    }
+    for (const article of inputs.articles ?? []) {
+        // Its own frontmatter is its note (FR-4): the status and collections are written there too.
+        const meta = inputs.meta[article.path];
+        const details = article.details;
+        const author = details.author?.join(", ") ?? article.host;
+        const status = effectiveStatus(details, meta);
+        items.push({
+            id: article.path,
+            kind: "article",
+            format: "article",
+            title: details.title ?? titleFromName(article.basename),
+            ...(author ? { author } : {}),
+            file: article.path,
+            progress: progressOf(meta),
+            highlights: inputs.highlights.get(article.path) ?? 0,
+            born: inputs.born.get(article.path) ?? 0,
+            lastRead: meta?.at ?? 0,
+            ...(article.added ? { added: article.added } : {}),
+            ...(article.host ? { host: article.host } : {}),
+            ...(meta?.chapters ? { chapters: meta.chapters } : {}),
+            ...(meta?.chapter !== undefined ? { place: meta.chapter } : {}),
+            ...(status ? { status } : {}),
+            note: article.path,
+            details,
+            ...(details.collections ? { collections: [...details.collections] } : {}),
         });
     }
     for (const saved of inputs.saved) {
@@ -165,14 +217,16 @@ const matchesFilter = (item: ShelfItem, filter: ShelfFilter): boolean =>
     filter === "all" ||
     (filter === "books" && item.kind === "book") ||
     (filter === "papers" && item.kind === "paper") ||
+    (filter === "articles" && item.kind === "article") ||
     (filter === "paths" && item.kind === "path");
 
 /** How many items each filter would show, before the search. */
 export function shelfCounts(items: readonly ShelfItem[]): Record<ShelfFilter, number> {
-    const counts: Record<ShelfFilter, number> = { all: items.length, books: 0, papers: 0, paths: 0 };
+    const counts: Record<ShelfFilter, number> = { all: items.length, books: 0, papers: 0, articles: 0, paths: 0 };
     for (const item of items) {
         if (item.kind === "book") counts.books++;
         else if (item.kind === "paper") counts.papers++;
+        else if (item.kind === "article") counts.articles++;
         else counts.paths++;
     }
     return counts;
@@ -210,6 +264,8 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
     );
     const byTitle = (a: ShelfItem, b: ShelfItem) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id);
     if (query.sort === "title") return shown.sort(byTitle);
+    // Newest first (#744 FR-9); what is not a file — a saved path — after, by title.
+    if (query.sort === "added") return shown.sort((a, b) => (b.added ?? 0) - (a.added ?? 0) || byTitle(a, b));
     if (query.sort === "highlighted") return shown.sort((a, b) => b.highlights - a.highlights || b.lastRead - a.lastRead || byTitle(a, b));
     // Recently read first; never-opened things after, by title, so a new book is easy to find.
     return shown.sort((a, b) => b.lastRead - a.lastRead || byTitle(a, b));
@@ -227,6 +283,23 @@ export function continueReading(items: readonly ShelfItem[]): ShelfItem[] {
         .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
         .sort((a, b) => b.lastRead - a.lastRead)
         .slice(0, CONTINUE_LIMIT);
+}
+
+/** How long something stays new on the shelf (#744 FR-8). */
+export const RECENT_DAYS = 30;
+/** As many as one row can hold at its widest; the row itself shows what fits. */
+export const RECENT_LIMIT = 12;
+
+/**
+ * **Recently added** (#744 FR-8): what came into the vault in the last thirty days and is not
+ * finished, newest first — so a book dropped in yesterday is found the day it lands.
+ */
+export function recentlyAdded(items: readonly ShelfItem[], now: number): ShelfItem[] {
+    const since = now - RECENT_DAYS * 86_400_000;
+    return items
+        .filter((item) => item.added !== undefined && item.added >= since && item.progress < 1 && item.status !== "finished")
+        .sort((a, b) => (b.added ?? 0) - (a.added ?? 0) || a.title.localeCompare(b.title))
+        .slice(0, RECENT_LIMIT);
 }
 
 /** What you said you want to read (#743 FR-9): the section that follows *Continue reading*. */

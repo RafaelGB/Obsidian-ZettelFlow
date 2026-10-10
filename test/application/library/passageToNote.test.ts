@@ -53,6 +53,23 @@ describe("from passage to note (#683)", () => {
         expect(pageOf("pág. 7")).toBe(6);
         expect(pageOf("3 · The lazy controller")).toBeNull();
     });
+
+    it("counts a note citing an article as born from it, and cites an article's passage as a note (#744 AC-6)", () => {
+        const article = "Clippings/The case for slow software.md";
+        expect(citationOf(highlight(article, { at: 1, label: "Speed" }))).toBe("[[Clippings/The case for slow software]] Speed");
+        const resolve = (ref: string) => (ref === article ? article : null);
+        const ideas = [
+            { path: "Zettel/Slow.md", claims: [{ sources: [{ ref: article, kind: "link" }] }] },
+            { path: "Zettel/Other.md", claims: [{ sources: [{ ref: "Notes/Some note.md", kind: "link" }, { ref: "https://example.com", kind: "text" }] }] },
+            // The clipping itself is not born from itself.
+            { path: article, claims: [{ sources: [{ ref: article, kind: "link" }] }] },
+        ];
+        const born = notesBornFrom(ideas, new Set(), resolve);
+        expect(born.get(article)).toEqual(["Zettel/Slow.md"]);
+        expect(born.has("Notes/Some note.md")).toBe(false);
+        // Without the shelf's resolver, a note is never a source.
+        expect(notesBornFrom(ideas).size).toBe(0);
+    });
 });
 
 describe("every note made from a book goes back to its paragraph (#751 FR-1, FR-4, AC-2, AC-8)", () => {

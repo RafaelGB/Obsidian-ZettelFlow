@@ -1,4 +1,4 @@
-import { Component, ItemView, Scope, TFile, moment as obsidianMoment, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { Component, ItemView, Scope, Setting, TFile, moment as obsidianMoment, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
@@ -8,6 +8,7 @@ import {
     STATUS_FILTERS,
     continueReading,
     fold,
+    recentlyAdded,
     shelfCollections,
     shelfCounts,
     statusCounts,
@@ -26,7 +27,9 @@ import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
 import { renderDetails, STATUS_KEY, type DetailsParts } from "./libraryDetails";
-import { dropIn, flipMove, FLIP_KEY } from "./libraryFlip";
+import { arriveIn, dropIn, flipMove, FLIP_KEY } from "./libraryFlip";
+import { addFolderField } from "config/modals/handlers/folderField";
+import { ARTICLES_DEFAULT, inFolder } from "application/library/article";
 import { declaredMetadata } from "./sources/declared";
 import { beginOpenShot } from "architecture/components/core/reader/readerShot";
 import { readingMotion } from "architecture/components/core/reader/readingMotion";
@@ -35,7 +38,7 @@ import { crystallizeHighlight } from "./crystallizeHighlight";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
-import { gatherShelf, type Shelf } from "./libraryShelf";
+import { articlesFolderOf, gatherShelf, type Shelf } from "./libraryShelf";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -44,27 +47,37 @@ const FILTER_KEY: Record<ShelfFilter, LocaleKey> = {
     all: "shelf_filter_all",
     books: "shelf_filter_books",
     papers: "shelf_filter_papers",
+    articles: "shelf_filter_articles",
     paths: "shelf_filter_paths",
 };
 const SECTION_KEY: Record<ShelfFilter, LocaleKey> = {
     all: "shelf_shelf",
     books: "shelf_filter_books",
     papers: "shelf_filter_papers",
+    articles: "shelf_section_articles",
     paths: "shelf_section_paths",
 };
 const SORT_KEY: Record<ShelfSort, LocaleKey> = {
     recent: "shelf_sort_recent",
     highlighted: "shelf_sort_highlighted",
     title: "shelf_sort_title",
+    added: "shelf_sort_added",
 };
 const KIND_KEY: Record<ShelfItem["format"], LocaleKey> = {
     pdf: "shelf_kind_pdf",
     epub: "shelf_kind_epub",
+    article: "shelf_kind_article",
     path: "shelf_kind_path",
 };
 
+/** A card in *Recently added* is known by this across a redraw — apart from the same item's card on the shelf. */
+const recentKey = (id: string) => `recent:${id}`;
+
 // Obsidian re-exports its moment typed as a namespace; the callable signature is type-only.
 const moment = obsidianMoment as unknown as typeof MomentFn;
+
+/** A folder field left unchanged closes after its own commit would have run (see `addFolderField`). */
+const FOLDER_BLUR_MS = 300;
 
 /** Saving what was read off the files waits for a quiet moment, so a shelf of covers saves once. */
 const SAVE_MS = 800;
@@ -81,6 +94,7 @@ export function whereLabel(item: ShelfItem): string {
     const of = String(item.chapters);
     if (item.format === "pdf") return t("shelf_where_page", at, of);
     if (item.format === "epub") return t("shelf_where_chapter", at, of);
+    if (item.format === "article") return t("shelf_where_section", at, of);
     return t("shelf_where_note", at, of);
 }
 
@@ -105,6 +119,10 @@ export class LibraryView extends ItemView {
     private collection: string | null = null;
     /** The collections the chip row last drew: a new one drops in (FR-16). */
     private drawnCollections: Set<string> | null = null;
+    /** What *Recently added* last drew (#744 FR-13): a card new since then settles in. `null` before the first draw. */
+    private drawnRecent: Set<string> | null = null;
+    /** The inline *Change* of the articles folder is open (#744 FR-2). */
+    private changingFolder = false;
     /** A refresh waiting to run keeps an open detail as it is (#743). */
     private keepDetail = false;
     private detail: string | null = null;
@@ -207,15 +225,23 @@ export class LibraryView extends ItemView {
             this.observer = new Observer((entries) => this.onCoversVisible(entries), { root: this.contentEl, rootMargin: "200px 0px" });
             this.register(() => this.observer?.disconnect());
         }
-        // A source added, renamed or removed is on the shelf the moment the vault says so.
+        // A source added, renamed or removed is on the shelf the moment the vault says so — and an
+        // article, in the articles folder (#744); a new one is read once the cache has its properties.
         const onVault = (file: unknown) => {
-            if (file instanceof TFile && sourceFormat(file.path)) this.scheduleRefresh();
+            if (file instanceof TFile && (sourceFormat(file.path) || this.inArticles(file.path))) this.scheduleRefresh();
         };
         this.registerEvent(this.app.vault.on("create", onVault));
         this.registerEvent(this.app.vault.on("delete", onVault));
         this.registerEvent(
             this.app.vault.on("rename", (file, oldPath) => {
-                if (!(file instanceof TFile) || !sourceFormat(file.path)) return;
+                if (!(file instanceof TFile)) return;
+                // An article moved into, or out of, the articles folder comes, or goes (#744).
+                if (this.inArticles(file.path) || this.inArticles(oldPath)) {
+                    this.updateMeta((map) => renameSource(map, oldPath, file.path));
+                    this.scheduleRefresh();
+                    return;
+                }
+                if (!sourceFormat(file.path)) return;
                 this.updateMeta((map) => renameSource(map, oldPath, file.path));
                 this.scheduleRefresh();
             })
@@ -226,7 +252,7 @@ export class LibraryView extends ItemView {
             if (!(file instanceof TFile) || file.extension !== "md") return;
             const known = [...this.shelf.notes.values()].some((note) => note.path === file.path);
             const fm = this.app.metadataCache.getFileCache?.(file)?.frontmatter;
-            if (known || (fm && BOOK_LINK_KEY in fm)) this.scheduleRefresh(true);
+            if (known || (fm && BOOK_LINK_KEY in fm) || this.inArticles(file.path)) this.scheduleRefresh(true);
         };
         if (typeof this.app.metadataCache?.on === "function") this.registerEvent(this.app.metadataCache.on("changed", onNote));
         this.registerEvent(this.app.vault.on("delete", onNote));
@@ -263,13 +289,22 @@ export class LibraryView extends ItemView {
         this.shelf = gatherShelf(this.app, this.plugin ?? null);
         if (this.notebook && this.renderNotebookPage()) return;
         this.notebook = null;
-        this.render();
+        // Something arrived while the shelf was open (#744 FR-13): the row makes room for it by a translate.
+        const known = this.drawnRecent;
+        const arrived = known !== null && this.sectioned() && recentlyAdded(this.shelf.items, Date.now()).some((item) => !known.has(item.id));
+        if (arrived) flipMove(this.body, () => this.render());
+        else this.render();
         const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
         if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
         if (this.pendingScroll !== null) {
             this.contentEl.scrollTop = this.pendingScroll;
             this.pendingScroll = null;
         }
+    }
+
+    /** Whether a path is in the articles folder (#744). */
+    private inArticles(path: string): boolean {
+        return inFolder(path, articlesFolderOf(this.plugin));
     }
 
     private scheduleRefresh(keepDetail = false): void {
@@ -332,6 +367,7 @@ export class LibraryView extends ItemView {
             });
         }
         const sort = bar.createEl("select", { cls: ["dropdown", c("shelf-sort")], attr: { "aria-label": t("shelf_sort_label") } });
+        if (this.filter === "articles") this.renderArticlesFrom(body, scope);
         this.renderNoteChips(body, scope);
         for (const option of SHELF_SORTS) sort.createEl("option", { text: t(SORT_KEY[option]), attr: { value: option } });
         sort.value = this.sort;
@@ -392,13 +428,74 @@ export class LibraryView extends ItemView {
         this.drawnCollections = new Set(names.map(fold));
     }
 
-    /** *Continue reading*, *Want to read* and the shelf itself — what the search and the sort redraw. */
+    /**
+     * Where articles come from (#744 FR-2), under the *Articles* chip: the folder, and *Change* — an
+     * inline folder field, the same setting as Settings → Reading. Empty turns articles off.
+     */
+    private renderArticlesFrom(body: HTMLElement, scope: Component): void {
+        const line = body.createDiv({ cls: c("shelf-articles-from") });
+        const settings = this.plugin?.settings;
+        if (this.changingFolder && settings) {
+            const setting = new Setting(line).setName(t("shelf_articles_folder"));
+            setting.settingEl?.addClass(c("shelf-articles-field"));
+            addFolderField(setting, {
+                read: () => articlesFolderOf(this.plugin),
+                // Empty is a choice: no articles on the shelf.
+                accept: (value) => {
+                    settings.articlesFolder = value.replace(/^\/+|\/+$/g, "");
+                    return true;
+                },
+                saved: async () => {
+                    this.changingFolder = false;
+                    await this.plugin?.saveSettings?.();
+                    this.refresh();
+                },
+                placeholder: ARTICLES_DEFAULT,
+            });
+            const input = line.querySelector?.<HTMLInputElement>("input");
+            input?.focus?.();
+            // Left as it was — Esc, or leaving the field unchanged — the line comes back as it was.
+            const putAway = () => {
+                if (!this.changingFolder) return;
+                this.changingFolder = false;
+                this.render();
+            };
+            if (input) {
+                scope.registerDomEvent(input, "keydown", (event: KeyboardEvent) => {
+                    if (event.key !== "Escape") return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    putAway();
+                });
+                scope.registerDomEvent(input, "blur", () => {
+                    window.setTimeout(() => {
+                        if (input.value.trim().replace(/^\/+|\/+$/g, "") === articlesFolderOf(this.plugin)) putAway();
+                    }, FOLDER_BLUR_MS);
+                });
+            }
+            return;
+        }
+        const folder = articlesFolderOf(this.plugin);
+        line.createSpan({ text: folder ? t("shelf_articles_from", folder) : t("shelf_articles_off") });
+        line.createSpan({ cls: c("shelf-articles-dot"), text: "·", attr: { "aria-hidden": "true" } });
+        const change = line.createEl("button", { cls: c("shelf-articles-change"), text: t("shelf_articles_change"), attr: { type: "button" } });
+        scope.registerDomEvent(change, "click", () => {
+            this.changingFolder = true;
+            this.render();
+        });
+    }
+
+    /** Nothing narrowed: the shelf reads in sections. */
+    private sectioned(): boolean {
+        return this.filter === "all" && this.status === "all" && !this.collection && !this.search.trim();
+    }
+
+    /** *Continue reading*, *Recently added*, *Want to read* and the shelf itself — what the search and the sort redraw. */
     private renderShelf(host: HTMLElement, scope: Component): void {
         host.empty();
         this.observer?.disconnect();
         const items = this.shelf.items;
-        // Nothing narrowed: the shelf reads in sections.
-        const sectioned = this.filter === "all" && this.status === "all" && !this.collection && !this.search.trim();
+        const sectioned = this.sectioned();
         if (sectioned) {
             const going = continueReading(items);
             if (going.length > 0) {
@@ -406,6 +503,19 @@ export class LibraryView extends ItemView {
                 const hero = host.createDiv({ cls: c("shelf-hero") });
                 for (const item of going) this.renderHeroCard(hero, item, scope);
             }
+            // What came into the vault lately (#744 FR-8): one row, hidden when there is nothing.
+            const recent = recentlyAdded(items, Date.now());
+            const known = this.drawnRecent;
+            if (recent.length > 0) {
+                host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_recent") });
+                const row = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--recent")], attr: { role: "list" } });
+                for (const item of recent) {
+                    const card = this.renderCard(row, item, scope, recentKey(item.id));
+                    // A card new since the last draw settles in; the first draw is still (FR-13).
+                    if (known && !known.has(item.id)) arriveIn(card);
+                }
+            }
+            this.drawnRecent = new Set(recent.map((item) => item.id));
         }
         // What you said you want to read, after what you are reading — only when it holds something (FR-9).
         const want = sectioned ? viewShelf(wantToRead(items), { filter: "all", sort: this.sort, search: "" }) : [];
@@ -419,7 +529,8 @@ export class LibraryView extends ItemView {
         const wanted = new Set(want.map((item) => item.id));
         const shown = viewShelf(items, query).filter((item) => !wanted.has(item.id));
         if (shown.length === 0) {
-            host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
+            // No articles yet: the line under the chip already says where they come from (#744).
+            if (this.filter !== "articles" || this.search.trim()) host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
             return;
         }
         const grid = host.createDiv({ cls: c("shelf-shelf"), attr: { role: "list" } });
@@ -431,6 +542,8 @@ export class LibraryView extends ItemView {
         setIcon(empty.createDiv({ cls: c("shelf-empty-icon") }), "library");
         empty.createEl("h2", { cls: c("shelf-empty-title"), text: t("shelf_empty_title") });
         empty.createDiv({ cls: c("shelf-empty-body"), text: t("shelf_empty_body") });
+        // Clipping into another folder? Where articles come from is changed from here too (#744 FR-2).
+        this.renderArticlesFrom(empty, scope);
         const note = this.lastNote();
         if (!note) return;
         const read = empty.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("shelf_empty_read") });
@@ -445,11 +558,11 @@ export class LibraryView extends ItemView {
         return recent.find((path) => path.toLowerCase().endsWith(".md")) ?? null;
     }
 
-    private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component): void {
+    private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component, key = item.id): HTMLElement {
         const card = grid.createDiv({
             cls: [c("shelf-card"), ...(item.imageOnly ? [c("shelf-card--scanned")] : [])],
             // Known across a redraw, so a card that changes row is carried there (#743 FR-16).
-            attr: { role: "listitem", [FLIP_KEY]: item.id },
+            attr: { role: "listitem", [FLIP_KEY]: key },
         });
         const open = card.createEl("button", {
             cls: c("shelf-card-open"),
@@ -483,6 +596,7 @@ export class LibraryView extends ItemView {
             last.createSpan({ text: lastReadLabel(item.lastRead) });
         }
         if (item.imageOnly) this.scannedBadge(last);
+        return card;
     }
 
     /** Progress, highlights and notes born: what came of it, in one line. */
@@ -537,7 +651,8 @@ export class LibraryView extends ItemView {
 
     /** A cover is read the first time it scrolls into view; one already read is laid on at once. */
     private watchCover(cover: HTMLElement, item: ShelfItem): void {
-        if (!item.file) return;
+        // An article has no cover to read: its drawn one, in a theme colour, is its cover (#744 FR-3).
+        if (!item.file || item.kind === "article") return;
         const file = this.app.vault.getAbstractFileByPath(item.file);
         if (!(file instanceof TFile)) return;
         const known = cachedCover(file);
@@ -631,7 +746,7 @@ export class LibraryView extends ItemView {
                     scope,
                     item,
                     folder: () => this.plugin?.settings?.bookNotesFolder || "Library",
-                    collections: () => collectionsInUse(this.shelf.notes.values()),
+                    collections: () => collectionsInUse([...this.shelf.notes.values(), ...this.articleNotes()]),
                     declared: async () => {
                         const file = item.file ? this.app.vault.getAbstractFileByPath(item.file) : null;
                         return file instanceof TFile ? declaredMetadata(this.app, file) : {};
@@ -654,6 +769,18 @@ export class LibraryView extends ItemView {
         const item = this.shelf.items[at];
         if (!item?.file) return;
         const meta = this.shelf.meta[item.file];
+        if (item.kind === "article") {
+            // Its own frontmatter is its note (#744 FR-4): only the status and the collections changed.
+            const next: ShelfItem = { ...item, details };
+            delete next.status;
+            delete next.collections;
+            const status = effectiveStatus(details, meta);
+            if (status) next.status = status;
+            if (details.collections) next.collections = [...details.collections];
+            this.shelf.items[at] = next;
+            if (this.body) flipMove(this.body, () => this.render());
+            return;
+        }
         const status = effectiveStatus(note ? details : undefined, meta);
         const author = (note ? details.author?.join(", ") : undefined) ?? meta?.author;
         const next: ShelfItem = {
@@ -675,6 +802,11 @@ export class LibraryView extends ItemView {
         this.shelf.items[at] = next;
         if (!this.body) return;
         flipMove(this.body, () => this.render());
+    }
+
+    /** The articles' own frontmatter, as notes: their collections are suggested too (#744). */
+    private articleNotes(): { details: BookDetails }[] {
+        return this.shelf.items.filter((item) => item.kind === "article" && item.details).map((item) => ({ details: item.details! }));
     }
 
     // ── the notebook (#721) ──────────────────────────────────────────────────

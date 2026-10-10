@@ -83,7 +83,7 @@ describe("the Library (#680)", () => {
         const { view, content } = mount(["Books/Thinking, Fast and Slow.epub", "Papers/cap.pdf", "Papers/scan.pdf"], { library });
         await view.onOpen();
         const chips = content.oneByClass("shelf-bar").byClass("shelf-filter");
-        expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Paths0"]);
+        expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Articles0", "Paths0"]);
         chips[2].click();
         expect(content.byClass("shelf-hero")).toHaveLength(0);
         expect(content.oneByClass("shelf-section").textContent).toBe("Papers");

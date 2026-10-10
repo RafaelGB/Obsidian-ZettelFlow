@@ -32,6 +32,8 @@ export function crystallizeHighlight(app: App, thought: Thought, done?: (path?: 
             }
             done?.(path);
         },
-        thought.about
+        // A passage read as a source — a book, a paper, an article (#744) — is never appended back
+        // into what it was read in: an article is a note, and reading it never writes it (FR-10).
+        thought.locator ? undefined : thought.about
     ).open();
 }

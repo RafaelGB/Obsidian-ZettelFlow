@@ -19,7 +19,7 @@ import {
     type DeclaredMetadata,
     type TextField,
 } from "application/library/bookNote";
-import { adoptNote, createBookNote, editBookNote, noteAt, type BookNoteWrite, type CreateBookNote } from "./bookNoteWriter";
+import { adoptNote, createBookNote, editArticle, editBookNote, noteAt, type BookNoteWrite, type CreateBookNote } from "./bookNoteWriter";
 import { dropIn } from "./libraryFlip";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -56,6 +56,8 @@ export interface DetailsPort {
     create(request: CreateBookNote): Promise<BookNoteWrite>;
     edit(file: TFile, change: BookChange): Promise<BookNoteWrite>;
     adopt(file: TFile, source: string): Promise<BookNoteWrite>;
+    /** An article's own frontmatter (#744): only its status and collections. */
+    editArticle?(file: TFile, change: BookChange): Promise<BookNoteWrite>;
     undo(batch: string): Promise<UndoResult>;
     noteAt(path: string): TFile | null;
 }
@@ -64,6 +66,7 @@ export const realDetailsPort: DetailsPort = {
     create: createBookNote,
     edit: editBookNote,
     adopt: adoptNote,
+    editArticle,
     undo: undoBatch,
     noteAt,
 };
@@ -138,6 +141,11 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
     const suggest: Suggest = parts.suggest ?? ((input, choices, label, chosen) => void new ChoiceSuggest(app, input, choices, label, chosen));
     const source = item.file;
     if (!source || item.kind === "path") return;
+    // An article is its own note (#744 FR-4): its status and collections are written into it, and
+    // nothing else — no fields to type, no book's note to make or adopt.
+    const article = item.kind === "article";
+    const edit = (target: TFile, change: BookChange): Promise<BookNoteWrite> =>
+        article ? (port.editArticle ? port.editArticle(target, change) : editArticle(target, change)) : port.edit(target, change);
 
     let details: BookDetails = item.details ? { ...item.details } : {};
     let file: TFile | null = item.note ? port.noteAt(item.note) : null;
@@ -201,7 +209,7 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
                     });
                     details = readBookNote(write.fields ?? {});
                 } else {
-                    write = await port.edit(file, change);
+                    write = await edit(file, change);
                     details = applied(details, change);
                 }
                 file = write.file;
@@ -238,7 +246,7 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
 
     section.createEl("h3", { cls: c("shelf-section"), text: t("shelf_details") });
     const grid = section.createDiv({ cls: c("shelf-details-grid") });
-    for (const field of TEXT_FIELDS) {
+    for (const field of article ? [] : TEXT_FIELDS) {
         const id = `zf-book-${field}`;
         grid.createEl("label", { cls: c("shelf-details-label"), text: t(FIELD_KEY[field]), attr: { for: id } });
         const cell = grid.createDiv({ cls: c("shelf-details-cell") });

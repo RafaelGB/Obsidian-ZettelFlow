@@ -12,7 +12,7 @@ import { languageTag } from "application/library/sourceMeta";
 export { languageTag };
 
 export interface ReadingLanguageInput {
-    format: "epub" | "pdf" | "note";
+    format: "epub" | "pdf" | "article" | "note";
     /** The book's: an EPUB's `dc:language`, a PDF's declared `/Lang`. */
     bookLanguage?: string;
     /** A chapter's own (`<html lang>` / `<body xml:lang>`), which wins for that chapter. */

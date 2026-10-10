@@ -5,7 +5,7 @@ let ids = 0;
 jest.mock("uuid", () => ({ v4: () => `id-${++ids}` }));
 
 import { fakeNoteVault, type FakeNoteVault } from "../../../../support/fakeNoteVault";
-import { adoptNote, createBookNote, editBookNote } from "architecture/components/core/library/bookNoteWriter";
+import { adoptNote, createBookNote, editArticle, editBookNote } from "architecture/components/core/library/bookNoteWriter";
 import { bufferedWrites, replaceBufferedWrites } from "architecture/plugin/writes/recordVaultWrite";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
 
@@ -122,5 +122,41 @@ describe("the book's note, written (#743)", () => {
         expect(fake.contents.get(first.file.path)).toBe(contentBefore);
         expect(fake.calls.process.length).toBe(writesBefore);
         expect(fake.file("Library/Thinking, Fast and Slow.md")).not.toBeNull();
+    });
+});
+
+describe("an article's status, in its own frontmatter (#744 FR-4, AC-5)", () => {
+    beforeEach(() => {
+        fakeNoteVault();
+        replaceBufferedWrites([]);
+    });
+
+    it("writes only the status — every other key by value, the body to the byte — as one recorded write, Undo takes it back", async () => {
+        const fake = fakeNoteVault();
+        const body = "\nSoftware got fast.[^1]\n\n## Speed\n\n> A quote, kept.   \n\n[^1]: Then slow.\n";
+        const clip = fake.put(
+            "Clippings/The case for slow software.md",
+            `---\ntitle: "The case for slow software"\nsource: "https://example.com/slow-software"\nauthor:\n  - "[[Jane Doe]]"\npublished: 2025-03-02\ncreated: 2025-03-04\ndescription: "Why slow is good."\ntags:\n  - "clippings"\n---\n${body}`
+        );
+        const before = fake.frontmatter(clip.path);
+        const write = await editArticle(clip, { status: "finished", title: "Something else", author: ["Nobody"] });
+        expect(fake.frontmatter(clip.path)).toEqual({ ...before, status: "finished" });
+        expect(fake.body(clip.path)).toBe(body);
+        expect(fake.calls.process).toEqual([clip.path]);
+        expect(fake.calls.create).toEqual([]);
+        const record = bufferedWrites().filter((entry) => entry.batch === write.batch);
+        expect(record.map((entry) => [entry.kind, entry.before, entry.after])).toEqual([["properties-set", { status: undefined }, { status: "finished" }]]);
+        expect((await undoBatch(write.batch!)).failed).toEqual([]);
+        expect(fake.frontmatter(clip.path)).toEqual(before);
+    });
+
+    it("writes collections too, and nothing at all for a change it does not take", async () => {
+        const fake = fakeNoteVault();
+        const clip = fake.put("Clippings/a.md", `---\nsource: "https://a.org"\n---\nText.\n`);
+        await editArticle(clip, { collections: ["Software design"] });
+        expect(fake.frontmatter(clip.path)).toEqual({ source: "https://a.org", collections: ["Software design"] });
+        const none = await editArticle(clip, { title: "x" });
+        expect(none.batch).toBeUndefined();
+        expect(fake.calls.process).toHaveLength(1);
     });
 });

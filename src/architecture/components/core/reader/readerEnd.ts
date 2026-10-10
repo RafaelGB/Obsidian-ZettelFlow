@@ -158,7 +158,7 @@ export interface SourceEndStats {
 
 export interface SourceEndCard {
     title: string;
-    format: "pdf" | "epub";
+    format: "pdf" | "epub" | "article";
     stats: SourceEndStats;
     actions: {
         /** The source on the shelf, in detail: every highlight, and the notes born from it. */
@@ -169,10 +169,17 @@ export interface SourceEndCard {
     };
 }
 
-/** Pages of a paper, chapters of a book. */
+/** What a chapter is called, and how the end says you got there: a paper's pages, a book's chapters, an article's sections (#744). */
+const SOURCE_WORDS: Record<SourceEndCard["format"], { stat: LocaleKey; lede: LocaleKey }> = {
+    pdf: { stat: "reader_end_stat_pages", lede: "reader_source_end_lede_pdf" },
+    epub: { stat: "reader_end_stat_chapters", lede: "reader_source_end_lede_epub" },
+    article: { stat: "reader_end_stat_sections", lede: "reader_source_end_lede_article" },
+};
+
+/** Pages of a paper, chapters of a book, sections of an article. */
 const sourceStats = (format: SourceEndCard["format"]): [keyof SourceEndStats, LocaleKey][] => [
     ["minutes", "reader_end_stat_minutes"],
-    ["chapters", format === "pdf" ? "reader_end_stat_pages" : "reader_end_stat_chapters"],
+    ["chapters", SOURCE_WORDS[format].stat],
     ["highlights", "reader_end_stat_highlights"],
     ["marginNotes", "reader_end_stat_margin_notes"],
 ];
@@ -187,7 +194,7 @@ export function renderSourceEnd(page: HTMLElement, card: SourceEndCard, owner: C
     const root = page.createDiv({ cls: c("reader-end") });
     root.createDiv({ cls: c("reader-count"), text: t("reader_source_end_kicker") });
     root.createEl("h1", { cls: c("reader-chapter-title"), text: card.title });
-    root.createDiv({ cls: c("reader-end-lede"), text: t(card.format === "pdf" ? "reader_source_end_lede_pdf" : "reader_source_end_lede_epub") });
+    root.createDiv({ cls: c("reader-end-lede"), text: t(SOURCE_WORDS[card.format].lede) });
     const stats = root.createDiv({ cls: c("reader-end-stats") });
     for (const [key, label] of sourceStats(card.format)) {
         const value = card.stats[key];

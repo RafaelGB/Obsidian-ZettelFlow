@@ -6,6 +6,7 @@ import type { PageText } from "application/library/pdfWords";
 import type { PageMark } from "application/library/provenance";
 import { openPdfSource } from "./pdfSource";
 import { openEpubSource } from "./epubSource";
+import { openArticleSource } from "./articleSource";
 
 /**
  * **A source, as the Reader reads it** (#681, #682, epic #675) — one Reader for everything (L2): a
@@ -121,8 +122,19 @@ export interface SourcePages {
     destination(dest: unknown, rotation?: (page: number) => number): Promise<{ page: number; share?: number } | null>;
 }
 
+/**
+ * What a source is, as the Reader reads it: a PDF, an EPUB — or an article (#744), a note you saved
+ * from the web, read like a book. Not {@link SourceFormat}, which says what is a book *file*.
+ */
+export type ReadFormat = SourceFormat | "article";
+
+/** Whether a vault path opens as a source in the Reader: a PDF, an EPUB, or a note read as an article. */
+export function readsAsSource(path: string): boolean {
+    return sourceFormat(path) !== null || path.toLowerCase().endsWith(".md");
+}
+
 export interface SourceDocument {
-    format: SourceFormat;
+    format: ReadFormat;
     path: string;
     title: string;
     author?: string;
@@ -154,12 +166,14 @@ export interface SourceDocument {
 }
 
 /**
- * Open a PDF or an EPUB for reading. Throws when the file is not one, or cannot be read.
+ * Open a PDF, an EPUB or an article for reading. Throws when the file is not one, or cannot be read.
  * `imageOnly` is what the shelf already knows of a PDF, so a known scan is not sampled again.
  */
 export async function openSourceDocument(app: App, path: string, imageOnly?: boolean): Promise<SourceDocument> {
     const format = sourceFormat(path);
     const file = app.vault.getAbstractFileByPath(path);
-    if (!format || !(file instanceof TFile)) throw new Error(`not a source: ${path}`);
-    return format === "pdf" ? openPdfSource(app, file, imageOnly) : openEpubSource(app, file);
+    if (!readsAsSource(path) || !(file instanceof TFile)) throw new Error(`not a source: ${path}`);
+    if (format === "pdf") return openPdfSource(app, file, imageOnly);
+    if (format === "epub") return openEpubSource(app, file);
+    return openArticleSource(app, file);
 }

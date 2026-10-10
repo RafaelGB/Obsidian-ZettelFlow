@@ -24,6 +24,8 @@ import {
  * - **edit** — every change after that: only the keys you changed, through `FrontmatterService`.
  * - **adopt** — *Use a note you already have*: only the link to the book is added.
  *
+ * And one for an article (#744): its status and collections, in its own frontmatter — `editArticle`.
+ *
  * The book file itself is never written. This lives in the Library, outside the Reader, which still
  * writes no note (`readerShell.test.ts`).
  */
@@ -84,6 +86,21 @@ export async function editBookNote(file: TFile, change: BookChange): Promise<Boo
         });
     });
     return { file, batch };
+}
+
+/** What may be written into an article's own frontmatter (#744 FR-4): where it stands for you, and its collections. */
+export const ARTICLE_KEYS = ["status", "collections"] as const;
+
+/**
+ * A change to an article (#744 FR-4, AC-5): a clipping is its own note, so its status and its
+ * collections are written into its frontmatter — through `FrontmatterService`, one recorded batch —
+ * and nothing else in it is touched. A change to any other key is dropped, never written.
+ */
+export async function editArticle(file: TFile, change: BookChange): Promise<BookNoteWrite> {
+    const kept: BookChange = {};
+    for (const key of ARTICLE_KEYS) if (key in change) (kept as Record<string, unknown>)[key] = change[key];
+    if (Object.keys(kept).length === 0) return { file };
+    return editBookNote(file, kept);
 }
 
 /** *Use a note you already have* (FR-7): the link to the book is added, and nothing else. */

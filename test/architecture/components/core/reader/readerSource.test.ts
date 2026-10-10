@@ -74,7 +74,9 @@ describe("a PDF in the Reader (#681)", () => {
 
     it("reads the source from the view state, and keeps only what it knows", () => {
         expect(parseReaderState({ source: "Papers/cap.pdf", chapter: 2, layout: "page" })).toEqual({ source: "Papers/cap.pdf", chapter: 2, layout: "page" });
-        expect(parseReaderState({ source: "notes/a.md" })).toEqual({});
+        expect(parseReaderState({ source: "notes/a.txt" })).toEqual({});
+        // An article is a note read as a source (#744).
+        expect(parseReaderState({ source: "Clippings/a.md" })).toEqual({ source: "Clippings/a.md" });
     });
 
     it("reflows a page into the reader's column: its pages are the chapters", async () => {

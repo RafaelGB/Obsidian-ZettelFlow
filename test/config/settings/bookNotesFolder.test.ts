@@ -111,3 +111,38 @@ describe("the Book notes folder, where reading is set (#743 AC-11)", () => {
         expect(row.settingEl.oneByClass("settings-folder-path").text).toBe("Elsewhere");
     });
 });
+
+describe("the Articles folder, where reading is set (#744 AC-7)", () => {
+    it("reads Clippings — Web Clipper's own — until you choose", () => {
+        expect(DEFAULT_SETTINGS.articlesFolder).toBe("Clippings");
+        const row = draw(byName(items(readingSettingsGroup(plugin() as never)), "Articles folder"));
+        expect(row.searches[0].value).toBe("Clippings");
+        expect(row.settingEl.hasClass("zettelkasten-flow__settings-articles-row")).toBe(true);
+    });
+
+    it("saves a folder when you leave the field, can be emptied to turn articles off, and the reset puts Clippings back", async () => {
+        jest.useFakeTimers();
+        try {
+            const p = plugin();
+            const changed = jest.fn();
+            const row = draw(byName(items(readingSettingsGroup(p as never, undefined, changed)), "Articles folder"));
+            row.searches[0].type!("Web/Clips/");
+            row.searches[0].inputEl!.fire!("blur");
+            await jest.advanceTimersByTimeAsync(250);
+            expect(p.settings.articlesFolder).toBe("Web/Clips");
+            row.searches[0].type!("");
+            row.searches[0].inputEl!.fire!("keydown", { key: "Enter" });
+            await jest.advanceTimersByTimeAsync(0);
+            expect(p.settings.articlesFolder).toBe("");
+            row.extraButtons[0].click!();
+            await jest.advanceTimersByTimeAsync(0);
+            expect(p.settings.articlesFolder).toBe("Clippings");
+            expect(p.saveSettings).toHaveBeenCalledTimes(3);
+            // An open Library hears of each change.
+            expect(changed).toHaveBeenCalledTimes(3);
+            expect(p.createFolder).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+});

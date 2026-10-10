@@ -172,6 +172,12 @@ export interface ZettelFlowSettings {
      */
     bookNotesFolder?: string;
     /**
+     * Where articles come from (#744, epic #742): the notes in this folder whose `source` is a web
+     * address are on the Library's shelf as articles. Web Clipper's own `Clippings` until you choose;
+     * empty turns articles off.
+     */
+    articlesFolder?: string;
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */
@@ -451,6 +457,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     readingMotion: { open: "shot", chapter: "leaf" }, // one continuous shot, a leaf that turns (#732).
     dictionaries: { folder: "Dictionaries", languages: {}, translateInto: "" }, // nothing found until you add one (#766).
     bookNotesFolder: "Library", // a book's note lands here, made only with the first one (#743).
+    articlesFolder: "Clippings", // Web Clipper's own folder: its clippings are articles on the shelf (#744).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

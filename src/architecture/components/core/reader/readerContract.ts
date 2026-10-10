@@ -30,8 +30,9 @@ export interface ReaderState {
     /** A saved reading's name (#672), shown on the title line instead of how it was chosen. */
     name?: string;
     /**
-     * A PDF or an EPUB in the vault (#681, #682): the reading is the source, its chapters are its
-     * pages or spine items, and `chapter` is the place in it.
+     * A PDF or an EPUB in the vault (#681, #682) — or an article, a note read as one (#744): the
+     * reading is the source, its chapters are its pages, spine items or sections, and `chapter` is
+     * the place in it.
      */
     source?: string;
     /** A PDF drawn as its pages were laid out (#681), instead of reflowed into the column. */
@@ -74,7 +75,7 @@ export function parseReaderState(raw: unknown): ReaderState {
     }
     if (typeof value.highlight === "string" && value.highlight.length > 0) state.highlight = value.highlight;
     if (typeof value.name === "string" && value.name.trim().length > 0) state.name = value.name.trim();
-    if (typeof value.source === "string" && /\.(pdf|epub)$/i.test(value.source)) state.source = value.source;
+    if (typeof value.source === "string" && /\.(pdf|epub|md)$/i.test(value.source)) state.source = value.source;
     if (value.layout === "page") state.layout = "page";
     if (typeof value.at === "string" && value.at.length > 0 && value.at.length <= 4096) state.at = value.at;
     if (typeof value.claimFrom === "string" && value.claimFrom.length > 0 && value.claimFrom.length <= 512) state.claimFrom = value.claimFrom;

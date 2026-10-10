@@ -271,6 +271,26 @@ are the app's, not a plugin's. The Pencil's native gestures are the same — a w
 Ink is drawn from what WebKit reports (about 120–240 Hz, with no predicted points): good ink, honestly
 not PencilKit ink.
 
+**Still to prove on a device: Pencil hover.** An M2-or-later iPad senses an Apple Pencil 2 or a Pencil
+Pro while it is still above the glass, and native apps show where it will land. Whether Obsidian's
+web view passes that on to a plugin is not documented, so the Reader does not promise it:
+
+| On iPad | In the Reader | Evidence |
+|---|---|---|
+| A nib shadow under the hovering Pencil (M2+ iPad, Pencil 2 or Pro) | ◐ to prove on a device | not yet measured on an iPad — [#749](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/749) |
+
+![Pencil hover, still to prove: a Pencil held above an iPad's page, a dashed question between its tip and the page — does the web view hear it? — and the developer probe that will answer, five seconds of pen events without contact, written and sent nowhere](../resources/reader/ink-hover.svg)
+
+The question is measured, not guessed. A five-second developer probe counts the pen events the
+Reader receives **without contact** (`pointerType: "pen"`, no button pressed) and decides by named
+thresholds: at least 30 events a second, no gap over 100 ms, the position moving, and the events
+stopping when the Pencil leaves range — a shadow that lags the nib is worse than none. In the desktop
+app, fed trusted pen events, it read 120 events, position and tilt moving and the leave seen, and the
+vault's files were unchanged. That proves the instrument, not the iPad: a desktop pen is not
+WKWebView. The probe is not in the plugin; it is kept as a patch on the issue for the device run.
+Until an iPad answers, there is no shadow, and writing is exactly as above. When it answers, the row
+becomes ✓ (and the shadow is built) or ✗, with the device, the versions and the rate.
+
 ## Links, detours and context
 
 Getting lost is the main way reading fails in a linked vault: you follow a link, then another, and

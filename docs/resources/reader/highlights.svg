@@ -76,7 +76,7 @@
 <text x="96" y="833" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Select words: Highlight, Highlight and note, or Copy (H and Shift+H from the keyboard).</text>
 <circle cx="76" cy="850" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="76" y="854.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
-<text x="96" y="855" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">In the margin on a wide pane (under Around this chapter on a narrow one): click one to go to it.</text>
+<text x="96" y="855" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">In the margin on a wide pane (under Alongside on a narrow one): click one to go to it.</text>
 <circle cx="76" cy="872" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="76" y="876.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
 <text x="96" y="877" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Each highlight is a thought in Think, about the note, with the passage quoted above what you wrote.</text>

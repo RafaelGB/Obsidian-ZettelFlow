@@ -15,7 +15,7 @@ import {
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
+import type { ChapterRole, ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, ReaderTrail, type TrailReason } from "./readerJumps";
@@ -28,7 +28,8 @@ import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, 
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
-import { placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { blockAtLine, placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type AlongsideReading } from "./readerAlongside";
 import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
 import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
@@ -358,6 +359,12 @@ export class ReaderView extends ItemView {
     private renderScope: Component | null = null;
     /** The listeners of the open panel's rows, replaced when it redraws. */
     private panelScope: Component | null = null;
+    /** Alongside (#754): the context panel, your vault beside the page. Lives as long as the view. */
+    private alongside: ReaderAlongside | null = null;
+    /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
+    private panelShape: "sheet" | "side" | "card" | null = null;
+    /** Alongside's leaving slide, when it is playing. */
+    private alongsideLeaving: number | undefined;
     /** The listeners of the open peek, gone with it. */
     private peekScope: Component | null = null;
     /**
@@ -525,7 +532,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the thought store, the selection, the mark factory. */
         private readonly highlightDeps: HighlightDeps = {},
         /** Seams for tests: ink's store, its words and its clock (#745). */
-        private readonly inkDeps: InkDeps = {}
+        private readonly inkDeps: InkDeps = {},
+        /** Seams for tests: Alongside's index, Think and the judgement record (#754). */
+        private readonly alongsideDeps: AlongsideDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -813,8 +822,14 @@ export class ReaderView extends ItemView {
         }
         // A reading restored before the index is ready is read as soon as the model is built.
         this.app.workspace.onLayoutReady?.(() => this.resolvePending());
-        const resolved = this.app.metadataCache.on?.("resolved", () => this.resolvePending());
+        const resolved = this.app.metadataCache.on?.("resolved", () => {
+            this.resolvePending();
+            if (this.panel === "context") this.alongside?.schedule();
+        });
         if (resolved) this.registerEvent(resolved);
+        // Alongside, open again if you left it open on this device (#754 FR-13).
+        this.alongside = new ReaderAlongside(this.alongsideView(), this.alongsideDeps);
+        if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
     }
@@ -840,6 +855,9 @@ export class ReaderView extends ItemView {
         this.renderScope = null;
         this.panelScope?.unload();
         this.panelScope = null;
+        this.alongside?.dispose();
+        this.alongside = null;
+        (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.peekScope?.unload();
         this.peekScope = null;
         // Closing the tab any other way still gives the workspace back.
@@ -984,7 +1002,7 @@ export class ReaderView extends ItemView {
                 owner: this,
                 scrollTo: (el, travel) => this.scrollToEl(el, travel),
                 onChange: () => {
-                    if (this.panel === "context") this.renderPanel();
+                    if (this.panel === "context") this.alongside?.update();
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
@@ -992,6 +1010,11 @@ export class ReaderView extends ItemView {
             this.highlightDeps
         );
         this.watchShape(root);
+        // Words selected: Alongside follows the selection once it settles (#754 FR-2).
+        const doc = (root as HTMLElement & { doc?: Document }).doc;
+        if (doc) this.registerDomEvent(doc, "selectionchange", () => {
+            if (this.panel === "context") this.alongside?.schedule();
+        });
         this.wake();
     }
 
@@ -1010,7 +1033,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1400,6 +1423,8 @@ export class ReaderView extends ItemView {
     private onStageScroll(): void {
         const els = this.els;
         if (!els) return;
+        // Alongside follows the reading when it settles — never on every frame (#754 AC-8).
+        if (this.panel === "context") this.alongside?.schedule();
         const { stage } = els;
         // In pages the place is the page on show, filled page by page (#753 FR-7).
         const pager = this.pagedNow() ? this.pager : null;
@@ -1850,9 +1875,12 @@ export class ReaderView extends ItemView {
         };
 
         if (notePath) {
-            if (notePath !== this.reading()) action("reader_peek_detour", true, () => this.takeDetour(notePath));
-            if (at >= 0) action("reader_peek_jump", false, () => this.show(at));
-            else action("reader_peek_add", false, () => this.addToReading(notePath));
+            // A book is read in its own pages: a note met beside it opens in a tab, never as a detour (#754).
+            if (!this.sourcePath) {
+                if (notePath !== this.reading()) action("reader_peek_detour", true, () => this.takeDetour(notePath));
+                if (at >= 0) action("reader_peek_jump", false, () => this.show(at));
+                else action("reader_peek_add", false, () => this.addToReading(notePath));
+            }
             action("reader_peek_tab", false, () => {
                 this.closePeek();
                 void this.app.workspace.openLinkText(notePath, this.reading() ?? "", "tab");
@@ -3040,11 +3068,21 @@ export class ReaderView extends ItemView {
     // ── panels ───────────────────────────────────────────────────────────────
 
     private toggle(panel: Exclude<Panel, null>): void {
+        // Asked for again while it slides away: it stays (#754).
+        if (panel === "context" && this.panel === "context" && this.alongsideLeaving !== undefined) {
+            (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
+            this.alongsideLeaving = undefined;
+            this.els?.panel.removeClass(c("reader-panel--leaving"));
+            this.alongside?.remember(true);
+            return;
+        }
         if (this.panel === panel) {
             this.closePanel();
             return;
         }
         this.panel = panel;
+        // Whether Alongside is open is kept on this device (#754 FR-13).
+        this.alongside?.remember(panel === "context");
         this.renderPanel();
         // A panel open over the page keeps the chrome with it, in deep reading too (#764 FR-3).
         this.wake();
@@ -3053,19 +3091,35 @@ export class ReaderView extends ItemView {
     private renderPanel(): void {
         if (!this.els) return;
         const host = this.els.panel;
+        // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); Alongside lies beside
+        // the column (#754 FR-14); the other panels are a card over the page.
+        const asSheet = this.panel !== null && this.panelIsSheet();
+        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" ? "side" : "card";
+        // Alongside, still open in the same shape, moves in place: its cards follow the reading, never
+        // a redraw (#754 FR-19).
+        if (this.panel === "context" && shape === this.panelShape && this.alongside?.isMounted(host)) {
+            this.alongside.update();
+            return;
+        }
         // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
         const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
         this.thumbs?.dispose();
         this.thumbs = null;
+        this.alongside?.unmount();
+        (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
+        this.alongsideLeaving = undefined;
         host.empty();
         this.panelScope?.unload();
         const scope = new Component();
         scope.load();
         this.panelScope = scope;
+        this.panelShape = shape;
         host.toggleClass(c("reader-panel--open"), this.panel !== null);
-        // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); a card everywhere else.
-        const asSheet = this.panel !== null && this.panelIsSheet();
         host.toggleClass(c("reader-panel--sheet"), asSheet);
+        host.toggleClass(c("reader-panel--side"), shape === "side");
+        host.removeClass(c("reader-panel--leaving"));
+        // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
+        this.setAlongsideColumn(shape === "side");
         if (asSheet) this.openSheet(host, scope);
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
@@ -3075,7 +3129,114 @@ export class ReaderView extends ItemView {
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
             renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, this.typeContext());
         }
-        else if (this.panel === "context") this.renderContext(host);
+        else if (this.panel === "context") this.alongside?.mount(host, scope);
+    }
+
+    /**
+     * The column narrows for Alongside on a wide pane, or widens back, in one layout — and the
+     * paragraph at the reading line stays where your eye is (#754 FR-17, AC-10).
+     */
+    private setAlongsideColumn(on: boolean): void {
+        const root = this.root;
+        if (!root || root.hasClass(c("reader--alongside")) === on) return;
+        this.holdReadingLine(() => root.toggleClass(c("reader--alongside"), on));
+    }
+
+    /** Keep the block at the reading line, and how far into it the line is, through `change`. */
+    private holdReadingLine(change: () => void): void {
+        const stage = this.els?.stage;
+        // A paper in Page view lays its pages out again for the new width, the page you were on kept (#767).
+        if (stage && this.runMode() && this.pageRun) {
+            change();
+            this.pageRun.reshape();
+            return;
+        }
+        // In pages the pager keeps its own place through the stage's change, on its own observer (#753).
+        if (!stage || this.pagedNow() || this.runMode()) {
+            change();
+            return;
+        }
+        const line = stage.getBoundingClientRect().top + stage.clientHeight * READING_LINE;
+        const el = this.blockElements().find((block) => {
+            const r = block.getBoundingClientRect();
+            return r.top + r.height > line;
+        });
+        const was = el?.getBoundingClientRect();
+        change();
+        if (!el || !was) return;
+        const within = was.height > 0 ? Math.min(1, Math.max(0, (line - was.top) / was.height)) : 0;
+        const now = el.getBoundingClientRect();
+        const shift = now.top + within * now.height - (was.top + within * was.height);
+        if (Math.abs(shift) >= 1) stage.scrollTop = Math.max(0, stage.scrollTop + shift);
+        const blocks = this.blocks();
+        if (blocks.length > 0) this.place = placeAt(blocks, stage.scrollTop);
+    }
+
+    /** What Alongside reads of the Reader (#754). */
+    private alongsideView() {
+        return {
+            app: this.app,
+            owner: this,
+            reading: () => this.alongsideReading(),
+            passage: () => this.alongsidePassage(),
+            marks: () => [...(this.highlights?.items() ?? []), ...(this.highlights?.detachedItems() ?? [])],
+            renderHighlights: (host: HTMLElement, scope: Component) => this.highlights?.renderList(host, scope),
+            peek: (anchor: HTMLElement, path: string, name: string) => this.openPeek(anchor, path, name),
+        };
+    }
+
+    /** The book and the chapter on screen; in a note reading, the reading and its note. */
+    private alongsideReading(): AlongsideReading | null {
+        if (!this.path || this.ended) return null;
+        if (this.sourcePath) {
+            const chapter = this.source?.chapters[this.index];
+            const pdf = sourceFormat(this.sourcePath) === "pdf";
+            return {
+                book: this.sourcePath,
+                bookTitle: this.source?.title ?? noteName(this.sourcePath),
+                chapterKey: chapter?.key ?? (pdf ? `page:${this.index}` : String(this.index)),
+                source: true,
+            };
+        }
+        const note = this.reading();
+        if (!note) return null;
+        return { book: this.path.seed, bookTitle: noteName(this.path.seed), chapterKey: note, source: false, chapterNote: note };
+    }
+
+    /** What Alongside is near (FR-2): the words you selected, a PDF's page in Page view, or the paragraph at the reading line. */
+    private alongsidePassage(): AlongsidePassage | null {
+        const els = this.els;
+        if (!els) return null;
+        const selection = (this.root?.win ?? window).getSelection?.();
+        const selected = selection && !selection.isCollapsed && selection.rangeCount > 0 ? selection.toString().trim() : "";
+        if (selected && selection && els.page.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+            const start = selection.getRangeAt(0).startContainer;
+            const el = start.nodeType === 1 ? (start as HTMLElement) : start.parentElement;
+            return { text: selected, kind: "selection", anchor: el?.closest<HTMLElement>("p, blockquote, li, h1, h2, h3, h4, h5, h6, figure, table, pre") ?? null };
+        }
+        if (this.sourcePath && (this.sourceView === "page" || this.runMode())) {
+            const page = this.runMode() && this.pageRun ? els.page.querySelector<HTMLElement>(`[data-page="${this.pageRun.page()}"]`) : els.page;
+            return { text: page?.textContent ?? "", kind: "page", anchor: null };
+        }
+        const block = this.blockAtReadingLine();
+        return { text: block?.textContent ?? "", kind: "paragraph", anchor: block };
+    }
+
+    /** The block under the reading line, a third of the way down the stage (#751 FR-6). */
+    private blockAtReadingLine(): HTMLElement | null {
+        const stage = this.els?.stage;
+        if (!stage) return null;
+        const elements = this.pagedNow() && this.pager ? this.pager.visibleBlocks() : this.blockElements();
+        if (elements.length === 0) return null;
+        const line = stage.getBoundingClientRect().top + stage.clientHeight * READING_LINE;
+        const at = blockAtLine(
+            elements.map((el) => {
+                const r = el.getBoundingClientRect();
+                return { top: r.top, height: r.height };
+            }),
+            line
+        );
+        return at >= 0 ? elements[at] : null;
     }
 
     /** What the Type panel says besides its rows (#757): the language of the hyphens, Page view's note. */
@@ -3315,38 +3476,6 @@ export class ReaderView extends ItemView {
         }, MOTION.base);
     }
 
-    private renderContext(host: HTMLElement): void {
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
-        if (this.sourcePath) {
-            // A source has no neighbours in the graph: what is around a page is what you marked on it.
-            if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
-            if (host.childElementCount <= 1) host.createDiv({ cls: c("reader-context-empty"), text: t("reader_source_context_empty") });
-            return;
-        }
-        const index = KnowledgeIndex.getInstance();
-        if (!this.path || index.status !== "ready") return;
-        const map = buildEvidenceMap(index.getModel(), this.reading() ?? this.path.chapters[this.index].path);
-        const list = (key: LocaleKey, paths: string[]) => {
-            if (paths.length === 0) return;
-            host.createDiv({ cls: c("reader-context-heading"), text: t(key) });
-            for (const p of paths) {
-                // Each is a peek too: read it here, take it as a detour, or add it to this reading.
-                const row = host.createEl("button", { cls: c("reader-context-row"), attr: { type: "button" }, text: noteName(p) });
-                const scope = this.panelScope;
-                scope?.registerDomEvent(row, "click", () => this.openPeek(row, p, noteName(p)));
-                hoverPreview(this.app, row, p, scope ?? this);
-            }
-        };
-        // Your highlights here too: the margin only has room on a wide pane (#671).
-        if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
-        list("reader_supports", map.supports);
-        list("reader_argues", map.contradicts);
-        list("reader_questions", map.gaps.openQuestions);
-        if (map.supports.length + map.contradicts.length + map.gaps.openQuestions.length === 0) {
-            host.createDiv({ cls: c("reader-context-empty"), text: t("reader_context_empty") });
-        }
-    }
-
     // ── the panel as a bottom sheet (#750 D5) ────────────────────────────────
 
     /** Whether the panel opens as a sheet now: a mobile reading taller than it is wide. */
@@ -3448,6 +3577,19 @@ export class ReaderView extends ItemView {
     private closePanel(ms: number = MOTION.base): void {
         const host = this.els?.panel;
         if (!host || !this.panel) return;
+        if (this.panel === "context") this.alongside?.remember(false);
+        // Alongside slides back to the column's edge, then the column widens, your line kept (#754 FR-17).
+        if (host.hasClass(c("reader-panel--side")) && this.motionAllowed()) {
+            if (this.alongsideLeaving !== undefined) return;
+            host.addClass(c("reader-panel--leaving"));
+            this.alongsideLeaving = (this.root?.win ?? window).setTimeout(() => {
+                this.alongsideLeaving = undefined;
+                if (this.panel !== "context" || !host.hasClass(c("reader-panel--leaving"))) return;
+                this.panel = null;
+                this.renderPanel();
+            }, MOTION.base);
+            return;
+        }
         if (!host.hasClass(c("reader-panel--sheet")) || !this.motionAllowed()) {
             this.panel = null;
             this.renderPanel();

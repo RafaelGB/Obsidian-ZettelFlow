@@ -5,3 +5,4 @@ export * from "./gapVerdict";
 export * from "./collisionVerdict";
 export * from "./agencyReviewModel";
 export * from "./unexamined";
+export * from "./chapterVerdict";

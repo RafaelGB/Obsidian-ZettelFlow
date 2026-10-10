@@ -118,6 +118,7 @@ export const CAPABILITIES = [
     "think-about",
     "reader",
     "reader-ink",
+    "reader-alongside",
     "library",
     "highlights-review",
     "claim-door",
@@ -375,6 +376,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         owner: "zettelflow-reader",
         // Read as text (#748): the chip under each ink note — in the margin, and on its card in Think.
         doors: [CONTROL("architecture/components/core/reader/readerInk.ts", "zettelflow-reader"), CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
+    },
+    "reader-alongside": {
+        // Your vault beside the page (#754, epic #741): the Reader's own context button, where it
+        // always was — now *Alongside*, for a book, a paper or a note reading. Its six lenses are
+        // chips inside it. No command: you are reading, and the button is under your hand.
+        nameKey: "reader_context",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

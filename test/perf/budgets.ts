@@ -326,6 +326,21 @@ export const BUDGETS = {
         because:
             "it runs before a designed page can be drawn, between the turn and the page; a heavy comic's sheet must clean well inside the 120 ms the page takes to fade in (#771 FR-15)",
     },
+    "reader.alongside.near.10k": {
+        name: "what is near a 120-word paragraph over 10,000 notes, and its six lenses (vocabulary warm)",
+        // ~4× the measurement, and under the 100 ms promised to the reader (#754 FR-15).
+        limit: 40,
+        measured: "6.7–11.9 ms (three runs; 43 near notes, 1,000 thoughts)",
+        because:
+            "it runs once each time your reading settles in a book (#754): on a 10,000-note vault Alongside must have caught up within 100 ms of the scroll stopping, with the work of the vault done once per revision, never per paragraph",
+    },
+    "reader.alongside.vocabulary.10k": {
+        name: "build Alongside's vocabulary of 10,000 notes' titles and aliases (once per model revision)",
+        limit: 50,
+        measured: "11.1–13.0 ms (three runs)",
+        because:
+            "it is built on the first settle after the vault changes (#754 FR-15); under 50 ms it needs no idle build, and a regression past that would make the first paragraph after an edit wait",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,

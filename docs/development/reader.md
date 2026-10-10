@@ -121,7 +121,8 @@ hides it. It holds:
 - **Contents**, the chapters with their roles (in a book or a paper, with its **Bookmarks** and
   **Where you've been** beside them);
 - **Type**;
-- **Around this chapter**, with what supports it, what argues back and its open questions;
+- **Alongside**, your own notes near the paragraph you are reading, through six lenses (see
+  [Alongside](#alongside-your-vault-beside-the-page));
 - **Deep reading**, the page and nothing else (**F**);
 - **Keyboard shortcuts**.
 
@@ -233,7 +234,7 @@ nothing below changes: a click never turns a page.
 - **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
   own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
   **below** it, clear of that callout, and without a second *Copy*.
-- **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Around this chapter* rise from
+- **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Alongside* rise from
   the bottom edge at half height over the dimmed page. Drag the handle up to nearly full height or
   down to close it, or tap the page above it. In landscape they open as the usual card.
 - **The whole screen is the page.** While a book is open, Obsidian's own toolbar slides away, and it
@@ -322,8 +323,81 @@ Click a link and a card opens right under the paragraph that holds it. It says w
   Reader writes nothing.
 
 The **Contents** panel lists the chapters with their roles, ticks the ones you have read and marks
-where you are. **Around this chapter** lists what supports it, what argues back and its open
-questions, read from the same model as [This note](this-note.md). Each of those is a peek too.
+where you are. What supports the chapter, what argues back and its open questions are in
+[Alongside](#alongside-your-vault-beside-the-page), read from the same model as
+[This note](this-note.md). Each of those is a peek too.
+
+## Alongside — your vault beside the page
+
+The book on the left, your notes on the right. **Alongside** is the Reader's context panel — the
+same button in the bar, in the same place — for a book, a paper or a reading of notes. It shows
+your highlights on this page first, as it always did, and under them what of yours is **near** the
+passage you are reading, each card saying in one line why it is there.
+
+![Alongside: a book on the left; on the right the panel near this paragraph, the lens chips without a number, three cards with why each is there, and a tension offering Look at both and Not related](../resources/reader/alongside.svg)
+
+**Near what.** The paragraph at the reading line, a third of the way down the column, or, while
+words are selected, the selection. In a PDF's Page view it is the page. The heading says which:
+*Near this paragraph*, *Near your selection*, *Near this page*. Alongside follows your reading when
+the scrolling **settles** (150 ms after you stop), never on every frame.
+
+**What counts as near**, decided by your vault, the same way every time, with no AI:
+
+- a note whose **title or alias is named** in the passage, as whole words, with case and accents
+  folded (*Planning Bias* names a note aliased *planning bias*). A title made only of common words
+  (*The end*, *People*) or a single word shorter than five letters (*Time*) never matches;
+- a note **born from this book** (its `source` cites it, see
+  [Every note goes back to its paragraph](#every-note-goes-back-to-its-paragraph)): from this
+  chapter first (*Born from p. 143*), then from the rest of the book;
+- a note one of **your highlights or margin notes** in this chapter links or names;
+- in a reading of notes, the chapter's own note: what links to it and from it.
+
+Only notes in your knowledge scope count — the one filter every reader honours — so an excluded
+folder never appears.
+
+**Six lenses over one list.** Chips across the top, each fed by something the vault already knows:
+
+| Lens | Shows |
+|---|---|
+| **All** | each card once, tagged with its first lens below |
+| **Connections** | the near notes, their neighbours (supports, expands, inspired-by, example, implements, plain links), and unlinked notes that share context with them |
+| **Contradictions** | the `contradicts` relations you have typed on a near note: each offers **Look at both** and **Not related** |
+| **Questions** | the open questions of a near note, and your *Question* highlights in this book |
+| **Your knowledge** | the notes named here, and your highlights from **other** books that link or name them |
+| **Research** | the claims of a near note and their sources; an unsourced claim says so |
+| **Not yet notes** | thoughts in Think, not yet notes, that mention a near note |
+
+Cards are ordered by **why** they are there — named here, born from here, linked, sharing context,
+marked — then by title; five show, then **Show more**. **The chips carry no number** and an empty
+lens is still offered: chosen, it says *Nothing of yours touches this passage through this lens.*
+Alongside never counts at you. With nothing near at all it says *Nothing of yours is near this
+paragraph yet. Mark it, link it, or keep reading.*, with your highlights still above it. While the
+vault is being indexed it says *Reading your vault…*, in words, never a spinner.
+
+**A click reads it.** A card opens as a [peek](#links-detours-and-context), and the page does not
+move; on a desktop, hovering it shows Obsidian's page preview. Beside a book a peek offers **Open in
+a new tab**: the book is read in its own pages, so a note met beside it is never a detour inside it.
+**Look at both** opens the note right under the paragraph, so the two are read together.
+
+**Not related** says that this note does not bear on **this chapter of this book**: it leaves
+Alongside here and does not come back, while other chapters and other books still show it. It is one
+verdict in the [judgement record](cognitive-agency.md) (*rejected*), and nothing is
+written to any note; **Undo** stays in the card's place for five seconds.
+
+**It moves like a margin.** Opening, it slides in from the column's edge while the column makes room,
+and the paragraph under your eye stays where it is; closing is the same move backwards. On a narrow
+pane it lies over the page's edge, and on an iPad in portrait it rises as the
+[sheet](#on-ipad). Choosing a lens slides the chip's fill to it, and the cards that stay keep their
+place while the others fade out or rise in. Reading on, a card still near never moves; new ones
+arrive in their place. While the pointer is in the panel nothing moves under it. *Not related* slides
+the card aside and the ones below close the gap. Under reduced motion every change is instant.
+
+**Remembered on this device.** Whether Alongside is open and the lens you chose are kept on this
+device, beside your reading pace — never synced, never in the vault.
+
+**Fast on a big vault.** Finding what is near a paragraph is budgeted at 10,000 notes
+(`reader.alongside.near.10k`, see [performance budgets](performance-budgets.md)): the names it
+matches against are indexed once per change of the vault, so a settle costs milliseconds.
 
 ## Bookmarks and where you've been
 
@@ -396,7 +470,8 @@ you write the note, the passage stays marked; cancel and the mark goes.
 - **Click a highlight** to see its note, add or edit one, delete it, or open it in Think. A
   highlight with a note has a dotted underline.
 - **In the margin.** On a wide pane your highlights are listed beside the page, in reading order;
-  click one to go to it. On a narrow pane the same list is under **Around this chapter**.
+  click one to go to it. On a narrow pane, and while Alongside is open, the same list is the first
+  thing in **Alongside**.
 - **Everything can be undone.** Highlighting, editing and deleting are recorded writes of a thought,
   in the [write record](../architecture/reversibility.md), and each answer offers **Undo** in place. A
   deleted highlight goes to the trash, not away.
@@ -416,7 +491,9 @@ paragraph, the way you would on paper or a reMarkable.
 - **The palette.** A small strip at the edge of the reading column, never over the text: **pen**,
   **highlighter**, **lasso**, **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
   **undo**. A marker glides to the tool in use. On a phone, an iPad in portrait or a paper in Page view
-  — where there is no margin for it — the strip lies just above the reader bar. Whether it was open is
+  — where there is no margin for it — the strip lies just above the reader bar. With
+  [Alongside](#alongside-your-vault-beside-the-page) open the column moves over and its margin goes,
+  so the strip lies above the bar too, centred under the column, clear of the panel. Whether it was open is
   remembered on this device, so an iPad you write on stays ready to write.
 - **What draws.** A **pen** draws (an Apple Pencil, a Wacom or a Surface pen), and so does a
   **mouse**, so you can write a margin arrow at a desk. A **finger never draws**: it scrolls, turns the
@@ -749,7 +826,7 @@ land on the page that holds them — and the strip **travels** there, never cuts
 [Going to a place](#going-to-a-place-is-a-camera-move)). A resumed reading opens on its page, inside
 the opening shot. A selection can run across a page break and be highlighted.
 Pictures and tables are scaled to fit a page, never cut across two. In a spread there is no room
-for the margin: the highlights are in **Around this chapter**.
+for the margin: the highlights are in **Alongside**.
 
 A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,
 a swipe right), and its pages flow from the right. PDF Page view keeps its own pages (#767).
@@ -828,7 +905,10 @@ layout, and the resume places in the plugin's settings), your type choices and t
 (in the plugin's settings), and the places you bookmarked in a book or a paper (beside its resume
 place, in the plugin's settings — an older version of the plugin reads past them, so going back to
 one forgets them). Choosing a way through a note writes nothing either, and neither do peeks, detours or
-adding a note to a reading — an added note lasts as long as the reading on screen.
+adding a note to a reading — an added note lasts as long as the reading on screen. **Alongside**
+writes nothing while you read, scroll or switch lenses; its *Not related* is one verdict in the
+judgement record, never a write to a note, and whether it is open and its lens are kept on this
+device only.
 
 ## For contributors
 
@@ -866,6 +946,19 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   `travelDuration`). They return how long they take, and `readerHere.ts` waits that long before the
   *you are here* mark (`markHereAt`, `markHereOn`; `zf-reader-here`, opacity only). The old
   `reader-highlight--flash` box-shadow ring is gone.
+- Alongside (#754) is pure in `architecture/knowledge/alongside/` (the State barrel exports it):
+  `alongsideVocabulary` (titles and aliases, folded and indexed by first word, memoised per
+  revision; `commonWords.ts` holds the never-matches list), `nearPassage` (named · born from this
+  chapter · born from this book · marked · the chapter's note; one reason each, scope-filtered by the
+  model), `alongsideLenses` / `allOf` (the six lenses over `noteNeighbourhood`, `sharedContext`,
+  `findContradictions` and `buildEvidenceMap`) and `withNamed` (Think's thoughts read once). The
+  verdict is `chapterVerdict` / `ruledOutInChapter` in `judgement/chapterVerdict.ts`
+  (`reader-not-related:<book>#<chapter key>`), which #756's *Reject* writes too. The panel is
+  `ReaderAlongside` in `reader/readerAlongside.ts` (`ALONGSIDE_SETTLE_MS`, `UNDO_MS`, the
+  `zettelflow-reader-alongside` local-storage key); its cards move with `reconcile` in
+  `readerFlip.ts` — the keyed FLIP list #756, #759 and #762 reuse. The view hands it the passage
+  (`blockAtLine` in `readerPlace.ts`) and keeps the reading line through the column's change
+  (`holdReadingLine`).
 - Provenance (#751) has one producer and one reader, both pure in `application/library/provenance.ts`:
   `PassagePlace` (`file`, `chapter` key, `label`, `page`, bounded `quote`), `placeOf(thought)`,
   `boundQuote`, `samePlace`, `sourceEntry(place, title?)` / `readSourceEntry(value)` (the written

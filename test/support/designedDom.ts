@@ -75,7 +75,8 @@ export function installDesignedPlatform(options: { supported?: boolean } = {}): 
     FakeSheet.made = [];
     FakeFontFace.made = [];
     const fonts = new Set<FakeFontFace>();
-    const document = { adoptedStyleSheets: [] as unknown[], fonts };
+    // The Reader listens to its document (#754: a selection Alongside follows); nothing here fires.
+    const document = { adoptedStyleSheets: [] as unknown[], fonts, addEventListener: () => undefined, removeEventListener: () => undefined };
     g.CSSStyleSheet = FakeSheet;
     g.FontFace = FakeFontFace;
     g.ShadowRoot = class {};

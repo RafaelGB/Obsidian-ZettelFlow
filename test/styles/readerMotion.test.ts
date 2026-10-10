@@ -214,3 +214,45 @@ describe("a passage a note goes back to arrives like the rest of the Reader (#75
         expect(companionReduced).toContain("note-companion-origin-label--copied");
     });
 });
+
+describe("Alongside moves like a margin, never like a redraw (#754 AC-10)", () => {
+    const css = sheet("components/reader.scss");
+    const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+    /** Alongside's own rules, from its heading to the next section's. */
+    const own = css.slice(css.indexOf("── Alongside (#754)"), css.indexOf("── peeks and detours (#670)"));
+    const rule = (selector: string) => {
+        const at = own.indexOf(`${selector} {`);
+        return at < 0 ? "" : own.slice(at, own.indexOf("\n}", at));
+    };
+
+    it("slides in from the column's edge on transform and opacity, at the base beat, and leaves the same way", () => {
+        const enter = css.slice(css.indexOf("@keyframes zf-reader-alongside-in"));
+        const frames = enter.slice(0, enter.indexOf("\n}"));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]).sort()).toEqual(["opacity", "transform"]);
+        expect(rule(".zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side")).toContain("animation: zf-reader-alongside-in $motion-base $ease-out");
+        const leaving = rule(".zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side.zettelkasten-flow__reader-panel--leaving");
+        expect(leaving).toContain("opacity: 0;");
+        expect(leaving).toContain("transform: translateX(var(--size-4-8));");
+    });
+
+    it("gives the panel, the lens fill and a leaving card an instant equivalent", () => {
+        for (const selector of ["reader-panel--side", "reader-lens-marker", "reader-flip-leaving"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("takes a leaving card out of the flow, so the others close the gap by moving, never by height", () => {
+        expect(rule(".zettelkasten-flow__reader-flip-leaving")).toContain("position: absolute;");
+        expect(own.length).toBeGreaterThan(0);
+        for (const match of own.matchAll(/transition:\s*([^;]+);/g)) expect(match[1]).not.toMatch(/\b(height|width)\b/);
+    });
+
+    it("moves ink's palette out of the column's way: above the bar, centred under the narrowed column (#745 beside #754)", () => {
+        const ink = sheet("components/ink.scss");
+        const at = ink.indexOf(".zettelkasten-flow__reader--alongside {");
+        expect(at).toBeGreaterThan(0);
+        const block = ink.slice(at, ink.indexOf("\n}", at));
+        expect(block).toContain("@include palette-above-bar;");
+        expect(block).toContain("left: calc((100% - var(--zf-alongside-w) - var(--size-4-6)) / 2);");
+    });
+});

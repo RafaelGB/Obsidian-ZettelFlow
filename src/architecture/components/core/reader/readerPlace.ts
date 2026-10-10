@@ -45,3 +45,17 @@ export function scrollFor(place: Place, blocks: readonly Box[]): number {
  * too. #754's Alongside reads the same line.
  */
 export const READING_LINE = 1 / 3;
+
+/**
+ * The block under the reading line (#754 FR-2): the one `line` falls in, else the first below it,
+ * else the last. `line` is in the blocks' own coordinates (`scrollTop + clientHeight * READING_LINE`
+ * in a scroll). `-1` when there are no blocks.
+ */
+export function blockAtLine(blocks: readonly Box[], line: number): number {
+    if (blocks.length === 0) return -1;
+    for (let i = 0; i < blocks.length; i++) {
+        const { top, height } = blocks[i];
+        if (top + height > line) return i;
+    }
+    return blocks.length - 1;
+}

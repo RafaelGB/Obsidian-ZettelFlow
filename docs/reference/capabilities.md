@@ -40,6 +40,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Think about this note** — open a thread about a note without writing to it. [docs →](../architecture/thought-lab.md)
 - **Read from here** — right-click a note and read a path across your notes, the way you read a book — no MOC, nothing written. [docs →](../development/reader.md)
 - **Write in the margin** — write in the margin of what you read with a pen (or a mouse) — kept beside its words as a thought and its drawing, the book never written. [docs →](../development/reader.md)
+- **Alongside** — your own notes beside the page you are reading, through six lenses, each saying why it is there — nothing written. [docs →](../development/reader.md#alongside-your-vault-beside-the-page)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
 - **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)

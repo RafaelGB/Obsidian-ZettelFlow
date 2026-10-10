@@ -186,6 +186,9 @@ describe("an EPUB in the Reader (#682)", () => {
             Object.defineProperty(proto, "doc", {
                 configurable: true,
                 get: () => ({
+                    // The Reader listens to its document (#754: a selection Alongside follows).
+                    addEventListener: () => undefined,
+                    removeEventListener: () => undefined,
                     createElementNS: (ns: string, tag: string) => {
                         const el = new DomNode(tag);
                         el.namespaceURI = ns;

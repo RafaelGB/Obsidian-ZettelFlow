@@ -185,6 +185,23 @@ export const NOT_EXPOSED: Record<string, string> = {
     openSeams: "gapSeams is this read; both script doors honour the record for you",
     bySeamWidth: "the one ordering a seam list already comes in",
     gapVerdict: "builds a judgement to record; scripts read the model and write only their own note",
+    // The Reader's Alongside (#754): what is near a passage *as you read it* — a paragraph, a
+    // selection, your marks on the page — is reading-time state, not a question about the vault.
+    // The engines its lenses read (neighbourhood, contradictions, evidence) are already doors.
+    nearPassage: "what is near the paragraph on screen: reading-time state the Reader hands in, not a model query",
+    alongsideLenses: "Alongside's view of nearPassage through engines already exposed (neighbourhood, contradictions, evidence)",
+    allOf: "how Alongside's All chip folds its six lenses — a view shape",
+    alongsideVocabulary: "the Reader's title index, built once per revision for matching a passage",
+    buildVocabulary: "the uncached twin of alongsideVocabulary, kept for the performance budget",
+    foldWords: "text folding behind Alongside's matching, not a projection",
+    isMatchableName: "the common-word rule behind Alongside's matching, not a projection",
+    namedIn: "matches a passage against the Reader's title index; a script reads the model's titles directly",
+    namedBy: "a thought's named notes, as Alongside reads Think — Think is not a script surface",
+    withNamed: "prepares Think's thoughts for Alongside — Think is not a script surface",
+    sharedContext: "one note's slice of discoveries, which is the door",
+    chapterVerdict: "builds a judgement to record; scripts read the model and write only their own note",
+    chapterSubject: "the subject a chapter verdict carries, not a projection",
+    ruledOutInChapter: "the filter Alongside applies for you, from a record scripts cannot read",
     ruledOutGaps: "the filter every gap reader applies for you, from a record scripts cannot read",
     isJudgement: "type guard, not a projection",
     sanitizeJudgementLog: "persistence concern, owned by JudgementLog",

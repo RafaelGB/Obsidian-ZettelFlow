@@ -85,11 +85,11 @@ Open **This note** from the ribbon menu and the note you are reading gets a comp
 
 ## Read your notes like a book
 
-Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint). It needs no MOC. Select a sentence to highlight it: the passage and your margin note land in Think, never in the note. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
+Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint), in one long scroll or in pages, or as a two-page spread on a wide screen. It needs no MOC. Select a sentence to highlight it: the passage and your margin note land in Think, never in the note. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
 
 ![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
 
-**Your Library** (ribbon menu → *Library*) puts the PDFs and EPUBs already in your vault on one shelf, beside the paths you saved. Open a paper or a book in the same Reader, highlight it, and crystallize a passage into a note that cites the page — the shelf counts the notes born from each one. Nothing is imported or uploaded, and your files are never modified.
+**Your Library** (ribbon menu → *Library*) puts the PDFs and EPUBs already in your vault on one shelf, beside the paths you saved. Open a paper or a book in the same Reader (zoom, scroll and rotate a paper's printed pages, and follow its links), highlight it, and crystallize a passage into a note that cites the page — the shelf counts the notes born from each one. Nothing is imported or uploaded, and your files are never modified.
 
 ![The Library: Continue reading and the shelf of books, papers and reading paths](docs/resources/library/shelf.svg)
 

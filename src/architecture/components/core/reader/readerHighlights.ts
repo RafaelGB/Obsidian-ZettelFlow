@@ -10,6 +10,8 @@ import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { MOTION, fly, motionWelcome } from "./readerMotion";
+import { touchPointer } from "./readerDevice";
+import { markHereOn } from "./readerHere";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -27,7 +29,8 @@ export interface HighlightStore {
 export interface SelectionInfo {
     start: number;
     end: number;
-    rect: { left: number; top: number; width: number };
+    /** Where it is on screen; `height` places a popover below the words (#750). */
+    rect: { left: number; top: number; width: number; height?: number };
     clear(): void;
 }
 
@@ -38,8 +41,11 @@ export interface HighlightView {
     host: HTMLElement;
     /** What lives as long as the reader does. */
     owner: Component;
-    /** Bring an element of the chapter into view, inside the reader's own scroller. */
-    scrollTo(el: HTMLElement): void;
+    /**
+     * Bring an element of the chapter into view, inside the reader's own scroller — with `travel`, as
+     * a camera move (#761). Returns how long until it has landed (ms), for a mark to wait for.
+     */
+    scrollTo(el: HTMLElement, travel?: boolean): number | void;
     /** Something changed that a panel might show. */
     onChange(): void;
 }
@@ -63,6 +69,12 @@ const MEANING_LABEL: Record<HighlightMeaning, LocaleKey> = {
     quote: "reader_hl_meaning_quote",
     discuss: "reader_hl_meaning_discuss",
 };
+
+/**
+ * A touch selection is offered once its handles have been still this long (#750 FR-5) — never while
+ * they are dragged. Provisional: the device walk on issue #750 confirms or tunes it.
+ */
+export const SELECTION_SETTLE_MS = 350;
 
 /** How long an answer (and its Undo) stays in the popover. */
 const STATUS_MS = 8000;
@@ -104,7 +116,7 @@ export function readSelection(body: HTMLElement): SelectionInfo | null {
     return {
         start,
         end,
-        rect: { left: rect.left, top: rect.top, width: rect.width },
+        rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
         clear: () => selection.removeAllRanges(),
     };
 }
@@ -182,6 +194,11 @@ export class ReaderHighlights {
      * selection away, and the words lost their highlight while you typed. Gone with the popover.
      */
     private pending: HTMLElement[] = [];
+    /**
+     * Equations and drawings a highlight covers (#770), by thought id (`pending` for the one being
+     * written): no mark goes inside one, so the whole equation or drawing is tinted instead.
+     */
+    private tints = new Map<string, HTMLElement[]>();
     /** The listeners of the popover on screen, gone with it. */
     private popoverScope: Component | null = null;
     /** The listeners of the margin's rows, replaced when it redraws. */
@@ -193,6 +210,11 @@ export class ReaderHighlights {
     private filter: HighlightMeaning | null = null;
     /** Bumped on every chapter, so a slow load never draws over a newer one. */
     private generation = 0;
+    /**
+     * The last pointer that touched the page (#750): a finger or a pen selects beside iPadOS's own
+     * callout, which has its own Copy; a mouse selects as it always has.
+     */
+    private pointer = "mouse";
 
     constructor(
         private readonly view: HighlightView,
@@ -246,6 +268,7 @@ export class ReaderHighlights {
         this.component = component;
         this.margin = margin;
         this.anchored = [];
+        this.tints.clear();
         this.detached = [];
         this.renderMargin();
 
@@ -261,6 +284,7 @@ export class ReaderHighlights {
             // line: that mouseup lands on the document, and must still offer the popover. One that
             // lands inside the popover is a click on its buttons, never a new selection.
             let pressed = false;
+            component.registerDomEvent(doc, "pointerdown", (event: PointerEvent) => (this.pointer = event.pointerType || "mouse"), { capture: true });
             component.registerDomEvent(doc, "mousedown", () => (pressed = true), { capture: true });
             component.registerDomEvent(doc, "mouseup", (event: MouseEvent) => {
                 pressed = false;
@@ -275,7 +299,7 @@ export class ReaderHighlights {
                 window.clearTimeout(settle);
                 settle = window.setTimeout(() => {
                     if (this.body === body && !pressed) this.onSelect();
-                }, 350);
+                }, SELECTION_SETTLE_MS);
             });
             component.register(() => window.clearTimeout(settle));
         }
@@ -314,6 +338,7 @@ export class ReaderHighlights {
         this.locator = null;
         this.pageNotes = [];
         this.anchored = [];
+        this.tints.clear();
         this.detached = [];
         this.renderMargin();
     }
@@ -330,14 +355,21 @@ export class ReaderHighlights {
         if (this.popover && !this.popover.hasClass(c("reader-hl-pop--editing"))) this.hidePopover();
     }
 
-    /** Scroll to a highlight and make it flash, when a deep link asked for one. */
-    reveal(id: string): boolean {
+    /**
+     * Go to a highlight a deep link asked for, and show it is there: the *you are here* mark (#761
+     * FR-17), once the move has landed. `travel`: its chapter is the one on screen, so the camera moves
+     * there (§XVI) instead of landing at once.
+     */
+    reveal(id: string, travel = false): boolean {
         const entry = this.anchored.find((candidate) => candidate.thought.id === id);
         // An embed that re-rendered drops the marks drawn in it: only a live one can be shown.
         const mark = entry?.marks.find((m) => m.isConnected !== false);
         if (!entry || !mark) return false;
-        this.view.scrollTo(mark);
-        entry.marks.forEach((m) => m.addClass(c("reader-highlight--flash")));
+        const landed = this.view.scrollTo(mark, travel);
+        markHereOn(
+            entry.marks.filter((m) => m.isConnected !== false),
+            typeof landed === "number" ? landed : 0
+        );
         return true;
     }
 
@@ -433,7 +465,9 @@ export class ReaderHighlights {
             if (this.popover?.hasClass(c("reader-hl-pop--select"))) this.hidePopover();
             return;
         }
-        const pop = this.openPopover(found.selection.rect, "select");
+        // A touch selection: below the words, beside the system's callout above them (FR-5).
+        const touch = touchPointer({ pointerType: this.pointer });
+        const pop = this.openPopover(found.selection.rect, "select", touch);
         // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
         const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
         for (const meaning of HIGHLIGHT_MEANINGS) {
@@ -441,6 +475,8 @@ export class ReaderHighlights {
         }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
+        // The system's callout already offers Copy to a finger (FR-6); a mouse has only ours.
+        if (touch) return;
         this.button(actions, "reader_hl_copy", false, () => {
             if (this.body) this.copy(this.body, found.quote.exact);
             this.status("reader_hl_copied");
@@ -451,7 +487,7 @@ export class ReaderHighlights {
         const pop = this.openPopover(selection.rect, "editing");
         // Marked before the box takes focus — and the selection with it.
         if (this.body) {
-            this.pending = wrapSpan(this.body, span, () => this.makeMark("pending")) as unknown as HTMLElement[];
+            this.pending = wrapSpan(this.body, span, () => this.makeMark("pending"), this.tinter("pending", meaning)) as unknown as HTMLElement[];
             this.pending.forEach((mark) => mark.addClass(c("reader-highlight--pending"), c(`reader-highlight--${meaning}`)));
         }
         this.noteForm(pop, "", (text) => void this.keep(selection, span, quote, text, meaning));
@@ -460,6 +496,7 @@ export class ReaderHighlights {
     private clearPending(): void {
         this.pending.forEach((mark) => unwrapMark(mark));
         this.pending = [];
+        this.untint("pending");
     }
 
     /** A small form for a margin note: Ctrl/Cmd-Enter saves, Esc cancels. */
@@ -602,6 +639,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         entry?.marks.forEach((mark) => unwrapMark(mark));
+        this.untint(thought.id);
         this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== thought.id);
         this.detached = this.detached.filter((candidate) => candidate.id !== thought.id);
         this.renderMargin();
@@ -640,7 +678,7 @@ export class ReaderHighlights {
     private draw(thought: Thought, span: TextSpan): HTMLElement[] {
         const body = this.body;
         if (!body) return [];
-        const marks = wrapSpan(body, span, () => this.makeMark(thought.id)) as unknown as HTMLElement[];
+        const marks = wrapSpan(body, span, () => this.makeMark(thought.id), this.tinter(thought.id, meaningOf(thought))) as unknown as HTMLElement[];
         if (thought.text.trim()) marks.forEach((mark) => mark.addClass(c("reader-highlight--noted")));
         marks.forEach((mark) => mark.addClass(c(`reader-highlight--${meaningOf(thought)}`)));
         for (const mark of marks) {
@@ -652,6 +690,33 @@ export class ReaderHighlights {
             });
         }
         return marks;
+    }
+
+    /**
+     * Tint an equation or a drawing the highlight `id` covers, whole and in its meaning's ink (#770).
+     * Static: never animated.
+     */
+    private tinter(id: string, meaning: HighlightMeaning): (foreign: unknown) => void {
+        return (foreign) => {
+            const el = foreign as HTMLElement;
+            for (const other of HIGHLIGHT_MEANINGS) el.removeClass(c(`reader-highlight--${other}`));
+            el.addClass(c("reader-highlight-foreign"), c(`reader-highlight--${meaning}`));
+            const list = this.tints.get(id) ?? [];
+            list.push(el);
+            this.tints.set(id, list);
+        };
+    }
+
+    /** Take the tint of highlight `id` away — unless another highlight still covers the same root. */
+    private untint(id: string): void {
+        const list = this.tints.get(id);
+        this.tints.delete(id);
+        if (!list) return;
+        const still = new Set([...this.tints.values()].flat());
+        for (const el of list) {
+            if (still.has(el)) continue;
+            el.removeClass(c("reader-highlight-foreign"), ...HIGHLIGHT_MEANINGS.map((meaning) => c(`reader-highlight--${meaning}`)));
+        }
     }
 
     private insert(thought: Thought, marks: HTMLElement[], start: number): void {
@@ -768,7 +833,7 @@ export class ReaderHighlights {
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) {
             entry.thought = next;
-            for (const mark of entry.marks) {
+            for (const mark of [...entry.marks, ...(this.tints.get(thought.id) ?? [])]) {
                 for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
                 mark.addClass(c(`reader-highlight--${meaning}`));
             }
@@ -792,18 +857,18 @@ export class ReaderHighlights {
 
     // ── popover ──────────────────────────────────────────────────────────────
 
-    private openPopover(rect: SelectionInfo["rect"], mode: "select" | "editing" | "mark" | "status"): HTMLElement {
+    private openPopover(rect: SelectionInfo["rect"], mode: "select" | "editing" | "mark" | "status", below = false): HTMLElement {
         this.hidePopover();
         const host = this.view.host;
         const pop = host.createDiv({
-            cls: [c("reader-hl-pop"), c(`reader-hl-pop--${mode}`)],
+            cls: [c("reader-hl-pop"), c(`reader-hl-pop--${mode}`), ...(below ? [c("reader-hl-pop--below")] : [])],
             attr: { role: "dialog", "aria-label": t("reader_hl_label") },
         });
         const box = host.getBoundingClientRect();
         // Positioned by two custom properties the stylesheet reads — no inline layout.
         pop.setCssProps?.({
             "--zf-hl-x": `${Math.round(rect.left + rect.width / 2 - box.left)}px`,
-            "--zf-hl-y": `${Math.round(rect.top - box.top)}px`,
+            "--zf-hl-y": `${Math.round(rect.top + (below ? (rect.height ?? 0) : 0) - box.top)}px`,
         });
         const scope = new Component();
         scope.load();

@@ -825,7 +825,7 @@ button.zettelkasten-flow__notebook-back {
     gap: var(--size-4-1);
     padding: var(--size-4-3) var(--size-4-4);
     border: $line-quiet;
-    border-left: var(--size-2-2) solid var(--zf-ink-solid, var(--text-highlight-bg));
+    border-left: var(--size-2-2) solid var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
     border-radius: var(--radius-m);
     background-color: var(--background-primary);
 }

@@ -1,0 +1,68 @@
+@use '../utils/mixins' as *;
+
+/*
+ * A designed page (#771): a comic, a picture book, a cookbook — shown as it was made, inside its
+ * own page. Everything of the Reader's here is ours and the theme's; what is inside the host's shadow
+ * root is the book's, and nothing of ours or of the theme reaches into it (FR-2), nor of it out (FR-3).
+ *
+ * The host contains its page: `all: initial` so the Reader's type never inherits in, `contain: strict`
+ * and `isolation` so the page's absolute boxes and its stacking stay inside it, `overflow: clip` so
+ * nothing paints past its edge. It is drawn once at its own size and scaled — never laid out again.
+ */
+
+/* The page's box in a slot of the run: its picture, as a canvas is a PDF page's. */
+.zettelkasten-flow__reader-pv-designed {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__reader-designed-host {
+    all: initial;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--zf-fxl-w);
+    height: var(--zf-fxl-h);
+    transform: scale(var(--zf-fxl-scale, 1));
+    transform-origin: 0 0;
+    contain: strict;
+    overflow: clip;
+    isolation: isolate;
+    /* Read-only (FR-8): neither our popover nor the platform's callout appears over a designed page. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* A designed page among flowing chapters (FR-1): itself, fitted to the column, on its sheet of paper. */
+.zettelkasten-flow__reader-designed-fit {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--zf-fxl-ratio, 3 / 4);
+    margin: var(--size-4-4) 0;
+    overflow: hidden;
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+}
+
+/* The calm line in a page's place (FR-10): the page still has its size, the next still turns. */
+.zettelkasten-flow__reader-designed-failed {
+    @include empty-state;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-4-4);
+    text-align: center;
+}
+
+/* The one quiet hint (FR-8), said once a reading above the first designed page. */
+.zettelkasten-flow__reader-designed-hint {
+    @include hint;
+    justify-content: center;
+}

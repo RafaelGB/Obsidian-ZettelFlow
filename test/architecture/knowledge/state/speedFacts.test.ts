@@ -42,6 +42,7 @@ describe("how fast it is here (#462)", () => {
             "enrich.incremental",
             "analysis.heaviest",
             "scope.census",
+            "reader.paginate",
         ]);
     });
 

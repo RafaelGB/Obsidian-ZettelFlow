@@ -25,7 +25,9 @@ export type Measurable =
     | "enrich.incremental"
     | "analysis.heaviest"
     | "canvas.scan"
-    | "scope.census";
+    | "scope.census"
+    /** The Reader laying a chapter out in pages (#753): one forced layout of the chapter. */
+    | "reader.paginate";
 
 export interface Sample {
     name: Measurable;

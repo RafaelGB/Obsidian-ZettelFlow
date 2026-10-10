@@ -4,6 +4,7 @@ import { isImageOnly, IMAGE_ONLY_SAMPLE } from "application/library/pdfText";
 import type { SourceFacts, SourceFormat } from "application/library/sourceMeta";
 import { declared, isTextItem, openPdf } from "./sources/pdfjs";
 import { imageType, openEpub } from "./sources/epub";
+import { tooLarge } from "architecture/components/core/reader/readerDevice";
 
 /**
  * **Covers that look like the thing** (#680, epic #675): the EPUB's own cover, the PDF's first page.
@@ -52,6 +53,12 @@ export function readCover(app: App, file: TFile, format: SourceFormat): Promise<
         const again = cache.get(key);
         if (again) return again;
         let read: CoverRead;
+        // A source the device could not hold is not read for its cover either: the drawn cover (#750).
+        if (tooLarge(file.stat?.size, format)) {
+            read = { url: null, facts: { chapters: 0 } };
+            remember(key, read);
+            return read;
+        }
         try {
             read = format === "pdf" ? await pdfCover(app, file) : await epubCover(app, file);
         } catch (error) {

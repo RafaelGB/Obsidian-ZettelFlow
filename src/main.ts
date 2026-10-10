@@ -25,6 +25,7 @@ import { ExploreSurfaceView } from 'architecture/components/core/surface/Explore
 import { LegacyRedirectView } from 'architecture/components/core/surface/LegacyRedirectView';
 import { NoteCompanionView } from 'architecture/components/core/noteCompanion/NoteCompanionView';
 import { ReaderView, READER_VIEW } from 'architecture/components/core/reader/ReaderView';
+import { coverApp, deepCover } from 'architecture/components/core/reader/openReader';
 import { LibraryView, LIBRARY_VIEW } from 'architecture/components/core/library/LibraryView';
 import { NOTE_COMPANION_VIEW } from 'architecture/components/core/noteCompanion/noteCompanionContract';
 import { registerDashboardBasesView } from 'dashboards/base/register';
@@ -117,6 +118,8 @@ export default class ZettelFlow extends Plugin {
 	}
 
 	onunload() {
+		coverApp(false); // #750: never leave Obsidian's mobile chrome hidden behind an unloaded Reader.
+		deepCover("off"); // #764: nor the desktop's, after deep reading.
 		InquiryRuntime.getInstance().dispose();
 		DevelopmentJournal.getInstance().flush(); // #162: persist any pending journal increment.
 		ConceptualTimeline.getInstance().flush(); // #168: persist any pending timeline snapshot.

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="The Reader on an iPad. Landscape: the outer fifth of the page on each side is a tap zone that turns a screen back or forward, the middle shows the bar, and a finger swiping left holds the chapter's page part-turned under it. Portrait: Contents opens as a bottom sheet at half height, with a grab handle, over the page dimmed behind it.">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">THE READER ON AN IPAD</text>
+
+<!-- ── Landscape: tap the edges, swipe a chapter ─────────────────────────────── -->
+<rect x="40" y="80" width="700" height="500" rx="34" fill="#0c0c0e" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="62" y="102" width="656" height="456" rx="16" fill="#18181b"/>
+<!-- status bar: the Reader's top line sits below it -->
+<text x="84" y="122" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600">9:41</text>
+<text x="696" y="122" fill="#5f6168" font-family="sans-serif" font-size="11" text-anchor="end">100%</text>
+<text x="96" y="150" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">THE KEEPER · A. WALKER</text>
+<text x="690" y="152" fill="#5f6168" font-family="sans-serif" font-size="16" text-anchor="middle">×</text>
+
+<!-- the edge zones: the outer fifth on each side -->
+<rect x="62" y="164" width="131" height="330" fill="#7f6df2" fill-opacity="0.08"/>
+<line x1="193" y1="164" x2="193" y2="494" stroke="#7f6df2" stroke-opacity="0.55" stroke-width="1.5" stroke-dasharray="6 6"/>
+<rect x="587" y="164" width="131" height="330" fill="#7f6df2" fill-opacity="0.08"/>
+<line x1="587" y1="164" x2="587" y2="494" stroke="#7f6df2" stroke-opacity="0.55" stroke-width="1.5" stroke-dasharray="6 6"/>
+<text x="127" y="188" fill="#a99cf5" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">TAP · BACK</text>
+<text x="652" y="188" fill="#a99cf5" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">TAP · FORWARD</text>
+<text x="390" y="188" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">TAP · THE BAR</text>
+
+<!-- the next chapter's paper, under the lifted sheet -->
+<rect x="236" y="206" width="308" height="276" fill="#141416"/>
+<text x="488" y="340" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="1">THE</text>
+<text x="488" y="356" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="1">LEDGER</text>
+
+<!-- the page, held part-turned on its spine under the finger -->
+<polygon points="236,206 432,226 432,464 236,482" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="258" y="244" fill="#dcddde" font-family="Georgia, serif" font-size="20" font-weight="700">The lighthouse</text>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="258" y1="268" x2="423" y2="272"/>
+<line x1="258" y1="284" x2="417" y2="288"/>
+<line x1="258" y1="300" x2="421" y2="304"/>
+<line x1="258" y1="316" x2="384" y2="319"/>
+<line x1="258" y1="344" x2="423" y2="347"/>
+<line x1="258" y1="360" x2="420" y2="362"/>
+<line x1="258" y1="376" x2="423" y2="378"/>
+<line x1="258" y1="392" x2="399" y2="394"/>
+<line x1="258" y1="420" x2="421" y2="421"/>
+<line x1="258" y1="436" x2="409" y2="437"/>
+</g>
+<!-- the finger, and where it is going -->
+<circle cx="444" cy="300" r="22" fill="#dcddde" fill-opacity="0.16" stroke="#dcddde" stroke-opacity="0.7" stroke-width="2"/>
+<path d="M 420 300 L 300 300" stroke="#dcddde" stroke-opacity="0.7" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M 314 292 L 300 300 L 314 308" stroke="#dcddde" stroke-opacity="0.7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="360" y="335" fill="#dcddde" fill-opacity="0.8" font-family="sans-serif" font-size="12" text-anchor="middle">swipe</text>
+
+<!-- the very edge of the screen stays Obsidian's and iPadOS's -->
+<rect x="62" y="164" width="9" height="330" fill="#e9973f" fill-opacity="0.35"/>
+<rect x="709" y="164" width="9" height="330" fill="#e9973f" fill-opacity="0.35"/>
+
+<!-- the dots and the bar, above the home indicator -->
+<g fill="#3a3a3a"><rect x="350" y="506" width="22" height="6" rx="3" fill="#7f6df2"/><circle cx="384" cy="509" r="3"/><circle cx="396" cy="509" r="3"/><circle cx="408" cy="509" r="3"/></g>
+<rect x="340" y="545" width="100" height="5" rx="2.5" fill="#3a3a3a"/>
+
+<text x="390" y="612" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="600" text-anchor="middle">Landscape: tap the edges, swipe a chapter</text>
+<text x="390" y="636" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">The outer fifth turns a screen; the middle shows or hides the bar.</text>
+<text x="390" y="656" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">A swipe holds the chapter's own turn under your finger — past a third, it turns.</text>
+<g>
+<rect x="196" y="676" width="12" height="12" fill="#e9973f" fill-opacity="0.35"/>
+<text x="216" y="687" fill="#8b8e94" font-family="sans-serif" font-size="12">the very edge stays Obsidian's (its sidebars) and iPadOS's</text>
+</g>
+
+<!-- ── Portrait: the bottom sheet ─────────────────────────────────────────────── -->
+<rect x="800" y="80" width="360" height="500" rx="30" fill="#0c0c0e" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="818" y="98" width="324" height="464" rx="14" fill="#18181b"/>
+<text x="836" y="118" fill="#5f6168" font-family="sans-serif" font-size="10" font-weight="600">9:41</text>
+<text x="840" y="142" fill="#5f6168" font-family="sans-serif" font-size="10" font-weight="600" letter-spacing="1">THE KEEPER</text>
+<text x="854" y="176" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="700">The lighthouse</text>
+<g stroke="#8b8e94" stroke-width="3" stroke-linecap="round">
+<line x1="854" y1="198" x2="1106" y2="198"/>
+<line x1="854" y1="213" x2="1098" y2="213"/>
+<line x1="854" y1="228" x2="1104" y2="228"/>
+<line x1="854" y1="243" x2="1040" y2="243"/>
+<line x1="854" y1="266" x2="1106" y2="266"/>
+<line x1="854" y1="281" x2="1100" y2="281"/>
+<line x1="854" y1="296" x2="1080" y2="296"/>
+</g>
+<!-- the page dims slightly behind the sheet -->
+<rect x="818" y="98" width="324" height="464" rx="14" fill="#000000" fill-opacity="0.38"/>
+<!-- the sheet, at half height, with its handle -->
+<path d="M 818 330 Q 818 318 830 318 L 1130 318 Q 1142 318 1142 330 L 1142 548 Q 1142 562 1128 562 L 832 562 Q 818 562 818 548 Z" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="962" y="328" width="36" height="5" rx="2.5" fill="#5f6168"/>
+<text x="840" y="362" fill="#5f6168" font-family="sans-serif" font-size="10" font-weight="600" letter-spacing="1">CONTENTS</text>
+<rect x="834" y="374" width="292" height="30" rx="6" fill="#7f6df2" fill-opacity="0.14"/>
+<text x="846" y="394" fill="#dcddde" font-family="sans-serif" font-size="13">The lighthouse</text>
+<text x="846" y="428" fill="#dcddde" font-family="sans-serif" font-size="13">The ledger</text>
+<text x="846" y="460" fill="#dcddde" font-family="sans-serif" font-size="13">The storm</text>
+<text x="846" y="492" fill="#dcddde" font-family="sans-serif" font-size="13">The morning</text>
+<!-- drag it: up to nearly full, down to close -->
+<path d="M 1112 352 L 1112 300" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M 1105 310 L 1112 300 L 1119 310" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1112 372 L 1112 424" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M 1105 414 L 1112 424 L 1119 414" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="930" y="545" width="100" height="5" rx="2.5" fill="#3a3a3a"/>
+
+<text x="980" y="612" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="600" text-anchor="middle">Portrait: panels are a bottom sheet</text>
+<text x="980" y="636" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">It opens at half height over the dimmed page.</text>
+<text x="980" y="656" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Drag the handle up, or down to close; tap the page to close.</text>
+
+<line x1="40" y1="726" x2="1160" y2="726" stroke="#3a3a3a" stroke-width="1"/>
+<text x="600" y="758" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">Obsidian's toolbar slides away as the book opens and back as you leave. Everything stays inside the safe area.</text>
+<text x="600" y="780" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">A mouse or a trackpad never turns a page: on a desktop, nothing changes.</text>
+</svg>

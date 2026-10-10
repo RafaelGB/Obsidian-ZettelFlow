@@ -513,7 +513,11 @@ export function getAllTags(cache: { frontmatter?: Record<string, unknown>; tags?
 
 /** Mutable platform flags so tests can exercise the desktop/mobile default + the bug-report mapping. */
 export const Platform = {
+  isDesktop: true,
+  isDesktopApp: true,
   isMobile: false,
+  isPhone: false,
+  isTablet: false,
   isAndroidApp: false,
   isIosApp: false,
   isMacOS: false,

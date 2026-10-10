@@ -1,8 +1,8 @@
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { FakeEl } from "../../../../support/textDom";
-import { ReaderHighlights, type HighlightDeps, type HighlightStore, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
+import { ReaderHighlights, SELECTION_SETTLE_MS, type HighlightDeps, type HighlightStore, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import type { Thought, ThoughtQuote } from "application/thinking/thought";
 
@@ -51,11 +51,10 @@ function memoryStore(initial: Thought[] = []) {
     return store;
 }
 
-function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}) {
+function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body: FakeEl = chapter()) {
     const store = memoryStore(initial);
     const host = new DomNode();
     const margin = new DomNode();
-    const body = chapter();
     const owner = new Component();
     const component = new Component();
     let selection: SelectionInfo | null = null;
@@ -316,11 +315,12 @@ describe("highlights are found again on every visit (#671)", () => {
         expect(m.openThink).toHaveBeenCalledWith({}, "Notes/es.md");
     });
 
-    it("a deep link scrolls to its highlight and makes it flash", async () => {
+    it("a deep link scrolls to its highlight and shows you are there (#761 FR-17)", async () => {
         const m = mount([anchored()]);
         await m.attach();
         expect(m.highlights.reveal("a")).toBe(true);
-        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--flash")).toBe(true);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-here")).toBe(true);
+        expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--flash")).toBe(false);
         expect(m.highlights.reveal("nope")).toBe(false);
     });
 });
@@ -382,5 +382,91 @@ describe("highlights in a PDF or an EPUB (#681)", () => {
         m.button("Crystallize into a note").click();
         expect(toNote).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: "a" }));
         expect(m.highlights.hasPopover()).toBe(false);
+    });
+});
+
+/** Our popover beside iPadOS's own callout (#750 FR-5, FR-6, AC-4). */
+describe("a touch selection, beside the system's menu (#750)", () => {
+    function mountOnDoc() {
+        const host = new DomNode();
+        const doc = new DomNode();
+        const body = chapter() as FakeEl & { ownerDocument: unknown; contains: (n: unknown) => boolean };
+        body.ownerDocument = doc;
+        body.contains = (n) => n === body;
+        let selection: SelectionInfo | null = null;
+        const highlights = new ReaderHighlights(
+            { app: {} as never, host: host as never, owner: new Component(), scrollTo: jest.fn(), onChange: jest.fn() },
+            { store: memoryStore() as HighlightStore, selection: () => selection, headingAt: () => undefined, copy: jest.fn() }
+        );
+        const select = () => {
+            selection = { start: 0, end: 6, rect: { left: 10, top: 200, width: 30, height: 24 }, clear: jest.fn() };
+        };
+        const labels = () => host.findAll((el) => el.tag === "button").map((el) => el.textContent);
+        return { highlights, host, doc, body, select, labels };
+    }
+
+    afterEach(() => jest.useRealTimers());
+
+    it("sits below the words, once they have settled, and leaves Copy to the system", async () => {
+        jest.useFakeTimers();
+        const m = mountOnDoc();
+        await m.highlights.attach(m.body as never, "Notes/es.md", new Component(), null);
+        m.doc.fire("pointerdown", { pointerType: "touch" });
+        m.select();
+        m.doc.fire("selectionchange");
+        // The handles are still being dragged: nothing yet.
+        jest.advanceTimersByTime(SELECTION_SETTLE_MS - 50);
+        m.doc.fire("selectionchange");
+        jest.advanceTimersByTime(SELECTION_SETTLE_MS - 50);
+        expect(m.highlights.hasPopover()).toBe(false);
+        jest.advanceTimersByTime(100);
+        const pop = m.host.oneByClass("reader-hl-pop");
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(true);
+        expect(pop.cssProps["--zf-hl-y"]).toBe("224px");
+        expect(m.labels()).toContain("Idea");
+        expect(m.labels()).not.toContain("Copy");
+    });
+
+    it("is unchanged for a mouse: above the words, with its Copy", async () => {
+        const m = mountOnDoc();
+        await m.highlights.attach(m.body as never, "Notes/es.md", new Component(), null);
+        m.doc.fire("pointerdown", { pointerType: "mouse" });
+        m.select();
+        m.doc.fire("mouseup", { target: new DomNode() });
+        const pop = m.host.oneByClass("reader-hl-pop");
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(false);
+        expect(pop.cssProps["--zf-hl-y"]).toBe("200px");
+        expect(m.labels()).toContain("Copy");
+    });
+});
+
+describe("a highlight across an equation (#770 AC-6)", () => {
+    const FOREIGN = "zettelkasten-flow__reader-highlight-foreign";
+    /** <p>Euler wrote <math><mi>e</mi><mo>=</mo><mn>1</mn></math> once.</p> */
+    function withEquation() {
+        const math = new FakeEl("math", [new FakeEl("mi", ["e"]), new FakeEl("mo", ["="]), new FakeEl("mn", ["1"])]);
+        return { math, body: new FakeEl("div", [new FakeEl("p", ["Euler wrote ", math, " once."])]) };
+    }
+
+    it("keeps the equation's characters in the quote, tints the equation whole, and clears it with the highlight", async () => {
+        const { math, body } = withEquation();
+        const m = mount([], {}, body);
+        await m.attach();
+        m.select("wrote e=1 once");
+        m.body.fire("mouseup");
+        m.button("Quote").click();
+        await flush();
+        const quote = m.store.write.mock.calls[0][1].quote as ThoughtQuote;
+        expect(quote.exact).toBe("wrote e=1 once");
+        expect(math.all("mark")).toHaveLength(0);
+        expect(m.marks().map((mark) => mark.textContent)).toEqual(["wrote ", " once"]);
+        expect(math.hasClass(FOREIGN)).toBe(true);
+        // In the highlight's own ink, as its marks are.
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(true);
+        m.button("Undo").click();
+        await flush();
+        expect(math.hasClass(FOREIGN)).toBe(false);
+        expect(math.hasClass("zettelkasten-flow__reader-highlight--quote")).toBe(false);
+        expect(m.marks()).toHaveLength(0);
     });
 });

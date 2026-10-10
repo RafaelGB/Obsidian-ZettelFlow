@@ -7,6 +7,10 @@ import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/ep
 import { makeEpub } from "../support/zipFixture";
 import { parseXml } from "../support/miniXml";
 import { searchBook } from "architecture/components/core/reader/readerSearch";
+import { MAX_DRAWN, heldRange, mostOnScreen, runLayout, visibleWindow } from "architecture/components/core/library/sources/pdfPageView";
+import { cleanDesignedCss, designedCssBook, pairSpreads } from "application/library/epubFixedLayout";
+import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
+import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -137,5 +141,78 @@ describe("the Library (#675)", () => {
         });
         if (found === 0) throw new Error("the search found nothing");
         assertBudget("reader.search.1k", ms);
+    });
+    it("reader.pdf.window.600", () => {
+        const view = { width: 1000, height: 800 };
+        const boxes = Array.from({ length: 600 }, (_, i) => (i % 50 === 7 ? { width: 792, height: 612 } : { width: 612, height: 792 }));
+        const run = runLayout(boxes, { layout: "scroll", across: false, scale: 968 / 612, view });
+        let most = 0;
+        let drawn = 0;
+        const ms = best(3, () => {
+            for (let step = 0; step <= 2_000; step++) {
+                const top = ((run.height - view.height) * step) / 2_000;
+                const near = visibleWindow(run.slots, { left: 0, top }, view);
+                most = Math.max(most, mostOnScreen(near, { left: 0, top }, view));
+                drawn = Math.max(drawn, near.length);
+            }
+        });
+        // FR-14: however long the paper, at most seven pages are ever drawn.
+        if (drawn > MAX_DRAWN || drawn === 0) throw new Error(`drew ${drawn} pages at once`);
+        if (most !== 599) throw new Error(`the last page most on screen was ${most}`);
+        assertBudget("reader.pdf.window.600", ms);
+    });
+    it("library.epub.fxl.window.300", () => {
+        // A 300-page comic in Spread, its first page alone: turned end to end, each view laid out and the
+        // pages held by the run's own rule (the view, two pages either side). A fake draw: no DOM.
+        const sides = Array.from({ length: 300 }, (_, i) => (i === 0 ? ("right" as const) : undefined));
+        const boxes = sides.map(() => ({ width: 600, height: 800 }));
+        let peak = 0;
+        const ms = best(5, () => {
+            const views = pairSpreads(sides, { direction: "ltr", spread: "auto", landscape: true, explicit: true });
+            let held = new Set<number>();
+            for (const view of views) {
+                const laid = runLayout(boxes, { layout: "spread", across: false, scale: 0.6, view: { width: 1200, height: 800 }, current: view.pages[0], views });
+                const near = laid.pages;
+                const { lo, hi } = heldRange(near);
+                held = new Set([...held].filter((page) => page >= lo && page <= hi));
+                for (const page of near) held.add(page);
+                peak = Math.max(peak, held.size);
+            }
+        });
+        // FR-9: however long the comic, at most six of its pages are ever held.
+        if (peak > 6 || peak === 0) throw new Error(`held ${peak} pages at once`);
+        assertBudget("library.epub.fxl.window.300", ms);
+    });
+
+    it("library.epub.fxl.css.200kb", () => {
+        // A designed page's 200 KB stylesheet: rules, fonts, pictures and media queries, cleaned (#771).
+        const rule = (i: number) =>
+            `.panel-${i} > p.balloon{position:absolute;left:${i % 600}px;top:calc(${i % 800}px + 2%);background:url(../img/p${i % 40}.png) no-repeat;font-family:"Comic", serif;color:rgb(0 0 0 / 80%);transform:rotate(${i % 7}deg)}\n`;
+        let css = '@font-face{font-family:"Comic";src:url(../fonts/comic.woff2)}\n@media (min-width: 600px){.a{color:red}}\n';
+        for (let i = 0; css.length < 200 * 1024; i++) css += rule(i);
+        const ms = best(5, () => cleanDesignedCss({ sheets: [{ text: css, href: "OEBPS/css/page.css" }], inline: [], href: "OEBPS/p1.xhtml" }, designedCssBook("k")));
+        assertBudget("library.epub.fxl.css.200kb", ms);
+    });
+
+    it("library.pdf.crop.frames", () => {
+        // 24 dense sampled pages: ~1,000 text runs and ~2,000 operators each (a figure-heavy paper).
+        const ops = cropOpsOf(PDFJS_OPS)!;
+        const pages = Array.from({ length: 24 }, (_, p) => {
+            const items = Array.from({ length: 1_000 }, (_, i) => ({ str: "word", transform: [9, 0, 0, 9, 72 + (i % 4) * 120 + ((p + 1) % 2) * 30, 720 - Math.floor(i / 4) * 2.6], width: 100, height: 9 }));
+            const fnArray: number[] = [];
+            const argsArray: unknown[] = [];
+            for (let i = 0; i < 500; i++) {
+                fnArray.push(PDFJS_OPS.save, PDFJS_OPS.transform, PDFJS_OPS.constructPath, PDFJS_OPS.restore);
+                argsArray.push(null, [1, 0, 0, 1, 200 + (i % 10), 100 + (i % 37)], [PDFJS_OPS.fill, [new Float32Array([0, 0, 0, 1, 10, 10])], new Float32Array([0, 0, 10 + (i % 5), 10])], null);
+            }
+            return { items, list: { fnArray, argsArray } };
+        });
+        const toView = (rect: ArrayLike<number>) => [rect[0], 792 - rect[1], rect[2], 792 - rect[3]];
+        let frames = paperFrames([]);
+        const ms = best(3, () => {
+            frames = paperFrames(pages.map((page, index) => ({ index, ink: inkOf(measurePage(page.items, page.list, ops, toView, 612, 792)) })));
+        });
+        if (!frames || frames.right.x <= frames.left.x) throw new Error("the frames were not found");
+        assertBudget("library.pdf.crop.frames", ms);
     });
 });

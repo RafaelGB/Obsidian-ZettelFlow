@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Bookmarks, and where you've been. Left: a page of a book with the bookmark ribbon filled at its top-right corner, dropped in from the edge, and the line you landed on marked for a moment under the words. Middle: the Contents panel on its Bookmarks tab, Contents, Bookmarks and Where you've been as three chips with no count, two bookmarks listed with their chapter, their first words and when they were made, each with a remove button. Right: the Where you've been tab, newest first, Before a search and Before a link, each with its chapter; the back pill, Alt and the left arrow, and two fingers swiping right walk the same trail. Bottom: going to a place is a camera move; a far page is reached by sliding the last three pages, faint at first, never by a cut.">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">BOOKMARKS, AND WHERE YOU'VE BEEN</text>
+
+<!-- ── the page, with its ribbon ──────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<text x="64" y="104" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">THINKING, FAST AND SLOW</text>
+<text x="356" y="104" fill="#5f6168" font-size="12" text-anchor="end">×</text>
+
+<!-- the ribbon, filled, at the page's corner -->
+<path d="M 318 118 h 26 v 46 l -13 -10 l -13 10 z" fill="#7f6df2"/>
+<path d="M 300 112 q -16 6 -12 22" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="250" y="150" fill="#a99cf5" font-size="10" text-anchor="middle">drops in, settles</text>
+<text x="250" y="164" fill="#a99cf5" font-size="10" text-anchor="middle">tap again: lifts out</text>
+
+<text x="64" y="196" fill="#dcddde" font-family="serif" font-size="20" font-weight="700">4 · The associative machine</text>
+<g fill="#b3b5ba" font-family="serif" font-size="13">
+<text x="64" y="232">An idea that has been activated does</text>
+<text x="64" y="254">not merely evoke one other idea. It</text>
+<text x="64" y="276">activates many ideas, which in turn</text>
+<text x="64" y="298">activate others. Furthermore, only a</text>
+</g>
+<!-- you are here: a wash under the words -->
+<rect x="60" y="306" width="282" height="22" rx="4" fill="#7f6df2" fill-opacity="0.22"/>
+<g fill="#dcddde" font-family="serif" font-size="13">
+<text x="64" y="322">few of the activated ideas will register</text>
+</g>
+<g fill="#b3b5ba" font-family="serif" font-size="13">
+<text x="64" y="344">in consciousness; most of the work of</text>
+<text x="64" y="366">associative thinking is silent, hidden</text>
+<text x="64" y="388">from our conscious selves.</text>
+<text x="64" y="420">The notion that we have limited access</text>
+<text x="64" y="442">to the workings of our minds is</text>
+<text x="64" y="464">difficult to accept because, naturally,</text>
+</g>
+<path d="M 350 317 h 14" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="210" y="500" fill="#a99cf5" font-size="10" text-anchor="middle">you are here: under the words, for a moment, then gone</text>
+<text x="210" y="540" fill="#5f6168" font-size="11" text-anchor="middle">B bookmarks the first line on screen</text>
+<text x="210" y="556" fill="#5f6168" font-size="11" text-anchor="middle">a place, never a thought: nothing in Think, no note</text>
+</g>
+
+<!-- ── Contents → Bookmarks ───────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="430" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="454" y="98" width="82" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="495" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Contents</text>
+<rect x="542" y="98" width="88" height="26" rx="13" fill="#7f6df2" fill-opacity="0.35" stroke="#7f6df2"/>
+<text x="586" y="115" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Bookmarks</text>
+<rect x="636" y="98" width="112" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="692" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Where you've been</text>
+<text x="600" y="146" fill="#5f6168" font-size="10" text-anchor="middle">no tab counts anything</text>
+
+<rect x="454" y="164" width="292" height="66" rx="8" fill="#2a2a30"/>
+<text x="468" y="184" fill="#8b8e94" font-size="11">2 · The characters of the story</text>
+<text x="468" y="204" fill="#dcddde" font-size="12">System 1 operates automatically and…</text>
+<text x="468" y="222" fill="#5f6168" font-size="11">2 days ago</text>
+<text x="732" y="200" fill="#8b8e94" font-size="13" text-anchor="end">×</text>
+
+<rect x="454" y="240" width="292" height="66" rx="8" fill="#2a2a30"/>
+<text x="468" y="260" fill="#8b8e94" font-size="11">4 · The associative machine</text>
+<text x="468" y="280" fill="#dcddde" font-size="12">few of the activated ideas will regis…</text>
+<text x="468" y="298" fill="#5f6168" font-size="11">now</text>
+<text x="732" y="276" fill="#8b8e94" font-size="13" text-anchor="end">×</text>
+
+<text x="600" y="336" fill="#5f6168" font-size="10" text-anchor="middle">in reading order · found again by their words,</text>
+<text x="600" y="350" fill="#5f6168" font-size="10" text-anchor="middle">whatever the font, size, layout or device</text>
+
+<rect x="454" y="380" width="292" height="70" rx="8" fill="none" stroke="#3a3a3a" stroke-dasharray="4 4"/>
+<text x="600" y="404" fill="#8b8e94" font-size="11" text-anchor="middle">No bookmarks yet. Tap the ribbon, or</text>
+<text x="600" y="420" fill="#8b8e94" font-size="11" text-anchor="middle">press B, to keep a place without</text>
+<text x="600" y="436" fill="#8b8e94" font-size="11" text-anchor="middle">highlighting anything.</text>
+<text x="600" y="470" fill="#5f6168" font-size="10" text-anchor="middle">the empty state says what to do</text>
+
+<path d="M 640 520 h 80" stroke="#a99cf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="600" y="548" fill="#a99cf5" font-size="10" text-anchor="middle">a tab slides its list in from its side, in one gesture</text>
+</g>
+
+<!-- ── Where you've been ──────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="820" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="844" y="98" width="82" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="885" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Contents</text>
+<rect x="932" y="98" width="88" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="976" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Bookmarks</text>
+<rect x="1026" y="98" width="112" height="26" rx="13" fill="#7f6df2" fill-opacity="0.35" stroke="#7f6df2"/>
+<text x="1082" y="115" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Where you've been</text>
+
+<rect x="844" y="164" width="292" height="44" rx="8" fill="#2a2a30"/>
+<text x="858" y="191" fill="#dcddde" font-size="12">Before a search</text>
+<text x="1122" y="191" fill="#8b8e94" font-size="11" text-anchor="end">4 · The associative machine</text>
+<rect x="844" y="216" width="292" height="44" rx="8" fill="#2a2a30"/>
+<text x="858" y="243" fill="#dcddde" font-size="12">Before a link</text>
+<text x="1122" y="243" fill="#8b8e94" font-size="11" text-anchor="end">2 · The characters</text>
+<text x="990" y="286" fill="#5f6168" font-size="10" text-anchor="middle">newest first · a row you go back to leaves the trail</text>
+<text x="990" y="302" fill="#5f6168" font-size="10" text-anchor="middle">this reading only, the last twenty places</text>
+
+<rect x="900" y="336" width="180" height="28" rx="14" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="990" y="355" fill="#dcddde" font-size="12" text-anchor="middle">← Back to 4 · The associ…</text>
+<text x="990" y="392" fill="#8b8e94" font-size="12" text-anchor="middle">the pill · Alt+← · two fingers →</text>
+<g stroke="#a99cf5" stroke-width="1.5" fill="none">
+<circle cx="960" cy="430" r="9"/>
+<circle cx="984" cy="444" r="9"/>
+<path d="M 1000 437 h 46" marker-end="url(#arrow)"/>
+</g>
+<text x="990" y="482" fill="#5f6168" font-size="10" text-anchor="middle">one trail: every way back walks the same steps</text>
+<text x="990" y="540" fill="#5f6168" font-size="11" text-anchor="middle">links, Contents, searches, footnotes,</text>
+<text x="990" y="556" fill="#5f6168" font-size="11" text-anchor="middle">bookmarks and opened passages leave it</text>
+</g>
+
+<!-- ── the camera move ────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="600" y="624" fill="#8b8e94" font-size="12" font-weight="600" text-anchor="middle" letter-spacing="1">GOING TO A PLACE IS A CAMERA MOVE, NEVER A CUT</text>
+<g fill="#2a2a30" stroke="#3a3a3a">
+<rect x="80" y="650" width="70" height="96" rx="4"/>
+<rect x="160" y="650" width="70" height="96" rx="4" fill-opacity="0.35"/>
+<rect x="240" y="650" width="70" height="96" rx="4" fill-opacity="0.35"/>
+</g>
+<text x="250" y="704" fill="#5f6168" font-size="16" text-anchor="middle">⋯</text>
+<g fill="#2a2a30" stroke="#a99cf5">
+<rect x="380" y="650" width="70" height="96" rx="4" fill-opacity="0.6"/>
+<rect x="460" y="650" width="70" height="96" rx="4" fill-opacity="0.8"/>
+<rect x="540" y="650" width="70" height="96" rx="4"/>
+</g>
+<rect x="620" y="650" width="70" height="96" rx="4" fill="#1e1e22" stroke="#7f6df2" stroke-width="2"/>
+<rect x="630" y="688" width="50" height="8" rx="2" fill="#7f6df2" fill-opacity="0.35"/>
+<path d="M 380 768 C 470 790, 560 790, 650 768" fill="none" stroke="#a99cf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="515" y="806" fill="#a99cf5" font-size="10" text-anchor="middle">far: the last three pages slide in, faint at first, easing out</text>
+<text x="115" y="768" fill="#5f6168" font-size="10" text-anchor="middle">where you were</text>
+
+<text x="930" y="676" fill="#b3b5ba" font-size="12" text-anchor="middle">Page and Spread: the strip travels there</text>
+<text x="930" y="698" fill="#b3b5ba" font-size="12" text-anchor="middle">Scroll: the column glides, two screens at most</text>
+<text x="930" y="720" fill="#b3b5ba" font-size="12" text-anchor="middle">another chapter: its turn, then the landing</text>
+<text x="930" y="742" fill="#b3b5ba" font-size="12" text-anchor="middle">the way back is the reverse shot</text>
+<text x="930" y="770" fill="#5f6168" font-size="10" text-anchor="middle">reduce motion: there at once, the mark still shown</text>
+</g>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#a99cf5"/>
+</marker>
+</defs>
+</svg>

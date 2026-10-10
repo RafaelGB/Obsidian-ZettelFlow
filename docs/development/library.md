@@ -85,8 +85,11 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   size, your theme. Lines are put back into paragraphs, a heading set larger stays a heading, a word
   broken across two lines with a hyphen is mended, a lone page number is left out, and a page in two
   columns is read one column, then the other. A page that is a figure is shown as its picture.
+  Reading view follows the Reader's **Layout** — Scroll, Page or Spread
+  ([pages or scroll](reader.md#pages-or-scroll)), and so does Page view.
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
   whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
+  It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
 - **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF
   without one lists its pages. The section you are in is shown above the page.
 - **Highlights and margin notes**, exactly as in a note: select words, **Highlight** or **Highlight and
@@ -99,12 +102,89 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 - **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
   **See it in the library** or **Read it again**.
 
+### Page view
+
+![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the Pages tab with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
+
+Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
+an iPad (#767):
+
+- **Zoom.** It opens at **Fit width**. **Ctrl/⌘ + wheel**, a trackpad pinch, a two-finger pinch on
+  touch, **Ctrl/⌘ +** and **Ctrl/⌘ −** zoom from 50 % to 400 %; **Ctrl/⌘ 0**, the level in the bar
+  and a double tap go back to **Fit width** (a double tap at Fit width goes to twice it). The page grows
+  around the point under the pointer or between the fingers, and follows them 1:1; past 400 % it
+  resists and springs back. While you zoom nothing is drawn again; when you stop, the pages on screen
+  are drawn sharp and only the blur clears. In Page view these keys are the paper's, and Obsidian's
+  own app zoom gives way (walked on Obsidian 1.14.4); anywhere else they stay Obsidian's.
+- **Fit page** shows the whole page. *Fit width*, *Fit page* and the bar's level are camera moves,
+  never cuts. At Fit width a landscape page in a portrait paper is fitted on its own.
+- **The same Layout as the text** (**Type → Layout**): *Scroll* is one continuous run of pages —
+  **Down**, or **Across** in a horizontal strip, where a plain wheel scrolls sideways; *Page* is one
+  page at a time, turned with the chapter motion you chose; *Spread* is two pages side by side, page 1
+  alone on the right as a printed book opens, and one page where the reading is not clearly wider than
+  it is tall (an iPad in portrait).
+- **Rotate page** (in **Type**) turns the page most on screen a quarter, into its new place, and draws
+  it upright.
+- **The Pages tab** in **Contents**: every page as a small picture, the current one marked, each with
+  the paper's own label (*p. iv*). Pictures are drawn as they scroll into view. Tapping one flies it to
+  its page, which it becomes; the place you left is kept in *Where you've been*.
+- **Links.** A link to a place in the paper — a reference, a citation, its own contents — shows as a
+  link under the pointer and jumps there, with the back pill and **Alt+←**. A link that leaves the
+  paper (a web address, a DOI) is never followed: clicking it shows its address with **Copy link**.
+- **Only what is near is drawn.** However long the paper, at most seven pages are drawn at once and
+  pages far away are let go, so a 600-page PDF scrolls without the app holding 600 pictures. A page not
+  drawn yet is a blank sheet with its number, and its picture fades in. A fling draws nothing until it
+  slows, so it keeps its frames.
+- **Kept with the paper.** The zoom (or the fit), Down or Across and the turned pages are kept beside
+  its place, in plugin data. The PDF is never written.
+
+The Type panel's **Page view** group holds *Fit width · Fit page*, the zoom (−, the level, +), *Down ·
+Across* (in Scroll), *Rotate page* and *Crop margins*; in Reading view none of it is shown. Under
+reduced motion every move is instant and nothing fades; a pinch still follows the fingers.
+
+### Crop margins
+
+![Crop margins: a page at Fit width with its printed area framed, and the same page after the camera moved in — the text larger, the running head, the plot and the page number kept; a left-hand and a right-hand page with their own frames; and an iPad in portrait with the cropped page at reading size](../resources/library/pdf-crop.svg)
+
+A printed page is mostly margin, and at *Fit width* that margin is drawn at full size, so the text is
+smaller than it has to be — on an iPad in portrait, too small to read without zooming. **Type → Page
+view → Crop margins** frames each page on what is printed on it, and *Fit width* fits that (#769):
+
+- **Nothing printed is cut.** The frame holds the page's text, its pictures **and its drawn shapes**
+  (a plot is lines, not a picture): the running head, the page number, a footnote, a note in the
+  margin and every figure stay. A small, even border is left around them. A page whose drawing the
+  Reader cannot read for sure is shown whole rather than guessed at.
+- **The same size from page to page.** A paper gets one frame for its right-hand pages and one for its
+  left-hand pages, taken across its pages, so a printed book's alternating margins are followed and
+  the text never changes size as you turn. A title page or a short last page uses its side's frame,
+  never blown up. A page with more on it than its side's frame (a wide table) keeps all of it, and is
+  shown a little smaller than its neighbours — never cut wins over the same size.
+- **Measured once.** The first time it is turned on for a paper, the Reader reads up to 24 of its pages
+  (every page of a short paper): the switch says *Measuring the margins…* and the page does not move.
+  Then the camera moves in, once — the page grows from its sheet into its frame, the line you were
+  reading staying under your eyes. Turning it off is the same move backwards. Under reduced motion the
+  page is simply shown cropped (or whole), the line kept.
+- **Everything else still works**: *Scroll*, *Page* and *Spread*, the zoom, *Rotate page* (the frame
+  turns with the page), links (they stay on their words), the *Pages* tab (its pictures show the
+  cropped page) and every jump, which lands on the same line as without crop.
+- **A scan is not cropped.** It has no text to frame a page on; the switch says *Cropping needs a
+  page's text, and this PDF has none.* A page that is a picture in an otherwise printed paper is shown
+  whole.
+- **Kept with the paper.** The switch and the frames are kept beside its place, in plugin data, with
+  the file's size and date: a new copy of the PDF is measured again. The PDF is never written. If the
+  margins cannot be measured, the switch turns back off and says so once.
+
 ### A scan
 
 A scanned PDF has no text, so every page is shown as its picture, and a quiet banner says so before
 you try: *This PDF is made of images, so there is no text to highlight. You can read it, and note in
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
+
+A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its *Pages*
+tab like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
+layer, and the Reader reads it as text today: Reading view, search and highlights work on it. A scan
+without one stays pictures, with notes by page.
 
 ### Where you left off, to the line
 
@@ -136,12 +216,49 @@ contents, nested as the book nests them.
   matches are tinted in the page and the current one is outlined. A match in another chapter is a
   jump, with its way back. **Esc** closes the search and takes every tint away. A scan says it has
   no text to search.
-- **Every jump has a way back.** A cross-reference, **Go to note** or a **Contents** entry moves you,
-  and a **← Back to …** pill shows where you came from. Click it, or press **Alt+←**, to return to
-  the very line. The pill fades by itself after a few seconds; Alt+← keeps working until your next
-  page turn. In a PDF the pill follows Contents jumps.
+- **Every jump has a way back.** A cross-reference, **Go to note**, a **Contents** entry, a search, a
+  bookmark or a passage opened from Think moves you — the camera travels there, it never cuts — and a
+  **← Back to …** pill shows where you came from. Click it, or press **Alt+←** (two fingers swept
+  right on a touch screen), to return to the very line. The pill fades by itself after a few seconds;
+  the way back stays in **Contents → Where you've been**, through page turns, until you close the
+  book. In a PDF the pill follows Contents jumps.
+- **Bookmarks.** The ribbon at the page's corner, or **B**, keeps a place without highlighting
+  anything; **Contents → Bookmarks** lists them. See
+  [Bookmarks and where you've been](reader.md#bookmarks-and-where-youve-been).
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter
   (*Thinking, Fast and Slow.epub › 3 · The lazy controller*) and is found again in that chapter.
+
+### Equations and drawings
+
+An EPUB 3 may write its **equations in MathML** and its **diagrams in inline SVG**. Both are drawn by
+the platform itself (Chromium on the desktop, WebKit on an iPad), so they follow your reading size
+and stay sharp at any zoom.
+
+![Equations and drawings in a book: an inline fraction in a sentence under a highlight that tints the whole equation, a centred display equation with a square root, and a labelled diagram fitted to the column, its label found by search](../resources/library/epub-equations.svg)
+
+- **An equation is an equation.** Presentation MathML is kept — fractions, roots, scripts,
+  under/over, tables, fences and spacing — inline in a sentence or as a display equation on its own
+  line, centred, in your theme's text colour. Content MathML and every annotation (the TeX source a
+  converter leaves behind) are dropped; an equation that is only Content MathML is shown as its
+  alternative text, or else its words — never as an empty gap. The `alttext` is kept for screen
+  readers.
+- **A drawing is there.** Inline SVG is kept and scaled to the column, never wider than it, with its
+  own proportions. Shapes, paths, labels, groups, gradients, patterns, clip paths, markers and
+  pictures *from inside the book* are kept, with the drawing's own colours (a chart's legend means
+  something); a drawing that uses the current colour takes your theme's text colour. Colours an
+  editor wrote in a `style` attribute are kept as the drawing's colours; the `style` itself is not.
+- **Nothing in it runs, moves or reaches the network.** Scripts, `foreignObject`, event handlers,
+  `style` elements, filters, masks and animation are dropped with everything inside them — the page
+  is still, as a page should be. A reference may only name something inside the same drawing; a
+  `use`, a picture or a paint that points anywhere else is dropped. A link to a place in the book
+  is followed like any link in the book; one that leaves the book is its text and nothing else.
+- **The cover keeps working.** A cover drawn as `<svg><image/></svg>` (with at most a title, a
+  description or empty definitions beside it) is still shown as a plain picture.
+- **Search and highlights see their words.** Search finds a word in a diagram's label and tints the
+  drawing. A highlight across an inline equation keeps the equation's characters in its quote and
+  tints the whole equation — no mark is drawn inside one. Selecting part of a drawing, or part of an
+  equation, is not supported. A highlight made before this release whose quote held an equation's
+  TeX source may now be listed as *detached*: it is never drawn in the wrong place.
 
 ## The book notebook
 
@@ -202,6 +319,49 @@ Covers are kept for the session only, in memory: never in your vault, never in t
 What you *mark* — highlights and margin notes — is not kept by the Library at all: those are
 [thoughts in Think](../architecture/thought-lab.md), files you can open.
 
+### Designed pages: comics, picture books and cookbooks
+
+Some books are not text that flows: a comic, a picture book, a cookbook or a magazine places every
+word and picture where its designer put it. EPUB 3 calls them **fixed layout** — the book (or one of
+its pages) says it is *pre-paginated*, and gives its page size. The Reader shows those pages **as they
+were made**: their positions, their pictures, their colours and their own fonts, at the size they
+declare.
+
+![A comic's spread fitted in the Reader: two designed pages side by side with their panels and balloons in place, the quiet one-line hint above them, the Reader's bar below in your theme, and a blank sheet of paper waiting for the next page](../resources/library/epub-designed.svg)
+
+- **Known by what the book says.** A book declared fixed layout is read as its pages; a page declared
+  on its own in a flowing book is shown as itself, fitted to the column, between chapters in your type.
+  A book that declares nothing reads exactly as before.
+- **Fitted, then zoomed.** A page opens whole (*Fit page*). It zooms as a PDF in Page view does — pinch,
+  **Ctrl/⌘ + wheel**, **Ctrl/⌘ +** **−**, a double tap — about the point you look at; **Ctrl/⌘ 0** is a
+  camera move back to the whole page. A page is drawn once and only ever scaled, so it stays sharp.
+- **Page, Spread, Scroll** — the Reader's own **Layout**. *Spread* pairs the pages the way the book
+  says (`page-spread-left` / `-right`, a first page alone when it says so, a centred page alone), and
+  never pairs a book that says `rendition:spread none`. If you never chose a layout, a designed book
+  reads as a spread in landscape and a page in portrait; a layout you chose wins.
+- **Right to left.** A book whose spine says `page-progression-direction="rtl"` (most manga) turns
+  the other way: **←** is next, the left edge and a swipe to the right turn on, and a spread's first
+  page sits on the right of the spine.
+- **Read-only, and said so once.** Highlights and search are not available on a designed page, and
+  the first one of a reading says so in one quiet line. Contents, bookmarks, the trail, resume and the
+  end card work as in any book; the time left is counted in **pages**, at this reading's own pace
+  (half a minute a page until you have read three).
+- **Light on memory.** Only the pages on screen and two either side are held; a page further away
+  lets its pictures go. A page waits as a blank sheet of its size and fades in when it is drawn.
+- **A page that cannot be drawn** says *This page could not be drawn.* in its place, and the next one
+  still turns.
+
+**Nothing in it runs, and nothing is fetched.** A designed page is rebuilt node by node, like every
+chapter, inside a **shadow root** of its own — so its look stays inside its page and reaches nothing
+of the Reader's or of your theme's. Its style sheets are read from the book and **cleaned** first: a
+closed list of CSS functions, no CSS escapes, no `@import`, and every `url()` only to a file inside
+the book, read from the archive and shown through a `blob:` URL the Reader made itself; then the sheet
+the platform parsed is checked a second time. Its fonts are read from the archive and loaded under a
+name of the Reader's own (`zf-fxl-…`), so a book's *Inter* can never replace the app's, and they are
+let go when the book closes. Its own animations never play; `position: fixed` stays inside its page.
+No `<style>`, `<link>` or `<script>` element is ever made. A book's `!important` rule can beat what a
+page wrote inline — rare in fixed layout, and the designer's own choice.
+
 ## How to verify
 
 | Command | Proves |
@@ -209,10 +369,15 @@ What you *mark* — highlights and margin notes — is not kept by the Library a
 | `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
-| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, SVG scripts, remote images, runaway nesting); an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter |
+| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget |
+| `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
+| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
+| `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
+| `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
+| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
+| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -231,7 +396,14 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    opens on its detail.
 7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
    reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
-   page as laid out, *Highlight in the reading view*); **V** again comes back.
+   page as laid out at the width of the screen, *100%* in the bar, *Highlight in the reading view*).
+   **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link
+   jumps with the back pill; a DOI shows its address with *Copy link* and opens nothing. **V** again
+   comes back.
+   **Crop margins** (**Type → Page view**): the switch says it is measuring, the page waits, then moves
+   in on its printed area with your line kept; the running head and the page number are still there,
+   and the text is the same size on every page. Off is the same move back. Close and reopen the paper:
+   still cropped, at once.
 8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
    type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
@@ -242,9 +414,29 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
     the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
     Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.
+    In a book with MathML and inline SVG: a fraction is drawn as a fraction inside its sentence, a
+    display equation sits centred on its own line, and a diagram is drawn no wider than the column, in
+    your theme's text colour where it uses the current colour. Search for a diagram's label: it is
+    found and the drawing is tinted. Highlight a sentence holding an inline equation: the equation is
+    tinted whole and its characters are in the quote. A book whose chapter holds a script or a
+    `foreignObject` inside an SVG shows neither, and the developer tools' network panel shows nothing
+    fetched.
 11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
     the title → **Create**. Expect a new note quoting the passage, ending with
     `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click
     it and the Reader opens there. Back in the Library, the book's card says **1 note born**.
-12. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-   No file was created in the vault.
+12. **A comic.** Open a fixed-layout EPUB (a free comic or picture book; or build one: a package
+    declaring `rendition:layout` *pre-paginated*, pages with a `viewport` of 600 × 800 and absolutely
+    placed panels and captions). Expect the first page whole, its balloons where they were drawn, in the
+    book's own font, and one quiet line saying highlights and search are not available. **→** turns a
+    page with your chapter motion. In **Type → Layout → Spread** two pages sit side by side, the first
+    alone if the book says so, and **→** turns the whole spread. **Ctrl/⌘ + wheel** over a panel grows it
+    around the pointer, still sharp; **Ctrl/⌘ 0** flies back to the whole page. The bar says
+    *Page n / N* and a time left; the Reader's bar and top line are in your theme, not the comic's.
+    A right-to-left sample turns with **←**. On an iPad (landscape) a spread, (portrait) one page; a
+    pinch follows your fingers, a swipe the page. Close halfway and open again: the same page.
+13. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+   No file was created in the vault. A hostile fixed-layout page (a style sheet that imports, loads a
+   font and a picture from `https://example.com`, a `<script>`, a `position: fixed` overlay): with the
+   developer tools' network panel open, nothing is fetched, nothing runs, the overlay stays inside its
+   page, and the Reader's bar is unchanged.

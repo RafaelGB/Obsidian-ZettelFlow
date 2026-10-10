@@ -354,7 +354,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // right-click is where the reading starts — no MOC, no setup. #669 adds the ways through
         // it (around, argument, story, essentials, region) and reading a picked set: Explore's
         // *Read these* and This note's *Read around this note*. #672 keeps a path: saved readings
-        // reopen from Home's fold.
+        // reopen from Home's fold. #761's bookmarks and *Where you've been* are not doors of their
+        // own: the ribbon on the page and the Contents panel's tabs, both inside the Reader.
         nameKey: "reader_read_from_here",
         owner: "zettelflow-reader",
         doors: [

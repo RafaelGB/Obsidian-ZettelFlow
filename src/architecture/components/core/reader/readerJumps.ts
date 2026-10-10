@@ -62,11 +62,24 @@ export function noteExcerpt(target: NoteNode, max = 1200): string | null {
     return null;
 }
 
-/** Where you were before each jump, newest last. Per reading; never saved. */
-export class JumpStack<T> {
+/**
+ * What took you away from a place (#761 FR-6): a link in the book, a Contents entry, a search hit,
+ * *Go to note* in a footnote, a bookmark, or a passage opened from Think or *This note*.
+ */
+export const TRAIL_REASONS = ["link", "contents", "search", "note", "bookmark", "passage"] as const;
+export type TrailReason = (typeof TRAIL_REASONS)[number];
+
+/** How many places the trail keeps; the oldest is forgotten first (FR-9). */
+export const TRAIL_LIMIT = 20;
+
+/**
+ * **Where you've been** (#718, grown up in #761): the places you left before each jump, newest last.
+ * One trail for the back pill, Alt+← and the *Where you've been* list (FR-8). Per reading; never saved.
+ */
+export class ReaderTrail<T> {
     private readonly items: T[] = [];
 
-    constructor(private readonly limit = 20) {}
+    constructor(private readonly limit = TRAIL_LIMIT) {}
 
     get size(): number {
         return this.items.length;
@@ -77,12 +90,25 @@ export class JumpStack<T> {
         if (this.items.length > this.limit) this.items.shift();
     }
 
+    /** The newest place: where one step back lands. */
     peek(): T | undefined {
         return this.items[this.items.length - 1];
     }
 
+    /** One step back: the newest place, taken off the trail. */
     pop(): T | undefined {
         return this.items.pop();
+    }
+
+    /** The places, newest first, as the list shows them. */
+    list(): T[] {
+        return [...this.items].reverse();
+    }
+
+    /** Go back to the `index`-th place of `list()`: it alone leaves the trail (FR-8). */
+    takeAt(index: number): T | undefined {
+        if (!(index >= 0 && index < this.items.length)) return undefined;
+        return this.items.splice(this.items.length - 1 - index, 1)[0];
     }
 
     clear(): void {

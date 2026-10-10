@@ -53,6 +53,7 @@ function node(nodeType: number, nodeName: string, parent: MiniNode | null): Mini
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
+const MATH_NS = "http://www.w3.org/1998/Math/MathML";
 
 export function parseXml(text: string): { documentElement: MiniNode | null } {
     const doc = node(9, "#document", null);
@@ -83,7 +84,7 @@ export function parseXml(text: string): { documentElement: MiniNode | null } {
                 el.attributes.push({ name, value: decode(quoted.slice(1, -1)) });
             }
             const xmlns = el.getAttribute("xmlns");
-            el.namespaceURI = xmlns ?? (el.localName === "svg" ? SVG_NS : current.namespaceURI ?? XHTML_NS);
+            el.namespaceURI = xmlns ?? (el.localName === "svg" ? SVG_NS : el.localName === "math" ? MATH_NS : current.namespaceURI ?? XHTML_NS);
             current.childNodes.push(el);
             if (!match[6]) current = el;
         }

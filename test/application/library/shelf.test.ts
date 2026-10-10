@@ -16,6 +16,7 @@ import {
     renameSource,
     sourceFormat,
     withFacts,
+    withBookmarks,
     withPlace,
     LIBRARY_LIMIT,
 } from "application/library/sourceMeta";
@@ -146,6 +147,35 @@ describe("what the Library remembers (#680)", () => {
         for (let i = 0; i < LIBRARY_LIMIT + 5; i++) big = withPlace(big, `s${i}.pdf`, 0, 2, i);
         expect(Object.keys(big)).toHaveLength(LIBRARY_LIMIT);
         expect(big).not.toHaveProperty("s0.pdf");
+    });
+});
+
+describe("bookmarks kept beside the book's place (#761 FR-2, AC-1)", () => {
+    const mark = (chapter: number, offset: number, at: number) => ({ chapter, offset, at, quote: { exact: "System 2 allocates attention", prefix: "", suffix: "" } });
+
+    it("reads valid bookmarks back and drops malformed ones", () => {
+        const map = normalizeLibrary({ "a.epub": { size: 1, mtime: 2, bookmarks: [mark(3, 10, 5), { chapter: "x" }, { chapter: 1, offset: 0, at: 4 }] } });
+        expect(map["a.epub"].bookmarks).toEqual([{ chapter: 1, offset: 0, at: 4 }, mark(3, 10, 5)]);
+        expect(normalizeLibrary({ "a.epub": { size: 1, mtime: 2, bookmarks: "none" } })["a.epub"]).not.toHaveProperty("bookmarks");
+    });
+
+    it("keeps them when the file is replaced by a new copy, as it keeps the place", () => {
+        let map = withPlace({}, "a.epub", 4, 12, 100, 10, 20);
+        map = withBookmarks(map, "a.epub", [mark(4, 30, 101)]);
+        map = withFacts(map, "a.epub", { title: "Book", chapters: 12 }, 99, 999);
+        expect(map["a.epub"]).toMatchObject({ size: 99, mtime: 999, chapter: 4, bookmarks: [mark(4, 30, 101)] });
+    });
+
+    it("keeps them through a turn and a rename, and an empty list leaves no field", () => {
+        let map = withBookmarks({}, "a.pdf", [mark(2, 0, 7)], 10, 20);
+        expect(map["a.pdf"]).toMatchObject({ size: 10, mtime: 20 });
+        map = withPlace(map, "a.pdf", 5, 9, 8);
+        expect(map["a.pdf"].bookmarks).toHaveLength(1);
+        map = renameSource(map, "a.pdf", "b/a.pdf");
+        expect(map["b/a.pdf"].bookmarks).toHaveLength(1);
+        map = withBookmarks(map, "b/a.pdf", []);
+        expect(map["b/a.pdf"]).not.toHaveProperty("bookmarks");
+        expect(map["b/a.pdf"].chapter).toBe(5);
     });
 });
 

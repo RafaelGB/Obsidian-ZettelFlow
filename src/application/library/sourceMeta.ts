@@ -12,6 +12,9 @@
  * read is stored here — that is Think's job, as thoughts you can open.
  */
 
+import { normalizeBookmarks, type Bookmark } from "architecture/components/core/reader/readerBookmarks";
+import { normalizePageView, type PageViewState } from "architecture/components/core/library/sources/pdfPageView";
+
 export type SourceFormat = "pdf" | "epub";
 
 export interface SourceMeta {
@@ -32,6 +35,13 @@ export interface SourceMeta {
     at?: number;
     /** You reached the end at least once. */
     done?: boolean;
+    /** The places you bookmarked (#761): places, never thoughts — kept beside where you are. */
+    bookmarks?: Bookmark[];
+    /**
+     * How a paper is read in Page view (#767 FR-5, FR-9): its zoom or fit, Down or Across, and the
+     * pages you turned. Kept here, beside its place — the PDF itself is never written.
+     */
+    view?: PageViewState;
 }
 
 export type LibraryMeta = Record<string, SourceMeta>;
@@ -45,6 +55,19 @@ export function sourceFormat(path: string): SourceFormat | null {
     if (lower.endsWith(".pdf")) return "pdf";
     if (lower.endsWith(".epub")) return "epub";
     return null;
+}
+
+/** A BCP 47 shape, as the chapter sanitiser keeps it: letters, then dash-separated parts. */
+const LANGUAGE_TAG = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
+
+/**
+ * A language a source declares (#757): an EPUB's `dc:language`, a PDF's `/Lang`. The tag, trimmed,
+ * or nothing for a value that is not one.
+ */
+export function languageTag(raw: unknown): string | undefined {
+    if (typeof raw !== "string") return undefined;
+    const tag = raw.trim();
+    return LANGUAGE_TAG.test(tag) ? tag : undefined;
 }
 
 const num = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
@@ -66,6 +89,10 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (num(v.scroll) && v.scroll >= 0 && v.scroll <= 1) meta.scroll = v.scroll;
         if (num(v.at) && v.at > 0) meta.at = v.at;
         if (v.done === true) meta.done = true;
+        const bookmarks = normalizeBookmarks(v.bookmarks);
+        if (bookmarks.length > 0) meta.bookmarks = bookmarks;
+        const view = normalizePageView(v.view);
+        if (Object.keys(view).length > 0) meta.view = view;
         out[path] = meta;
     }
     return out;
@@ -94,6 +121,40 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.chapter !== undefined) next.chapter = Math.min(previous.chapter, next.chapters! - 1);
     if (previous?.at) next.at = previous.at;
     if (previous?.done) next.done = true;
+    // A new copy of the book keeps its bookmarks, as it keeps its place (#761 FR-2).
+    if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
+    // And how you read it in Page view (#767).
+    if (previous?.view) next.view = previous.view;
+    return prune({ ...map, [path]: next });
+}
+
+/** How the paper is read in Page view, replaced by `view` (#767). The default leaves no field behind. */
+export function withPageView(map: LibraryMeta, path: string, view: PageViewState, size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    delete previous.view;
+    const clean = normalizePageView(view);
+    // Measured frames carry the fingerprint of the file they were measured on (#769 FR-6).
+    if (clean.cropFrames && (size || mtime)) clean.cropFrames = { ...clean.cropFrames, size, mtime };
+    const next: SourceMeta = Object.keys(clean).length > 0 ? { ...previous, view: clean } : previous;
+    return prune({ ...map, [path]: next });
+}
+
+/**
+ * How the paper is read in Page view, for the file as it is now (#769): frames measured on another
+ * copy of it — a different size or modification time — are left out, so the paper is measured again.
+ */
+export function freshPageView(view: PageViewState | undefined, size: number, mtime: number): PageViewState {
+    const clean = normalizePageView(view);
+    const frames = clean.cropFrames;
+    if (frames && (frames.size !== size || frames.mtime !== mtime)) delete clean.cropFrames;
+    return clean;
+}
+
+/** The book's bookmarks, replaced by `list` (#761). An empty list leaves no field behind. */
+export function withBookmarks(map: LibraryMeta, path: string, list: readonly Bookmark[], size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    delete previous.bookmarks;
+    const next: SourceMeta = list.length > 0 ? { ...previous, bookmarks: [...list] } : previous;
     return prune({ ...map, [path]: next });
 }
 

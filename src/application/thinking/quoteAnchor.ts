@@ -91,15 +91,16 @@ function foldSpaces(text: string): string {
  * Where `quote` is in `text` today, or `null` when it cannot be found.
  *
  * Every occurrence of the exact words (whitespace-folded) is a candidate; each is scored by how much
- * of the remembered prefix and suffix still sits around it, and the best wins — the first, on a tie.
+ * of the remembered prefix and suffix still sits around it, and the best wins — on a tie the one
+ * nearest `near` (where it was last seen), or the first.
  * An empty quote never anchors.
  */
-export function anchorQuote(text: string, quote: TextQuote): TextSpan | null {
-    return anchorIn(folded(text), quote);
+export function anchorQuote(text: string, quote: TextQuote, near?: number): TextSpan | null {
+    return anchorIn(folded(text), quote, near);
 }
 
 /** `anchorQuote` against text already folded — so many quotes fold their chapter once. */
-function anchorIn(hay: { text: string; map: number[] }, quote: TextQuote): TextSpan | null {
+function anchorIn(hay: { text: string; map: number[] }, quote: TextQuote, near?: number): TextSpan | null {
     const exact = foldSpaces(quote.exact).trim();
     if (!exact) return null;
     const prefix = foldSpaces(quote.prefix);
@@ -110,7 +111,9 @@ function anchorIn(hay: { text: string; map: number[] }, quote: TextQuote): TextS
         const before = hay.text.slice(Math.max(0, at - prefix.length - 1), at);
         const after = hay.text.slice(at + exact.length, at + exact.length + suffix.length + 1);
         const score = matchFromEnd(before.trimEnd(), prefix.trimEnd()) + matchFromStart(after.trimStart(), suffix.trimStart());
-        if (!best || score > best.score) best = { at, score };
+        // Two equally good matches (a refrain, a repeated line): the one nearest where it was (#761).
+        const closer = near !== undefined && best && score === best.score && Math.abs(hay.map[at] - near) < Math.abs(hay.map[best.at] - near);
+        if (!best || score > best.score || closer) best = { at, score };
     }
     if (!best) return null;
     const start = hay.map[best.at];

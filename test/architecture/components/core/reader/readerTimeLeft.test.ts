@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { WORDS_PER_MINUTE, bookMinutesLeft, learnPace, minutesLeft, paceWpm, splitMinutes } from "architecture/components/core/reader/readerPace";
+import { DEFAULT_SECONDS_PER_PAGE, WORDS_PER_MINUTE, bookMinutesLeft, learnPace, minutesLeft, minutesLeftByPages, paceWpm, pagePace, splitMinutes } from "architecture/components/core/reader/readerPace";
 
 describe("your own reading pace, learned on this device (#722)", () => {
     it("starts from a comfortable default and only trusts itself after two chapters", () => {
@@ -41,5 +41,28 @@ describe("time left in the chapter and in the book (#722)", () => {
         expect(splitMinutes(220)).toEqual({ hours: 3, minutes: 40 });
         expect(splitMinutes(45)).toEqual({ hours: 0, minutes: 45 });
         expect(splitMinutes(120)).toEqual({ hours: 2, minutes: 0 });
+    });
+});
+
+describe("time left in a designed book, by its pages (#771 FR-8)", () => {
+    it("reads at half a minute a page until three pages have been read", () => {
+        expect(DEFAULT_SECONDS_PER_PAGE).toBe(30);
+        expect(pagePace([])).toBe(30);
+        expect(pagePace([12_000, 14_000])).toBe(30);
+    });
+
+    it("then at the median of this reading's pages, so one long stare does not move it", () => {
+        expect(pagePace([10_000, 12_000, 14_000])).toBe(12);
+        expect(pagePace([10_000, 12_000, 14_000, 300_000])).toBe(13);
+    });
+
+    it("leaves out a page turned past, and a tab left open", () => {
+        expect(pagePace([200, 300, 10_000, 12_000, 14_000, 3_600_000])).toBe(12);
+    });
+
+    it("says minutes, never a count, and at least one while any page is left", () => {
+        expect(minutesLeftByPages(10, 30)).toBe(5);
+        expect(minutesLeftByPages(1, 10)).toBe(1);
+        expect(minutesLeftByPages(0, 30)).toBe(0);
     });
 });

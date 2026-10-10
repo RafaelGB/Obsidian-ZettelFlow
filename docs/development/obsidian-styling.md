@@ -51,6 +51,12 @@ popover, dialog, tabs, navigation), **Editor**, **Plugins** and **Window**
 | borders, hovers, form fields | `--background-modifier-border`, `--background-modifier-border-hover`, `--background-modifier-border-focus`, `--background-modifier-hover`, `--background-modifier-form-field` |
 | text | `--text-normal`, `--text-muted`, `--text-faint`, `--text-on-accent`, `--text-accent` |
 | something went well, or wrong | `--text-success`, `--text-warning`, `--text-error`, `--background-modifier-success`, `--background-modifier-error` |
+| a highlight tint | `var(--highlight-background, var(--text-highlight-bg))` — never the old name alone |
+
+**The highlight tint, since 1.14.** Obsidian 1.14 no longer defines `--text-highlight-bg` on the
+body; it only reads it, as a theme's override of `--highlight-background`. A rule that names the old
+variable alone draws **no tint** on 1.14. Write the chain above: 1.14's variable first, the one older
+versions define second. `test/styles/highlightTint.test.ts` fails the build on a bare use.
 
 [Colors reference](https://docs.obsidian.md/Reference/CSS+variables/Foundations/Colors)
 

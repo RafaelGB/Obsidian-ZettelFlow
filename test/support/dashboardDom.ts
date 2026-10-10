@@ -42,6 +42,25 @@ export class DomNode {
     cssProps: Record<string, string> = {};
     private detached = false;
 
+    /**
+     * `attachShadow` (#771): a root of its own, which `find`, `querySelector` and `cloneNode` never
+     * enter — as the platform's. `adoptedStyleSheets` is what the page adopted.
+     */
+    shadowRoot: (DomNode & { adoptedStyleSheets: unknown[]; host: DomNode }) | null = null;
+    attachShadow(_init: { mode: "open" | "closed" }): DomNode {
+        if (this.shadowRoot) throw new Error("NotSupportedError: a shadow root is already attached");
+        const root = Object.assign(new DomNode("#shadow-root"), { adoptedStyleSheets: [] as unknown[], host: this as DomNode });
+        this.shadowRoot = root;
+        return root;
+    }
+    /** `Element.matches`, over the same small selectors as `querySelector`. */
+    matches(selector: string): boolean {
+        return matcher(selector)(this);
+    }
+
+    /** The element's namespace (#770): XHTML, unless made by `createSvg` (or set by a test). */
+    namespaceURI: string | null = "http://www.w3.org/1999/xhtml";
+
     constructor(tag = "div") {
         this.tag = tag;
     }
@@ -88,6 +107,7 @@ export class DomNode {
         }
         const el = this.createEl(tag, { ...options, cls: Array.isArray(options.cls) ? options.cls.join(" ") : options.cls });
         el.svg = true;
+        el.namespaceURI = "http://www.w3.org/2000/svg";
         // Like Obsidian: only HTML elements have isShown(); an SVG element does not.
         el.isShown = undefined;
         return el;
@@ -228,6 +248,14 @@ export class DomNode {
     }
     get lastElementChild(): DomNode | null {
         return this.children[this.children.length - 1] ?? null;
+    }
+    get firstElementChild(): DomNode | null {
+        return this.children[0] ?? null;
+    }
+    /** The next sibling, as `insertBefore(node, el.nextSibling)` reads it (#750: a chapter's sheet). */
+    get nextSibling(): DomNode | null {
+        const siblings = this.parent?.children ?? [];
+        return siblings[siblings.indexOf(this) + 1] ?? null;
     }
     /** The DOM's `insertBefore(node, ref)`: before `ref`, or last when there is none (#686). */
     insertBefore(node: DomNode, ref: DomNode | null | undefined): DomNode {

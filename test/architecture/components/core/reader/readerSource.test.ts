@@ -6,6 +6,9 @@ import { makePdfJs, prose } from "../../../../support/fakePdf";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState } from "architecture/components/core/reader/readerContract";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
+import { DEVICE_LIMITS } from "architecture/components/core/reader/readerDevice";
+import { openPdfSource } from "architecture/components/core/library/sources/pdfSource";
+import { withPlatform, IPAD } from "../../../../support/platform";
 import type { HighlightStore } from "architecture/components/core/reader/readerHighlights";
 import type { Thought } from "application/thinking/thought";
 
@@ -100,7 +103,7 @@ describe("a PDF in the Reader (#681)", () => {
 
     it("draws the page as it was laid out in page view — read-only, and says where to highlight", async () => {
         const { content, view } = await open(1, { layout: "page" });
-        expect(content.byClass("reader-page-picture")).toHaveLength(1);
+        expect(content.byClass("reader-pv-run")).toHaveLength(1);
         expect(content.oneByClass("reader-source-hint").textContent).toContain("Highlight in the reading view.");
         expect(view.getState()).toMatchObject({ layout: "page" });
         // V, or the hint's button, goes back to the reading view.
@@ -116,7 +119,7 @@ describe("a PDF in the Reader (#681)", () => {
             "This PDF is made of images, so there is no text to highlight. You can read it, and note in the margin by page."
         );
         expect(content.byText("Note this page")).toBeDefined();
-        expect(content.byClass("reader-page-picture")).toHaveLength(1);
+        expect(content.byClass("reader-pv-run")).toHaveLength(1);
         // No page view to switch to: every page is already a picture.
         expect(content.byClass("reader-bar-button").some((el) => el.getAttribute("aria-label") === "Page view" && !el.hasClass("zettelkasten-flow__reader-hidden"))).toBe(false);
     });
@@ -157,5 +160,133 @@ describe("a PDF in the Reader (#681)", () => {
         await m.view.onOpen();
         await flush();
         expect(m.content.oneByClass("reader-missing").textContent).toBe("This file could not be read.");
+    });
+});
+
+/** A big book opens, or says why not (#750 FR-13, FR-23, AC-10). */
+describe("a source too large for the device (#750)", () => {
+    beforeEach(() => resetReaderWorkspace());
+    afterAll(() => __setPdfJs(null));
+
+    function big(m: ReturnType<typeof mount>) {
+        const paper = m.app.vault.getAbstractFileByPath("Papers/cap.pdf") as unknown as { stat: { size: number } };
+        paper.stat.size = DEVICE_LIMITS.pdf + 1;
+        const readBinary = jest.fn(async () => new ArrayBuffer(4));
+        (m.app.vault as unknown as { readBinary: unknown }).readBinary = readBinary;
+        return readBinary;
+    }
+
+    it("is not read at all on an iPad: one calm line, and the way back to the shelf; nothing is written", async () => {
+        await withPlatform(IPAD, async () => {
+            const m = mount();
+            const readBinary = big(m);
+            const back = { focus: "Papers/cap.pdf" };
+            (m.app.workspace as unknown as { getLeavesOfType: unknown }).getLeavesOfType = () => [];
+            const setViewState = jest.fn(async () => undefined);
+            (m.view.leaf as unknown as { setViewState: unknown }).setViewState = setViewState;
+            await m.view.setState({ source: "Papers/cap.pdf", chapter: 0, back }, {} as never);
+            await m.view.onOpen();
+            await flush();
+            expect(readBinary).not.toHaveBeenCalled();
+            expect(m.content.oneByClass("reader-too-large-text").textContent).toBe("This file is too large to open on this device.");
+            const shelf = m.content.byText("Back to the library");
+            expect(shelf).toBeDefined();
+            shelf!.click();
+            expect(setViewState).toHaveBeenCalledWith({ type: "zettelflow-library", state: back, active: true });
+            expect(m.host.saveSettings).not.toHaveBeenCalled();
+            expect(m.host.settings.library).toBeUndefined();
+        });
+    });
+
+    it("opens the same file on a desktop, where there is no such limit — saying Opening… meanwhile", async () => {
+        const m = mount();
+        const readBinary = big(m);
+        await m.view.setState({ source: "Papers/cap.pdf", chapter: 0 }, {} as never);
+        await m.view.onOpen();
+        await settle(() => m.content.byClass("reader-next").length > 0);
+        expect(readBinary).toHaveBeenCalled();
+        expect(m.content.byClass("reader-too-large")).toHaveLength(0);
+    });
+
+    it("says Opening… while a book within the limit opens on an iPad", async () => {
+        await withPlatform(IPAD, async () => {
+            const m = mount();
+            let release: () => void = () => undefined;
+            (m.app.vault as unknown as { readBinary: unknown }).readBinary = () => new Promise<ArrayBuffer>((resolve) => (release = () => resolve(new ArrayBuffer(4))));
+            const opening = m.view.setState({ source: "Papers/cap.pdf", chapter: 0 }, {} as never);
+            await flush(2);
+            await m.view.onOpen();
+            expect(m.content.oneByClass("reader-missing").textContent).toBe("Opening…");
+            release();
+            await opening;
+            await settle(() => m.content.byClass("reader-next").length > 0);
+            expect(m.content.byClass("reader-too-large")).toHaveLength(0);
+        });
+    });
+});
+
+describe("a PDF's printed pages, behind the source seam (#767)", () => {
+    afterAll(() => __setPdfJs(null));
+
+    async function pagesOf(pdf: Parameters<typeof makePdfJs>[0]) {
+        const { lib, calls } = makePdfJs(pdf);
+        __setPdfJs(lib);
+        const paper = file("Papers/p.pdf");
+        const app = { vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } };
+        const doc = await openPdfSource(app as never, paper);
+        return { doc, pages: doc.pages!, calls };
+    }
+
+    it("names each page by the paper's own label, and the chapters with it", async () => {
+        const { doc, pages } = await pagesOf({ pages: [{ runs: [] }, { runs: [] }, { runs: [] }], labels: ["i", "1", "2"] });
+        expect([0, 1, 2].map((i) => pages.label(i))).toEqual(["i", "1", "2"]);
+        expect(doc.chapters.map((chapter) => chapter.label)).toEqual(["p. i", "p. 1", "p. 2"]);
+        // Labels that only repeat the numbers say nothing more.
+        const plain = await pagesOf({ pages: [{ runs: [] }, { runs: [] }], labels: ["1", "2"] });
+        expect(plain.pages.label(1)).toBe("2");
+    });
+
+    it("reads a page's size, draws it at a scale and a turn, and can let a drawing go", async () => {
+        const { pages, calls } = await pagesOf({ pages: [{ runs: [] }, { runs: [], width: 792, height: 612 }], holdRenders: true });
+        expect(pages.first).toEqual({ width: 612, height: 792 });
+        expect(await pages.size(1)).toEqual({ width: 792, height: 612 });
+        const canvas = { width: 0, height: 0, getContext: () => ({}) } as unknown as HTMLCanvasElement;
+        const task = pages.render(0, canvas, { scale: 2, rotation: 90 });
+        await flush();
+        expect(calls.renders[0]).toMatchObject({ page: 1, scale: 2, rotation: 90 });
+        // Turned a quarter: the canvas is as wide as the page is tall.
+        expect([canvas.width, canvas.height]).toEqual([1584, 1224]);
+        task.cancel();
+        await expect(task.promise).resolves.toBeUndefined();
+        expect(calls.renders[0].cancelled).toBe(true);
+    });
+
+    it("finds a page's links, as shares of the page, and where the ones in the paper go", async () => {
+        const { pages } = await pagesOf({
+            pages: [
+                {
+                    runs: [],
+                    links: [
+                        { rect: [61.2, 712.8, 122.4, 792], dest: "refs" },
+                        { rect: [0, 0, 306, 79.2], url: "https://example.org/a" },
+                    ],
+                },
+                { runs: [] },
+            ],
+            destinations: { refs: [{ num: 1 }, { name: "XYZ" }, 0, 396, 0] },
+        });
+        const links = await pages.links(0, 0);
+        expect(links[0].rect.x).toBeCloseTo(0.1);
+        expect(links[0].rect.y).toBeCloseTo(0);
+        expect(links[0].rect.w).toBeCloseTo(0.1);
+        expect(links[0].rect.h).toBeCloseTo(0.1);
+        expect(links[1]).toMatchObject({ url: "https://example.org/a" });
+        expect(links[1].rect.y).toBeCloseTo(0.9);
+        expect(await pages.destination(links[0].dest)).toEqual({ page: 1, share: 0.5 });
+        expect(await pages.destination("nowhere")).toBeNull();
+        // Turned a quarter, a link is where the turned page shows it.
+        const turned = await pages.links(0, 90);
+        expect(turned[1].rect.x).toBeCloseTo(0);
+        expect(turned[1].rect.w).toBeCloseTo(0.1);
     });
 });

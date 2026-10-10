@@ -106,6 +106,10 @@ export class FakeEl {
         return this.classes.has(name);
     }
 
+    getAttribute(name: string): string | null {
+        return this.attrs[name] ?? null;
+    }
+
     addEventListener(name: string, fn: (event: unknown) => void): void {
         (this.listeners[name] ??= []).push(fn);
     }

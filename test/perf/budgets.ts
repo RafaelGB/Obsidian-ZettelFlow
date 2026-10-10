@@ -295,6 +295,37 @@ export const BUDGETS = {
         because:
             "Ctrl/Cmd+F in the Reader searches the whole book on each pause in typing (#719); a long book must answer while you are still looking at the bar",
     },
+    "reader.pdf.window.600": {
+        name: "scroll a 600-page paper in Page view top to bottom (2,000 steps): the pages to draw and the page most on screen",
+        limit: 30,
+        measured: "7.6 ms",
+        because:
+            "it runs on every scroll frame of a paper in Page view (#767 FR-14); each step must cost a sliver of a frame, and the test also holds the pages drawn at seven or fewer, so a 600-page PDF never holds more than seven pictures",
+    },
+    "library.pdf.crop.frames": {
+        name: "find a paper's two crop frames: 24 sampled dense pages (1,000 runs and 2,000 operators each) measured and joined",
+        // ~4.5x the first measurement. Bound Math at module scope: a global looked up per call made it 150 ms here.
+        limit: 25,
+        measured: "5.5 ms",
+        because:
+            "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
+    },
+    "library.epub.fxl.window.300": {
+        name: "turn a 300-page fixed-layout comic end to end in Spread: pair its pages, lay out each view, keep what the run keeps",
+        // ~4.5x the first measurement (a millisecond is noise on a busy runner); the held count is asserted beside it.
+        limit: 5,
+        measured: "1.1 ms",
+        because:
+            "a comic is turned page after page; the pairing and the layout run on every turn, and the pages held must stay at six however long the book is (#771 FR-9, a 300-page comic on an iPad)",
+    },
+    "library.epub.fxl.css.200kb": {
+        name: "clean a designed page's 200 KB stylesheet: its fonts renamed, its pictures made placeholders, every function checked",
+        // ~3x the first measurement.
+        limit: 50,
+        measured: "15.3 ms",
+        because:
+            "it runs before a designed page can be drawn, between the turn and the page; a heavy comic's sheet must clean well inside the 120 ms the page takes to fade in (#771 FR-15)",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,
@@ -319,8 +350,10 @@ export const BUDGETS = {
     },
     "view.graph.bundle.kb": {
         name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
-        limit: 2_450,
-        measured: "2,265 KB",
+        // 2,450 → 2,600 (#767): 2,265 KB at #693; the Reader's epic #739 grew it to 2,467 KB before this slice, and
+        // Page view adds 36 KB of its own code; a WebGL library coming back is still a megabyte over.
+        limit: 2_600,
+        measured: "2,503 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

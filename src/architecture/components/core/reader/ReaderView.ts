@@ -53,6 +53,8 @@ import { hoverPreview } from "architecture/components/core/a11y";
 import { ReaderHighlights, type HighlightDeps, type ThinkMove, type ThinkPassage } from "./readerHighlights";
 import { ReaderVaultMoves, type VaultMoveId, type VaultMovesDeps, type VaultMovesView } from "./readerVaultMoves";
 import { dismissNewestOf, type ProposalBox } from "./readerProposal";
+import { ReaderAiMoves, type AiMovesDeps, type AiMovesView } from "./readerAiMoves";
+import type { ReaderAiMoveId } from "application/thinking/readerMovePrompts";
 import { ReaderInk, type InkDeps } from "./readerInk";
 import {
     chapterOfHighlight,
@@ -365,6 +367,10 @@ export class ReaderView extends ItemView {
     private alongside: ReaderAlongside | null = null;
     /** Contradict and Connect, answered by your vault (#756): their cards live in Alongside. */
     private vaultMoves: ReaderVaultMoves | null = null;
+    /** The six moves by your AI provider (#759): their cards live in Alongside, kept while it is closed. */
+    private aiMoves: ReaderAiMoves | null = null;
+    /** Alongside's button in the bar: a dot on it says an answer landed while it was closed (#759 FR-14). */
+    private alongsideDot: HTMLElement | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
     private panelShape: "sheet" | "side" | "card" | null = null;
     /** Alongside's leaving slide, when it is playing. */
@@ -540,7 +546,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: Alongside's index, Think and the judgement record (#754). */
         private readonly alongsideDeps: AlongsideDeps = {},
         /** Seams for tests: the moves' stores, record and property write (#756). */
-        private readonly vaultMovesDeps: VaultMovesDeps = {}
+        private readonly vaultMovesDeps: VaultMovesDeps = {},
+        /** Seams for tests: the AI layer, the stores and the queue of the AI moves (#759). */
+        private readonly aiMovesDeps: AiMovesDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -836,6 +844,7 @@ export class ReaderView extends ItemView {
         // Alongside, open again if you left it open on this device (#754 FR-13).
         this.alongside = new ReaderAlongside(this.alongsideView(), this.alongsideDeps);
         this.vaultMoves = new ReaderVaultMoves(this.vaultMovesView(), this.vaultMovesDeps);
+        this.aiMoves = new ReaderAiMoves(this.aiMovesView(), this.aiMovesDeps);
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
@@ -865,6 +874,9 @@ export class ReaderView extends ItemView {
         // Undecided proposals go with the Reader, and nothing is recorded (#756 FR-12).
         this.vaultMoves?.dispose();
         this.vaultMoves = null;
+        // Waiting answers are discarded with the Reader: nothing shown, nothing recorded (#759 AC-5).
+        this.aiMoves?.dispose();
+        this.aiMoves = null;
         this.alongside?.dispose();
         this.alongside = null;
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
@@ -986,7 +998,9 @@ export class ReaderView extends ItemView {
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
         this.ink.mountButton(bar);
         this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
-        this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
+        const context = this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
+        context.addClass(c("reader-bar-button--dotted"));
+        this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
         view.addClass(c("reader-hidden"));
         // The zoom level, beside it (#767 FR-13): the camera goes back to the width of the screen.
@@ -3118,6 +3132,8 @@ export class ReaderView extends ItemView {
         this.thumbs = null;
         // The proposals in Alongside go with it, with no verdict (#756 AC-7).
         this.vaultMoves?.dismissAll();
+        // The AI moves' cards are kept: their answers are still coming (#759 FR-14).
+        this.aiMoves?.detach();
         this.alongside?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
@@ -3142,7 +3158,10 @@ export class ReaderView extends ItemView {
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
             renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, this.typeContext());
         }
-        else if (this.panel === "context") this.alongside?.mount(host, scope);
+        else if (this.panel === "context") {
+            this.alongside?.mount(host, scope);
+            this.aiMoves?.attach(this.alongside?.proposalsHost() ?? null);
+        }
     }
 
     /**
@@ -3193,10 +3212,31 @@ export class ReaderView extends ItemView {
             if (!book) return;
             void this.vaultMoves?.run(move, { ...passage, book, bookTitle: this.source?.title ?? noteName(book) }, from);
         };
+        // The AI's six after them (#759), by the gate as it is each time the popover opens (FR-3).
+        const ask = (move: ReaderAiMoveId) => (passage: ThinkPassage, from: ProposalBox) => {
+            const book = this.sourcePath;
+            if (!book) return;
+            const around = this.highlights?.contextOf(passage.quote) ?? { paragraph: passage.quote.exact, previous: "" };
+            this.aiMoves?.run(move, { ...passage, ...around, book, bookTitle: this.source?.title ?? noteName(book) }, from);
+        };
         return [
             { id: "contradict", label: "reader_move_contradict", run: run("contradict") },
             { id: "connect", label: "reader_move_connect", run: run("connect") },
+            ...(this.aiMoves?.thinkMoves(ask) ?? []),
         ];
+    }
+
+    /** What the AI moves lend of the Reader (#759): Alongside, as the vault moves have it, and its dot. */
+    private aiMovesView(): AiMovesView {
+        const vault = this.vaultMovesView();
+        return {
+            app: this.app,
+            openAlongside: () => vault.openAlongside(),
+            fromReadingBox: () => vault.fromReadingBox(),
+            addFromReading: (entry) => vault.addFromReading(entry),
+            dot: (on) => this.alongsideDot?.toggleClass("is-shown", on),
+            language: () => getLanguage(),
+        };
     }
 
     /** What the moves lend of the Reader (#756): Alongside, where their answers arrive. */
@@ -4127,7 +4167,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -4140,8 +4180,8 @@ export class ReaderView extends ItemView {
         });
         switch (step) {
             case "proposal":
-                // The newest card of all, whoever opened it — ink's reading or a move (#748, #756).
-                dismissNewestOf([this.ink?.reading, this.vaultMoves]);
+                // The newest card of all, whoever opened it — ink's reading or a move (#748, #756, #759).
+                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves]);
                 return;
             case "shortcuts":
                 return this.closeShortcuts();

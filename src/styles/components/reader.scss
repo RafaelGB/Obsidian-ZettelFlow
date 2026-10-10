@@ -1010,14 +1010,16 @@ button.zettelkasten-flow__reader-next-button {
     @include hint;
 }
 
-.zettelkasten-flow__reader-proposal-group-origin {
+.zettelkasten-flow__reader-proposal-group-origin,
+.zettelkasten-flow__reader-proposal-byline {
     color: var(--reader-faint);
     font-size: var(--font-ui-smaller);
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
-.zettelkasten-flow__reader-proposal-group-passage {
+.zettelkasten-flow__reader-proposal-group-passage,
+.zettelkasten-flow__reader-proposal-passage {
     margin: 0;
     padding-left: var(--size-4-2);
     border-left: var(--border-width) solid var(--reader-line);
@@ -1052,6 +1054,100 @@ button.zettelkasten-flow__reader-next-button {
 .zettelkasten-flow__reader-proposal-title {
     font-size: var(--font-ui-small);
     font-weight: var(--font-semibold);
+}
+
+/* An answer asked of your AI provider (#759 FR-6): a card on its own, framed as #756's answers are. */
+.zettelkasten-flow__reader-proposal.zettelkasten-flow__reader-proposal--flow.zettelkasten-flow__reader-proposal--framed {
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    border-color: var(--reader-line);
+    box-shadow: var(--shadow-s);
+}
+
+/* Where the answer will be, and is: the same box, holding the ink's height so nothing above it moves. */
+.zettelkasten-flow__reader-proposal-answer {
+    position: relative;
+    min-height: var(--size-4-8);
+    white-space: pre-line;
+}
+
+.zettelkasten-flow__reader-proposal-answer--problem {
+    color: var(--reader-muted, var(--text-muted));
+}
+
+.zettelkasten-flow__reader-proposal-note {
+    @include hint;
+}
+
+/* A row the card hides — the actions while it waits, Cancel once it has landed — is gone, whatever display its own rule gives it. */
+.zettelkasten-flow__reader-proposal > .zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
+/*
+ * Waiting like a pen about to write (FR-13): three short lines in the faint text colour, breathing
+ * slowly — opacity only, never a shimmer, a percentage or a spinner.
+ */
+.zettelkasten-flow__reader-ink-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--size-4-2);
+    pointer-events: none;
+
+    span {
+        display: block;
+        width: 92%;
+        height: var(--size-2-1);
+        border-radius: var(--radius-s);
+        background-color: var(--text-faint);
+        opacity: 0.35;
+        animation: zf-reader-pen-breathe 1.2s ease-in-out infinite alternate;
+    }
+
+    span:nth-child(2) {
+        width: 78%;
+        animation-delay: 200ms;
+    }
+
+    span:nth-child(3) {
+        width: 54%;
+        animation-delay: 400ms;
+    }
+}
+
+@keyframes zf-reader-pen-breathe {
+    from {
+        opacity: 0.35;
+    }
+
+    to {
+        opacity: 0.7;
+    }
+}
+
+/* An answer landed while Alongside was closed (FR-14): a small dot on its button, faded in. */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-bar-button--dotted {
+    position: relative;
+}
+
+.zettelkasten-flow__reader-bar-dot {
+    position: absolute;
+    top: var(--size-4-1);
+    right: var(--size-4-1);
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: 50%;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity $motion-fast $ease-out;
+
+    &.is-shown {
+        opacity: 1;
+    }
 }
 
 /* Modify on Connect: another idea, picked in place. */
@@ -1143,9 +1239,16 @@ button.zettelkasten-flow__reader-next-button {
     .zettelkasten-flow__reader-proposal--flow,
     .zettelkasten-flow__reader-idea-picker,
     .zettelkasten-flow__reader-from-reading,
-    .zettelkasten-flow__reader-highlight--tension:last-of-type::after {
+    .zettelkasten-flow__reader-highlight--tension:last-of-type::after,
+    .zettelkasten-flow__reader-bar-dot {
         animation: none;
         transition: none;
+    }
+
+    /* FR-16: the ink still, and half-faint. */
+    .zettelkasten-flow__reader-ink-wait span {
+        animation: none;
+        opacity: 0.5;
     }
 }
 

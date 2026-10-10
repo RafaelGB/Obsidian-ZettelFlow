@@ -121,6 +121,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "reader-alongside": { summary: "your own notes beside the page you are reading, through six lenses, each saying why it is there — nothing written.", page: "../development/reader.md#alongside-your-vault-beside-the-page" },
     "reader-contradict": { summary: "select a passage and ask which of your notes stand against it — answered by your vault, no AI; a tension is kept only if you accept it.", page: "../development/reader.md#moves-answered-by-your-vault" },
     "reader-connect": { summary: "select a passage and ask which of your ideas it belongs with — accept one and the idea cites the passage, undoable.", page: "../development/reader.md#moves-answered-by-your-vault" },
+    "reader-ai-moves": { summary: "select a passage and ask your AI provider why, what it assumes, what it claims, or what follows — one short answer per click, kept only if you accept it.", page: "../development/reader.md#moves-by-your-ai-provider" },
     library: { summary: "your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page.", page: "../development/library.md" },
     "highlights-review": { summary: "what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go.", page: "../development/highlights-review.md" },
     "think-about": { summary: "open a thread about a note without writing to it.", page: "../architecture/thought-lab.md" },

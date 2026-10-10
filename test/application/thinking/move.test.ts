@@ -210,3 +210,18 @@ describe("the Reader's moves speak the same vocabulary (#756 AC-12)", () => {
         expect(src).toContain('connect: { primitive: "explore", verb: "analogy" }');
     });
 });
+
+describe("the Reader's AI moves speak the same vocabulary (#759 AC-10)", () => {
+    it("logs the six under verbs of the eleven, each with its verb's own primitive, and the log reads them back", async () => {
+        const { READER_AI_MOVES, primitiveOf } = await import("application/thinking/readerMovePrompts");
+        const { sanitizeMoveLog } = await import("application/thinking/move");
+        const logged = READER_AI_MOVES.map((m, i) => ({ id: `m${i}`, at: i + 1, primitive: primitiveOf(m), verb: m.verb, subject: `t${i}` }));
+        expect(sanitizeMoveLog(logged)).toHaveLength(6);
+        expect(new Set(READER_AI_MOVES.map((m) => m.verb))).toEqual(new Set(["reframe", "challenge", "branch", "compress"]));
+        expect(MOVE_VERBS).toHaveLength(11);
+        expect(MOVE_PRIMITIVES).toHaveLength(5);
+        // The controller logs what the table says, never a verb of its own.
+        const src = readFileSync(join(__dirname, "../../../src/architecture/components/core/reader/readerAiMoves.ts"), "utf8");
+        expect(src).toContain("this.moves.record({ primitive: primitiveOf(move), verb: move.verb, subject: thought.id })");
+    });
+});

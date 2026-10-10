@@ -41,7 +41,21 @@ import { openReview } from "architecture/components/core/review/ReviewModal";
 /** The Reader moves a thought can be accepted from, as Think names them (#756). A literal map for the locale guardrail. */
 const MADE_BY_KEY: Partial<Record<ReaderMoveId, Parameters<typeof t>[0]>> = {
     contradict: "lab_made_by_contradict",
+    // The moves by your AI provider (#759): the chip reads *Why? · AI*.
+    why: "reader_move_why",
+    challenge: "reader_move_challenge",
+    question: "reader_move_question",
+    claim: "reader_move_claim",
+    reflect: "reader_move_reflect",
+    explain: "reader_move_explain",
 };
+
+/** The chip of a thought accepted from a Reader move (#756): *Contradict*, or *Why? · AI* (#759). */
+export function madeByLabel(madeBy: Thought["madeBy"]): string | null {
+    const key = madeBy ? MADE_BY_KEY[madeBy.move] : undefined;
+    if (!key) return null;
+    return madeBy?.ai ? t("lab_made_by_ai", t(key)) : t(key);
+}
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -985,8 +999,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
 
         // Accepted from a Reader move (#756): the move says where the thought came from.
-        const madeBy = thought.madeBy ? MADE_BY_KEY[thought.madeBy.move] : undefined;
-        if (madeBy) this.ribbon(box, t(madeBy), "swords");
+        // An AI move's answer says so (#759 FR-7): its first words came from your provider.
+        const made = madeByLabel(thought.madeBy);
+        if (made) this.ribbon(box, made, thought.madeBy?.ai ? "sparkles" : "swords");
 
         // Ink written in the Reader (#745): the handwriting itself, never a passage.
         if (isInk(thought) && thought.about) this.renderInk(box, thought, thought.about);

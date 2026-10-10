@@ -121,6 +121,7 @@ export const CAPABILITIES = [
     "reader-alongside",
     "reader-contradict",
     "reader-connect",
+    "reader-ai-moves",
     "library",
     "highlights-review",
     "claim-door",
@@ -396,6 +397,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     },
     "reader-connect": {
         nameKey: "reader_move_connect",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-ai-moves": {
+        // Moves by your AI provider (#759, epic #741): Why?, Challenge, Question, What's the claim,
+        // Reflect and Explain, after Contradict and Connect in the same Think row — offered only
+        // while AI is turned on, which is the opt-in. Each answer is a proposal (§XII).
+        nameKey: "reader_ai_moves_name",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },

@@ -22,6 +22,12 @@ import { mountIdeaPicker, type PickerChoice } from "./readerIdeaPicker";
  * *Alongside* — rather than floating over the page. It is born from its origin by one flight onto its
  * place (`MOTION.base`), a rejected one slides `rejectSlide` px away, and the cards under it close the
  * gap by moving, never by changing height. Modify can be a pick (`choices`) instead of a text field.
+ *
+ * **Waiting** (`waiting`, #759): a card asked of your AI provider is there at once — its move, where
+ * it comes from, its passage — and where the answer will be, three faint ink lines breathe (CSS,
+ * opacity only). The answer lands in the same box (`land`): the ink fades out, the words fade in, and
+ * nothing above them moves. Until then the card offers only *Cancel*; a failure says so in place
+ * (`problem`), with its one way on.
  */
 
 /** A sequence over every card the Reader opens: Esc dismisses the newest, whoever owns it. */
@@ -83,6 +89,14 @@ export interface ReaderProposalOptions {
     pickPlaceholder?: string;
     /** What Esc on the card does. Default: dismiss it. */
     onEscape?: () => void;
+    /** A quiet line under the title: where the proposal comes from (*Proposed by your AI provider*). */
+    byline?: string;
+    /** The passage it is about, quoted. */
+    passage?: string;
+    /** A card on its own in a list, framed as an answer is (#759), rather than a candidate inside one. */
+    framed?: boolean;
+    /** Opened before its text exists (#759): the ink breathes where the answer will be, with *Cancel*. */
+    waiting?: { cancelLabel: string; dismissLabel: string };
 }
 
 /** What was decided. `text` is the text to write: the proposal, or your edit of it; empty for a rejection. */
@@ -100,6 +114,14 @@ export interface ProposalHandle {
     dismiss(): void;
     /** When it was opened, among every card the Reader opened (`nextProposalSeq`). */
     seq: number;
+    /** A waiting card's answer lands in place (#759): the ink fades out, the words fade in. */
+    land(text: string): void;
+    /** A quiet line under the waiting ink — *Still waiting…*, *Waiting for the one before it…* — or none. */
+    note(line: string | null): void;
+    /** What went wrong, in place of the answer, with its one way on (*Try again*, *Open AI settings*). */
+    problem(message: string, action?: { label: string; run(): void }): void;
+    /** Back to waiting: the ink again, and *Cancel*. */
+    wait(): void;
 }
 
 /** The gap between the origin and the card, in px: the 4-grid's first step. */
@@ -184,16 +206,21 @@ function place(host: HTMLElement, card: HTMLElement, origin: HTMLElement | Propo
  * the place on the page the proposal is about. With `flow`, a card in `host`'s list, flown from `origin`.
  */
 export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBox, options: ReaderProposalOptions): ProposalHandle {
-    const proposed = options.text ?? "";
+    let proposed = options.waiting ? "" : (options.text ?? "");
     const flow = options.flow === true;
     // A floating card is placed in its host's own coordinates: the host is its positioned box.
     if (!flow && windowOf(host).getComputedStyle?.(host).position === "static") host.addClass(c("reader-proposal-host--placed"));
     const card = host.createDiv({
-        cls: flow ? [c("reader-proposal"), c("reader-proposal--flow")] : c("reader-proposal"),
+        cls: [c("reader-proposal"), ...(flow ? [c("reader-proposal--flow")] : []), ...(options.framed ? [c("reader-proposal--framed")] : [])],
         attr: { role: flow ? "group" : "dialog", "aria-label": options.label ?? t("proposal_text_label") },
     });
     if (options.title) card.createDiv({ cls: c("reader-proposal-title"), text: options.title });
-    const intro = card.createDiv({ cls: c("reader-proposal-intro"), text: options.intro });
+    if (options.byline) card.createDiv({ cls: c("reader-proposal-byline"), text: options.byline });
+    if (options.passage) card.createEl("blockquote", { cls: c("reader-proposal-passage"), text: options.passage });
+    const waiting = options.waiting;
+    const intro = card.createDiv({ cls: [c("reader-proposal-intro"), ...(waiting ? [c("reader-proposal-answer")] : [])], text: waiting ? "" : options.intro });
+    const note = waiting ? card.createDiv({ cls: [c("reader-proposal-note"), c("reader-hidden")], attr: { "aria-live": "polite" } }) : null;
+    const pending = waiting ? card.createDiv({ cls: c("reader-proposal-actions") }) : null;
     const actions = card.createDiv({ cls: c("reader-proposal-actions") });
     const accept = actions.createEl("button", { cls: "mod-cta", text: options.acceptLabel ?? t("proposal_accept"), attr: { type: "button" } });
     const canEdit = Boolean(options.editable || options.choices);
@@ -236,7 +263,7 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
     };
     card.addEventListener("pointerdown", land);
     // Ready for a key, without moving anything: a focus that scrolled would move the page you read.
-    accept.focus?.({ preventScroll: true });
+    if (!waiting) accept.focus?.({ preventScroll: true });
 
     let settle!: (decision: ProposalDecision | null) => void;
     const decision = new Promise<ProposalDecision | null>((resolve) => (settle = resolve));
@@ -294,6 +321,82 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
         windowOf(card).setTimeout(once, duration + 300);
     };
 
+    // ── waiting (#759): the answer's place, before there is an answer ────────
+    let ink: HTMLElement | null = null;
+    const pendingButton = (label: string, run: () => void, cta = false): HTMLElement => {
+        const button = (pending as HTMLElement).createEl("button", { text: label, attr: { type: "button" }, ...(cta ? { cls: "mod-cta" } : {}) });
+        button.addEventListener("click", run);
+        return button;
+    };
+    const wait = () => {
+        if (!waiting || !pending || gone) return;
+        intro.empty();
+        intro.removeClass(c("reader-proposal-answer--problem"));
+        // A pen about to write (FR-13): three short lines, breathing by CSS — opacity only, never a spinner.
+        ink = intro.createDiv({ cls: c("reader-ink-wait"), attr: { "aria-hidden": "true" } });
+        for (let i = 0; i < 3; i++) ink.createSpan();
+        actions.addClass(c("reader-hidden"));
+        pending.empty();
+        pending.removeClass(c("reader-hidden"));
+        const cancel = pendingButton(waiting.cancelLabel, () => leave(null));
+        cancel.focus?.({ preventScroll: true });
+    };
+    /** Whatever changes the card's height moves the cards under it, never makes them jump. */
+    const reflow = (change: () => void) => {
+        const below = flow ? siblingsAfter(card) : [];
+        change();
+        closeGap(below);
+    };
+    const landAnswer = (text: string) => {
+        if (!waiting || gone) return;
+        const doc = (card as HTMLElement & { doc?: Document }).doc;
+        const hadFocus = Boolean(doc?.activeElement && card.contains?.(doc.activeElement));
+        reflow(() => {
+            proposed = text;
+            const was = ink;
+            ink = null;
+            note?.addClass(c("reader-hidden"));
+            pending?.addClass(c("reader-hidden"));
+            actions.removeClass(c("reader-hidden"));
+            const words = intro.createSpan({ cls: c("reader-proposal-answer-text"), text });
+            // FR-14: in the same box — the ink fades out as the words fade in, the fast beat.
+            if (was && motionWelcome(card)) {
+                was.addClass(c("reader-ink-wait--leaving"));
+                const out = was.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.fast, easing: MOTION.ease, fill: "forwards" });
+                const drop = () => was.remove();
+                out.onfinish = drop;
+                windowOf(card).setTimeout(drop, MOTION.fast + 300);
+                words.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
+            } else was?.remove();
+        });
+        // Focus follows only a hand already on the card: an answer never takes the keys from your page.
+        if (hadFocus) accept.focus?.({ preventScroll: true });
+    };
+    const say = (line: string | null) => {
+        if (!note || gone) return;
+        reflow(() => {
+            note.setText(line ?? "");
+            note.toggleClass(c("reader-hidden"), !line);
+        });
+    };
+    const problem = (message: string, action?: { label: string; run(): void }) => {
+        if (!waiting || !pending || gone) return;
+        reflow(() => {
+            ink = null;
+            intro.empty();
+            intro.addClass(c("reader-proposal-answer--problem"));
+            intro.createSpan({ cls: c("reader-proposal-answer-text"), text: message });
+            note?.addClass(c("reader-hidden"));
+            actions.addClass(c("reader-hidden"));
+            pending.empty();
+            pending.removeClass(c("reader-hidden"));
+            const first = action ? pendingButton(action.label, () => action.run(), true) : null;
+            const dismiss = pendingButton(waiting.dismissLabel, () => leave(null));
+            (first ?? dismiss).focus?.({ preventScroll: true });
+        });
+    };
+    if (waiting) wait();
+
     const accepted = () => {
         if (!editing) return leave({ verdict: "accepted", text: proposed });
         const text = editing.value.trim();
@@ -350,5 +453,5 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
         else leave(null);
     });
 
-    return { decision, el: card, dismiss: () => leave(null), seq };
+    return { decision, el: card, dismiss: () => leave(null), seq, land: landAnswer, note: say, problem, wait };
 }

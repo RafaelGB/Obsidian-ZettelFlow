@@ -470,6 +470,109 @@ Modify changes nothing in the layout. A key or a click during a flight ends it. 
 takes longer than 150 ms, the card says *Looking in your vault…*, in words, never a spinner. Under
 reduced motion everything is instant.
 
+## Moves by your AI provider
+
+Some questions about a passage your vault cannot answer, because they are about **the book's**
+argument. Six moves put one of them to **your** AI provider, about one passage, when you click —
+and the answer comes back as a proposal beside the page, never as a chat and never as a summary.
+
+![Moves by your AI provider: the Think row with Contradict, Connect and the six AI moves; a card in Alongside showing Why?, Proposed by your AI provider, the passage and three faint breathing lines where the answer will be; the same card with the answer landed and Accept, Modify and Reject; and the thought in Think with its Why? · AI chip](../resources/reader/ai-moves.svg)
+
+**Where they are.** In the same *Think* row as [Contradict and Connect](#moves-answered-by-your-vault),
+after them — on a selection or on one of your highlights, in a book or a paper. They are there only
+while AI is turned on in **Settings › AI**:
+
+| AI in Settings › AI | The Think row |
+|---|---|
+| Turned off (the default) | *Contradict* and *Connect* only — the Reader is exactly as it was |
+| On, not set up | the six are offered; a click shows *Your AI provider isn't set up yet* and **Open AI settings**, and sends nothing |
+| On and set up | a click sends one request |
+
+**The six**, each one question with a short, bounded answer:
+
+| Move | It asks | It returns | Logged as |
+|---|---|---|---|
+| **Why?** | the author's reasoning for the passage | one short paragraph | *reframe* (transform) |
+| **Challenge** | the assumption the passage rests on | one assumption, and why it might not hold | *challenge* (perturb) |
+| **Question** | the question worth investigating | one question | *branch* (explore) |
+| **What's the claim** | what is being claimed | one sentence, and its kind (causal, general, normative, descriptive or predictive) | *compress* (transform) |
+| **Reflect** | what follows if it is true | one consequence, ending as a question to you | *branch* (explore) |
+| **Explain** | what the selected words mean **here** | one short paragraph, in context | *reframe* (transform) |
+
+The verbs are the [eleven of the move log](../architecture/thought-lab.md): there is no twelfth.
+
+**What is sent — and nothing more.** The move's task, the selected words, the paragraph they sit in
+and the one before it, the book's title and the chapter's title. **Nothing from your vault**: no
+notes, no highlights, no thoughts — knowing your vault is the job of Contradict and Connect, which
+use no AI. The content is capped by Settings › AI's input limit and marked as data, not instruction;
+the provider is also sent the same short system guard as every AI action. The answer is cleaned
+(template tokens neutralised, headings and lists taken off) and cut to the move's length before you
+see it.
+
+**The prompts, word for word.** Each request is the move's task, then one line asking for the
+answer's language and length, then the passage:
+
+```
+<the move's task>
+Answer in <your Obsidian language>, in at most N sentences, with no preamble.
+
+<note-content>
+Book: …
+Chapter: …
+Previous paragraph: …
+Paragraph: …
+Selected: …
+</note-content>
+```
+
+The tasks are fixed in the code, in English; the answer is asked for in your Obsidian language,
+named in English so every model reads it (*Spanish*). N is 4 for *Why?*, *Reflect* and *Explain*,
+2 for *Challenge*, and 1 for *Question* and *What's the claim*.
+
+- **Why?** — “Explain, in one short paragraph, the author's reasoning for the selected words, using only the passage given. Do not summarise the book.”
+- **Challenge** — “Name the one assumption the selected words rest on, and say why it might not hold. Use only the passage given.”
+- **Question** — “Ask the one question about the selected words that is most worth investigating. Reply with the question only.”
+- **What's the claim** — “State exactly what the selected words claim, in one sentence, and the kind of claim it is. Reply in two lines: "Claim: <the claim>" and "Kind: <causal, general, normative, descriptive or predictive>", keeping the words Claim and Kind in English.”
+- **Reflect** — “Say what follows if the selected words are true: one consequence, in a few sentences, ending with a question to the reader.”
+- **Explain** — “Explain what the selected words mean here, in this passage and its context, in one short paragraph. Do not give a dictionary definition.”
+
+There is no follow-up box: a move is one turn.
+
+**The card.** It is there the moment you click — at the top of Alongside, which opens if it was
+closed — with the move's name, *Proposed by your AI provider*, and the passage. Where the answer will
+be, three faint lines breathe, like a pen about to write; there is no spinner. You keep reading: the
+page scrolls and turns as normal, and the card waits in the margin. After 8 seconds a quiet line
+says *Still waiting for your provider…*. Then the answer fades in where the lines were, and nothing
+above it moves. If you closed Alongside meanwhile, the card is kept, and a small dot on Alongside's
+button says the answer is there; opening Alongside clears it. There is no notice.
+
+**What each verdict writes**, and what is recorded:
+
+| Verdict | Written | Recorded |
+|---|---|---|
+| **Accept**, or **Modify** then **Keep my version** | **one thought** in Think: your text, *about* the book, quoting the passage with its [source](#every-note-goes-back-to-its-paragraph), marked as made by the move with AI. On a highlight, it is threaded under it — *Challenge* as a challenge, the other five as forks | the verdict with origin *ai* and a subject naming the move (`reader-ai:why`), never the text; and the move under its verb |
+| **Reject** | nothing | the verdict *rejected* |
+| **Dismiss**, **Cancel** while it waits, or closing the Reader | nothing | nothing — and whatever comes back later is dropped |
+
+Think shows the thought with a chip, ***Why? · AI***, and *From this reading* at the bottom of
+Alongside lists it the same way. Like a vault move's answer, it carries its passage but is not a
+highlight: it is never drawn on the page.
+
+**One request per click, and nothing on its own.** Clicking the same move on the same passage while
+it waits does nothing. At most **two** requests wait at once, across the Reader; a third card opens
+at once and says *Waiting for the one before it…* until a slot frees. **Cancel** discards the
+answer — your provider cannot be interrupted, so the request finishes, and nothing is shown or
+recorded. After your provider's 30-second time-out the card says *Your AI provider didn't answer.*;
+an error shows its status (*The provider answered 429*); each offers **Try again**, which is a new
+request. Nothing ever retries by itself, nothing is batched, and no AI move ever runs in an
+automation. On a paid model each click is one request, bounded by the output cap in Settings › AI.
+
+**It moves like the rest of the Reader.** The card flies out of the button you pressed into
+Alongside in one 250 ms flight; the ink breathes on opacity alone (0.35 ↔ 0.7 over 1.2 s); the
+answer's fade is 120 ms; Accept folds the card into *From this reading*, Modify edits in place,
+Reject slides it aside. Under reduced motion the lines stand still, half-faint, and everything is
+instant.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your
@@ -979,7 +1082,7 @@ one forgets them). Choosing a way through a note writes nothing either, and neit
 adding a note to a reading — an added note lasts as long as the reading on screen. **Alongside**
 writes nothing while you read, scroll or switch lenses; its *Not related* is one verdict in the
 judgement record, never a write to a note, and whether it is open and its lens are kept on this
-device only.
+device only. A move by your AI provider writes only what you accept: one thought.
 
 ## For contributors
 

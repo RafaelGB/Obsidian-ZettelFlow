@@ -31,6 +31,8 @@ const PERMITTED: Record<string, string> = {
         "perturb · challenge — only after you accept a reading's tension proposal (#748)",
     "architecture/components/core/reader/readerVaultMoves.ts":
         "perturb · counterexample and explore · analogy — only after you accept a Contradict or Connect proposal (#756)",
+    "architecture/components/core/reader/readerAiMoves.ts":
+        "reframe, challenge, compress or branch, by the move's table — only after you accept or keep an AI move's answer (#759)",
     "architecture/components/core/lab/LabRenderer.ts":
         "the Lab's own gestures — fork, challenge, set aside, crystallize — each from a key or a button you pressed (#492)",
     "starters/zcomponents/MoveCommandsComponent.ts":

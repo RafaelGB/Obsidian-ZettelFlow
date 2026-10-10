@@ -276,3 +276,42 @@ describe("moves answered by your vault move like the rest of the Reader (#756 AC
         for (const match of own.matchAll(/transition:\s*([^;]+);/g)) expect(match[1]).not.toMatch(/\b(height|width|top|left)\b/);
     });
 });
+
+describe("waiting on your AI provider feels like a pen about to write (#759 FR-13, FR-16, AC-8)", () => {
+    const css = sheet("components/reader.scss");
+    const keyframes = (name: string) => {
+        const start = css.indexOf(`@keyframes ${name} {`);
+        return start < 0 ? "" : css.slice(start, css.indexOf("\n}", start));
+    };
+
+    it("breathes the ink on opacity alone, .35 to .7 over 1.2 s, eased and staggered", () => {
+        const frames = keyframes("zf-reader-pen-breathe");
+        expect([...new Set([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]))]).toEqual(["opacity"]);
+        expect(frames).toContain("opacity: 0.35;");
+        expect(frames).toContain("opacity: 0.7;");
+        expect(css).toContain("animation: zf-reader-pen-breathe 1.2s ease-in-out infinite alternate;");
+        expect(css).toContain("animation-delay: 200ms;");
+        expect(css).toContain("animation-delay: 400ms;");
+    });
+
+    it("never shimmers: nothing in the Reader's sheets animates or transitions background-position", () => {
+        for (const path of SHEETS) {
+            const text = sheet(path);
+            const animated = [...text.matchAll(/@keyframes\s+[\w-]+\s*\{([\s\S]*?)\n\}/g)].some((m) => /background-position/.test(m[1]));
+            const transitioned = [...text.matchAll(/transition:\s*([^;]+);/g)].some((m) => /background-position/.test(m[1]));
+            expect({ path, shimmer: animated || transitioned }).toEqual({ path, shimmer: false });
+        }
+    });
+
+    it("holds the ink still and half-faint under reduced motion, and the dot appears at once", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)", css.indexOf(".zettelkasten-flow__reader-ink-wait")));
+        expect(reduced).toMatch(/\.zettelkasten-flow__reader-ink-wait span \{\s*animation: none;\s*opacity: 0\.5;/);
+        expect(reduced.slice(0, reduced.indexOf("\n}"))).toContain(".zettelkasten-flow__reader-bar-dot");
+    });
+
+    it("fades the Alongside dot on opacity alone, at the fast beat", () => {
+        const at = css.indexOf(".zettelkasten-flow__reader-bar-dot {");
+        const block = css.slice(at, css.indexOf("\n}", at));
+        expect(block).toContain("transition: opacity $motion-fast $ease-out;");
+    });
+});

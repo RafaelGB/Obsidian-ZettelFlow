@@ -244,3 +244,33 @@ export function pointAt(root: NodeLike, offset: number): { node: TextLike; offse
     }
     return last ? { node: last, offset: last.data.length } : null;
 }
+
+/**
+ * The paragraph a passage sits in, and the one before it (#759 FR-4): what an AI move sends beside
+ * the selected words. Found by the passage's words (its prefix first, to tell two alike apart); a
+ * passage across blocks is every block it touches. Not found, the passage with its own context.
+ */
+export function paragraphsAround(root: NodeLike, quote: { exact: string; prefix?: string; suffix?: string }): { paragraph: string; previous: string } {
+    const fallback = { paragraph: `${quote.prefix ?? ""}${quote.exact}${quote.suffix ?? ""}`.trim(), previous: "" };
+    const blocks: { node: NodeLike | null; start: number; text: string }[] = [];
+    let at = 0;
+    for (const node of textNodes(root)) {
+        const block = blockOf(node, root);
+        const last = blocks[blocks.length - 1];
+        if (last && last.node === block) last.text += node.data;
+        else blocks.push({ node: block, start: at, text: node.data });
+        at += node.data.length;
+    }
+    const text = blocks.map((block) => block.text).join("");
+    const withPrefix = quote.prefix ? text.indexOf(quote.prefix + quote.exact) : -1;
+    const start = withPrefix >= 0 ? withPrefix + (quote.prefix ?? "").length : text.indexOf(quote.exact);
+    if (!quote.exact || start < 0) return fallback;
+    const end = start + quote.exact.length;
+    const first = blocks.findIndex((block) => start < block.start + block.text.length);
+    let last = first;
+    while (last + 1 < blocks.length && blocks[last + 1].start < end) last++;
+    const words = (from: number, to: number) => blocks.slice(from, to + 1).map((block) => block.text.trim()).filter(Boolean).join(" ");
+    let before = first - 1;
+    while (before >= 0 && !blocks[before].text.trim()) before--;
+    return { paragraph: words(first, last), previous: before >= 0 ? words(before, before) : "" };
+}

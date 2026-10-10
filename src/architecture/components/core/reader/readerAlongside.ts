@@ -172,7 +172,7 @@ interface Kept {
 
 /** What a move you accepted in this reading left (#756 FR-17): a line at the bottom of Alongside. */
 export interface FromReadingEntry {
-    kind: "tension" | "connection";
+    kind: "tension" | "connection" | "thought";
     /** The note it is about, which a click reads. */
     path: string;
     title: string;
@@ -181,6 +181,8 @@ export interface FromReadingEntry {
 const FROM_KEY: Record<FromReadingEntry["kind"], LocaleKey> = {
     tension: "reader_from_tension",
     connection: "reader_from_connection",
+    // An answer of your AI provider you kept (#759 FR-7): the move, and that its first words were AI's.
+    thought: "lab_made_by_ai",
 };
 
 /** What is near a passage now, for a move to answer from (#756): the same reading Alongside makes. */

@@ -121,6 +121,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `reader-alongside` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) |
 | `reader-contradict` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
 | `reader-connect` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-ai-moves` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
 | `library` | zettelflow-library | 1 | ribbon → `open-library` · note menu (`LibraryComponent.ts`) · `open-library` |
 | `highlights-review` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) · recommended on `zettelflow-home:home` |
 | `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |

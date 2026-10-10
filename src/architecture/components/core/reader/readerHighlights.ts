@@ -6,7 +6,7 @@ import { isInk, type Thought, type ThoughtLocator, type ThoughtQuote } from "app
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
-import { chapterText, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
+import { chapterText, paragraphsAround, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { MOTION, fly, motionWelcome } from "./readerMotion";
@@ -653,6 +653,12 @@ export class ReaderHighlights {
             button.addClass(c("reader-hl-think-move"));
             button.setAttribute("data-zf-move", move.id);
         }
+    }
+
+    /** The paragraph a passage sits in and the one before, from the chapter open now (#759 FR-4). */
+    contextOf(quote: ThoughtQuote): { paragraph: string; previous: string } {
+        if (!this.body) return { paragraph: quote.exact, previous: "" };
+        return paragraphsAround(this.body, quote);
     }
 
     /** An accepted tension (#756 FR-17): the highlight it answers gets a small tick on the page. */

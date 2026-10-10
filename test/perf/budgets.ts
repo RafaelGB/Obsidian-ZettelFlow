@@ -371,8 +371,9 @@ export const BUDGETS = {
         // a stroke as a highlight 16 KB more, the four gestures (#747) 21 KB — still a megabyte under a WebGL library.
         // 2,700 → 2,800 (#756): R2's ink (#748, #749) and R3's provenance (#751), Alongside (#754) and the
         // vault's moves (#756) bring it to 2,719 KB — a WebGL library coming back is still a megabyte over.
+        // The AI's six moves (#759) add 16 KB: 2,735 KB, under the same ceiling.
         limit: 2_800,
-        measured: "2,719 KB",
+        measured: "2,735 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

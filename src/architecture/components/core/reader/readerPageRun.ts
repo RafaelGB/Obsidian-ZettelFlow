@@ -112,6 +112,8 @@ export interface PageRunHost {
     layoutChosen?(): boolean;
     /** A page's slot was made (it came near the screen): ink draws its own surface on it (#745). */
     onSlot?(page: number, el: HTMLElement, aspect: number): void;
+    /** A page's picture is in its slot (drawn, or drawn again sharper): ink reads the page's tone. */
+    onDrawn?(page: number, picture: HTMLElement): void;
 }
 
 /** Where *Crop margins* is (#769): off, measuring the paper, or on. */
@@ -1161,6 +1163,7 @@ export class PdfPageRun {
         if (previous && previous.picture !== pending.picture) release(previous.picture);
         const slot = this.slotOf(pending.page);
         if (slot) this.fitCanvas(view, slot);
+        this.host.onDrawn?.(pending.page, pending.picture);
         if (!previous && motionWelcome(pending.picture)) {
             pending.picture.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
         }

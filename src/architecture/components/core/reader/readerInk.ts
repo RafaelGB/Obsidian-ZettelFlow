@@ -9,6 +9,8 @@ import { meaningOf, type HighlightMeaning } from "application/thinking/highlight
 import { bandWords, extendsHighlight, isLineStroke, linesOf, strokeMetrics } from "application/reader/ink/strokeHighlight";
 import { pageHeadingAt, type PageText } from "application/library/pdfWords";
 import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, INK_WIDTH_EM, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
+import { pageTone } from "./readerPageTone";
+import type { PageTone } from "application/reader/ink/inkTone";
 import { drawingBox, INK_COLOURS, isUnreadable, parseInkSvg, renderInkSvg, type InkColour, type InkDrawing, type InkStrokeData } from "application/reader/ink/inkSvg";
 import { anchorInk, keepOnPage, pageAnchor, placeInk, PAGE_EMS, type Box, type Column, type InkAnchor, type WordBox } from "application/reader/ink/inkAnchor";
 import { GROUP_IDLE_MS, InkGrouping, type FlushReason, type InkBox, type InkGroup } from "application/reader/ink/inkGroup";
@@ -337,6 +339,8 @@ export class ReaderInk {
     /** A paper in Page view: its ink, read once per paper, drawn on each printed page as it appears. */
     private runInk: { path: string; thoughts: Thought[]; drawings: Map<string, InkDrawing | null>; highlights: Thought[] } | null = null;
     private slots = new Map<number, { el: HTMLElement; svg: SVGSVGElement; aspect: number }>();
+    /** Each printed page's tone, as read from its picture: a page made again keeps it at once. */
+    private slotTones = new Map<number, PageTone>();
     /** The last highlight a stroke made, so the next line drawn soon after grows it (#746 FR-5). */
     private lastStroke: LastStroke | null = null;
     /** The last stroke kept as ink, and when it lifted: an arrow's shaft, if a head follows (#747). */
@@ -582,6 +586,7 @@ export class ReaderInk {
             this.pageMarks.clear();
             this.runNotes = [];
             this.slots.clear();
+            this.slotTones.clear();
             void this.loadRunInk(chapter.notePath);
         }
     }
@@ -667,8 +672,9 @@ export class ReaderInk {
         const box = shape > 0 ? null : el.getBoundingClientRect();
         const aspect = shape > 0 ? shape : box && box.width > 0 && box.height > 0 ? box.height / box.width : 1.414;
         const svg = el.createSvg("svg", {
-            // A printed page is paper whatever the theme: its ink takes the light palette's colours.
-            cls: [c("reader-ink-page"), "theme-light"],
+            // A printed page is paper, not the theme: its ink takes the palette of the page under it —
+            // the light one (dark ink) until the page is drawn and read, then the one that reads there.
+            cls: [c("reader-ink-page"), this.slotTones.get(index) === "dark" ? "theme-dark" : "theme-light"],
             attr: { viewBox: `0 0 ${PAGE_EMS} ${round3(PAGE_EMS * aspect)}`, "aria-hidden": "true", "data-page": String(index) },
         });
         this.slots.set(index, { el, svg, aspect });
@@ -687,6 +693,24 @@ export class ReaderInk {
                 if (this.slots.get(index)?.el !== el) return;
                 this.pageTexts.set(index, text);
                 this.drawPageMarks(index);
+            });
+    }
+
+    /**
+     * A printed page's picture was drawn (a PDF canvas, or a designed page's elements, #771): its ink
+     * takes the palette that reads on it — light ink on a dark design, dark ink on paper. Text ink is
+     * never asked: it follows the theme.
+     */
+    toneSlot(index: number, picture: HTMLElement, read: (picture: HTMLElement) => Promise<PageTone | null> = pageTone): void {
+        void read(picture)
+            .catch(() => null)
+            .then((tone) => {
+                if (!tone) return;
+                this.slotTones.set(index, tone);
+                const slot = this.slots.get(index);
+                if (!slot || (picture.parentElement && picture.parentElement !== slot.el)) return;
+                slot.svg.toggleClass("theme-dark", tone === "dark");
+                slot.svg.toggleClass("theme-light", tone === "light");
             });
     }
 
@@ -2256,6 +2280,7 @@ export class ReaderInk {
         this.runInk = null;
         this.runNotes = [];
         this.slots.clear();
+        this.slotTones.clear();
         this.pageTexts.clear();
         this.pageMarks.clear();
     }

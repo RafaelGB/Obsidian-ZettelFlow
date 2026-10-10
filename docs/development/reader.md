@@ -526,8 +526,11 @@ and later versions can read it. The colour is kept by name, and drawn from your 
   grows with the text; narrow the column and it keeps its side; change the theme and it takes the
   theme's colour; let the text re-flow and it follows its words. A note written in a wide margin
   moves in to stay on screen when the margin narrows.
-- **On a printed page** (a PDF in Page view) ink is kept as a place on that page, so it stays on the
-  same spot through any zoom.
+- **On a printed page** (a PDF in Page view, or a designed book's page) ink is kept as a place on that
+  page, so it stays on the same spot through any zoom. Its colours follow the page, not the theme:
+  the page is read once it is drawn (a PDF's pixels; a designed page's backgrounds and pictures), so
+  pencil is dark on white paper and light on a page designed in black. Ink beside the text keeps
+  following your theme.
 - **Listed where it cannot be drawn.** Ink whose words have changed is listed in the margin under
   **Ink notes**, with a small drawing and *Detached — the passage has changed*. Ink written in Page
   view is listed in the reading view as *Written in Page view*, and the other way round. A drawing from

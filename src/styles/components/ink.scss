@@ -308,7 +308,11 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     height: var(--size-4-16);
 }
 
-/* On a printed page (Page view) the paper is white in any theme: pencil is the light palette's ink. */
+/*
+ * On a printed page (Page view, a designed book) the page is the book's, not the theme: its surface
+ * carries `theme-light` or `theme-dark` from the page's own tone (readerPageTone), so pencil is dark
+ * on paper and light on a dark design — the palette's own ink either way.
+ */
 .zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--pencil {
     color: var(--color-base-100);
 }

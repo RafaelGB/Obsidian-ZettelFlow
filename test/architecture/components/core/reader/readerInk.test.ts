@@ -898,6 +898,34 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
     /** Along the first printed line (top 0.2, height 0.02 of 520 px). */
     const printedLine = (from = 15, to = 385) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: 0.21 * 520 + (k % 2 ? 0.5 : -0.5) }));
 
+    it("gives a dark printed page light ink, and paper dark ink — from the page as drawn (ink on dark pages)", async () => {
+        const m = await printed(PRINTED);
+        const surface = () => m.slot.byClass("reader-ink-page")[0] as DomNode;
+        // Until the page is read, it is paper: the light palette, dark pencil.
+        expect(surface().hasClass("theme-light")).toBe(true);
+        const picture = new DomNode();
+        m.slot.appendChild(picture);
+        m.ink.toneSlot(2, picture as never, async () => "dark");
+        await flush();
+        expect(surface().hasClass("theme-dark")).toBe(true);
+        expect(surface().hasClass("theme-light")).toBe(false);
+        // Made again (scrolled away and back), the page keeps its tone at once.
+        const again = new DomNode();
+        again.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 520 });
+        m.page.appendChild(again);
+        m.ink.decorateSlot(2, again as never, 1.3);
+        expect((again.byClass("reader-ink-page")[0] as DomNode).hasClass("theme-dark")).toBe(true);
+        // A page that cannot say keeps what it had; a light one goes back to dark ink.
+        m.ink.toneSlot(2, picture as never, async () => null);
+        await flush();
+        expect((again.byClass("reader-ink-page")[0] as DomNode).hasClass("theme-dark")).toBe(true);
+        m.ink.toneSlot(2, new DomNode() as never, async () => "light");
+        await flush();
+        expect((again.byClass("reader-ink-page")[0] as DomNode).hasClass("theme-light")).toBe(true);
+        // Text ink never asks: its layer follows the theme.
+        expect(m.page.byClass("reader-ink-layer").every((layer: any) => !layer.hasClass("theme-dark"))).toBe(true);
+    });
+
     it("keeps a line of a text page as a highlight cited at that page, drawn as rectangles over its words", async () => {
         const m = await printed(PRINTED);
         m.draw(printedLine(), { target: m.slot });

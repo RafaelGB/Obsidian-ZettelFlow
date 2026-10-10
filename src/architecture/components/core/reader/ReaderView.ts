@@ -2335,6 +2335,7 @@ export class ReaderView extends ItemView {
                 if (this.panel === "type") this.renderPanel();
             },
             onSlot: (page, el, aspect) => this.ink?.decorateSlot(page, el, aspect),
+            onDrawn: (page, picture) => this.ink?.toneSlot(page, picture),
         });
         return this.pageRun;
     }

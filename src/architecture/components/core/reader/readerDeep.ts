@@ -32,6 +32,8 @@ export function movedEnough(dx: number, dy: number): boolean {
 
 /** What is open over the page, nearest first. */
 export interface OpenOverPage {
+    /** A proposal card (#748): the nearest thing of all — Esc dismisses it, with no verdict. */
+    proposal?: boolean;
     shortcuts?: boolean;
     note?: boolean;
     search?: boolean;
@@ -44,10 +46,10 @@ export interface OpenOverPage {
     deep?: boolean;
 }
 
-export type EscapeStep = "shortcuts" | "note" | "search" | "popover" | "peek" | "palette" | "detour" | "panel" | "deep" | "exit";
+export type EscapeStep = "proposal" | "shortcuts" | "note" | "search" | "popover" | "peek" | "palette" | "detour" | "panel" | "deep" | "exit";
 
 /** The Esc order: today's nearest-first order, with deep reading just before leaving the Reader (FR-6). */
-const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["shortcuts", "note", "search", "popover", "peek", "palette", "detour", "panel", "deep"];
+const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["proposal", "shortcuts", "note", "search", "popover", "peek", "palette", "detour", "panel", "deep"];
 
 /** The one thing the next Esc closes: the nearest open thing, and the Reader itself when nothing is. */
 export function escapeStep(open: OpenOverPage): EscapeStep {

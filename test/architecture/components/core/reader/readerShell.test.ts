@@ -258,7 +258,11 @@ describe("the reader writes no note (#667 R2)", () => {
     it("writes highlights and ink only as thoughts, through the thought store (#671, #745)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
         const writers = sources(dir).filter((f) => /\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/.test(readFileSync(f, "utf8")));
-        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/")).sort()).toEqual(["reader/readerHighlights.ts", "reader/readerInk.ts"]);
+        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/")).sort()).toEqual(["reader/readerHighlights.ts", "reader/readerInk.ts", "reader/readerInkReading.ts"]);
+        // Reading ink as text (#748) writes through the store it is given (the ink's, Think's), and
+        // only ever saves a thought again — never its drawing, never a new note.
+        const reading = readFileSync(join(dir, "readerInkReading.ts"), "utf8");
+        expect([...reading.matchAll(/\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/g)].map((m) => m[1])).toEqual(["save"]);
         for (const file of ["readerHighlights.ts", "readerInk.ts"]) {
             expect(readFileSync(join(dir, file), "utf8")).toContain('from "architecture/plugin/thinking/ThoughtStore"');
         }

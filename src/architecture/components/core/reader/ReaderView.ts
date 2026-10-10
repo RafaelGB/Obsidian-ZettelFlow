@@ -3804,6 +3804,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
+            proposal: Boolean(this.ink?.reading.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -3815,6 +3816,8 @@ export class ReaderView extends ItemView {
             deep: this.deep,
         });
         switch (step) {
+            case "proposal":
+                return this.ink?.reading.dismissNewest();
             case "shortcuts":
                 return this.closeShortcuts();
             case "note":

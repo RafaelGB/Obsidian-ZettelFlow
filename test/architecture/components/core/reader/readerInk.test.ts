@@ -1422,6 +1422,63 @@ describe("circle, arrow, scribble and lasso (#747)", () => {
             expect(m.page.byClass("reader-ink--lasso-closed").filter((el) => el.isConnected)).toHaveLength(0);
         });
 
+        it("puts the Read as text chip under each ink note in the margin (#748 FR-1)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            m.draw(scrawl(600, 300));
+            wait(GROUP_IDLE_MS);
+            await flush();
+            const host = new DomNode();
+            m.ink.renderList(host as never, new Component());
+            const chips = host.byClass("reader-ink-chip");
+            expect(chips).toHaveLength(1);
+            expect(chips[0].textContent).toContain("Ink · kept as you wrote it");
+            expect(chips[0].byText("Read as text")).toBeDefined();
+            // Once a reading and its tension are accepted, the entry says it and names the note (FR-19).
+            const thought = (m.store.writeInk.mock.results[0] as any).value as Promise<Thought>;
+            (m.ink as any).readingSaved({ ...(await thought), text: "contradicts ship early", alsoAbout: "Ideas/Ship early, learn from reality.md" });
+            const again = new DomNode();
+            m.ink.renderList(again as never, new Component());
+            expect(again.oneByClass("reader-ink-chip").textContent).toContain("Read as: “contradicts ship early”");
+            expect(again.oneByClass("reader-ink-item-also").textContent).toBe("Also about “Ship early, learn from reality”");
+        });
+
+        it("never writes on a control: a pen or a mouse down on a button is the button's (#748)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            const button = m.page.createEl("button", { text: "Read as text" });
+            for (const pointerType of ["pen", "mouse"]) {
+                const event = { pointerType, pointerId: 99, clientX: 600, clientY: 300, timeStamp: clock, button: 0, buttons: 1, pressure: 0.5, target: button, preventDefault: jest.fn() } as unknown as PointerEvent;
+                expect(m.ink.claims(event)).toBe(false);
+                expect((event as any).preventDefault).not.toHaveBeenCalled();
+            }
+        });
+
+        it("offers Read as text for the ink notes in the loop: one request per note, each its own (#748 FR-12)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            m.draw(scrawl(600, 300));
+            wait(GROUP_IDLE_MS);
+            await flush();
+            m.draw(scrawl(600, 420));
+            wait(GROUP_IDLE_MS);
+            await flush();
+            const read = jest.spyOn(m.ink.reading, "readEach").mockImplementation(() => undefined);
+            m.pick("lasso");
+            m.draw(around({ left: 590, top: 285, right: 650, bottom: 440 }));
+            await flush();
+            expect(m.status().textContent).toContain("Ink notes in the loop");
+            m.button("Read as text")!.click();
+            await flush();
+            // One press, the notes it caught: the controller sends one request per note (its own test).
+            expect(read).toHaveBeenCalledTimes(1);
+            const ids = read.mock.calls[0][0].map((note) => note.thought.id);
+            expect(new Set(ids).size).toBe(2);
+            // Nothing written by the offer itself.
+            expect(m.store.save).not.toHaveBeenCalled();
+            expect(m.status()).toBeUndefined();
+        });
+
         it("says it caught nothing round an empty margin, and writes nothing (the empty state)", async () => {
             const m = direct({ textRects: true });
             await flush();

@@ -50,6 +50,15 @@ prompt to the **single https endpoint you configured** — and nothing else. The
 no bundled key, no default endpoint, and no second endpoint**. See
 [Capabilities & privacy](capabilities-and-privacy.md).
 
+**Handwriting, per press (#748).** In the Reader, **Read as text** under an ink note sends an
+**image of that one ink note's strokes** (drawn from its points, dark on plain light, at most 1024 px
+on its long side) and **the passage it sits beside**, capped by **Max input characters**, to the same
+endpoint — only when you press it, one note per press, never by itself. It is the one request with an
+image in it: an OpenAI-compatible `image_url` part holding a `data:` URL, beside the same system guard
+and output cap. A model that does not take images answers it with an error (400, 415 or 422), which
+the Reader reports as *Your model did not read the image*; choose one that reads images. What comes
+back is a proposal you accept, edit or reject. See [Read as text](reader.md#read-as-text).
+
 ## The actions
 
 The category ships three actions, each a thin wrapper over one completion call:
@@ -63,7 +72,8 @@ notice and writes nothing — it never crashes the flow.
 
 ## Provider-agnostic by design
 
-ZettelFlow depends on no specific vendor: a single `AiProvider` interface (`complete(prompt)`) with
+ZettelFlow depends on no specific vendor: a single `AiProvider` interface (`complete(prompt)`, and
+an optional `see(prompt, image)` for reading handwriting) with
 one built-in OpenAI-compatible client (`src/architecture/ai/`). The OpenAI-compatible shape already
 covers OpenAI, OpenRouter, LM Studio and Ollama. Native SDKs, embeddings/RAG, streaming and agentic
 loops are intentionally out of scope.

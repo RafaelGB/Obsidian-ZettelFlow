@@ -20,10 +20,13 @@ export function renderInkCard(
         open?: () => void;
         /** Where the card's listeners live. */
         listen: (el: HTMLElement, run: () => void) => void;
+        /** The chip under the drawing (#748): *Read as text*, or what it was read as. */
+        chip?: (parent: HTMLElement) => void;
     }
 ): HTMLElement {
     const block = box.createDiv({ cls: c("lab-ink") });
     const picture = block.createDiv({ cls: c("lab-ink-drawing") });
+    parts.chip?.(block);
     const meta = block.createDiv({ cls: c("lab-quote-meta") });
     meta.createSpan({ cls: c("lab-ink-label"), text: t("lab_ink_label") });
     meta.createSpan({ text: parts.name });

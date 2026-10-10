@@ -1,7 +1,7 @@
 import { requestUrl } from "obsidian";
-import { AiProvider } from "./AiProvider";
+import type { AiImage, AiProvider } from "./AiProvider";
 import { aiMaxOutputTokens, type AiSettings } from "./aiGate";
-import { buildChatRequestBody, parseChatCompletion } from "./openaiCompatibleLogic";
+import { AiVisionError, buildChatRequestBody, buildVisionRequestBody, classifyVisionFailure, parseChatCompletion, type ChatRequestBody } from "./openaiCompatibleLogic";
 import { AI_SYSTEM_GUARD, isEndpointAllowed } from "./promptSafety";
 
 /** Bound each request so a hung/misconfigured endpoint fails with a clear error instead of pending. */
@@ -26,15 +26,40 @@ export class OpenAiCompatibleProvider implements AiProvider {
     constructor(private readonly settings: AiSettings) {}
 
     async complete(prompt: string): Promise<string> {
-        // Never POST note content to a non-https (or non-loopback-http) endpoint (#301 S5).
-        if (!isEndpointAllowed(this.settings.endpoint)) {
-            throw new Error("AI endpoint must be an https URL (or http on localhost)");
-        }
         const body = buildChatRequestBody(this.settings.model, prompt, {
             maxTokens: aiMaxOutputTokens(this.settings),
             system: AI_SYSTEM_GUARD,
         });
-        const response = await withTimeout(
+        const response = await this.post(body);
+        if (response.status < 200 || response.status >= 300) {
+            throw new Error(`AI request failed with status ${response.status}`);
+        }
+        return parseChatCompletion(response.json as unknown);
+    }
+
+    /**
+     * A prompt about one image (#748): the same endpoint, guard, key, time-out and output cap as
+     * {@link complete}. A refused image (400/415/422) throws `AiVisionError("no-image")`; any other
+     * failure `AiVisionError("failed")` — by status alone, no body read or logged.
+     */
+    async see(prompt: string, image: AiImage): Promise<string> {
+        const body = buildVisionRequestBody(this.settings.model, prompt, image, {
+            maxTokens: aiMaxOutputTokens(this.settings),
+            system: AI_SYSTEM_GUARD,
+        });
+        const response = await this.post(body);
+        if (response.status < 200 || response.status >= 300) {
+            throw new AiVisionError(classifyVisionFailure(response.status), response.status);
+        }
+        return parseChatCompletion(response.json as unknown);
+    }
+
+    private post(body: ChatRequestBody) {
+        // Never POST note content to a non-https (or non-loopback-http) endpoint (#301 S5).
+        if (!isEndpointAllowed(this.settings.endpoint)) {
+            return Promise.reject(new Error("AI endpoint must be an https URL (or http on localhost)"));
+        }
+        return withTimeout(
             requestUrl({
                 url: this.settings.endpoint,
                 method: "POST",
@@ -47,9 +72,5 @@ export class OpenAiCompatibleProvider implements AiProvider {
             }),
             REQUEST_TIMEOUT_MS
         );
-        if (response.status < 200 || response.status >= 300) {
-            throw new Error(`AI request failed with status ${response.status}`);
-        }
-        return parseChatCompletion(response.json as unknown);
     }
 }

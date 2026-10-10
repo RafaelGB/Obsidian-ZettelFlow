@@ -122,6 +122,26 @@ describe("JudgementLog respects the knowledge scope (#336, FR-9)", () => {
     });
 });
 
+describe("JudgementLog keeps verdicts on thoughts (#748, spec gap G1)", () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
+    it("records a verdict on a thought in the thinking space, which the knowledge scope excludes", () => {
+        const h = fresh({ thoughtLabPath: "Lab", excludedPaths: ["templates"] });
+        JudgementLog.getInstance().record({ path: "Lab/1791-abc.md", subject: "ink-reading", origin: "ai", verdict: "accepted" }, NOW);
+        expect(h.settings.judgements.log).toEqual([{ path: "Lab/1791-abc.md", subject: "ink-reading", origin: "ai", verdict: "accepted", at: NOW }]);
+    });
+
+    it("still drops a verdict on another excluded folder", () => {
+        const h = fresh({ thoughtLabPath: "Lab", excludedPaths: ["templates"], foldersFlowsPath: "ZettelFlow/flows" });
+        JudgementLog.getInstance().record({ ...move, path: "templates/daily.md" }, NOW);
+        JudgementLog.getInstance().record({ ...move, path: "ZettelFlow/flows/step.md" }, NOW);
+        JudgementLog.getInstance().record({ ...move, path: "Labyrinth/idea.md" }, NOW);
+        expect(h.settings.judgements.log.map((entry) => entry.path)).toEqual(["Labyrinth/idea.md"]);
+    });
+});
+
 describe("JudgementLog before it is wired (#336)", () => {
     it("no-ops safely with no host", () => {
         const log = JudgementLog.getInstance();

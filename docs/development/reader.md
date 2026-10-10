@@ -492,7 +492,7 @@ menu to open — and each one says what it did, with its way back.
 - **The lasso → the selection popover.** Choose the palette's **lasso** and loop some words: the
   **same popover a selection opens** comes up for exactly those words — the four meanings, *Highlight
   and note*, *Copy* — so the lasso is selection with the Pencil. The loop stays, dashed, while the
-  popover is up, and fades when it goes. Loop only ink notes and it offers **Delete ink** for them;
+  popover is up, and fades when it goes. Loop only ink notes and it offers **Read as text** and **Delete ink** for them;
   loop nothing and it says *The lasso caught nothing*. The lasso never writes anything by itself.
 - **The way back, every time.** The palette's undo, **Ctrl/⌘+Z** and the two-finger tap take back a
   gesture as one action, as its line's **Undo** does. *Keep as ink* takes the question or the link
@@ -511,6 +511,60 @@ menu to open — and each one says what it did, with its way back.
 - **Where they work.** In the Reading view. On a printed page in Page view, drawing across a line
   still highlights, the lasso can catch ink notes, and the other gestures stay ink.
 - **Reduced motion.** No ring, no brightening, no fade: the marks appear or go, at once.
+
+### Read as text
+
+Handwriting is kept as you wrote it, and that is right — but to the vault a drawing is invisible:
+Think's find bar cannot find *contradicts "ship early"?* scrawled beside a paragraph, and the tension
+it names never meets the note it names. A web view has no handwriting recognition (Apple's lives in
+PencilKit, which a plugin cannot reach), so the only reading there is one **you ask for**, from the
+AI provider **you** configured — and what comes back is a proposal, never a write.
+
+![Read as text: an ink note in the margin reading contradicts "ship early"? with its chip, Ink · kept as you wrote it · Read as text; a card grown from the chip, Reads as "contradicts 'ship early'?", with Accept, Edit and Reject; and below it the move card, As a move: a tension between this passage and "Ship early, learn from reality"](../resources/reader/ink-reading.svg)
+
+- **One press reads one ink note.** Under each ink note — in the margin's **Ink notes** and on its
+  card in Think — a quiet chip says *Ink · kept as you wrote it* with **Read as text**. With the
+  lasso, ink notes caught in a loop offer **Read as text** too: one request per note, each its own
+  proposal. Nothing reads ink by itself — not as you write, not when a book opens, not in an
+  automation, never in bulk.
+- **Exactly what is sent, and to whom.** An **image of that one ink note's strokes alone** — drawn
+  from its points, dark on plain light, at most 1024 px on its long side, without the page, your
+  other marks or your theme — and **the passage it sits beside** (its sentence), capped by your AI
+  input limit and marked as data, not instructions. It goes to the endpoint in **Settings › AI**, the
+  same one every AI action uses, and nowhere else. Never a note title, a file name, a path or another
+  highlight.
+- **No provider.** With AI off or not set up, **Read as text** is still there; pressing it says
+  *Reading handwriting uses your AI provider* and opens **Settings › AI**. Nothing leaves the device.
+- **While it reads.** The chip says *Reading…* with **Cancel**, and the strokes being read breathe,
+  slowly. One request at a time per ink note. **Cancel stops waiting**: the answer, if it comes, is
+  dropped and nothing is written — but the request may already have reached your provider (a request
+  cannot be called back once it has left).
+- **The reading is a proposal.** A card grows out of the chip: *Reads as: "…"*, with **Accept**,
+  **Edit** and **Reject**. **Accept** makes the reading the ink note's **text**; **Edit** lets you
+  correct it first and keeps your version; either way the card travels back into the chip, which now
+  says *Read as: "…"*. **Reject** writes nothing; the card slides away and the chip offers **Read as
+  text** again. **Esc** closes the card with no verdict. The drawing is never touched — its file is
+  byte-for-byte what you wrote.
+- **Then a move, only on a reading you confirmed.** If the reading is a **tension** with something it
+  names, and that name matches the title of one of your notes — **locally, without AI**: the title
+  equals the name or starts with it, the name is at least two words or six letters, and exactly one
+  note matches — a second card proposes *As a move: a tension between this passage and "X"*. Accepting
+  writes what **challenge** writes by hand in Think: the ink note becomes a thought about both the
+  book and X, recorded as a challenge in the move log, and its margin entry names X. A **question** is
+  proposed as *As a move: keep it as a question*, which gives it the meaning **Question**. Nothing
+  else is ever proposed — no links, no new notes. Rejecting the move keeps the reading.
+- **Every verdict is recorded.** Accept, edit and reject — of the reading and of the move — land in
+  the judgement record as descriptors only: the thought, `ink-reading` or `ink-move:tension` /
+  `ink-move:question`, origin *AI*, the verdict. No image, no reading and no model output reach the
+  record or the log ([constitution §XII](constitution.md)). A thought lives in the thinking space,
+  which the knowledge scope leaves out; its verdicts are kept anyway, as the move log keeps its moves.
+- **Searchable once accepted.** An accepted reading is the thought's text, so Think's find bar and
+  Obsidian's search find it — the card still shows your handwriting.
+- **When it fails.** An error, a time-out or a cancel says *Could not read this ink. Nothing was
+  written.* A model that does not take images says *Your model did not read the image — choose one
+  that reads images in Settings › AI*: many OpenAI-compatible models read images; the message means
+  the one you configured refused this one. Each logs a warning with no content.
+- **Reduced motion.** The card appears and goes at once, and *Reading…* is still text.
 
 ### Where ink is kept
 

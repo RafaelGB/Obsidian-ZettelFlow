@@ -1,4 +1,5 @@
 @use '../utils/motion' as *;
+@use '../utils/mixins' as *;
 
 /*
  * Ink in the margin (#745, epic #740): the palette, the ink layer and its strokes.
@@ -286,6 +287,12 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     width: 100%;
 }
 
+.zettelkasten-flow__reader-ink-item-also {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    overflow-wrap: anywhere;
+}
+
 .zettelkasten-flow__reader-ink-item-reason {
     color: var(--reader-muted);
     font-size: var(--font-ui-smaller);
@@ -444,5 +451,133 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     .zettelkasten-flow__reader-ink-ring,
     .zettelkasten-flow__reader-ink-flash {
         display: none;
+    }
+}
+
+/* ── read as text (#748): the chip, the proposal card, the breath ────────── */
+
+/*
+ * The chip under an ink note (FR-1, FR-10): quiet, the theme's own chip. What it says is the ink's
+ * (*Ink · kept as you wrote it*) or, once accepted, what it was read as — in the text colour, as
+ * words of yours.
+ */
+.zettelkasten-flow__reader-ink-chip {
+    @include chip;
+    flex-wrap: wrap;
+    max-width: 100%;
+    align-self: flex-start;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-ink-chip-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-ink-chip--read .zettelkasten-flow__reader-ink-chip-label {
+    color: var(--reader-fg, var(--text-normal));
+}
+
+.zettelkasten-flow__reader-ink-chip--said .zettelkasten-flow__reader-ink-chip-label {
+    color: var(--text-muted);
+}
+
+/* Two classes: Obsidian's own `button:not(.clickable-icon)` would otherwise give it a button's fill. */
+.zettelkasten-flow__reader-ink-chip .zettelkasten-flow__reader-ink-chip-action {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    font-size: inherit;
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+/*
+ * Waiting is quiet (FR-16): *Reading…* breathes, and so do the strokes being read — slowly, opacity
+ * only, and still under reduced motion. Never a spinner: the ink itself is what is being read.
+ */
+@keyframes zf-reader-ink-breathe {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.zettelkasten-flow__reader-ink-chip--reading .zettelkasten-flow__reader-ink-chip-label,
+.zettelkasten-flow__reader-ink--reading,
+.zettelkasten-flow__reader-ink-item--reading .zettelkasten-flow__reader-ink-item-thumb {
+    animation: zf-reader-ink-breathe 2.4s ease-in-out infinite;
+}
+
+/* The card's host places it: positioned only when it was not already. */
+.zettelkasten-flow__reader-proposal-host--placed {
+    position: relative;
+}
+
+/*
+ * The proposal card (FR-5, FR-14): beside what it is about, grown out of it. Placed by custom
+ * properties the script sets; its transform origin is the point it came out of (FR-15).
+ */
+.zettelkasten-flow__reader-proposal {
+    @include card;
+    position: absolute;
+    left: var(--zf-prop-x, 0);
+    top: var(--zf-prop-y, 0);
+    z-index: 6;
+    width: min(22rem, calc(100% - var(--size-4-4)));
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    color: var(--reader-fg, var(--text-normal));
+    border-color: var(--reader-line, var(--background-modifier-border));
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    transform-origin: var(--zf-prop-origin, 50% 0);
+}
+
+/* Leaving, it travels from its own corner: the flight is measured from there. */
+.zettelkasten-flow__reader-proposal--leaving {
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-proposal-intro {
+    font-size: var(--font-ui-small);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-proposal-intro--editing {
+    display: none;
+}
+
+.zettelkasten-flow__reader-proposal-text {
+    width: 100%;
+    min-height: var(--size-4-16);
+    resize: vertical;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-proposal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-proposal-hint {
+    @include hint;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-chip--reading .zettelkasten-flow__reader-ink-chip-label,
+    .zettelkasten-flow__reader-ink--reading,
+    .zettelkasten-flow__reader-ink-item--reading .zettelkasten-flow__reader-ink-item-thumb {
+        animation: none;
     }
 }

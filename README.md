@@ -85,7 +85,7 @@ Open **This note** from the ribbon menu and the note you are reading gets a comp
 
 ## Read your notes like a book
 
-Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint), in one long scroll or in pages, or as a two-page spread on a wide screen. It needs no MOC. Select a sentence to highlight it, or write in the margin with a pen: the passage, your margin note and your handwriting land in Think, never in the note. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
+Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint), in one long scroll or in pages, or as a two-page spread on a wide screen. It needs no MOC. Select a sentence to highlight it, or write in the margin with a pen: the passage, your margin note and your handwriting land in Think, never in the note — and **Read as text**, when you ask, proposes what your handwriting says, so you can find it. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
 
 ![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
 
@@ -128,6 +128,7 @@ ZettelFlow collects **no telemetry** and sends **no personal data or vault conte
 - **Network — two opt-in paths, nothing until you use them.** The **community gallery** does read-only `GET`s of the static catalog on GitHub (no backend, no account, no uploads), and the optional **AI provider** sends length-bounded note content to the single https endpoint *you* configure. Both are off until you open the browser or enable AI.
 - **Dynamic code execution.** The Script action, dynamic selectors, vault hooks and workflow-event conditions run **JavaScript you write**, with the plugin's access to your vault — including read-only access to the whole knowledge model via `zf.knowledge` — so only run scripts you trust. No remote code is ever fetched or executed, and every runtime function is built in one audited module.
 - **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard.
+- **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.
 
 See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/) for full details.
 

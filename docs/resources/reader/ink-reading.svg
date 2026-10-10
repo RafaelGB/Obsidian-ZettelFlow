@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Read as text, in three moments: handwriting in the margin beside a paragraph, contradicts ship early, with its chip Ink, kept as you wrote it, and Read as text; a card grown out of the chip saying Reads as: contradicts 'ship early'?, with Accept, Edit and Reject and the line Nothing is written until you accept; and, once accepted, the chip reading Read as: contradicts 'ship early'? with a second card grown from it, As a move: a tension between this passage and Ship early, learn from reality, and the margin entry naming that note">
+<rect width="1200" height="700" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="640" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">HOW BIG THINGS GET DONE  ·  FLYVBJERG &amp; GARDNER  ·  READ AS TEXT</text>
+
+<!-- three moments, side by side -->
+<line x1="410" y1="120" x2="410" y2="650" stroke="#2a2a2e" stroke-width="1"/>
+<line x1="790" y1="120" x2="790" y2="650" stroke="#2a2a2e" stroke-width="1"/>
+<g font-family="sans-serif" font-size="12" font-weight="600" fill="#5f6168">
+<text x="80" y="135">1 · INK, AND ITS CHIP</text>
+<text x="440" y="135">2 · ASKED FOR: A PROPOSAL</text>
+<text x="820" y="135">3 · ACCEPTED — THEN A MOVE</text>
+</g>
+
+<!-- 1: a paragraph, the handwriting in the margin, the chip under it -->
+<g font-family="Georgia, serif" font-size="15" fill="#dcddde">
+<text x="80" y="180">Plan slowly, act fast. Big</text>
+<text x="80" y="206">projects fail because they</text>
+<text x="80" y="232">start building before they</text>
+<text x="80" y="258">finish thinking.</text>
+</g>
+<g fill="none" stroke="#dcddde" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M268 196 C272 184 280 184 276 196 C274 204 282 204 286 194 C290 186 294 190 294 196 C294 202 300 202 304 194 M308 196 C312 186 318 188 316 196 C314 204 322 204 326 192 L330 182 M322 192 L334 192"/>
+<path d="M340 196 C344 186 352 186 350 196 C348 204 356 204 360 194 C364 186 370 188 368 196 C367 202 374 202 378 194"/>
+<path d="M266 226 C272 218 278 220 280 226 C282 232 288 232 294 224 M300 226 C304 214 312 214 310 226 C308 234 316 234 320 222 M326 212 L326 234 M326 224 C332 216 340 218 340 226 L340 234"/>
+<path d="M350 214 C356 206 364 210 360 220 C358 226 360 236 366 228 M366 244 L366 245"/>
+</g>
+<rect x="262" y="256" width="134" height="40" rx="5" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="270" y="272" fill="#8a8c94" font-family="sans-serif" font-size="10.5">Ink · kept as you wrote it</text>
+<text x="270" y="288" fill="#a68af9" font-family="sans-serif" font-size="10.5" font-weight="600">Read as text</text>
+<text x="80" y="330" fill="#8a8c94" font-family="sans-serif" font-size="12.5">your handwriting, kept as a drawing:</text>
+<text x="80" y="348" fill="#8a8c94" font-family="sans-serif" font-size="12.5">nothing reads it until you press</text>
+<text x="80" y="366" fill="#8a8c94" font-family="sans-serif" font-size="12.5">Read as text — one note, one press</text>
+<rect x="80" y="400" width="300" height="104" rx="8" fill="#1d1d21" stroke="#2f2f36" stroke-width="1"/>
+<text x="96" y="424" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600">WHAT IS SENT, TO YOUR ENDPOINT</text>
+<rect x="96" y="436" width="96" height="52" rx="3" fill="#f4f4f4"/>
+<path d="M104 458 C108 450 114 450 112 458 C111 464 116 464 120 456 M126 458 C130 450 136 452 134 460 C133 466 140 464 144 454 M150 458 C156 450 162 452 160 460 M104 478 C110 472 116 474 118 478 C120 482 126 482 132 476" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round"/>
+<text x="204" y="452" fill="#dcddde" font-family="sans-serif" font-size="11.5">the strokes alone,</text>
+<text x="204" y="468" fill="#dcddde" font-family="sans-serif" font-size="11.5">and the passage —</text>
+<text x="204" y="484" fill="#8a8c94" font-family="sans-serif" font-size="11.5">no title, no path</text>
+
+<!-- 2: the card grows out of the chip -->
+<g font-family="Georgia, serif" font-size="15" fill="#5f6168">
+<text x="440" y="180">Plan slowly, act fast. Big</text>
+<text x="440" y="206">projects fail because they</text>
+</g>
+<rect x="600" y="172" width="134" height="24" rx="5" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="608" y="188" fill="#8a8c94" font-family="sans-serif" font-size="10.5">Ink · kept as you wrote it</text>
+<path d="M667 202 L667 214" stroke="#5f6168" stroke-width="1.2" stroke-dasharray="2 3"/>
+<rect x="440" y="218" width="320" height="150" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="458" y="246" fill="#dcddde" font-family="sans-serif" font-size="13">Reads as: “contradicts ‘ship early’?”</text>
+<rect x="458" y="264" width="64" height="26" rx="5" fill="#7f6df2"/>
+<text x="490" y="282" fill="#ffffff" font-family="sans-serif" font-size="12" text-anchor="middle">Accept</text>
+<rect x="530" y="264" width="52" height="26" rx="5" fill="#2f2f36"/>
+<text x="556" y="282" fill="#dcddde" font-family="sans-serif" font-size="12" text-anchor="middle">Edit</text>
+<rect x="590" y="264" width="62" height="26" rx="5" fill="#2f2f36"/>
+<text x="621" y="282" fill="#dcddde" font-family="sans-serif" font-size="12" text-anchor="middle">Reject</text>
+<text x="458" y="314" fill="#8a8c94" font-family="sans-serif" font-size="11">Nothing is written until you accept.</text>
+<text x="458" y="330" fill="#8a8c94" font-family="sans-serif" font-size="11">Your verdict is recorded either way.</text>
+<text x="458" y="352" fill="#5f6168" font-family="sans-serif" font-size="11">grown from the chip · 0.96 → 1, 120 ms</text>
+<text x="440" y="410" fill="#8a8c94" font-family="sans-serif" font-size="12.5">Accept or Edit: it travels back into</text>
+<text x="440" y="428" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the chip, and becomes the note's text.</text>
+<text x="440" y="446" fill="#8a8c94" font-family="sans-serif" font-size="12.5">Reject: it slides away; nothing written.</text>
+<text x="440" y="482" fill="#5f6168" font-family="sans-serif" font-size="12">no provider set up? it says so, and</text>
+<text x="440" y="500" fill="#5f6168" font-family="sans-serif" font-size="12">opens Settings › AI — nothing is sent</text>
+
+<!-- 3: the chip reads the accepted text; the move card grows from it -->
+<rect x="820" y="160" width="300" height="40" rx="5" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="830" y="185" fill="#dcddde" font-family="sans-serif" font-size="11.5">Read as: “contradicts ‘ship early’?”</text>
+<path d="M970 202 L970 214" stroke="#5f6168" stroke-width="1.2" stroke-dasharray="2 3"/>
+<rect x="820" y="218" width="310" height="128" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="838" y="244" fill="#dcddde" font-family="sans-serif" font-size="12.5">As a move: a tension between this</text>
+<text x="838" y="262" fill="#dcddde" font-family="sans-serif" font-size="12.5">passage and “Ship early, learn from</text>
+<text x="838" y="280" fill="#dcddde" font-family="sans-serif" font-size="12.5">reality”</text>
+<rect x="838" y="294" width="64" height="26" rx="5" fill="#7f6df2"/>
+<text x="870" y="312" fill="#ffffff" font-family="sans-serif" font-size="12" text-anchor="middle">Accept</text>
+<rect x="910" y="294" width="62" height="26" rx="5" fill="#2f2f36"/>
+<text x="941" y="312" fill="#dcddde" font-family="sans-serif" font-size="12" text-anchor="middle">Reject</text>
+<text x="820" y="380" fill="#8a8c94" font-family="sans-serif" font-size="12.5">matched here, locally — never by the</text>
+<text x="820" y="398" fill="#8a8c94" font-family="sans-serif" font-size="12.5">model — to one note you have</text>
+<path d="M975 416 C975 440 975 452 975 466" fill="none" stroke="#5f6168" stroke-width="1.4" stroke-dasharray="3 4"/>
+<path d="M969 460 L975 470 L981 460" fill="none" stroke="#5f6168" stroke-width="1.4" stroke-linecap="round"/>
+<text x="820" y="494" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600">INK NOTES</text>
+<rect x="820" y="504" width="310" height="96" rx="8" fill="#1d1d21" stroke="#2f2f36" stroke-width="1"/>
+<g fill="none" stroke="#dcddde" stroke-width="1.6" stroke-linecap="round">
+<path d="M836 530 C840 522 846 522 844 530 C843 536 848 536 852 528 C856 522 860 524 860 530 M866 530 C870 522 876 524 874 532 C873 538 880 536 884 526 M890 530 C896 522 902 524 900 532"/>
+</g>
+<text x="836" y="560" fill="#dcddde" font-family="sans-serif" font-size="11.5">Read as: “contradicts ‘ship early’?”</text>
+<text x="836" y="580" fill="#a68af9" font-family="sans-serif" font-size="11.5">Also about “Ship early, learn from reality”</text>
+<text x="820" y="632" fill="#5f6168" font-family="sans-serif" font-size="12">searchable in Think · the drawing untouched</text>
+</svg>

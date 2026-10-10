@@ -19,6 +19,8 @@ import { lassoHolds, lassoWords, recognise, type Gesture, type MarkBox } from "a
 import { chapterText, pointAt, textNodes } from "./readerMarks";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { renderInkThumb } from "./readerInkThumb";
+import { InkReadingController, type InkReadingDeps } from "./readerInkReading";
+import { passageAround } from "application/reader/ink/inkReading";
 import type { KeepOptions, StatusAction } from "./readerHighlights";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -144,6 +146,8 @@ export interface InkDeps {
     /** The chapter's text, as highlights count it. */
     text?: (body: HTMLElement) => string;
     now?: () => number;
+    /** Reading ink as text (#748): the AI, the image and the titles, for a test to give its own. */
+    reading?: Partial<Pick<InkReadingDeps, "ai" | "image" | "titles">>;
 }
 
 /** The chapter on screen, as ink needs it. */
@@ -234,6 +238,12 @@ export interface InkAction {
     redo?(): Promise<void> | void;
 }
 
+/** Whether a pointer went down on a control — a button, a field or a proposal card (a link in the book is text). */
+function isControl(target: EventTarget | null): boolean {
+    const el = target as (Element & { closest?: (selector: string) => Element | null }) | null;
+    return typeof el?.closest === "function" && el.closest(`button, input, textarea, select, .${c("reader-proposal")}`) !== null;
+}
+
 function ownWindow(el: HTMLElement): Window {
     return (el as HTMLElement & { win?: Window }).win ?? window;
 }
@@ -300,6 +310,10 @@ function readSpanBox(body: HTMLElement, span: TextSpan): Box | null {
  */
 export class ReaderInk {
     private readonly store: InkStore;
+    /** Reading handwriting as text (#748): one press, one ink note, a proposal. */
+    readonly reading: InkReadingController;
+    /** The margin's row of each ink note, by thought — where an accepted tension lands (FR-19). */
+    private rows = new Map<string, HTMLElement>();
     private readonly words: NonNullable<InkDeps["words"]>;
     private readonly spanBox: NonNullable<InkDeps["spanBox"]>;
     private readonly metrics: NonNullable<InkDeps["metrics"]>;
@@ -362,6 +376,16 @@ export class ReaderInk {
         this.metrics = deps.metrics ?? readMetrics;
         this.text = deps.text ?? ((body) => chapterText(body));
         this.now = deps.now ?? (() => Date.now());
+        this.reading = new InkReadingController({
+            app: this.view.app,
+            store: this.store,
+            host: () => this.view.root,
+            passageOf: (thought) => this.passageOf(thought),
+            saved: (thought) => this.readingSaved(thought),
+            breathing: (thought, on) => this.breathe(thought.id, on),
+            entryOf: (thought) => this.rows.get(thought.id) ?? null,
+            ...deps.reading,
+        });
         this.buildPalette();
         // An iPad used for ink stays ready for ink (FR-1).
         if (this.view.app?.loadLocalStorage?.(INK_STORAGE_KEY) === "open") this.openPalette(false);
@@ -773,6 +797,10 @@ export class ReaderInk {
      */
     claims(event: PointerEvent): boolean {
         const type = event.pointerType || "mouse";
+        // A control is pressed, never written on (#748): a chip's *Read as text*, a row's *Delete ink*,
+        // a proposal's Accept — with the pen as with the mouse. Without this, ink captured the pointer
+        // and the click went to the stage.
+        if (isControl(event.target)) return false;
         if (type === "touch") this.watchFinger(event);
         const route = routePointer({ type, paletteOpen: this.open, labSet: Boolean(this.store.folder()), penDown: this.penDown, lastPenUpAt: this.lastPenUpAt, now: this.now() });
         if (route === "pass") return false;
@@ -1610,6 +1638,14 @@ export class ReaderInk {
         if (notes.length > 0 && engine) {
             engine.say("reader_ink_lasso_held", [
                     {
+                        // One request per ink note caught, each its own proposal (#748 FR-12).
+                        key: "reader_ink_read",
+                        run: () => {
+                            engine.hidePopover();
+                            this.reading.readEach(notes.flatMap((note) => (note.thought ? [{ thought: note.thought, origin: note.el as unknown as HTMLElement }] : [])));
+                        },
+                    },
+                    {
                         key: "reader_ink_delete",
                         run: () => {
                             // Chosen: the offer and its loop go, and the notes with them.
@@ -2216,10 +2252,41 @@ export class ReaderInk {
         if (this.open && twoFingerTap(trace)) void this.undo();
     }
 
+    // ── read as text (#748) ──────────────────────────────────────────────────
+
+    /** The passage an ink note sits beside: its sentence in the chapter, or the words kept with it. */
+    private passageOf(thought: Thought): string {
+        const quote = thought.quote;
+        const chapter = this.chapter;
+        if (quote?.exact && chapter && !chapter.run && thought.about === chapter.notePath) {
+            const text = this.text(chapter.body);
+            const span = anchorQuote(text, quote);
+            if (span) return passageAround(text, span);
+        }
+        return quote ? `${quote.prefix ?? ""}${quote.exact}${quote.suffix ?? ""}` : "";
+    }
+
+    /** A reading or a move was written: the note and its row carry the thought as it is now. */
+    private readingSaved(thought: Thought): void {
+        for (const note of this.allNotes()) if (note.thought?.id === thought.id) note.thought = thought;
+        this.listed = this.listed.map((entry) => (entry.thought.id === thought.id ? { ...entry, thought } : entry));
+        this.view.refreshList();
+    }
+
+    /** While a note is read, its strokes breathe — on the page and in its row (FR-16). */
+    private breathe(id: string, on: boolean): void {
+        for (const note of this.allNotes()) {
+            if (note.thought?.id !== id) continue;
+            (note.el as unknown as HTMLElement).toggleClass(c("reader-ink--reading"), on);
+        }
+        this.rows.get(id)?.toggleClass(c("reader-ink-item--reading"), on);
+    }
+
     // ── the margin's list ────────────────────────────────────────────────────
 
     /** The chapter's ink notes as rows beside the highlights: a small drawing, a reason, Delete (FR-12). */
     renderList(host: HTMLElement, scope: Component): void {
+        this.rows.clear();
         if (this.listed.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_ink_item") });
         for (const entry of this.listed) {
@@ -2227,6 +2294,14 @@ export class ReaderInk {
             const thumb = row.createDiv({ cls: c("reader-ink-item-thumb") });
             if (entry.drawing) renderInkThumb(thumb, entry.drawing);
             if (entry.reason) row.createDiv({ cls: c("reader-ink-item-reason"), text: t(entry.reason) });
+            // An accepted tension (#748 FR-19): the entry names the note it is now also about.
+            if (entry.thought.alsoAbout) {
+                row.createDiv({ cls: c("reader-ink-item-also"), text: t("reader_ink_also_about", (entry.thought.alsoAbout.split("/").pop() ?? "").replace(/\.md$/i, "")) });
+            }
+            this.rows.set(entry.thought.id, row);
+            row.toggleClass(c("reader-ink-item--reading"), this.reading.isReading(entry.thought.id));
+            // The door to reading it as text (#748 FR-1): a quiet chip under the drawing.
+            this.reading.renderChip(row, entry.thought, (el, run) => scope.registerDomEvent(el, "click", run));
             const remove = row.createEl("button", { cls: c("reader-hl-link"), text: t("reader_ink_delete"), attr: { type: "button" } });
             scope.registerDomEvent(remove, "click", () => void this.deleteNote(entry.thought));
         }
@@ -2272,6 +2347,7 @@ export class ReaderInk {
 
     /** The reader is closing: anything open is written, the palette's listeners go. */
     dispose(): void {
+        this.reading.dispose();
         this.leave("close");
         this.openScope?.unload();
         this.openScope = null;

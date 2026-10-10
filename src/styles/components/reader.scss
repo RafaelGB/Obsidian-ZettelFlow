@@ -972,6 +972,183 @@ button.zettelkasten-flow__reader-next-button {
     pointer-events: none;
 }
 
+/*
+ * ── Moves answered by your vault (#756) ─────────────────────────────────
+ * The answer is a card at the top of Alongside: what was asked, where the answer came from, the
+ * passage, and each candidate as the Reader's proposal card in the list. It flies in from the
+ * button (transform and opacity, the base beat); a rejected candidate slides away and the others
+ * close the gap by moving.
+ */
+.zettelkasten-flow__reader-alongside-proposals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__reader-proposal-group {
+    @include card;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    border-color: var(--reader-line);
+    box-shadow: var(--shadow-s);
+}
+
+.zettelkasten-flow__reader-proposal-group-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-proposal-group-header,
+.zettelkasten-flow__reader-proposal-group-line {
+    @include hint;
+}
+
+.zettelkasten-flow__reader-proposal-group-origin {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader-proposal-group-passage {
+    margin: 0;
+    padding-left: var(--size-4-2);
+    border-left: var(--border-width) solid var(--reader-line);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-proposal-group-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-proposal-group-dismiss {
+    align-self: flex-start;
+}
+
+/* The proposal card in a list: in the flow, under the answer's header, never floating over the page. */
+.zettelkasten-flow__reader-proposal.zettelkasten-flow__reader-proposal--flow {
+    position: relative;
+    left: auto;
+    top: auto;
+    z-index: auto;
+    width: auto;
+    padding: var(--size-4-2);
+    background-color: var(--reader-bg, var(--background-primary));
+    box-shadow: none;
+}
+
+.zettelkasten-flow__reader-proposal-title {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+/* Modify on Connect: another idea, picked in place. */
+.zettelkasten-flow__reader-idea-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    transform-origin: 0 0;
+}
+
+.zettelkasten-flow__reader-idea-picker-input {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-idea-picker-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-idea-picker-row {
+    @include text-link-button;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    color: var(--reader-fg, var(--text-normal));
+
+    &.is-selected {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+/* What the moves you accepted left, at the bottom of Alongside, for this reading. */
+.zettelkasten-flow__reader-from-reading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--reader-line);
+}
+
+.zettelkasten-flow__reader-from-reading-title {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-from-reading-row {
+    @include text-link-button;
+    color: var(--reader-fg, var(--text-normal));
+    font-size: var(--font-ui-small);
+}
+
+/* An accepted tension ticks the highlight it answers (FR-17): a mark at its end, faded in. */
+.zettelkasten-flow__reader-highlight--tension:last-of-type::after {
+    content: "";
+    display: inline-block;
+    width: var(--size-4-1);
+    height: var(--size-4-3);
+    margin-left: var(--size-2-1);
+    border-left: var(--border-width) solid var(--text-error);
+    vertical-align: middle;
+    animation: zf-reader-tension-in $motion-fast $ease-out backwards;
+}
+
+@keyframes zf-reader-tension-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* The Think row of the popover (FR-1): the moves you can make on this passage, under its meanings. */
+.zettelkasten-flow__reader-hl-think {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding-top: var(--size-4-1);
+    border-top: var(--border-width) solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__reader-hl-think-label {
+    margin-right: var(--size-4-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-proposal-group,
+    .zettelkasten-flow__reader-proposal--flow,
+    .zettelkasten-flow__reader-idea-picker,
+    .zettelkasten-flow__reader-from-reading,
+    .zettelkasten-flow__reader-highlight--tension:last-of-type::after {
+        animation: none;
+        transition: none;
+    }
+}
+
 /* ── peeks and detours (#670) ─────────────────────────────────────────── */
 .zettelkasten-flow__reader-hidden {
     display: none;

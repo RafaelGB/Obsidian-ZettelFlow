@@ -399,6 +399,77 @@ device, beside your reading pace — never synced, never in the vault.
 (`reader.alongside.near.10k`, see [performance budgets](performance-budgets.md)): the names it
 matches against are indexed once per change of the vault, so a settle costs milliseconds.
 
+## Moves answered by your vault
+
+Alongside shows what of yours is near a paragraph. Two moves take a stance on the passage you
+selected: **Contradict** asks which of your notes stand against it, **Connect** asks which of your
+ideas it belongs with. Both are answered **by your own vault, with no AI**, and both work with AI
+turned off.
+
+![Moves answered by your vault: a selection with the Think row under its meanings; the answer flying out of Contradict into the top of Alongside, under Proposed. Nothing is written until you decide.; a candidate with why it is offered and Accept, Modify and Reject; and From this reading at the bottom of the panel](../resources/reader/vault-moves.svg)
+
+**The Think row.** Select words in a book or a paper, or click one of your highlights: under the
+meanings, the popover has a second row, *Think*, with **Contradict** and **Connect**. A passage you
+marked yesterday can be worked on today. A reading of notes has no Think row: Cultivate's moves own
+notes.
+
+**What each looks for**, decided by your vault, the same way every time:
+
+- **Contradict** — the notes you have already typed as `contradicts` a note
+  [near the passage](#alongside-your-vault-beside-the-page): your tensions, carried over to it. Each
+  says why: *Ship early contradicts Planning fallacy, which this passage names.*
+- **Connect** — the near notes themselves, then the notes that **support** or **expand** them, then
+  unlinked notes that **share context** with them (discovery's own score). Each says why: *Named in
+  this passage*, *Supports Planning fallacy*, *Shares context with Planning fallacy*.
+
+At most three, in a fixed order. Left out: a note you said is *not related* to this chapter, a note
+already in a tension with this passage, and a note that already cites it. Only notes in your
+knowledge scope count.
+
+**The answer is a proposal.** It arrives at the top of Alongside — which opens if it was closed —
+under *Proposed. Nothing is written until you decide.*, with the move and where the answer came from
+(*Contradict · from your vault*), the passage, and the candidates. Each candidate is the Reader's
+proposal card, with its own **Accept**, **Modify** and **Reject**. When nothing is found, the answer
+says so — *Nothing in your vault stands against this passage yet.* or *Nothing in your vault is close
+to this passage yet.* — and offers nothing to accept; **Dismiss** takes it away. A tension needs a
+[thinking space](../architecture/thought-lab.md): without one, the answer says how to choose it.
+
+**What each verdict writes**, and what is recorded:
+
+| Verdict | Written | Recorded |
+|---|---|---|
+| **Contradict**, accepted or modified | **one thought** in Think: its text is the line as you left it; it is *about* the book and *also about* the note, and quotes the passage with its [source](#every-note-goes-back-to-its-paragraph). On a highlight, it is threaded under it as a challenge, and the highlight gets a small tension tick on the page | the verdict, and the move *counterexample* (perturb) |
+| **Connect**, accepted, or another idea picked | **one property**: the idea's `source` list gains the passage — the note is now sourced, and the passage is one of its sources. One recorded write in the [write record](../architecture/reversibility.md), taken back as one batch | the verdict, and the move *analogy* (explore) |
+| **Reject** | nothing | *Not related* for this note and this chapter — the same verdict as Alongside's, so the note leaves Alongside too |
+| **Dismiss** (Esc, or the card's ×) | nothing | nothing — a dismissal is not a judgement |
+
+**Modify.** On a contradiction the line becomes editable where it is, and **Accept** reads **Keep my
+version**. On a connection, **Modify** opens a search over your ideas — the near ones first, before
+you type; ↑ ↓ and Enter pick, Esc goes back — so you are not stuck with the three offered.
+
+**The tension is a thought, never a relation.** A passage is not a note, and a tension is thinking,
+not yet knowledge: it is kept in Think, and once you crystallize it, the note it becomes can hold a
+typed relation. It carries its passage, but it is your answer to a proposal, not a highlight: it is
+never drawn on the page, counted on the shelf or brought back for review as one. Think shows it with
+a *Contradict* ribbon.
+
+**The book is never written.** A verdict records the note, a subject naming the move and the book,
+and the origin `derived` — never the text ([judgement record](cognitive-agency.md)).
+
+**The card outlives the selection.** Accept works after you have selected something else or turned
+the page: the card holds its passage. Undecided cards are for this session only: closing Alongside
+or the Reader drops them, and records nothing. **From this reading**, at the bottom of Alongside,
+lists what you accepted while reading — *Tension with Ship early*, *Connected to Planning fallacy* —
+and a click reads the note in a peek.
+
+**It moves like the rest of the Reader.** The answer flies out of the button you pressed into its
+place at the top of Alongside, in one 250 ms flight. If Alongside was closed, it slides in carrying
+the answer already in its place, as one gesture. An accepted candidate travels down into *From this
+reading*; a rejected one slides 16 px aside and fades, and the others close the gap by moving.
+Modify changes nothing in the layout. A key or a click during a flight ends it. If the vault ever
+takes longer than 150 ms, the card says *Looking in your vault…*, in words, never a spinner. Under
+reduced motion everything is instant.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your

@@ -54,6 +54,25 @@ export interface HighlightView {
     onInk?(thoughts: Thought[]): void;
     /** The ink notes' rows, beside the highlights in the margin's list. */
     renderInk?(host: HTMLElement, scope: Component): void;
+    /**
+     * The moves of the popover's *Think* row (#756 FR-1) — *Contradict*, *Connect*, and the AI's later
+     * (#759). Offered only in a book or a paper; the view decides, the popover only draws them.
+     */
+    thinkMoves?(): readonly ThinkMove[];
+}
+
+/** A passage a move works on (#756): its words, where it is, and the highlight it already is, if any. */
+export interface ThinkPassage {
+    quote: ThoughtQuote;
+    locator: ThoughtLocator;
+    highlight?: Thought;
+}
+
+/** One move of the *Think* row: its label, and what it does with the passage, from where it was asked. */
+export interface ThinkMove {
+    id: string;
+    label: LocaleKey;
+    run(passage: ThinkPassage, from: { left: number; top: number; width: number; height: number }): void;
 }
 
 /** Seams for tests; the defaults are the real DOM and the real thought store. */
@@ -376,7 +395,8 @@ export class ReaderHighlights {
         // A source's passages are found again only on their own page or chapter (#681).
         const inChapter = thoughts.filter((thought) => (locator ? thought.locator?.at === locator.at : !thought.locator));
         // Ink is drawn by the ink layer and listed beside the highlights, never anchored as one (#745 E9).
-        const here = inChapter.filter((thought) => !isInk(thought));
+        // A Reader move's answer (#756) carries its passage, but is not a mark: never drawn as one.
+        const here = inChapter.filter((thought) => !isInk(thought) && !thought.madeBy);
         this.view.onInk?.(inChapter.filter(isInk));
         this.pageNotes = here.filter((thought) => !thought.quote?.exact && thought.text.trim());
         const text = chapterText(body);
@@ -597,11 +617,48 @@ export class ReaderHighlights {
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
         // The system's callout already offers Copy to a finger (FR-6); a mouse — and a lasso — only ours.
-        if (systemCopy) return;
-        this.button(actions, "reader_hl_copy", false, () => {
-            if (this.body) this.copy(this.body, found.quote.exact);
-            this.status("reader_hl_copied");
-        });
+        if (!systemCopy) {
+            this.button(actions, "reader_hl_copy", false, () => {
+                if (this.body) this.copy(this.body, found.quote.exact);
+                this.status("reader_hl_copied");
+            });
+        }
+        const locator = this.placedAt(found.span.start);
+        if (locator) this.thinkRow(pop, { quote: found.quote, locator });
+    }
+
+    /** Where a passage starting at `offset` is, exactly (#751 FR-5): the chapter, and its print page. */
+    private placedAt(offset: number): ThoughtLocator | null {
+        if (!this.locator) return null;
+        const page = this.locator.page ?? printPageAt(this.pageMarks, offset);
+        return { ...this.locator, ...(page ? { page } : {}) };
+    }
+
+    /**
+     * The *Think* row (#756 FR-1): the moves you can make on this passage, under its meanings. A move
+     * takes the popover away and asks from where its button was — the answer is born there.
+     */
+    private thinkRow(pop: HTMLElement, passage: ThinkPassage): void {
+        const moves = this.view.thinkMoves?.() ?? [];
+        if (moves.length === 0) return;
+        const row = pop.createDiv({ cls: c("reader-hl-think"), attr: { role: "group", "aria-label": t("reader_think_row") } });
+        row.createSpan({ cls: c("reader-hl-think-label"), text: t("reader_think_row") });
+        for (const move of moves) {
+            const button = this.button(row, move.label, false, () => {
+                const r = button.getBoundingClientRect();
+                const from = { left: r.left, top: r.top, width: r.width, height: r.height };
+                this.hidePopover();
+                move.run(passage, from);
+            });
+            button.addClass(c("reader-hl-think-move"));
+            button.setAttribute("data-zf-move", move.id);
+        }
+    }
+
+    /** An accepted tension (#756 FR-17): the highlight it answers gets a small tick on the page. */
+    markTension(id: string): void {
+        const entry = this.anchored.find((candidate) => candidate.thought.id === id);
+        for (const mark of entry?.marks ?? []) mark.addClass(c("reader-highlight--tension"));
     }
 
     private openNoteEditor(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, meaning: HighlightMeaning = this.lastMeaning): void {
@@ -669,9 +726,7 @@ export class ReaderHighlights {
         const early = stroke ? this.drawPending(span, meaning, options.direction, tint) : [];
         // The place, exactly (#751 FR-5): the chapter's identity rides with it, and the print page the
         // passage starts on — only when the book declares one (FR-3).
-        const page = this.locator ? (this.locator.page ?? printPageAt(this.pageMarks, span.start)) : undefined;
-        const placed = this.locator ? { ...this.locator, ...(page ? { page } : {}) } : null;
-        const made = await this.writeHighlight(notePath, placed, quote, options.note ?? "", meaning);
+        const made = await this.writeHighlight(notePath, this.placedAt(span.start), quote, options.note ?? "", meaning);
         if (!made) {
             early.forEach((mark) => unwrapMark(mark));
             this.untint(tint);
@@ -1137,6 +1192,8 @@ export class ReaderHighlights {
             this.hidePopover();
             this.openThink(this.view.app, thought.about ?? this.notePath ?? "");
         });
+        // A passage you marked yesterday can be worked on today (#756 FR-1).
+        if (thought.locator && thought.quote) this.thinkRow(pop, { quote: thought.quote, locator: thought.locator, highlight: thought });
     }
 
     /**

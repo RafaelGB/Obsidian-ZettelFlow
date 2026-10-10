@@ -50,7 +50,9 @@ import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, originLandsAt, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
-import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
+import { ReaderHighlights, type HighlightDeps, type ThinkMove, type ThinkPassage } from "./readerHighlights";
+import { ReaderVaultMoves, type VaultMoveId, type VaultMovesDeps, type VaultMovesView } from "./readerVaultMoves";
+import { dismissNewestOf, type ProposalBox } from "./readerProposal";
 import { ReaderInk, type InkDeps } from "./readerInk";
 import {
     chapterOfHighlight,
@@ -361,6 +363,8 @@ export class ReaderView extends ItemView {
     private panelScope: Component | null = null;
     /** Alongside (#754): the context panel, your vault beside the page. Lives as long as the view. */
     private alongside: ReaderAlongside | null = null;
+    /** Contradict and Connect, answered by your vault (#756): their cards live in Alongside. */
+    private vaultMoves: ReaderVaultMoves | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
     private panelShape: "sheet" | "side" | "card" | null = null;
     /** Alongside's leaving slide, when it is playing. */
@@ -534,7 +538,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: ink's store, its words and its clock (#745). */
         private readonly inkDeps: InkDeps = {},
         /** Seams for tests: Alongside's index, Think and the judgement record (#754). */
-        private readonly alongsideDeps: AlongsideDeps = {}
+        private readonly alongsideDeps: AlongsideDeps = {},
+        /** Seams for tests: the moves' stores, record and property write (#756). */
+        private readonly vaultMovesDeps: VaultMovesDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -829,6 +835,7 @@ export class ReaderView extends ItemView {
         if (resolved) this.registerEvent(resolved);
         // Alongside, open again if you left it open on this device (#754 FR-13).
         this.alongside = new ReaderAlongside(this.alongsideView(), this.alongsideDeps);
+        this.vaultMoves = new ReaderVaultMoves(this.vaultMovesView(), this.vaultMovesDeps);
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
@@ -855,6 +862,9 @@ export class ReaderView extends ItemView {
         this.renderScope = null;
         this.panelScope?.unload();
         this.panelScope = null;
+        // Undecided proposals go with the Reader, and nothing is recorded (#756 FR-12).
+        this.vaultMoves?.dispose();
+        this.vaultMoves = null;
         this.alongside?.dispose();
         this.alongside = null;
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
@@ -1006,6 +1016,7 @@ export class ReaderView extends ItemView {
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
+                thinkMoves: () => this.thinkMoves(),
             },
             this.highlightDeps
         );
@@ -3105,6 +3116,8 @@ export class ReaderView extends ItemView {
         const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
         this.thumbs?.dispose();
         this.thumbs = null;
+        // The proposals in Alongside go with it, with no verdict (#756 AC-7).
+        this.vaultMoves?.dismissAll();
         this.alongside?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
@@ -3170,6 +3183,39 @@ export class ReaderView extends ItemView {
         if (Math.abs(shift) >= 1) stage.scrollTop = Math.max(0, stage.scrollTop + shift);
         const blocks = this.blocks();
         if (blocks.length > 0) this.place = placeAt(blocks, stage.scrollTop);
+    }
+
+    /** The *Think* row's moves (#756 FR-1): in a book or a paper, answered by your vault. */
+    private thinkMoves(): ThinkMove[] {
+        if (!this.sourcePath || !this.vaultMoves) return [];
+        const run = (move: VaultMoveId) => (passage: ThinkPassage, from: ProposalBox) => {
+            const book = this.sourcePath;
+            if (!book) return;
+            void this.vaultMoves?.run(move, { ...passage, book, bookTitle: this.source?.title ?? noteName(book) }, from);
+        };
+        return [
+            { id: "contradict", label: "reader_move_contradict", run: run("contradict") },
+            { id: "connect", label: "reader_move_connect", run: run("connect") },
+        ];
+    }
+
+    /** What the moves lend of the Reader (#756): Alongside, where their answers arrive. */
+    private vaultMovesView(): VaultMovesView {
+        return {
+            app: this.app,
+            openAlongside: () => {
+                const closed = this.panel !== "context";
+                // Closed, it opens; sliding away, it stays (#754).
+                if (closed || this.alongsideLeaving !== undefined) this.toggle("context");
+                const host = this.alongside?.proposalsHost();
+                return host ? { host, opened: closed } : null;
+            },
+            nearFor: (text) => this.alongside?.nearFor(text) ?? null,
+            fromReadingBox: () => this.alongside?.fromReadingBox() ?? null,
+            addFromReading: (entry) => this.alongside?.addFromReading(entry),
+            ruleOut: (book, chapterKey, path) => this.alongside?.ruleOut(book, chapterKey, path),
+            tension: (id) => this.highlights?.markTension(id),
+        };
     }
 
     /** What Alongside reads of the Reader (#754). */
@@ -4081,7 +4127,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -4094,7 +4140,9 @@ export class ReaderView extends ItemView {
         });
         switch (step) {
             case "proposal":
-                return this.ink?.reading.dismissNewest();
+                // The newest card of all, whoever opened it — ink's reading or a move (#748, #756).
+                dismissNewestOf([this.ink?.reading, this.vaultMoves]);
+                return;
             case "shortcuts":
                 return this.closeShortcuts();
             case "note":

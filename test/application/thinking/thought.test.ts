@@ -261,3 +261,35 @@ describe("a connection taken back (#747)", () => {
         expect(unlinkThought(t, "z")).toBe(t);
     });
 });
+
+describe("a thought accepted from a Reader move (#756)", () => {
+    const made = newThought({
+        text: "Learning in delivery versus on paper",
+        id: "t1",
+        at: 1,
+        about: "Books/b.epub",
+        alsoAbout: "Notes/Ship early.md",
+        quote: { exact: "the planning fallacy", prefix: "", suffix: "" },
+        locator: { at: 1, label: "2 · The outside view", chapter: "OEBPS/ch2.xhtml" },
+        madeBy: { move: "contradict" },
+    });
+
+    it("says which move it came from, and reads back the same", () => {
+        const text = renderThought(made);
+        expect(text).toContain("  madeBy: contradict\n");
+        expect(parseThought(text, "Lab/t1.md")).toEqual(made);
+        const ai = renderThought({ ...made, madeBy: { move: "why", ai: true } });
+        expect(parseThought(ai, "Lab/t1.md").madeBy).toEqual({ move: "why", ai: true });
+    });
+
+    it("carries its passage but is never a highlight: not drawn, counted or reviewed as one", () => {
+        expect(isHighlight(made)).toBe(false);
+        const { madeBy: _madeBy, ...plain } = made;
+        expect(isHighlight(plain)).toBe(true);
+    });
+
+    it("an older thought, or a move nobody knows, reads as it always did", () => {
+        const text = renderThought(made).replace("madeBy: contradict", "madeBy: shout");
+        expect(parseThought(text, "Lab/t1.md").madeBy).toBeUndefined();
+    });
+});

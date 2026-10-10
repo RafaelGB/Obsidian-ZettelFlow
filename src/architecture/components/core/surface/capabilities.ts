@@ -119,6 +119,8 @@ export const CAPABILITIES = [
     "reader",
     "reader-ink",
     "reader-alongside",
+    "reader-contradict",
+    "reader-connect",
     "library",
     "highlights-review",
     "claim-door",
@@ -384,6 +386,18 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_context",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
+    },
+    "reader-contradict": {
+        // Moves answered by your vault (#756, epic #741): the *Think* row of the popover that appears
+        // when you select words or click a mark. You are on the passage; the move is under your hand.
+        nameKey: "reader_move_contradict",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-connect": {
+        nameKey: "reader_move_connect",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

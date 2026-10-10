@@ -1,6 +1,7 @@
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
+import { mountIdeaPicker, type PickerChoice } from "./readerIdeaPicker";
 
 /**
  * **The Reader's proposal card** (#748, shared with R3's #756/#759) — the inline sibling of
@@ -16,7 +17,36 @@ import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
  *
  * The decision resolves once the card has gone — so what the caller shows next appears as the card
  * lands. Esc, or `dismiss()`, resolves `null`: a dismissal is not a verdict, and records nothing.
+ *
+ * **In a list** (`flow`, #756): the same card stands in its host's flow — a candidate among others in
+ * *Alongside* — rather than floating over the page. It is born from its origin by one flight onto its
+ * place (`MOTION.base`), a rejected one slides `rejectSlide` px away, and the cards under it close the
+ * gap by moving, never by changing height. Modify can be a pick (`choices`) instead of a text field.
  */
+
+/** A sequence over every card the Reader opens: Esc dismisses the newest, whoever owns it. */
+let opened = 0;
+export function nextProposalSeq(): number {
+    return ++opened;
+}
+
+/** Whoever holds proposal cards in the Reader: the first Esc step (`proposal`) asks each of them. */
+export interface ProposalOwner {
+    hasCards(): boolean;
+    /** The `seq` of its newest card, or 0. */
+    newestSeq(): number;
+    dismissNewest(): void;
+}
+
+/** Esc on the Reader: the newest card of all its owners goes, with no verdict. Whether one did. */
+export function dismissNewestOf(owners: readonly (ProposalOwner | null | undefined)[]): boolean {
+    let newest: ProposalOwner | null = null;
+    for (const owner of owners) {
+        if (owner?.hasCards() && (!newest || owner.newestSeq() > newest.newestSeq())) newest = owner;
+    }
+    newest?.dismissNewest();
+    return newest !== null;
+}
 
 export type ProposalBox = { left: number; top: number; width: number; height: number };
 
@@ -35,6 +65,24 @@ export interface ReaderProposalOptions {
     label?: string;
     /** Where an accepted card travels into: an element, a box, or a box asked for then. Default: its origin. */
     landing?: HTMLElement | ProposalBox | (() => ProposalBox | null);
+    /** In its host's flow, as a candidate in a list (#756), rather than floating over the page. */
+    flow?: boolean;
+    /** How a card in a list arrives: flown from its origin (default), or simply there (it rides its panel in). */
+    arrive?: "fly" | "none";
+    /** A name above the line: the note a candidate is. */
+    title?: string;
+    /** Whether the card says its own *Nothing is written until you accept*. Default yes. */
+    hint?: boolean;
+    /** The label Edit takes once the text is open. Default *Save my edit*. */
+    saveEditLabel?: string;
+    /** How far a rejected card slides as it goes, in px. Default 8. */
+    rejectSlide?: number;
+    /** Edit as a pick: the choices offered, and their search. A pick is the verdict *modified*, its value the text. */
+    choices?: (query: string) => readonly PickerChoice[];
+    /** The pick's placeholder. */
+    pickPlaceholder?: string;
+    /** What Esc on the card does. Default: dismiss it. */
+    onEscape?: () => void;
 }
 
 /** What was decided. `text` is the text to write: the proposal, or your edit of it; empty for a rejection. */
@@ -50,6 +98,8 @@ export interface ProposalHandle {
     el: HTMLElement;
     /** Take the card away with no verdict (the view closing, another proposal replacing it). */
     dismiss(): void;
+    /** When it was opened, among every card the Reader opened (`nextProposalSeq`). */
+    seq: number;
 }
 
 /** The gap between the origin and the card, in px: the 4-grid's first step. */
@@ -69,26 +119,29 @@ function windowOf(el: HTMLElement): Window {
     return (el as HTMLElement & { win?: Window }).win ?? window;
 }
 
-/**
- * Open a proposal card in `host` (a positioned element), grown out of `origin` — the chip, the mark,
- * the place on the page the proposal is about.
- */
-export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBox, options: ReaderProposalOptions): ProposalHandle {
-    const proposed = options.text ?? "";
-    // The card is placed in its host's own coordinates: the host is its positioned box.
-    if (windowOf(host).getComputedStyle?.(host).position === "static") host.addClass(c("reader-proposal-host--placed"));
-    const card = host.createDiv({
-        cls: c("reader-proposal"),
-        attr: { role: "dialog", "aria-label": options.label ?? t("proposal_text_label") },
-    });
-    const intro = card.createDiv({ cls: c("reader-proposal-intro"), text: options.intro });
-    const actions = card.createDiv({ cls: c("reader-proposal-actions") });
-    const accept = actions.createEl("button", { cls: "mod-cta", text: options.acceptLabel ?? t("proposal_accept"), attr: { type: "button" } });
-    const edit = options.editable ? actions.createEl("button", { text: options.editLabel ?? t("reader_proposal_edit"), attr: { type: "button" } }) : null;
-    const reject = actions.createEl("button", { text: t("proposal_reject"), attr: { type: "button" } });
-    card.createDiv({ cls: c("reader-proposal-hint"), text: t("proposal_recorded_hint") });
+/** Where the cards of a list after `card` are now, to move them from there once it has gone. */
+function siblingsAfter(card: HTMLElement): { el: HTMLElement; top: number }[] {
+    const out: { el: HTMLElement; top: number }[] = [];
+    let next = card.nextElementSibling as HTMLElement | null;
+    while (next) {
+        out.push({ el: next, top: next.getBoundingClientRect().top });
+        next = next.nextElementSibling as HTMLElement | null;
+    }
+    return out;
+}
 
-    // Where it sits: under its origin, inside the host; above it when there is no room below.
+/** The cards under a card that went close the gap by moving — transform only, never height (#756 FR-18). */
+function closeGap(was: readonly { el: HTMLElement; top: number }[]): void {
+    for (const { el, top } of was) {
+        if (!el.isConnected || !motionWelcome(el)) continue;
+        const dy = top - el.getBoundingClientRect().top;
+        if (Math.abs(dy) < 1) continue;
+        el.animate([{ transform: `translate(0px, ${Math.round(dy)}px)` }, { transform: "translate(0px, 0px)" }], { duration: MOTION.base, easing: MOTION.ease });
+    }
+}
+
+/** Where a floating card sits: under its origin, inside the host; above it when there is no room below. */
+function place(host: HTMLElement, card: HTMLElement, origin: HTMLElement | ProposalBox): void {
     const hostBox = host.getBoundingClientRect();
     const from = boxOf(origin);
     const size = card.getBoundingClientRect();
@@ -124,17 +177,64 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
         "--zf-prop-y": `${Math.round(y + (host.scrollTop || 0))}px`,
         "--zf-prop-origin": `${originX}px ${above ? "100%" : "0px"}`,
     });
+}
 
-    // FR-15: it grows out of what it is about — never from the edge of the screen.
-    if (motionWelcome(card)) {
-        card.animate(
+/**
+ * Open a proposal card in `host` (a positioned element), grown out of `origin` — the chip, the mark,
+ * the place on the page the proposal is about. With `flow`, a card in `host`'s list, flown from `origin`.
+ */
+export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBox, options: ReaderProposalOptions): ProposalHandle {
+    const proposed = options.text ?? "";
+    const flow = options.flow === true;
+    // A floating card is placed in its host's own coordinates: the host is its positioned box.
+    if (!flow && windowOf(host).getComputedStyle?.(host).position === "static") host.addClass(c("reader-proposal-host--placed"));
+    const card = host.createDiv({
+        cls: flow ? [c("reader-proposal"), c("reader-proposal--flow")] : c("reader-proposal"),
+        attr: { role: flow ? "group" : "dialog", "aria-label": options.label ?? t("proposal_text_label") },
+    });
+    if (options.title) card.createDiv({ cls: c("reader-proposal-title"), text: options.title });
+    const intro = card.createDiv({ cls: c("reader-proposal-intro"), text: options.intro });
+    const actions = card.createDiv({ cls: c("reader-proposal-actions") });
+    const accept = actions.createEl("button", { cls: "mod-cta", text: options.acceptLabel ?? t("proposal_accept"), attr: { type: "button" } });
+    const canEdit = Boolean(options.editable || options.choices);
+    const edit = canEdit ? actions.createEl("button", { text: options.editLabel ?? t("reader_proposal_edit"), attr: { type: "button" } }) : null;
+    const reject = actions.createEl("button", { text: t("proposal_reject"), attr: { type: "button" } });
+    if (options.hint !== false) card.createDiv({ cls: c("reader-proposal-hint"), text: t("proposal_recorded_hint") });
+    const seq = nextProposalSeq();
+
+    let arrival: Animation | null = null;
+    if (!flow) {
+        place(host, card, origin);
+        // FR-15: it grows out of what it is about — never from the edge of the screen.
+        if (motionWelcome(card)) {
+            card.animate(
+                [
+                    { transform: "scale(0.96)", opacity: 0 },
+                    { transform: "scale(1)", opacity: 1 },
+                ],
+                { duration: MOTION.fast, easing: MOTION.ease }
+            );
+        }
+    } else if (options.arrive !== "none" && motionWelcome(card)) {
+        // #756 FR-15: born from the button — one flight from where it was asked for onto its place.
+        arrival = card.animate(
             [
-                { transform: "scale(0.96)", opacity: 0 },
-                { transform: "scale(1)", opacity: 1 },
+                { transform: flightTransform(boxOf(card), boxOf(origin)), opacity: 0 },
+                { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
             ],
-            { duration: MOTION.fast, easing: MOTION.ease }
+            { duration: MOTION.base, easing: MOTION.ease }
         );
     }
+    // Input during the flight jumps it to its end (#756 FR-19).
+    const land = () => {
+        try {
+            arrival?.finish();
+        } catch {
+            // Already done.
+        }
+        arrival = null;
+    };
+    card.addEventListener("pointerdown", land);
     // Ready for a key, without moving anything: a focus that scrolled would move the page you read.
     accept.focus?.({ preventScroll: true });
 
@@ -146,9 +246,12 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
     const leave = (outcome: ProposalDecision | null) => {
         if (gone) return;
         gone = true;
+        land();
         card.addClass(c("reader-proposal--leaving"));
+        const below = flow ? siblingsAfter(card) : [];
         const finish = () => {
             card.remove();
+            closeGap(below);
             settle(outcome);
         };
         if (!motionWelcome(card) || outcome === null) {
@@ -169,7 +272,7 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
             animation = card.animate(
                 [
                     { transform: "translate(0px, 0px)", opacity: 1 },
-                    { transform: `translate(${REJECT_SLIDE_PX}px, 0px)`, opacity: 0 },
+                    { transform: `translate(${options.rejectSlide ?? REJECT_SLIDE_PX}px, 0px)`, opacity: 0 },
                 ],
                 { duration, easing: MOTION.ease, fill: "forwards" }
             );
@@ -201,6 +304,24 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
     accept.addEventListener("click", accepted);
     reject.addEventListener("click", () => leave({ verdict: "rejected", text: "" }));
     edit?.addEventListener("click", () => {
+        const choices = options.choices;
+        if (choices) {
+            // Modify as a pick (#756 FR-7): the choices where the actions were; a pick is your answer.
+            if (card.querySelector(`.${c("reader-idea-picker")}`)) return;
+            actions.addClass(c("reader-hidden"));
+            const picker = mountIdeaPicker(card, {
+                choices,
+                placeholder: options.pickPlaceholder ?? options.editLabel ?? t("reader_proposal_edit"),
+                label: options.label ?? t("proposal_text_label"),
+                onPick: (choice) => leave({ verdict: choice.value === proposed ? "accepted" : "modified", text: choice.value }),
+                onCancel: () => {
+                    picker.el.remove();
+                    actions.removeClass(c("reader-hidden"));
+                    edit.focus?.({ preventScroll: true });
+                },
+            });
+            return;
+        }
         if (editing) return accepted();
         // Edit: the proposal, yours to change — the same card, a field where its words were.
         editing = card.createEl("textarea", { cls: c("reader-proposal-text"), attr: { rows: "3", "aria-label": options.label ?? t("proposal_text_label") } });
@@ -208,7 +329,7 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
         editing.value = proposed;
         intro.addClass(c("reader-proposal-intro--editing"));
         accept.remove();
-        edit.setText(t("proposal_save_edit"));
+        edit.setText(options.saveEditLabel ?? t("proposal_save_edit"));
         edit.addClass("mod-cta");
         const field = editing;
         field.addEventListener("input", () => (edit.disabled = field.value.trim().length === 0));
@@ -221,11 +342,13 @@ export function openProposal(host: HTMLElement, origin: HTMLElement | ProposalBo
         field.focus?.({ preventScroll: true });
     });
     card.addEventListener("keydown", (event: KeyboardEvent) => {
+        land();
         if (event.key !== "Escape") return;
         event.preventDefault();
         event.stopPropagation();
-        leave(null);
+        if (options.onEscape) options.onEscape();
+        else leave(null);
     });
 
-    return { decision, el: card, dismiss: () => leave(null) };
+    return { decision, el: card, dismiss: () => leave(null), seq };
 }

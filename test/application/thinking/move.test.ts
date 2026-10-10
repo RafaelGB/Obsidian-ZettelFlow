@@ -1,4 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
     ancestorsOf,
     childrenOf,
@@ -193,5 +195,18 @@ describe("the vocabulary knows what it acts on (#498)", () => {
                 effect: expect.any(String),
             });
         }
+    });
+});
+
+describe("the Reader's moves speak the same vocabulary (#756 AC-12)", () => {
+    it("Contradict logs counterexample and Connect analogy — verbs of the eleven, under their own primitives", () => {
+        const byVerb = new Map(MOVE_VERBS.map((v) => [v.verb, v.primitive]));
+        expect(byVerb.get("counterexample")).toBe("perturb");
+        expect(byVerb.get("analogy")).toBe("explore");
+        expect(MOVE_VERBS).toHaveLength(11);
+        expect(new Set(MOVE_VERBS.map((v) => v.primitive)).size).toBe(5);
+        const src = readFileSync(join(__dirname, "../../../src/architecture/components/core/reader/readerVaultMoves.ts"), "utf8");
+        expect(src).toContain('contradict: { primitive: "perturb", verb: "counterexample" }');
+        expect(src).toContain('connect: { primitive: "explore", verb: "analogy" }');
     });
 });

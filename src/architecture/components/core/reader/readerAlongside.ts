@@ -17,6 +17,7 @@ import {
     type BornNote,
     type Judgement,
     type Lens,
+    type NearItem,
     type Vocabulary,
 } from "architecture/knowledge/state";
 import { KnowledgeIndex, type KnowledgeModel } from "architecture/knowledge";
@@ -169,6 +170,29 @@ interface Kept {
     lens: LensId;
 }
 
+/** What a move you accepted in this reading left (#756 FR-17): a line at the bottom of Alongside. */
+export interface FromReadingEntry {
+    kind: "tension" | "connection";
+    /** The note it is about, which a click reads. */
+    path: string;
+    title: string;
+}
+
+const FROM_KEY: Record<FromReadingEntry["kind"], LocaleKey> = {
+    tension: "reader_from_tension",
+    connection: "reader_from_connection",
+};
+
+/** What is near a passage now, for a move to answer from (#756): the same reading Alongside makes. */
+export interface NearNow {
+    model: KnowledgeModel;
+    near: NearItem[];
+    reading: AlongsideReading;
+    ruledOut: Set<string>;
+    /** A pair ruled out as a gap (#534). */
+    ruledOutGap: (a: string, b: string) => boolean;
+}
+
 const basename = (path: string) => (path.split("/").pop() ?? path).replace(/\.md$/i, "");
 const WIKILINK = /\[\[([^\]|#^]+)(?:[#^][^\]|]*)?(?:\|[^\]]*)?\]\]/g;
 
@@ -192,7 +216,9 @@ export class ReaderAlongside {
 
     private host: HTMLElement | null = null;
     private scope: Component | null = null;
-    private els: { near: HTMLElement; chips: HTMLElement; marks: HTMLElement; state: HTMLElement; list: HTMLElement; more: HTMLElement } | null = null;
+    private els: { near: HTMLElement; chips: HTMLElement; proposals: HTMLElement; marks: HTMLElement; state: HTMLElement; list: HTMLElement; more: HTMLElement; from: HTMLElement } | null = null;
+    /** What the moves you accepted left, this session only (#756 FR-12, FR-17). */
+    private readonly fromReading: FromReadingEntry[] = [];
     private readonly cards = new WeakMap<HTMLElement, CardParts>();
     /** The items now drawn, by key: a card's listeners read the item through here. */
     private readonly items = new Map<string, AlongsideItem>();
@@ -273,6 +299,8 @@ export class ReaderAlongside {
         const head = host.createDiv({ cls: c("reader-alongside-head") });
         head.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
         const near = head.createDiv({ cls: c("reader-alongside-near"), attr: { "aria-live": "polite" } });
+        // A move's proposal arrives here, at the top (#756 FR-4).
+        const proposals = host.createDiv({ cls: c("reader-alongside-proposals") });
         const chips = host.createDiv({ cls: c("reader-alongside-lenses"), attr: { role: "group", "aria-label": t("reader_alongside_lenses") } });
         for (const id of LENS_IDS) {
             const active = id === this.kept.lens;
@@ -288,6 +316,7 @@ export class ReaderAlongside {
         const state = host.createDiv({ cls: [c("reader-alongside-state"), c("reader-hidden")] });
         const list = host.createDiv({ cls: c("reader-alongside-list"), attr: { tabindex: "-1", "aria-label": t("reader_context") } });
         const more = host.createEl("button", { cls: [c("reader-alongside-more"), c("reader-hidden")], attr: { type: "button" }, text: t("reader_alongside_more") });
+        const from = host.createDiv({ cls: [c("reader-from-reading"), c("reader-hidden")], attr: { "aria-live": "polite" } });
         scope.registerDomEvent(more, "click", () => {
             this.expanded = true;
             this.draw();
@@ -306,7 +335,8 @@ export class ReaderAlongside {
         // Input during a move jumps it to its end (FR-22).
         scope.registerDomEvent(host, "pointerdown", () => this.finish());
         scope.registerDomEvent(host, "keydown", () => this.finish());
-        this.els = { near, chips, marks, state, list, more };
+        this.els = { near, chips, proposals, marks, state, list, more, from };
+        this.drawFromReading();
         this.drawMarks();
         this.refresh();
     }
@@ -392,14 +422,7 @@ export class ReaderAlongside {
             if (this.undo && this.undo.chapter !== `${reading.book}#${reading.chapterKey}`) this.dropUndo();
             const history = this.judgements.entries();
             const ruledOut = this.ruledOut(reading, history);
-            const marks = this.view.marks().map((thought) => this.toAlongside(thought));
-            const near = nearPassage(model, vocabulary, {
-                text: passage?.text ?? "",
-                ...(reading.source ? { book: reading.book, bookTitle: reading.bookTitle, chapterKey: reading.chapterKey, born: this.bornOf(model, reading.book) } : {}),
-                ...(reading.chapterNote ? { chapterNote: reading.chapterNote } : {}),
-                marks,
-                ruledOut,
-            });
+            const near = this.nearOf(model, vocabulary, reading, passage?.text ?? "", ruledOut);
             const gaps = ruledOutGaps(history);
             this.lenses = alongsideLenses(model, near, {
                 vocabulary,
@@ -425,6 +448,77 @@ export class ReaderAlongside {
             return;
         }
         this.draw();
+    }
+
+    private nearOf(model: KnowledgeModel, vocabulary: Vocabulary, reading: AlongsideReading, text: string, ruledOut: Set<string>): NearItem[] {
+        const marks = this.view.marks().map((thought) => this.toAlongside(thought));
+        return nearPassage(model, vocabulary, {
+            text,
+            ...(reading.source ? { book: reading.book, bookTitle: reading.bookTitle, chapterKey: reading.chapterKey, born: this.bornOf(model, reading.book) } : {}),
+            ...(reading.chapterNote ? { chapterNote: reading.chapterNote } : {}),
+            marks,
+            ruledOut,
+        });
+    }
+
+    /**
+     * What is near `text` in the reading on screen (#756) — named in it, born from this chapter, in
+     * your marks here — with what is ruled out. `null` while the index builds, or with nothing read.
+     */
+    nearFor(text: string): NearNow | null {
+        const reading = this.view.reading();
+        if (!reading || this.index.status !== "ready") return null;
+        const model = this.index.getModel();
+        const history = this.judgements.entries();
+        const ruledOut = this.ruledOut(reading, history);
+        const gaps = ruledOutGaps(history);
+        return { model, reading, ruledOut, near: this.nearOf(model, alongsideVocabulary(model), reading, text, ruledOut), ruledOutGap: (a, b) => gaps.has(a, b) };
+    }
+
+    /**
+     * A note ruled out of a chapter elsewhere — a move's *Reject* (#756 FR-8): the same verdict, so it
+     * leaves Alongside too, even with the record turned off.
+     */
+    ruleOut(book: string, chapterKey: string, path: string): void {
+        const chapter = `${book}#${chapterKey}`;
+        const set = this.ruled.get(chapter) ?? new Set<string>();
+        set.add(path);
+        this.ruled.set(chapter, set);
+        this.refresh();
+    }
+
+    /** Where a move's proposal is drawn: the top of the panel, while it stands (#756 FR-4). */
+    proposalsHost(): HTMLElement | null {
+        return this.els?.proposals ?? null;
+    }
+
+    /** A move you accepted leaves a line in *From this reading* (#756 FR-17), for this session. */
+    addFromReading(entry: FromReadingEntry): void {
+        this.fromReading.push(entry);
+        this.drawFromReading();
+    }
+
+    /** Where an accepted candidate lands: *From this reading*, its last line once there is one. */
+    fromReadingBox(): { left: number; top: number; width: number; height: number } | null {
+        const from = this.els?.from;
+        if (!from) return null;
+        // The first fold lands somewhere already standing: the section shows as the card leaves.
+        from.removeClass(c("reader-hidden"));
+        const target = (from.lastElementChild as HTMLElement | null) ?? from;
+        const r = target.getBoundingClientRect();
+        return { left: r.left, top: r.top, width: r.width, height: r.height };
+    }
+
+    private drawFromReading(): void {
+        const from = this.els?.from;
+        if (!from) return;
+        from.empty();
+        from.toggleClass(c("reader-hidden"), this.fromReading.length === 0);
+        from.createDiv({ cls: c("reader-from-reading-title"), text: t("reader_from_this_reading") });
+        for (const entry of this.fromReading) {
+            const row = from.createEl("button", { cls: c("reader-from-reading-row"), attr: { type: "button" }, text: t(FROM_KEY[entry.kind], entry.title) });
+            row.addEventListener("click", () => this.view.peek(row, entry.path, basename(entry.path)));
+        }
     }
 
     private ruledOut(reading: AlongsideReading, history: Judgement[]): Set<string> {

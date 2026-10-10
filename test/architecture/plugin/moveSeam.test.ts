@@ -29,6 +29,8 @@ const DOOR = "architecture/plugin/thinking/MoveLog.ts";
 const PERMITTED: Record<string, string> = {
     "architecture/components/core/reader/readerInkReading.ts":
         "perturb · challenge — only after you accept a reading's tension proposal (#748)",
+    "architecture/components/core/reader/readerVaultMoves.ts":
+        "perturb · counterexample and explore · analogy — only after you accept a Contradict or Connect proposal (#756)",
     "architecture/components/core/lab/LabRenderer.ts":
         "the Lab's own gestures — fork, challenge, set aside, crystallize — each from a key or a button you pressed (#492)",
     "starters/zcomponents/MoveCommandsComponent.ts":

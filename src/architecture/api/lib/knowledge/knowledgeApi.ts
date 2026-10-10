@@ -199,6 +199,8 @@ export const NOT_EXPOSED: Record<string, string> = {
     namedBy: "a thought's named notes, as Alongside reads Think — Think is not a script surface",
     withNamed: "prepares Think's thoughts for Alongside — Think is not a script surface",
     sharedContext: "one note's slice of discoveries, which is the door",
+    vaultContradictions: "the Reader's Contradict proposal over one passage (#756), answered in the Reader; scripts read findContradictions",
+    vaultConnections: "the Reader's Connect proposal over one passage (#756), answered in the Reader; scripts read the neighbourhood",
     chapterVerdict: "builds a judgement to record; scripts read the model and write only their own note",
     chapterSubject: "the subject a chapter verdict carries, not a projection",
     ruledOutInChapter: "the filter Alongside applies for you, from a record scripts cannot read",

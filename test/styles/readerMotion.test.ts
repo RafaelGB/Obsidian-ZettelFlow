@@ -256,3 +256,23 @@ describe("Alongside moves like a margin, never like a redraw (#754 AC-10)", () =
         expect(block).toContain("left: calc((100% - var(--zf-alongside-w) - var(--size-4-6)) / 2);");
     });
 });
+
+describe("moves answered by your vault move like the rest of the Reader (#756 AC-10)", () => {
+    const css = sheet("components/reader.scss");
+    const own = css.slice(css.indexOf("── Moves answered by your vault (#756)"), css.indexOf("── peeks and detours (#670)"));
+
+    it("gives the answer, a card in its list, the picker, From this reading and the tension tick an instant equivalent", () => {
+        const reduced = own.slice(own.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-proposal-group", "reader-proposal--flow", "reader-idea-picker", "reader-from-reading", "reader-highlight--tension"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("fades the tension tick in on opacity alone, at the fast beat", () => {
+        const start = own.indexOf("@keyframes zf-reader-tension-in {");
+        const frames = own.slice(start, own.indexOf("\n}", start));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1])).toEqual(["opacity"]);
+        expect(own).toContain("animation: zf-reader-tension-in $motion-fast $ease-out backwards;");
+        for (const match of own.matchAll(/transition:\s*([^;]+);/g)) expect(match[1]).not.toMatch(/\b(height|width|top|left)\b/);
+    });
+});

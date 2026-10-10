@@ -141,6 +141,22 @@ export interface Thought {
     ink?: ThoughtInk;
     /** The layer this thought was made on (#758 R4). Absent is the reading layer; nothing reads it yet. */
     layer?: string;
+    /**
+     * The Reader's move this thought was accepted from (#756): *Contradict* on a passage, say. It
+     * carries its passage (`quote`, `locator`) as a highlight does, but it is your answer to a
+     * proposal, not a mark — never drawn, counted or reviewed as a highlight. `ai` when the proposal
+     * was an AI's (#759).
+     */
+    madeBy?: ThoughtMadeBy;
+}
+
+/** The Reader's moves a thought can be accepted from (#756, #759). */
+export const READER_MOVES = ["contradict", "connect", "why", "challenge", "question", "claim", "reflect", "explain"] as const;
+export type ReaderMoveId = (typeof READER_MOVES)[number];
+
+export interface ThoughtMadeBy {
+    move: ReaderMoveId;
+    ai?: true;
 }
 
 /** Where an ink note is (#745 E6): beside its words, or on its page. */
@@ -164,8 +180,8 @@ export interface ThoughtRevision {
  * beside but is not a highlight (#745 E6): it is shown with them and never counted, reviewed or
  * crystallized as one.
  */
-export function isHighlight(thought: Pick<Thought, "quote" | "about"> & { ink?: ThoughtInk }): boolean {
-    return Boolean(thought.quote?.exact && thought.about && !thought.ink);
+export function isHighlight(thought: Pick<Thought, "quote" | "about"> & { ink?: ThoughtInk; madeBy?: ThoughtMadeBy }): boolean {
+    return Boolean(thought.quote?.exact && thought.about && !thought.ink && !thought.madeBy);
 }
 
 /** Whether a thought is ink written in the Reader (#745). */
@@ -186,6 +202,7 @@ export interface NewThought {
     meaning?: HighlightMeaning;
     ink?: ThoughtInk;
     layer?: string;
+    madeBy?: ThoughtMadeBy;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -203,6 +220,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.meaning ? { meaning: input.meaning } : {}),
         ...(input.ink?.drawing ? { ink: input.ink } : {}),
         ...(input.layer ? { layer: input.layer } : {}),
+        ...(input.madeBy ? { madeBy: input.madeBy } : {}),
     };
 }
 
@@ -286,6 +304,10 @@ export function renderThought(thought: Thought): string {
         else lines.push(`  inkSide: ${ink.side}`, `  inkX: ${ink.x}`, `  inkLine: ${ink.line}`, `  inkEm: ${ink.em}`);
     }
     if (thought.layer) lines.push(`  layer: ${JSON.stringify(thought.layer)}`);
+    if (thought.madeBy) {
+        lines.push(`  madeBy: ${thought.madeBy.move}`);
+        if (thought.madeBy.ai) lines.push("  madeByAi: true");
+    }
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -325,6 +347,10 @@ export function parseThought(content: string, path: string): Thought {
     const locator = readLocator(read);
     const ink = readInk(read);
     const layer = readString(read("layer"));
+    const move = read("madeBy");
+    const madeBy: ThoughtMadeBy | undefined = (READER_MOVES as readonly string[]).includes(move ?? "")
+        ? { move: move as ReaderMoveId, ...(read("madeByAi") === "true" ? { ai: true as const } : {}) }
+        : undefined;
     const meaning = readString(read("meaning"));
     const revisesOf = read("revisesOf");
     const revises: ThoughtRevision | undefined = revisesOf
@@ -358,6 +384,7 @@ export function parseThought(content: string, path: string): Thought {
         ...(locator ? { locator } : {}),
         ...(ink ? { ink } : {}),
         ...(layer ? { layer } : {}),
+        ...(madeBy ? { madeBy } : {}),
     };
 }
 

@@ -129,9 +129,12 @@ export function boundQuote(quote: TextQuote): TextQuote {
     return { exact, prefix: cutBack(folded(quote.prefix), PLACE_CONTEXT), suffix: cutForward(after, PLACE_CONTEXT) };
 }
 
-/** The place a highlight of a PDF or an EPUB was made at (FR-5). `null` for anything else. */
+/**
+ * The place a highlight of a PDF or an EPUB was made at (FR-5) — or the passage a Reader move's
+ * thought answers (#756). `null` for anything else.
+ */
 export function placeOf(thought: Thought): PassagePlace | null {
-    if (!isHighlight(thought) || !thought.about || !thought.locator) return null;
+    if (!(isHighlight(thought) || thought.madeBy) || !thought.about || !thought.locator) return null;
     const format = sourceFormat(thought.about);
     if (!format || !thought.quote?.exact?.trim()) return null;
     const locator = thought.locator;

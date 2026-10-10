@@ -2,12 +2,14 @@ import { describe, it, expect } from "@jest/globals";
 import {
     LAB_FRONTMATTER_KEY,
     isHighlight,
+    isInk,
     linkThoughts,
     newThought,
     orderThoughts,
     parseThought,
     renderThought,
     thoughtPath,
+    unlinkThought,
     type Thought,
 } from "application/thinking/thought";
 
@@ -209,5 +211,53 @@ describe("a highlight is a thought with a passage (#671)", () => {
     it("reads a hand-edited, unquoted passage as it stands", () => {
         const file = "---\nzfThought:\n  id: z\n  at: 5\n  links: []\n  about: es.md\n  quoteExact: plain words\n---\n\nnote\n";
         expect(parseThought(file, "z.md").quote).toEqual({ exact: "plain words", prefix: "", suffix: "" });
+    });
+});
+
+describe("ink is a thought (#745 E6)", () => {
+    const quote = { exact: "interface", prefix: "is that its ", suffix: " is much simpler" };
+    const text = newThought({
+        text: "",
+        id: "ink1",
+        at: NOW,
+        about: "Books/a.epub",
+        quote,
+        locator: { at: 3, label: "Ch. 4" },
+        ink: { drawing: `${NOW}-ink1.svg`, side: "right", x: 0.125, line: -0.25, em: 16 },
+    });
+    const page = newThought({ text: "", id: "ink2", at: NOW, about: "Papers/p.pdf", locator: { at: 0, label: "p. 1" }, ink: { drawing: `${NOW}-ink2.svg`, page: { px: 0.1, py: 0.125, pw: 0.2, ph: 0.05 } }, layer: "reading" });
+
+    it("round-trips its place beside the words, and on a page, with its layer", () => {
+        expect(parseThought(renderThought(text), "Lab/x.md")).toEqual(text);
+        expect(parseThought(renderThought(page), "Lab/y.md")).toEqual(page);
+        expect(renderThought(text)).toContain(`  inkDrawing: "${NOW}-ink1.svg"`);
+        expect(renderThought(page)).toContain('  inkPage: "0.1 0.125 0.2 0.05"');
+    });
+
+    it("is ink, and never a highlight — so it is listed, never counted or reviewed", () => {
+        expect(isInk(text)).toBe(true);
+        expect(isHighlight(text)).toBe(false);
+        expect(isInk(page)).toBe(true);
+        const highlight = newThought({ text: "", id: "h", at: NOW, about: "Books/a.epub", quote });
+        expect(isHighlight(highlight)).toBe(true);
+        expect(isInk(highlight)).toBe(false);
+    });
+
+    it("reads a thought written by 3.6 unchanged, and a garbled place as no ink at all", () => {
+        const old = ["---", "zfThought:", "  id: old", `  at: ${NOW}`, "  links: []", "  about: Notes/a.md", '  quoteExact: "words"', '  quotePrefix: ""', '  quoteSuffix: ""', "---", "", "a note", ""].join("\n");
+        const parsed = parseThought(old, "Lab/old.md");
+        expect(parsed.ink).toBeUndefined();
+        expect(parsed.layer).toBeUndefined();
+        expect(isHighlight(parsed)).toBe(true);
+        const garbled = renderThought(text).replace("inkSide: right", "inkSide: up");
+        expect(parseThought(garbled, "Lab/x.md").ink).toBeUndefined();
+    });
+});
+
+describe("a connection taken back (#747)", () => {
+    it("drops the one link, and keeps the rest of the thought as it is now", () => {
+        const t: Thought = { id: "a", at: 1, text: "x", links: [{ to: "b" }, { to: "c" }], meaning: "quote" };
+        expect(unlinkThought(t, "b")).toEqual({ ...t, links: [{ to: "c" }] });
+        expect(unlinkThought(t, "z")).toBe(t);
     });
 });

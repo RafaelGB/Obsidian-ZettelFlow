@@ -36,6 +36,8 @@ describe("one scope gate, and every caller asks it (#713)", () => {
         const allowed = new Set([
             "main.ts",
             "architecture/plugin/thinking/MoveLog.ts",
+            // The same thinking-space exception as MoveLog: a verdict on a thought is kept (#748 G1).
+            "architecture/plugin/judgement/JudgementLog.ts",
             "architecture/components/core/cultivate/CultivateModeRenderer.ts",
             // The barrel re-exports it for the one view above.
             "architecture/knowledge/state/index.ts",

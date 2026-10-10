@@ -16,6 +16,7 @@ import {
     type ThoughtQuote,
     type ThoughtLocator,
     type ThoughtRevision,
+    type ThoughtInk,
 } from "application/thinking/thought";
 import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
 
@@ -29,6 +30,9 @@ import { dueHighlights, isDueInFrontmatter } from "application/thinking/highligh
  * Writes go through `FileService`, like every other write in the plugin (#456), so a thought
  * lands in the write record and can be taken back.
  */
+/** `Omit` over each member of a union, so each variant keeps its own fields. */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+
 export class ThoughtStore {
     private static instance: ThoughtStore | undefined;
 
@@ -101,19 +105,95 @@ export class ThoughtStore {
      * To Obsidian's **trash**, never deleted — the same rule the rest of the plugin lives by
      * (#454). Some things you write here are a typo or a false start, and a refuge you cannot
      * tidy becomes a junk drawer; but nothing ZettelFlow removes should be unrecoverable.
+     *
+     * An ink note's drawing goes with it (#745 E7), and its content is returned so the caller's Undo
+     * can put both back: the write record never holds content.
      */
-    public async discard(thought: Thought): Promise<void> {
+    public async discard(thought: Thought): Promise<string | undefined> {
         const path = this.pathOf(thought);
-        if (!path) return;
+        if (!path) return undefined;
+        let drawing: string | undefined;
+        if (thought.ink?.drawing) {
+            drawing = await this.drawingOf(thought);
+            // A drawing that could not be read stays where it is: an Undo could not bring it back.
+            const svg = drawing === undefined ? null : ObsidianApi.vault().getFileByPath(this.drawingPath(thought, path));
+            if (svg instanceof TFile) await FileService.deleteFile(svg);
+        }
         const file = ObsidianApi.vault().getFileByPath(path);
         if (file instanceof TFile) await FileService.deleteFile(file);
+        return drawing;
     }
 
-    /** Put a discarded thought back, exactly as it was. */
-    public async restore(thought: Thought): Promise<void> {
+    /** Put a discarded thought back, exactly as it was — with its drawing, when it is ink. */
+    public async restore(thought: Thought, drawing?: string): Promise<void> {
         const folder = this.folder();
         if (!folder) return;
-        await FileService.writeFile(thoughtPath(folder, thought), renderThought(thought), false);
+        const path = thoughtPath(folder, thought);
+        await FileService.writeFile(path, renderThought(thought), false);
+        if (drawing !== undefined && thought.ink?.drawing) await FileService.writeFile(this.drawingPath(thought, path), drawing, false);
+    }
+
+    /**
+     * Keep an ink note (#745 E7): the thought, and its drawing beside it with the same name. The
+     * caller wraps both in one write batch, so the record holds a note created and a file created,
+     * and undo by batch takes both back to the trash.
+     */
+    public async writeInk(
+        input: {
+            text?: string;
+            about: string;
+            quote?: ThoughtQuote;
+            locator?: ThoughtLocator;
+            ink: DistributiveOmit<ThoughtInk, "drawing">;
+            layer?: string;
+        },
+        svg: string
+    ): Promise<Thought | undefined> {
+        const folder = this.folder();
+        if (!folder) return undefined;
+        const id = uuid4().slice(0, 8);
+        const at = Date.now();
+        const drawing = `${at}-${id}.svg`;
+        const thought = newThought({
+            text: input.text ?? "",
+            id,
+            at,
+            about: input.about,
+            ...(input.quote ? { quote: input.quote } : {}),
+            ...(input.locator ? { locator: input.locator } : {}),
+            ink: { ...input.ink, drawing },
+            ...(input.layer ? { layer: input.layer } : {}),
+        });
+        const path = thoughtPath(folder, thought);
+        await FileService.writeFile(path, renderThought(thought), false);
+        await FileService.writeFile(this.drawingPath(thought, path), svg, false);
+        return thought;
+    }
+
+    /** An ink note's drawing, as its file says — or nothing, when it is not there (yet: sync). */
+    public async drawingOf(thought: Thought): Promise<string | undefined> {
+        if (!thought.ink?.drawing) return undefined;
+        const file = ObsidianApi.vault().getFileByPath(this.drawingPath(thought));
+        if (!(file instanceof TFile)) return undefined;
+        try {
+            return await ObsidianApi.vault().cachedRead(file);
+        } catch (error) {
+            log.warn("[lab] could not read an ink drawing", error);
+            return undefined;
+        }
+    }
+
+    /** Write an ink note's drawing again — after an erase (recorded as a replacement). */
+    public async saveDrawing(thought: Thought, svg: string): Promise<void> {
+        if (!thought.ink?.drawing || !this.folder()) return;
+        await FileService.writeFile(this.drawingPath(thought), svg, false);
+    }
+
+    /** Where an ink note's drawing is: beside the thought, with its name. */
+    private drawingPath(thought: Thought, notePath = this.pathOf(thought)): string {
+        const name = thought.ink?.drawing ?? `${thought.at}-${thought.id}.svg`;
+        const folder = notePath ? notePath.slice(0, notePath.lastIndexOf("/")) : this.folder();
+        return folder ? `${folder}/${name}` : name;
     }
 
     /** The file a thought came from, when it is already on disk. */
@@ -203,7 +283,8 @@ export class ThoughtStore {
                 | Record<string, unknown>
                 | undefined;
             const about = front?.["about"];
-            if (typeof about !== "string" || !about || !front?.["quoteExact"]) continue;
+            // Ink is shown beside the highlights, never counted with them (#745 E6).
+            if (typeof about !== "string" || !about || !front?.["quoteExact"] || front["inkDrawing"]) continue;
             counts.set(about, (counts.get(about) ?? 0) + 1);
         }
         return counts;

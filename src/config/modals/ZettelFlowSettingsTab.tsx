@@ -390,8 +390,11 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
      * tab may still be drawing when Obsidian hands it over, so the jump waits for its section head,
      * a few frames at most, and gives up quietly: the tab is open either way.
      */
-    revealSection(id: SectionId, tries = 10): void {
-        if (this.containerEl.querySelector(`.${sectionClass(id)}`)) {
+    revealSection(id: SectionId, tries = 40): void {
+        // Rendered **and** laid out: in 1.14 settings open in a pop-out window, which is drawn a moment
+        // after the tab is — a scroll before that is lost, and you land on the first section (#748 walk).
+        const drawn = this.containerEl.querySelector(`.${sectionClass(id)}`) !== null;
+        if (drawn && (this.containerEl.clientHeight > 0 || tries === 0)) {
             this.go(id);
             return;
         }

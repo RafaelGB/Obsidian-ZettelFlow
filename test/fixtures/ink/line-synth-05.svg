@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.352 -0.352 6.286 0.81" width="100.576" height="12.96">
+<metadata id="zettelflow-ink">{"v":1,"strokes":[{"c":"pencil","t":"pen","pts":[[0,0.038,0.326,1.038,0],[0.186,0.076,0.362,1.015,11],[0.372,0.076,0.43,0.937,22],[0.558,0.087,0.408,1.216,32],[0.744,0.092,0.451,0.928,40],[0.93,0.078,0.506,1.105,46],[1.116,0.1,0.569,1.044,53],[1.302,0.085,0.531,1.079,58],[1.489,0.021,0.556,1.291,64],[1.675,0.061,0.565,1.269,73],[1.861,0.016,0.59,1.092,83],[2.047,0.029,0.622,0.96,88],[2.233,0,0.624,1.084,96],[2.419,0.003,0.638,1.188,101],[2.605,0.029,0.643,0.973,108],[2.791,0.059,0.659,1.135,115],[2.977,0.014,0.634,1.221,121],[3.163,0.025,0.651,0.912,132],[3.349,0.046,0.593,0.96,142],[3.535,0.099,0.674,1.114,149],[3.721,0.064,0.617,1.158,158],[3.907,0.106,0.605,1.27,164],[4.093,0.094,0.603,0.989,174],[4.279,0.1,0.601,1.135,180],[4.466,0.089,0.569,1.032,191],[4.652,0.073,0.545,1.272,198],[4.838,0.058,0.544,0.934,207],[5.024,0.089,0.461,1.214,212],[5.21,0.039,0.453,1.086,221],[5.396,0.101,0.417,1.24,229],[5.582,0.02,0.401,0.931,236]]}]}</metadata>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M0 0.038 L0.093 0.057"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M0.093 0.057 Q0.186 0.076 0.279 0.076"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M0.279 0.076 Q0.372 0.076 0.465 0.081"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M0.465 0.081 Q0.558 0.087 0.651 0.09"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M0.651 0.09 Q0.744 0.092 0.837 0.085 Q0.93 0.078 1.023 0.089"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M1.023 0.089 Q1.116 0.1 1.209 0.093"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M1.209 0.093 Q1.302 0.085 1.396 0.053 Q1.489 0.021 1.582 0.041 Q1.675 0.061 1.768 0.039"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M1.768 0.039 Q1.861 0.016 1.954 0.023"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M1.954 0.023 Q2.047 0.029 2.14 0.015"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M2.14 0.015 Q2.233 0 2.326 0.002 Q2.419 0.003 2.512 0.016"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M2.512 0.016 Q2.605 0.029 2.698 0.044 Q2.791 0.059 2.884 0.037"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M2.884 0.037 Q2.977 0.014 3.07 0.02"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.179" d="M3.07 0.02 Q3.163 0.025 3.256 0.036"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M3.256 0.036 Q3.349 0.046 3.442 0.073 Q3.535 0.099 3.628 0.082"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M3.628 0.082 Q3.721 0.064 3.814 0.085"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M3.814 0.085 Q3.907 0.106 4 0.1"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M4 0.1 Q4.093 0.094 4.186 0.097"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M4.186 0.097 Q4.279 0.1 4.373 0.095 Q4.466 0.089 4.559 0.081"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M4.559 0.081 Q4.652 0.073 4.745 0.066"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M4.745 0.066 Q4.838 0.058 4.931 0.074"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M4.931 0.074 Q5.024 0.089 5.117 0.064 Q5.21 0.039 5.303 0.07"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M5.303 0.07 Q5.396 0.101 5.489 0.061"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M5.489 0.061 L5.582 0.02"/>
+</g>
+</svg>

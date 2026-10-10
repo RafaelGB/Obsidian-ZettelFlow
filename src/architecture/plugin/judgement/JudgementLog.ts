@@ -9,7 +9,7 @@ import {
     sanitizeJudgementLog,
     type Judgement,
 } from "architecture/knowledge/judgement";
-import type { ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
+import { isPathExcluded, type ScopeSettings } from "architecture/knowledge/scope/knowledgeScope";
 import { inScopeFor } from "architecture/knowledge/scopeGate";
 
 /** Debounce settings writes so a burst of verdicts collapses to one save. */
@@ -84,7 +84,7 @@ export class JudgementLog {
         if (!this.host || !this.enabled()) return null;
 
         const settings = this.host.settings;
-        if (!inScopeFor(settings, entry.path ?? "")) return null;
+        if (!this.inScope(entry.path ?? "")) return null;
 
         const current = this.entries();
         const next = recordJudgement(current, { ...entry, at: entry.at ?? now });
@@ -99,6 +99,20 @@ export class JudgementLog {
         settings.judgements.log = next;
         this.scheduleSave();
         return next[next.length - 1];
+    }
+
+    /**
+     * The knowledge scope — and the **thinking space** (#748, spec gap G1). A thought lives in a
+     * system-excluded folder so it never becomes an idea; but a verdict on a thought (accepting an AI
+     * reading of its ink) is still a verdict, and dropping it would break §XII silently. `MoveLog`
+     * makes the same exception for the same reason. Every other excluded folder stays excluded.
+     */
+    private inScope(path: string): boolean {
+        const settings = this.host?.settings;
+        if (!settings) return false;
+        const lab = settings.thoughtLabPath?.trim();
+        if (lab && isPathExcluded(path, [lab])) return true;
+        return inScopeFor(settings, path);
     }
 
     /**

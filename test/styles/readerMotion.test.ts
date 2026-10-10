@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss"];
 const SCRIPTS = [join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"), join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources")];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);
@@ -165,5 +165,26 @@ describe("bookmarks and the trail move like the rest of the Reader (#761 AC-8)",
         expect(css).not.toContain("zf-reader-highlight-flash");
         expect(css).not.toContain("reader-highlight--flash");
         expect([...LEGACY_KEYFRAMES]).toEqual(["zf-reader-highlight-sweep"]);
+    });
+});
+
+describe("ink moves like the rest of the Reader (#745 AC-14, FR-20–FR-25)", () => {
+    const css = sheet("components/ink.scss");
+
+    it("is in the motion guardrail's list", () => {
+        expect(SHEETS).toContain("components/ink.scss");
+    });
+
+    it("slides the palette and settles the ink on the shared tokens", () => {
+        expect(css).toMatch(/transform \$motion-fast \$ease-out/);
+        expect(css).toMatch(/opacity \$motion-base \$ease-out/);
+    });
+
+    it("gives the palette, the marker, the fades and the kept tone an instant equivalent", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-ink-palette", "reader-ink-marker", "reader-ink-note", "reader-ink-stroke", "reader-ink-live"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+        expect(reduced).toMatch(/transition: none;/);
     });
 });

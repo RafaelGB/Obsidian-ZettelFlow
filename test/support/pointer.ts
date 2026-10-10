@@ -70,3 +70,53 @@ export function touchSwipe(node: DomNode, from: PointAt, to: PointAt, options: O
     }
     if (options.lift !== false) pointerUp(node, { ...to, target: from.target }, 1, type);
 }
+
+/**
+ * A pen (or a mouse) writing on the page (#745): down at the first point, through each of the rest,
+ * up at the last — with a pressure and an altitude on every sample. `lift: false` keeps the pen down.
+ */
+export function penStroke(
+    node: DomNode,
+    points: PointAt[],
+    options: { type?: "pen" | "mouse"; pressure?: number; altitude?: number; lift?: boolean; pointerId?: number } = {}
+): void {
+    const type = options.type ?? "pen";
+    const extra = { pressure: options.pressure ?? 0.5, altitudeAngle: options.altitude ?? Math.PI / 2, pointerId: options.pointerId ?? 1, buttons: 1 };
+    clock += 1000;
+    node.fire("pointerdown", event(node, points[0], type, clock, extra));
+    for (const at of points.slice(1)) {
+        clock += 8;
+        node.fire("pointermove", event(node, at, type, clock, extra));
+    }
+    if (options.lift === false) return;
+    clock += 8;
+    node.fire("pointerup", event(node, points[points.length - 1], type, clock, { ...extra, pressure: 0 }));
+}
+
+/** A pen lifted that `penStroke` left down. */
+export function penUp(node: DomNode, at: PointAt, options: { type?: "pen" | "mouse"; pointerId?: number } = {}): any {
+    clock += 8;
+    return node.fire("pointerup", event(node, at, options.type ?? "pen", clock, { pointerId: options.pointerId ?? 1, pressure: 0 }));
+}
+
+/**
+ * Two fingers on the page, together (#745 FR-8): down at `a` and `b`, each moved `travel` px (apart,
+ * when `apart`), and up after `ms`. Each finger has its own `pointerId`.
+ */
+export function twoFingers(node: DomNode, a: PointAt, b: PointAt, options: { ms?: number; travel?: number; apart?: boolean } = {}): void {
+    const ms = options.ms ?? 120;
+    const travel = options.travel ?? 0;
+    const sign = options.apart ? -1 : 1;
+    clock += 1000;
+    node.fire("pointerdown", event(node, a, "touch", clock, { pointerId: 11, isPrimary: true }));
+    node.fire("pointerdown", event(node, b, "touch", clock + 5, { pointerId: 12, isPrimary: false }));
+    const a2 = { ...a, x: a.x + sign * travel };
+    const b2 = { ...b, x: b.x + travel };
+    if (travel) {
+        node.fire("pointermove", event(node, a2, "touch", clock + ms / 2, { pointerId: 11 }));
+        node.fire("pointermove", event(node, b2, "touch", clock + ms / 2, { pointerId: 12 }));
+    }
+    clock += ms;
+    node.fire("pointerup", event(node, a2, "touch", clock, { pointerId: 11 }));
+    node.fire("pointerup", event(node, b2, "touch", clock + 5, { pointerId: 12 }));
+}

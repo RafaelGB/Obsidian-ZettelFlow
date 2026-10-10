@@ -2,6 +2,7 @@ import { TFile, type App, type Component } from "obsidian";
 import { sourceFormat, type SourceFormat } from "application/library/sourceMeta";
 import type { CropBox, PageInk } from "application/library/pdfCrop";
 import type { SpreadView } from "application/library/epubFixedLayout";
+import type { PageText } from "application/library/pdfWords";
 import { openPdfSource } from "./pdfSource";
 import { openEpubSource } from "./epubSource";
 
@@ -101,6 +102,11 @@ export interface SourcePages {
      */
     ink?(index: number): Promise<PageInk>;
     links(index: number, rotation: number): Promise<SourcePageLink[]>;
+    /**
+     * The words of a printed page (#746 FR-9): boxes as fractions of the page as drawn at that turn,
+     * offsets into the text the Reading view shows. None on a scan, or a page that is a figure.
+     */
+    words?(index: number, rotation: number): Promise<PageText>;
     /** A link's destination: its page, and how far down it (0–1) when it says. */
     destination(dest: unknown, rotation?: (page: number) => number): Promise<{ page: number; share?: number } | null>;
 }

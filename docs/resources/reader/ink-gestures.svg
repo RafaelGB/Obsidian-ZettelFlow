@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Four gestures with the pen, in four panels: a circle round a phrase tightening into a clean ring as the words take the blue question wash, with the status line Circled, kept as a question, Undo and Keep as ink; an arrow drawn from one highlight to another, fading as both marks brighten once, with the status line Linked; a scribble back and forth over a highlight, the mark and the scribble fading together, with the status line Erased and Undo; and a dashed lasso round a sentence opening the selection popover with its four meanings, Highlight and note, and Copy">
+<rect width="1200" height="700" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="640" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">A PHILOSOPHY OF SOFTWARE DESIGN  ·  JOHN OUSTERHOUT  ·  FOUR GESTURES WITH THE PEN</text>
+
+<!-- the four panels: two by two -->
+<line x1="600" y1="120" x2="600" y2="650" stroke="#2a2a2e" stroke-width="1"/>
+<line x1="70" y1="385" x2="1130" y2="385" stroke="#2a2a2e" stroke-width="1"/>
+<g font-family="sans-serif" font-size="12" font-weight="600" fill="#5f6168">
+<text x="80" y="135">1 · CIRCLE WORDS → A QUESTION</text>
+<text x="640" y="135">2 · AN ARROW BETWEEN TWO MARKS → A LINK</text>
+<text x="80" y="410">3 · SCRIBBLE OVER A MARK → ERASED</text>
+<text x="640" y="410">4 · THE LASSO → THE SELECTION POPOVER</text>
+</g>
+
+<!-- the same paragraph in each panel -->
+<g font-family="Georgia, serif" font-size="16" fill="#dcddde">
+<text x="80" y="175">The best modules are those that</text>
+<text x="80" y="203">provide powerful functionality yet</text>
+<text x="80" y="231">have simple interfaces. A deep</text>
+<text x="80" y="259">module hides a great deal of</text>
+
+<text x="640" y="175">The best modules are those that</text>
+<text x="640" y="203">provide powerful functionality yet</text>
+<text x="640" y="231">have simple interfaces. A deep</text>
+<text x="640" y="259">module hides a great deal of</text>
+
+<text x="80" y="450">The best modules are those that</text>
+<text x="80" y="478">provide powerful functionality yet</text>
+<text x="80" y="506">have simple interfaces. A deep</text>
+<text x="80" y="534">module hides a great deal of</text>
+
+<text x="640" y="450">The best modules are those that</text>
+<text x="640" y="478">provide powerful functionality yet</text>
+<text x="640" y="506">have simple interfaces. A deep</text>
+<text x="640" y="534">module hides a great deal of</text>
+</g>
+
+<!-- 1: the hand's loop round "simple interfaces.", the clean ring tightening, the question wash -->
+<rect x="119" y="215" width="146" height="21" rx="3" fill="#4a9dff" opacity="0.32"/>
+<path d="M190 207 C240 205 280 212 281 226 C282 241 236 247 186 246 C138 245 104 240 104 226 C104 212 140 206 196 208" fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" opacity="0.35"/>
+<ellipse cx="192" cy="226" rx="82" ry="16" fill="none" stroke="#4a9dff" stroke-width="2" opacity="0.8"/>
+<path d="M286 226 L278 226 M98 226 L106 226" stroke="#5f6168" stroke-width="1.5" stroke-linecap="round"/>
+<text x="80" y="292" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the ring tightens onto its words</text>
+<text x="80" y="310" fill="#8a8c94" font-family="sans-serif" font-size="12.5">as the question wash sweeps in —</text>
+<text x="80" y="328" fill="#8a8c94" font-family="sans-serif" font-size="12.5">a selection with Question's highlight</text>
+<rect x="330" y="296" width="250" height="58" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="346" y="319" fill="#dcddde" font-family="sans-serif" font-size="12.5">Circled — kept as a question</text>
+<rect x="346" y="328" width="52" height="18" rx="5" fill="#2f2f36"/>
+<text x="372" y="341" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Undo</text>
+<rect x="406" y="328" width="86" height="18" rx="5" fill="#2f2f36"/>
+<text x="449" y="341" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Keep as ink</text>
+<text x="80" y="366" fill="#5f6168" font-family="sans-serif" font-size="12">round no words, a loop stays ink</text>
+
+<!-- 2: two highlights, the arrow fading, both marks brightening once -->
+<rect x="678" y="159" width="106" height="21" rx="3" fill="#e0de71" opacity="0.38"/>
+<rect x="674" y="155" width="114" height="29" rx="5" fill="none" stroke="#e0de71" stroke-width="1.5" opacity="0.6"/>
+<rect x="823" y="243" width="70" height="21" rx="3" fill="#e0de71" opacity="0.38"/>
+<rect x="819" y="239" width="78" height="29" rx="5" fill="none" stroke="#e0de71" stroke-width="1.5" opacity="0.6"/>
+<path d="M740 186 C770 205 800 222 846 244" fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" opacity="0.35"/>
+<path d="M846 244 L828 242 M846 244 L838 228" fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" opacity="0.35"/>
+<text x="640" y="292" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the arrow fades as both marks brighten</text>
+<text x="640" y="310" fill="#8a8c94" font-family="sans-serif" font-size="12.5">once: their thoughts are connected both</text>
+<text x="640" y="328" fill="#8a8c94" font-family="sans-serif" font-size="12.5">ways in Think, with no direction</text>
+<rect x="900" y="296" width="210" height="58" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="916" y="319" fill="#dcddde" font-family="sans-serif" font-size="12.5">Linked</text>
+<rect x="916" y="328" width="52" height="18" rx="5" fill="#2f2f36"/>
+<text x="942" y="341" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Undo</text>
+<rect x="976" y="328" width="86" height="18" rx="5" fill="#2f2f36"/>
+<text x="1019" y="341" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Keep as ink</text>
+<text x="640" y="366" fill="#5f6168" font-family="sans-serif" font-size="12">an end on plain text stays ink, and says why</text>
+
+<!-- 3: back and forth over a highlight, both fading together -->
+<rect x="119" y="490" width="146" height="21" rx="3" fill="#e0de71" opacity="0.14"/>
+<path d="M112 494 L272 497 L114 500 L274 503 L112 506 L272 509 L116 512 L270 515" fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+<text x="80" y="567" fill="#8a8c94" font-family="sans-serif" font-size="12.5">back and forth over a mark, as you would</text>
+<text x="80" y="585" fill="#8a8c94" font-family="sans-serif" font-size="12.5">scratch it out: the mark and the scribble</text>
+<text x="80" y="603" fill="#8a8c94" font-family="sans-serif" font-size="12.5">fade together, and Undo brings it back</text>
+<rect x="390" y="571" width="160" height="58" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="406" y="594" fill="#dcddde" font-family="sans-serif" font-size="12.5">Erased</text>
+<rect x="406" y="603" width="52" height="18" rx="5" fill="#2f2f36"/>
+<text x="432" y="616" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Undo</text>
+<text x="80" y="641" fill="#5f6168" font-family="sans-serif" font-size="12">handwriting is never read as an erase</text>
+
+<!-- 4: the dashed lasso round a sentence, and the selection popover below it -->
+<path d="M650 466 C700 456 880 456 912 468 C930 476 926 512 900 516 C850 522 700 522 662 514 C636 508 630 474 650 466 Z" fill="#a68af9" fill-opacity="0.06" stroke="#a68af9" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.8"/>
+<rect x="656" y="548" width="430" height="88" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<g font-family="sans-serif" font-size="11.5" fill="#dcddde">
+<rect x="672" y="562" width="62" height="22" rx="11" fill="#2f2f36"/><circle cx="686" cy="573" r="5" fill="#e0de71"/><text x="696" y="577">Idea</text>
+<rect x="742" y="562" width="88" height="22" rx="11" fill="#2f2f36"/><circle cx="756" cy="573" r="5" fill="#4a9dff"/><text x="766" y="577">Question</text>
+<rect x="838" y="562" width="70" height="22" rx="11" fill="#2f2f36"/><circle cx="852" cy="573" r="5" fill="#44cf6e"/><text x="862" y="577">Quote</text>
+<rect x="916" y="562" width="96" height="22" rx="11" fill="#2f2f36"/><circle cx="930" cy="573" r="5" fill="#a68af9"/><text x="940" y="577">To discuss</text>
+<rect x="672" y="598" width="128" height="22" rx="5" fill="#7f6df2"/><text x="736" y="613" text-anchor="middle">Highlight and note</text>
+<rect x="808" y="598" width="54" height="22" rx="5" fill="#2f2f36"/><text x="835" y="613" text-anchor="middle">Copy</text>
+</g>
+<text x="1100" y="470" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="end">the loop stays,</text>
+<text x="1100" y="488" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="end">dashed, while</text>
+<text x="1100" y="506" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="end">it is offered</text>
+<text x="640" y="655" fill="#8a8c94" font-family="sans-serif" font-size="12.5">selection with the pen: nothing is written until you choose</text>
+</svg>

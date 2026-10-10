@@ -8,7 +8,9 @@ import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { isInk, linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { renderInkCard } from "./labInkCard";
+import { InkReadingController } from "architecture/components/core/reader/readerInkReading";
 import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { searchThreads, isEmptyQuery, type LabQuery } from "application/thinking/labSearch";
 import { parseTags } from "application/thinking/tags";
@@ -152,6 +154,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private listEl: HTMLElement | undefined;
     /** Where each thought is on screen, so following a connection can actually go somewhere. */
     private readonly cards = new Map<string, HTMLElement>();
+    /** Reading ink as text (#748), made the first time an ink card is drawn. */
+    private inkReader: InkReadingController | null = null;
     private composerEl: HTMLTextAreaElement | undefined;
     /** The line under the composer: how to save, or why the last attempt did not. */
     private hintEl: HTMLElement | undefined;
@@ -301,6 +305,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
     onunload(): void {
         this.flush();
+        this.inkReader?.dispose();
+        this.inkReader = null;
         this.container.empty();
     }
 
@@ -972,8 +978,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 );
         }
 
+        // Ink written in the Reader (#745): the handwriting itself, never a passage.
+        if (isInk(thought) && thought.about) this.renderInk(box, thought, thought.about);
         // A highlight made in the Reader (#671): the passage first, then your note about it.
-        if (thought.quote?.exact && thought.about) this.renderQuote(box, thought);
+        else if (thought.quote?.exact && thought.about) this.renderQuote(box, thought);
 
         const area = box.createEl("textarea", { cls: c("lab-text"), attr: { rows: "1" } });
         area.value = thought.text;
@@ -1154,6 +1162,33 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id }));
     }
 
+    /** An ink note (#745 FR-13): its drawing, where it was written, and the way back to it. */
+    private renderInk(box: HTMLElement, thought: Thought, about: string): void {
+        const reachable = Boolean(this.app.vault.getAbstractFileByPath(about));
+        renderInkCard(box, thought, {
+            drawing: (ink) => ThoughtStore.getInstance().drawingOf(ink),
+            name: displayName(about, ObsidianApi.getOwnPlugin()?.settings.library),
+            ...(reachable ? { open: () => void openReader(this.app, { seed: about, highlight: thought.id }) } : {}),
+            listen: (el, run) => this.registerDomEvent(el, "click", run),
+            // Read as text (#748): the same chip, gate and card as in the Reader's margin.
+            chip: (parent) => this.inkReading().renderChip(parent, thought, (el, run) => this.registerDomEvent(el, "click", run)),
+        });
+    }
+
+    /** Reading ink as text in Think (#748): one controller for this view, its cards in the list. */
+    private inkReading(): InkReadingController {
+        this.inkReader ??= new InkReadingController({
+            app: this.app,
+            store: ThoughtStore.getInstance(),
+            host: () => this.container,
+            passageOf: (thought) => (thought.quote ? `${thought.quote.prefix ?? ""}${thought.quote.exact}${thought.quote.suffix ?? ""}` : ""),
+            saved: (thought) => {
+                this.thoughts = this.thoughts.map((entry) => (entry.id === thought.id ? thought : entry));
+            },
+        });
+        return this.inkReader;
+    }
+
     /** The thoughts this one is connected to, as chips that take you to them. */
     private renderLinks(box: HTMLElement, thought: Thought): void {
         const row = box.createDiv({ cls: c("lab-links") });
@@ -1162,7 +1197,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             const other = this.thoughts.find((entry) => entry.id === link.to);
             const chip = row.createEl("button", {
                 cls: c("lab-chip"),
-                text: other ? firstWords(other.text) : t("lab_link_gone"),
+                text: other ? linkLabel(other) : t("lab_link_gone"),
                 attr: { type: "button" },
             });
             if (!other) {
@@ -1611,4 +1646,14 @@ function weekdayInitials(weekStartsOn: number): string[] {
     return Array.from({ length: 7 }, (_unused, index) =>
         narrow.format(new Date(2024, 0, 7 + ((weekStartsOn + index) % 7)))
     );
+}
+
+/**
+ * What a connection chip says (#747): a thought's own words — or, for a highlight with no note, its
+ * passage, and for ink, that it is ink. An arrow between two marks links thoughts with no text.
+ */
+export function linkLabel(thought: Thought): string {
+    if (thought.text.trim()) return firstWords(thought.text);
+    if (isInk(thought)) return t("lab_link_ink");
+    return firstWords(thought.quote?.exact ?? "");
 }

@@ -352,8 +352,10 @@ export const BUDGETS = {
         name: "the built plugin bundle (main.js) in KB, once the graph draws itself",
         // 2,450 → 2,600 (#767): 2,265 KB at #693; the Reader's epic #739 grew it to 2,467 KB before this slice, and
         // Page view adds 36 KB of its own code; a WebGL library coming back is still a megabyte over.
-        limit: 2_600,
-        measured: "2,503 KB",
+        // 2,600 → 2,700 (#746): 2,555 KB at the Reader's merge (#774); the ink layer (#745) adds 41 KB and
+        // a stroke as a highlight 16 KB more, the four gestures (#747) 21 KB — still a megabyte under a WebGL library.
+        limit: 2_700,
+        measured: "2,633 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },
@@ -426,6 +428,27 @@ export const BUDGETS = {
         measured: "278 ms",
         because:
             "the graph's lenses became questions (#696): region:, bridge, alone and contradiction read these facts. Once per model revision, and the Louvain communities underneath are shared with the graph, so a click never pays it",
+    },
+    "ink.append.scaling": {
+        name: "add points 1,901–2,000 of a stroke, as a multiple of adding points 1–100",
+        limit: 2,
+        measured: "1.05",
+        because:
+            "the nib leads (#745 FR-18): smoothing revisits only the last point, so a point costs the same late in a long sentence as at its first letter; a full re-smooth per point would read about 20",
+    },
+    "ink.layout.200": {
+        name: "place 200 ink notes of a chapter at their words after a change of type",
+        limit: 20,
+        measured: "0.09 ms",
+        because:
+            "ink moves with its words in the same frame as a change of size or column (#745 FR-22); 200 notes is a heavily annotated chapter, and a frame is 16 ms",
+    },
+    "ink.classify.1000": {
+        name: "recognise a 1,000-point stroke against a page of 400 words and 40 marks",
+        limit: 8,
+        measured: "1.19 ms",
+        because:
+            "a stroke is classified at pen-up inside the frame, before its gesture's motion begins (#747 FR-16); 8 ms leaves half of a 60 Hz frame for that motion to start",
     },
 } satisfies Record<string, Budget>;
 

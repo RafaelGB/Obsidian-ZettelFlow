@@ -255,11 +255,17 @@ describe("the reader writes no note (#667 R2)", () => {
         }
     });
 
-    it("writes highlights only as thoughts, through the thought store (#671)", () => {
+    it("writes highlights and ink only as thoughts, through the thought store (#671, #745)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
-        const writers = sources(dir).filter((f) => /\bstore\.(write|save|discard|restore)\(/.test(readFileSync(f, "utf8")));
-        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/"))).toEqual(["reader/readerHighlights.ts"]);
-        expect(readFileSync(join(dir, "readerHighlights.ts"), "utf8")).toContain('from "architecture/plugin/thinking/ThoughtStore"');
+        const writers = sources(dir).filter((f) => /\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/.test(readFileSync(f, "utf8")));
+        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/")).sort()).toEqual(["reader/readerHighlights.ts", "reader/readerInk.ts", "reader/readerInkReading.ts"]);
+        // Reading ink as text (#748) writes through the store it is given (the ink's, Think's), and
+        // only ever saves a thought again — never its drawing, never a new note.
+        const reading = readFileSync(join(dir, "readerInkReading.ts"), "utf8");
+        expect([...reading.matchAll(/\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/g)].map((m) => m[1])).toEqual(["save"]);
+        for (const file of ["readerHighlights.ts", "readerInk.ts"]) {
+            expect(readFileSync(join(dir, file), "utf8")).toContain('from "architecture/plugin/thinking/ThoughtStore"');
+        }
     });
 });
 
@@ -337,6 +343,26 @@ describe("the Reader on iPad: the screen and the keys (#750)", () => {
     });
 
     const caps = (content: DomNode) => content.byClass("reader-shortcuts-keys").map((dt) => dt.findAll((el) => el.tag === "kbd").map((k) => k.textContent).join("+"));
+
+    it("names the gestures in a group of their own: a line, a circle, an arrow, a scribble, the lasso and two fingers (#746 G3, #747 FR-9)", async () => {
+        const pc = mountReader();
+        await pc.view.setState({ seed: "a.md" }, {} as never);
+        await pc.view.onOpen();
+        press(pc.leaf, "?", { target: pc.content });
+        expect(pc.content.oneByClass("reader-shortcuts-group").textContent).toBe("Gestures");
+        const lists = pc.content.byClass("reader-shortcuts-list");
+        expect(lists).toHaveLength(2);
+        const gestures = lists[1].byClass("reader-shortcuts-label").map((el) => el.textContent);
+        expect(gestures).toEqual([
+            "Draw across a line to highlight it",
+            "Circle words to keep them as a question",
+            "Draw an arrow between two marks to link them",
+            "Scribble back and forth over a mark to erase it",
+            "Loop words with the lasso to select them",
+            "Undo the last ink",
+        ]);
+        expect(caps(pc.content)).toEqual(expect.arrayContaining(["—", "○", "→", "≋", "◌", "Two-finger tap"]));
+    });
 
     it("names ⌘ and ⌥ on Apple devices, Ctrl and Alt elsewhere (AC-9)", async () => {
         const pc = mountReader();

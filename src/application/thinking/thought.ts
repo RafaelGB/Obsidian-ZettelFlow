@@ -19,6 +19,7 @@
 import { isMeaning, type HighlightMeaning } from "./highlightMeaning";
 import type { Incubation } from "./incubation";
 import type { TextQuote } from "./quoteAnchor";
+import type { InkSide, PageInkAnchor } from "application/reader/ink/inkAnchor";
 
 /** The frontmatter key a thought's little structure lives under. */
 export const LAB_FRONTMATTER_KEY = "zfThought";
@@ -125,6 +126,24 @@ export interface Thought {
     locator?: ThoughtLocator;
     /** What a highlight means (#720): absent reads as an idea. Chosen by you, never inferred. */
     meaning?: HighlightMeaning;
+    /**
+     * Ink written in the Reader (#745): the drawing beside this thought (an SVG of the same name) and
+     * where it sits — relative to the words of `quote`, or on a fixed page. A handful of numbers,
+     * never the points: those live in the drawing.
+     */
+    ink?: ThoughtInk;
+    /** The layer this thought was made on (#758 R4). Absent is the reading layer; nothing reads it yet. */
+    layer?: string;
+}
+
+/** Where an ink note is (#745 E6): beside its words, or on its page. */
+export type ThoughtInk =
+    | { drawing: string; side: InkSide; x: number; line: number; em: number }
+    | { drawing: string; page: PageInkAnchor };
+
+/** Ink on a fixed page, not beside words. */
+export function isPageInk(ink: ThoughtInk): ink is { drawing: string; page: PageInkAnchor } {
+    return "page" in ink;
 }
 
 /** What a *changed my mind* thought points back at (#679). */
@@ -133,9 +152,18 @@ export interface ThoughtRevision {
     quote: string;
 }
 
-/** Whether a thought is a highlight made in the Reader. */
-export function isHighlight(thought: Pick<Thought, "quote" | "about">): boolean {
-    return Boolean(thought.quote?.exact && thought.about);
+/**
+ * Whether a thought is a highlight made in the Reader. An ink note carries the words it was written
+ * beside but is not a highlight (#745 E6): it is shown with them and never counted, reviewed or
+ * crystallized as one.
+ */
+export function isHighlight(thought: Pick<Thought, "quote" | "about"> & { ink?: ThoughtInk }): boolean {
+    return Boolean(thought.quote?.exact && thought.about && !thought.ink);
+}
+
+/** Whether a thought is ink written in the Reader (#745). */
+export function isInk(thought: { ink?: ThoughtInk }): boolean {
+    return Boolean(thought.ink?.drawing);
 }
 
 export interface NewThought {
@@ -149,6 +177,8 @@ export interface NewThought {
     revises?: ThoughtRevision;
     locator?: ThoughtLocator;
     meaning?: HighlightMeaning;
+    ink?: ThoughtInk;
+    layer?: string;
 }
 
 export function newThought(input: NewThought): Thought {
@@ -164,6 +194,8 @@ export function newThought(input: NewThought): Thought {
         ...(input.revises?.of ? { revises: input.revises } : {}),
         ...(input.locator ? { locator: input.locator } : {}),
         ...(input.meaning ? { meaning: input.meaning } : {}),
+        ...(input.ink?.drawing ? { ink: input.ink } : {}),
+        ...(input.layer ? { layer: input.layer } : {}),
     };
 }
 
@@ -177,6 +209,11 @@ export function linkThoughts(left: Thought, right: Thought): [Thought, Thought] 
             ? thought
             : { ...thought, links: [...thought.links, { to: other }] };
     return [add(left, right.id), add(right, left.id)];
+}
+
+/** A connection taken back from one side (#747): the thought without its link to `other`. */
+export function unlinkThought(thought: Thought, other: string): Thought {
+    return thought.links.some((link) => link.to === other) ? { ...thought, links: thought.links.filter((link) => link.to !== other) } : thought;
 }
 
 /** Newest first: where you were just working is where you want to be. */
@@ -233,6 +270,13 @@ export function renderThought(thought: Thought): string {
     if (thought.locator) {
         lines.push(`  locatorAt: ${thought.locator.at}`, `  locatorLabel: ${JSON.stringify(thought.locator.label)}`);
     }
+    if (thought.ink?.drawing) {
+        const ink = thought.ink;
+        lines.push(`  inkDrawing: ${JSON.stringify(ink.drawing)}`);
+        if (isPageInk(ink)) lines.push(`  inkPage: "${ink.page.px} ${ink.page.py} ${ink.page.pw} ${ink.page.ph}"`);
+        else lines.push(`  inkSide: ${ink.side}`, `  inkX: ${ink.x}`, `  inkLine: ${ink.line}`, `  inkEm: ${ink.em}`);
+    }
+    if (thought.layer) lines.push(`  layer: ${JSON.stringify(thought.layer)}`);
     lines.push("---", "", thought.text.replace(/\n+$/, ""), "");
     return lines.join("\n");
 }
@@ -270,6 +314,8 @@ export function parseThought(content: string, path: string): Thought {
     const quote = readQuote(read);
     const review = readReview(read);
     const locator = readLocator(read);
+    const ink = readInk(read);
+    const layer = readString(read("layer"));
     const meaning = readString(read("meaning"));
     const revisesOf = read("revisesOf");
     const revises: ThoughtRevision | undefined = revisesOf
@@ -301,7 +347,27 @@ export function parseThought(content: string, path: string): Thought {
         ...(review ? { review } : {}),
         ...(revises ? { revises } : {}),
         ...(locator ? { locator } : {}),
+        ...(ink ? { ink } : {}),
+        ...(layer ? { layer } : {}),
     };
+}
+
+/** Where an ink note is (#745), when the file says. A garbled place is no ink at all — just a thought. */
+function readInk(read: (field: string) => string | undefined): ThoughtInk | undefined {
+    const drawing = readString(read("inkDrawing"));
+    if (!drawing) return undefined;
+    const page = readString(read("inkPage"));
+    if (page !== undefined) {
+        const [px, py, pw, ph] = page.split(/\s+/).map(Number);
+        if (![px, py, pw, ph].every(Number.isFinite)) return undefined;
+        return { drawing, page: { px, py, pw, ph } };
+    }
+    const side = read("inkSide");
+    const x = Number(read("inkX"));
+    const line = Number(read("inkLine"));
+    const em = Number(read("inkEm"));
+    if ((side !== "text" && side !== "left" && side !== "right") || ![x, line, em].every(Number.isFinite) || !(em > 0)) return undefined;
+    return { drawing, side, x, line, em };
 }
 
 /** Where in a source a thought was written (#681), when the file says. */

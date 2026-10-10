@@ -61,3 +61,29 @@ describe("labSearch — tag and kind facets, and the empty query (#596)", () => 
         expect(searchThreads(nodes, {})).toHaveLength(2);
     });
 });
+
+describe("labSearch and ink (#745 E6)", () => {
+    const ink = t({
+        id: "i",
+        text: "speed matters",
+        about: "Books/a.epub",
+        quote: { exact: "interface", prefix: "", suffix: "" },
+        ink: { drawing: "1-i.svg", side: "right", x: 0.1, line: 0, em: 16 },
+    });
+    it("finds an ink note by its text", () => {
+        expect(matchesThought(ink, { text: "speed" })).toBe(true);
+    });
+    it("never matches ink with a highlight's meaning filter", () => {
+        expect(matchesThought(ink, { meaning: "idea" })).toBe(false);
+        expect(matchesThought({ ...ink, ink: undefined }, { meaning: "idea" })).toBe(true);
+    });
+});
+
+describe("labSearch — handwriting, once read (#748 AC-8)", () => {
+    it("finds an ink note by the reading you accepted, which is its text", () => {
+        const ink = t({ id: "i", text: "contradicts 'ship early'?", about: "Books/A book.epub", ink: { drawing: "1-i.svg", side: "text", x: 0, line: 0, em: 16 } });
+        expect(matchesThought(ink, { text: "ship early" })).toBe(true);
+        // Unread, the drawing alone is not searchable.
+        expect(matchesThought({ ...ink, text: "" }, { text: "ship early" })).toBe(false);
+    });
+});

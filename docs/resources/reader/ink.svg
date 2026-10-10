@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860" role="img" aria-label="Ink in the margin: a chapter in the Reader with handwriting in the outer margin beside a paragraph, the ink palette docked at the edge of the column with the pen, the eraser, four inks and undo, and an inset of the thinking-space folder holding the ink note's thought and its drawing with the same name">
+<rect width="1200" height="860" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="640" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">A PHILOSOPHY OF SOFTWARE DESIGN  ·  JOHN OUSTERHOUT</text>
+<text x="1130" y="102" fill="#5f6168" font-family="sans-serif" font-size="20" text-anchor="middle">×</text>
+
+<!-- the page -->
+<text x="300" y="160" fill="#dcddde" font-family="Georgia, serif" font-size="32" font-weight="700">Deep modules</text>
+<g font-family="Georgia, serif" font-size="17" fill="#dcddde">
+<text x="300" y="210">The best modules are those that provide powerful</text>
+<text x="300" y="238">functionality yet have simple interfaces. A deep</text>
+<text x="300" y="266">module hides a great deal of complexity behind an</text>
+<text x="300" y="294">interface that is much simpler than what it does.</text>
+<text x="300" y="342">A shallow module is one whose interface is relatively</text>
+<text x="300" y="370">complex in comparison to the functionality that it</text>
+<text x="300" y="398">provides. It adds cost and gives little back: the</text>
+<text x="300" y="426">interface is almost as long as the implementation.</text>
+<text x="300" y="474">Classitis is the belief that classes are good, so</text>
+<text x="300" y="502">more classes are better — and the result is a</text>
+<text x="300" y="530">system of many small, shallow pieces.</text>
+</g>
+
+<!-- handwriting in the outer margin, beside the second paragraph -->
+<g fill="none" stroke="#dcddde" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+<path d="M760 352 C764 336 772 334 770 350 C768 362 776 364 782 350 C786 340 790 344 790 352 C790 360 798 360 802 350"/>
+<path d="M806 350 C812 336 818 340 814 352 C812 360 820 360 826 348 L830 336 M822 346 L834 346"/>
+<path d="M842 352 C846 340 856 340 854 352 C852 362 862 362 866 350 C870 340 878 342 876 352 C875 360 884 360 888 350"/>
+<path d="M760 384 C768 378 776 380 784 386 C792 392 800 392 810 384"/>
+<path d="M822 386 C826 374 836 374 834 386 C832 396 842 396 846 384 M852 372 L852 396 M852 384 C858 376 866 378 866 386 L866 396"/>
+</g>
+<g fill="none" stroke="#fb464c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+<path d="M890 404 C870 420 840 428 812 424"/>
+<path d="M822 414 L810 424 L824 432"/>
+</g>
+<text x="760" y="460" fill="#8a8c94" font-family="sans-serif" font-size="12.5">your handwriting, kept beside its words</text>
+
+<!-- the palette, docked at the edge of the column -->
+<rect x="72" y="250" width="48" height="284" rx="12" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="78" y="258" width="36" height="36" rx="7" fill="#2f2f36"/>
+<path d="M89 285 L91 278 L104 265 L108 269 L95 282 Z" fill="none" stroke="#a68af9" stroke-width="2" stroke-linejoin="round"/>
+<path d="M88 309 L98 299 L108 309 L102 315 L94 315 Z M88 318 L108 318" fill="none" stroke="#9a9ca4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="80" y1="336" x2="112" y2="336" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="96" cy="360" r="11" fill="none" stroke="#a68af9" stroke-width="2"/>
+<circle cx="96" cy="360" r="7.5" fill="#dcddde"/>
+<circle cx="96" cy="394" r="7.5" fill="#fb464c"/>
+<circle cx="96" cy="426" r="7.5" fill="#4a9dff"/>
+<circle cx="96" cy="458" r="7.5" fill="#44cf6e"/>
+<path d="M90 508 L86 504 L90 500 M86 504 L100 504 C106 504 108 510 104 514" fill="none" stroke="#9a9ca4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="134" y="270" fill="#8a8c94" font-family="sans-serif" font-size="12.5">pen</text>
+<text x="134" y="312" fill="#8a8c94" font-family="sans-serif" font-size="12.5">eraser</text>
+<text x="134" y="364" fill="#8a8c94" font-family="sans-serif" font-size="12.5">four inks, from your theme</text>
+<text x="134" y="510" fill="#8a8c94" font-family="sans-serif" font-size="12.5">undo</text>
+
+<!-- the reader bar, with the pencil lit -->
+<rect x="400" y="600" width="400" height="44" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="430" y="627" fill="#9a9ca4" font-family="sans-serif" font-size="14">‹</text>
+<text x="450" y="627" fill="#9a9ca4" font-family="sans-serif" font-size="13">Ch. 4 / 21</text>
+<rect x="530" y="619" width="120" height="5" rx="2.5" fill="#2f2f36"/>
+<rect x="530" y="619" width="34" height="5" rx="2.5" fill="#7f6df2"/>
+<rect x="682" y="610" width="26" height="26" rx="6" fill="#2f2f36"/>
+<path d="M689 630 L690 625 L700 615 L703 618 L693 628 Z" fill="none" stroke="#a68af9" stroke-width="1.8" stroke-linejoin="round"/>
+<text x="722" y="627" fill="#9a9ca4" font-family="sans-serif" font-size="14">T</text>
+<text x="748" y="627" fill="#9a9ca4" font-family="sans-serif" font-size="14">⋯</text>
+<text x="695" y="590" fill="#8a8c94" font-family="sans-serif" font-size="12.5" text-anchor="middle">the pencil opens the palette</text>
+
+<!-- inset: where ink is kept -->
+<rect x="40" y="700" width="1120" height="130" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="70" y="732" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">WHERE INK IS KEPT — YOUR THINKING SPACE</text>
+<path d="M72 754 L88 754 L92 758 L108 758 L108 774 L72 774 Z" fill="none" stroke="#9a9ca4" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="118" y="769" fill="#dcddde" font-family="sans-serif" font-size="14">Thinking/</text>
+<text x="118" y="796" fill="#dcddde" font-family="monospace" font-size="13">1791574092957-701accc9.md</text>
+<text x="118" y="818" fill="#dcddde" font-family="monospace" font-size="13">1791574092957-701accc9.svg</text>
+<text x="380" y="796" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the thought: about the book, anchored to the words beside it</text>
+<text x="380" y="818" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the drawing: the strokes as you wrote them — the book itself is never written</text>
+<g fill="none" stroke="#dcddde" stroke-width="1.6" stroke-linecap="round" opacity="0.85">
+<path d="M960 800 C964 788 970 786 968 798 C966 806 972 808 978 798 C982 790 986 792 986 800 C986 806 992 806 996 798"/>
+<path d="M1004 800 C1010 788 1016 790 1012 800 C1010 808 1018 808 1024 796"/>
+</g>
+<rect x="944" y="776" width="100" height="40" rx="6" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+</svg>

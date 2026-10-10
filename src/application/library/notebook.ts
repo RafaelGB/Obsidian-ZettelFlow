@@ -5,7 +5,7 @@
  * they are in it, counted, narrowed, and — when you ask — written out as one reading note. The note
  * cites pages as text, never as a block id: two quotes from one page must not collide.
  */
-import type { Thought } from "application/thinking/thought";
+import { isInk, type Thought } from "application/thinking/thought";
 import { HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 
 export interface NotebookEntry {
@@ -18,6 +18,8 @@ export interface NotebookEntry {
     quote: string;
     note: string;
     meaning: HighlightMeaning;
+    /** Ink written in the Reader (#745): its drawing's file. Shown and embedded, never counted. */
+    ink?: string;
     /** The thought itself, for opening it in the Reader or making a note of it. */
     thought: Thought;
 }
@@ -44,14 +46,17 @@ export function buildNotebook(
     sectionOf: (at: number) => string | undefined = () => undefined
 ): Notebook {
     const entries: NotebookEntry[] = thoughts
-        .filter((thought) => thought.quote?.exact || thought.text.trim())
+        .filter((thought) => thought.quote?.exact || thought.text.trim() || isInk(thought))
         .map((thought) => {
             const at = thought.locator?.at ?? null;
+            const ink = isInk(thought) ? thought.ink?.drawing : undefined;
             return {
                 id: thought.id,
                 at,
                 label: at === null ? "" : thought.locator?.label || labelOf(at),
-                quote: thought.quote?.exact ?? "",
+                // Ink carries the words it was written beside, but it is not a passage you marked.
+                quote: ink ? "" : (thought.quote?.exact ?? ""),
+                ...(ink ? { ink } : {}),
                 note: thought.text.trim(),
                 meaning: meaningOf(thought),
                 thought,
@@ -103,6 +108,11 @@ export function readingNoteMarkdown(input: { title: string; sourceLink: string; 
                 const quoted = entry.quote.split(/\r?\n/).map((line) => `> ${line}`);
                 quoted[quoted.length - 1] += cite;
                 lines.push(...quoted, "");
+            }
+            // Ink (#745): the drawing itself, embedded — Obsidian shows an SVG where it is linked.
+            if (entry.ink) {
+                const cite = entry.label && entry.label !== group.title ? ` (${entry.label})` : "";
+                lines.push(`![[${entry.ink}]]${cite}`, "");
             }
             if (entry.note) lines.push(...entry.note.split(/\r?\n/).map((line, i) => (i === 0 ? `- ${line}` : `  ${line}`)), "");
         }

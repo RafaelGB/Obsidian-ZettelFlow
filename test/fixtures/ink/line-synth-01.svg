@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.352 -0.352 5.075 0.888" width="81.2" height="14.208">
+<metadata id="zettelflow-ink">{"v":1,"strokes":[{"c":"pencil","t":"pen","pts":[[0,0.166,0.349,1.247,0],[0.291,0.179,0.445,1.125,17],[0.583,0.184,0.469,0.938,23],[0.874,0.162,0.546,1.225,33],[1.166,0.142,0.566,1.031,43],[1.457,0.113,0.642,1.222,54],[1.748,0.058,0.646,1.006,63],[2.04,0.04,0.692,1.189,68],[2.331,0.019,0.689,1.253,77],[2.623,0.005,0.606,1.039,82],[2.914,0,0.613,0.915,88],[3.206,0.108,0.607,1.178,96],[3.497,0.112,0.545,1.11,105],[3.788,0.021,0.509,1.231,114],[4.08,0.034,0.45,1.218,122],[4.371,0.045,0.408,1.147,128]]}]}</metadata>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.11" d="M0 0.166 L0.146 0.173"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M0.146 0.173 Q0.291 0.179 0.437 0.182"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M0.437 0.182 Q0.583 0.184 0.728 0.173 Q0.874 0.162 1.02 0.152"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M1.02 0.152 Q1.166 0.142 1.312 0.128 Q1.457 0.113 1.603 0.086"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M1.603 0.086 Q1.748 0.058 1.894 0.049 Q2.04 0.04 2.186 0.03"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M2.186 0.03 Q2.331 0.019 2.477 0.012 Q2.623 0.005 2.769 0.003"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.165" d="M2.769 0.003 Q2.914 0 3.06 0.054"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.151" d="M3.06 0.054 Q3.206 0.108 3.351 0.11"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.138" d="M3.351 0.11 Q3.497 0.112 3.643 0.067"/>
+<path data-ink="pencil" stroke="#8a8a8a" stroke-width="0.124" d="M3.643 0.067 Q3.788 0.021 3.934 0.028 Q4.08 0.034 4.226 0.04 L4.371 0.045"/>
+</g>
+</svg>

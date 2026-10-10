@@ -1,0 +1,583 @@
+@use '../utils/motion' as *;
+@use '../utils/mixins' as *;
+
+/*
+ * Ink in the margin (#745, epic #740): the palette, the ink layer and its strokes.
+ *
+ * Every colour is the theme's (§XV): an ink is stored by name and drawn here from the theme's own
+ * variable, so a theme that changes its red changes the red ink too. Positions come from custom
+ * properties the script sets (never an inline style); motion is transform and opacity only, on the
+ * shared tokens, and instant under reduced motion. Nothing animates while you write: the ink is the nib.
+ */
+
+$safe-left: var(--safe-area-inset-left, env(safe-area-inset-left));
+$safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
+
+/* ── the inks, by name ─────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-ink--pencil {
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__reader-ink--red {
+    color: var(--color-red);
+}
+
+.zettelkasten-flow__reader-ink--blue {
+    color: var(--color-blue);
+}
+
+.zettelkasten-flow__reader-ink--green {
+    color: var(--color-green);
+}
+
+/* ── the ink layer: inside the page, so a turn carries it (FR-22) ──────── */
+.zettelkasten-flow__reader-page {
+    position: relative;
+}
+
+.zettelkasten-flow__reader-ink-layer,
+.zettelkasten-flow__reader-ink-page {
+    position: absolute;
+    /* The whole page, which with crop on is larger than its slot and clipped by it (#769). */
+    left: var(--zf-page-x, 0);
+    top: var(--zf-page-y, 0);
+    width: var(--zf-page-w, 100%);
+    height: var(--zf-page-h, 100%);
+    overflow: visible;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.zettelkasten-flow__reader-ink-layer path,
+.zettelkasten-flow__reader-ink-page path,
+.zettelkasten-flow__reader-ink-thumb path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* A kept note goes to its words: the place and the scale the script measured, in one transform. */
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink-note {
+    transform: translate(var(--zf-ink-x, 0), var(--zf-ink-y, 0)) scale(var(--zf-ink-scale, 16));
+    transform-origin: 0 0;
+}
+
+/* Kept, quietly (FR-23): the live tone settles into the kept tone. Opacity only. */
+.zettelkasten-flow__reader-ink-note {
+    transition: opacity $motion-base $ease-out;
+}
+
+.zettelkasten-flow__reader-ink--live {
+    opacity: 1;
+}
+
+.zettelkasten-flow__reader-ink--kept {
+    opacity: 0.86;
+}
+
+/* Under the eraser, before it lifts: the strokes it will take. */
+.zettelkasten-flow__reader-ink-stroke,
+.zettelkasten-flow__reader-ink-live {
+    transition: opacity $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__reader-ink--erasing {
+    opacity: 0.3;
+}
+
+/* While the page takes ink, the mouse writes instead of selecting (FR-2). */
+.zettelkasten-flow__reader-stage--inking {
+    cursor: crosshair;
+
+    .zettelkasten-flow__reader-body {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+}
+
+.zettelkasten-flow__reader-stage--erasing {
+    cursor: cell;
+}
+
+/* A desktop pen (a Wacom, a Surface) would pan the page under `pan-y`; there a finger has the wheel. */
+.zettelkasten-flow__reader-stage--ink-desktop {
+    touch-action: none;
+}
+
+/* ── the palette: a strip in the outer margin, never over the text ─────── */
+.zettelkasten-flow__reader-ink-palette {
+    --zf-ink-cell: var(--size-4-8);
+    --zf-ink-gap: var(--size-4-1);
+    position: absolute;
+    left: calc(var(--size-4-3) + #{$safe-left});
+    top: 50%;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: var(--size-4-1);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    /* Closed: 8 px back towards its edge, and gone. Opening plays it forwards, closing backwards (FR-20). */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(calc(-1 * var(--size-4-2)), -50%);
+    transition:
+        transform $motion-fast $ease-out,
+        opacity $motion-fast $ease-out,
+        visibility $motion-fast;
+}
+
+.zettelkasten-flow__reader-ink-palette.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(0, -50%);
+}
+
+.zettelkasten-flow__reader-ink-tools,
+.zettelkasten-flow__reader-ink-colours {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--zf-ink-gap);
+}
+
+.zettelkasten-flow__reader-ink-colours {
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--reader-line);
+}
+
+.zettelkasten-flow__reader-ink-palette .clickable-icon {
+    width: var(--zf-ink-cell);
+    height: var(--zf-ink-cell);
+    justify-content: center;
+}
+
+/* The tool in use: a marker that glides between the tools (transform only), under the active one. */
+.zettelkasten-flow__reader-ink-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--zf-ink-cell);
+    height: var(--zf-ink-cell);
+    border-radius: var(--radius-m);
+    background-color: var(--background-modifier-active-hover);
+    transform: translateY(calc(var(--zf-ink-marker, 0) * (var(--zf-ink-cell) + var(--zf-ink-gap))));
+    transition: transform $motion-fast $ease-out;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-ink-tool.is-active {
+    background-color: transparent;
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-swatch {
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.zettelkasten-flow__reader-ink-colour.is-active {
+    background-color: var(--background-modifier-active-hover);
+}
+
+.zettelkasten-flow__reader-ink-colour.is-active .zettelkasten-flow__reader-ink-swatch {
+    box-shadow: 0 0 0 var(--size-2-1) var(--background-primary), 0 0 0 var(--size-2-2) var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-button.is-active {
+    color: var(--interactive-accent);
+}
+
+/* One quiet line beside the strip, never a toast over the page. */
+.zettelkasten-flow__reader-ink-status {
+    display: none;
+    position: absolute;
+    left: calc(100% + var(--size-4-2));
+    top: 50%;
+    width: max-content;
+    max-width: 16rem;
+    transform: translateY(-50%);
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__reader-ink-status.is-shown {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-ink-palette--explain .zettelkasten-flow__reader-ink-status {
+    color: var(--text-normal);
+}
+
+/* No margin wide enough for it (G4: a phone, an iPad in portrait), or a printed page that fills the
+   screen (Page view): the strip lies above the reader bar instead — never over the text. 56rem is the
+   48rem page plus the strip on each side. */
+@mixin palette-above-bar {
+    .zettelkasten-flow__reader-ink-palette {
+        left: 50%;
+        top: auto;
+        bottom: calc(var(--size-4-18) + var(--size-4-2) + #{$safe-bottom});
+        flex-direction: row;
+        transform: translate(-50%, var(--size-4-2));
+    }
+
+    .zettelkasten-flow__reader-ink-palette.is-open {
+        transform: translate(-50%, 0);
+    }
+
+    .zettelkasten-flow__reader-ink-tools,
+    .zettelkasten-flow__reader-ink-colours {
+        flex-direction: row;
+    }
+
+    .zettelkasten-flow__reader-ink-colours {
+        padding-top: 0;
+        padding-left: var(--size-4-2);
+        border-top: none;
+        border-left: var(--border-width) solid var(--reader-line);
+    }
+
+    .zettelkasten-flow__reader-ink-marker {
+        transform: translateX(calc(var(--zf-ink-marker, 0) * (var(--zf-ink-cell) + var(--zf-ink-gap))));
+    }
+
+    .zettelkasten-flow__reader-ink-status {
+        left: 50%;
+        top: auto;
+        bottom: calc(100% + var(--size-4-2));
+        transform: translateX(-50%);
+    }
+}
+
+@container zf-reader (max-width: 56rem) {
+    @include palette-above-bar;
+}
+
+.zettelkasten-flow__reader--page-run {
+    @include palette-above-bar;
+}
+
+/* ── ink in a list: the margin, Think, the notebook ────────────────────── */
+.zettelkasten-flow__reader-ink-thumb {
+    display: block;
+    width: 100%;
+    height: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-ink-item-thumb {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-ink-item-also {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-ink-item-reason {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* Reduced motion (FR-24): the palette appears and goes, strokes vanish and return and kept ink
+   settles — all at once. Drawing is unchanged: it never animates. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-palette,
+    .zettelkasten-flow__reader-ink-marker,
+    .zettelkasten-flow__reader-ink-note,
+    .zettelkasten-flow__reader-ink-stroke,
+    .zettelkasten-flow__reader-ink-live {
+        transition: none;
+        animation: none;
+    }
+}
+
+.zettelkasten-flow__notebook-ink .zettelkasten-flow__reader-ink-thumb {
+    height: var(--size-4-16);
+}
+
+/*
+ * On a printed page (Page view, a designed book) the page is the book's, not the theme: its surface
+ * carries `theme-light` or `theme-dark` from the page's own tone (readerPageTone), so pencil is dark
+ * on paper and light on a dark design — the palette's own ink either way.
+ */
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--pencil {
+    color: var(--color-base-100);
+}
+
+/* ── draw across a line and it is highlighted (#746) ──────────────────── */
+
+/*
+ * The highlighter (FR-15): while you draw, a wide translucent nib in the meaning's own wash — the
+ * theme variable the highlight itself reads (reader.scss) — so what is under the Pencil is already
+ * what you will get. The group is translucent, so where the stroke crosses itself it is not darker.
+ */
+.zettelkasten-flow__reader-ink--highlighter {
+    color: var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
+    opacity: 0.38;
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink--highlighter path,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--highlighter path {
+    stroke-width: var(--zf-hl-nib, 1em);
+    stroke-linecap: round;
+}
+
+/*
+ * A highlight in Page view (FR-9): the printed page has no text to mark, so its words get the wash
+ * as rectangles in fractions of the page — exact through every zoom. On paper the wash multiplies,
+ * as a marker does.
+ */
+.zettelkasten-flow__reader-ink-pagemarks {
+    position: absolute;
+    /* The whole page, as the ink beside it: larger than its slot with crop on (#769). */
+    left: var(--zf-page-x, 0);
+    top: var(--zf-page-y, 0);
+    width: var(--zf-page-w, 100%);
+    height: var(--zf-page-h, 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.zettelkasten-flow__reader-ink-pagemark {
+    position: absolute;
+    left: var(--zf-pm-x, 0);
+    top: var(--zf-pm-y, 0);
+    width: var(--zf-pm-w, 0);
+    height: var(--zf-pm-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
+    opacity: 0.38;
+    mix-blend-mode: multiply;
+    transform-origin: left center;
+}
+
+/* Just made: the marker draws across the words from the side the stroke began — transform only. */
+.zettelkasten-flow__reader-ink-pagemark--new {
+    animation: zf-ink-pagemark-sweep 0.5s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+
+.zettelkasten-flow__reader-ink-pagemark--rtl {
+    transform-origin: right center;
+}
+
+@keyframes zf-ink-pagemark-sweep {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* Reduced motion (FR-16): the stroke goes and the mark is there, at once. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-pagemark--new {
+        animation: none;
+    }
+}
+
+/* ── circle, arrow, scribble and lasso (#747) ─────────────────────────── */
+
+/*
+ * The lasso (FR-7, FR-15): a hairline in the accent colour while you loop, never ink; closed, it
+ * stays as a light dashed outline while what it caught is offered. Its width is set in the surface's
+ * own units, so it is a hairline on a printed page too.
+ */
+.zettelkasten-flow__reader-ink--lasso {
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink--lasso path,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink--lasso path {
+    stroke-width: var(--zf-lasso-w, 1.5);
+}
+
+.zettelkasten-flow__reader-ink--lasso-closed {
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__reader-ink-layer .zettelkasten-flow__reader-ink-lasso-loop,
+.zettelkasten-flow__reader-ink-page .zettelkasten-flow__reader-ink-lasso-loop {
+    fill: color-mix(in srgb, var(--interactive-accent) 6%, transparent);
+    stroke-dasharray: calc(var(--zf-lasso-w, 1.5) * 4) calc(var(--zf-lasso-w, 1.5) * 3);
+}
+
+/*
+ * A circle becomes the mark (FR-12): a clean ring in the question's colour where it was drawn, which
+ * tightens toward its words — the script's origin — and fades as their wash sweeps in.
+ */
+.zettelkasten-flow__reader-ink-ring {
+    fill: none;
+    stroke: var(--zf-ink-solid, var(--interactive-accent));
+    transform-box: view-box;
+    transform-origin: var(--zf-ink-origin, center);
+    pointer-events: none;
+}
+
+/* An arrow joins two marks (FR-13): each brightens once, a wash over its words. Opacity only. */
+.zettelkasten-flow__reader-ink-flash {
+    position: absolute;
+    left: var(--zf-flash-x, 0);
+    top: var(--zf-flash-y, 0);
+    width: var(--zf-flash-w, 0);
+    height: var(--zf-flash-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Reduced motion (FR-17): no ring and no brightening — the marks appear or go, at once. */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-ring,
+    .zettelkasten-flow__reader-ink-flash {
+        display: none;
+    }
+}
+
+/* ── read as text (#748): the chip, the proposal card, the breath ────────── */
+
+/*
+ * The chip under an ink note (FR-1, FR-10): quiet, the theme's own chip. What it says is the ink's
+ * (*Ink · kept as you wrote it*) or, once accepted, what it was read as — in the text colour, as
+ * words of yours.
+ */
+.zettelkasten-flow__reader-ink-chip {
+    @include chip;
+    flex-wrap: wrap;
+    max-width: 100%;
+    align-self: flex-start;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-ink-chip-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-ink-chip--read .zettelkasten-flow__reader-ink-chip-label {
+    color: var(--reader-fg, var(--text-normal));
+}
+
+.zettelkasten-flow__reader-ink-chip--said .zettelkasten-flow__reader-ink-chip-label {
+    color: var(--text-muted);
+}
+
+/* Two classes: Obsidian's own `button:not(.clickable-icon)` would otherwise give it a button's fill. */
+.zettelkasten-flow__reader-ink-chip .zettelkasten-flow__reader-ink-chip-action {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    color: var(--text-accent);
+    font-size: inherit;
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+/*
+ * Waiting is quiet (FR-16): *Reading…* breathes, and so do the strokes being read — slowly, opacity
+ * only, and still under reduced motion. Never a spinner: the ink itself is what is being read.
+ */
+@keyframes zf-reader-ink-breathe {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.zettelkasten-flow__reader-ink-chip--reading .zettelkasten-flow__reader-ink-chip-label,
+.zettelkasten-flow__reader-ink--reading,
+.zettelkasten-flow__reader-ink-item--reading .zettelkasten-flow__reader-ink-item-thumb {
+    animation: zf-reader-ink-breathe 2.4s ease-in-out infinite;
+}
+
+/* The card's host places it: positioned only when it was not already. */
+.zettelkasten-flow__reader-proposal-host--placed {
+    position: relative;
+}
+
+/*
+ * The proposal card (FR-5, FR-14): beside what it is about, grown out of it. Placed by custom
+ * properties the script sets; its transform origin is the point it came out of (FR-15).
+ */
+.zettelkasten-flow__reader-proposal {
+    @include card;
+    position: absolute;
+    left: var(--zf-prop-x, 0);
+    top: var(--zf-prop-y, 0);
+    z-index: 6;
+    width: min(22rem, calc(100% - var(--size-4-4)));
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    color: var(--reader-fg, var(--text-normal));
+    border-color: var(--reader-line, var(--background-modifier-border));
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    transform-origin: var(--zf-prop-origin, 50% 0);
+}
+
+/* Leaving, it travels from its own corner: the flight is measured from there. */
+.zettelkasten-flow__reader-proposal--leaving {
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-proposal-intro {
+    font-size: var(--font-ui-small);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-proposal-intro--editing {
+    display: none;
+}
+
+.zettelkasten-flow__reader-proposal-text {
+    width: 100%;
+    min-height: var(--size-4-16);
+    resize: vertical;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-proposal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-proposal-hint {
+    @include hint;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-ink-chip--reading .zettelkasten-flow__reader-ink-chip-label,
+    .zettelkasten-flow__reader-ink--reading,
+    .zettelkasten-flow__reader-ink-item--reading .zettelkasten-flow__reader-ink-item-thumb {
+        animation: none;
+    }
+}

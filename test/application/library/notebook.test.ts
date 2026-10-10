@@ -89,3 +89,30 @@ describe("the book notebook — everything you marked in one book (#721)", () =>
         expect(md).not.toMatch(/\^\w/);
     });
 });
+
+describe("ink in the notebook (#745 FR-13)", () => {
+    const ink = {
+        id: "k1",
+        at: 50,
+        text: "",
+        links: [],
+        about: BOOK,
+        quote: { exact: "deep", prefix: "", suffix: "" },
+        locator: { at: 2, label: label(2) },
+        ink: { drawing: "50-k1.svg", side: "right", x: 0.2, line: 0, em: 16 },
+    } as Thought;
+
+    it("lists an ink note with its place, never counted as a passage you marked", () => {
+        const book = buildNotebook([...THOUGHTS, ink], label);
+        const entry = book.groups.flatMap((g) => g.entries).find((e) => e.id === "k1")!;
+        expect(entry.ink).toBe("50-k1.svg");
+        expect(entry.quote).toBe("");
+        expect(book.highlights).toBe(buildNotebook(THOUGHTS, label).highlights);
+    });
+
+    it("embeds the drawing in the reading note", () => {
+        const book = buildNotebook([ink], label);
+        const md = readingNoteMarkdown({ title: "APOSD", sourceLink: "[[aposd]]", groups: book.groups });
+        expect(md).toContain("![[50-k1.svg]]");
+    });
+});

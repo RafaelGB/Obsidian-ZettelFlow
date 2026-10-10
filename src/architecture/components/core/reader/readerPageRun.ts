@@ -22,6 +22,7 @@ import {
     type CropBox,
     type PaperFrames,
 } from "application/library/pdfCrop";
+import type { PageText } from "application/library/pdfWords";
 import {
     RUN_GAP,
     RUN_PAD,
@@ -109,6 +110,10 @@ export interface PageRunHost {
     onCrop?(): void;
     /** Whether the reader chose the layout themselves (#771): an explicit *Spread* wins over the orientation. */
     layoutChosen?(): boolean;
+    /** A page's slot was made (it came near the screen): ink draws its own surface on it (#745). */
+    onSlot?(page: number, el: HTMLElement, aspect: number): void;
+    /** A page's picture is in its slot (drawn, or drawn again sharper): ink reads the page's tone. */
+    onDrawn?(page: number, picture: HTMLElement): void;
 }
 
 /** Where *Crop margins* is (#769): off, measuring the paper, or on. */
@@ -747,6 +752,11 @@ export class PdfPageRun {
         return frame === WHOLE_PAGE ? box : croppedBox(box, frame);
     }
 
+    /** The words of a printed page as it is turned now (#746 FR-9); none where the paper has no text. */
+    async words(page: number): Promise<PageText | null> {
+        return (await this.pages.words?.(page, this.rotationOf(page))) ?? null;
+    }
+
     private viewSize(): PageSize {
         const stage = this.host.stage;
         const box = stage.getBoundingClientRect();
@@ -932,6 +942,11 @@ export class PdfPageRun {
             el.createSpan({ cls: c("reader-pv-slot-label"), text: t("reader_source_page", label) });
             view = { el, page: slot.page, linksAt: null, links: null };
             this.slots.set(slot.page, view);
+            // Sized first, so what is drawn on it knows the page's shape — the whole page's, at its turn:
+            // with crop on the slot holds only its frame, and ink is anchored to the page (#745 FR-11).
+            el.setCssProps({ "--zf-slot-x": px(slot.x), "--zf-slot-y": px(slot.y), "--zf-slot-w": px(slot.w), "--zf-slot-h": px(slot.h), ...this.wholePageProps(slot.page) });
+            const whole = pageBox(this.sizes[slot.page] ?? this.pages.first, this.rotationOf(slot.page));
+            this.host.onSlot?.(slot.page, el, whole.width > 0 && whole.height > 0 ? whole.height / whole.width : 0);
             // Drawn already, a moment ago: shown again at once, without a fade.
             const drawn = this.drawn.get(slot.page);
             if (drawn) {
@@ -939,8 +954,21 @@ export class PdfPageRun {
                 this.linksFor(view);
             }
         }
-        view.el.setCssProps({ "--zf-slot-x": px(slot.x), "--zf-slot-y": px(slot.y), "--zf-slot-w": px(slot.w), "--zf-slot-h": px(slot.h) });
+        view.el.setCssProps({ "--zf-slot-x": px(slot.x), "--zf-slot-y": px(slot.y), "--zf-slot-w": px(slot.w), "--zf-slot-h": px(slot.h), ...this.wholePageProps(slot.page) });
         this.fitCanvas(view, slot);
+    }
+
+    /**
+     * Where the whole page sits in its slot, as shares of the slot (#745 FR-11, #769): the slot itself
+     * uncropped; with crop on, larger than the slot and clipped by it — what is drawn on the page (its
+     * ink, its highlights) stays where it is on the paper, cropped or not.
+     */
+    private wholePageProps(page: number): Record<string, string> {
+        const frame = this.shownFrame(page);
+        const pct = (n: number) => `${Math.round(n * 100000) / 1000}%`;
+        const w = Math.max(1e-6, frame.w);
+        const h = Math.max(1e-6, frame.h);
+        return { "--zf-page-x": pct(-frame.x / w), "--zf-page-y": pct(-frame.y / h), "--zf-page-w": pct(1 / w), "--zf-page-h": pct(1 / h) };
     }
 
     /** A picture drawn at another turn sits turned inside its slot until it is drawn again (FR-21). */
@@ -1135,6 +1163,7 @@ export class PdfPageRun {
         if (previous && previous.picture !== pending.picture) release(previous.picture);
         const slot = this.slotOf(pending.page);
         if (slot) this.fitCanvas(view, slot);
+        this.host.onDrawn?.(pending.page, pending.picture);
         if (!previous && motionWelcome(pending.picture)) {
             pending.picture.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MOTION.fast, easing: MOTION.ease });
         }

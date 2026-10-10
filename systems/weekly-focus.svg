@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="658" viewBox="0 0 1200 658" role="img" aria-label="Weekly focus — the system's canvas flow: 1 step">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="658" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">Weekly focus</text>
+<rect x="223.2" y="28" width="64" height="28" rx="14" fill="#fb464c" fill-opacity="0.18" stroke="#fb464c" stroke-width="1.5"/>
+<text x="255.2" y="47" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">hard</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">1 step</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">Choose one idea to actually think about this week, picked from the ones that grew without your judgement, and stamp</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">the state of your vault so next week has something to compare against. Uses the scripting API; offline, no AI.</text>
+<rect x="24" y="138" width="1152" height="483.99999999999994" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="481.99999999999994" rx="11" fill="url(#dots)"/>
+<g transform="translate(278.0,150.0) scale(1.1500) translate(670,190)">
+<rect x="-600" y="-120" width="420" height="260" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-600,-108 a12,12 0 0 1 12,-12 h396 a12,12 0 0 1 12,12 v34 h-420 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-584" y="-89" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Weekly focus</text>
+<rect x="-244" y="-107" width="50" height="22" rx="11" fill="#7f6df2"/>
+<text x="-219" y="-91" fill="#fff" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">ROOT</text>
+<text x="-584" y="-50" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → Reviews</text>
+<circle cx="-579" cy="-29" r="3.5" fill="#8b8e94"/>
+<text x="-568" y="-24" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Week<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-579" cy="-7" r="3.5" fill="#8b8e94"/>
+<text x="-568" y="-2" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Idea to focus on<tspan fill="#5c5f66" font-size="12.5">  dynamic-selector</tspan></text>
+<circle cx="-579" cy="15" r="3.5" fill="#8b8e94"/>
+<text x="-568" y="20" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Stamp this week's state…<tspan fill="#5c5f66" font-size="12.5">  script · automatic</tspan></text>
+<line x1="-584" y1="104" x2="-196" y2="104" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-584" y="122" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related</text>
+</g>
+<text x="32" y="642" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

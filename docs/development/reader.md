@@ -241,6 +241,11 @@ nothing below changes: a click never turns a page.
 - **Back with two fingers.** Two fingers swept right anywhere on the page go back one step along
   [where you've been](#bookmarks-and-where-youve-been), as the back pill and Alt+← do. (The
   screen's left edge would be the obvious place, but it is Obsidian's.)
+- **Pinch to the overview.** Two fingers drawn together on a flowing page shrink it into its card in
+  the [overview](#the-overview); in Page view and a designed book, past the smallest zoom. Two
+  fingers are decided once — drawn together, a pinch; swept sideways, back; lifted at once, ink's
+  undo — so one never does another's work. The overview opens at the sheet's full height in
+  portrait: a page of cards.
 - **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
   own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
   **below** it, clear of that callout, and without a second *Copy*.
@@ -283,6 +288,13 @@ are the app's, not a plugin's. The Pencil's native gestures are the same — a w
 
 Ink is drawn from what WebKit reports (about 120–240 Hz, with no predicted points): good ink, honestly
 not PencilKit ink.
+
+**Still to prove on a device: the pinch to the overview.** Obsidian's iPad app never zooms the page
+itself, so two fingers on the Reader reach it as two pointers — the same path Page view's zoom, the
+two-finger *back* and ink's two-finger undo already use. Whether a real iPad's WKWebView keeps it so
+for the pinch is recorded on [issue #776](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/776)
+(rows P13–P16: the pinch reaches the Reader, does not fight *back* or ink's undo, and the card cap
+holds); until it is, the pinch is ◐ to prove on a device, and the bar's button is the door.
 
 **Still to prove on a device: Pencil hover.** An M2-or-later iPad senses an Apple Pencil 2 or a Pencil
 Pro while it is still above the glass, and native apps show where it will land. Whether Obsidian's
@@ -771,7 +783,8 @@ themselves.
 - **Found by its words.** A bookmark keeps where it is in the text, and the words there — the way a
   highlight is found again — so a change of font, size, layout or device lands on the same line. In
   a PDF's Page view a bookmark is its page.
-- **Contents · Bookmarks · Where you've been.** The Contents panel has three tabs. **Bookmarks** lists
+- **Contents · Overview · Bookmarks · Where you've been.** The Contents panel has four tabs; the
+  [overview](#the-overview) is every page or chapter as a card. **Bookmarks** lists
   the book's bookmarks in reading order: the chapter or page, the first words of the line and when it
   was made (*now*, *2 days ago*); tap one to go there, or remove it in place. Neither tab counts
   anything.
@@ -795,6 +808,68 @@ chapter it is the chapter turn you chose in **Settings → Reading**, towards th
 back is its reverse. On landing, the line is marked for a moment by a quiet wash under the words —
 *you are here* — and then nothing. Under reduced motion every move is instant, and the mark shows for
 a moment without fading.
+
+## The overview
+
+Every page of a book or a paper at once, as cards — the page overview of a reMarkable, in the Reader.
+It answers the question a paper reader answers by flicking through: *where was that picture, that
+dense part, the chapter I marked all over?* It is never more than one tap away.
+
+![The overview: the pages-grid button on the Reader's bar; a flowing book's chapters as cards, each the start of its page in your type, with a highlight's tick at its edge, the pen of an ink note, the bookmark's ribbon and a hairline of how far you read; and the page you were reading shrinking into its card as the camera pulls back](../resources/reader/overview.svg)
+
+- **One tap from the bar.** The pages-grid button on the Reader's bar, named *Overview*, is there for
+  every EPUB and every PDF, in the reading view and in Page view — no menu, no view to change first.
+  It opens **Contents** straight on its **Overview** tab, with the card you are on in the middle,
+  marked as current. The same button again, **Esc**, a tap outside the panel or the panel's **×**
+  closes it, on the same page you left. A note reading has no overview: it has neither pages nor a
+  book's chapters.
+- **Contents · Overview · Bookmarks · Where you've been.** The overview is also a tab of every book's
+  and every paper's Contents. *Contents* is the book's own table of contents, with its names and
+  nesting; the overview is the book as you would see it, with your marks on it. Neither counts
+  anything.
+- **A page, or a chapter.** A PDF's pages are page cards — small pictures of the printed page, with
+  the paper's own labels (*p. iv*), turned as you turned them in Page view — in **both** views: the
+  overview never switches a paper to Page view or back. A comic's or a picture book's designed pages
+  are page cards too, each drawn as it was made inside its own boundary, so nothing in it runs and
+  nothing is fetched. A flowing book's pages change with your type, your layout and your window, so
+  its unit is the **chapter**: one card each, named as Contents names it, showing how its page starts
+  — in your face, size and theme, or its opening picture. A book that mixes the two shows each part
+  as itself, in reading order; a right-to-left book reads from the right.
+- **Your marks, never a number.** A highlight is a small tick in its meaning's colour along the card's
+  edge, at its place in the chapter once the card is drawn; an ink note is a pen; a bookmark is the
+  ribbon at the corner. Two highlights at one place are one tick, and a card with no marks shows
+  nothing at all.
+- **How far you read.** A chapter card has a hairline at its foot: filled to your place in the chapter
+  you are in, filled in a chapter you read to its end, empty otherwise — never a percentage. A page
+  is too small a unit for one: its card carries the current marker instead.
+- **A card goes there.** Tap or click a card, or reach it with **Tab**, the arrow keys and **Enter**.
+  A page card lands on that page, in the view you are in; a chapter card on the chapter's start —
+  except the chapter you are in, which lands on your place, never back at its top. Each pick leaves a
+  place on [where you've been](#bookmarks-and-where-youve-been), so you can go back.
+- **Light on memory.** A card is a blank sheet of its shape, with its label, until it scrolls near;
+  only then is it drawn, and a card far away gives its picture back. A 600-page paper, a 300-page
+  comic or a 120-chapter book opens its overview at once.
+- **It writes nothing.** Opening, browsing and picking change only your place and the trail. The
+  chapters you read to their end are kept in the plugin's data beside your place, for the hairline —
+  never in a note, never in the book.
+
+### The camera pulls back
+
+The overview is filmed in [one continuous shot](../manifesto.md#one-continuous-shot), never a panel
+that swaps its contents. Opening it, the page you are reading shrinks into its own card while the
+cards around it settle in from just behind it (400 ms). A card you pick flies from its slot to where
+its page sits and *becomes* it — in another chapter the flight is the move, with no chapter turn on top
+— and the overview steps aside; in the chapter you are in, your line is marked for a moment, *you
+are here*. Closing without a pick is the same shot backwards: the card grows back into the page. A
+card's picture fades in once when it is first drawn (120 ms). Any key, click or touch during a shot
+jumps it to its end, and a second pick never queues behind the first. Under reduced motion every move
+is instant, nothing fades, and your place is still continuous.
+
+On an iPad, a **pinch inward** on a flowing page shrinks the page under your fingers, and let go small
+enough it lands in its card in the overview; short of that it springs back. In Page view and in a
+designed book a pinch zooms, as always — the overview opens only past the smallest zoom. A pinch
+outward on a card pushes back into it. On a desktop a trackpad's pinch is Page view's zoom, so the
+button is the door there.
 
 ## Highlights and notes in the margin
 
@@ -1273,7 +1348,8 @@ the idea's `source` list, through #751's one writer.
 - Touch (#750) is decided in pure modules the later slices reuse: `readerDevice.ts` (what the device
   is: `touchPointer`, `isApple`, `canFullscreen`, `panelShape`, `DEVICE_LIMITS`/`tooLarge`),
   `readerGestures.ts` (the classifier: `startGesture` locks a tap, swipe, scroll or press once;
-  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`, `twoFingerBack`;
+  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`, `twoFingerBack`, and
+  `twoFingers` — two fingers decided once as a pinch, back or a tap (#776);
   `EDGE_BACK_SWIPE` stays off: the left strip is Obsidian's),
   `readerPlace.ts` (`placeAt`/`scrollFor`: a block and a share of it, kept through a reshape) and
   `readerSheet.ts` (the sheet's heights and settle). `beginChapterScrub` in `readerTurn.ts` builds
@@ -1327,6 +1403,20 @@ the idea's `source` list, through #751's one writer.
   `landHere` as a bookmark — a `Spot` with a `passage` quote, anchored on `foldMarks(chapterText)` and
   put at `READING_LINE` (`readerPlace.ts`) with `ReaderPager.reveal(anchor, travel, line)` — or shows
   `reader-passage-missing`. The protocol handler lives in `ReaderComponent` (`readerLink.ts`).
+- The overview (#776) is `readerOverview.ts`, which #767's `readerThumbs.ts` grew into: pure
+  `overviewUnits` (a PDF's and a designed book's pages, a flowing book's chapters, each part of a
+  mixed book as itself), `cardMarks` (one tick per place and colour — at its share of the drawn text,
+  else at the edge — the pen, the ribbon; never a count), `cardProgress`, `cardPixels` (capped at
+  `CARD_DPR_MAX`), `releaseFarthest` against `OVERVIEW_LIMITS` and `normalizeContentsTab`
+  (`pages` reads as `overview`), and one DOM `renderOverview` (paper sheets, an
+  `IntersectionObserver` from the panel's window, a `draw → let go` seam, a first-draw fade, roving
+  focus). The view draws a card through the run's `drawThumb` in Page view, its own one-at-a-time
+  queue over `SourcePages.render` in the reading view, `SourcePages.mount` for a designed page and
+  `SourceDocument.draw` (pruned to `PREVIEW_BLOCKS`) for a chapter. The shots are `pullBack`,
+  `flyToCard` and `returnToPage` over `fly()`, which now returns its `Animation` so input finishes
+  it. Two fingers are `twoFingers` / `pinchRelease` in `readerGestures.ts`; Page view's run asks the
+  view through `PageRunHost.onPinchOut(scale)`. The chapters read to their end are
+  `SourceMeta.read` (`withRead`, `rememberChapterRead`).
 - Deep reading (#764) is the idle bar grown up, not a new state: page only is `reader--deep` +
   `reader--idle`, the overlay is `reader--deep` alone, so `wake()` and the `IDLE_MS` timer are the
   ones the bar always had, and `idleAllowed()` keeps the chrome while a panel, search or a popover is

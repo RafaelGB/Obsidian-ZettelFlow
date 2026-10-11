@@ -220,6 +220,13 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
     translate: var(--zf-scrub-x, 0) 0;
 }
 
+/* A pinch on a flowing page (#776 FR-23): the page shrinks under the fingers, 1:1, about the point
+   between them — a transform only, nothing laid out. A finger moving it is not an animation. */
+.zettelkasten-flow__reader-stage--pinching {
+    scale: var(--zf-pinch-s, 1);
+    transform-origin: var(--zf-pinch-x, 50%) var(--zf-pinch-y, 50%);
+}
+
 .zettelkasten-flow__reader-page {
     max-width: var(--reader-page-max);
     margin: 0 auto;
@@ -1654,6 +1661,17 @@ button.zettelkasten-flow__reader-next-button {
     gap: var(--size-4-1);
 }
 
+/* Over the overview's long grid the tabs and the × stay at the panel's top (#776 FR-15): the way out
+   and the other tabs never scroll away with the cards. */
+.zettelkasten-flow__reader-tabs--sticky {
+    position: sticky;
+    top: calc(-1 * var(--size-4-4));
+    z-index: 1;
+    margin: calc(-1 * var(--size-4-4)) calc(-1 * var(--size-4-4)) 0;
+    padding: var(--size-4-4) var(--size-4-4) var(--size-4-2);
+    background-color: var(--reader-surface);
+}
+
 .zettelkasten-flow__reader button.zettelkasten-flow__reader-tab {
     @include chip;
     @include chip-clickable;
@@ -3078,6 +3096,14 @@ body.zettelkasten-flow__reader-deep-covers-app {
 
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
+    /* The overview (#776 FR-28): its tall sheet is there at once, its cards without a fade. */
+    .zettelkasten-flow__reader-panel--tall,
+    .zettelkasten-flow__reader-overview,
+    .zettelkasten-flow__reader-overview-picture {
+        transition: none;
+        animation: none;
+    }
+
     /* Deep reading: the chrome is there or gone at once; the hint is simply shown (#764 FR-13). */
     .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-top,
     .zettelkasten-flow__reader--deep:not(.zettelkasten-flow__reader--idle) .zettelkasten-flow__reader-bar,

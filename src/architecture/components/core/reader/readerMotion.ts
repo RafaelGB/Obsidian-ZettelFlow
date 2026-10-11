@@ -48,29 +48,40 @@ export function flightTransform(from: Box, to: Box): string {
 /**
  * A ghost of `from`, flown onto `to` and gone: drawn in `host`, placed by custom properties (never an
  * inline style), animated by transform and opacity, removed at the end — or after a moment, whatever
- * happens to the animation.
+ * happens to the animation. Returns the flight, so input can jump it to its end (#776 FR-26).
+ *
+ * `grown`: the ghost is drawn at the size it lands at, and starts shrunk onto `from` — for a ghost of
+ * something big (a page) flown out of something small (its card), whose content must land at its own
+ * size rather than be blown up (#776 FR-22).
  */
-export function fly(host: HTMLElement, ghost: HTMLElement, from: Box, to: Box, options: { duration: number; startOpacity?: number }): void {
+export function fly(host: HTMLElement, ghost: HTMLElement, from: Box, to: Box, options: { duration: number; startOpacity?: number; grown?: boolean }): Animation | null {
     const box = host.getBoundingClientRect();
+    const at = options.grown ? to : from;
     ghost.addClass(c("motion-ghost"));
     ghost.setCssProps({
-        "--zf-ghost-x": `${Math.round(from.left - box.left)}px`,
-        "--zf-ghost-y": `${Math.round(from.top - box.top)}px`,
-        "--zf-ghost-w": `${Math.round(from.width)}px`,
-        "--zf-ghost-h": `${Math.round(from.height)}px`,
+        "--zf-ghost-x": `${Math.round(at.left - box.left)}px`,
+        "--zf-ghost-y": `${Math.round(at.top - box.top)}px`,
+        "--zf-ghost-w": `${Math.round(at.width)}px`,
+        "--zf-ghost-h": `${Math.round(at.height)}px`,
     });
     host.appendChild(ghost);
     const done = () => ghost.remove();
+    const still = "translate(0px, 0px) scale(1, 1)";
     const animation = ghost.animate(
         [
-            { transform: "translate(0px, 0px) scale(1, 1)", opacity: options.startOpacity ?? 1 },
+            { transform: options.grown ? flightTransform(to, from) : still, opacity: options.startOpacity ?? 1 },
             { opacity: options.startOpacity ?? 1, offset: 0.7 },
-            { transform: flightTransform(from, to), opacity: 0 },
+            { transform: options.grown ? still : flightTransform(from, to), opacity: 0 },
         ],
         { duration: options.duration, easing: MOTION.ease, fill: "forwards" }
     );
+    if (!animation) {
+        done();
+        return null;
+    }
     animation.onfinish = done;
     ownWindow(host).setTimeout(done, options.duration + 300);
+    return animation;
 }
 
 /**

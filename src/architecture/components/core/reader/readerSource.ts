@@ -1,7 +1,8 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { freshPageView, isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { freshPageView, isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, withRead, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { isHighlight } from "application/thinking/thought";
 import type { PageViewState } from "architecture/components/core/library/sources/pdfPageView";
 import type { Bookmark } from "./readerBookmarks";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
@@ -125,5 +126,46 @@ export async function chapterOfHighlight(
     } catch (error) {
         log.debug(`[Reader] no highlight ${id} in ${path}: ${String(error)}`);
         return null;
+    }
+}
+
+/** The chapters of a source read to their end (#776 P1): the overview fills their hairline. */
+export function chaptersRead(host: ReaderHost | undefined, path: string): Set<number> {
+    return new Set(normalizeLibrary(host?.settings?.library)[path]?.read ?? []);
+}
+
+/** Keep a chapter read to its end (#776 P1), in plugin data beside the place — never a note. */
+export function rememberChapterRead(app: App, host: ReaderHost | undefined, path: string, chapter: number, total: number): void {
+    const settings = host?.settings;
+    if (!settings) return;
+    const map = normalizeLibrary(settings.library);
+    const file = app.vault.getAbstractFileByPath(path);
+    const stat = file instanceof TFile ? file.stat : undefined;
+    const next = withRead(map, path, chapter, total, stat?.size ?? 0, stat?.mtime ?? 0);
+    if (next === map) return;
+    settings.library = next;
+    void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the chapter read: ${String(error)}`));
+}
+
+/**
+ * The book's marks for its overview (#776 D9): each highlight and each ink note, by the part of the
+ * book it is in. A move's answer is not a mark (#756). Read, never written; nothing on failure.
+ */
+export async function overviewMarksOf(
+    path: string,
+    store: { highlightsAbout(path: string): Promise<Thought[]> } = ThoughtStore.getInstance()
+): Promise<{ at: number; meaning?: Thought["meaning"]; ink?: boolean; quote?: string }[]> {
+    try {
+        return (await store.highlightsAbout(path))
+            .filter((thought) => thought.locator && (isHighlight(thought) || thought.ink))
+            .map((thought) => ({
+                at: thought.locator!.at,
+                ...(thought.meaning ? { meaning: thought.meaning } : {}),
+                ...(thought.ink ? { ink: true } : {}),
+                ...(thought.quote?.exact ? { quote: thought.quote.exact } : {}),
+            }));
+    } catch (error) {
+        log.debug(`[Reader] no marks for the overview of ${path}: ${String(error)}`);
+        return [];
     }
 }

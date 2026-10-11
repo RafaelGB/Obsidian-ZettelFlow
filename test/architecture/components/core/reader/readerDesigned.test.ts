@@ -332,12 +332,90 @@ describe("a fixed-layout book, read as it was made (#771)", () => {
             expect(content.oneByClass("reader-search-count").textContent).toBe("This book's pages are designed, so there is no text to search");
         });
 
-        it("offers no Pages tab and no rotate or crop: a designed page is never redrawn as a picture", async () => {
+        it("offers no rotate or crop: a designed page is never redrawn as a picture", async () => {
             const { content } = await open(comic(), { readerPrefs: { layout: "page" } });
-            content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Contents")?.click();
-            expect(content.byClass("reader-tab").map((el) => el.textContent)).not.toContain("Pages");
             content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Type")?.click();
             expect(content.byClass("reader-pv-crop")).toHaveLength(0);
+        });
+    });
+
+    describe("its pages at a glance, inside their own boundary (#776 AC-1, AC-4, AC-11, D2)", () => {
+        let seen: ((entries: any[]) => void) | null = null;
+        let had = false;
+        beforeEach(() => {
+            had = "IntersectionObserver" in g;
+            g.IntersectionObserver = class {
+                constructor(callback: (entries: any[]) => void) {
+                    seen = callback;
+                }
+                observe() {}
+                disconnect() {}
+            };
+        });
+        afterEach(() => {
+            if (!had) delete g.IntersectionObserver;
+            seen = null;
+        });
+        const cardsOf = (content: DomNode) => content.oneByClass("reader-panel").byClass("reader-overview-card");
+
+        it("opens from the bar on one page card per designed page, the one you are on current", async () => {
+            const { content } = await open(comic(), { readerPrefs: { layout: "page" } }, 2);
+            content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Overview")!.click();
+            expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
+            const cards = cardsOf(content);
+            expect(cards).toHaveLength(5);
+            expect(cards.every((card) => card.hasClass(cls("reader-overview-card--page")))).toBe(true);
+            expect(cards[2].getAttribute("aria-current")).toBe("page");
+        });
+
+        it("draws each card as the page was made: its own shadow root and sheet, nothing that runs, nothing fetched", async () => {
+            const { content } = await open(comic(), { readerPrefs: { layout: "page" } });
+            content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Overview")!.click();
+            const cards = cardsOf(content);
+            seen?.([0, 1, 2].map((i) => ({ target: cards[i], isIntersecting: true })));
+            await settle(() => [0, 1, 2].every((i) => cards[i].byClass("reader-designed-host").length > 0), 400, 3000);
+            const hosts = [0, 1, 2].map((i) => cards[i].oneByClass("reader-designed-host"));
+            await settle(() => hosts.every((host) => ((host.shadowRoot as any)?.adoptedStyleSheets?.length ?? 0) > 0), 400, 3000);
+            for (const host of hosts) {
+                expect(host.shadowRoot).not.toBeNull();
+                expect((host.shadowRoot as any).adoptedStyleSheets).toHaveLength(1);
+                const sheet = (host.shadowRoot as any).adoptedStyleSheets[0] as FakeSheet;
+                const urls = [...sheet.text.matchAll(/url\("([^"]*)"\)/g)].map((m) => m[1]);
+                expect(urls.every((url) => url.startsWith("blob:"))).toBe(true);
+            }
+            // Each card's page in its own boundary: no sheet shared between two of them.
+            expect((hosts[0].shadowRoot as any).adoptedStyleSheets[0]).not.toBe((hosts[1].shadowRoot as any).adoptedStyleSheets[0]);
+            const panel = content.oneByClass("reader-panel");
+            const all = everyNode(panel);
+            expect(all.filter((el) => ["style", "link", "script", "iframe", "meta"].includes(el.tag))).toEqual([]);
+            expect(all.filter((el) => el.getAttribute("style") !== null || el.getAttribute("onclick") !== null)).toEqual([]);
+            expect(g.fetch).not.toHaveBeenCalled();
+            expect(g.XMLHttpRequest).not.toHaveBeenCalled();
+            expect(g.pwned).toBeUndefined();
+            expect(platform.document.adoptedStyleSheets).toEqual([]);
+            // The Reader's own chrome is untouched by any card.
+            for (const el of [...content.byClass("reader-bar"), ...content.byClass("reader-tabs")].flatMap((node) => [node, ...everyNode(node)])) {
+                expect([...el.classes].filter((name) => name === "balloon")).toEqual([]);
+            }
+        });
+
+        it("keeps the sheet and label of a page that cannot be drawn, and logs it once (P12)", async () => {
+            const warn = jest.spyOn(log, "warn").mockImplementation(() => undefined);
+            try {
+                const { content } = await open(comic({ broken: 1 }), { readerPrefs: { layout: "page" } });
+                content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Overview")!.click();
+                const cards = cardsOf(content);
+                warn.mockClear();
+                seen?.([{ target: cards[1], isIntersecting: true }, { target: cards[2], isIntersecting: true }]);
+                await settle(() => cards[2].byClass("reader-designed-host").length > 0, 400, 3000);
+                await flush(10);
+                expect(cards[1].byClass("reader-overview-picture")).toHaveLength(0);
+                expect(cards[1].byClass("reader-designed-failed")).toHaveLength(0);
+                expect(cards[1].oneByClass("reader-overview-label").textContent).not.toBe("");
+                expect(warn.mock.calls.filter((call) => String(call[0]).includes("overview"))).toHaveLength(1);
+            } finally {
+                warn.mockRestore();
+            }
         });
 
         it("tells the time left by pages, at the default pace before you have read three", async () => {

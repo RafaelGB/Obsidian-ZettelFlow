@@ -249,7 +249,7 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 
 ### Page view
 
-![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the Pages tab with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
+![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the overview with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
 
 Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
 an iPad (#767):
@@ -270,9 +270,11 @@ an iPad (#767):
   it is tall (an iPad in portrait).
 - **Rotate page** (in **Type**) turns the page most on screen a quarter, into its new place, and draws
   it upright.
-- **The Pages tab** in **Contents**: every page as a small picture, the current one marked, each with
+- **The overview**, one tap on the bar's pages-grid button — in Page view and in the reading view
+  alike — and a tab of **Contents**: every page as a small picture, the current one marked, each with
   the paper's own label (*p. iv*). Pictures are drawn as they scroll into view. Tapping one flies it to
-  its page, which it becomes; the place you left is kept in *Where you've been*.
+  its page, which it becomes, in the view you are in; the place you left is kept in *Where you've
+  been*. See [the overview](reader.md#the-overview).
 - **Links.** A link to a place in the paper — a reference, a citation, its own contents — shows as a
   link under the pointer and jumps there, with the back pill and **Alt+←**. A link that leaves the
   paper (a web address, a DOI) is never followed: clicking it shows its address with **Copy link**.
@@ -310,7 +312,7 @@ view → Crop margins** frames each page on what is printed on it, and *Fit widt
   reading staying under your eyes. Turning it off is the same move backwards. Under reduced motion the
   page is simply shown cropped (or whole), the line kept.
 - **Everything else still works**: *Scroll*, *Page* and *Spread*, the zoom, *Rotate page* (the frame
-  turns with the page), links (they stay on their words), the *Pages* tab (its pictures show the
+  turns with the page), links (they stay on their words), the overview (its pictures show the
   cropped page) and every jump, which lands on the same line as without crop.
 - **A scan is not cropped.** It has no text to frame a page on; the switch says *Cropping needs a
   page's text, and this PDF has none.* A page that is a picture in an otherwise printed paper is shown
@@ -326,8 +328,8 @@ you try: *This PDF is made of images, so there is no text to highlight. You can 
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
 
-A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its *Pages*
-tab like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
+A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its
+overview like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
 layer, and the Reader reads it as text today: Reading view, search and highlights work on it. A scan
 without one stays pictures, with notes by page.
 
@@ -497,7 +499,8 @@ declare.
   page sits on the right of the spine.
 - **Read-only, and said so once.** Highlights and search are not available on a designed page, and
   the first one of a reading says so in one quiet line. Contents, bookmarks, the trail, resume and the
-  end card work as in any book; the time left is counted in **pages**, at this reading's own pace
+  end card work as in any book, and so does [the overview](reader.md#the-overview): each designed page
+  is its own small picture, drawn inside its own boundary as the page is; the time left is counted in **pages**, at this reading's own pace
   (half a minute a page until you have read three).
 - **Light on memory.** Only the pages on screen and two either side are held; a page further away
   lets its pictures go. A page waits as a blank sheet of its size and fades in when it is drawn.
@@ -535,10 +538,10 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
 | `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
-| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
+| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the overview and its flight, in both views, and a pinch past the smallest zoom; links in and out; a scan; reduced motion |
 | `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
 | `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
-| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
+| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no rotate or crop; the overview's cards inside their own boundaries, nothing fetched; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
 | `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, and 200 articles read off the cache, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):

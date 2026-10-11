@@ -310,6 +310,13 @@ export const BUDGETS = {
         because:
             "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
     },
+    "reader.overview.600": {
+        name: "build the overview of a 600-page paper, a 300-page comic and a 120-chapter book, and scroll each from first card to last",
+        // ~4x the first measurement: the fake DOM's cost, not pixels; the held count is asserted beside it.
+        limit: 100,
+        measured: "23 ms",
+        because: "the overview must open a long book without drawing it (#776 FR-17): built at once, drawn only near view, the pictures held at the cap",
+    },
     "library.epub.fxl.window.300": {
         name: "turn a 300-page fixed-layout comic end to end in Spread: pair its pages, lay out each view, keep what the run keeps",
         // ~4.5x the first measurement (a millisecond is noise on a busy runner); the held count is asserted beside it.
@@ -376,8 +383,9 @@ export const BUDGETS = {
         // 2,800 → 2,900 (#743): R3's claim sheet (#762) and look-up (#766) bring main to 2,789 KB; the
         // book's note (#743) adds 24 KB: 2,813 KB — a WebGL library coming back is still a megabyte over.
         // Articles (#744) add 12 KB: 2,825 KB, under the same ceiling.
+        // The overview (#776), which #767's Pages tab grew into, adds 18 KB: 2,843 KB.
         limit: 2_900,
-        measured: "2,825 KB",
+        measured: "2,843 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

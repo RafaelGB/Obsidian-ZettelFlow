@@ -244,7 +244,7 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
         it("has the three tabs for a book, each empty state saying what to do", async () => {
             const m = await book();
             button(m.content, "Contents").click();
-            expect(m.content.byClass("reader-tab").map((b) => b.textContent)).toEqual(["Contents", "Bookmarks", "Where you've been"]);
+            expect(m.content.byClass("reader-tab").map((b) => b.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
             expect(tab(m.content, "Contents").getAttribute("aria-selected")).toBe("true");
             tab(m.content, "Bookmarks").click();
             expect(m.content.oneByClass("reader-empty").textContent).toBe("No bookmarks yet. Tap the ribbon, or press B, to keep a place without highlighting anything.");

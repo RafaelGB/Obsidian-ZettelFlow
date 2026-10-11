@@ -14,6 +14,9 @@ import { cleanDesignedCss, designedCssBook, pairSpreads } from "application/libr
 import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
 import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
+import { Component } from "obsidian";
+import { DomNode } from "../support/dashboardDom";
+import { OVERVIEW_LIMITS, renderOverview, type CardKind } from "architecture/components/core/reader/readerOverview";
 
 /**
  * Library budgets (epic #675, L8).
@@ -199,6 +202,75 @@ describe("the Library (#675)", () => {
         if (drawn > MAX_DRAWN || drawn === 0) throw new Error(`drew ${drawn} pages at once`);
         if (most !== 599) throw new Error(`the last page most on screen was ${most}`);
         assertBudget("reader.pdf.window.600", ms);
+    });
+    it("reader.overview.600", () => {
+        // The overview of a 600-page paper, a 300-page comic and a 120-chapter book (#776 FR-17, AC-12):
+        // built, then scrolled from the first card to the last, ten cards in view at a time — a fake
+        // draw, no pixels. Only what is in view is drawn, and the pictures held stay at the cap.
+        const g = globalThis as unknown as { IntersectionObserver?: unknown };
+        const had = g.IntersectionObserver;
+        let seen: (entries: { target: unknown; isIntersecting: boolean }[]) => void = () => undefined;
+        g.IntersectionObserver = class {
+            constructor(callback: typeof seen) {
+                seen = callback;
+            }
+            observe(): void {}
+            disconnect(): void {}
+        };
+        const cap = OVERVIEW_LIMITS.mobile.pictures;
+        const freed: { width: number }[] = [];
+        let worst = 0;
+        try {
+            const books: [number, CardKind][] = [[600, "page"], [300, "page"], [120, "chapter"]];
+            const ms = best(3, () => {
+                for (const [count, kind] of books) {
+                    const list = new DomNode();
+                    const scope = new Component();
+                    scope.load();
+                    let draws = 0;
+                    const overview = renderOverview(
+                        list as unknown as HTMLElement,
+                        {
+                            units: Array.from({ length: count }, (_, index) => ({ index, kind, label: `Card ${index + 1}` })),
+                            current: 0,
+                            ratio: () => 1.3,
+                            draw: (_i, picture, _w, done) => {
+                                draws++;
+                                const canvas = picture.createEl("canvas") as unknown as { width: number; height: number };
+                                canvas.width = 192;
+                                canvas.height = 248;
+                                freed.push(canvas);
+                                done();
+                                return () => undefined;
+                            },
+                            marks: () => ({ ticks: [], pen: false, ribbon: false }),
+                            progress: () => (kind === "chapter" ? 0 : null),
+                            onPick: () => undefined,
+                            limit: cap,
+                            fade: true,
+                        },
+                        scope
+                    );
+                    if (draws !== 0) throw new Error("the overview drew before anything was in view");
+                    const cards = list.byClass("reader-overview-card");
+                    for (let top = 0; top + 10 <= count; top += 3) {
+                        seen([
+                            ...cards.slice(Math.max(0, top - 3), top).map((target) => ({ target, isIntersecting: false })),
+                            ...cards.slice(top, top + 10).map((target) => ({ target, isIntersecting: true })),
+                        ]);
+                        worst = Math.max(worst, overview.held().length);
+                    }
+                    if (draws > count + cap) throw new Error(`drew ${draws} cards for ${count}`);
+                    overview.dispose();
+                    scope.unload();
+                }
+            });
+            if (worst > cap || worst === 0) throw new Error(`held ${worst} pictures at once (cap ${cap})`);
+            if (freed.some((canvas) => canvas.width !== 0)) throw new Error("a released card kept its pixels");
+            assertBudget("reader.overview.600", ms);
+        } finally {
+            g.IntersectionObserver = had;
+        }
     });
     it("library.epub.fxl.window.300", () => {
         // A 300-page comic in Spread, its first page alone: turned end to end, each view laid out and the

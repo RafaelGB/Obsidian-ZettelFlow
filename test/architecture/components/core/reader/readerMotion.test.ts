@@ -1,5 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
-import { MOTION, flightTransform, motionWelcome } from "architecture/components/core/reader/readerMotion";
+import { MOTION, flightTransform, fly, motionWelcome } from "architecture/components/core/reader/readerMotion";
+import { DomNode } from "../../../../support/dashboardDom";
+import { recordAnimations, type FakeAnimation } from "../../../../support/motionDom";
 
 describe("motion that never costs a frame (#724)", () => {
     it("carries one box onto another with a translation and a scale, nothing else", () => {
@@ -21,3 +23,38 @@ describe("motion that never costs a frame (#724)", () => {
     });
 });
 
+
+describe("a flight you can finish (#776 FR-26, FR-22)", () => {
+    const from = { left: 0, top: 0, width: 800, height: 600 };
+    const to = { left: 500, top: 100, width: 100, height: 130 };
+
+    it("returns its animation, and finishing it takes the ghost away", () => {
+        const record = recordAnimations();
+        try {
+            const host = new DomNode();
+            const ghost = new DomNode();
+            const shot = fly(host as never, ghost as never, from, to, { duration: MOTION.cover }) as unknown as FakeAnimation;
+            expect(shot).toBe(record.animations[0]);
+            expect(host.children).toContain(ghost);
+            shot.finish();
+            expect(host.children).not.toContain(ghost);
+        } finally {
+            record.stop();
+        }
+    });
+
+    it("draws a grown ghost at the size it lands at, and starts it shrunk onto where it comes from", () => {
+        const record = recordAnimations();
+        try {
+            const host = new DomNode();
+            const ghost = new DomNode();
+            fly(host as never, ghost as never, to, from, { duration: MOTION.cover, grown: true });
+            expect(ghost.cssProps["--zf-ghost-w"]).toBe("800px");
+            const frames = record.animations[0].keyframes;
+            expect(frames[0].transform).toBe(flightTransform(from, to));
+            expect(frames[frames.length - 1].transform).toBe("translate(0px, 0px) scale(1, 1)");
+        } finally {
+            record.stop();
+        }
+    });
+});

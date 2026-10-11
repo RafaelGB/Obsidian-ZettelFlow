@@ -21,14 +21,14 @@ import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from 
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, ReaderTrail, type TrailReason } from "./readerJumps";
 import { addBookmark, bookmarkAt, bookmarkSnippet, inReadingOrder, landingOffset, removeBookmarks, wordStart, type Bookmark } from "./readerBookmarks";
-import { markHereAt } from "./readerHere";
+import { markHereAt, markHereOn } from "./readerHere";
 import { relativeLabel } from "architecture/components/core/noteCompanion/storyFormat";
-import { MOTION, motionWelcome } from "./readerMotion";
+import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
 import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, type ChapterScrub } from "./readerTurn";
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
-import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
+import { PINCH_SHARE, completionRate, edgeZone, isThing, pinchRelease, releaseTurn, rubberBand, startGesture, twoFingers, type Gesture, type TwoFingerKind, SYSTEM_EDGE_PX } from "./readerGestures";
 import { blockAtLine, placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
 import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type AlongsideReading } from "./readerAlongside";
 import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
@@ -61,7 +61,10 @@ import type { ReaderAiMoveId } from "application/thinking/readerMovePrompts";
 import { ReaderInk, type InkDeps } from "./readerInk";
 import {
     chapterOfHighlight,
+    chaptersRead,
     keptPageView,
+    overviewMarksOf,
+    rememberChapterRead,
     keptScroll,
     rememberPageView,
     rememberSourceBookmarks,
@@ -87,7 +90,7 @@ import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
 import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
 import { PdfPageRun } from "./readerPageRun";
-import { renderThumbs, type Thumbs } from "./readerThumbs";
+import { PREVIEW_BLOCKS, cardMarks, cardPixels, cardProgress, normalizeContentsTab, overviewLimit, overviewUnits, renderOverview, OVERVIEW_LIMITS, type ContentsTab, type MarkSource, type Overview, type OverviewUnit } from "./readerOverview";
 import { fly } from "./readerMotion";
 import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
 import { dictionarySettings } from "application/library/dictionarySettings";
@@ -219,15 +222,20 @@ export type { ReaderHost };
 
 type Panel = "contents" | "type" | "context" | null;
 
-/** The Contents panel of a book or a paper (#761 FR-4): its contents, its bookmarks, where you've been. */
-type ContentsTab = "contents" | "pages" | "bookmarks" | "trail";
+/**
+ * The Contents panel of a book or a paper (#761 FR-4): its contents, the overview, its bookmarks,
+ * where you've been.
+ */
 const CONTENTS_TABS: { id: ContentsTab; label: LocaleKey }[] = [
     { id: "contents", label: "reader_contents" },
-    // A paper in Page view (#767 FR-10): its pages, at a glance.
-    { id: "pages", label: "reader_pages_tab" },
+    // Every page or chapter as a card (#776, which #767's *Pages* grew into): every book and paper.
+    { id: "overview", label: "reader_overview" },
     { id: "bookmarks", label: "reader_tab_bookmarks" },
     { id: "trail", label: "reader_tab_trail" },
 ];
+
+/** The keys the overview's cards keep for themselves while one has the focus (#776 FR-16). */
+const OVERVIEW_KEYS = new Set(["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End", " "]);
 
 /** Two taps this close in time are a double tap in Page view (#767 FR-2); a single one waits as long. */
 const DOUBLE_TAP_MS = 280;
@@ -346,6 +354,8 @@ export class ReaderView extends ItemView {
         search: HTMLElement;
         /** Page view's zoom level, beside the Page view button (#767 FR-13): a click is *Fit width*. */
         zoom: HTMLElement;
+        /** The overview's door (#776 FR-1): every book and paper, every view. */
+        overview: HTMLElement;
     } | null = null;
     /** Words in the chapter on screen, for the minutes left. */
     private chapterWords = 0;
@@ -544,8 +554,28 @@ export class ReaderView extends ItemView {
     /** How long each designed page of this reading was on screen, for its time left (#771 FR-8). */
     private pageDwells: number[] = [];
     private pageShownAt = 0;
-    /** The *Pages* tab's thumbnails, while it is open. */
-    private thumbs: Thumbs | null = null;
+    /** The overview's cards, while its tab is open (#776). */
+    private overview: Overview | null = null;
+    private overviewUnits: OverviewUnit[] = [];
+    /** The book's marks, read once each time the overview opens (#776 D9). */
+    private overviewMarks: MarkSource[] = [];
+    /** The overview is opening: the camera pulls back from the page, at this scale of it (FR-20). */
+    private overviewEntering: { from: number } | null = null;
+    /** A card was picked: closing plays no return to the page (FR-21, FR-22). */
+    private overviewPicked = false;
+    /** The overview's shot under way, jumped to its end by any input (FR-26). */
+    private overviewShot: Animation | null = null;
+    /** The reading view's own card drawings, one at a time (#776 FR-6): Page view has its run's queue. */
+    private cardQueue: { run: () => Promise<void>; cancelled: boolean }[] = [];
+    private cardRunning = false;
+    /** Two fingers on a flowing page: what they are (decided once), and the page under them (#776 D13). */
+    private twoKind: TwoFingerKind = "pending";
+    private twoStart: { spread: number; at: number } | null = null;
+    private pinchLive: { scale: number } | null = null;
+    /** Two touches on a flowing page, as WebKit reports them: how far apart they came down (#776 FR-23). */
+    private touchPinch: { d0: number } | null = null;
+    /** The chapter on its way was reached by a flight: it is already there, no entrance (#776 FR-21). */
+    private flown = false;
     /** A tap waiting to see whether a second makes it a double tap (Page view only). */
     private lastTap: { at: number; x: number; y: number } | null = null;
     private tapTimer: number | undefined;
@@ -1029,6 +1059,10 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
         const contents = this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
+        // The overview (#776 FR-1, D6): every page or chapter as a card, one tap from any view.
+        const overview = this.iconButton(bar, "layout-grid", "reader_overview", () => this.openOverview());
+        overview.addClass(c("reader-hidden"));
+        overview.setAttribute("aria-pressed", "false");
         const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
         search.addClass(c("reader-hidden"));
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
@@ -1058,7 +1092,7 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "keyboard", "reader_shortcuts", () => this.toggleShortcuts());
 
         const panel = root.createDiv({ cls: c("reader-panel") });
-        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, view, search, zoom };
+        this.els = { title, page, dots, label, progress, panel, stage, margin, hairline, minutes, view, search, zoom, overview };
         this.highlights = new ReaderHighlights(
             {
                 app: this.app,
@@ -1261,6 +1295,8 @@ export class ReaderView extends ItemView {
         const pageView = this.sourceView === "page";
         els.view.toggleClass(c("reader-hidden"), !this.source?.hasPageView);
         els.search.toggleClass(c("reader-hidden"), !this.sourcePath);
+        // A note reading has neither pages nor a book's chapters: no overview (#776 FR-1).
+        els.overview.toggleClass(c("reader-hidden"), !this.sourcePath);
         els.view.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
         els.view.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
         els.view.setAttribute("aria-pressed", String(pageView));
@@ -1487,8 +1523,10 @@ export class ReaderView extends ItemView {
     private turnPage(page: HTMLElement): void {
         page.removeClass(c("reader-page--enter"));
         void page.offsetWidth;
-        if (this.turn === 0) page.addClass(c("reader-page--enter"));
+        // A card that flew to its page is that page (#776 FR-21): it does not rise again under it.
+        if (this.turn === 0 && !this.flown) page.addClass(c("reader-page--enter"));
         this.turn = 0;
+        this.flown = false;
     }
 
     /** The hairline, the minutes left and the next card, from where the page is scrolled to. */
@@ -1528,6 +1566,8 @@ export class ReaderView extends ItemView {
         this.chapterOpenedAt = Date.now();
         const reached = this.reachedEnd;
         this.reachedEnd = false;
+        // A chapter of a book read to its end: its card in the overview is filled (#776 P1).
+        if (reached && this.sourcePath && !this.ended) rememberChapterRead(this.app, this.plugin, this.sourcePath, this.index, this.source?.chapters.length ?? this.index + 1);
         if (!reached || this.chapterWords <= 0) return;
         const next = learnPace(this.pace, { words: this.chapterWords, ms: Date.now() - opened });
         if (next === this.pace) return;
@@ -1814,6 +1854,7 @@ export class ReaderView extends ItemView {
 
     /** You moved: a move under way ends where it was going, and the page is yours again (#751 FR-15). */
     private takeOver(): void {
+        this.finishOverviewShot();
         this.pager?.settle();
         this.passageHold = null;
     }
@@ -2021,6 +2062,7 @@ export class ReaderView extends ItemView {
         // A thumbnail flies to its page (FR-22): the flight is the camera, no chapter turn on top.
         const flight = this.flight;
         this.flight = false;
+        this.flown = flight;
         this.turn = flight ? 0 : this.ended || target < this.index ? -1 : target > this.index ? 1 : 0;
         this.ended = false;
         this.index = target;
@@ -2561,6 +2603,12 @@ export class ReaderView extends ItemView {
             },
             onSlot: (page, el, aspect) => this.ink?.decorateSlot(page, el, aspect),
             onDrawn: (page, picture) => this.ink?.toneSlot(page, picture),
+            // Two fingers let go well under the smallest zoom: the page lands in its card (#776 FR-4).
+            onPinchOut: (scale) => {
+                if (!this.sourcePath || (this.panel === "contents" && this.contentsTab === "overview")) return false;
+                this.openOverview(scale);
+                return true;
+            },
         });
         return this.pageRun;
     }
@@ -2574,8 +2622,14 @@ export class ReaderView extends ItemView {
         this.runHighlightScope?.unload();
         this.runHighlightScope = null;
         if (!this.pageRun) return;
-        this.thumbs?.dispose();
-        this.thumbs = null;
+        // The overview's Page view cards went with the run: drawn again, from the reading view's own.
+        const redraw = this.overview !== null;
+        this.dropOverview();
+        if (redraw) {
+            win.setTimeout(() => {
+                if (!this.overview && this.panel === "contents" && this.contentsTab === "overview") this.renderPanel();
+            }, 0);
+        }
         this.pageRun.dispose();
         this.pageRun = null;
         if (this.els) this.els.stage.scrollLeft = 0;
@@ -2644,7 +2698,7 @@ export class ReaderView extends ItemView {
         this.visited.add(`${this.sourcePath}#${page}`);
         this.renderBarPlace();
         this.refreshRibbon();
-        this.thumbs?.setCurrent(page);
+        this.overview?.setCurrent(page);
         const win = this.root?.win ?? window;
         win.clearTimeout(this.runPlaceTimer);
         this.runPlaceTimer = win.setTimeout(() => {
@@ -2726,63 +2780,374 @@ export class ReaderView extends ItemView {
         this.wake();
     }
 
-    /** The *Pages* tab (FR-10): every page, drawn as it comes into view, the current one marked. */
-    private renderPages(list: HTMLElement): void {
-        const run = this.runMode() ? this.pageRun : null;
+    // ── the overview (#776): every page or chapter as a card, in one continuous shot ──────────
+
+    /**
+     * The bar's *Overview* (FR-1, FR-2): Contents opens straight on the overview, from any view, and the
+     * camera pulls back from the page into its card. Asked again while it is open, the same shot plays
+     * backwards. `from` is the scale two fingers left the page at (FR-23).
+     */
+    private openOverview(from = 1): void {
+        if (!this.sourcePath || !this.source) return;
+        if (this.panel === "contents" && this.contentsTab === "overview") {
+            this.closePanel();
+            return;
+        }
+        this.contentsTab = "overview";
+        this.overviewEntering = { from };
+        if (this.panel === "contents") this.renderPanel();
+        else this.toggle("contents");
+    }
+
+    /** The overview's grid in the Contents panel (FR-3): every PDF and EPUB, in both views. */
+    private renderOverviewTab(list: HTMLElement): void {
+        const doc = this.source;
+        const path = this.sourcePath;
         const scope = this.panelScope;
-        if (!run || !scope) return;
-        this.thumbs = renderThumbs(
+        if (!doc || !path || !scope) return;
+        const { units, rtl } = overviewUnits(doc);
+        this.overviewUnits = units;
+        this.overviewPicked = false;
+        const run = this.runMode() ? this.pageRun : null;
+        const read = chaptersRead(this.plugin, path);
+        const share = this.currentShare();
+        const bookmarks = sourceBookmarks(this.plugin, path);
+        const current = Math.max(0, Math.min(this.index, units.length - 1));
+        const chapterRatio = this.chapterCardRatio();
+        const flowing = units.some((unit) => unit.kind === "chapter");
+        const limits = Platform.isMobile ? OVERVIEW_LIMITS.mobile : OVERVIEW_LIMITS.desktop;
+        const overview = renderOverview(
             list,
             {
-                count: run.pages.count,
-                current: this.index,
-                label: (page) => this.sourceLabel(page),
-                ratio: (page) => run.thumbRatio(page),
-                draw: (page, canvas, width, done) => run.drawThumb(page, canvas, width, done),
-                onPick: (page, thumb) => this.flyToPage(page, thumb),
+                units,
+                rtl,
+                current,
+                ratio: (index) => (units[index]?.kind === "chapter" ? chapterRatio : run ? run.thumbRatio(index) : this.pageRatio(index)),
+                draw: (index, picture, width, done, fail) => this.drawCard(index, picture, width, done, fail),
+                marks: (index, text) => cardMarks(this.overviewMarks, bookmarks, index, text),
+                progress: (index) => (units[index] ? cardProgress(units[index], current, share, read) : null),
+                onPick: (index, sheet) => this.flyToCard(index, sheet),
+                limit: flowing ? limits.previews : overviewLimit(Platform.isMobile),
+                fade: this.motionAllowed(),
             },
             scope
         );
+        this.overview = overview;
+        // The marks are read once each time the overview opens (D9): they arrive on the cards.
+        void overviewMarksOf(path, this.highlightDeps.store).then((marks) => {
+            if (this.overview !== overview) return;
+            this.overviewMarks = marks;
+            overview.refreshMarks();
+        });
+        const entering = this.overviewEntering;
+        this.overviewEntering = null;
+        this.centreCard(current);
+        if (!entering) return;
+        // Opened, the overview holds the focus on your card: the arrows and Enter work at once (FR-16).
+        overview.cardOf(current)?.focus?.({ preventScroll: true });
+        this.pullBack(entering.from, list);
+    }
+
+    /** The current card in the middle of the panel, at once — the camera lands on it (FR-12). */
+    private centreCard(index: number): void {
+        const host = this.els?.panel;
+        const card = this.overview?.cardOf(index);
+        if (!host || !card) return;
+        const top = card.offsetTop - Math.max(0, (host.clientHeight - card.offsetHeight) / 2);
+        host.scrollTop = Math.max(0, top || 0);
     }
 
     /**
-     * A thumbnail becomes its page (FR-22, §XVI): the page is put on screen at once, and the thumbnail
-     * flies from the grid to where it sits — as a cover becomes the book (#734). Under reduced motion
-     * the page is simply there.
+     * Opening is the camera pulling back (FR-20): the page you are reading shrinks into its own card,
+     * and the cards settle in from just behind it — one move. Under reduced motion, at once (FR-28).
      */
-    private flyToPage(page: number, thumb: HTMLElement): void {
-        const run = this.pageRun;
+    private pullBack(from: number, list: HTMLElement): void {
         const root = this.root;
-        if (!run || !root) return;
-        const r = thumb.getBoundingClientRect();
-        const from = { left: r.left, top: r.top, width: r.width, height: r.height };
-        this.leaveTrail("contents");
-        if (this.runLayout() === "scroll" || run.inView(page)) {
-            run.travelTo(page, 0, false);
-            if (this.runLayout() !== "scroll" && page !== this.index) {
-                this.index = page;
-                this.renderBarPlace();
-            }
+        const sheet = this.overview?.sheetOf(this.index);
+        if (!root || !sheet || !this.motionAllowed()) return;
+        const page = this.pageGhost(from);
+        if (!page) return;
+        this.overviewShot = fly(root, page.ghost, page.box, boxOf(sheet), { duration: MOTION.cover });
+        const grid = list.querySelector<HTMLElement>(`.${c("reader-overview")}`);
+        if (grid) {
+            grid.addClass(c("reader-overview--arriving"));
+            (root.win ?? window).setTimeout(() => grid.removeClass(c("reader-overview--arriving")), MOTION.cover);
+        }
+    }
+
+    /**
+     * What the camera holds when it pulls back (FR-20): in Page view the printed page itself, copied;
+     * in a flowing book the words on screen, on their paper. Scaled about its centre to where the
+     * fingers left it (FR-23).
+     */
+    private pageGhost(scale: number): { ghost: HTMLElement; box: Box } | null {
+        const root = this.root;
+        const stage = this.els?.stage;
+        if (!root || !stage) return null;
+        const ghost = root.createDiv({ cls: c("reader-overview-ghost") });
+        ghost.remove();
+        let box = boxOf(stage);
+        const run = this.runMode() ? this.pageRun : null;
+        const slot = run?.slotRect(this.index);
+        const slotEl = run ? Array.from(stage.querySelectorAll<HTMLElement>(`.${c("reader-pv-slot")}`)).find((el) => el.getAttribute("data-page") === String(this.index)) : undefined;
+        if (slot && slotEl) {
+            box = slot;
+            const copy = slotEl.cloneNode(true) as HTMLElement;
+            copyLive(slotEl, copy);
+            copy.addClass(c("reader-overview-ghost-picture"));
+            ghost.appendChild(copy);
         } else {
-            this.flight = true;
-            this.show(page);
-        }
-        this.thumbs?.setCurrent(page);
-        const to = run.slotRect(page);
-        if (to && this.motionAllowed()) {
-            const ghost = root.createDiv({ cls: c("reader-pv-ghost") });
-            ghost.remove();
-            const picture = thumb.querySelector("canvas");
-            if (picture && picture.width > 0) {
-                const copy = ghost.createEl("canvas");
-                copy.width = picture.width;
-                copy.height = picture.height;
-                copy.getContext?.("2d")?.drawImage(picture, 0, 0);
+            // The page as you see it: a copy of it, at its own width, scrolled where you are — the same
+            // type, the same lines, the same marks. Only what is on screen shows through the ghost.
+            const page = this.els?.page;
+            if (page) {
+                const copy = page.cloneNode(true) as HTMLElement;
+                copy.removeClass(c("reader-page--enter"), c("reader-page--under-scrub"));
+                copy.addClass(c("reader-overview-ghost-page"));
+                copy.setCssProps({ "--zf-ghost-shift": `${-Math.round(stage.scrollTop)}px`, "--zf-ghost-page-w": `${Math.round(page.offsetWidth || box.width)}px` });
+                ghost.appendChild(copy);
             }
-            fly(root, ghost, from, to, { duration: MOTION.cover });
         }
-        // In a sheet the page is under the panel: it steps aside for the landing.
-        if (this.panelIsSheet()) this.closePanel();
+        if (scale < 1) {
+            const w = box.width * scale;
+            const h = box.height * scale;
+            box = { left: box.left + (box.width - w) / 2, top: box.top + (box.height - h) / 2, width: w, height: h };
+        }
+        return { ghost, box };
+    }
+
+    /** A card's shape for a flowing chapter: the page as you see it, never wider than a sheet. */
+    private chapterCardRatio(): number {
+        const r = this.els?.stage.getBoundingClientRect();
+        const ratio = r && r.width > 0 && r.height > 0 ? r.height / r.width : 1.294;
+        return Math.min(1.6, Math.max(1, ratio));
+    }
+
+    /** A printed page's shape in the reading view: the first page's, turned as you turned it (P3). */
+    private pageRatio(index: number): number {
+        const first = this.source?.pages?.first;
+        if (!first || !(first.width > 0) || !(first.height > 0)) return 1.294;
+        return this.rotationOf(index) % 180 !== 0 ? first.width / first.height : first.height / first.width;
+    }
+
+    /** The quarter turns you gave a page in Page view (#767 FR-9): its card shows it as you read it. */
+    private rotationOf(index: number): number {
+        const path = this.sourcePath;
+        return path ? (keptPageView(this.app, this.plugin, path).rotate?.[index] ?? 0) : 0;
+    }
+
+    /**
+     * Draw one card (FR-5, FR-7): in Page view a printed page through the run's own queue, after the
+     * pages on screen (P7); a designed page mounted inside its own boundary (#771); in the reading view
+     * a printed page, or a chapter's start in your type, one at a time (FR-6, D11). Returns its let-go.
+     */
+    private drawCard(index: number, picture: HTMLElement, width: number, done: (text?: string) => void, fail: (error: unknown) => void): () => void {
+        const doc = this.source;
+        const unit = this.overviewUnits[index];
+        if (!doc || !unit) return () => undefined;
+        const run = this.runMode() ? this.pageRun : null;
+        const pages = doc.pages;
+        if (unit.kind === "page" && run && pages?.render) {
+            const canvas = picture.createEl("canvas", { cls: c("reader-overview-canvas") });
+            return run.drawThumb(index, canvas, width, () => done(), fail);
+        }
+        if (unit.kind === "page" && doc.designed && pages?.mount) return this.queueCard((alive) => this.mountCard(index, picture, width, alive), done, fail);
+        if (unit.kind === "page" && doc.format === "pdf" && pages?.render) return this.queueCard((alive) => this.renderCard(index, picture, width, alive), done, fail);
+        return this.queueCard((alive) => this.previewCard(index, picture, width, alive), done, fail);
+    }
+
+    /** One card drawn after another (the reading view has no run to queue them): returns its let-go. */
+    private queueCard(work: (alive: () => boolean) => Promise<{ text?: string; release(): void } | null>, done: (text?: string) => void, fail: (error: unknown) => void): () => void {
+        let release: (() => void) | null = null;
+        const job = {
+            cancelled: false,
+            run: async () => {
+                try {
+                    const drawn = await work(() => !job.cancelled);
+                    if (!drawn) return;
+                    if (job.cancelled) {
+                        drawn.release();
+                        return;
+                    }
+                    release = () => drawn.release();
+                    done(drawn.text);
+                } catch (error) {
+                    if (!job.cancelled) fail(error);
+                }
+            },
+        };
+        this.cardQueue.push(job);
+        this.pumpCards();
+        return () => {
+            job.cancelled = true;
+            release?.();
+            release = null;
+        };
+    }
+
+    private pumpCards(): void {
+        if (this.cardRunning) return;
+        while (this.cardQueue.length > 0 && this.cardQueue[0].cancelled) this.cardQueue.shift();
+        const job = this.cardQueue.shift();
+        if (!job) return;
+        this.cardRunning = true;
+        void job.run().finally(() => {
+            this.cardRunning = false;
+            this.pumpCards();
+        });
+    }
+
+    /** A printed page in the reading view (FR-6): drawn small, never through Page view. */
+    private async renderCard(index: number, picture: HTMLElement, width: number, alive: () => boolean): Promise<{ release(): void } | null> {
+        const pages = this.source?.pages;
+        if (!pages?.render || !alive()) return null;
+        const size = await pages.size(index);
+        if (!alive()) return null;
+        const rotation = this.rotationOf(index);
+        const across = rotation % 180 !== 0 ? size.height : size.width;
+        const pixels = cardPixels(width, width, picture.win?.devicePixelRatio ?? 1).width;
+        const canvas = picture.createEl("canvas", { cls: c("reader-overview-canvas") });
+        const task = pages.render(index, canvas, { scale: pixels / Math.max(1e-6, across), rotation });
+        await task.promise;
+        return {
+            release: () => {
+                task.cancel();
+                canvas.width = 0;
+                canvas.height = 0;
+            },
+        };
+    }
+
+    /** A designed page (#771 FR-3, FR-4, AC-11): mounted inside its own boundary, at its size, scaled. */
+    private async mountCard(index: number, picture: HTMLElement, width: number, alive: () => boolean): Promise<{ release(): void } | null> {
+        const pages = this.source?.pages;
+        if (!pages?.mount || !alive()) return null;
+        const size = await pages.size(index);
+        if (!alive()) return null;
+        const box = picture.createDiv({ cls: c("reader-overview-designed") });
+        box.setCssProps({ "--zf-fxl-scale": String(Math.round((width / Math.max(1, size.width)) * 100000) / 100000) });
+        const task = pages.mount(index, box);
+        await task.promise;
+        // A page that could not be drawn keeps its paper and its label (P12): the line is the page's.
+        if (box.querySelector(`.${c("reader-designed-failed")}`)) {
+            task.cancel();
+            throw new Error(`designed page ${index + 1} not drawn`);
+        }
+        return { release: () => task.cancel() };
+    }
+
+    /**
+     * A flowing chapter's card (D11): how its page starts, drawn at the column's width in your face,
+     * size and theme, then made small — and only its first blocks kept. Its text places its ticks (P2).
+     */
+    private async previewCard(index: number, picture: HTMLElement, width: number, alive: () => boolean): Promise<{ text?: string; release(): void } | null> {
+        const doc = this.source;
+        if (!doc || !alive()) return null;
+        const column = Math.round(this.chapterBody()?.clientWidth || this.els?.stage.clientWidth || 600);
+        const preview = picture.createDiv({ cls: c("reader-overview-preview") });
+        preview.setCssProps({ "--zf-card-column": `${column}px`, "--zf-card-scale": String(Math.round((width / Math.max(1, column)) * 10000) / 10000) });
+        const body = preview.createDiv({ cls: ["markdown-rendered", c("reader-body"), c("reader-source-body"), c(`reader-source-body--${doc.format}`)].join(" ") });
+        const component = new Component();
+        component.load();
+        try {
+            await doc.draw(index, body, component, "reading");
+        } catch (error) {
+            component.unload();
+            throw error;
+        }
+        if (!alive()) {
+            component.unload();
+            return null;
+        }
+        const text = chapterText(body);
+        pruneBlocks(body, PREVIEW_BLOCKS);
+        return { text, release: () => component.unload() };
+    }
+
+    /**
+     * A card becomes its page (FR-21, §XVI): the page is put on screen at once and the card flies from
+     * its slot to where the page sits — as a cover becomes the book (#734). Another chapter is the
+     * flight itself, with no chapter turn on top; the chapter you are in lands on your place, marked.
+     * The overview closes in every shape (D15). Under reduced motion, the page is simply there.
+     */
+    private flyToCard(index: number, sheet: HTMLElement): void {
+        const root = this.root;
+        const stage = this.els?.stage;
+        const unit = this.overviewUnits[index];
+        if (!root || !stage || !unit) return;
+        // A second pick ends the first flight before it starts its own (FR-26).
+        this.finishOverviewShot();
+        const from = boxOf(sheet);
+        // The chapter you are in lands on your place: what grows from its card is the page as you left
+        // it, not the chapter's start (FR-13, FR-21).
+        const here = !this.runMode() && index === this.index;
+        const page = this.motionAllowed() && here ? this.pageGhost(1) : null;
+        const ghost = page?.ghost ?? (this.motionAllowed() ? cardGhost(root, sheet) : null);
+        this.leaveTrail("contents");
+        this.overviewPicked = true;
+        const run = this.runMode() ? this.pageRun : null;
+        if (run) {
+            if (this.runLayout() === "scroll" || run.inView(index)) {
+                run.travelTo(index, 0, false);
+                if (this.runLayout() !== "scroll" && index !== this.index) {
+                    this.index = index;
+                    this.renderBarPlace();
+                }
+            } else {
+                this.flight = true;
+                this.show(index);
+            }
+        } else if (index !== this.index) {
+            this.flight = true;
+            this.show(index);
+        } else {
+            // The chapter you are reading: your place, never its top (FR-13), marked a moment.
+            this.markReadingLine();
+        }
+        this.overview?.setCurrent(index);
+        const to = (run ? run.slotRect(index) : null) ?? boxOf(stage);
+        if (ghost) this.overviewShot = fly(root, ghost, from, page?.box ?? to, { duration: MOTION.cover, ...(page ? { grown: true } : {}) });
+        this.closePanel();
+    }
+
+    /** Leaving without a pick (FR-22): the current card grows back into the page — the reverse shot. */
+    private returnToPage(): void {
+        const root = this.root;
+        const stage = this.els?.stage;
+        const sheet = this.overview?.sheetOf(this.index);
+        if (!root || !stage || !sheet || this.overviewPicked || !this.motionAllowed()) return;
+        this.finishOverviewShot();
+        const run = this.runMode() ? this.pageRun : null;
+        const to = run?.slotRect(this.index) ?? boxOf(stage);
+        // The reverse of opening (FR-20): the page as you left it grows from its card back into place.
+        const page = this.pageGhost(1);
+        this.overviewShot = page
+            ? fly(root, page.ghost, boxOf(sheet), page.box, { duration: MOTION.cover, grown: true })
+            : fly(root, cardGhost(root, sheet), boxOf(sheet), to, { duration: MOTION.cover });
+    }
+
+    /** Any input during a shot jumps it to its end (FR-26). */
+    private finishOverviewShot(): void {
+        const shot = this.overviewShot;
+        this.overviewShot = null;
+        if (shot && shot.playState !== "finished") shot.finish?.();
+    }
+
+    /** The block at the reading line, washed for a moment — *you are here* (#761 FR-17). */
+    private markReadingLine(): void {
+        const stage = this.els?.stage;
+        if (!stage) return;
+        const at = blockAtLine(this.blocks(), stage.scrollTop + stage.clientHeight * READING_LINE);
+        const block = this.blockElements()[at];
+        if (block) markHereOn([block], MOTION.cover);
+    }
+
+    /** The overview let go: its cards, its drawings and its queue. */
+    private dropOverview(): void {
+        this.overview?.dispose();
+        this.overview = null;
+        for (const job of this.cardQueue) job.cancelled = true;
+        this.cardQueue = [];
     }
 
     // ── search inside the book (#719) ───────────────────────────────────────
@@ -3183,8 +3548,7 @@ export class ReaderView extends ItemView {
         }
         // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
         const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
-        this.thumbs?.dispose();
-        this.thumbs = null;
+        this.dropOverview();
         // The proposals in Alongside go with it, with no verdict (#756 AC-7).
         this.vaultMoves?.dismissAll();
         // The AI moves' cards are kept: their answers are still coming (#759 FR-14).
@@ -3209,7 +3573,8 @@ export class ReaderView extends ItemView {
         host.removeClass(c("reader-panel--leaving"));
         // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
         this.setAlongsideColumn(shape === "side");
-        if (asSheet) this.openSheet(host, scope);
+        // The overview opens the sheet at its full height: a page of cards (#776 D5, P8).
+        if (asSheet) this.openSheet(host, scope, this.panel === "contents" && this.contentsTab === "overview");
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
         else if (this.panel === "type") {
@@ -3526,12 +3891,12 @@ export class ReaderView extends ItemView {
      * gesture (FR-16). No tab counts anything (FR-12).
      */
     private renderSourceTabs(host: HTMLElement): void {
-        const tabs = host.createDiv({ cls: c("reader-tabs"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
-        // *Pages* is Page view's (#767 FR-10); anywhere else Contents opens on the contents.
-        // A designed page has no picture to make small (#771): no *Pages* tab; Contents lists its pages.
-        const thumbs = this.runMode() && !this.source?.designed;
-        if (this.contentsTab === "pages" && !thumbs) this.contentsTab = "contents";
-        for (const tab of CONTENTS_TABS.filter((entry) => entry.id !== "pages" || thumbs)) {
+        const tabs = host.createDiv({
+            cls: [c("reader-tabs"), ...(this.contentsTab === "overview" ? [c("reader-tabs--sticky")] : [])],
+            attr: { role: "tablist", "aria-label": t("reader_contents") },
+        });
+        // The overview is every book's and every paper's, in both views (#776 FR-3, FR-6).
+        for (const tab of CONTENTS_TABS) {
             const on = tab.id === this.contentsTab;
             const button = tabs.createEl("button", {
                 cls: [c("reader-tab"), ...(on ? ["is-active"] : [])].join(" "),
@@ -3546,7 +3911,7 @@ export class ReaderView extends ItemView {
         const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
-        else if (this.contentsTab === "pages") this.renderPages(list);
+        else if (this.contentsTab === "overview") this.renderOverviewTab(list);
         else this.renderSourceContents(list);
         const dir = this.tabSlide;
         this.tabSlide = 0;
@@ -3561,10 +3926,13 @@ export class ReaderView extends ItemView {
         }
     }
 
-    private chooseTab(tab: ContentsTab): void {
+    private chooseTab(raw: ContentsTab): void {
+        const tab = normalizeContentsTab(raw);
         if (tab === this.contentsTab) return;
         const order = (id: ContentsTab) => CONTENTS_TABS.findIndex((entry) => entry.id === id);
-        this.tabSlide = order(tab) > order(this.contentsTab) ? 1 : -1;
+        // The overview's entrance is the camera pulling back from the page, never a slide (#776 FR-20).
+        this.tabSlide = tab === "overview" ? 0 : order(tab) > order(this.contentsTab) ? 1 : -1;
+        if (tab === "overview") this.overviewEntering = { from: 1 };
         this.contentsTab = tab;
         this.renderPanel();
     }
@@ -3726,12 +4094,13 @@ export class ReaderView extends ItemView {
      * it while it stays open), a grab handle on top, and the page behind dimmed. Its height is a
      * transform (`--zf-sheet-y`), so opening, dragging and settling never lay anything out (FR-20).
      */
-    private openSheet(host: HTMLElement, scope: Component): void {
+    private openSheet(host: HTMLElement, scope: Component, tall = false): void {
         const root = this.root;
         if (!root) return;
         const snaps = sheetSnaps(root.getBoundingClientRect().height, this.safeTop());
         const kept = this.sheet?.height ?? 0;
-        this.sheet = { height: kept > 0 ? Math.min(kept, snaps.full) : snaps.half, snaps };
+        this.sheet = { height: tall ? snaps.full : kept > 0 ? Math.min(kept, snaps.full) : snaps.half, snaps };
+        host.toggleClass(c("reader-panel--tall"), tall);
         host.removeClass(c("reader-panel--closing"));
         host.setCssProps({ "--zf-sheet-full": `${snaps.full}px`, "--zf-sheet-ms": `${MOTION.base}ms` });
         this.placeSheet();
@@ -3824,11 +4193,15 @@ export class ReaderView extends ItemView {
     /** Each panel's button on the bar: pressed, and Obsidian's active look, while its panel is open. */
     private syncPanelButtons(open: Panel): void {
         if (!this.panelButtons) return;
+        // Contents open on the overview is the overview's own door that is pressed (#776 FR-1).
+        const overview = open === "contents" && this.contentsTab === "overview";
         for (const [id, button] of Object.entries(this.panelButtons)) {
-            const on = id === open;
+            const on = id === open && !(overview && id === "contents");
             button.toggleClass("is-active", on);
             button.setAttribute("aria-pressed", String(on));
         }
+        this.els?.overview.toggleClass("is-active", overview);
+        this.els?.overview.setAttribute("aria-pressed", String(overview));
     }
 
     /** Close the panel. A sheet slides down and away first; a card, or reduced motion, goes at once. */
@@ -3836,6 +4209,8 @@ export class ReaderView extends ItemView {
         const host = this.els?.panel;
         if (!host || !this.panel) return;
         if (this.panel === "context") this.alongside?.remember(false);
+        // Leaving the overview without a pick: the card grows back into the page (#776 FR-22).
+        if (this.panel === "contents" && this.contentsTab === "overview") this.returnToPage();
         // The bar lets go of the button at once: the panel is on its way out.
         this.syncPanelButtons(null);
         // Alongside slides back to the column's edge, then the column widens, your line kept (#754 FR-17).
@@ -3871,7 +4246,7 @@ export class ReaderView extends ItemView {
         this.sheet = null;
         this.scrim?.remove();
         this.scrim = null;
-        this.els?.panel.removeClass(c("reader-panel--closing"));
+        this.els?.panel.removeClass(c("reader-panel--closing"), c("reader-panel--tall"));
         this.els?.panel.removeClass(c("reader-panel--dragging"));
     }
 
@@ -3990,12 +4365,21 @@ export class ReaderView extends ItemView {
             this.onPointerDown(event);
         });
         this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
+        // Two fingers drawn together on a flowing page, as touches (#776 FR-23).
+        this.registerDomEvent(stage, "touchstart", (event: TouchEvent) => this.onPinchTouch(event), { passive: false });
+        this.registerDomEvent(stage, "touchmove", (event: TouchEvent) => this.onPinchTouch(event), { passive: false });
+        this.registerDomEvent(stage, "touchend", (event: TouchEvent) => this.onPinchTouchEnd(event));
+        this.registerDomEvent(stage, "touchcancel", (event: TouchEvent) => this.onPinchTouchEnd(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
         this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
             this.ink?.cancel(event);
             // The system took a finger (a pinch, a gesture of its own): no two-finger back from it.
             this.fingers.delete(event?.pointerId);
             this.twoFinger = null;
+            this.twoStart = null;
+            this.twoKind = "pending";
+            // A pinch the browser took from the pointers goes on in the touches; anything else springs back.
+            if (this.pinchLive && !this.touchPinch) this.releasePinch();
             this.dropTouch();
         });
         // The click a handled tap leaves behind would follow what the page just turned past.
@@ -4032,7 +4416,12 @@ export class ReaderView extends ItemView {
             this.fingers.set(event.pointerId, { x0: event.clientX, y0: event.clientY, x: event.clientX, y: event.clientY });
             if (this.fingers.size >= 2) {
                 this.dropTouch();
-                this.twoFinger ??= [];
+                if (!this.twoFinger) {
+                    this.twoFinger = [];
+                    // Two fingers are decided once (#776 D13): a pinch, back, or a tap.
+                    this.twoKind = "pending";
+                    this.twoStart = { spread: this.fingerSpread(), at: event.timeStamp ?? Date.now() };
+                }
                 return;
             }
         }
@@ -4053,7 +4442,10 @@ export class ReaderView extends ItemView {
             finger.x = event.clientX;
             finger.y = event.clientY;
         }
-        if (this.twoFinger) return;
+        if (this.twoFinger) {
+            this.onTwoFingers(event);
+            return;
+        }
         const touch = this.touch;
         if (!touch || !touchPointer(event)) return;
         const kind = touch.gesture.update({ x: event.clientX, y: event.clientY, t: event.timeStamp });
@@ -4079,16 +4471,26 @@ export class ReaderView extends ItemView {
             return;
         }
         const finger = this.fingers.get(event.pointerId);
+        // The page as the fingers leave it, before one of them is gone (#776 FR-23).
+        const pinched = this.pinchLive;
         this.fingers.delete(event.pointerId);
         if (this.twoFinger) {
             if (finger) this.twoFinger.push({ dx: event.clientX - finger.x0, dy: event.clientY - finger.y0 });
             if (this.fingers.size > 0) return;
             const moves = this.twoFinger;
+            const start = this.twoStart;
             this.twoFinger = null;
+            this.twoStart = null;
             this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+            const kind = this.twoKind !== "pending" ? this.twoKind : twoFingers({ moves, spread0: start?.spread ?? 0, spread: start?.spread ?? 0, ms: (event.timeStamp ?? Date.now()) - (start?.at ?? 0), lifted: true });
+            this.twoKind = "pending";
+            if (pinched) {
+                this.releasePinch();
+                return;
+            }
             // Both fingers swept right: one step back along the trail.
             // A pinch in Page view is a zoom, never the way back (#767).
-            if (twoFingerBack(moves) && !this.pageRun?.pinchedRecently()) this.backFromJump();
+            if (kind === "back" && !this.pageRun?.pinchedRecently()) this.backFromJump();
             return;
         }
         const touch = this.touch;
@@ -4105,6 +4507,105 @@ export class ReaderView extends ItemView {
         if (touch.dir === 0) this.beginSwipe(touch);
         this.applyTouch(touch);
         this.releaseSwipe(touch);
+    }
+
+    /** How far apart the first two fingers on the page are. */
+    private fingerSpread(): number {
+        const [a, b] = [...this.fingers.values()];
+        return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+    }
+
+    /**
+     * Two fingers moving on the page (#776 D13, FR-23): decided once; drawn together on a flowing
+     * page, the page shrinks under them 1:1, about the point between them — nothing redrawn. Page view
+     * and a designed book pinch in their own run (#767), which asks for the overview past its zoom.
+     */
+    private onTwoFingers(event: PointerEvent): void {
+        const start = this.twoStart;
+        const stage = this.els?.stage;
+        if (!start || !stage || this.fingers.size < 2) return;
+        const moves = [...this.fingers.values()].map((f) => ({ dx: f.x - f.x0, dy: f.y - f.y0 }));
+        const spread = this.fingerSpread();
+        if (this.twoKind === "pending") this.twoKind = twoFingers({ moves, spread0: start.spread, spread, ms: (event.timeStamp ?? Date.now()) - start.at, lifted: false });
+        if (this.twoKind !== "pinch" || !this.pinchesHere()) return;
+        const [a, b] = [...this.fingers.values()];
+        this.applyPinch(Math.min(1, spread / Math.max(1, start.spread)), { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    }
+
+    /** Whether two fingers drawn together here shrink the page: a flowing page, not in ink or the overview. */
+    private pinchesHere(): boolean {
+        if (this.runMode() || !this.sourcePath || this.ended || this.ink?.isOpen()) return false;
+        return !(this.panel === "contents" && this.contentsTab === "overview");
+    }
+
+    /**
+     * The same pinch, as touches (#776 FR-23): WebKit hands a page its two fingers as touches too, and
+     * a browser that reads a pinch as its own would cancel the pointers — so the page follows whichever
+     * it hears, and takes the touch from the browser once it is a pinch inward.
+     */
+    private onPinchTouch(event: TouchEvent): void {
+        const touches = event.touches;
+        if (!touches || touches.length < 2 || !this.pinchesHere()) return;
+        const a = touches[0];
+        const b = touches[1];
+        const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        if (!this.touchPinch) {
+            this.touchPinch = { d0: d };
+            return;
+        }
+        const d0 = Math.max(1, this.touchPinch.d0);
+        if (!this.pinchLive && (d >= d0 || (d0 - d) / d0 <= PINCH_SHARE)) return;
+        if (event.cancelable) event.preventDefault();
+        this.twoKind = "pinch";
+        this.applyPinch(Math.min(1, d / d0), { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+    }
+
+    private onPinchTouchEnd(event: TouchEvent): void {
+        if (event.touches && event.touches.length >= 2) return;
+        this.touchPinch = null;
+        if (this.pinchLive) this.releasePinch();
+    }
+
+    /** The page under the fingers, 1:1, about the point between them — nothing laid out or redrawn. */
+    private applyPinch(scale: number, mid: { x: number; y: number }): void {
+        const stage = this.els?.stage;
+        if (!stage) return;
+        const box = stage.getBoundingClientRect();
+        this.pinchLive = { scale };
+        stage.addClass(c("reader-stage--pinching"));
+        stage.setCssProps({
+            "--zf-pinch-s": String(Math.round(scale * 1000) / 1000),
+            "--zf-pinch-x": `${Math.round(mid.x - box.left)}px`,
+            "--zf-pinch-y": `${Math.round(mid.y - box.top)}px`,
+        });
+    }
+
+    /**
+     * A pinch let go (FR-23): small enough, the page carries on into its card — the overview opens
+     * from that scale; short of it, the page springs back. A finger moving it is never an animation;
+     * the spring is, and under reduced motion it is simply back.
+     */
+    private releasePinch(): void {
+        const stage = this.els?.stage;
+        const scale = this.pinchLive?.scale ?? 1;
+        this.pinchLive = null;
+        if (!stage) return;
+        const clear = () => {
+            stage.removeClass(c("reader-stage--pinching"));
+            stage.setCssProps({ "--zf-pinch-s": "1" });
+        };
+        if (pinchRelease(scale) === "card") {
+            clear();
+            this.openOverview(scale);
+            return;
+        }
+        if (!this.motionAllowed() || typeof stage.animate !== "function") {
+            clear();
+            return;
+        }
+        const spring = stage.animate([{ scale: String(scale) }, { scale: "1" }], { duration: MOTION.base, easing: MOTION.ease });
+        stage.setCssProps({ "--zf-pinch-s": "1" });
+        spring.onfinish = clear;
     }
 
     /** The outer fifth on each side turns a screen, as Space does; the middle shows or hides the bar. */
@@ -4274,6 +4775,8 @@ export class ReaderView extends ItemView {
         const bind = (modifiers: Modifier[] | null, key: string, run: () => boolean) =>
             scope.register(modifiers, key, (event: KeyboardEvent) => {
                 if (isTyping(event.target)) return true;
+                // On the overview's cards the arrows, Home, End and Space move between cards (#776 FR-16).
+                if (modifiers?.length === 0 && OVERVIEW_KEYS.has(key) && (event.target as HTMLElement | null)?.closest?.(`.${c("reader-overview")}`)) return true;
                 // In deep reading the keys that read turn quietly; any other brings the chrome back (FR-3, FR-4).
                 const quiet = this.deep && isReadingKey(event.key, { shift: event.shiftKey, ctrl: event.ctrlKey, meta: event.metaKey, alt: event.altKey });
                 if (!quiet) this.wake();
@@ -4728,3 +5231,34 @@ export class ReaderView extends ItemView {
 }
 
 export { READER_VIEW };
+
+type Box = { left: number; top: number; width: number; height: number };
+
+/** An element's box on screen. */
+function boxOf(el: HTMLElement): Box {
+    const r = el.getBoundingClientRect();
+    return { left: r.left, top: r.top, width: r.width, height: r.height };
+}
+
+/** A card on its way to its page, or back (#776): its paper, and a copy of what is drawn on it. */
+function cardGhost(root: HTMLElement, sheet: HTMLElement): HTMLElement {
+    const ghost = root.createDiv({ cls: c("reader-overview-ghost") });
+    ghost.remove();
+    const picture = sheet.querySelector<HTMLElement>(`.${c("reader-overview-picture")}`);
+    if (picture) {
+        const copy = picture.cloneNode(true) as HTMLElement;
+        copyLive(picture, copy);
+        copy.addClass(c("reader-overview-ghost-picture"));
+        ghost.appendChild(copy);
+    }
+    return ghost;
+}
+
+/** A preview keeps its first `keep` blocks (#776 D11): the rest of the chapter is let go, never hidden. */
+function pruneBlocks(body: HTMLElement, keep: number): void {
+    let parent: Element = body;
+    for (let depth = 0; depth < 3 && parent.children.length === 1 && (parent.firstElementChild?.children.length ?? 0) > 1; depth++) {
+        parent = parent.firstElementChild as Element;
+    }
+    for (const child of Array.from(parent.children).slice(keep)) child.remove();
+}

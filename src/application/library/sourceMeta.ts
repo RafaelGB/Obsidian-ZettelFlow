@@ -35,6 +35,11 @@ export interface SourceMeta {
     at?: number;
     /** You reached the end at least once. */
     done?: boolean;
+    /**
+     * The chapters you read to their end (#776 P1), by place: the overview fills their hairline. Kept
+     * as you leave each one at its end — never a count shown anywhere.
+     */
+    read?: number[];
     /** The places you bookmarked (#761): places, never thoughts — kept beside where you are. */
     bookmarks?: Bookmark[];
     /**
@@ -97,6 +102,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (num(v.scroll) && v.scroll >= 0 && v.scroll <= 1) meta.scroll = v.scroll;
         if (num(v.at) && v.at > 0) meta.at = v.at;
         if (v.done === true) meta.done = true;
+        const read = normalizeRead(v.read, meta.chapters);
+        if (read.length > 0) meta.read = read;
         const bookmarks = normalizeBookmarks(v.bookmarks);
         if (bookmarks.length > 0) meta.bookmarks = bookmarks;
         const view = normalizePageView(v.view);
@@ -129,6 +136,9 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.chapter !== undefined) next.chapter = Math.min(previous.chapter, next.chapters! - 1);
     if (previous?.at) next.at = previous.at;
     if (previous?.done) next.done = true;
+    // The chapters read to their end are kept, as the place is (#776 P1).
+    const read = normalizeRead(previous?.read, next.chapters);
+    if (read.length > 0) next.read = read;
     // A new copy of the book keeps its bookmarks, as it keeps its place (#761 FR-2).
     if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
     // And how you read it in Page view (#767).
@@ -164,6 +174,24 @@ export function withBookmarks(map: LibraryMeta, path: string, list: readonly Boo
     delete previous.bookmarks;
     const next: SourceMeta = list.length > 0 ? { ...previous, bookmarks: [...list] } : previous;
     return prune({ ...map, [path]: next });
+}
+
+/** Chapter places, whole, in range, once each and in order: at most one per chapter (#776 P1). */
+function normalizeRead(raw: unknown, chapters?: number): number[] {
+    if (!Array.isArray(raw)) return [];
+    const limit = chapters ?? LIBRARY_LIMIT;
+    const seen = new Set<number>();
+    for (const value of raw) if (num(value) && Number.isInteger(value) && value >= 0 && value < limit) seen.add(value);
+    return [...seen].sort((a, b) => a - b).slice(0, limit);
+}
+
+/** A chapter read to its end (#776 P1): kept once, beside the place. */
+export function withRead(map: LibraryMeta, path: string, chapter: number, total: number, size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    const chapters = previous.chapters ?? Math.max(1, total);
+    const read = normalizeRead([...(previous.read ?? []), chapter], chapters);
+    if (read.length === (previous.read?.length ?? 0)) return map;
+    return prune({ ...map, [path]: { ...previous, read } });
 }
 
 /** Remember where you are in a source. The last chapter marks it read, and stays read. */

@@ -1,5 +1,6 @@
 @use '../utils/mixins' as *;
 @use '../utils/variables' as *;
+@use '../utils/motion' as *;
 
 /*
  * A PDF or an EPUB in the Reader (#681, #682, epic #675). The page is the Reader's own: a paper's
@@ -403,14 +404,35 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* The *Pages* tab (FR-10): the pages at a glance, the current one marked, each with its label. */
-.zettelkasten-flow__reader-pv-thumbs {
+/*
+ * The overview (#776): every page or chapter of a book as a card — #767's *Pages* tab, grown to every
+ * source. A card is a sheet of the page's shape that waits as paper (FR-10), its picture fading in once
+ * (FR-24); your marks sit on it, never counted (D9); a chapter's progress is a hairline (D10).
+ */
+.zettelkasten-flow__reader-overview {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(calc(var(--size-4-12) * 2), 1fr));
     gap: var(--size-4-3);
 }
 
-.zettelkasten-flow__reader button.zettelkasten-flow__reader-pv-thumb {
+/* The cards settle in from just behind the page as it lands in its card: one move (FR-20). */
+.zettelkasten-flow__reader-overview--arriving {
+    animation: zf-reader-overview-arrive $motion-cover $ease-out both;
+}
+
+@keyframes zf-reader-overview-arrive {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+/* In the tall sheet of an iPad in portrait, a page of cards (D5): a little larger to the finger. */
+.zettelkasten-flow__reader-panel--tall .zettelkasten-flow__reader-overview {
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--size-4-16) * 2), 1fr));
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-overview-card {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -432,16 +454,37 @@
     }
 }
 
-.zettelkasten-flow__reader-pv-thumb-sheet {
+.zettelkasten-flow__reader-overview-sheet {
     position: relative;
-    aspect-ratio: 1 / var(--zf-thumb-ratio, 1.294);
+    aspect-ratio: 1 / var(--zf-card-ratio, 1.294);
     overflow: hidden;
     border: var(--border-width) solid var(--reader-line);
     border-radius: var(--radius-s);
     background-color: var(--color-base-00);
 }
 
-.zettelkasten-flow__reader-pv-thumb-canvas {
+/* A chapter's card is its page: the reader's own paper, in your theme. */
+.zettelkasten-flow__reader-overview-card--chapter .zettelkasten-flow__reader-overview-sheet {
+    background-color: var(--reader-bg);
+}
+
+.zettelkasten-flow__reader-overview-picture {
+    position: absolute;
+    inset: 0;
+}
+
+/* A first drawing fades in, as Page view's pages do (FR-24): never a cut. */
+.zettelkasten-flow__reader-overview-picture--drawn {
+    animation: zf-reader-overview-in $motion-fast $ease-out both;
+}
+
+@keyframes zf-reader-overview-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.zettelkasten-flow__reader-overview-canvas {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -450,22 +493,132 @@
     object-fit: contain;
 }
 
-.zettelkasten-flow__reader-pv-thumb-label {
+/* A designed page in its card (#771): its own boundary, drawn once at its size and scaled. */
+.zettelkasten-flow__reader-overview-designed {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+/* How a chapter's page starts (D11): the column at its own width, in your type, made small. */
+.zettelkasten-flow__reader-overview-preview {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    > .zettelkasten-flow__reader-body {
+        width: var(--zf-card-column, 36rem);
+        max-width: none;
+        margin: 0;
+        padding: var(--size-4-6) var(--reader-gutter);
+        transform: scale(var(--zf-card-scale, 0.16));
+        transform-origin: 0 0;
+    }
+}
+
+.zettelkasten-flow__reader-overview[dir="rtl"] .zettelkasten-flow__reader-overview-preview > .zettelkasten-flow__reader-body {
+    transform-origin: 100% 0;
+}
+
+/* Your marks on the card, never a number (D9): ticks along its edge, a pen, the ribbon. */
+.zettelkasten-flow__reader-overview-marks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-overview-ticks {
+    position: absolute;
+    top: var(--size-4-1);
+    bottom: var(--size-4-1);
+    inset-inline-start: 0;
+    width: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-overview-tick {
+    position: absolute;
+    inset-inline-start: 0;
+    top: var(--zf-tick-at, 0);
+    width: var(--size-4-1);
+    height: var(--size-4-2);
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
+    background-color: var(--zf-ink-solid, var(--interactive-accent));
+}
+
+.zettelkasten-flow__reader-overview-pen {
+    position: absolute;
+    left: var(--size-4-1);
+    bottom: var(--size-4-1);
+    display: flex;
+    color: var(--reader-muted);
+    --icon-size: var(--icon-xs);
+}
+
+.zettelkasten-flow__reader-overview-ribbon {
+    position: absolute;
+    top: 0;
+    right: var(--size-4-1);
+    display: flex;
+    color: var(--interactive-accent);
+    --icon-size: var(--icon-xs);
+}
+
+/* A chapter's progress (D10): a hairline at its foot, the top hairline's fill — never a percentage. */
+.zettelkasten-flow__reader-overview-progress {
+    height: var(--size-2-1);
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background-color: var(--reader-line);
+}
+
+.zettelkasten-flow__reader-overview-progress-fill {
+    display: block;
+    height: 100%;
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    transform: scaleX(var(--zf-card-progress, 0));
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__reader-overview-label {
+    overflow: hidden;
     color: var(--reader-muted);
     font-size: var(--font-ui-smaller);
     font-variant-numeric: tabular-nums;
     text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* A thumbnail on its way to its page (FR-22): the paper, and the picture over it. */
-.zettelkasten-flow__reader-pv-ghost {
+/* The page, or a card, on its way (FR-20–FR-22): the paper, and what is drawn on it. */
+.zettelkasten-flow__reader-overview-ghost {
     overflow: hidden;
     border-radius: var(--radius-s);
-    background-color: var(--color-base-00);
+    background-color: var(--reader-bg, var(--color-base-00));
     box-shadow: var(--shadow-s);
+}
 
-    canvas {
-        width: 100%;
-        height: 100%;
+.zettelkasten-flow__reader-overview-ghost .zettelkasten-flow__reader-overview-ghost-picture {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: none;
+    translate: none;
+    scale: none;
+}
+
+/* The page in the ghost is the page itself, copied: its width, its lines, where you were. */
+.zettelkasten-flow__reader-overview-ghost .zettelkasten-flow__reader-overview-ghost-page {
+    width: var(--zf-ghost-page-w, 100%);
+    transform: translateY(var(--zf-ghost-shift, 0));
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-overview--arriving,
+    .zettelkasten-flow__reader-overview-picture--drawn {
+        animation: none;
     }
 }

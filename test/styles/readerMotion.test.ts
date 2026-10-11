@@ -356,3 +356,39 @@ describe("waiting on your AI provider feels like a pen about to write (#759 FR-1
         expect(block).toContain("transition: opacity $motion-fast $ease-out;");
     });
 });
+
+describe("the overview is a camera, never a swap (#776 AC-15)", () => {
+    const css = sheet("components/readerSource.scss");
+
+    it("moves its cards in and its pictures in by transform and opacity only", () => {
+        const frames = [...css.matchAll(/@keyframes\s+(zf-reader-overview[\w-]*)\s*\{([\s\S]*?)\n\}/g)];
+        expect(frames.map((m) => m[1]).sort()).toEqual(["zf-reader-overview-arrive", "zf-reader-overview-in"]);
+        for (const frame of frames) {
+            const props = [...frame[2].matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]);
+            expect(props.every((prop) => prop === "transform" || prop === "opacity")).toBe(true);
+        }
+    });
+
+    it("is instant under reduced motion: the arrival, the fade and the tall sheet", () => {
+        const own = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(own).toContain(".zettelkasten-flow__reader-overview--arriving");
+        expect(own).toContain(".zettelkasten-flow__reader-overview-picture--drawn");
+        const reader = sheet("components/reader.scss");
+        const reduced = [...reader.matchAll(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/g)].map((m) => m[1]).join("\n");
+        expect(reduced).toContain(".zettelkasten-flow__reader-panel--tall,");
+        expect(reduced).toContain(".zettelkasten-flow__reader-overview-picture {");
+    });
+
+    it("pinches the page by a transform only, never a size", () => {
+        const reader = sheet("components/reader.scss");
+        const rule = reader.slice(reader.indexOf(".zettelkasten-flow__reader-stage--pinching {"));
+        const body = rule.slice(0, rule.indexOf("}"));
+        expect(body).toContain("scale: var(--zf-pinch-s, 1);");
+        expect(body).not.toMatch(/\b(width|height|zoom)\s*:/);
+    });
+
+    it("keeps its card picture to a grid of transforms: the preview is scaled, never laid out small", () => {
+        const preview = css.slice(css.indexOf(".zettelkasten-flow__reader-overview-preview {"));
+        expect(preview.slice(0, preview.indexOf("\n}\n"))).toContain("transform: scale(var(--zf-card-scale, 0.16));");
+    });
+});

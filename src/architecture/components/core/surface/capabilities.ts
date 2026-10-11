@@ -126,6 +126,7 @@ export const CAPABILITIES = [
     "reader-link-idea",
     "reader-lookup",
     "reader-translate",
+    "reader-overview",
     "library",
     "highlights-review",
     "claim-door",
@@ -438,6 +439,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_hl_translate",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-overview": {
+        // The overview (#776, epic #742): every page or chapter of a book or a paper as a card, one tap
+        // on the Reader's bar from any view — the door #767's Pages tab never had. Also a Contents tab.
+        nameKey: "reader_overview",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

@@ -908,6 +908,50 @@ you write the note, the passage stays marked; cancel and the mark goes.
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
 
+## Layers, and read it clean
+
+A book read twice carries two readings on top of each other: what struck you the first time, what
+you wrote back to it later, the references you chased for a project. **Layers** keep each pass in its
+own ink, and **read it clean** puts every mark away so the page is just the book again — then gives
+your thinking back, **in the order you had it**.
+
+![Layers, and read it clean: a chapter mid-reveal, marks returning one after another under still words with their notes sliding into the margin; the Layers panel with Reading, Reflection and Research, each with what it is for and a switch, New marks go to with Reflection chosen, and Hide my annotations; the bar's Layers button with Reflection beside it; the pill Reading clean · Reveal my thinking](../resources/reader/layers.svg)
+
+- **Three layers.** Every mark is on one: **Reading** (*what you mark the first time*),
+  **Reflection** (*what you write after*) and **Research** (*sources, contradictions, references*). A
+  highlight, a margin note, a page note and [ink](#ink-in-the-margin) all use the same three. A mark
+  made before layers existed is on Reading, and nothing is rewritten for it.
+- **The Layers panel.** **Layers** in the Reader's bar, beside *Contents* and *Type*, lists the three
+  with a switch to show each, and **New marks go to** — Reading until you choose another. A layer
+  with nothing in this chapter is dimmed; nothing in the panel counts.
+- **Remembered per book.** Where new marks go and which layers are hidden are kept for each book,
+  paper or article (or the note a reading began from). When new marks go anywhere but Reading, the
+  layer's name sits quietly beside the button — on a narrow pane, a small dot — so a mark never lands
+  where you did not expect. While a layer is hidden the button reads as active.
+- **Hidden means hidden everywhere.** A hidden layer leaves the page, the margin's list, a PDF's
+  notes on a page, Page view's highlights and ink. The margin's meaning chips narrow too: a mark is
+  shown when its layer is shown *and* its meaning is chosen.
+- **Change a mark's layer** from the menu you get by clicking it, under its meanings: one recorded
+  write you can undo, like changing its meaning.
+- **Hide my annotations** — *read it clean* — puts every mark of every layer away in one quiet fade,
+  and a pill at the top of the column says **Reading clean · Reveal my thinking**. A mark you make
+  while reading clean is shown. Clean lasts for the sitting: open the book again and your marks are
+  there.
+- **Reveal my thinking**, from the pill or the panel, brings them back: the marks of the page on
+  screen return **one by one, in the order you made them**, each where it was, its note sliding in
+  beside it; the rest are simply there.
+- **Hiding never writes.** Hiding, showing and revealing change what is drawn, never what is kept:
+  nothing is written to a thought, a book or the write record.
+
+### The ink moves, never the text
+
+A mark's tint is lifted for the move: the words keep their place and their colour, and only the
+ink under them fades — in as each mark returns (250 ms, the next one 350 ms later, or sooner so a
+whole chapter is back within four seconds), out all at once when you hide (120 ms). Showing or
+hiding one layer fades just its ink. Any key, click or scroll during a reveal completes it at once,
+and a reveal never staggers while you are selecting. Under reduced motion every mark simply
+returns, or leaves, at once.
+
 ## Ink in the margin
 
 With an Apple Pencil in hand, selecting words with a finger and typing is the wrong tool. Tap the
@@ -1396,7 +1440,7 @@ judgement record, never a write to a note, and whether it is open and its lens a
 device only. A move by your AI provider writes only what you accept: one thought. **Make it a
 claim** writes one new note when you press *Create* — create-only, through the claim's one writer
 (`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
-the idea's `source` list, through #751's one writer. **What survived?** writes nothing: the time spent on
+the idea's `source` list, through #751's one writer. **Layers** write only the layer a new mark is made on, beside its meaning (`layer:`, never for Reading), and the layers you show and where new marks go, per book, in the plugin's settings; hiding and revealing write nothing. **What survived?** writes nothing: the time spent on
 a chapter and a skip live in memory only, the switch is one of your type choices, and a note comes
 only from the preview's *Create note*.
 

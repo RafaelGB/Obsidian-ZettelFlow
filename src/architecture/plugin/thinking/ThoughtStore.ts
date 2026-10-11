@@ -1,4 +1,5 @@
 import type { HighlightMeaning } from "application/thinking/highlightMeaning";
+import type { MarkLayer } from "application/thinking/markLayer";
 import { TFile } from "obsidian";
 import type { ThoughtRef } from "architecture/knowledge/timeline/timelineEvents";
 import { v4 as uuid4 } from "uuid";
@@ -85,6 +86,8 @@ export class ThoughtStore {
             meaning?: HighlightMeaning;
             /** The Reader's move it was accepted from (#756). */
             madeBy?: ThoughtMadeBy;
+            /** The layer a mark is made on (#758): absent, or reading, is never written. */
+            layer?: MarkLayer;
         } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
@@ -148,7 +151,7 @@ export class ThoughtStore {
             quote?: ThoughtQuote;
             locator?: ThoughtLocator;
             ink: DistributiveOmit<ThoughtInk, "drawing">;
-            layer?: string;
+            layer?: MarkLayer;
         },
         svg: string
     ): Promise<Thought | undefined> {

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-label="Layers, and read it clean. A chapter mid-reveal: your marks come back one after another in the order you made them — the first already in its ink, the second sweeping in under still words, the third still away — each note sliding into the margin beside its mark. On the right, the Layers panel: Reading, Reflection and Research, each with what it is for and a switch, Reflection dimmed because nothing of it is in this chapter; New marks go to, with Reflection chosen; and Hide my annotations. On the bar, the Layers button with Reflection beside it. Above, the pill Reading clean · Reveal my thinking. No number anywhere.">
+<rect width="1200" height="900" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="760" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">MIDDLEMARCH  ·  GEORGE ELIOT</text>
+<text x="1130" y="102" fill="#5f6168" font-family="sans-serif" font-size="20" text-anchor="middle">×</text>
+
+<!-- the pill, on its way out: Reveal my thinking was pressed -->
+<g opacity="0.45">
+<rect x="330" y="116" width="270" height="30" rx="15" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="352" y="136" fill="#8b8e94" font-family="sans-serif" font-size="13">Reading clean</text>
+<text x="450" y="136" fill="#5f6168" font-family="sans-serif" font-size="13">·</text>
+<text x="462" y="136" fill="#a28df5" font-family="sans-serif" font-size="13" font-weight="600">Reveal my thinking</text>
+</g>
+
+<!-- the page: the words never move; only the ink under them -->
+<text x="110" y="196" fill="#dcddde" font-family="Georgia, serif" font-size="26" font-weight="700">Miss Brooke</text>
+<!-- mark 1: back, its ink at rest -->
+<rect x="108" y="222" width="316" height="22" rx="4" fill="#e0c050" fill-opacity="0.38"/>
+<text x="110" y="238" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">Miss Brooke had that kind of beauty which</text>
+<text x="110" y="266" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">seems to be thrown into relief by poor dress. She</text>
+<text x="110" y="294" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">was regarded as remarkably clever, but with the</text>
+<text x="110" y="322" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">addition that her sister had more common sense.</text>
+<!-- mark 2: sweeping in now, half its ink -->
+<rect x="108" y="362" width="402" height="22" rx="4" fill="#5b8def" fill-opacity="0.16"/>
+<rect x="108" y="390" width="196" height="22" rx="4" fill="#5b8def" fill-opacity="0.16"/>
+<text x="110" y="378" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">What could she do, what ought she to do, with a</text>
+<text x="110" y="406" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">mind that ran ahead?</text>
+<text x="110" y="434" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">The town measured everything by what the</text>
+<text x="110" y="462" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">neighbours would say, and found most things</text>
+<!-- mark 3: still away — where it will be, drawn only as a hint for the reader of this picture -->
+<rect x="108" y="474" width="328" height="22" rx="4" fill="none" stroke="#5f6168" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="110" y="490" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">wanting by that measure. A letter arrived</text>
+<text x="110" y="518" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">that changed nothing at once, and everything</text>
+<text x="110" y="546" fill="#c8c9cc" font-family="Georgia, serif" font-size="16">by the end of the season.</text>
+
+<!-- the margin: each note slides in beside its mark -->
+<rect x="540" y="222" width="150" height="58" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="540" y="222" width="4" height="58" rx="2" fill="#e0c050"/>
+<text x="552" y="244" fill="#8b8e94" font-family="Georgia, serif" font-size="12" font-style="italic">“that kind of beauty”</text>
+<text x="552" y="266" fill="#dcddde" font-family="sans-serif" font-size="12">Plainness as a choice?</text>
+<g opacity="0.55" transform="translate(6 0)">
+<rect x="540" y="362" width="150" height="58" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<rect x="540" y="362" width="4" height="58" rx="2" fill="#5b8def"/>
+<text x="552" y="384" fill="#8b8e94" font-family="Georgia, serif" font-size="12" font-style="italic">“what ought she to do”</text>
+<text x="552" y="406" fill="#dcddde" font-family="sans-serif" font-size="12">Hers, or the town’s?</text>
+</g>
+<path d="M 532 391 l -10 0" stroke="#5b8def" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+
+<!-- the order: one after another, as you made them -->
+<path d="M 110 590 C 260 606 380 606 520 590" fill="none" stroke="#5f6168" stroke-width="1.2" stroke-dasharray="3 5"/>
+<circle cx="140" cy="594" r="5" fill="#e0c050"/>
+<circle cx="320" cy="601" r="5" fill="#5b8def" fill-opacity="0.6"/>
+<circle cx="500" cy="592" r="5" fill="none" stroke="#5f6168" stroke-width="1.2"/>
+<text x="110" y="628" fill="#8b8e94" font-family="sans-serif" font-size="13" font-style="italic">Your marks return in the order you made them — the words never move.</text>
+
+<!-- the Layers panel -->
+<rect x="738" y="132" width="390" height="470" rx="12" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="762" y="168" fill="#dcddde" font-family="sans-serif" font-size="16" font-weight="600">Layers</text>
+<text x="1102" y="170" fill="#8b8e94" font-family="sans-serif" font-size="17" text-anchor="middle">×</text>
+
+<text x="762" y="212" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600">Reading</text>
+<text x="762" y="232" fill="#8b8e94" font-family="sans-serif" font-size="12">What you mark the first time</text>
+<rect x="1058" y="206" width="40" height="22" rx="11" fill="#7f6df2"/>
+<circle cx="1087" cy="217" r="8" fill="#ffffff"/>
+
+<text x="762" y="276" fill="#5f6168" font-family="sans-serif" font-size="14" font-weight="600">Reflection</text>
+<text x="762" y="296" fill="#5f6168" font-family="sans-serif" font-size="12">What you write after</text>
+<rect x="1058" y="270" width="40" height="22" rx="11" fill="#7f6df2"/>
+<circle cx="1087" cy="281" r="8" fill="#ffffff"/>
+
+<text x="762" y="340" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600">Research</text>
+<text x="762" y="360" fill="#8b8e94" font-family="sans-serif" font-size="12">Sources, contradictions, references</text>
+<rect x="1058" y="334" width="40" height="22" rx="11" fill="#3a3a3f"/>
+<circle cx="1069" cy="345" r="8" fill="#8b8e94"/>
+
+<text x="762" y="408" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="0.6">NEW MARKS GO TO</text>
+<rect x="762" y="420" width="342" height="34" rx="8" fill="#18181b" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="818" y="442" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Reading</text>
+<rect x="878" y="424" width="110" height="26" rx="6" fill="#2b2b30"/>
+<text x="933" y="442" fill="#dcddde" font-family="sans-serif" font-size="13" text-anchor="middle">Reflection</text>
+<line x1="896" y1="450" x2="970" y2="450" stroke="#7f6df2" stroke-width="2.5" stroke-linecap="round"/>
+<text x="1046" y="442" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Research</text>
+
+<rect x="938" y="540" width="166" height="34" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1021" y="562" fill="#dcddde" font-family="sans-serif" font-size="13" text-anchor="middle">Hide my annotations</text>
+
+<!-- the bar: the Layers button, active while a layer is hidden, and where new marks go -->
+<rect x="300" y="672" width="600" height="46" rx="23" fill="#202024" stroke="#3a3a3a" stroke-width="1.2"/>
+<text x="330" y="701" fill="#8b8e94" font-family="sans-serif" font-size="16">‹</text>
+<text x="354" y="700" fill="#8b8e94" font-family="sans-serif" font-size="13">Chapter 2 / 6</text>
+<text x="470" y="701" fill="#8b8e94" font-family="sans-serif" font-size="16">›</text>
+<line x1="496" y1="684" x2="496" y2="706" stroke="#3a3a3a" stroke-width="1"/>
+<text x="518" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15">☰</text>
+<text x="554" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15">✎</text>
+<text x="588" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="600">T</text>
+<rect x="614" y="680" width="30" height="30" rx="6" fill="#2b2b30"/>
+<path d="M 629 687 l 9 4.5 l -9 4.5 l -9 -4.5 z M 620 695.5 l 9 4.5 l 9 -4.5 M 620 699.5 l 9 4.5 l 9 -4.5" fill="none" stroke="#a28df5" stroke-width="1.5" stroke-linejoin="round"/>
+<rect x="650" y="684" width="78" height="22" rx="11" fill="#18181b" stroke="#3a3a3a" stroke-width="1"/>
+<text x="689" y="699" fill="#8b8e94" font-family="sans-serif" font-size="12" text-anchor="middle">Reflection</text>
+<text x="752" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15">▤</text>
+<text x="790" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15">◎</text>
+<text x="830" y="701" fill="#8b8e94" font-family="sans-serif" font-size="15">⌨</text>
+
+<text x="600" y="838" fill="#8b8e94" font-family="sans-serif" font-size="14" text-anchor="middle">Hiding and revealing write nothing: they change what is drawn, never what is kept.</text>
+</svg>

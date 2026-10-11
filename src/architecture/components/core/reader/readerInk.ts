@@ -6,6 +6,7 @@ import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { anchorAll, anchorQuote, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
 import { isHighlight, isInk, isPageInk, linkThoughts, unlinkThought, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
 import { meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
+import { DEFAULT_LAYER, type MarkLayer } from "application/thinking/markLayer";
 import { bandWords, extendsHighlight, isLineStroke, linesOf, strokeMetrics } from "application/reader/ink/strokeHighlight";
 import { pageHeadingAt, type PageText } from "application/library/pdfWords";
 import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, INK_WIDTH_EM, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
@@ -53,7 +54,7 @@ export interface InkStore {
     folder(): string;
     highlightsAbout(notePath: string): Promise<Thought[]>;
     writeInk(
-        input: { text?: string; about: string; quote?: ThoughtQuote; locator?: ThoughtLocator; ink: { side: InkAnchor["side"]; x: number; line: number; em: number } | { page: { px: number; py: number; pw: number; ph: number } }; layer?: string },
+        input: { text?: string; about: string; quote?: ThoughtQuote; locator?: ThoughtLocator; ink: { side: InkAnchor["side"]; x: number; line: number; em: number } | { page: { px: number; py: number; pw: number; ph: number } }; layer?: MarkLayer },
         svg: string
     ): Promise<Thought | undefined>;
     drawingOf(thought: Thought): Promise<string | undefined>;
@@ -82,6 +83,10 @@ export interface InkView {
     pageLabel?(index: number): string;
     /** Where a printed page is, exactly (#751 FR-5): its place, label, key and print page. */
     pageLocator?(index: number): ThoughtLocator;
+    /** The layer new ink goes to in this reading (#758 FR-4): reading until you choose another. */
+    layerForNew?(): MarkLayer;
+    /** Marks were drawn outside a chapter's redraw — a printed page's, as it appeared (#758). */
+    drawn?(): void;
 }
 
 /** What a stroke across a line asks of the highlights — the same engine a selection uses (#746). */
@@ -589,6 +594,19 @@ export class ReaderInk {
         this.lastInk = null;
     }
 
+    /** The layer new ink goes to (#758 FR-4); the reading layer is never written. */
+    private newLayer(): { layer?: MarkLayer } {
+        const layer = this.view.layerForNew?.() ?? DEFAULT_LAYER;
+        return layer === DEFAULT_LAYER ? {} : { layer };
+    }
+
+    /** Every ink note and printed page's highlight known now (#758): what the layers show or hide. */
+    marks(): Thought[] {
+        const seen = new Map<string, Thought>();
+        for (const thought of [...this.listed.map((entry) => entry.thought), ...(this.runInk?.thoughts ?? []), ...(this.runInk?.highlights ?? [])]) seen.set(thought.id, thought);
+        return [...seen.values()];
+    }
+
     private allNotes(): KeptNote[] {
         return [...this.notes, ...this.runNotes];
     }
@@ -750,8 +768,11 @@ export class ReaderInk {
             if (thought.locator?.at !== index || !thought.quote || page.marks.has(thought.id)) continue;
             const span = anchorQuote(text.text, thought.quote);
             if (!span) continue;
-            page.marks.set(thought.id, this.pageRects(page.layer, text, span, meaningOf(thought)));
+            const rects = this.pageRects(page.layer, text, span, meaningOf(thought));
+            rects.forEach((rect) => rect.setAttribute("data-hl", thought.id));
+            page.marks.set(thought.id, rects);
         }
+        this.view.drawn?.();
     }
 
     /** One rectangle per run of words on a line, in fractions of the page — exact through any zoom. */
@@ -788,6 +809,7 @@ export class ReaderInk {
             note.el.setAttribute("transform", `translate(${round3(origin[0])} ${round3(origin[1])})`);
             this.runNotes.push(note);
         }
+        this.view.drawn?.();
     }
 
     // ── the pointer ──────────────────────────────────────────────────────────
@@ -1169,8 +1191,10 @@ export class ReaderInk {
         entry.result = engine.keepPassage(locator, quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) }).then((thought) => {
             if (!thought) rects.forEach((rect) => rect.remove());
             else {
+                rects.forEach((rect) => rect.setAttribute("data-hl", thought.id));
                 marks.marks.set(thought.id, rects);
                 this.runInk?.highlights.push(thought);
+                this.view.drawn?.();
             }
             return thought;
         });
@@ -1766,7 +1790,7 @@ export class ReaderInk {
         if (surface.page) {
             const aspect = surface.page.aspect;
             const anchor = pageAnchor(box, { left: 0, top: 0, width: PAGE_EMS, height: PAGE_EMS * aspect });
-            input = { about: chapter.notePath, locator: this.view.pageLocator?.(surface.page.index) ?? { at: surface.page.index, label: chapter.locator?.label ?? "" }, ink: { page: anchor } };
+            input = { about: chapter.notePath, locator: this.view.pageLocator?.(surface.page.index) ?? { at: surface.page.index, label: chapter.locator?.label ?? "" }, ink: { page: anchor }, ...this.newLayer() };
             note = this.makeNoteEl(surface.svg, null, drawing, "saving");
             note.surface = surface.page.index;
             note.origin = origin;
@@ -1785,6 +1809,7 @@ export class ReaderInk {
                 ...(quote ? { quote } : {}),
                 ...(chapter.locator ? { locator: chapter.locator } : {}),
                 ink: { side: anchor.side, x: anchor.x, line: anchor.line, em: anchor.em },
+                ...this.newLayer(),
             };
             note = this.makeNoteEl(surface.svg, null, drawing, "saving");
             note.surface = "text";
@@ -1838,6 +1863,8 @@ export class ReaderInk {
             return;
         }
         note.thought = made;
+        // Named now it is kept: what the layers find it by (#758).
+        note.el.setAttribute("data-ink", made.id);
         note.state = "kept";
         note.retry = undefined;
         this.listed = [...this.listed.filter((entry) => entry.thought.id !== made?.id), { thought: made, drawing: { strokes: note.strokes.map((s) => s.data) }, reason: null }];

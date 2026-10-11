@@ -17,6 +17,7 @@
  */
 
 import { isMeaning, type HighlightMeaning } from "./highlightMeaning";
+import { DEFAULT_LAYER, isLayer, type MarkLayer } from "./markLayer";
 import type { Incubation } from "./incubation";
 import type { TextQuote } from "./quoteAnchor";
 import type { InkSide, PageInkAnchor } from "application/reader/ink/inkAnchor";
@@ -139,8 +140,11 @@ export interface Thought {
      * never the points: those live in the drawing.
      */
     ink?: ThoughtInk;
-    /** The layer this thought was made on (#758 R4). Absent is the reading layer; nothing reads it yet. */
-    layer?: string;
+    /**
+     * The layer this mark was made on (#758): reflection or research. Absent is the reading layer,
+     * which is never written, so every mark made before layers reads as reading and stays as it was.
+     */
+    layer?: MarkLayer;
     /**
      * The Reader's move this thought was accepted from (#756): *Contradict* on a passage, say. It
      * carries its passage (`quote`, `locator`) as a highlight does, but it is your answer to a
@@ -207,7 +211,7 @@ export interface NewThought {
     locator?: ThoughtLocator;
     meaning?: HighlightMeaning;
     ink?: ThoughtInk;
-    layer?: string;
+    layer?: MarkLayer;
     madeBy?: ThoughtMadeBy;
 }
 
@@ -225,7 +229,7 @@ export function newThought(input: NewThought): Thought {
         ...(input.locator ? { locator: input.locator } : {}),
         ...(input.meaning ? { meaning: input.meaning } : {}),
         ...(input.ink?.drawing ? { ink: input.ink } : {}),
-        ...(input.layer ? { layer: input.layer } : {}),
+        ...(input.layer && input.layer !== DEFAULT_LAYER ? { layer: input.layer } : {}),
         ...(input.madeBy ? { madeBy: input.madeBy } : {}),
     };
 }
@@ -309,7 +313,8 @@ export function renderThought(thought: Thought): string {
         if (isPageInk(ink)) lines.push(`  inkPage: "${ink.page.px} ${ink.page.py} ${ink.page.pw} ${ink.page.ph}"`);
         else lines.push(`  inkSide: ${ink.side}`, `  inkX: ${ink.x}`, `  inkLine: ${ink.line}`, `  inkEm: ${ink.em}`);
     }
-    if (thought.layer) lines.push(`  layer: ${JSON.stringify(thought.layer)}`);
+    // The reading layer is the absence of one (#758 FR-2): an old file re-rendered stays as it was.
+    if (thought.layer && thought.layer !== DEFAULT_LAYER) lines.push(`  layer: ${thought.layer}`);
     if (thought.madeBy) {
         lines.push(`  madeBy: ${thought.madeBy.move}`);
         if (thought.madeBy.ai) lines.push("  madeByAi: true");
@@ -392,7 +397,7 @@ export function parseThought(content: string, path: string): Thought {
         ...(revises ? { revises } : {}),
         ...(locator ? { locator } : {}),
         ...(ink ? { ink } : {}),
-        ...(layer ? { layer } : {}),
+        ...(isLayer(layer) && layer !== DEFAULT_LAYER ? { layer } : {}),
         ...(madeBy ? { madeBy } : {}),
         ...(claims ? { claims } : {}),
     };

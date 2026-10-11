@@ -245,6 +245,16 @@ describe("the reader writes no note (#667 R2)", () => {
         }
     });
 
+    it("puts a mark away in one place only: the layers and the ink lift (#758 FR-11)", () => {
+        const dir = join(ROOT, "src/architecture/components/core/reader");
+        const rel = (f: string) => f.replace(dir, "reader").replace(/\\/g, "/");
+        const naming = sources(dir).filter((f) => readFileSync(f, "utf8").includes("reader-highlight--away"));
+        expect(naming.map(rel)).toEqual(["reader/readerInkLift.ts"]);
+        // What toggles it is imported by the layers alone — Recall (#760) goes through MarkVisibility.
+        const toggling = sources(dir).filter((f) => /\b(putAway|liftInk|fadeOwn)\(/.test(readFileSync(f, "utf8")));
+        expect(toggling.map(rel).sort()).toEqual(["reader/readerInkLift.ts", "reader/readerLayers.ts"]);
+    });
+
     it("exports create-only, through FileService, in a recorded batch (#672)", () => {
         const src = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerExport.ts"), "utf8");
         expect(src).toContain("FileService.createFile(");

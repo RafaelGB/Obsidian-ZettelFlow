@@ -157,6 +157,12 @@ export interface ZettelFlowSettings {
      */
     readerResume?: Record<string, { chapter: number; total: number; at: number }>;
     /**
+     * Each reading's layers (#758, epic #742): the layer new marks go to and the layers hidden, by the
+     * source's path (or the note a reading began from). Authored from the Reader's *Layers* panel
+     * (§XIII); the defaults — reading, all shown — are never kept. Read through `normalizeLayerPrefs()`.
+     */
+    readerLayers?: Record<string, { target?: "reading" | "reflection" | "research"; hidden?: ("reading" | "reflection" | "research")[] }>;
+    /**
      * How a book opens from the Library and how a chapter turns (#732, epic #729) — the settings'
      * *Reading* section. Read through `readingMotion()`, which mends anything unknown.
      */

@@ -3226,3 +3226,200 @@ body.zettelkasten-flow__reader-deep-covers-app {
         transform: none;
     }
 }
+
+/* ── layers, and read it clean (#758) ─────────────────────────────────── */
+
+/*
+ * A mark put away (FR-8, FR-11): its ink goes, its words stay exactly where they were — nothing is
+ * laid out again. Only `readerLayers.ts` and `readerInkLift.ts` put this class on or take it off.
+ */
+mark.zettelkasten-flow__reader-highlight.zettelkasten-flow__reader-highlight--away,
+.zettelkasten-flow__reader-highlight-foreign.zettelkasten-flow__reader-highlight--away {
+    background-color: transparent;
+    background-image: none;
+    text-decoration: none;
+    cursor: auto;
+    pointer-events: none;
+    animation: none;
+
+    &::before,
+    &::after {
+        content: none;
+    }
+}
+
+/* Its row in the margin goes with it; ink and a page's wash go to nothing. */
+.zettelkasten-flow__reader-hl-item.zettelkasten-flow__reader-highlight--away {
+    display: none;
+}
+
+.zettelkasten-flow__reader-ink-note.zettelkasten-flow__reader-highlight--away,
+.zettelkasten-flow__reader-ink-pagemark.zettelkasten-flow__reader-highlight--away {
+    opacity: 0;
+    transition: none;
+    pointer-events: none;
+}
+
+/*
+ * The ink lifted for a move (FR-13): one rectangle per line box, in the mark's own ink, *under* the
+ * words — the stage holds them in its own stacking context while a lift is on it. Placed by four
+ * custom properties; only their opacity is ever animated.
+ */
+.zettelkasten-flow__reader-stage--lifting {
+    isolation: isolate;
+}
+
+.zettelkasten-flow__reader-ink-lifts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-ink-lift {
+    position: absolute;
+    left: var(--zf-lift-x, 0);
+    top: var(--zf-lift-y, 0);
+    width: var(--zf-lift-w, 0);
+    height: var(--zf-lift-h, 0);
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink, var(--highlight-background, var(--text-highlight-bg)));
+}
+
+/* Where new marks go, quietly beside the Layers button, when it is not reading (FR-4). */
+.zettelkasten-flow__reader-bar-layer {
+    @include chip;
+    flex: none;
+    margin-inline-start: calc(-1 * var(--size-4-1));
+
+    /* The chip's own display must not bring an empty one back. */
+    &.zettelkasten-flow__reader-hidden {
+        display: none;
+    }
+}
+
+/* The Layers panel (FR-3): each layer, what it is for, and its switch. */
+.zettelkasten-flow__reader-layers {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-layer {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-3);
+    padding: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__reader-layer-words {
+    flex: 1;
+    min-width: 0;
+}
+
+.zettelkasten-flow__reader-layer-name {
+    color: var(--reader-fg);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-layer-desc {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* A layer with nothing in this chapter: there, but quiet. No number says so. */
+.zettelkasten-flow__reader-layer--empty .zettelkasten-flow__reader-layer-words {
+    .zettelkasten-flow__reader-layer-name,
+    .zettelkasten-flow__reader-layer-desc {
+        color: var(--reader-faint);
+    }
+}
+
+.zettelkasten-flow__reader-layers-foot {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* A mark's layer in its menu (FR-6), under its meanings. */
+.zettelkasten-flow__reader-hl-layers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-hl-layers-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-inline-end: var(--size-4-1);
+}
+
+button.zettelkasten-flow__reader-hl-layer {
+    @include chip;
+    @include chip-clickable;
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+    }
+}
+
+/* Reading clean (FR-8): the detour pill's shape, quiet; under a detour's pill when both are up. */
+.zettelkasten-flow__reader-clean-pill {
+    align-items: center;
+    gap: var(--size-4-2);
+    background-color: var(--reader-surface);
+    color: var(--reader-muted);
+    border: var(--border-width) solid var(--reader-line);
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+/* Shown, it lays its words out in a row; hidden, `reader-hidden` wins. */
+.zettelkasten-flow__reader-clean-pill:not(.zettelkasten-flow__reader-hidden) {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__reader-detour-pill:not(.zettelkasten-flow__reader-hidden) ~ .zettelkasten-flow__reader-clean-pill {
+    top: calc(var(--size-4-12) * 2 + #{$safe-top});
+}
+
+.zettelkasten-flow__reader-clean-pill-reveal {
+    color: var(--text-accent);
+    font-weight: var(--font-semibold);
+}
+
+/* Reading clean, the margin says nothing of what is put away: no heading, no meanings counted. */
+.zettelkasten-flow__reader--clean {
+    .zettelkasten-flow__reader-hl-heading,
+    .zettelkasten-flow__reader-hl-filter {
+        display: none;
+    }
+}
+
+/* A pane too narrow for the bar and the name: the name becomes a quiet accent dot on the button's
+   side — the button's own label still says where new marks go. */
+@container zf-reader (max-width: 64rem) {
+    .zettelkasten-flow__reader-bar-layer:not(.zettelkasten-flow__reader-hidden) {
+        width: var(--size-4-2);
+        height: var(--size-4-2);
+        padding: 0;
+        border: none;
+        overflow: hidden;
+        color: transparent;
+        background-color: var(--interactive-accent);
+    }
+}
+
+/* Layers took a place on the bar (#758): on a pane this narrow the time left steps out first, so
+   no button is ever cut off. */
+@container zf-reader (max-width: 46rem) {
+    .zettelkasten-flow__reader-bar-minutes {
+        display: none;
+    }
+}

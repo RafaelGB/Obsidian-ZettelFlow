@@ -101,6 +101,10 @@ import { readSourceEntry } from "application/library/provenance";
 import { gatherBookNotes } from "architecture/components/core/library/bookNoteIndex";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { dictionarySettings } from "application/library/dictionarySettings";
+import { MarkVisibility, layerPrefsOf, normalizeLayerPrefs, withLayerPrefs } from "./readerLayers";
+import { renderLayersPanel } from "./readerLayersPanel";
+import { LAYER_LABEL } from "./readerHighlights";
+import { DEFAULT_LAYER, type MarkLayer } from "application/thinking/markLayer";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -244,7 +248,7 @@ const ROLE_KEY: Record<ChapterRole, LocaleKey> = {
 export type { ReaderHost };
 
 
-type Panel = "contents" | "type" | "context" | null;
+type Panel = "contents" | "type" | "layers" | "context" | null;
 
 /**
  * The Contents panel of a book or a paper (#761 FR-4): its contents, the overview, its bookmarks,
@@ -539,6 +543,24 @@ export class ReaderView extends ItemView {
      * it back to `false` when it stops.
      */
     listening = false;
+    /**
+     * What is drawn of your marks (#758): the layers hidden, reading clean, the reveal in order — the
+     * one mechanism Recall (#760) uses too. It holds no marks; it reads what is drawn.
+     */
+    readonly layerView = new MarkVisibility({
+        root: () => this.root,
+        stage: () => this.els?.stage ?? null,
+        thoughts: () => [...(this.highlights?.allMarks() ?? []), ...(this.ink?.marks() ?? [])],
+        tintsOf: (id) => this.highlights?.tintsFor(id) ?? [],
+        onScreen: (el) => this.onScreen(el),
+        selecting: () => this.selecting(),
+    });
+    /** The reading the layers were last loaded for: another one starts with every mark shown (FR-8). */
+    private layersKey: string | null | undefined = undefined;
+    /** The layer new marks go to, beside the Layers button when it is not reading (FR-4). */
+    private layerLabel: HTMLElement | null = null;
+    /** *Reading clean · Reveal my thinking* (FR-8): at the top of the column while you read clean. */
+    private cleanPill: HTMLElement | null = null;
     /** When this reading began, for the end card's minutes. */
     private startedAt = Date.now();
     /** Detours taken in this reading — counted, never kept. */
@@ -1045,6 +1067,16 @@ export class ReaderView extends ItemView {
         // The same pill is the way back from a jump inside a book (#718).
         this.registerDomEvent(pill, "click", () => (this.detours.length > 0 ? this.backFromDetour() : this.backFromJump()));
         this.pill = pill;
+        // Reading clean (#758 FR-8): the same quiet pill, and the way your marks come back.
+        const clean = root.createEl("button", {
+            cls: [c("reader-detour-pill"), c("reader-clean-pill"), c("reader-hidden")].join(" "),
+            attr: { type: "button" },
+        });
+        clean.createSpan({ cls: c("reader-clean-pill-state"), text: t("reader_clean_pill") });
+        clean.createSpan({ cls: c("reader-clean-pill-sep"), text: "·", attr: { "aria-hidden": "true" } });
+        clean.createSpan({ cls: c("reader-clean-pill-reveal"), text: t("reader_reveal") });
+        this.registerDomEvent(clean, "click", () => this.revealThinking());
+        this.cleanPill = clean;
 
         // The bookmark ribbon at the page's top-right corner (#761 FR-1): a book's or a paper's only.
         const ribbon = root.createEl("button", {
@@ -1058,6 +1090,8 @@ export class ReaderView extends ItemView {
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
         this.registerDomEvent(stage, "scroll", () => {
+            // A scroll during a reveal completes it (#758 FR-14).
+            this.layerView.finish();
             this.highlights?.onScroll();
             this.closeNote();
             this.onStageScroll();
@@ -1077,6 +1111,9 @@ export class ReaderView extends ItemView {
                 pageWords: async (index) => (this.runMode() ? ((await this.pageRun?.words(index)) ?? null) : null),
                 pageLabel: (index) => this.sourceLabel(index),
                 pageLocator: (index) => this.locatorOf(index),
+                // Ink takes the layer new marks go to, and is shown and hidden with the rest (#758).
+                layerForNew: () => this.layerTarget(),
+                drawn: () => this.syncLayers(),
             },
             this.inkDeps
         );
@@ -1130,10 +1167,13 @@ export class ReaderView extends ItemView {
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
         this.ink.mountButton(bar);
         const type = this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
+        // Layers (#758 FR-3), beside Contents and Type: and where new marks go, when it is not reading.
+        const layers = this.iconButton(bar, "layers", "reader_layers", () => this.toggle("layers"));
+        this.layerLabel = bar.createSpan({ cls: [c("reader-bar-layer"), c("reader-hidden")].join(" ") });
         // The panel on the right (#777 FR-3): the icon says where it opens.
         const context = this.iconButton(bar, "panel-right", "reader_context", () => this.toggle("context"));
         // Each panel's button says whether its panel is open.
-        this.panelButtons = { contents, type, context };
+        this.panelButtons = { contents, type, layers, context };
         for (const button of Object.values(this.panelButtons)) button.setAttribute("aria-pressed", "false");
         context.addClass(c("reader-bar-button--dotted"));
         this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
@@ -1162,6 +1202,8 @@ export class ReaderView extends ItemView {
                 owner: this,
                 scrollTo: (el, travel) => this.scrollToEl(el, travel),
                 onChange: () => {
+                    // Whatever was drawn takes the layers as they are (#758).
+                    this.syncLayers();
                     if (this.panel === "context") this.alongside?.update();
                     // A mark made or taken away: what a chapter end reads is read again (#755 FR-2.4).
                     void this.readSurvivedMarks();
@@ -1171,6 +1213,7 @@ export class ReaderView extends ItemView {
                 thinkMoves: () => this.thinkMoves(),
                 passageActions: () => this.passageActions(),
                 lookup: () => this.lookup,
+                layerForNew: () => this.layerTarget(),
             },
             this.highlightDeps
         );
@@ -3880,7 +3923,7 @@ export class ReaderView extends ItemView {
             return;
         }
         // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
-        const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
+        const markers = this.panel === "type" || this.panel === "layers" ? snapshotMarkers(host) : undefined;
         this.dropOverview();
         // The proposals in Alongside go with it, with no verdict (#756 AC-7).
         this.vaultMoves?.dismissAll();
@@ -3918,10 +3961,13 @@ export class ReaderView extends ItemView {
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
             renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, { ...this.typeContext(), close: { label: "reader_close_type", onClose: () => this.closeFromPanel(), scope } });
         }
+        else if (this.panel === "layers") this.renderLayers(host, scope, markers);
         else if (this.panel === "context") {
             this.alongside?.mount(host, scope);
             this.aiMoves?.attach(this.alongside?.proposalsHost() ?? null);
             this.claimLink?.attach(host);
+            // The margin's list, drawn again in the panel, takes the layers as they are.
+            this.layerView.apply();
         }
     }
 
@@ -4507,6 +4553,146 @@ export class ReaderView extends ItemView {
         handle.addEventListener("lostpointercapture", up);
     }
 
+    // ── layers, and read it clean (#758) ─────────────────────────────────────
+
+    /** The reading the layers are remembered for: a source's path, or the note a reading began from. */
+    private layerKey(): string | null {
+        return this.sourcePath ?? this.path?.seed ?? null;
+    }
+
+    private layerPrefs(): { target: MarkLayer; hidden: MarkLayer[] } {
+        return layerPrefsOf(normalizeLayerPrefs(this.plugin?.settings?.readerLayers), this.layerKey());
+    }
+
+    /** The layer new marks go to in this reading (FR-4). */
+    private layerTarget(): MarkLayer {
+        return this.layerPrefs().target;
+    }
+
+    private saveLayerPrefs(next: { target: MarkLayer; hidden: readonly MarkLayer[] }): void {
+        const settings = this.plugin?.settings;
+        const key = this.layerKey();
+        if (!settings || !key) return;
+        settings.readerLayers = withLayerPrefs(normalizeLayerPrefs(settings.readerLayers), key, next);
+        void this.plugin?.saveSettings?.();
+    }
+
+    /**
+     * Something was drawn, or another reading opened: the marks take the layers as they are. A reading
+     * opened anew has its own hidden layers, and every mark shown — clean lasts a sitting (FR-8).
+     */
+    private syncLayers(): void {
+        const key = this.layerKey();
+        if (key !== this.layersKey) {
+            this.layersKey = key;
+            this.layerView.load(this.layerPrefs().hidden);
+            this.showCleanPill(false, false);
+        } else this.layerView.apply();
+        this.syncLayerBar();
+    }
+
+    /** The bar: the target's name beside the button when it is not reading; active while a layer is hidden. */
+    private syncLayerBar(): void {
+        const target = this.layerTarget();
+        const label = this.layerLabel;
+        if (label) {
+            label.setText(target === DEFAULT_LAYER ? "" : t(LAYER_LABEL[target]));
+            label.toggleClass(c("reader-hidden"), target === DEFAULT_LAYER);
+            this.panelButtons?.layers.setAttribute("aria-label", target === DEFAULT_LAYER ? t("reader_layers") : `${t("reader_layers")} · ${t("reader_layers_new_to", t(LAYER_LABEL[target]))}`);
+        }
+        this.syncPanelButtons(this.panel);
+    }
+
+    private renderLayers(host: HTMLElement, scope: Component, markers?: ReturnType<typeof snapshotMarkers>): void {
+        const prefs = this.layerPrefs();
+        renderLayersPanel(
+            host,
+            { present: this.layerView.present(), hidden: this.layerView.hiddenLayers(), target: prefs.target, clean: this.layerView.isClean() },
+            scope,
+            {
+                show: (layer, on) => this.showLayer(layer, on),
+                target: (layer) => {
+                    this.saveLayerPrefs({ target: layer, hidden: this.layerView.hiddenLayers() });
+                    this.syncLayerBar();
+                    this.renderPanel();
+                },
+                hideAll: () => this.hideAnnotations(),
+                reveal: () => this.revealThinking(),
+            },
+            { label: "reader_close_layers", onClose: () => this.closeFromPanel(), scope },
+            markers
+        );
+    }
+
+    /** One layer shown or hidden (FR-5, FR-16): its ink fades, and the choice is kept for the source. */
+    private showLayer(layer: MarkLayer, on: boolean): void {
+        if (on) this.layerView.showLayer(layer);
+        else this.layerView.hideLayer(layer);
+        this.saveLayerPrefs({ target: this.layerTarget(), hidden: this.layerView.hiddenLayers() });
+        this.syncLayerBar();
+        if (this.panel === "layers") this.renderPanel();
+    }
+
+    /** *Hide my annotations* (FR-8, FR-15): every mark away in one quiet fade, and the pill slides in. Nothing is written. */
+    private hideAnnotations(): void {
+        this.layerView.hideAll();
+        this.showCleanPill(true);
+        if (this.panel === "layers") this.renderPanel();
+    }
+
+    /**
+     * *Reveal my thinking* (FR-9): from the pill or the panel. The panel steps aside, so the page is
+     * there to watch your reading of it happen again. Nothing is written.
+     */
+    private revealThinking(): void {
+        if (!this.layerView.isClean()) return;
+        this.showCleanPill(false);
+        if (this.panel === "layers") this.closePanel();
+        this.layerView.reveal();
+    }
+
+    /** The pill in or out: it slides 8 px and fades (FR-15); under reduced motion it is simply there. */
+    private showCleanPill(on: boolean, animate = true): void {
+        // The margin's heading and meaning counts go with the marks while you read clean.
+        this.root?.toggleClass(c("reader--clean"), on);
+        const pill = this.cleanPill;
+        if (!pill || pill.hasClass(c("reader-hidden")) === !on) return;
+        const frames = [
+            { opacity: 0, transform: "translateX(-50%) translateY(-8px)" },
+            { opacity: 1, transform: "translateX(-50%) translateY(0px)" },
+        ];
+        if (on) {
+            pill.removeClass(c("reader-hidden"));
+            if (animate && motionWelcome(pill)) pill.animate(frames, { duration: MOTION.base, easing: MOTION.ease });
+            return;
+        }
+        if (!animate || !motionWelcome(pill)) {
+            pill.addClass(c("reader-hidden"));
+            return;
+        }
+        const leaving = pill.animate([...frames].reverse(), { duration: MOTION.fast, easing: MOTION.ease, fill: "forwards" });
+        const done = () => {
+            pill.addClass(c("reader-hidden"));
+            leaving?.cancel?.();
+        };
+        if (leaving) leaving.onfinish = done;
+        else done();
+    }
+
+    /** Whether a mark is on screen now: the ones that are come back in order, the others are simply there. */
+    private onScreen(el: HTMLElement): boolean {
+        const stage = this.els?.stage?.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        if (!stage || !(stage.height > 0)) return true;
+        return box.top + box.height > stage.top && box.top < stage.top + stage.height;
+    }
+
+    /** Whether words are being selected now: a reveal never runs then (FR-14). */
+    private selecting(): boolean {
+        const selection = (this.root?.win ?? (typeof window === "undefined" ? undefined : window))?.getSelection?.();
+        return Boolean(selection && !selection.isCollapsed && selection.toString().trim());
+    }
+
     /**
      * A panel's own × (#777 FR-1): the steps Esc takes — the claim sheet goes first, nothing written,
      * then the panel, in the same move Esc plays.
@@ -4532,7 +4718,8 @@ export class ReaderView extends ItemView {
         const overview = open === "contents" && this.contentsTab === "overview";
         for (const [id, button] of Object.entries(this.panelButtons)) {
             const on = id === open && !(overview && id === "contents");
-            button.toggleClass("is-active", on);
+            // Layers reads as active while any layer is hidden, open or not (#758 FR-5).
+            button.toggleClass("is-active", on || (id === "layers" && this.layerView.hiddenLayers().length > 0));
             button.setAttribute("aria-pressed", String(on));
         }
         this.els?.overview.toggleClass("is-active", overview);

@@ -276,6 +276,29 @@ export class ThoughtStore {
     }
 
     /**
+     * Every thought about a note or a source (#752), read in full: its highlights and what answers
+     * them — a challenge, a fork — since a response inherits the note its thread is about. Which
+     * files to read is decided from the metadata cache, as `highlightsAbout` does.
+     */
+    public async thoughtsAbout(notePath: string): Promise<Thought[]> {
+        if (!notePath || !this.folder()) return [];
+        const out: Thought[] = [];
+        for (const file of this.files()) {
+            try {
+                const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+                    | Record<string, unknown>
+                    | undefined;
+                if (!front || front["about"] !== notePath) continue;
+                const thought = parseThought(await ObsidianApi.vault().cachedRead(file), file.path);
+                if (thought.about === notePath) out.push(thought);
+            } catch (error) {
+                log.warn("[lab] could not read a thought", error);
+            }
+        }
+        return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
      * How many highlights each file has (#680): the Library's counts, read from the metadata cache
      * in one pass — no thought is opened to count it.
      */

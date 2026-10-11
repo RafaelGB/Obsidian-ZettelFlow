@@ -38,7 +38,9 @@ import { crystallizeHighlight } from "./crystallizeHighlight";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
-import { articlesFolderOf, gatherShelf, type Shelf } from "./libraryShelf";
+import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
+import { gatherProduced, renderProduced } from "./libraryProduced";
+import type { KnowledgeIndex } from "architecture/knowledge";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -78,6 +80,12 @@ const moment = obsidianMoment as unknown as typeof MomentFn;
 
 /** A folder field left unchanged closes after its own commit would have run (see `addFolderField`). */
 const FOLDER_BLUR_MS = 300;
+
+/**
+ * The sources whose *What it produced* was shown this session (#752 FR-9): the second opening is
+ * simply there — also after a trip to the Reader, which draws the Library anew. Never persisted.
+ */
+const PRODUCED_SEEN = new Set<string>();
 
 /** Saving what was read off the files waits for a quiet moment, so a shelf of covers saves once. */
 const SAVE_MS = 800;
@@ -151,7 +159,11 @@ export class LibraryView extends ItemView {
         leaf: WorkspaceLeaf,
         private readonly plugin?: LibraryHost,
         /** Seams for tests: the thought store the notebook reads, the writes and suggests of Details. */
-        private readonly deps: { store?: Pick<ThoughtStore, "highlightsAbout">; details?: Pick<DetailsParts, "port" | "suggest"> } = {}
+        private readonly deps: {
+            store?: Pick<ThoughtStore, "highlightsAbout">;
+            details?: Pick<DetailsParts, "port" | "suggest">;
+            produced?: { store?: Pick<ThoughtStore, "thoughtsAbout">; index?: Pick<KnowledgeIndex, "status" | "getModel"> };
+        } = {}
     ) {
         super(leaf);
         this.scope = new Scope(this.app?.scope);
@@ -728,7 +740,6 @@ export class LibraryView extends ItemView {
         renderDetail(aside, item, {
             app: this.app,
             scope,
-            born: this.shelf.born.get(item.file ?? "") ?? [],
             cover: (parent) => {
                 const cover = drawCover(parent, item, "detail");
                 this.watchCover(cover, item);
@@ -740,6 +751,16 @@ export class LibraryView extends ItemView {
             open: (at) => this.openItem(item, at),
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
+            produced: (parent) =>
+                renderProduced(parent, {
+                    app: this.app,
+                    scope,
+                    item,
+                    gather: () => gatherProduced(this.app, item, { articles: () => gatherArticles(this.app, articlesFolderOf(this.plugin)), ...this.deps.produced }),
+                    open: (at) => this.openItem(item, at),
+                    seen: PRODUCED_SEEN.has(item.id),
+                    shown: () => PRODUCED_SEEN.add(item.id),
+                }),
             details: (parent) =>
                 renderDetails(parent, {
                     app: this.app,

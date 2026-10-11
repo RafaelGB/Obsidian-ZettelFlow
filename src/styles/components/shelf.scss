@@ -691,15 +691,34 @@
     @include hint;
 }
 
-.zettelkasten-flow__shelf-born-list {
+.zettelkasten-flow__shelf-born-mark {
+    color: var(--color-green);
+}
+
+/* What it produced in your vault (#752): lists, never a score. */
+.zettelkasten-flow__shelf-produced-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-produced-heading {
+    margin: 0 0 var(--size-4-1);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-produced-rows {
     display: flex;
     flex-direction: column;
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-born-row,
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-born-row {
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row {
     @include row;
     justify-content: flex-start;
+    gap: var(--size-4-2);
+    width: 100%;
     height: auto;
     padding: var(--size-4-2) 0;
     border: 0;
@@ -710,10 +729,48 @@
     color: var(--text-accent);
     cursor: pointer;
     text-align: left;
+    white-space: normal;
+
+    &:hover {
+        color: var(--text-accent-hover);
+    }
 }
 
-.zettelkasten-flow__shelf-born-mark {
-    color: var(--color-green);
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row--passage {
+    flex-wrap: wrap;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-produced-quote {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+}
+
+.zettelkasten-flow__shelf-produced-answer {
+    flex-basis: 100%;
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-produced-where {
+    margin-left: auto;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-produced-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-more {
+    margin-top: var(--size-4-1);
+    align-self: flex-start;
+}
+
+.zettelkasten-flow__shelf-produced-empty {
+    @include empty-state;
 }
 
 .zettelkasten-flow__shelf-detail-group {

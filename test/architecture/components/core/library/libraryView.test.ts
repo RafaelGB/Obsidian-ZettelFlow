@@ -273,3 +273,38 @@ describe("the book notebook (#721)", () => {
         expect(content.byClass("notebook-title")).toHaveLength(1);
     });
 });
+
+describe("what it produced, across a trip to the Reader (#752 FR-9)", () => {
+    it("rises in turn the first time a book's detail opens this session, and is simply there after", async () => {
+        const { recordAnimations } = await import("../../../../support/motionDom");
+        const { KnowledgeModel } = await import("architecture/knowledge");
+        const BOOKX = "Books/Seen once.epub";
+        const model = new KnowledgeModel();
+        model.build([
+            { path: "A.md", title: "A", created: 2, modified: 2, state: "unknown", relations: [], claims: [{ text: "", sources: [{ ref: BOOKX, kind: "link" }] }], maturitySignals: { inDegree: 0, outDegree: 0, degree: 0, hasSources: true } },
+        ]);
+        const deps = { produced: { index: { status: "ready" as const, getModel: () => model }, store: { thoughtsAbout: async () => [] } } };
+        const record = recordAnimations();
+        try {
+            const open = async () => {
+                const { app, content } = mount([BOOKX]);
+                (app.vault as unknown as { getMarkdownFiles: () => [] }).getMarkdownFiles = () => [];
+                const view = new LibraryView(new WorkspaceLeaf(app, content), { settings: {}, saveSettings: jest.fn(async () => undefined) }, deps as never);
+                await view.onOpen();
+                await view.setState({ detail: BOOKX }, {} as never);
+                await flush();
+                return content;
+            };
+            const first = await open();
+            expect(first.byClass("shelf-produced-row").map((row) => row.textContent)).toEqual(["◆A"]);
+            const rose = record.animations.filter((a) => a.target.hasClass?.("zettelkasten-flow__shelf-produced-row")).length;
+            expect(rose).toBe(1);
+            // Back from the Reader the Library is drawn anew: the same book's lists are simply there.
+            const again = await open();
+            expect(again.byClass("shelf-produced-row")).toHaveLength(1);
+            expect(record.animations.filter((a) => a.target.hasClass?.("zettelkasten-flow__shelf-produced-row")).length).toBe(rose);
+        } finally {
+            record.stop();
+        }
+    });
+});

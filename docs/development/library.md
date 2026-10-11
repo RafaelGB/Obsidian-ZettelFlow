@@ -77,12 +77,50 @@ and read it.
 ## A source in detail
 
 **⋯** on a card opens its detail, over the shelf: the cover, the title and author, the file, and three
-facts — how far you have read and when, your highlights, and the notes born from it. Below them, the
-**notes born from it**, each one a click away (Ctrl/Cmd-hover to preview), and **your highlights,
+facts — how far you have read and when, your highlights, and the notes born from it. Below them,
+[**what it produced in your vault**](#what-a-book-produced-in-your-vault), and **your highlights,
 by chapter** — every passage with your note under it, each one opening the source at that passage.
 **Esc** or **Close** puts the detail away.
 
 The detail also holds the book's **Details** — see [A book's note](#a-books-note).
+
+## What a book produced in your vault
+
+A source's detail answers *what did this book do to my thinking?* — as **lists, never a score**.
+Under **What it produced in your vault**, each list is shown only when it has something in it:
+
+![What a book produced in your vault: the six lists in the Library's detail, no count beside any heading, and a pair opened in a split beside the Library](../resources/library/produced.svg)
+
+| List | What it is built from |
+|---|---|
+| **Notes born from it** | the notes whose `source` links the book (the list the detail always had) |
+| **Ideas it led to** | notes a note born links to, made after you first read the book — your first highlight, or the first note born, whichever came first — that do not cite it themselves |
+| **Links you made** | the links and typed relations from a note born, or from one of the book's highlights, to a note of yours not born from it: *A ↔ B*, with the relation's name when it has one |
+| **Tensions** | `contradicts` with a note born at either end, and the book's highlights you answered with a challenge in Think |
+| **Open questions** | questions a note born asks that nothing answers yet (the vault's open questions, narrowed to this book) |
+| **Still unresolved** | the book's highlights still on your bench in Think: not crystallized into a note and not set aside — a *Question* highlight among them until you do either |
+
+- **Nothing is inferred.** Every list is read off what the vault already holds — links, typed
+  relations, `source` citations, dates and Think's thoughts. Nothing is classified by its text and
+  nothing is proposed.
+- **No numbers.** A list has a heading and its items: no count, no total, no percentage, no bar. Past
+  five items, **Show all** shows the rest in place.
+- **The book's note is the book** ([A book's note](#a-books-note)): it is in none of the lists,
+  wherever it is kept, and its own links — collections, tags — are not links you made.
+- **Each item opens what it names.** A note opens in the editor (Ctrl/Cmd-hover previews it); a pair
+  opens in a split beside the Library, A above B, while the detail stays where it is; a highlight
+  opens the Reader at its passage; a challenge opens Think on the book.
+- **The same for a paper and an article.** A saved path shows only *Still unresolved*, about its
+  notes.
+- **While your vault is still being read** the section says *Reading your vault…* and fills in when
+  it is ready; the rest of the detail works meanwhile. A book nothing came of yet says *Nothing yet.
+  What you make from this book shows here.*
+- **Motion.** The first time you open a book's detail, the items rise into place a few milliseconds
+  apart; the next time they are simply there. Under reduced motion everything appears at once.
+- **It writes nothing.** Opening the detail adds nothing to *What ZettelFlow changed*.
+
+*Ideas it led to* uses a note's creation date as Obsidian knows it, which a sync or a copy can reset.
+Computing the lists over a 10,000-note vault takes about 2 ms, so they cost nothing to open.
 
 ## A book's note
 
@@ -533,6 +571,7 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle test/architecture/components/core/library/bookNoteWriter` | the *Articles* chip and *Change* writing the same setting as Settings → Reading, articles off; an article opened with the shot from its drawn cover; a clipping in the Reader (its sections, Contents, no Page view, highlights at their section, its place kept, the note never written); its status written alone into its own frontmatter, recorded, undone; *Recently added* and its fourth order, a card settling in, nothing at the first draw, reduced motion |
 | `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses*; the *Articles folder* row: `Clippings` by default, emptied to turn articles off, a reset |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
+| `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists over a hand-built vault, each deduplicated and stable, the book's note in none of them; an empty source, highlights only, notes only, an article, a saved path; no digit in a heading, five then *Show all*, the empty message, *Reading your vault…* filled when ready; each item opening its note, its pair in a split, its passage, Think; nothing written; the rise in turn, none the second time, *Show all* by translate, reduced motion |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
@@ -615,7 +654,16 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     camera pulls back onto its card, which says *1 highlight*. Its file is unchanged. Set its
     **Status → Finished** in Details: only `status` is added to it. A note in `Clippings` whose
     `source` is `[[Some note]]` is not on the shelf.
-15. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+15. **What it produced.** In a book with three highlights (one marked *Question*), crystallize one
+    into *Note A*; in it link an older note (*Planning fallacy*) and a new one (*Risk window*); in an
+    older note write `contradicts:: [[Note A]]`. Open the book's **⋯**. Expect **What it produced in
+    your vault**: *Notes born from it* lists Note A, *Ideas it led to* Risk window (not Planning
+    fallacy), *Links you made* Note A ↔ Planning fallacy, *Tensions* the older note ↔ Note A, *Still
+    unresolved* the two other highlights. No heading carries a number. Click the *Question* highlight:
+    the Reader opens at it. Click the pair: a split opens beside the Library, which stays as it was.
+    A book you never opened says *Nothing yet. What you make from this book shows here.* Home →
+    Recent shows no entry for any of it.
+16. **Negative.** Compare each source file before and after (size and modification date): unchanged.
     Opening and reading a book created no note; only changing its Details did. A hostile fixed-layout
     page (a style sheet that imports, loads a font and a picture from `https://example.com`, a
     `<script>`, a `position: fixed` overlay): with the developer tools' network panel open, nothing is

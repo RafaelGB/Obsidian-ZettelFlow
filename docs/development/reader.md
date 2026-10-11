@@ -121,9 +121,20 @@ hides it. It holds:
 - **Contents**, the chapters with their roles (in a book or a paper, with its **Bookmarks** and
   **Where you've been** beside them);
 - **Type**;
-- **Around this chapter**, with what supports it, what argues back and its open questions;
+- **Alongside**, the panel-on-the-right icon: your own notes near the paragraph you are reading,
+  through six lenses (see [Alongside](#alongside-your-vault-beside-the-page));
 - **Deep reading**, the page and nothing else (**F**);
 - **Keyboard shortcuts**.
+
+**A panel closes from the panel.** *Contents*, *Type* and *Alongside* each carry their own **×** at
+the end of their head (*Close contents*, *Close type*, *Close Alongside*). It closes the panel in the
+same move as **Esc**, and the Reader stays open. While the [claim sheet](#make-it-a-claim-or-link-it-to-an-idea)
+is open, the first press closes the sheet, as Esc does. The bar's button of an open panel shows as
+pressed, so the way back is always where you opened it.
+
+**The × at the top right is the Reader's own exit** (*Close the reader*, said on hover). It always
+sits over the column: while Alongside lies beside the page, the top line ends where the column ends,
+so the × above the panel is the panel's, never the Reader's.
 
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
 way on lights up: **Next · *its name* · *how long it is***.
@@ -233,9 +244,11 @@ nothing below changes: a click never turns a page.
 - **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
   own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
   **below** it, clear of that callout, and without a second *Copy*.
-- **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Around this chapter* rise from
+- **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Alongside* rise from
   the bottom edge at half height over the dimmed page. Drag the handle up to nearly full height or
-  down to close it, or tap the page above it. In landscape they open as the usual card.
+  down to close it, tap the page above it, or tap its **×**. The bar stays above the sheet, so the
+  button that opened it closes it too, and the top line steps out under the dim, so the Reader's ×
+  never sits over the sheet's head. In landscape they open as the usual card.
 - **The whole screen is the page.** While a book is open, Obsidian's own toolbar slides away, and it
   slides back as you leave, exactly as it was. The top line, the back pill, the dots, the bar and the
   sheet stay inside the safe area — in both orientations and in a Split View window — and rotating
@@ -322,8 +335,422 @@ Click a link and a card opens right under the paragraph that holds it. It says w
   Reader writes nothing.
 
 The **Contents** panel lists the chapters with their roles, ticks the ones you have read and marks
-where you are. **Around this chapter** lists what supports it, what argues back and its open
-questions, read from the same model as [This note](this-note.md). Each of those is a peek too.
+where you are. What supports the chapter, what argues back and its open questions are in
+[Alongside](#alongside-your-vault-beside-the-page), read from the same model as
+[This note](this-note.md). Each of those is a peek too.
+
+## Alongside — your vault beside the page
+
+The book on the left, your notes on the right. **Alongside** is the Reader's context panel — the
+same button in the bar, in the same place — for a book, a paper or a reading of notes. It shows
+your highlights on this page first, as it always did, and under them what of yours is **near** the
+passage you are reading, each card saying in one line why it is there.
+
+![Alongside: a book on the left; on the right the panel near this paragraph, the lens chips without a number, three cards with why each is there, and a tension offering Look at both and Not related](../resources/reader/alongside.svg)
+
+**Near what.** The paragraph at the reading line, a third of the way down the column, or, while
+words are selected, the selection. In a PDF's Page view it is the page. The heading says which:
+*Near this paragraph*, *Near your selection*, *Near this page*. Alongside follows your reading when
+the scrolling **settles** (150 ms after you stop), never on every frame.
+
+**What counts as near**, decided by your vault, the same way every time, with no AI:
+
+- a note whose **title or alias is named** in the passage, as whole words, with case and accents
+  folded (*Planning Bias* names a note aliased *planning bias*). A title made only of common words
+  (*The end*, *People*) or a single word shorter than five letters (*Time*) never matches;
+- a note **born from this book** (its `source` cites it, see
+  [Every note goes back to its paragraph](#every-note-goes-back-to-its-paragraph)): from this
+  chapter first (*Born from p. 143*), then from the rest of the book;
+- a note one of **your highlights or margin notes** in this chapter links or names;
+- in a reading of notes, the chapter's own note: what links to it and from it.
+
+Only notes in your knowledge scope count — the one filter every reader honours — so an excluded
+folder never appears.
+
+**Six lenses over one list.** Chips across the top, each fed by something the vault already knows:
+
+| Lens | Shows |
+|---|---|
+| **All** | each card once, tagged with its first lens below |
+| **Connections** | the near notes, their neighbours (supports, expands, inspired-by, example, implements, plain links), and unlinked notes that share context with them |
+| **Contradictions** | the `contradicts` relations you have typed on a near note: each offers **Look at both** and **Not related** |
+| **Questions** | the open questions of a near note, and your *Question* highlights in this book |
+| **Your knowledge** | the notes named here, and your highlights from **other** books that link or name them |
+| **Research** | the claims of a near note and their sources; an unsourced claim says so |
+| **Not yet notes** | thoughts in Think, not yet notes, that mention a near note |
+
+Cards are ordered by **why** they are there — named here, born from here, linked, sharing context,
+marked — then by title; five show, then **Show more**. **The chips carry no number** and an empty
+lens is still offered: chosen, it says *Nothing of yours touches this passage through this lens.*
+Alongside never counts at you. With nothing near at all it says *Nothing of yours is near this
+paragraph yet. Mark it, link it, or keep reading.*, with your highlights still above it. While the
+vault is being indexed it says *Reading your vault…*, in words, never a spinner.
+
+**A click reads it.** A card opens as a [peek](#links-detours-and-context), and the page does not
+move; on a desktop, hovering it shows Obsidian's page preview. Beside a book a peek offers **Open in
+a new tab**: the book is read in its own pages, so a note met beside it is never a detour inside it.
+**Look at both** opens the note right under the paragraph, so the two are read together.
+
+**Not related** says that this note does not bear on **this chapter of this book**: it leaves
+Alongside here and does not come back, while other chapters and other books still show it. It is one
+verdict in the [judgement record](cognitive-agency.md) (*rejected*), and nothing is
+written to any note; **Undo** stays in the card's place for five seconds.
+
+**It moves like a margin.** Opening, it slides in from the column's edge while the column makes room,
+and the paragraph under your eye stays where it is; closing is the same move backwards. On a narrow
+pane it lies over the page's edge, and on an iPad in portrait it rises as the
+[sheet](#on-ipad). **Close Alongside**, the × in its head, closes it in that same move — as **Esc**
+or its button in the bar do — and never the Reader. Choosing a lens slides the chip's fill to it, and the cards that stay keep their
+place while the others fade out or rise in. Reading on, a card still near never moves; new ones
+arrive in their place. While the pointer is in the panel nothing moves under it. *Not related* slides
+the card aside and the ones below close the gap. Under reduced motion every change is instant.
+
+**Remembered on this device.** Whether Alongside is open and the lens you chose are kept on this
+device, beside your reading pace — never synced, never in the vault.
+
+**Fast on a big vault.** Finding what is near a paragraph is budgeted at 10,000 notes
+(`reader.alongside.near.10k`, see [performance budgets](performance-budgets.md)): the names it
+matches against are indexed once per change of the vault, so a settle costs milliseconds.
+
+## Moves answered by your vault
+
+Alongside shows what of yours is near a paragraph. Two moves take a stance on the passage you
+selected: **Contradict** asks which of your notes stand against it, **Connect** asks which of your
+ideas it belongs with. Both are answered **by your own vault, with no AI**, and both work with AI
+turned off.
+
+![Moves answered by your vault: a selection with the Think row under its meanings; the answer flying out of Contradict into the top of Alongside, under Proposed. Nothing is written until you decide.; a candidate with why it is offered and Accept, Modify and Reject; and From this reading at the bottom of the panel](../resources/reader/vault-moves.svg)
+
+**The Think row.** Select words in a book or a paper, or click one of your highlights: under the
+meanings, the popover has a second row, *Think*, with **Contradict** and **Connect**. A passage you
+marked yesterday can be worked on today. A reading of notes has no Think row: Cultivate's moves own
+notes.
+
+**What each looks for**, decided by your vault, the same way every time:
+
+- **Contradict** — the notes you have already typed as `contradicts` a note
+  [near the passage](#alongside-your-vault-beside-the-page): your tensions, carried over to it. Each
+  says why: *Ship early contradicts Planning fallacy, which this passage names.*
+- **Connect** — the near notes themselves, then the notes that **support** or **expand** them, then
+  unlinked notes that **share context** with them (discovery's own score). Each says why: *Named in
+  this passage*, *Supports Planning fallacy*, *Shares context with Planning fallacy*.
+
+At most three, in a fixed order. Left out: a note you said is *not related* to this chapter, a note
+already in a tension with this passage, and a note that already cites it. Only notes in your
+knowledge scope count.
+
+**The answer is a proposal.** It arrives at the top of Alongside — which opens if it was closed —
+under *Proposed. Nothing is written until you decide.*, with the move and where the answer came from
+(*Contradict · from your vault*), the passage, and the candidates. Each candidate is the Reader's
+proposal card, with its own **Accept**, **Modify** and **Reject**. When nothing is found, the answer
+says so — *Nothing in your vault stands against this passage yet.* or *Nothing in your vault is close
+to this passage yet.* — and offers nothing to accept; **Dismiss** takes it away. A tension needs a
+[thinking space](../architecture/thought-lab.md): without one, the answer says how to choose it.
+
+**What each verdict writes**, and what is recorded:
+
+| Verdict | Written | Recorded |
+|---|---|---|
+| **Contradict**, accepted or modified | **one thought** in Think: its text is the line as you left it; it is *about* the book and *also about* the note, and quotes the passage with its [source](#every-note-goes-back-to-its-paragraph). On a highlight, it is threaded under it as a challenge, and the highlight gets a small tension tick on the page | the verdict, and the move *counterexample* (perturb) |
+| **Connect**, accepted, or another idea picked | **one property**: the idea's `source` list gains the passage — the note is now sourced, and the passage is one of its sources. One recorded write in the [write record](../architecture/reversibility.md), taken back as one batch | the verdict, and the move *analogy* (explore) |
+| **Reject** | nothing | *Not related* for this note and this chapter — the same verdict as Alongside's, so the note leaves Alongside too |
+| **Dismiss** (Esc, or the card's ×) | nothing | nothing — a dismissal is not a judgement |
+
+**Modify.** On a contradiction the line becomes editable where it is, and **Accept** reads **Keep my
+version**. On a connection, **Modify** opens a search over your ideas — the near ones first, before
+you type; ↑ ↓ and Enter pick, Esc goes back — so you are not stuck with the three offered.
+
+**The tension is a thought, never a relation.** A passage is not a note, and a tension is thinking,
+not yet knowledge: it is kept in Think, and once you crystallize it, the note it becomes can hold a
+typed relation. It carries its passage, but it is your answer to a proposal, not a highlight: it is
+never drawn on the page, counted on the shelf or brought back for review as one. Think shows it with
+a *Contradict* ribbon.
+
+**The book is never written.** A verdict records the note, a subject naming the move and the book,
+and the origin `derived` — never the text ([judgement record](cognitive-agency.md)).
+
+**The card outlives the selection.** Accept works after you have selected something else or turned
+the page: the card holds its passage. Undecided cards are for this session only: closing Alongside
+or the Reader drops them, and records nothing. **From this reading**, at the bottom of Alongside,
+lists what you accepted while reading — *Tension with Ship early*, *Connected to Planning fallacy* —
+and a click reads the note in a peek.
+
+**It moves like the rest of the Reader.** The answer flies out of the button you pressed into its
+place at the top of Alongside, in one 250 ms flight. If Alongside was closed, it slides in carrying
+the answer already in its place, as one gesture. An accepted candidate travels down into *From this
+reading*; a rejected one slides 16 px aside and fades, and the others close the gap by moving.
+Modify changes nothing in the layout. A key or a click during a flight ends it. If the vault ever
+takes longer than 150 ms, the card says *Looking in your vault…*, in words, never a spinner. Under
+reduced motion everything is instant.
+
+## Moves by your AI provider
+
+Some questions about a passage your vault cannot answer, because they are about **the book's**
+argument. Six moves put one of them to **your** AI provider, about one passage, when you click —
+and the answer comes back as a proposal beside the page, never as a chat and never as a summary.
+
+![Moves by your AI provider: the Think row with Contradict, Connect and the six AI moves; a card in Alongside showing Why?, Proposed by your AI provider, the passage and three faint breathing lines where the answer will be; the same card with the answer landed and Accept, Modify and Reject; and the thought in Think with its Why? · AI chip](../resources/reader/ai-moves.svg)
+
+**Where they are.** In the same *Think* row as [Contradict and Connect](#moves-answered-by-your-vault),
+after them — on a selection or on one of your highlights, in a book or a paper. They are there only
+while AI is turned on in **Settings › AI**:
+
+| AI in Settings › AI | The Think row |
+|---|---|
+| Turned off (the default) | *Contradict* and *Connect* only — the Reader is exactly as it was |
+| On, not set up | the six are offered; a click shows *Your AI provider isn't set up yet* and **Open AI settings**, and sends nothing |
+| On and set up | a click sends one request |
+
+**The six**, each one question with a short, bounded answer:
+
+| Move | It asks | It returns | Logged as |
+|---|---|---|---|
+| **Why?** | the author's reasoning for the passage | one short paragraph | *reframe* (transform) |
+| **Challenge** | the assumption the passage rests on | one assumption, and why it might not hold | *challenge* (perturb) |
+| **Question** | the question worth investigating | one question | *branch* (explore) |
+| **What's the claim** | what is being claimed | one sentence, and its kind (causal, general, normative, descriptive or predictive) | *compress* (transform) |
+| **Reflect** | what follows if it is true | one consequence, ending as a question to you | *branch* (explore) |
+| **Explain** | what the selected words mean **here** | one short paragraph, in context | *reframe* (transform) |
+
+The verbs are the [eleven of the move log](../architecture/thought-lab.md): there is no twelfth.
+
+**What is sent — and nothing more.** The move's task, the selected words, the paragraph they sit in
+and the one before it, the book's title and the chapter's title. **Nothing from your vault**: no
+notes, no highlights, no thoughts — knowing your vault is the job of Contradict and Connect, which
+use no AI. The content is capped by Settings › AI's input limit and marked as data, not instruction;
+the provider is also sent the same short system guard as every AI action. The answer is cleaned
+(template tokens neutralised, headings and lists taken off) and cut to the move's length before you
+see it.
+
+**The prompts, word for word.** Each request is the move's task, then one line asking for the
+answer's language and length, then the passage:
+
+```
+<the move's task>
+Answer in <your Obsidian language>, in at most N sentences, with no preamble.
+
+<note-content>
+Book: …
+Chapter: …
+Previous paragraph: …
+Paragraph: …
+Selected: …
+</note-content>
+```
+
+The tasks are fixed in the code, in English; the answer is asked for in your Obsidian language,
+named in English so every model reads it (*Spanish*). N is 4 for *Why?*, *Reflect* and *Explain*,
+2 for *Challenge*, and 1 for *Question* and *What's the claim*.
+
+- **Why?** — “Explain, in one short paragraph, the author's reasoning for the selected words, using only the passage given. Do not summarise the book.”
+- **Challenge** — “Name the one assumption the selected words rest on, and say why it might not hold. Use only the passage given.”
+- **Question** — “Ask the one question about the selected words that is most worth investigating. Reply with the question only.”
+- **What's the claim** — “State exactly what the selected words claim, in one sentence, and the kind of claim it is. Reply in two lines: "Claim: <the claim>" and "Kind: <causal, general, normative, descriptive or predictive>", keeping the words Claim and Kind in English.”
+- **Reflect** — “Say what follows if the selected words are true: one consequence, in a few sentences, ending with a question to the reader.”
+- **Explain** — “Explain what the selected words mean here, in this passage and its context, in one short paragraph. Do not give a dictionary definition.”
+
+There is no follow-up box: a move is one turn.
+
+**The card.** It is there the moment you click — at the top of Alongside, which opens if it was
+closed — with the move's name, *Proposed by your AI provider*, and the passage. Where the answer will
+be, three faint lines breathe, like a pen about to write; there is no spinner. You keep reading: the
+page scrolls and turns as normal, and the card waits in the margin. After 8 seconds a quiet line
+says *Still waiting for your provider…*. Then the answer fades in where the lines were, and nothing
+above it moves. If you closed Alongside meanwhile, the card is kept, and a small dot on Alongside's
+button says the answer is there; opening Alongside clears it. There is no notice.
+
+**What each verdict writes**, and what is recorded:
+
+| Verdict | Written | Recorded |
+|---|---|---|
+| **Accept**, or **Modify** then **Keep my version** | **one thought** in Think: your text, *about* the book, quoting the passage with its [source](#every-note-goes-back-to-its-paragraph), marked as made by the move with AI. On a highlight, it is threaded under it — *Challenge* as a challenge, the other five as forks | the verdict with origin *ai* and a subject naming the move (`reader-ai:why`), never the text; and the move under its verb |
+| **Reject** | nothing | the verdict *rejected* |
+| **Dismiss**, **Cancel** while it waits, or closing the Reader | nothing | nothing — and whatever comes back later is dropped |
+
+Think shows the thought with a chip, ***Why? · AI***, and *From this reading* at the bottom of
+Alongside lists it the same way. Like a vault move's answer, it carries its passage but is not a
+highlight: it is never drawn on the page.
+
+**One request per click, and nothing on its own.** Clicking the same move on the same passage while
+it waits does nothing. At most **two** requests wait at once, across the Reader; a third card opens
+at once and says *Waiting for the one before it…* until a slot frees. **Cancel** discards the
+answer — your provider cannot be interrupted, so the request finishes, and nothing is shown or
+recorded. After your provider's 30-second time-out the card says *Your AI provider didn't answer.*;
+an error shows its status (*The provider answered 429*); each offers **Try again**, which is a new
+request. Nothing ever retries by itself, nothing is batched, and no AI move ever runs in an
+automation. On a paid model each click is one request, bounded by the output cap in Settings › AI.
+
+**It moves like the rest of the Reader.** The card flies out of the button you pressed into
+Alongside in one 250 ms flight; the ink breathes on opacity alone (0.35 ↔ 0.7 over 1.2 s); the
+answer's fade is 120 ms; Accept folds the card into *From this reading*, Modify edits in place,
+Reject slides it aside. Under reduced motion the lines stand still, half-faint, and everything is
+instant.
+
+## Make it a claim, or link it to an idea
+
+Two things a careful reader does all the time, each one gesture from the selection, each **your
+own act** — not a proposal, so there is nothing to accept: a **claim**, one sentence you would
+defend, sourced to its exact page; and a **link**, so an idea you already hold gains this passage
+as a source.
+
+![Make it a claim, or link it to an idea: the selection's popover with Claim and Link to an idea after Highlight and note; the claim sheet beside the page, in Alongside's place, the selected words travelling into its quote, with the claim, the title, the passage, the source and the folder, and Create; and the picker grown from Link to an idea, with Planning fallacy at the top and Already linked to this passage under a second pick](../resources/reader/claim-link.svg)
+
+**Where they are.** Select words in a book or a paper, or click one of your highlights: the first
+row of the popover reads *Highlight and note*, **Claim**, **Link to an idea**. A reading of notes
+has neither: a passage of a note has no page to be sourced to. *Claim* is also beside an accepted
+[*What's the claim*](#moves-by-your-ai-provider) — on its row in *From this reading*, and on its card
+in Think, which opens the Reader on the passage with the sheet already open. There is no command.
+
+**Make it a claim.** *Claim* opens a sheet **beside the page, in Alongside's place** — never a
+centred window — sliding in the way Alongside does while the selected words travel from the page
+into its quote, as one gesture. It holds:
+
+- **the claim** — *One sentence you would defend*, the words of the claim form. It starts as the
+  words you selected, or as the sentence of the *What's the claim* you accepted: both are already
+  yours. Blank, there is no *Create*.
+- **the title** — the claim, until you write one of your own;
+- **the passage**, quoted;
+- **the source**, exactly as it will be written ([every note goes back to its
+  paragraph](#every-note-goes-back-to-its-paragraph));
+- **the folder** — the vault's root unless you choose one; the next claim starts where the last went;
+- **Create** (Ctrl/Cmd-Enter), and **Cancel** (Esc).
+
+Nothing is written before *Create*. The note it creates is **new** — create-only, never an append:
+
+```markdown
+---
+claim: "Big projects fail by underestimating complexity"
+source:
+  - "[[Books/How Big Things Get Done.epub#OEBPS/ch02.xhtml|How Big Things Get Done]] p. 143 · 2 · Think slow, act fast · “…cases. ‹This is the planning fallacy›, or the planning…”"
+---
+
+> This is the planning fallacy, or the planning bias, as some call it.
+```
+
+You never write that YAML: the sheet does. The claim parser reads it at once, so the claim is under
+*Research* in Alongside, in the evidence map and in [claim returns](claim-returns.md) — sourced to
+the book. **A taken name is never overwritten**: *Create* says *A note with this name already
+exists*, offers **Open it**, and writes nothing. The sheet folds into its row under *From this
+reading* — *Claim: Big projects fail by underestimating complexity* — and a click reads the note in a
+peek.
+
+**Taken back where it is listed.** Each row you made yourself in *From this reading* — *Claim: …*,
+*Linked to …* — has **Undo**: the claim note goes to Obsidian's trash (and the highlight stops
+pointing at it), a link's source entry is removed, each as one batch of the
+[write record](../architecture/reversibility.md). If the note changed since, it says *Could not take
+it back — the note changed since.* and leaves it.
+
+**The highlight is kept.** A claim is not a crystallization: made from one of your highlights, the
+highlight stays a highlight — it is **not** set aside — takes a small claim tick on the page, and its
+row in the margin says *Claim: …*. *Crystallize into a note* is still there, for a whole note from
+the passage.
+
+**Link to an idea.** The popover becomes a search box over your notes, growing from the button.
+Before you type, it lists what [Alongside](#alongside-your-vault-beside-the-page) finds near this
+passage; then it searches every note in your knowledge scope, by title or alias. ↑ ↓ and Enter pick,
+Esc goes back. Choosing one makes the link with the very write an accepted
+[*Connect*](#moves-answered-by-your-vault) makes: the idea's `source` list gains this passage — one
+property write, in the [write record](../architecture/reversibility.md), the rest of the note
+byte-identical. It is your choice, so there is no proposal and no verdict
+to record. The idea's name flies to *From this reading* — *Linked to Optimism bias* — and Alongside's
+*Connections* shows the idea with **You linked it to this passage**.
+
+- **Already linked.** An idea that already cites this passage says *Already linked to this passage*,
+  and nothing is written.
+- **Nothing in scope.** *No notes yet. Make it a claim to create the first.*
+- **No match.** *No note by that name.*, with **Make it a claim**, which opens the sheet with what you
+  typed as the claim.
+
+**One claim path, not two.** [*What's the claim*](#moves-by-your-ai-provider) asks your AI provider
+what a passage claims, and keeps the answer as a thought only if you accept it. *Make it a claim* is
+the one door from a passage to a **claim note**: an accepted *What's the claim* only prefills it.
+There is no AI in either gesture — neither calls your provider — and no move is logged for them:
+they are what you did, not a proposal you judged. *Make it a claim* records one verdict, a human
+accepting the claim (subject `reader-claim`, no text), the way crystallizing does.
+
+**The book is never written.** The claim writes one new note; the link writes one property of an
+idea. The EPUB or the PDF is never touched.
+
+**It moves like the rest of the Reader.** The sheet slides in at the base beat (250 ms) while the
+words fly into its quote; if Alongside was closed, it slides in carrying the sheet. *Create* folds
+the sheet into its row in *From this reading*, and the claim tick fades in over 120 ms. *Cancel*
+slides the sheet back out the way it came, and the words fly back to the page; if Alongside opened
+for the sheet, it goes with it. The picker grows from its button (0.96 → 1 and a fade, 120 ms) and
+closes the way it came. In portrait on an iPad the sheet is the panel's bottom sheet. A key or a
+click during a move ends it; under reduced motion everything is instant.
+
+## Look up and translate
+
+A word you do not know should not send you out of the book. **Look up** reads it in dictionaries
+**you** keep in your vault — offline, on the device — and **Translate** puts a passage into your
+language, by the system on iPad and by your own AI provider elsewhere. Both are in the selection's
+popover, after *Copy*.
+
+![Look up: a Spanish book with the word casa selected and its popover's last row reading Copy, Look up and Translate; the card grown from the word, headed casa, From your dictionaries, on this device, then Wiktionary (Spanish) with its definition and FreeDict spa-eng marked Translation with house, home; an offline mark; and Translate's card on a passage, Sent to your AI provider, on your click, with three faint lines breathing where the translation will be](../resources/reader/lookup.svg)
+
+**Look up** is offered for a selection of one to three words. It reads the **StarDict**
+dictionaries — the open format of KOReader and GoldenDict — in the folder chosen in **Settings →
+Reading › Dictionaries folder** (`Dictionaries` by default; the plugin never creates it). The
+dictionaries for the **book's language** answer, one after another, each under its own name:
+monolingual first, then bilingual into Obsidian's language — the word's **translation**, offline, as
+Kindle's translation dictionaries give — then any other bilingual. The word is matched ignoring
+case, then against the dictionary's synonyms (in many builds, the inflected forms: *corrió* finds
+*correr*). There is no guessing beyond that: no stemming, no fuzzy match.
+
+- **No network, ever.** A look-up makes no request of any kind, with AI on or off, online or not.
+- **Read when asked.** A dictionary is read on the first look-up that needs it — never when the plugin
+  loads or a book opens — through the vault's own binary read, and kept for the session. That first
+  one may take a moment: past 150 ms the card says *Opening Wiktionary (Spanish)…*, as text — and,
+  once said, it stays a moment rather than flash — and the entry fades in where it was. Every later look-up answers at once.
+- **Shown, never kept.** Text and phonetic entries are shown as text; HTML, XDXF and Pango entries keep
+  their emphasis and their lists, and lose everything else (scripts, styles, outside links, pictures,
+  sounds) — rebuilt element by element, never as HTML. **Copy** puts the answer on your clipboard; you
+  can paste it into *Highlight and note*. Nothing is written: not the book, not the dictionary, not
+  Think.
+- **Honest when it cannot.** *No dictionaries yet: add StarDict dictionaries to your dictionaries
+  folder* — with **Open settings** and **Where to find free dictionaries**. *No dictionary for Spanish
+  in your dictionaries folder* when none is for the book's language. *No entry for "x" in …*, naming
+  each dictionary it asked. On an iPad, *This dictionary is too large to open on this device*, and
+  the others still answer.
+
+How to install one, where free ones are, and how to set the languages of a dictionary that declares
+none: **[Dictionaries for look up](reader-dictionaries.md)**.
+
+**Translate** a passage, up to Settings › AI's input limit:
+
+| Where you read | Translate |
+|---|---|
+| iPhone and iPad | the system's own, in its callout (offline once you have downloaded the iOS languages) — ours is hidden |
+| Desktop and Android, AI off (the default) | hidden |
+| Desktop and Android, AI on, not set up | a click says *Your AI provider isn't set up yet*, with **Open AI settings**, and sends nothing |
+| Desktop and Android, AI on and set up | a click sends one request to **your** provider |
+
+It translates into **Obsidian's language**, or the one chosen in **Settings → Reading › Translate
+into**; when that is the book's own language, the card asks which, and keeps the answer in the same
+setting. It sends **the passage and the target language, and nothing else** — no notes, no
+highlights, no book title — capped by the input limit and marked as data, not instruction. This is
+the whole task, word for word, with the language named in English:
+
+> Translate the passage into &lt;the target language&gt;: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.
+
+```text
+Translate the passage into <the target language>: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.
+
+<note-content>
+Passage: <the passage you selected>
+</note-content>
+```
+
+One request per click, never on selecting; the same passage clicked again while it waits sends
+nothing more; a timeout or an error says so with **Try again**, and nothing retries by itself. It
+waits in the same queue as [the AI moves](#moves-by-your-ai-provider). The translation is shown and
+copied, never kept.
+
+**It moves like the rest of the Reader.** The card grows from the selected word — 0.96 → 1 and a
+fade, 120 ms, from the word's own point — and Esc, a click outside or a turn of the page takes it
+back the same way; the line you were reading never moves. While a translation is on its way, three
+faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
+appears and goes at once, and the lines are still.
 
 ## Bookmarks and where you've been
 
@@ -396,7 +823,8 @@ you write the note, the passage stays marked; cancel and the mark goes.
 - **Click a highlight** to see its note, add or edit one, delete it, or open it in Think. A
   highlight with a note has a dotted underline.
 - **In the margin.** On a wide pane your highlights are listed beside the page, in reading order;
-  click one to go to it. On a narrow pane the same list is under **Around this chapter**.
+  click one to go to it. On a narrow pane, and while Alongside is open, the same list is the first
+  thing in **Alongside**.
 - **Everything can be undone.** Highlighting, editing and deleting are recorded writes of a thought,
   in the [write record](../architecture/reversibility.md), and each answer offers **Undo** in place. A
   deleted highlight goes to the trash, not away.
@@ -416,7 +844,9 @@ paragraph, the way you would on paper or a reMarkable.
 - **The palette.** A small strip at the edge of the reading column, never over the text: **pen**,
   **highlighter**, **lasso**, **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
   **undo**. A marker glides to the tool in use. On a phone, an iPad in portrait or a paper in Page view
-  — where there is no margin for it — the strip lies just above the reader bar. Whether it was open is
+  — where there is no margin for it — the strip lies just above the reader bar. With
+  [Alongside](#alongside-your-vault-beside-the-page) open the column moves over and its margin goes,
+  so the strip lies above the bar too, centred under the column, clear of the panel. Whether it was open is
   remembered on this device, so an iPad you write on stays ready to write.
 - **What draws.** A **pen** draws (an Apple Pencil, a Wacom or a Surface pen), and so does a
   **mouse**, so you can write a margin arrow at a desk. A **finger never draws**: it scrolls, turns the
@@ -619,6 +1049,79 @@ and later versions can read it. The colour is kept by name, and drawn from your 
 - **No thinking space?** The pencil is still there; the palette says that ink is kept in Think and how
   to choose a folder, and nothing draws.
 
+## Every note goes back to its paragraph
+
+A note you make from a passage of a PDF or an EPUB remembers **which paragraph** it came from, in
+the note itself, for as long as the note exists — so you can always check a sentence against its
+source. That is what makes a note citable.
+
+![Every note goes back to its paragraph: the note's Properties with its source entry; This note's Born from with the copy-link icon, the chip lifting towards the Reader; the Reader landed with the passage at the reading line, marked for a moment; the line another edition gets; and the passage link](../resources/reader/provenance.svg)
+
+- **Written once, when the note is made.** Crystallizing a highlight writes a `source` property —
+  a list, so one note can cite several passages — that reads like a citation:
+
+  ```yaml
+  source:
+    - "[[Books/Thinking, Fast and Slow.epub#OEBPS/ch03.xhtml|Thinking, Fast and Slow]] p. 143 · 3 · The lazy controller · “…physical exertion. ‹A general law of least effort applies› to cognitive…”"
+    - "[[Papers/cap.pdf#page=6|CAP twelve years later]] p. 6 · “‹Partitions are rare› but…”"
+  ```
+
+  From left to right: the book, as a link whose subpath is **the chapter's own path inside the
+  file** (an EPUB's spine item) or Obsidian's own `#page=N` for a PDF; the **print page**, only when
+  the source has one; the chapter as the book names it; and the **opening words of the passage**
+  between `‹ ›`, inside a few words of context. The `source::` line the note always had is still
+  written under its text, so the note still counts as sourced and as born from the book.
+- **A quote, not a CFI.** An EPUB CFI counts element steps in the book's original XHTML, but the
+  Reader draws a cleaned copy of it: it would be a coordinate the Reader could not check, broken
+  silently by any change to the cleaning. A few words survive both. The opening words are bounded
+  (twelve words, 90 characters, a little context each side), so the property stays readable.
+- **The page is never invented.** A PDF gives its page, and its printed label when it has one. An
+  EPUB gives a print page only when the book declares its print pages — an EPUB 3 page list, an EPUB 2
+  NCX page list, or page-break marks in its text. A book that declares none cites its chapter.
+- **Highlights carry the same place.** A highlight remembers the chapter's identity and the page,
+  and crystallizing copies them into the note, so the way back never depends on the highlight still
+  being in Think.
+- **Open source passage.** In [This note](this-note.md), **Born from** names the book and the page;
+  click it and the Reader opens on that chapter with the passage at the **reading line** (a third of
+  the way down), marked for a moment under the words. The preview of the note, before it exists,
+  shows the same source with **↗ Open source passage**. It is one camera move: from This note the
+  book's chip lifts and travels into the Reader; when the Reader is already open on the book, the
+  column glides there; when the passage is in another chapter, the chapter turns the way it always
+  does and then settles. A key, the wheel or a touch during the move ends it at once. The place you
+  left is on the trail, so **← Back** returns there.
+- **Another edition.** When the words are not there (another edition, a re-exported PDF), the
+  Reader opens the chapter at its top and says so once, inline: *The passage was not found in this
+  edition. Opened at its chapter.* It never guesses a nearby paragraph. A spine that was reordered
+  still lands: the chapter is found by its path, not its number.
+- **Old notes.** A note made before this keeps its `source::` line, is never rewritten, and now
+  opens at its EPUB chapter too — the chapter the book labels so (`3 · The lazy controller`), never
+  the third file in the book.
+- **Under reduced motion** the landing is instant, and the mark shows for 1.5 s without fading.
+
+### Passage links
+
+**Copy link to passage**, the link icon on the *Born from* row, puts on the clipboard an Obsidian
+URI that opens the Reader at that passage — pasted in any note, or clicked from outside Obsidian.
+The row reads *Link copied* for a moment.
+
+```
+obsidian://zettelflow-read?vault=<vault>&file=<vault path>&chapter=<chapter>&q=<opening words>[&pre=<before>][&suf=<after>][&page=<print page>]
+```
+
+| Field | What it is | Cap |
+|---|---|---|
+| `vault` | The vault's name (Obsidian routes the link by it) | — |
+| `file` | The PDF or EPUB's path in the vault | 1024 characters |
+| `chapter` | The chapter's identity: an EPUB spine item's path (`OEBPS/ch03.xhtml`), or `page:<index from 0>` for a PDF | 512 |
+| `q` | The passage's opening words | 90 |
+| `pre`, `suf` | A few words before and after them | 24 each |
+| `page` | The print page, when the source has one | 32 |
+
+The link carries the path and the anchor's few words, nothing more. One that names a file that is
+not a PDF or an EPUB, or not in the vault, is over a cap, misses `file`, `chapter` or `q`, or has a
+field not listed here opens nothing and shows nothing (it is logged at debug). **This shape is a
+public surface:** later versions keep reading it, and any change to it is additive.
+
 ## The end of a path
 
 Past the last chapter — **Next**, **Space** or **Finish** — the reading does not just close. An
@@ -676,7 +1179,7 @@ land on the page that holds them — and the strip **travels** there, never cuts
 [Going to a place](#going-to-a-place-is-a-camera-move)). A resumed reading opens on its page, inside
 the opening shot. A selection can run across a page break and be highlighted.
 Pictures and tables are scaled to fit a page, never cut across two. In a spread there is no room
-for the margin: the highlights are in **Around this chapter**.
+for the margin: the highlights are in **Alongside**.
 
 A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,
 a swipe right), and its pages flow from the right. PDF Page view keeps its own pages (#767).
@@ -747,12 +1250,21 @@ you can make while reading — a highlight, or ink — are **thoughts** in Think
 thought store like every other thought, and a second test holds that line too. Ink adds one file to
 its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
 same recorded batch. An older version of the plugin reads an ink note as a highlight with no note;
-nothing is lost. The only things it remembers are where you are in a reading (in the workspace
+nothing is lost. A note made from a passage — through the same preview as everywhere, create-only —
+carries its `source` list from the start; a crystallize flow's note gets it added once the flow has
+built the note, as one recorded property write you can undo (its own row in *Recent*, after the
+note's). The book itself is never written. The only things it remembers are where you are in a reading (in the workspace
 layout, and the resume places in the plugin's settings), your type choices and the paths you saved
 (in the plugin's settings), and the places you bookmarked in a book or a paper (beside its resume
 place, in the plugin's settings — an older version of the plugin reads past them, so going back to
 one forgets them). Choosing a way through a note writes nothing either, and neither do peeks, detours or
-adding a note to a reading — an added note lasts as long as the reading on screen.
+adding a note to a reading — an added note lasts as long as the reading on screen. **Alongside**
+writes nothing while you read, scroll or switch lenses; its *Not related* is one verdict in the
+judgement record, never a write to a note, and whether it is open and its lens are kept on this
+device only. A move by your AI provider writes only what you accept: one thought. **Make it a
+claim** writes one new note when you press *Create* — create-only, through the claim's one writer
+(`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
+the idea's `source` list, through #751's one writer.
 
 ## For contributors
 
@@ -790,6 +1302,31 @@ adding a note to a reading — an added note lasts as long as the reading on scr
   `travelDuration`). They return how long they take, and `readerHere.ts` waits that long before the
   *you are here* mark (`markHereAt`, `markHereOn`; `zf-reader-here`, opacity only). The old
   `reader-highlight--flash` box-shadow ring is gone.
+- Alongside (#754) is pure in `architecture/knowledge/alongside/` (the State barrel exports it):
+  `alongsideVocabulary` (titles and aliases, folded and indexed by first word, memoised per
+  revision; `commonWords.ts` holds the never-matches list), `nearPassage` (named · born from this
+  chapter · born from this book · marked · the chapter's note; one reason each, scope-filtered by the
+  model), `alongsideLenses` / `allOf` (the six lenses over `noteNeighbourhood`, `sharedContext`,
+  `findContradictions` and `buildEvidenceMap`) and `withNamed` (Think's thoughts read once). The
+  verdict is `chapterVerdict` / `ruledOutInChapter` in `judgement/chapterVerdict.ts`
+  (`reader-not-related:<book>#<chapter key>`), which #756's *Reject* writes too. The panel is
+  `ReaderAlongside` in `reader/readerAlongside.ts` (`ALONGSIDE_SETTLE_MS`, `UNDO_MS`, the
+  `zettelflow-reader-alongside` local-storage key); its cards move with `reconcile` in
+  `readerFlip.ts` — the keyed FLIP list #756, #759 and #762 reuse. The view hands it the passage
+  (`blockAtLine` in `readerPlace.ts`) and keeps the reading line through the column's change
+  (`holdReadingLine`).
+- Provenance (#751) has one producer and one reader, both pure in `application/library/provenance.ts`:
+  `PassagePlace` (`file`, `chapter` key, `label`, `page`, bounded `quote`), `placeOf(thought)`,
+  `boundQuote`, `samePlace`, `sourceEntry(place, title?)` / `readSourceEntry(value)` (the written
+  form), `serializePlace` / `parsePlace` (the view state's one-shot `at`), `passageLink` /
+  `parsePassageLink` (the URI), `resolveChapter` / `chapterFromLabel`, `printPageAt` and
+  `mergeSourceEntries`. The one property writer is `addSourceEntries(file, entries)` in
+  `architecture/plugin/library/sourceWrites.ts` (through `FrontmatterService`, in a `reader-source`
+  batch). `SourceChapter.key` / `.page` and `DrawnChapter.pageMarks` come from the sources;
+  `ThoughtLocator.chapter` / `.page` from the highlight. The view lands an `at` through the same
+  `landHere` as a bookmark — a `Spot` with a `passage` quote, anchored on `foldMarks(chapterText)` and
+  put at `READING_LINE` (`readerPlace.ts`) with `ReaderPager.reveal(anchor, travel, line)` — or shows
+  `reader-passage-missing`. The protocol handler lives in `ReaderComponent` (`readerLink.ts`).
 - Deep reading (#764) is the idle bar grown up, not a new state: page only is `reader--deep` +
   `reader--idle`, the overlay is `reader--deep` alone, so `wake()` and the `IDLE_MS` timer are the
   ones the bar always had, and `idleAllowed()` keeps the chrome while a panel, search or a popover is

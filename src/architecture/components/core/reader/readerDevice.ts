@@ -44,13 +44,16 @@ const MB = 1024 * 1024;
  * the values the device walk confirms or raises — see the *Device walk* record on issue #750 (P11).
  * Below them a book opens; past them the page says why not, and nothing is read.
  */
-export const DEVICE_LIMITS: Record<SourceFormat, number> = {
+export const DEVICE_LIMITS: Record<SourceFormat | "stardict", number> = {
     pdf: 100 * MB,
     epub: 50 * MB,
+    // A dictionary's `.idx`, `.syn` and `.dict(.dz)` together (#766 FR-8), held for the session — and
+    // its index's table on top. Provisional, as the two above: the owner's device walk tunes it.
+    stardict: 80 * MB,
 };
 
 /** A source this device should not try to open: mobile only, and only past the limit. */
-export function tooLarge(size: number | undefined, format: SourceFormat): boolean {
+export function tooLarge(size: number | undefined, format: SourceFormat | "stardict"): boolean {
     if (!Platform.isMobile || typeof size !== "number") return false;
     return size > DEVICE_LIMITS[format];
 }

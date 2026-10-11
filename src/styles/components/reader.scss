@@ -658,8 +658,45 @@ button.zettelkasten-flow__reader-next-button {
     opacity: 0;
 }
 
-.zettelkasten-flow__reader-panel-title,
-.zettelkasten-flow__reader-context-heading {
+/* A panel's head (#777 FR-1): its title, and its own × at the end of the row. */
+.zettelkasten-flow__reader-panel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+
+    .zettelkasten-flow__reader-panel-title {
+        flex: 1;
+    }
+}
+
+.zettelkasten-flow__reader-panel-close {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+}
+
+/*
+ * On a sheet the bar stays above it and its dim, so its door is always in reach (#777 FR-3); the
+ * sheet keeps its last rows clear of the bar.
+ */
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-bar {
+    z-index: 7;
+}
+
+/*
+ * Under the sheet's dim the top line steps out (#777 FR-2): pulled up, the sheet would reach it, and
+ * the Reader's × must never sit over the sheet's head. The sheet carries its own ×.
+ */
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-top {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--sheet,
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-panel--sheet .zettelkasten-flow__reader-claim-sheet {
+    padding-bottom: calc(var(--size-4-18) + #{$safe-bottom});
+}
+
+.zettelkasten-flow__reader-panel-title {
     font-size: var(--font-ui-smaller);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -764,24 +801,6 @@ button.zettelkasten-flow__reader-next-button {
     pointer-events: none;
 }
 
-.zettelkasten-flow__reader button.zettelkasten-flow__reader-context-row {
-    display: block;
-    width: 100%;
-    height: auto;
-    padding: var(--size-4-1) var(--size-4-2);
-    border: none;
-    box-shadow: none;
-    background: none;
-    border-radius: var(--radius-s);
-    color: var(--reader-fg);
-    text-align: left;
-    cursor: pointer;
-
-    &:hover {
-        background-color: var(--background-modifier-hover);
-    }
-}
-
 .zettelkasten-flow__reader-toc-tick {
     display: inline-flex;
     color: var(--color-green);
@@ -789,6 +808,676 @@ button.zettelkasten-flow__reader-next-button {
     svg {
         width: var(--icon-xs);
         height: var(--icon-xs);
+    }
+}
+
+/*
+ * ── Alongside (#754): your vault beside the page ─────────────────────────
+ *
+ * The context panel, beside the column on a wide pane: it slides in from the column's edge
+ * (translate and opacity, the base beat), and the column makes room for it in one layout, the
+ * paragraph you are reading kept in place by the view. On a narrow pane it lies over the page's
+ * edge; in portrait on a tablet it is #750's sheet. Closing is the same move backwards.
+ */
+.zettelkasten-flow__reader {
+    --zf-alongside-w: min(22rem, 42%);
+}
+
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side {
+    left: auto;
+    right: calc(#{$safe-right} + var(--size-4-3));
+    top: calc(var(--size-4-12) + #{$safe-top});
+    bottom: calc(var(--size-4-18) + #{$safe-bottom});
+    width: var(--zf-alongside-w);
+    max-height: none;
+    gap: var(--size-4-3);
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform $motion-base $ease-out, opacity $motion-base $ease-out;
+    animation: zf-reader-alongside-in $motion-base $ease-out backwards;
+}
+
+@keyframes zf-reader-alongside-in {
+    from {
+        opacity: 0;
+        transform: translateX(var(--size-4-8));
+    }
+}
+
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side.zettelkasten-flow__reader-panel--leaving {
+    opacity: 0;
+    transform: translateX(var(--size-4-8));
+    pointer-events: none;
+}
+
+/* A wide pane: the column narrows beside it. A narrow one: it lies over the page's edge. */
+@container zf-reader (min-width: 52rem) {
+    .zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-stage {
+        right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+    }
+}
+
+/* Your highlights are in Alongside while it is open: the margin steps back rather than doubling them. */
+.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-margin:not(:empty) {
+    display: none;
+}
+
+.zettelkasten-flow__reader-alongside-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+/*
+ * The Reader's exit stays over the column (#777 FR-2): while Alongside lies beside it, the top line
+ * ends where the column ends, so the × above the panel is never the Reader's. It moves in the same
+ * layout that narrows the column — no motion of its own.
+ */
+.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-top {
+    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+}
+
+.zettelkasten-flow__reader-alongside-near {
+    flex: 1;
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+/* The lenses: chips with no number on them, the active fill travelling to the one you choose. */
+.zettelkasten-flow__reader-alongside-lenses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-alongside-lens {
+    @include chip;
+    @include chip-clickable;
+    position: relative;
+    isolation: isolate;
+
+    &.is-active {
+        @include chip-active;
+        background-color: transparent;
+    }
+}
+
+.zettelkasten-flow__reader-lens-marker {
+    @include chip-active;
+    position: absolute;
+    inset: calc(-1 * var(--border-width));
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-alongside-marks:empty {
+    display: none;
+}
+
+.zettelkasten-flow__reader-alongside-state {
+    @include empty-state;
+}
+
+/* The cards: a keyed list whose items move (readerFlip) — the list is their positioning box. */
+.zettelkasten-flow__reader-alongside-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-alongside-card {
+    @include card;
+    position: relative;
+    z-index: 1;
+    gap: var(--size-2-1);
+    background-color: var(--reader-bg);
+    border-color: var(--reader-line);
+}
+
+/* Which lens a card is from, said under *All* only. */
+.zettelkasten-flow__reader-alongside-tag {
+    display: none;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader-alongside-list--all .zettelkasten-flow__reader-alongside-tag {
+    display: block;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-alongside-title {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: none;
+    color: var(--reader-fg);
+    font-weight: var(--font-semibold);
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__reader-alongside-why {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-alongside-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-3);
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-alongside-action,
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-alongside-more {
+    height: auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: none;
+    color: var(--interactive-accent);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-alongside-action--quiet {
+    color: var(--reader-faint);
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-alongside-more {
+    align-self: flex-start;
+}
+
+.zettelkasten-flow__reader-alongside-undo {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    border-style: dashed;
+}
+
+/* A card on its way out: out of the flow at its old box, so the others close the gap by moving. */
+.zettelkasten-flow__reader-flip-leaving {
+    position: absolute;
+    z-index: 0;
+    top: var(--zf-flip-top, 0);
+    left: var(--zf-flip-left, 0);
+    width: var(--zf-flip-width, 100%);
+    pointer-events: none;
+}
+
+/*
+ * ── Moves answered by your vault (#756) ─────────────────────────────────
+ * The answer is a card at the top of Alongside: what was asked, where the answer came from, the
+ * passage, and each candidate as the Reader's proposal card in the list. It flies in from the
+ * button (transform and opacity, the base beat); a rejected candidate slides away and the others
+ * close the gap by moving.
+ */
+.zettelkasten-flow__reader-alongside-proposals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__reader-proposal-group {
+    @include card;
+    gap: var(--size-4-2);
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    border-color: var(--reader-line);
+    box-shadow: var(--shadow-s);
+}
+
+.zettelkasten-flow__reader-proposal-group-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-proposal-group-header,
+.zettelkasten-flow__reader-proposal-group-line {
+    @include hint;
+}
+
+.zettelkasten-flow__reader-proposal-group-origin,
+.zettelkasten-flow__reader-proposal-byline {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader-proposal-group-passage,
+.zettelkasten-flow__reader-proposal-passage {
+    margin: 0;
+    padding-left: var(--size-4-2);
+    border-left: var(--border-width) solid var(--reader-line);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-proposal-group-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-proposal-group-dismiss {
+    align-self: flex-start;
+}
+
+/* The proposal card in a list: in the flow, under the answer's header, never floating over the page. */
+.zettelkasten-flow__reader-proposal.zettelkasten-flow__reader-proposal--flow {
+    position: relative;
+    left: auto;
+    top: auto;
+    z-index: auto;
+    width: auto;
+    padding: var(--size-4-2);
+    background-color: var(--reader-bg, var(--background-primary));
+    box-shadow: none;
+}
+
+.zettelkasten-flow__reader-proposal-title {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+/* An answer asked of your AI provider (#759 FR-6): a card on its own, framed as #756's answers are. */
+.zettelkasten-flow__reader-proposal.zettelkasten-flow__reader-proposal--flow.zettelkasten-flow__reader-proposal--framed {
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface, var(--background-primary));
+    border-color: var(--reader-line);
+    box-shadow: var(--shadow-s);
+}
+
+/* Where the answer will be, and is: the same box, holding the ink's height so nothing above it moves. */
+.zettelkasten-flow__reader-proposal-answer {
+    position: relative;
+    min-height: var(--size-4-8);
+    white-space: pre-line;
+}
+
+.zettelkasten-flow__reader-proposal-answer--problem {
+    color: var(--reader-muted, var(--text-muted));
+}
+
+.zettelkasten-flow__reader-proposal-note {
+    @include hint;
+}
+
+/* A row the card hides — the actions while it waits, Cancel once it has landed — is gone, whatever display its own rule gives it. */
+.zettelkasten-flow__reader-proposal > .zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
+/*
+ * Waiting like a pen about to write (FR-13): three short lines in the faint text colour, breathing
+ * slowly — opacity only, never a shimmer, a percentage or a spinner.
+ */
+.zettelkasten-flow__reader-ink-wait {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--size-4-2);
+    pointer-events: none;
+
+    span {
+        display: block;
+        width: 92%;
+        height: var(--size-2-1);
+        border-radius: var(--radius-s);
+        background-color: var(--text-faint);
+        opacity: 0.35;
+        animation: zf-reader-pen-breathe 1.2s ease-in-out infinite alternate;
+    }
+
+    span:nth-child(2) {
+        width: 78%;
+        animation-delay: 200ms;
+    }
+
+    span:nth-child(3) {
+        width: 54%;
+        animation-delay: 400ms;
+    }
+}
+
+@keyframes zf-reader-pen-breathe {
+    from {
+        opacity: 0.35;
+    }
+
+    to {
+        opacity: 0.7;
+    }
+}
+
+/* An answer landed while Alongside was closed (FR-14): a small dot on its button, faded in. */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-bar-button--dotted {
+    position: relative;
+}
+
+.zettelkasten-flow__reader-bar-dot {
+    position: absolute;
+    top: var(--size-4-1);
+    right: var(--size-4-1);
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border-radius: 50%;
+    background-color: var(--interactive-accent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity $motion-fast $ease-out;
+
+    &.is-shown {
+        opacity: 1;
+    }
+}
+
+/* Modify on Connect: another idea, picked in place. */
+.zettelkasten-flow__reader-idea-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    /* It grows from the button it was asked from (#762 FR-14), else from its corner. */
+    transform-origin: var(--zf-origin-x, 0) var(--zf-origin-y, 0);
+}
+
+/* What an empty list says (#762 FR-9), the one way on, and *Already linked* (FR-7). */
+.zettelkasten-flow__reader-idea-picker-empty,
+.zettelkasten-flow__reader-idea-picker-line {
+    padding: var(--size-4-1) var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-idea-picker-action {
+    @include text-link-button;
+    align-self: flex-start;
+    padding: var(--size-4-1) var(--size-4-2);
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-idea-picker-input {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-idea-picker-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-idea-picker-row {
+    @include text-link-button;
+    justify-content: flex-start;
+    height: auto;
+    padding: var(--size-4-1) var(--size-4-2);
+    border-radius: var(--radius-s);
+    color: var(--reader-fg, var(--text-normal));
+    white-space: normal;
+    text-align: start;
+
+    &.is-selected {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+/* What the moves you accepted left, at the bottom of Alongside, for this reading. */
+.zettelkasten-flow__reader-from-reading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--reader-line);
+}
+
+.zettelkasten-flow__reader-from-reading-title {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-from-reading-row {
+    @include text-link-button;
+    height: auto;
+    color: var(--reader-fg, var(--text-normal));
+    font-size: var(--font-ui-small);
+    /* A claim is a whole sentence: it wraps in the panel, never pushes it sideways (#762). */
+    white-space: normal;
+    text-align: start;
+    overflow-wrap: anywhere;
+}
+
+/* *Claim* beside an accepted *What's the claim* (#762 FR-1): the row, and its one way on. */
+.zettelkasten-flow__reader-from-reading-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-from-reading-claim {
+    @include text-link-button;
+    flex: 0 0 auto;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+/*
+ * The claim sheet (#762 FR-12): in the margin's place — over Alongside, in its own slot — never a
+ * centred modal. It covers the panel while it is open, so what is under it waits; its slide is
+ * scripted (transform and opacity). In portrait on a tablet it is #750's bottom sheet, below the grip.
+ */
+.zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--claiming {
+    overflow: hidden;
+}
+
+.zettelkasten-flow__reader-claim-sheet {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    padding: var(--size-4-4);
+    overflow-y: auto;
+    background-color: var(--reader-surface);
+    border-radius: inherit;
+    /* Above Alongside's cards, which move by transform and so stack on their own. */
+    z-index: 2;
+}
+
+/* The bottom sheet's grip stays above it: the sheet is still dragged by it. */
+.zettelkasten-flow__reader-panel--claiming .zettelkasten-flow__reader-sheet-handle {
+    z-index: 3;
+}
+
+.zettelkasten-flow__reader-panel--sheet .zettelkasten-flow__reader-claim-sheet {
+    bottom: auto;
+    /* Only the part of the sheet that is up: its height less what is still below the screen. */
+    height: calc(var(--zf-sheet-full, 100%) - var(--zf-sheet-y, 0%));
+    padding-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__reader-claim-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-claim-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-claim-label {
+    color: var(--reader-faint, var(--text-faint));
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-claim-box,
+.zettelkasten-flow__reader-claim-title,
+.zettelkasten-flow__reader-claim-folder {
+    width: 100%;
+}
+
+.zettelkasten-flow__reader-claim-box {
+    resize: vertical;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__reader-claim-quote {
+    margin: 0;
+    padding-left: var(--size-4-3);
+    border-left: var(--size-2-1) solid var(--interactive-accent);
+    color: var(--reader-fg, var(--text-normal));
+    font-family: var(--reader-font, inherit);
+}
+
+.zettelkasten-flow__reader-claim-source {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-claim-taken {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--size-4-2);
+    color: var(--text-error);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-claim-open {
+    @include text-link-button;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__reader-claim-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+    margin-top: auto;
+}
+
+/* The words travelling from the page into the sheet's quote, and back (#762 FR-12, FR-13). */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-claim-ghost {
+    overflow: hidden;
+    color: var(--reader-fg, var(--text-normal));
+    font-family: var(--reader-font, inherit);
+    background-color: var(--background-modifier-hover);
+    border-radius: var(--radius-s);
+}
+
+/* A passage that became a claim (#762 FR-13): a small tick where it begins, faded in over `fast`. */
+.zettelkasten-flow__reader-highlight--claim-start::before {
+    content: "";
+    display: inline-block;
+    width: var(--size-2-3);
+    height: var(--size-2-3);
+    margin-right: var(--size-2-2);
+    background-color: var(--interactive-accent);
+    /* No text sits on it, but a filled accent always names its foreground (#431). */
+    color: var(--text-on-accent);
+    vertical-align: middle;
+    transform: rotate(45deg);
+    animation: zf-reader-claim-in $motion-fast $ease-out backwards;
+}
+
+/* Drawn again with its chapter, it is simply there: it faded in once, when the claim was made. */
+.zettelkasten-flow__reader-highlight--claim-kept.zettelkasten-flow__reader-highlight--claim-start::before {
+    animation: none;
+}
+
+@keyframes zf-reader-claim-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.zettelkasten-flow__reader-hl-claim {
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+}
+
+/* An accepted tension ticks the highlight it answers (FR-17): a mark at its end, faded in. */
+.zettelkasten-flow__reader-highlight--tension:last-of-type::after {
+    content: "";
+    display: inline-block;
+    width: var(--size-4-1);
+    height: var(--size-4-3);
+    margin-left: var(--size-2-1);
+    border-left: var(--border-width) solid var(--text-error);
+    vertical-align: middle;
+    animation: zf-reader-tension-in $motion-fast $ease-out backwards;
+}
+
+@keyframes zf-reader-tension-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* The Think row of the popover (FR-1): the moves you can make on this passage, under its meanings. */
+.zettelkasten-flow__reader-hl-think {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding-top: var(--size-4-1);
+    border-top: var(--border-width) solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__reader-hl-think-label {
+    margin-right: var(--size-4-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-proposal-group,
+    .zettelkasten-flow__reader-proposal--flow,
+    .zettelkasten-flow__reader-idea-picker,
+    .zettelkasten-flow__reader-from-reading,
+    .zettelkasten-flow__reader-highlight--tension:last-of-type::after,
+    .zettelkasten-flow__reader-claim-sheet,
+    .zettelkasten-flow__reader-highlight--claim-start::before,
+    .zettelkasten-flow__reader-bar-dot {
+        animation: none;
+        transition: none;
+    }
+
+    /* FR-16: the ink still, and half-faint. */
+    .zettelkasten-flow__reader-ink-wait span {
+        animation: none;
+        opacity: 0.5;
     }
 }
 
@@ -833,6 +1522,39 @@ button.zettelkasten-flow__reader-next-button {
 
 @keyframes zf-reader-pill-in {
     from {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
+/*
+ * The passage is not in this edition (#751 FR-7, FR-14): one calm line at the top of the column, no
+ * mark anywhere. It arrives like the back pill — 8 px down and a fade, in `fast` — and leaves the same way.
+ */
+.zettelkasten-flow__reader-passage-missing {
+    margin-bottom: var(--size-4-4);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-m);
+    background-color: var(--background-modifier-hover);
+    color: var(--reader-muted, var(--text-muted));
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-small);
+    animation: zf-reader-passage-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-passage-missing--leaving {
+    animation: zf-reader-passage-out $motion-fast $ease-out both;
+}
+
+@keyframes zf-reader-passage-in {
+    from {
+        opacity: 0;
+        translate: 0 calc(-1 * var(--size-4-2));
+    }
+}
+
+@keyframes zf-reader-passage-out {
+    to {
         opacity: 0;
         translate: 0 calc(-1 * var(--size-4-2));
     }
@@ -1189,6 +1911,135 @@ button.zettelkasten-flow__reader-note-pop-go {
     cursor: pointer;
 }
 
+/*
+ * Look up and Translate (#766): a card grown from the words (FR-12) — the footnote's look, placed by
+ * custom properties and growing from the selection's centre. Its body keeps its height while it waits,
+ * so the answer fades in where the waiting was and nothing above it moves (FR-13).
+ */
+.zettelkasten-flow__reader-lookup-card {
+    position: absolute;
+    left: var(--zf-lookup-x, var(--size-4-4));
+    top: var(--zf-lookup-y, var(--size-4-4));
+    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: min(24rem, calc(100% - var(--size-4-8)));
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.55;
+    user-select: text;
+}
+
+.zettelkasten-flow__reader-lookup-card--leaving {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-lookup-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-lookup-word {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--reader-font, inherit);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-lookup-byline {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-lookup-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    min-height: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-lookup-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-lookup-source {
+    display: flex;
+    align-items: baseline;
+    gap: var(--size-4-2);
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-lookup-kind {
+    padding: 0 var(--size-4-1);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__reader-lookup-headword {
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-lookup-def {
+    overflow-wrap: anywhere;
+
+    ul,
+    ol {
+        margin: var(--size-4-1) 0;
+        padding-inline-start: var(--size-4-5);
+    }
+
+    p {
+        margin: 0 0 var(--size-4-1);
+    }
+}
+
+.zettelkasten-flow__reader-lookup-def--phonetic {
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-lookup-translation {
+    font-family: var(--reader-font, inherit);
+    font-size: var(--font-ui-medium);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__reader-lookup-line--problem,
+.zettelkasten-flow__reader-lookup-opening,
+.zettelkasten-flow__reader-lookup-entry--refused .zettelkasten-flow__reader-lookup-line {
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-lookup-links,
+.zettelkasten-flow__reader-lookup-ask,
+.zettelkasten-flow__reader-lookup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-lookup-card .zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
 .zettelkasten-flow__reader-role-tag--detour {
     color: var(--reader-faint);
     background-color: var(--background-modifier-hover);
@@ -1249,10 +2100,6 @@ button.zettelkasten-flow__reader-note-pop-go {
     height: auto;
     padding: var(--size-4-1) var(--size-4-3);
     font-size: var(--font-ui-small);
-}
-
-.zettelkasten-flow__reader-context-empty {
-    @include empty-state;
 }
 
 /* ── highlights and notes in the margin (#671) ─────────────────────────── */
@@ -1704,6 +2551,23 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     z-index: 7;
     pointer-events: none;
     transform-origin: top left;
+}
+
+/* Born from's book, lifting and travelling to where its passage is read (#751 FR-12). */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-origin-ghost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    box-shadow: var(--shadow-s);
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
+    overflow: hidden;
+    z-index: var(--layer-popover);
 }
 
 .zettelkasten-flow__reader-hl-ghost {
@@ -2251,6 +3115,12 @@ body.zettelkasten-flow__reader-deep-covers-app {
         transition: none;
     }
 
+    /* Not in this edition (#751): simply there, then simply gone. */
+    .zettelkasten-flow__reader-passage-missing,
+    .zettelkasten-flow__reader-passage-missing--leaving {
+        animation: none;
+    }
+
     /* You are here: shown at once, for a moment, then gone (HERE_REDUCED_MS). */
     .zettelkasten-flow__reader-here::after {
         animation: none;
@@ -2275,6 +3145,7 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-shortcuts,
     .zettelkasten-flow__reader-shortcuts-card,
     .zettelkasten-flow__reader-note-pop,
+    .zettelkasten-flow__reader-lookup-card,
     .zettelkasten-flow__reader-jump-pill,
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
@@ -2288,6 +3159,14 @@ body.zettelkasten-flow__reader-deep-covers-app {
 
     .zettelkasten-flow__reader-ornament {
         transition: none;
+    }
+
+    /* Alongside is there or gone at once; its lens fill and its cards simply are where they go (#754 FR-22). */
+    .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side,
+    .zettelkasten-flow__reader-lens-marker,
+    .zettelkasten-flow__reader-flip-leaving {
+        transition: none;
+        animation: none;
     }
 
     /* The sheet appears and goes at once — its drag still follows the finger (#750 FR-20). */

@@ -291,8 +291,11 @@ opens, with the note before it exists.
   the text before you create it; **Cancel** writes nothing.
 - **It is a sourced note.** Because it cites the book, the note's claim counts as sourced in Health,
   Cultivate and This note — the same way a `source::` you write by hand does.
-- **This note knows where it came from.** Open the new note with [This note](this-note.md) beside it:
-  under its counts, **Born from** names the book and the page; click it and the Reader opens there.
+- **This note knows where it came from — to the paragraph.** Open the new note with
+  [This note](this-note.md) beside it: under its counts, **Born from** names the book and the page;
+  click it and the Reader opens on the passage itself. The note keeps a `source` property with the
+  chapter and the passage's opening words, so the way back survives the highlight leaving Think — see
+  [Every note goes back to its paragraph](reader.md#every-note-goes-back-to-its-paragraph).
 - **The Library counts it.** The book's card says **1 note born**, and its detail lists the notes
   born from it, each one a click away.
 - **The book is never written.** The note is the only thing created — through the
@@ -305,7 +308,8 @@ You can also crystallize a book's highlights from Think and from the review of
 
 With a canvas in the **Crystallizes thoughts** role, the note does not land at the vault root: the
 preview's button reads **Continue in «flow»** and that flow builds it, with the quote, the margin
-note and the `source::` line already at the top — see
+note and the `source::` line already at the top, and the passage's `source` property added once the
+note exists — see
 [Think → through your crystallize flow](../architecture/thought-lab.md#through-your-crystallize-flow).
 
 ## What it keeps, and where
@@ -361,6 +365,11 @@ name of the Reader's own (`zf-fxl-…`), so a book's *Inter* can never replace t
 let go when the book closes. Its own animations never play; `position: fixed` stays inside its page.
 No `<style>`, `<link>` or `<script>` element is ever made. A book's `!important` rule can beat what a
 page wrote inline — rare in fixed layout, and the designer's own choice.
+
+What a note made from a passage *writes* is in the note: its `source` property — a list of
+citations, each the book's link with the chapter in its subpath, the print page when there is one,
+the chapter's name and the passage's opening words — and the `source::` line under its text, as
+before. See [Every note goes back to its paragraph](reader.md#every-note-goes-back-to-its-paragraph).
 
 ## How to verify
 

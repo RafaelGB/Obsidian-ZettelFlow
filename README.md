@@ -89,7 +89,7 @@ Right-click any note and choose **Read from here**. The Reader takes the window 
 
 ![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
 
-**Your Library** (ribbon menu → *Library*) puts the PDFs and EPUBs already in your vault on one shelf, beside the paths you saved. Open a paper or a book in the same Reader (zoom, scroll and rotate a paper's printed pages, and follow its links), highlight it, and crystallize a passage into a note that cites the page — the shelf counts the notes born from each one. Nothing is imported or uploaded, and your files are never modified.
+**Your Library** (ribbon menu → *Library*) puts the PDFs and EPUBs already in your vault on one shelf, beside the paths you saved. Open a paper or a book in the same Reader (zoom, scroll and rotate a paper's printed pages, and follow its links), highlight it, crystallize a passage into a note that cites the page, or make it a claim sourced to its page — the shelf counts the notes born from each one. Alongside puts your own notes beside the page you are reading, each saying why it is there, and can argue with a passage in your own words. Look a word up in your own offline dictionaries, beside the line, with no network. Nothing is imported or uploaded, and your files are never modified.
 
 ![The Library: Continue reading and the shelf of books, papers and reading paths](docs/resources/library/shelf.svg)
 
@@ -129,6 +129,7 @@ ZettelFlow collects **no telemetry** and sends **no personal data or vault conte
 - **Dynamic code execution.** The Script action, dynamic selectors, vault hooks and workflow-event conditions run **JavaScript you write**, with the plugin's access to your vault — including read-only access to the whole knowledge model via `zf.knowledge` — so only run scripts you trust. No remote code is ever fetched or executed, and every runtime function is built in one audited module.
 - **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard.
 - **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.
+- **The Reader's AI moves — opt-in, per click.** Six moves on a passage you selected (*Why?*, *Challenge*, *Question*, *What's the claim*, *Reflect*, *Explain*) send that passage, its paragraph and the one before, and the book and chapter titles to your AI provider, only when you click one. Nothing from your vault is sent, and nothing runs by itself. On desktop and Android, **Translate** sends one selected passage and the target language, on a click; **Look up** reads your own dictionaries on the device and makes no request at all.
 
 See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/) for full details.
 

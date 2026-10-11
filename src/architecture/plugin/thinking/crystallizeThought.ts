@@ -114,7 +114,7 @@ export async function crystallizeInto(
     }
 }
 
-/** A file name Obsidian will accept, from a title you wrote freely. */
-function safeName(title: string): string {
+/** A file name Obsidian will accept, from a title you wrote freely (shared with #762's claim sheet). */
+export function safeName(title: string): string {
     return title.replace(/[\\/:*?"<>|#^[\]]/g, "").replace(/\s+/g, " ").trim().slice(0, 80) || "Untitled";
 }

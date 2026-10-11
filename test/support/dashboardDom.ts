@@ -117,6 +117,13 @@ export class DomNode {
     createDiv(options: any = {}): any {
         return this.createEl("div", options);
     }
+    /** Obsidian's `appendText`: a bare text node, as `#text` (#766, a dictionary entry rebuilt). */
+    appendText(text: string): void {
+        const node = new DomNode("#text");
+        node.text = text;
+        node.parent = this;
+        this.children.push(node);
+    }
     createSpan(options: any = {}): any {
         return this.createEl("span", options);
     }

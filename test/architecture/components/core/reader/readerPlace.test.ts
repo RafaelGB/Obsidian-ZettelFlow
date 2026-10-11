@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { placeAt, scrollFor, type Box } from "architecture/components/core/reader/readerPlace";
+import { blockAtLine, placeAt, scrollFor, type Box } from "architecture/components/core/reader/readerPlace";
 
 /** Blocks stacked one under the other, each `heights[i]` tall. */
 function stack(heights: number[]): Box[] {
@@ -43,5 +43,17 @@ describe("the line you were reading stays in view (#750)", () => {
 
     it("has nowhere to go when there are no blocks", () => {
         expect(scrollFor({ block: 3, within: 0.5 }, [])).toBe(0);
+    });
+});
+
+describe("the block under the reading line (#754 FR-2)", () => {
+    const blocks = stack([100, 50, 200]);
+
+    it("is the block the line falls in, else the next one down, else the last", () => {
+        expect(blockAtLine(blocks, 0)).toBe(0);
+        expect(blockAtLine(blocks, 120)).toBe(1);
+        expect(blockAtLine(blocks, 150)).toBe(2);
+        expect(blockAtLine(blocks, 10_000)).toBe(2);
+        expect(blockAtLine([], 10)).toBe(-1);
     });
 });

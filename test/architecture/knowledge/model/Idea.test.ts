@@ -61,3 +61,17 @@ describe("deriveIdea", () => {
         expect(idea.maturitySignals.hasSources).toBe(true);
     });
 });
+
+describe("deriveIdea reads a note's other names (#754)", () => {
+    const withFrontmatter = (frontmatter: Record<string, unknown>) => deriveIdea({ ...emptySnapshot("notes/p.md"), frontmatter });
+
+    it("reads `aliases` as a list and `alias` as one name, trimmed, each once", () => {
+        expect(withFrontmatter({ aliases: ["Planning bias", " planning bias ", "Hofstadter"], alias: "c" }).aliases).toEqual(["Planning bias", "planning bias", "Hofstadter", "c"]);
+        expect(withFrontmatter({ aliases: "One name" }).aliases).toEqual(["One name"]);
+    });
+
+    it("has no aliases when the note declares none, or only blanks and non-strings", () => {
+        expect(withFrontmatter({}).aliases).toBeUndefined();
+        expect(withFrontmatter({ aliases: [" ", 3, null] }).aliases).toBeUndefined();
+    });
+});

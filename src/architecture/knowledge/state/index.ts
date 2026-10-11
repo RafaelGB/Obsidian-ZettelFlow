@@ -70,3 +70,4 @@ export * from "./nextStepCard";
 export * from "./neighbourhood";
 export * from "./tend";
 export * from "./readingPath";
+export * from "architecture/knowledge/alongside";

@@ -160,6 +160,13 @@ export interface ZettelFlowSettings {
      */
     readingMotion?: { open: "shot" | "instant"; chapter: "leaf" | "flow" | "stack" };
     /**
+     * Look up and Translate (#766, epic #741) — the settings' *Reading* section: the folder your
+     * StarDict dictionaries are in (never written), the languages set for a dictionary that declares
+     * none (by its path without extension), and the language *Translate* translates into (`""` is
+     * Obsidian's). Read through `dictionarySettings()`, which fills anything missing.
+     */
+    dictionaries?: { folder: string; languages: Record<string, { from: string; to?: string }>; translateInto: string };
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */
@@ -437,6 +444,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     readerPrefs: { font: "sans", size: "medium", theme: "auto" }, // the theme's own type, until you pick (#668).
     readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
     readingMotion: { open: "shot", chapter: "leaf" }, // one continuous shot, a leaf that turns (#732).
+    dictionaries: { folder: "Dictionaries", languages: {}, translateInto: "" }, // nothing found until you add one (#766).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

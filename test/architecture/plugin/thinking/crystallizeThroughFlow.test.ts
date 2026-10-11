@@ -62,3 +62,36 @@ describe("crystallize through a flow (#712)", () => {
         expect(h.onDone).not.toHaveBeenCalled();
     });
 });
+
+describe("a flow's note goes back to its paragraph too (#751 P6)", () => {
+    it("adds the passages' source entries once the note is built, never before", async () => {
+        const passage = planCrystallization([
+            {
+                id: "h1",
+                at: 1,
+                text: "",
+                links: [],
+                about: "Books/tfs.epub",
+                quote: { exact: "A general law of least effort applies", prefix: "", suffix: "" },
+                locator: { at: 6, label: "3 · The lazy controller", chapter: "OEBPS/ch03.xhtml" },
+            },
+        ])!;
+        const h = harness();
+        const addSources = jest.fn(async () => true);
+        const deps = { ...h.deps, addSources };
+        await crystallizeThroughFlow({ plan: passage, title: "t", body: "b", flowPath: "Flows/Think.canvas", onDone: h.onDone }, deps);
+        // The seed carries no properties block: the template owns the frontmatter.
+        expect(h.seen.seed?.content.startsWith("---")).toBe(false);
+        expect(addSources).not.toHaveBeenCalled();
+        h.build("Crystallized/t.md");
+        expect(addSources).toHaveBeenCalledWith("Crystallized/t.md", [expect.stringMatching(/^\[\[Books\/tfs\.epub#OEBPS\/ch03\.xhtml\|tfs\]\] · 3 · The lazy controller · “‹A general law/)]);
+    });
+
+    it("a note with no passage gets no property write", async () => {
+        const h = harness();
+        const addSources = jest.fn(async () => true);
+        await crystallizeThroughFlow({ plan, title: "t", body: "b", flowPath: "Flows/Think.canvas", onDone: h.onDone }, { ...h.deps, addSources });
+        h.build("Crystallized/t.md");
+        expect(addSources).not.toHaveBeenCalled();
+    });
+});

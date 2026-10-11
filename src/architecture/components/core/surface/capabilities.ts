@@ -118,6 +118,14 @@ export const CAPABILITIES = [
     "think-about",
     "reader",
     "reader-ink",
+    "reader-alongside",
+    "reader-contradict",
+    "reader-connect",
+    "reader-ai-moves",
+    "reader-claim",
+    "reader-link-idea",
+    "reader-lookup",
+    "reader-translate",
     "library",
     "highlights-review",
     "claim-door",
@@ -375,6 +383,61 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         owner: "zettelflow-reader",
         // Read as text (#748): the chip under each ink note — in the margin, and on its card in Think.
         doors: [CONTROL("architecture/components/core/reader/readerInk.ts", "zettelflow-reader"), CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
+    },
+    "reader-alongside": {
+        // Your vault beside the page (#754, epic #741): the Reader's own context button, where it
+        // always was — now *Alongside*, for a book, a paper or a note reading. Its six lenses are
+        // chips inside it. No command: you are reading, and the button is under your hand.
+        nameKey: "reader_context",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
+    },
+    "reader-contradict": {
+        // Moves answered by your vault (#756, epic #741): the *Think* row of the popover that appears
+        // when you select words or click a mark. You are on the passage; the move is under your hand.
+        nameKey: "reader_move_contradict",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-connect": {
+        nameKey: "reader_move_connect",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-ai-moves": {
+        // Moves by your AI provider (#759, epic #741): Why?, Challenge, Question, What's the claim,
+        // Reflect and Explain, after Contradict and Connect in the same Think row — offered only
+        // while AI is turned on, which is the opt-in. Each answer is a proposal (§XII).
+        nameKey: "reader_ai_moves_name",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-claim": {
+        // Make it a claim (#762, epic #741): the selection's and a mark's popover, after *Highlight and
+        // note* — and on an accepted *What's the claim*, in Alongside and in Think. Your own act.
+        nameKey: "reader_claim_sheet_title",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
+    },
+    "reader-link-idea": {
+        // Link to an idea (#762): beside *Claim* — the idea you have in mind gains this passage.
+        nameKey: "reader_hl_link_idea",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-lookup": {
+        // Look up (#766, epic #741): the selection popover's last row, beside Copy — your own StarDict
+        // dictionaries, read on the device, no network. Settings › Reading only configures the folder.
+        nameKey: "reader_hl_lookup",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-translate": {
+        // Translate (#766): beside Look up, through your AI provider on a click, while AI is on; on
+        // iPhone and iPad the system's own Translate, in its callout.
+        nameKey: "reader_hl_translate",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

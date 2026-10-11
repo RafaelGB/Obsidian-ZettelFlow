@@ -17,6 +17,7 @@ import {
     type ThoughtLocator,
     type ThoughtRevision,
     type ThoughtInk,
+    type ThoughtMadeBy,
 } from "application/thinking/thought";
 import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
 
@@ -82,6 +83,8 @@ export class ThoughtStore {
             locator?: ThoughtLocator;
             /** What a highlight means (#720). */
             meaning?: HighlightMeaning;
+            /** The Reader's move it was accepted from (#756). */
+            madeBy?: ThoughtMadeBy;
         } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
@@ -283,8 +286,8 @@ export class ThoughtStore {
                 | Record<string, unknown>
                 | undefined;
             const about = front?.["about"];
-            // Ink is shown beside the highlights, never counted with them (#745 E6).
-            if (typeof about !== "string" || !about || !front?.["quoteExact"] || front["inkDrawing"]) continue;
+            // Ink is shown beside the highlights, never counted with them (#745 E6); nor is a move's answer (#756).
+            if (typeof about !== "string" || !about || !front?.["quoteExact"] || front["inkDrawing"] || front["madeBy"]) continue;
             counts.set(about, (counts.get(about) ?? 0) + 1);
         }
         return counts;

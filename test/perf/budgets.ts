@@ -326,6 +326,21 @@ export const BUDGETS = {
         because:
             "it runs before a designed page can be drawn, between the turn and the page; a heavy comic's sheet must clean well inside the 120 ms the page takes to fade in (#771 FR-15)",
     },
+    "reader.alongside.near.10k": {
+        name: "what is near a 120-word paragraph over 10,000 notes, and its six lenses (vocabulary warm)",
+        // ~4× the measurement, and under the 100 ms promised to the reader (#754 FR-15).
+        limit: 40,
+        measured: "6.7–11.9 ms (three runs; 43 near notes, 1,000 thoughts)",
+        because:
+            "it runs once each time your reading settles in a book (#754): on a 10,000-note vault Alongside must have caught up within 100 ms of the scroll stopping, with the work of the vault done once per revision, never per paragraph",
+    },
+    "reader.alongside.vocabulary.10k": {
+        name: "build Alongside's vocabulary of 10,000 notes' titles and aliases (once per model revision)",
+        limit: 50,
+        measured: "11.1–13.0 ms (three runs)",
+        because:
+            "it is built on the first settle after the vault changes (#754 FR-15); under 50 ms it needs no idle build, and a regression past that would make the first paragraph after an edit wait",
+    },
     "library.shelf.500": {
         name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
         limit: 10,
@@ -354,8 +369,11 @@ export const BUDGETS = {
         // Page view adds 36 KB of its own code; a WebGL library coming back is still a megabyte over.
         // 2,600 → 2,700 (#746): 2,555 KB at the Reader's merge (#774); the ink layer (#745) adds 41 KB and
         // a stroke as a highlight 16 KB more, the four gestures (#747) 21 KB — still a megabyte under a WebGL library.
-        limit: 2_700,
-        measured: "2,633 KB",
+        // 2,700 → 2,800 (#756): R2's ink (#748, #749) and R3's provenance (#751), Alongside (#754) and the
+        // vault's moves (#756) bring it to 2,719 KB — a WebGL library coming back is still a megabyte over.
+        // The AI's six moves (#759) add 16 KB: 2,735 KB, under the same ceiling.
+        limit: 2_800,
+        measured: "2,735 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },
@@ -449,6 +467,23 @@ export const BUDGETS = {
         measured: "1.19 ms",
         because:
             "a stroke is classified at pen-up inside the frame, before its gesture's motion begins (#747 FR-16); 8 ms leaves half of a 60 Hz frame for that motion to start",
+    },
+    "reader.lookup.stardict.open.200k": {
+        name: "open a 200,000-entry StarDict dictionary (and 50,000 synonyms) for look-up: its index parsed into the table",
+        // ~3.5x the measurement. It was 555 ms before the words were decoded in one native pass, not one by one;
+        // in the app, three real dictionaries (the Wiktionary build's million synonyms among them) opened in ~290 ms.
+        limit: 750,
+        measured: "214 ms (the mean of two desktop runs, a dictzip, synonyms in a compact table)",
+        because:
+            "the first look-up in a dictionary opens it (#766 FR-13): past 150 ms the card says Opening …, so a Wiktionary-sized dictionary must open in well under half a second on desktop — an iPad is slower, and #750's device limit bounds what it is asked to open",
+    },
+    "reader.lookup.stardict.find.200k": {
+        name: "look a word up in an opened 200,000-entry dictionary: found, its dictzip chunk inflated, its entry split",
+        // ~10x the measurement: under a millisecond is noise on a busy runner.
+        limit: 3,
+        measured: "0.3 ms (the mean of three runs)",
+        because:
+            "every look-up after the first answers at once (#766 FR-13): a table lookup and one 32 KB chunk inflated, never the whole dictionary — a regression that inflated it whole would cost tens of milliseconds",
     },
 } satisfies Record<string, Budget>;
 

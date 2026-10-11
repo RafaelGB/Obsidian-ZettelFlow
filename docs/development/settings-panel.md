@@ -142,6 +142,14 @@ both choices are camera moves, never a cut.
 
 With your system's **reduced motion** on, both are instant whatever you pick.
 
+Under them, **[Look up and translate](reader.md#look-up-and-translate)** (#766):
+
+| Row | What it does | Default |
+|---|---|---|
+| **Dictionaries folder** | The folder your StarDict dictionaries are in — a folder field with suggestions, committed when you leave it, press Enter or pick one, with a reset. Look up reads it on the device, with no network; nothing is ever written or downloaded there, and the plugin never creates it. *Advanced › Folders ZettelFlow uses* shows it, with a way back here. | `Dictionaries` |
+| **Found here** | Each dictionary in the folder by its own name, with its languages (*Spanish*, *Spanish → English*). One that declares none shows **From** and **To** fields, set once and kept in the plugin's settings — never in the dictionary. An incomplete one says why (*Missing its .idx*) and is not used. | — |
+| **Translate into** | The language *Translate* uses on desktop and Android, through your AI provider. | Obsidian's language |
+
 ## AI
 
 ![AI turned on, with its fields and what leaves your vault; and Advanced open, with every folder ZettelFlow uses in one grid](../resources/settings/ai-advanced.svg)

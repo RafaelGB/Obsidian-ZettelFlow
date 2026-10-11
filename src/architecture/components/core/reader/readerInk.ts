@@ -80,6 +80,8 @@ export interface InkView {
     pageWords?(index: number): Promise<PageText | null>;
     /** How a printed page is cited: *p. 12*. */
     pageLabel?(index: number): string;
+    /** Where a printed page is, exactly (#751 FR-5): its place, label, key and print page. */
+    pageLocator?(index: number): ThoughtLocator;
 }
 
 /** What a stroke across a line asks of the highlights — the same engine a selection uses (#746). */
@@ -1163,7 +1165,7 @@ export class ReaderInk {
         const rects = this.pageRects(marks.layer, text, made.span, meaning, metrics.direction);
         const entry = this.strokeEntry(live);
         entry.page = { index: page.index, marks: rects };
-        const locator: ThoughtLocator = { at: page.index, label: this.view.pageLabel?.(page.index) ?? this.chapter?.locator?.label ?? "" };
+        const locator: ThoughtLocator = this.view.pageLocator?.(page.index) ?? { at: page.index, label: this.view.pageLabel?.(page.index) ?? this.chapter?.locator?.label ?? "" };
         entry.result = engine.keepPassage(locator, quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) }).then((thought) => {
             if (!thought) rects.forEach((rect) => rect.remove());
             else {
@@ -1764,7 +1766,7 @@ export class ReaderInk {
         if (surface.page) {
             const aspect = surface.page.aspect;
             const anchor = pageAnchor(box, { left: 0, top: 0, width: PAGE_EMS, height: PAGE_EMS * aspect });
-            input = { about: chapter.notePath, locator: { at: surface.page.index, label: chapter.locator?.label ?? "" }, ink: { page: anchor } };
+            input = { about: chapter.notePath, locator: this.view.pageLocator?.(surface.page.index) ?? { at: surface.page.index, label: chapter.locator?.label ?? "" }, ink: { page: anchor } };
             note = this.makeNoteEl(surface.svg, null, drawing, "saving");
             note.surface = surface.page.index;
             note.origin = origin;

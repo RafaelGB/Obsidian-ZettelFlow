@@ -292,6 +292,57 @@ export function parseNcx(ncxXml: string, ncxPath: string, parse: XmlParse): TocE
     return out;
 }
 
+/** A print page the book declares (#751 FR-3): its label, and where it begins in the book. */
+export interface PageTarget {
+    label: string;
+    /** The file it begins in, inside the archive. */
+    href: string;
+    /** The element it begins at in that file; its start when absent. */
+    fragment?: string;
+}
+
+/** A page label worth keeping: short, and only what a page number is made of. */
+function pageLabel(text: string | null | undefined): string {
+    const label = clean(text);
+    return /^[\p{L}\p{N}.\- ]{1,32}$/u.test(label) ? label : "";
+}
+
+/** The book's print pages from an EPUB 3 `nav[epub:type~=page-list]` (#751 FR-3, AC-3). */
+export function parsePageList(navXhtml: string, navPath: string, parse: XmlParse): PageTarget[] {
+    const root = parse(navXhtml, "application/xhtml+xml").documentElement;
+    if (!root) return [];
+    const list = elementsNamed(root, "nav").find((node) => /(^|\s)(doc-)?page-?list(\s|$)/i.test(attr(node, "epub:type") || attr(node, "type") || attr(node, "role")));
+    if (!list) return [];
+    const out: PageTarget[] = [];
+    for (const link of elementsNamed(list, "a")) {
+        const href = attr(link, "href");
+        const label = pageLabel(link.textContent);
+        if (!href || !label || leavesTheBook(href)) continue;
+        const fragment = fragmentOf(href);
+        out.push({ label, href: resolveHref(navPath, href), ...(fragment ? { fragment } : {}) });
+    }
+    return out;
+}
+
+/** The book's print pages from an EPUB 2 `toc.ncx` `pageList` (#751 FR-3, AC-3). */
+export function parseNcxPageList(ncxXml: string, ncxPath: string, parse: XmlParse): PageTarget[] {
+    const root = parse(ncxXml, "application/xml").documentElement;
+    if (!root) return [];
+    const list = firstNamed(root, "pagelist");
+    if (!list) return [];
+    const out: PageTarget[] = [];
+    for (const target of elementsNamed(list, "pagetarget")) {
+        const navLabel = firstNamed(target, "navlabel");
+        const label = pageLabel((navLabel ? firstNamed(navLabel, "text")?.textContent : null) || attr(target, "value"));
+        const content = firstNamed(target, "content");
+        const href = content ? attr(content, "src") : "";
+        if (!href || !label || leavesTheBook(href)) continue;
+        const fragment = fragmentOf(href);
+        out.push({ label, href: resolveHref(ncxPath, href), ...(fragment ? { fragment } : {}) });
+    }
+    return out;
+}
+
 /**
  * What each spine item is called: the first entry of the contents that points at it. A spine item
  * the contents never name (a cover, a title page) gets `null`, and the reader names it by number.

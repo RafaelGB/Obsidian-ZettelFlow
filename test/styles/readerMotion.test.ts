@@ -69,6 +69,17 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
         expect(reduced).toMatch(/transition: none;\s*animation: none;/);
     });
 
+    it("gives the look-up card and its ink an instant equivalent (#766 AC-11)", () => {
+        const css = sheet("components/reader.scss");
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain(".zettelkasten-flow__reader-lookup-card");
+        expect(reduced).toContain(".zettelkasten-flow__reader-ink-wait span");
+        // Its card is placed by custom properties, and grows from the words' point: never a layout move.
+        const card = css.slice(css.indexOf(".zettelkasten-flow__reader-lookup-card {"), css.indexOf(".zettelkasten-flow__reader-lookup-card--leaving"));
+        expect(card).toContain("transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);");
+        expect(card).not.toMatch(/transition:/);
+    });
+
     it("animates only what the compositor moves in the Reader's scripted keyframes too (#753 AC-8)", () => {
         const offenders: string[] = [];
         for (const dir of SCRIPTS) {
@@ -186,5 +197,157 @@ describe("ink moves like the rest of the Reader (#745 AC-14, FR-20–FR-25)", ()
             expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
         }
         expect(reduced).toMatch(/transition: none;/);
+    });
+});
+
+describe("a passage a note goes back to arrives like the rest of the Reader (#751 AC-9)", () => {
+    const css = sheet("components/reader.scss");
+    const companion = sheet("components/noteCompanion.scss");
+    const keyframes = (from: string, name: string) => {
+        const start = from.indexOf(`@keyframes ${name} {`);
+        return start < 0 ? "" : from.slice(start, from.indexOf("\n}", start));
+    };
+    const props = (block: string) => [...new Set([...block.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]))];
+
+    it("slides the not-found line 8 px and fades it, in and out, at the fast beat", () => {
+        for (const name of ["zf-reader-passage-in", "zf-reader-passage-out"]) {
+            expect({ name, props: props(keyframes(css, name)).sort() }).toEqual({ name, props: ["opacity", "translate"] });
+            expect(keyframes(css, name)).toContain("var(--size-4-2)");
+        }
+        expect(css).toMatch(/reader-passage-missing \{[^}]*animation: zf-reader-passage-in \$motion-fast/);
+        expect(props(keyframes(companion, "zf-note-companion-copied"))).toEqual(["opacity"]);
+    });
+
+    it("gives the not-found line and Link copied an instant equivalent", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain("reader-passage-missing");
+        const companionReduced = companion.slice(companion.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(companionReduced).toContain("note-companion-origin-label--copied");
+    });
+});
+
+describe("Alongside moves like a margin, never like a redraw (#754 AC-10)", () => {
+    const css = sheet("components/reader.scss");
+    const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+    /** Alongside's own rules, from its heading to the next section's. */
+    const own = css.slice(css.indexOf("── Alongside (#754)"), css.indexOf("── peeks and detours (#670)"));
+    const rule = (selector: string) => {
+        const at = own.indexOf(`${selector} {`);
+        return at < 0 ? "" : own.slice(at, own.indexOf("\n}", at));
+    };
+
+    it("slides in from the column's edge on transform and opacity, at the base beat, and leaves the same way", () => {
+        const enter = css.slice(css.indexOf("@keyframes zf-reader-alongside-in"));
+        const frames = enter.slice(0, enter.indexOf("\n}"));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]).sort()).toEqual(["opacity", "transform"]);
+        expect(rule(".zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side")).toContain("animation: zf-reader-alongside-in $motion-base $ease-out");
+        const leaving = rule(".zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side.zettelkasten-flow__reader-panel--leaving");
+        expect(leaving).toContain("opacity: 0;");
+        expect(leaving).toContain("transform: translateX(var(--size-4-8));");
+    });
+
+    it("gives the panel, the lens fill and a leaving card an instant equivalent", () => {
+        for (const selector of ["reader-panel--side", "reader-lens-marker", "reader-flip-leaving"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("takes a leaving card out of the flow, so the others close the gap by moving, never by height", () => {
+        expect(rule(".zettelkasten-flow__reader-flip-leaving")).toContain("position: absolute;");
+        expect(own.length).toBeGreaterThan(0);
+        for (const match of own.matchAll(/transition:\s*([^;]+);/g)) expect(match[1]).not.toMatch(/\b(height|width)\b/);
+    });
+
+    it("moves ink's palette out of the column's way: above the bar, centred under the narrowed column (#745 beside #754)", () => {
+        const ink = sheet("components/ink.scss");
+        const at = ink.indexOf(".zettelkasten-flow__reader--alongside {");
+        expect(at).toBeGreaterThan(0);
+        const block = ink.slice(at, ink.indexOf("\n}", at));
+        expect(block).toContain("@include palette-above-bar;");
+        expect(block).toContain("left: calc((100% - var(--zf-alongside-w) - var(--size-4-6)) / 2);");
+    });
+});
+
+describe("moves answered by your vault move like the rest of the Reader (#756 AC-10)", () => {
+    const css = sheet("components/reader.scss");
+    const own = css.slice(css.indexOf("── Moves answered by your vault (#756)"), css.indexOf("── peeks and detours (#670)"));
+
+    it("gives the answer, a card in its list, the picker, From this reading and the tension tick an instant equivalent", () => {
+        const reduced = own.slice(own.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-proposal-group", "reader-proposal--flow", "reader-idea-picker", "reader-from-reading", "reader-highlight--tension"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("fades the tension tick in on opacity alone, at the fast beat", () => {
+        const start = own.indexOf("@keyframes zf-reader-tension-in {");
+        const frames = own.slice(start, own.indexOf("\n}", start));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1])).toEqual(["opacity"]);
+        expect(own).toContain("animation: zf-reader-tension-in $motion-fast $ease-out backwards;");
+        for (const match of own.matchAll(/transition:\s*([^;]+);/g)) expect(match[1]).not.toMatch(/\b(height|width|top|left)\b/);
+    });
+});
+
+describe("the claim sheet and its tick move like the rest of the Reader (#762 AC-7)", () => {
+    const css = sheet("components/reader.scss");
+    const own = css.slice(css.indexOf("── Moves answered by your vault (#756)"), css.indexOf("── peeks and detours (#670)"));
+
+    it("gives the sheet, the picker and the claim tick an instant equivalent", () => {
+        const reduced = own.slice(own.indexOf("@media (prefers-reduced-motion: reduce)"));
+        for (const selector of ["reader-claim-sheet", "reader-highlight--claim", "reader-idea-picker"]) {
+            expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
+        }
+    });
+
+    it("fades the claim tick in on opacity alone, at the fast beat, and only once", () => {
+        const start = own.indexOf("@keyframes zf-reader-claim-in {");
+        const frames = own.slice(start, own.indexOf("\n}", start));
+        expect([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1])).toEqual(["opacity"]);
+        expect(own).toContain("animation: zf-reader-claim-in $motion-fast $ease-out backwards;");
+        const kept = own.slice(own.indexOf(".zettelkasten-flow__reader-highlight--claim-kept"));
+        expect(kept.slice(0, kept.indexOf("}"))).toContain("animation: none;");
+    });
+
+    it("grows the picker from the button it was asked from", () => {
+        expect(own).toContain("transform-origin: var(--zf-origin-x, 0) var(--zf-origin-y, 0);");
+    });
+});
+
+describe("waiting on your AI provider feels like a pen about to write (#759 FR-13, FR-16, AC-8)", () => {
+    const css = sheet("components/reader.scss");
+    const keyframes = (name: string) => {
+        const start = css.indexOf(`@keyframes ${name} {`);
+        return start < 0 ? "" : css.slice(start, css.indexOf("\n}", start));
+    };
+
+    it("breathes the ink on opacity alone, .35 to .7 over 1.2 s, eased and staggered", () => {
+        const frames = keyframes("zf-reader-pen-breathe");
+        expect([...new Set([...frames.matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]))]).toEqual(["opacity"]);
+        expect(frames).toContain("opacity: 0.35;");
+        expect(frames).toContain("opacity: 0.7;");
+        expect(css).toContain("animation: zf-reader-pen-breathe 1.2s ease-in-out infinite alternate;");
+        expect(css).toContain("animation-delay: 200ms;");
+        expect(css).toContain("animation-delay: 400ms;");
+    });
+
+    it("never shimmers: nothing in the Reader's sheets animates or transitions background-position", () => {
+        for (const path of SHEETS) {
+            const text = sheet(path);
+            const animated = [...text.matchAll(/@keyframes\s+[\w-]+\s*\{([\s\S]*?)\n\}/g)].some((m) => /background-position/.test(m[1]));
+            const transitioned = [...text.matchAll(/transition:\s*([^;]+);/g)].some((m) => /background-position/.test(m[1]));
+            expect({ path, shimmer: animated || transitioned }).toEqual({ path, shimmer: false });
+        }
+    });
+
+    it("holds the ink still and half-faint under reduced motion, and the dot appears at once", () => {
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)", css.indexOf(".zettelkasten-flow__reader-ink-wait")));
+        expect(reduced).toMatch(/\.zettelkasten-flow__reader-ink-wait span \{\s*animation: none;\s*opacity: 0\.5;/);
+        expect(reduced.slice(0, reduced.indexOf("\n}"))).toContain(".zettelkasten-flow__reader-bar-dot");
+    });
+
+    it("fades the Alongside dot on opacity alone, at the fast beat", () => {
+        const at = css.indexOf(".zettelkasten-flow__reader-bar-dot {");
+        const block = css.slice(at, css.indexOf("\n}", at));
+        expect(block).toContain("transition: opacity $motion-fast $ease-out;");
     });
 });

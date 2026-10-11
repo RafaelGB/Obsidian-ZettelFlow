@@ -54,3 +54,55 @@ describe("from passage to note (#683)", () => {
         expect(pageOf("3 · The lazy controller")).toBeNull();
     });
 });
+
+describe("every note made from a book goes back to its paragraph (#751 FR-1, FR-4, AC-2, AC-8)", () => {
+    const passage: Thought = {
+        id: "h2",
+        at: 2,
+        text: "",
+        links: [],
+        about: "Books/tfs.epub",
+        quote: { exact: "A general law of least effort applies to cognitive as well as physical exertion.", prefix: "the same thing. ", suffix: " The law asserts" },
+        locator: { at: 6, label: "3 · The lazy controller", chapter: "OEBPS/ch03.xhtml", page: "143" },
+    };
+
+    it("writes the source list in the properties and still writes the source:: line", () => {
+        const plan = planCrystallization([passage])!;
+        const note = renderCrystallized(plan, plan.body, "Born from", (n) => `and ${n} more`);
+        expect(note.startsWith("---\nsource:\n  - \"[[Books/tfs.epub#OEBPS/ch03.xhtml|tfs]] p. 143 · 3 · The lazy controller · “…the same thing. ‹A general law of least effort applies to cognitive as well as› physical exertion. The…”\"\n---\n")).toBe(true);
+        expect(note).toContain("source:: [[Books/tfs.epub]] 3 · The lazy controller");
+        // A flow's template owns the properties: its content has none.
+        expect(renderCrystallized(plan, plan.body, "Born from", (n) => `and ${n} more`, false).startsWith("---")).toBe(false);
+    });
+
+    it("is still one link source for the claim parser, and still born from the book", () => {
+        const plan = planCrystallization([passage])!;
+        const note = renderCrystallized(plan, plan.body, "Born from", (n) => `and ${n} more`);
+        const frontmatter = { source: [JSON.parse(note.split("\n")[2].slice(4)) as string] };
+        const fields = parseInlineFields(note);
+        const claims = new ClaimSourceSchema().parse({ path: "Zettel/Least effort.md", frontmatter, inlineFields: fields, resolvedTargets: { "Books/tfs.epub": "Books/tfs.epub" } });
+        expect(claims[0].sources).toEqual([{ ref: "Books/tfs.epub", kind: "link" }]);
+        expect(notesBornFrom([{ path: "Zettel/Least effort.md", claims }]).get("Books/tfs.epub")).toEqual(["Zettel/Least effort.md"]);
+        // 3.6's own reader still parses the entry as a link and a locator.
+        expect(citedLocator(frontmatter.source[0])?.link).toBe("Books/tfs.epub");
+    });
+
+    it("reads one origin with its place — the passage takes the row of its plain source:: line", () => {
+        const plan = planCrystallization([passage])!;
+        const note = renderCrystallized(plan, plan.body, "Born from", (n) => `and ${n} more`);
+        const origins = noteOrigins(note);
+        expect(origins).toHaveLength(1);
+        expect(origins[0]).toMatchObject({ link: "Books/tfs.epub", locator: "p. 143", place: { chapter: "OEBPS/ch03.xhtml", page: "143", quote: { exact: expect.stringMatching(/^A general law/) } } });
+        // The same, read off Obsidian's own properties.
+        expect(noteOrigins(note, { source: [JSON.parse(note.split("\n")[2].slice(4)) as string] })).toEqual(origins);
+        // Two passages of one book are two rows.
+        const two = planCrystallization([passage, { ...passage, id: "h3", at: 3, quote: { exact: "System 2 is lazy.", prefix: "", suffix: "" } }])!;
+        expect(noteOrigins(renderCrystallized(two, two.body, "Born from", (n) => `and ${n} more`))).toHaveLength(2);
+    });
+
+    it("reads a 3.6 note exactly as before: a link and a locator, no place", () => {
+        expect(noteOrigins("Text.\n\nsource:: [[Books/tfs.epub]] 3 · The lazy controller\n")).toEqual([{ link: "Books/tfs.epub", locator: "3 · The lazy controller" }]);
+        // A single-quoted or plain list, as another tool may re-write the properties.
+        expect(noteOrigins("---\nsource:\n  - '[[Papers/cap.pdf#page=6|Cap]] p. 6 · “‹Partitions are rare›”'\n---\n")[0]).toMatchObject({ link: "Papers/cap.pdf", locator: "p. 6", place: { chapter: "page:5" } });
+    });
+});

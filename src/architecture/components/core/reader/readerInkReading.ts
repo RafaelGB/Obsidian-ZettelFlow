@@ -14,7 +14,7 @@ import { buildInkReadingRequest, INK_READING_TASK, matchNamedNote, parseInkReadi
 import { isUnreadable, parseInkSvg, type InkDrawing } from "application/reader/ink/inkSvg";
 import { thoughtPath, type Thought } from "application/thinking/thought";
 import { inkImage } from "./readerInkImage";
-import { openProposal, type ProposalBox, type ProposalDecision, type ProposalHandle } from "./readerProposal";
+import { openProposal, type ProposalBox, type ProposalDecision, type ProposalHandle, type ProposalOwner } from "./readerProposal";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -87,7 +87,7 @@ function noteBasename(path: string): string {
     return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
 }
 
-export class InkReadingController {
+export class InkReadingController implements ProposalOwner {
     private readonly chips = new Map<string, Set<Chip>>();
     private readonly states = new Map<string, ChipState>();
     private readonly latest = new Map<string, Thought>();
@@ -193,6 +193,13 @@ export class InkReadingController {
     /** Whether a proposal card is up: Esc dismisses it first. */
     hasCards(): boolean {
         return this.cards.size > 0;
+    }
+
+    /** When its newest card was opened (#756: Esc takes the newest of every owner's). */
+    newestSeq(): number {
+        let seq = 0;
+        for (const card of this.cards) seq = Math.max(seq, card.seq);
+        return seq;
     }
 
     /** Esc on the Reader: the newest card goes, with no verdict. */

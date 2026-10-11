@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Alongside: your vault beside the page. Left: a book in the Reader, the paragraph at the reading line a third of the way down the column naming the planning fallacy. The Reader's own exit, Close the reader, sits at the end of the column's top line, never over the panel. Right: the Alongside panel slid in from the column's edge, headed Near this paragraph, with its own close at the end of its head, Close Alongside, which closes the panel and never the Reader; with seven lens chips — All, Connections, Contradictions, Questions, Your knowledge, Research, Not yet notes — and no number on any of them; your highlight on this page first; then cards, each saying in one line why it is there: Planning fallacy, named in this paragraph; Optimism bias, linked from Planning fallacy; Ship early, which contradicts Planning fallacy and offers Look at both and Not related; and Does this hold for small teams?, an open question of Planning fallacy. Below: Not related sets one card aside for this chapter only, with Undo in its place, and nothing is written to any note.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">ALONGSIDE — YOUR VAULT BESIDE THE PAGE</text>
+
+<!-- ── the book, the column narrowed beside the panel ───────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="1120" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">THINKING, FAST AND SLOW · 23 · THE OUTSIDE VIEW</text>
+<!-- the Reader's exit ends the column's top line: it is never stacked over the panel -->
+<path d="M 650 98 l 10 10 M 660 98 l -10 10" stroke="#8b8e94" stroke-width="1.6" stroke-linecap="round"/>
+<text x="640" y="108" fill="#5f6168" font-size="10" text-anchor="end">close the reader</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="160">The first was that we had made a forecast, a plan, and that</text>
+<text x="96" y="186">the plan stood in for the history of every project like ours.</text>
+<text x="96" y="226">We had never once asked how long such books take.</text>
+</g>
+<!-- the reading line, a third of the way down: the paragraph Alongside is near -->
+<path d="M 72 262 h 12" stroke="#a99cf5" stroke-width="2"/>
+<text x="64" y="252" fill="#a99cf5" font-family="sans-serif" font-size="10" text-anchor="start">reading line</text>
+<rect x="88" y="244" width="560" height="98" rx="6" fill="#a99cf5" fill-opacity="0.07"/>
+<g font-family="serif" font-size="17" fill="#dcddde">
+<text x="96" y="270">This is the <tspan fill="#a99cf5" text-decoration="underline">planning fallacy</tspan>: plans and forecasts</text>
+<text x="96" y="296">that are unrealistically close to best-case scenarios, and</text>
+<text x="96" y="322">that could be improved by consulting the statistics of similar cases.</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="372">Optimism is the engine of capitalism, and the source of</text>
+<text x="96" y="398">most of its failures. The outside view is the cure that</text>
+<text x="96" y="424">nobody wants to take.</text>
+<text x="96" y="464">An unbiased appreciation of uncertainty is a cornerstone</text>
+<text x="96" y="490">of rationality — but it is not what people and organizations</text>
+<text x="96" y="516">want.</text>
+</g>
+<text x="370" y="640" fill="#5f6168" font-family="sans-serif" font-size="11" text-anchor="middle">the column makes room · the paragraph under your eye stays where it is</text>
+
+<!-- ── Alongside, beside the column ─────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="700" y="96" width="440" height="560" rx="12" fill="#232328" stroke="#3a3a3a"/>
+<path d="M 690 360 l -14 0" stroke="#5f6168" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text x="724" y="126" fill="#8b8e94" font-size="11" font-weight="600" letter-spacing="1.2">ALONGSIDE</text>
+<text x="812" y="126" fill="#b3b5ba" font-size="12">Near this paragraph</text>
+<!-- the panel's own close, in its head -->
+<rect x="1100" y="108" width="24" height="24" rx="6" fill="#26262b"/>
+<path d="M 1107 115 l 10 10 M 1117 115 l -10 10" stroke="#dcddde" stroke-width="1.6" stroke-linecap="round"/>
+<text x="1092" y="126" fill="#a99cf5" font-size="10" text-anchor="end">Close Alongside</text>
+
+<!-- the lenses: chips, no numbers -->
+<rect x="722" y="140" width="38" height="24" rx="12" fill="#a99cf5"/>
+<text x="741" y="156" fill="#141416" font-size="11.5" font-weight="600" text-anchor="middle">All</text>
+<rect x="766" y="140" width="92" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="812" y="156" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Connections</text>
+<rect x="864" y="140" width="106" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="917" y="156" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Contradictions</text>
+<rect x="976" y="140" width="80" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="1016" y="156" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Questions</text>
+<rect x="722" y="170" width="106" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="775" y="186" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Your knowledge</text>
+<rect x="834" y="170" width="78" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="873" y="186" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Research</text>
+<rect x="918" y="170" width="104" height="24" rx="12" fill="#26262b" stroke="#3a3a3a"/>
+<text x="970" y="186" fill="#b3b5ba" font-size="11.5" text-anchor="middle">Not yet notes</text>
+<text x="1104" y="186" fill="#a99cf5" font-size="10" text-anchor="end">no numbers</text>
+
+<!-- your highlights on this page, first, as always -->
+<text x="724" y="222" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">YOUR HIGHLIGHTS</text>
+<rect x="722" y="230" width="396" height="34" rx="6" fill="#1e1e22"/>
+<rect x="722" y="230" width="3" height="34" fill="#e0c46c"/>
+<text x="736" y="252" fill="#b3b5ba" font-size="12" font-style="italic">“consulting the statistics of similar cases”</text>
+
+<!-- the cards, each with why it is here -->
+<rect x="722" y="276" width="396" height="58" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="736" y="294" fill="#5f6168" font-size="9.5" font-weight="600" letter-spacing="1">CONNECTIONS</text>
+<text x="736" y="311" fill="#dcddde" font-size="14" font-weight="600">Planning fallacy</text>
+<text x="736" y="326" fill="#8b8e94" font-size="11.5">Named in this paragraph</text>
+
+<rect x="722" y="342" width="396" height="58" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="736" y="360" fill="#5f6168" font-size="9.5" font-weight="600" letter-spacing="1">CONNECTIONS</text>
+<text x="736" y="377" fill="#dcddde" font-size="14" font-weight="600">Optimism bias</text>
+<text x="736" y="392" fill="#8b8e94" font-size="11.5">Linked from Planning fallacy</text>
+
+<rect x="722" y="408" width="396" height="80" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="736" y="426" fill="#5f6168" font-size="9.5" font-weight="600" letter-spacing="1">CONTRADICTIONS</text>
+<text x="736" y="443" fill="#dcddde" font-size="14" font-weight="600">Ship early, learn from reality</text>
+<text x="736" y="458" fill="#8b8e94" font-size="11.5">Contradicts Planning fallacy</text>
+<text x="736" y="478" fill="#a99cf5" font-size="12" font-weight="600">Look at both</text>
+<text x="830" y="478" fill="#5f6168" font-size="12">Not related</text>
+
+<rect x="722" y="496" width="396" height="58" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="736" y="514" fill="#5f6168" font-size="9.5" font-weight="600" letter-spacing="1">QUESTIONS</text>
+<text x="736" y="531" fill="#dcddde" font-size="14" font-weight="600">Does this hold for small teams?</text>
+<text x="736" y="546" fill="#8b8e94" font-size="11.5">An open question of Planning fallacy</text>
+
+<text x="724" y="582" fill="#a99cf5" font-size="12" font-weight="600">Show more</text>
+<text x="920" y="620" fill="#5f6168" font-size="11" text-anchor="middle">named here · born from here · linked · shared context · marked</text>
+<text x="920" y="638" fill="#5f6168" font-size="11" text-anchor="middle">a click reads it as a peek · its × closes it, as Esc does</text>
+</g>
+
+<!-- ── not related: one chapter, one verdict, nothing written ────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="692" width="1120" height="76" rx="12" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="64" y="708" width="300" height="44" rx="8" fill="#1b1b1f" stroke="#3a3a3a" stroke-dasharray="4 3"/>
+<text x="80" y="735" fill="#8b8e94" font-size="12">Not related to this chapter</text>
+<text x="344" y="735" fill="#a99cf5" font-size="12" font-weight="600" text-anchor="end">Undo</text>
+<text x="392" y="726" fill="#b3b5ba" font-size="13">Not related slides the card aside; the ones below close the gap. It holds for this chapter of this book —</text>
+<text x="392" y="746" fill="#b3b5ba" font-size="13">one verdict in the judgement record, nothing written to any note. Open and lens are kept on this device.</text>
+</g>
+</svg>

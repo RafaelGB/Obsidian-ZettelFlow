@@ -59,6 +59,16 @@ and output cap. A model that does not take images answers it with an error (400,
 the Reader reports as *Your model did not read the image*; choose one that reads images. What comes
 back is a proposal you accept, edit or reject. See [Read as text](reader.md#read-as-text).
 
+**The Reader's moves, per click (#759).** In the Reader, six moves on a selected passage — *Why?*,
+*Challenge*, *Question*, *What's the claim*, *Reflect* and *Explain* — send the move's task, **the
+selected words, the paragraph they sit in and the one before it, and the book's and chapter's
+titles**, capped by **Max input characters**, to the same endpoint, with the same system guard and
+output cap. Nothing from your vault is sent. One request per click, at most two waiting at once,
+never retried by itself and never in an automation. They are offered only while **Enable AI** is on;
+turned on but not set up, a click says so and sends nothing. A local provider (Ollama, LM Studio)
+on `http://localhost` works, but the gate still needs an API key: any placeholder will do. The
+prompts are quoted word for word in [Moves by your AI provider](reader.md#moves-by-your-ai-provider).
+
 ## The actions
 
 The category ships three actions, each a thin wrapper over one completion call:

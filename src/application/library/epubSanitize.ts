@@ -472,6 +472,17 @@ export function sanitizeSvg<E>(svg: SourceNode, parent: E, builder: ChapterBuild
 }
 
 /**
+ * A page-break mark's label (`epub:type="pagebreak"`, `role="doc-pagebreak"`): its `title`, its
+ * `aria-label`, else its text. `null` when the element is not one; `""` when it names no page.
+ */
+function pageBreakLabel(node: SourceNode): string | null {
+    const kinds = `${attr(node, "epub:type")} ${attr(node, "type")} ${attr(node, "role")}`.toLowerCase().split(/\s+/);
+    if (!kinds.some((kind) => kind === "pagebreak" || kind === "doc-pagebreak")) return null;
+    const label = (attr(node, "title") || attr(node, "aria-label") || (node.textContent ?? "")).replace(/\s+/g, " ").trim();
+    return /^[\p{L}\p{N}.\- ]{1,32}$/u.test(label) ? label : "";
+}
+
+/**
  * Rebuild `root`'s children under `parent`. `chapterHref` is the chapter's path in the archive, so
  * relative images and links resolve inside the book.
  */
@@ -482,7 +493,50 @@ export function sanitizeChapter<E>(
     chapterHref: string,
     options: { policy?: SanitizePolicy; inline?: string[] } = {}
 ): SanitizeResult {
-    const designed = options.policy === "designed";
+    return sanitizeNodes(root, parent, builder, EPUB_PROFILE, chapterHref, options);
+}
+
+/**
+ * What a profile of the one sanitiser keeps (#766): the elements kept, renamed and dropped with what
+ * is in them, the attributes kept — and whether it is a **book**, whose pictures, drawings,
+ * equations, print pages, footnote marks and inner links mean something. A dictionary entry is not:
+ * its links are their text, and nothing in it is a picture.
+ */
+export interface SanitizeProfile {
+    keep: ReadonlySet<string>;
+    rename: Readonly<Record<string, string>>;
+    drop: ReadonlySet<string>;
+    attrs: Readonly<Record<string, RegExp>>;
+    book: boolean;
+}
+
+/** An EPUB chapter (#682): the profile `sanitizeChapter` has always used. */
+export const EPUB_PROFILE: SanitizeProfile = { keep: KEEP, rename: RENAME, drop: DROP, attrs: ATTRS, book: true };
+
+/**
+ * A dictionary's entry (#766 FR-7): its emphasis and its structure, nothing else. XDXF's and Pango's
+ * own elements are renamed to what they mean; every attribute but `lang` goes, and with it every
+ * colour and every link to the outside; pictures and sounds are dropped.
+ */
+export const DICTIONARY_PROFILE: SanitizeProfile = {
+    keep: new Set(["b", "i", "em", "strong", "u", "sub", "sup", "small", "br", "p", "div", "span", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "abbr", "code"]),
+    rename: { k: "strong", ex: "em", abr: "abbr", co: "span", dtrn: "span", kref: "span", c: "span", big: "span", tt: "code", a: "span", def: "div" },
+    drop: new Set([...DROP, "img", "rref", "head"]),
+    attrs: { lang: ATTRS.lang },
+    book: false,
+};
+
+/** Rebuild `root`'s children under `parent`, by `profile`: the one walker every profile shares. */
+export function sanitizeNodes<E>(
+    root: SourceNode,
+    parent: E,
+    builder: ChapterBuilder<E>,
+    profile: SanitizeProfile,
+    chapterHref = "",
+    options: { policy?: SanitizePolicy; inline?: string[] } = {}
+): SanitizeResult {
+    const book = profile.book;
+    const designed = book && options.policy === "designed";
     const result: SanitizeResult = { images: [], elements: 0, ...(designed ? { styles: [], inline: options.inline ?? [] } : {}) };
 
     const image = (into: E, path: string, alt: string, own: Record<string, string> = {}) => {
@@ -509,8 +563,10 @@ export function sanitizeChapter<E>(
                 result.styles?.push((child.textContent ?? "").slice(0, 512 * 1024));
                 continue;
             }
-            if (DROP.has(name)) continue;
+            if (profile.drop.has(name)) continue;
             if (depth >= MAX_DEPTH) continue;
+            // Not a book: a drawing, an equation or a picture means nothing in it, and goes.
+            if (!book && (name === "svg" || name === "math" || name === "img")) continue;
             if (name === "svg") {
                 // A designed page keeps its drawing whole: its viewBox is where its pictures sit.
                 const cover = !designed && coverPictures(child, (picture) => {
@@ -529,7 +585,18 @@ export function sanitizeChapter<E>(
                 if (path) image(into, path, attr(child, "alt").slice(0, 500), designed ? designedAttributes(child, result.inline ?? []) : {});
                 continue;
             }
-            const tag = KEEP.has(name) ? name : RENAME[name];
+            const page = book ? pageBreakLabel(child) : null;
+            if (page !== null) {
+                // A print page's mark (#751 FR-3): kept as an empty span that says which page starts
+                // here — the page number the book printed is not part of what you read. One that
+                // names no page says nothing, and goes.
+                if (page) {
+                    result.elements++;
+                    builder.element(into, "span", { "data-zf-page": page });
+                }
+                continue;
+            }
+            const tag = profile.keep.has(name) && (book || name !== "a") ? name : profile.rename[name];
             if (!tag) {
                 // Harmless and unknown (a custom tag): its text, without its element.
                 walk(child, into, depth + 1);
@@ -538,8 +605,9 @@ export function sanitizeChapter<E>(
             const attrs: Record<string, string> = {};
             for (const { name: raw, value } of attributesOf(child)) {
                 const key = raw.toLowerCase();
-                const rule = ATTRS[key];
+                const rule = profile.attrs[key];
                 if (rule && rule.test(value)) attrs[key] = value;
+                if (!book) continue;
                 // EPUB's XHTML often says a passage's language as `xml:lang` (#757): kept as `lang`,
                 // which is what the page hyphenates by. A `lang` of its own wins.
                 if (key === "xml:lang" && ATTRS.lang.test(value) && !attributesOf(child).some((a) => a.name.toLowerCase() === "lang")) attrs.lang = value;

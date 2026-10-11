@@ -141,7 +141,7 @@ describe("the reader's commands (#667)", () => {
                 on: () => ({}),
             },
         };
-        const plugin = { app, addCommand: (c: (typeof commands)[number]) => commands.push(c), registerEvent: jest.fn() };
+        const plugin = { app, addCommand: (c: (typeof commands)[number]) => commands.push(c), registerEvent: jest.fn(), registerObsidianProtocolHandler: jest.fn() };
         new ReaderComponent(plugin as never).onLoad();
         return (id: string) => commands.find((c) => c.id === id)!;
     }

@@ -51,6 +51,12 @@ export interface Idea {
     relations: Relation[];
     /** Claims & sources. Owned by #148; defaults to `[]`. */
     claims: Claim[];
+    /**
+     * The note's other names (#754): its frontmatter `aliases` (a list or one name) and `alias`.
+     * Absent when it declares none. The Reader's *Alongside* finds a note named in a passage by these
+     * as much as by its title.
+     */
+    aliases?: string[];
 }
 
 /** The pure, read-only input the Obsidian-facing layer hands to {@link deriveIdea}. */
@@ -70,6 +76,20 @@ export interface IdeaSnapshot {
 function basename(path: string): string {
     const file = path.split("/").pop() ?? path;
     return file.replace(/\.md$/i, "");
+}
+
+/** A note's other names, as Obsidian reads them: `aliases` / `alias`, a string or a list of them. */
+function aliasesOf(fm: Record<string, unknown>): string[] | undefined {
+    const out: string[] = [];
+    for (const key of ["aliases", "alias"]) {
+        const value = fm[key];
+        for (const item of Array.isArray(value) ? value : [value]) {
+            if (typeof item !== "string") continue;
+            const name = item.trim();
+            if (name && !out.includes(name)) out.push(name);
+        }
+    }
+    return out.length > 0 ? out : undefined;
 }
 
 function safe<T>(fn: () => T, fallback: T): T {
@@ -124,6 +144,7 @@ export function deriveIdea(snapshot: IdeaSnapshot, schemas: KnowledgeSchemas = {
 
     const outDegree = relations.length;
     const hasSources = claims.some((claim) => claim.sources.length > 0);
+    const aliases = safe(() => aliasesOf(fm), undefined);
 
     return {
         path: snapshot.path,
@@ -134,5 +155,6 @@ export function deriveIdea(snapshot: IdeaSnapshot, schemas: KnowledgeSchemas = {
         relations,
         claims,
         maturitySignals: { inDegree: 0, outDegree, degree: outDegree, hasSources },
+        ...(aliases ? { aliases } : {}),
     };
 }

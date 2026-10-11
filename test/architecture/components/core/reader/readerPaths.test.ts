@@ -213,6 +213,7 @@ describe("read these, read this folder (#669)", () => {
             },
             addCommand: jest.fn(),
             registerEvent: jest.fn(),
+            registerObsidianProtocolHandler: jest.fn(),
         };
         new ReaderComponent(plugin as never).onLoad();
 

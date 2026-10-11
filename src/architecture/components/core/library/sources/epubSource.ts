@@ -2,7 +2,9 @@ import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { titleFromName } from "application/library/shelf";
-import { fragmentOf, spineIndexOf } from "application/library/epubPackage";
+import { fragmentOf, spineIndexOf, type PageTarget } from "application/library/epubPackage";
+import type { PageMark } from "application/library/provenance";
+import { offsetAt, type NodeLike } from "architecture/components/core/reader/readerMarks";
 import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
 import { MATH_NS, SVG_NS } from "application/library/epubForeign";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
@@ -38,6 +40,28 @@ const domBuilder: ChapterBuilder<Element> = {
 const RELEASE_AFTER_MS = MOTION.turn + MOTION.base;
 
 /**
+ * Where the print pages the book declares begin in a drawn chapter (#751 FR-3): its page-break marks
+ * (kept by the sanitizer as `span[data-zf-page]`) and its page-list targets in this spine item. Read
+ * once, as offsets into the chapter's text. None: the book declares no pages here, and none is made up.
+ */
+function pageMarksOf(body: HTMLElement, targets: readonly PageTarget[]): PageMark[] {
+    const root = body as unknown as NodeLike;
+    const marks: PageMark[] = [];
+    for (const el of Array.from(body.querySelectorAll<HTMLElement>("[data-zf-page]"))) {
+        const offset = offsetAt(root, el);
+        const label = el.getAttribute("data-zf-page");
+        if (offset !== null && label) marks.push({ label, offset });
+    }
+    for (const target of targets) {
+        const id = target.fragment;
+        const el = id ? (Array.from(body.querySelectorAll<HTMLElement>("[data-zf-id]")).find((node) => node.getAttribute("data-zf-id") === id) ?? null) : null;
+        const offset = target.fragment ? (el ? offsetAt(root, el) : null) : 0;
+        if (offset !== null && !marks.some((mark) => mark.label === target.label)) marks.push({ label: target.label, offset });
+    }
+    return marks.sort((a, b) => a.offset - b.offset);
+}
+
+/**
  * **An EPUB in the Reader** (#682, epic #675): chapters are the book's spine, named from its own
  * contents (the EPUB 3 `nav`, or the EPUB 2 `toc.ncx`). Each chapter is parsed by the platform as
  * data and rebuilt node by node by the sanitizer, so nothing the book carries can run, style the
@@ -54,8 +78,9 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
     // Fixed layout (#771 FR-1): each page as it declares, over what the book declares.
     const designed = spine.map((item) => layoutOf(book.pkg, item) === "pre-paginated");
     const wholly = designed.length > 0 && designed.every(Boolean);
-    const chapters = spine.map((_, i) => ({
+    const chapters = spine.map((item, i) => ({
         label: titles[i] ?? t(wholly ? "reader_source_page" : "reader_source_chapter", String(i + 1)),
+        key: item.href,
         ...(designed[i] ? { designed: true as const } : {}),
     }));
     const pagesOf = designed.some(Boolean) ? designedPages(file, book, spine.map((item) => item.href)) : null;
@@ -110,7 +135,13 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             }
             const text = body.textContent ?? "";
             const language = chapterLanguage(root);
-            return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(language ? { language } : {}) };
+            const pageMarks = pageMarksOf(body, book.pages.filter((target) => target.href === href));
+            return {
+                words: text.split(/\s+/).filter(Boolean).length,
+                picture: false,
+                ...(language ? { language } : {}),
+                ...(pageMarks.length > 0 ? { pageMarks } : {}),
+            };
         },
         resolveLink(_from: number, href: string) {
             const [path] = href.split("#");

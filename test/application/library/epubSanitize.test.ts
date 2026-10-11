@@ -320,3 +320,15 @@ describe("the cover, and the budget, through equations and drawings (#770)", () 
         expect(long).toBe('<svg:svg data-zf-drawing="true"><svg:path></svg:path><svg:polygon></svg:polygon></svg:svg>');
     });
 });
+
+describe("a print page's mark survives, and says only which page starts there (#751 FR-3)", () => {
+    it("keeps epub:type pagebreak and role doc-pagebreak as an empty span[data-zf-page]", () => {
+        const { out } = clean('<p>Before.<span epub:type="pagebreak" id="p143" title="143"/>After.</p><div role="doc-pagebreak" aria-label="144">144</div><span epub:type="pagebreak">xii</span>');
+        expect(out).toBe('<p>Before.<span data-zf-page="143"></span>After.</p><span data-zf-page="144"></span><span data-zf-page="xii"></span>');
+    });
+
+    it("a mark that names no page goes, and everything else is dropped as before", () => {
+        const { out } = clean('<span epub:type="pagebreak" title="&lt;b&gt;"/><p style="color:red" class="x">Text.</p>');
+        expect(out).toBe("<p>Text.</p>");
+    });
+});

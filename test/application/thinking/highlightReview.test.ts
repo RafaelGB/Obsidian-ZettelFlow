@@ -110,6 +110,8 @@ describe("the review lives in the highlight's own file (#678)", () => {
         expect(isDueInFrontmatter({ ...front, reviewDue: now + DAY, reviewStage: 1 }, now)).toBe(false);
         expect(isDueInFrontmatter({ ...front, reviewRetired: true }, now)).toBe(false);
         expect(isDueInFrontmatter({ ...front, asideReason: "crystallized" }, now)).toBe(false);
+        // A Reader move's answer carries its passage, and is never reviewed as a highlight (#756).
+        expect(isDueInFrontmatter({ ...front, madeBy: "contradict" }, now)).toBe(false);
         expect(isDueInFrontmatter({ id: "p", at: T0, about: "Notes/es.md" }, now)).toBe(false);
         expect(isDueInFrontmatter(undefined, now)).toBe(false);
     });

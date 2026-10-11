@@ -7,11 +7,14 @@ import {
     packagePath,
     parseNav,
     parseNcx,
+    parseNcxPageList,
     parsePackage,
+    parsePageList,
     resolveHref,
     spineIndexOf,
 } from "application/library/epubPackage";
 import { makeEpub, makeZip } from "../../support/zipFixture";
+import { openEpub } from "architecture/components/core/library/sources/epub";
 import { miniParse } from "../../support/miniXml";
 
 const parse = miniParse as unknown as Parameters<typeof parsePackage>[2];
@@ -108,5 +111,62 @@ describe("an EPUB's package (#680)", () => {
         const opf =
             '<package><manifest><item id="x" href="https://evil.example/ch.html" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="x"/></spine></package>';
         expect(parsePackage(opf, "content.opf", parse).spine).toEqual([]);
+    });
+});
+
+describe("an EPUB's print pages, read and never invented (#751 FR-3, AC-3)", () => {
+    const chapters = [
+        { id: "c1", href: "text/ch1.xhtml", title: "1 · One", body: '<p id="p11">One.</p>' },
+        { id: "c2", href: "text/ch2.xhtml", title: "2 · Two", body: '<p id="p12">Two.</p><p id="p13">Three.</p>' },
+    ];
+    const read = async (book: Uint8Array) => {
+        const app = { vault: { readBinary: async () => book.buffer.slice(book.byteOffset, book.byteOffset + book.byteLength) } };
+        return openEpub(app as never, { path: "b.epub" } as never, parse as never);
+    };
+
+    it("reads an EPUB 3 nav page-list: spine item 2 has pages 12 and 13 at their fragments", async () => {
+        const book = await read(
+            makeEpub({
+                chapters,
+                pageList: [
+                    { label: "11", href: "text/ch1.xhtml#p11" },
+                    { label: "12", href: "text/ch2.xhtml#p12" },
+                    { label: "13", href: "text/ch2.xhtml#p13" },
+                ],
+            })
+        );
+        expect(book.pages.filter((p) => p.href === "OEBPS/text/ch2.xhtml")).toEqual([
+            { label: "12", href: "OEBPS/text/ch2.xhtml", fragment: "p12" },
+            { label: "13", href: "OEBPS/text/ch2.xhtml", fragment: "p13" },
+        ]);
+        // The contents are still the contents: the page-list is not a chapter list.
+        expect(book.toc.map((e) => e.title)).toEqual(["1 · One", "2 · Two"]);
+    });
+
+    it("reads an EPUB 2 NCX pageList the same way", async () => {
+        const book = await read(
+            makeEpub({
+                chapters,
+                nav: false,
+                ncxPageList: [
+                    { label: "12", href: "text/ch2.xhtml#p12" },
+                    { label: "13", href: "text/ch2.xhtml#p13" },
+                ],
+            })
+        );
+        expect(book.pages).toEqual([
+            { label: "12", href: "OEBPS/text/ch2.xhtml", fragment: "p12" },
+            { label: "13", href: "OEBPS/text/ch2.xhtml", fragment: "p13" },
+        ]);
+    });
+
+    it("a book that declares none has no pages", async () => {
+        expect((await read(makeEpub({ chapters }))).pages).toEqual([]);
+    });
+
+    it("keeps only a label a page number is made of", () => {
+        const nav = '<html><body><nav epub:type="page-list"><ol><li><a href="a.xhtml#x">iv</a></li><li><a href="a.xhtml#y"><b>12</b></a></li><li><a href="a.xhtml#z">&lt;script&gt;</a></li><li><a href="https://x.example/#q">5</a></li></ol></nav></body></html>';
+        expect(parsePageList(nav, "OEBPS/nav.xhtml", parse).map((p) => p.label)).toEqual(["iv", "12"]);
+        expect(parseNcxPageList("<ncx><navMap/></ncx>", "toc.ncx", parse)).toEqual([]);
     });
 });

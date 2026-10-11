@@ -1,4 +1,5 @@
 import { isHighlight, type Thought } from "./thought";
+import { placeOf, samePlace, sourceEntry, type PassagePlace } from "application/library/provenance";
 
 /**
  * Turning chaos into knowledge, without losing the chaos (#468, epic #465) — pure.
@@ -58,6 +59,11 @@ export interface Crystallization {
     sources?: string[];
     /** The passages of the highlights among the thoughts — `{{crystallize.quote}}` (#712). */
     quotes?: string[];
+    /**
+     * Where each passage of a PDF or an EPUB is (#751): its chapter and its opening words, so the note
+     * goes back to the paragraph — written as the note's `source` list (`sourceEntry`), once.
+     */
+    places?: PassagePlace[];
 }
 
 /**
@@ -96,7 +102,8 @@ export function crystallizeSeed(
 ): CrystallizeSeed {
     return {
         title: inert(title),
-        content: inert(renderCrystallized(plan, body, heading, omittedLine)),
+        // The flow's template owns the properties: the `source` list is added once the note is built.
+        content: inert(renderCrystallized(plan, body, heading, omittedLine, false)),
         quote: inert((plan.quotes ?? []).join("\n\n")),
         source: inert((plan.sources ?? []).join(", ")),
         frozen: plan.frozen.length,
@@ -172,7 +179,45 @@ export function planCrystallization(
             .filter(isHighlight)
             .map((thought) => (thought.quote?.exact ?? "").replace(/\s+/g, " ").trim())
             .filter(Boolean),
+        places: placesOf(chosen),
     };
+}
+
+/** The passages' places, each once (#751). */
+function placesOf(thoughts: readonly Thought[]): PassagePlace[] {
+    const out: PassagePlace[] = [];
+    for (const thought of thoughts) {
+        const place = placeOf(thought);
+        if (place && !out.some((kept) => samePlace(kept, place))) out.push(place);
+    }
+    return out;
+}
+
+/** The `source` entries a crystallized note carries in its properties (#751 P2): one per passage. */
+export function sourceEntries(plan: Crystallization): string[] {
+    return (plan.places ?? []).map((place) => sourceEntry(place, place.title));
+}
+
+/** The plan with each passage's source named by the title its file declares, when it is known. */
+export function withSourceTitles(plan: Crystallization, titleOf: (file: string) => string | undefined): Crystallization {
+    if (!plan.places?.length) return plan;
+    return {
+        ...plan,
+        places: plan.places.map((place) => {
+            const title = place.title ?? titleOf(place.file)?.trim();
+            return title ? { ...place, title } : place;
+        }),
+    };
+}
+
+/**
+ * The note's properties block: `source` as a YAML list, each entry a JSON-quoted string — valid YAML
+ * whatever the book's text holds, so writing it by hand is safe. Empty when there is no passage.
+ */
+export function renderSourceProperties(plan: Crystallization): string {
+    const entries = sourceEntries(plan);
+    if (entries.length === 0) return "";
+    return ["---", "source:", ...entries.map((entry) => `  - ${JSON.stringify(entry)}`), "---", ""].join("\n");
 }
 
 /**
@@ -201,11 +246,14 @@ export function renderCrystallized(
     plan: Crystallization,
     body: string,
     heading: string,
-    omittedLine: (count: string) => string
+    omittedLine: (count: string) => string,
+    /** The `source` properties (#751): written here, except in a flow, whose template owns them. */
+    properties = true
 ): string {
     const cited = (plan.sources ?? []).map((link) => `source:: ${link}`);
     const tail = cited.length > 0 ? `\n\n${cited.join("\n")}` : "";
-    return `${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}${tail}\n`;
+    const head = properties ? renderSourceProperties(plan) : "";
+    return `${head}${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}${tail}\n`;
 }
 
 /**

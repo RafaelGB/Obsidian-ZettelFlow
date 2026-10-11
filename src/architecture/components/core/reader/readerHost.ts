@@ -15,6 +15,8 @@ export interface ReaderHost {
         library?: unknown;
         /** How a book opens and a chapter turns (#732): read through `readingMotion()`. */
         readingMotion?: unknown;
+        /** Look up's dictionaries folder and Translate's target (#766): read through `dictionarySettings()`. */
+        dictionaries?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

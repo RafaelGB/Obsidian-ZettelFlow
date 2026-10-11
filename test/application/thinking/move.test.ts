@@ -1,4 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
     ancestorsOf,
     childrenOf,
@@ -193,5 +195,33 @@ describe("the vocabulary knows what it acts on (#498)", () => {
                 effect: expect.any(String),
             });
         }
+    });
+});
+
+describe("the Reader's moves speak the same vocabulary (#756 AC-12)", () => {
+    it("Contradict logs counterexample and Connect analogy — verbs of the eleven, under their own primitives", () => {
+        const byVerb = new Map(MOVE_VERBS.map((v) => [v.verb, v.primitive]));
+        expect(byVerb.get("counterexample")).toBe("perturb");
+        expect(byVerb.get("analogy")).toBe("explore");
+        expect(MOVE_VERBS).toHaveLength(11);
+        expect(new Set(MOVE_VERBS.map((v) => v.primitive)).size).toBe(5);
+        const src = readFileSync(join(__dirname, "../../../src/architecture/components/core/reader/readerVaultMoves.ts"), "utf8");
+        expect(src).toContain('contradict: { primitive: "perturb", verb: "counterexample" }');
+        expect(src).toContain('connect: { primitive: "explore", verb: "analogy" }');
+    });
+});
+
+describe("the Reader's AI moves speak the same vocabulary (#759 AC-10)", () => {
+    it("logs the six under verbs of the eleven, each with its verb's own primitive, and the log reads them back", async () => {
+        const { READER_AI_MOVES, primitiveOf } = await import("application/thinking/readerMovePrompts");
+        const { sanitizeMoveLog } = await import("application/thinking/move");
+        const logged = READER_AI_MOVES.map((m, i) => ({ id: `m${i}`, at: i + 1, primitive: primitiveOf(m), verb: m.verb, subject: `t${i}` }));
+        expect(sanitizeMoveLog(logged)).toHaveLength(6);
+        expect(new Set(READER_AI_MOVES.map((m) => m.verb))).toEqual(new Set(["reframe", "challenge", "branch", "compress"]));
+        expect(MOVE_VERBS).toHaveLength(11);
+        expect(MOVE_PRIMITIVES).toHaveLength(5);
+        // The controller logs what the table says, never a verb of its own.
+        const src = readFileSync(join(__dirname, "../../../src/architecture/components/core/reader/readerAiMoves.ts"), "utf8");
+        expect(src).toContain("this.moves.record({ primitive: primitiveOf(move), verb: move.verb, subject: thought.id })");
     });
 });

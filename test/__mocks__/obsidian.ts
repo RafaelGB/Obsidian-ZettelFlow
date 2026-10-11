@@ -24,6 +24,9 @@ export class Notice {
 
 export class Plugin {
   registerBasesView(_viewId: string, _registration: unknown): boolean { return true; }
+  /** The protocol handlers a plugin registered (#751), by action — a test calls one as Obsidian would. */
+  protocolHandlers: Record<string, (params: Record<string, string>) => unknown> = {};
+  registerObsidianProtocolHandler(action: string, handler: (params: Record<string, string>) => unknown): void { this.protocolHandlers[action] = handler; }
 }
 export class Component {
   private cleanups: (() => void)[] = [];

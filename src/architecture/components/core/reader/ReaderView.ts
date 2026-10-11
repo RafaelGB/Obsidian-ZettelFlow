@@ -8,6 +8,7 @@ import {
     TFile,
     getLanguage,
     setIcon,
+    setTooltip,
     type Modifier,
     type ViewStateResult,
     type WorkspaceLeaf,
@@ -15,7 +16,7 @@ import {
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { KnowledgeIndex } from "architecture/knowledge";
-import { buildEvidenceMap, type ChapterRole, type ReadingPath } from "architecture/knowledge/state";
+import type { ChapterRole, ReadingPath } from "architecture/knowledge/state";
 import { READER_VIEW, parseReaderState, type ReaderBack, type ReaderKind } from "./readerContract";
 import { pathFor } from "./readerPaths";
 import { isNoteLink, noteExcerpt, ReaderTrail, type TrailReason } from "./readerJumps";
@@ -28,7 +29,10 @@ import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, 
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { completionRate, edgeZone, isThing, releaseTurn, rubberBand, startGesture, twoFingerBack, type Gesture, SYSTEM_EDGE_PX } from "./readerGestures";
-import { placeAt, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { blockAtLine, placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
+import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type AlongsideReading } from "./readerAlongside";
+import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
+import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
 import { sourceFormat } from "application/library/sourceMeta";
 import { readingMotion } from "./readingMotion";
@@ -44,10 +48,16 @@ import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
-import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, restoreWorkspace } from "./openReader";
+import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, originLandsAt, restoreWorkspace } from "./openReader";
 import { addToReading, placeInPath, plainExcerpt, popDetour, pushDetour } from "./readerDetours";
 import { hoverPreview } from "architecture/components/core/a11y";
-import { ReaderHighlights, type HighlightDeps } from "./readerHighlights";
+import { ReaderHighlights, type HighlightDeps, type PassageActions, type ThinkMove, type ThinkPassage } from "./readerHighlights";
+import { ReaderVaultMoves, type VaultMoveId, type VaultMovePassage, type VaultMovesDeps, type VaultMovesView } from "./readerVaultMoves";
+import { ReaderClaimLink, type ClaimLinkDeps, type ClaimLinkView } from "./readerClaimLink";
+import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
+import { dismissNewestOf, type ProposalBox } from "./readerProposal";
+import { ReaderAiMoves, type AiMovesDeps, type AiMovesView } from "./readerAiMoves";
+import type { ReaderAiMoveId } from "application/thinking/readerMovePrompts";
 import { ReaderInk, type InkDeps } from "./readerInk";
 import {
     chapterOfHighlight,
@@ -63,7 +73,8 @@ import {
     sourceReading,
 } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
-import { openSourceDocument, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
+import { openSourceDocument, type SourceChapter, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
+import type { Thought, ThoughtLocator } from "application/thinking/thought";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
@@ -74,9 +85,12 @@ import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
+import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
 import { PdfPageRun } from "./readerPageRun";
 import { renderThumbs, type Thumbs } from "./readerThumbs";
 import { fly } from "./readerMotion";
+import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
+import { dictionarySettings } from "application/library/dictionarySettings";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -232,6 +246,9 @@ const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
     passage: "reader_trail_passage",
 };
 
+/** How long the *not found in this edition* line stays before it leaves (#751 FR-14). */
+const PASSAGE_MISSING_MS = 6000;
+
 /** How far a list slides in when its tab is chosen (FR-16). */
 const TAB_SLIDE_PX = 24;
 /** A bookmark made less than a minute ago was made *now*. */
@@ -249,6 +266,11 @@ interface Spot {
     top: number | null;
     /** A bookmark is found again by its words, in the chapter as it is drawn now (FR-3). */
     bookmark?: Bookmark;
+    /**
+     * A passage a note goes back to (#751): found by its words, and put at the reading line — or, when
+     * the words are not there, the chapter's top and one inline line saying so (FR-7). Never a guess.
+     */
+    passage?: TextQuote;
 }
 
 /** A place on the trail, with what took you away from it (FR-6, FR-7). */
@@ -297,6 +319,8 @@ export class ReaderView extends ItemView {
     private index = 0;
     private prefs: ReaderPrefs;
     private panel: Panel = null;
+    /** The bar's door to each panel, pressed while its panel is open (#777 FR-3). */
+    private panelButtons: Record<Exclude<Panel, null>, HTMLElement> | null = null;
     private root: HTMLElement | null = null;
     private els: {
         title: HTMLElement;
@@ -347,6 +371,22 @@ export class ReaderView extends ItemView {
     private renderScope: Component | null = null;
     /** The listeners of the open panel's rows, replaced when it redraws. */
     private panelScope: Component | null = null;
+    /** Alongside (#754): the context panel, your vault beside the page. Lives as long as the view. */
+    private alongside: ReaderAlongside | null = null;
+    /** Contradict and Connect, answered by your vault (#756): their cards live in Alongside. */
+    private vaultMoves: ReaderVaultMoves | null = null;
+    /** The six moves by your AI provider (#759): their cards live in Alongside, kept while it is closed. */
+    private aiMoves: ReaderAiMoves | null = null;
+    /** *Make it a claim* and *Link to an idea* (#762): the sheet over Alongside, the picker in the popover. */
+    private claimLink: ReaderClaimLink | null = null;
+    /** *Look up* and *Translate* (#766): the card grown from the words, gone on Esc, a click or a turn. */
+    private lookup: ReaderLookup | null = null;
+    /** Alongside's button in the bar: a dot on it says an answer landed while it was closed (#759 FR-14). */
+    private alongsideDot: HTMLElement | null = null;
+    /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
+    private panelShape: "sheet" | "side" | "card" | null = null;
+    /** Alongside's leaving slide, when it is playing. */
+    private alongsideLeaving: number | undefined;
     /** The listeners of the open peek, gone with it. */
     private peekScope: Component | null = null;
     /**
@@ -392,9 +432,16 @@ export class ReaderView extends ItemView {
     private readonly trail = new ReaderTrail<TrailEntry>();
     /** The jump pill goes away by itself; the way back stays on Alt+← and in the list. */
     private jumpPillTimer: number | undefined;
+    /** The *not found in this edition* line's leaving (#751): one at a time, gone with the view. */
+    private missingTimer: number | undefined;
     private jumpPillShown = false;
     /** A place to land on once the chapter it is in is drawn (#761). */
     private pendingLanding: Spot | null = null;
+    /**
+     * A passage just landed on (#751): held at the reading line through a reshape — the sidebars
+     * folding as the Reader opens, a window resized — until you move the page yourself.
+     */
+    private passageHold: number | null = null;
     /** The Contents panel's tab, and the way its list slides in when it changes (FR-16). */
     private contentsTab: ContentsTab = "contents";
     private tabSlide: 1 | -1 | 0 = 0;
@@ -507,7 +554,17 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the thought store, the selection, the mark factory. */
         private readonly highlightDeps: HighlightDeps = {},
         /** Seams for tests: ink's store, its words and its clock (#745). */
-        private readonly inkDeps: InkDeps = {}
+        private readonly inkDeps: InkDeps = {},
+        /** Seams for tests: Alongside's index, Think and the judgement record (#754). */
+        private readonly alongsideDeps: AlongsideDeps = {},
+        /** Seams for tests: the moves' stores, record and property write (#756). */
+        private readonly vaultMovesDeps: VaultMovesDeps = {},
+        /** Seams for tests: the AI layer, the stores and the queue of the AI moves (#759). */
+        private readonly aiMovesDeps: AiMovesDeps = {},
+        /** Seams for tests: the claim's create, the link's write and the record (#762). */
+        private readonly claimLinkDeps: ClaimLinkDeps = {},
+        /** Seams for tests: the dictionaries, the AI layer, Settings and the clipboard of Look up (#766). */
+        private readonly lookupDeps: LookupDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -568,14 +625,26 @@ export class ReaderView extends ItemView {
         if (parsed.back) this.back = parsed.back;
         if (parsed.highlight) this.pendingHighlight = parsed.highlight;
         if (parsed.source) {
+            // A place a note goes back to (#751): its chapter and its words, in this source only.
+            const read = parsed.at ? parsePlace(parsed.at) : null;
+            const place = read && read.file === parsed.source ? read : null;
             // A passage opened from Think or *This note* while the book is open is a jump (#761 FR-6):
             // where you were is kept first, and the camera moves there — never a fresh draw.
-            const passage = Boolean(parsed.highlight) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
+            const passage = (Boolean(parsed.highlight) || Boolean(place)) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
             const before = this.index;
-            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight);
+            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
             if (!this.els) return;
+            // Think's *Claim* (#762 FR-1): the sheet, once the passage is read — never a second sheet in Think.
+            if (parsed.claimFrom) void this.claimFromId(parsed.claimFrom);
             if (passage && this.index === before && parsed.highlight && this.highlights?.reveal(parsed.highlight, true)) {
                 this.pendingHighlight = null;
+                return;
+            }
+            // In the chapter on screen: one eased glide to the passage (#751 FR-12), never a redraw.
+            const landing = this.pendingLanding;
+            if (passage && this.index === before && landing?.chapter === before) {
+                this.pendingLanding = null;
+                this.landHere(landing, true);
                 return;
             }
             // In another chapter: the chapter turns towards it, the way it turns today (#735).
@@ -621,7 +690,7 @@ export class ReaderView extends ItemView {
      * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
      * Library. A highlight a deep link names is landed on, whichever page it is on.
      */
-    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string): Promise<void> {
+    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string, place: PassagePlace | null = null): Promise<void> {
         const fresh = path !== this.sourcePath;
         if (fresh) {
             this.leaveSource();
@@ -641,7 +710,7 @@ export class ReaderView extends ItemView {
             this.pageDwells = [];
             this.pageShownAt = 0;
             // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
-            this.pendingShare = highlight ? null : keptScroll(this.plugin, path, chapter);
+            this.pendingShare = highlight || place ? null : keptScroll(this.plugin, path, chapter);
         }
         this.ended = false;
         this.detours = [];
@@ -685,7 +754,24 @@ export class ReaderView extends ItemView {
             const at = await chapterOfHighlight(path, highlight, this.highlightDeps.store);
             if (at !== null) this.index = at;
         }
+        if (place && this.source) this.aimAt(place, this.source.chapters);
         this.index = Math.max(0, Math.min(this.index, (this.path?.chapters.length ?? 1) - 1));
+    }
+
+    /**
+     * Aim the reading at a place a note goes back to (#751 FR-6, AC-4): its chapter — by its key, else
+     * the label the book gave it, else its page — and, when it has words, the passage in it. A place
+     * whose chapter is gone opens where it was going to; its words are still looked for, never guessed.
+     */
+    private aimAt(place: PassagePlace, chapters: readonly SourceChapter[]): void {
+        const at = resolveChapter(place, chapters);
+        if (at !== null) this.index = Math.max(0, Math.min(at, chapters.length - 1));
+        this.pendingShare = null;
+        this.pendingLanding = place.quote
+            ? { chapter: this.index, offset: null, share: 0, top: 0, passage: place.quote }
+            : at !== null
+              ? { chapter: this.index, offset: null, share: 0, top: 0 }
+              : null;
     }
 
     /** Close the source being read, before another reading takes its place. */
@@ -768,8 +854,18 @@ export class ReaderView extends ItemView {
         }
         // A reading restored before the index is ready is read as soon as the model is built.
         this.app.workspace.onLayoutReady?.(() => this.resolvePending());
-        const resolved = this.app.metadataCache.on?.("resolved", () => this.resolvePending());
+        const resolved = this.app.metadataCache.on?.("resolved", () => {
+            this.resolvePending();
+            if (this.panel === "context") this.alongside?.schedule();
+        });
         if (resolved) this.registerEvent(resolved);
+        // Alongside, open again if you left it open on this device (#754 FR-13).
+        this.alongside = new ReaderAlongside(this.alongsideView(), this.alongsideDeps);
+        this.vaultMoves = new ReaderVaultMoves(this.vaultMovesView(), this.vaultMovesDeps);
+        this.aiMoves = new ReaderAiMoves(this.aiMovesView(), this.aiMovesDeps);
+        this.claimLink = new ReaderClaimLink(this.claimLinkView(), this.claimLinkDeps);
+        this.lookup = new ReaderLookup(this.lookupView(), this.lookupDeps);
+        if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
     }
@@ -779,6 +875,7 @@ export class ReaderView extends ItemView {
         this.leaveDeep(true);
         window.clearTimeout(this.idleTimer);
         window.clearTimeout(this.placeTimer);
+        (this.root?.win ?? window).clearTimeout(this.missingTimer);
         this.touch = null;
         endChapterTurn();
         this.pager?.dispose();
@@ -794,6 +891,21 @@ export class ReaderView extends ItemView {
         this.renderScope = null;
         this.panelScope?.unload();
         this.panelScope = null;
+        // Undecided proposals go with the Reader, and nothing is recorded (#756 FR-12).
+        this.vaultMoves?.dispose();
+        this.vaultMoves = null;
+        // A look-up or a translation on screen goes with the Reader; nothing was kept (#766).
+        this.lookup?.dispose();
+        this.lookup = null;
+        // Waiting answers are discarded with the Reader: nothing shown, nothing recorded (#759 AC-5).
+        this.aiMoves?.dispose();
+        this.aiMoves = null;
+        // A claim not yet created goes with the Reader: nothing written (#762).
+        this.claimLink?.dispose();
+        this.claimLink = null;
+        this.alongside?.dispose();
+        this.alongside = null;
+        (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.peekScope?.unload();
         this.peekScope = null;
         // Closing the tab any other way still gives the workspace back.
@@ -819,6 +931,8 @@ export class ReaderView extends ItemView {
             attr: { type: "button", "aria-label": t("reader_exit") },
         });
         setIcon(close, "x");
+        // It says what it closes — the Reader, never the panel beside it (#777 FR-2).
+        setTooltip(close, t("reader_exit"), { placement: "bottom" });
         this.registerDomEvent(close, "click", () => this.exit());
         // How far through the chapter you are: a hairline across the top, filled by the scroll.
         const hairline = root.createDiv({ cls: c("reader-hairline"), attr: { "aria-hidden": "true" } });
@@ -863,6 +977,7 @@ export class ReaderView extends ItemView {
                 highlights: () => this.highlights,
                 pageWords: async (index) => (this.runMode() ? ((await this.pageRun?.words(index)) ?? null) : null),
                 pageLabel: (index) => this.sourceLabel(index),
+                pageLocator: (index) => this.locatorOf(index),
             },
             this.inkDeps
         );
@@ -871,6 +986,7 @@ export class ReaderView extends ItemView {
             const target = event.target as HTMLElement | null;
             if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
             if (this.notePop && target && !this.notePop.contains(target)) this.closeNote();
+            if (this.lookup?.isOpen() && target && !this.lookup.contains(target)) this.lookup.close();
         });
         const page = stage.createEl("article", { cls: c("reader-page") });
         // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
@@ -905,13 +1021,19 @@ export class ReaderView extends ItemView {
         const minutes = bar.createSpan({ cls: [c("reader-bar-minutes"), c("reader-hidden")].join(" ") });
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
-        this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
+        const contents = this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
         const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
         search.addClass(c("reader-hidden"));
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
         this.ink.mountButton(bar);
-        this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
-        this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
+        const type = this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
+        // The panel on the right (#777 FR-3): the icon says where it opens.
+        const context = this.iconButton(bar, "panel-right", "reader_context", () => this.toggle("context"));
+        // Each panel's button says whether its panel is open.
+        this.panelButtons = { contents, type, context };
+        for (const button of Object.values(this.panelButtons)) button.setAttribute("aria-pressed", "false");
+        context.addClass(c("reader-bar-button--dotted"));
+        this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
         view.addClass(c("reader-hidden"));
         // The zoom level, beside it (#767 FR-13): the camera goes back to the width of the screen.
@@ -937,14 +1059,22 @@ export class ReaderView extends ItemView {
                 owner: this,
                 scrollTo: (el, travel) => this.scrollToEl(el, travel),
                 onChange: () => {
-                    if (this.panel === "context") this.renderPanel();
+                    if (this.panel === "context") this.alongside?.update();
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
+                thinkMoves: () => this.thinkMoves(),
+                passageActions: () => this.passageActions(),
+                lookup: () => this.lookup,
             },
             this.highlightDeps
         );
         this.watchShape(root);
+        // Words selected: Alongside follows the selection once it settles (#754 FR-2).
+        const doc = (root as HTMLElement & { doc?: Document }).doc;
+        if (doc) this.registerDomEvent(doc, "selectionchange", () => {
+            if (this.panel === "context") this.alongside?.schedule();
+        });
         this.wake();
     }
 
@@ -963,7 +1093,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1353,6 +1483,8 @@ export class ReaderView extends ItemView {
     private onStageScroll(): void {
         const els = this.els;
         if (!els) return;
+        // Alongside follows the reading when it settles — never on every frame (#754 AC-8).
+        if (this.panel === "context") this.alongside?.schedule();
         const { stage } = els;
         // In pages the place is the page on show, filled page by page (#753 FR-7).
         const pager = this.pagedNow() ? this.pager : null;
@@ -1580,10 +1712,21 @@ export class ReaderView extends ItemView {
         const pager = this.pager;
         const body = this.chapterBody();
         if (!stage || !pager) return;
-        const offset = body && spot.bookmark ? landingOffset(chapterText(body), spot.bookmark) : spot.offset;
+        this.passageHold = null;
+        let offset = body && spot.bookmark ? landingOffset(chapterText(body), spot.bookmark) : spot.offset;
+        if (spot.passage && body) {
+            // A passage is found by its words, exactly as they were written (whitespace forgiven), and
+            // nowhere else (#751 AC-4): the text is folded the way its source entry folds it, one
+            // character for one, so the offset is the text's own.
+            const span = anchorQuote(foldMarks(chapterText(body)), spot.passage);
+            offset = span ? span.start : null;
+            if (!span) this.passageMissing(spot.passage);
+        }
         // The mark first: the caret made for the place is then inside it.
         const here = body && offset !== null ? markHereAt(body, offset) : null;
         const anchor = body && offset !== null ? this.anchorAt(body, offset) : null;
+        // A passage sits at the reading line, where the eye reads (#751 FR-6); any other place at the top.
+        const line = spot.passage ? READING_LINE : 0;
         let ms = 0;
         if (this.pagedNow()) {
             if (this.pagesPending) {
@@ -1593,7 +1736,13 @@ export class ReaderView extends ItemView {
             } else if (anchor) ms = pager.reveal(anchor, travel);
             else ms = pager.goToShare(spot.share ?? 0, travel);
         } else if (anchor) {
-            ms = pager.reveal(anchor, travel);
+            ms = pager.reveal(anchor, travel, line);
+            if (spot.passage && offset !== null) {
+                this.passageHold = offset;
+                // A chapter drawn in a leaf that is only now being shown has no layout yet to land on:
+                // once it has, the column settles on the passage — a glide, never a jump (§XVI).
+                if (!travel) this.settleOnPassage();
+            }
         } else {
             const top = spot.top ?? resumeScroll(spot.share ?? 0, stage.scrollHeight, stage.clientHeight);
             if (travel) ms = pager.glideTo(top);
@@ -1605,9 +1754,61 @@ export class ReaderView extends ItemView {
         if (landed > 0) (this.root?.win ?? window).setTimeout(() => this.refreshRibbon(), landed + 40);
     }
 
+    /**
+     * The words of a passage are not in this edition (#751 FR-7, FR-14): said once, inline at the top
+     * of the column — it slides in 8 px with a fade, and leaves the same way. No mark anywhere, no guess.
+     */
+    private passageMissing(quote: TextQuote): void {
+        log.debug(`[Reader] the passage "${quote.exact.slice(0, 40)}" was not found in ${this.sourcePath ?? "this reading"}; opened at its chapter`);
+        const page = this.els?.page;
+        const body = this.chapterBody();
+        if (!page || !body) return;
+        page.querySelector(`.${c("reader-passage-missing")}`)?.remove();
+        const line = page.createDiv({ cls: c("reader-passage-missing"), attr: { role: "status" }, text: t("reader_passage_not_found") });
+        page.insertBefore(line, body);
+        const win = this.root?.win ?? window;
+        win.clearTimeout(this.missingTimer);
+        this.missingTimer = win.setTimeout(() => {
+            line.addClass(c("reader-passage-missing--leaving"));
+            this.missingTimer = win.setTimeout(() => line.remove(), motionWelcome(line) ? MOTION.fast + 40 : 0);
+        }, PASSAGE_MISSING_MS);
+    }
+
+    /** The passage held at the reading line, found again where it is now (a fresh caret: marks come and go). */
+    private heldPassage(): PageAnchor | null {
+        const body = this.chapterBody();
+        return body && this.passageHold !== null ? this.anchorAt(body, this.passageHold) : null;
+    }
+
+    /** Land a held passage again once the leaf has its layout: a frame from now, and once settled. */
+    private settleOnPassage(): void {
+        const win = this.root?.win ?? window;
+        const generation = this.generation;
+        const again = () => {
+            const stage = this.els?.stage;
+            const held = this.heldPassage();
+            if (generation !== this.generation || !stage || !held || !this.pager || this.pagedNow()) return;
+            const before = stage.scrollTop;
+            // Measured where it would land; glided there only if it is not there already.
+            this.pager.reveal(held, false, READING_LINE);
+            const top = stage.scrollTop;
+            if (Math.abs(top - before) < 2) return;
+            stage.scrollTop = before;
+            this.pager.glideTo(top);
+        };
+        win.requestAnimationFrame?.(again);
+        win.setTimeout(again, RESUME_SETTLE_MS);
+    }
+
+    /** You moved: a move under way ends where it was going, and the page is yours again (#751 FR-15). */
+    private takeOver(): void {
+        this.pager?.settle();
+        this.passageHold = null;
+    }
+
     /** How long a mark waits: for the travel, or for the chapter turn still playing. */
     private hereDelay(ms: number): number {
-        return Math.max(0, ms, this.turnLandsAt - Date.now());
+        return Math.max(0, ms, this.turnLandsAt - Date.now(), originLandsAt() - Date.now());
     }
 
     /** The chapter's body on the page, where its text is. */
@@ -1734,9 +1935,12 @@ export class ReaderView extends ItemView {
         };
 
         if (notePath) {
-            if (notePath !== this.reading()) action("reader_peek_detour", true, () => this.takeDetour(notePath));
-            if (at >= 0) action("reader_peek_jump", false, () => this.show(at));
-            else action("reader_peek_add", false, () => this.addToReading(notePath));
+            // A book is read in its own pages: a note met beside it opens in a tab, never as a detour (#754).
+            if (!this.sourcePath) {
+                if (notePath !== this.reading()) action("reader_peek_detour", true, () => this.takeDetour(notePath));
+                if (at >= 0) action("reader_peek_jump", false, () => this.show(at));
+                else action("reader_peek_add", false, () => this.addToReading(notePath));
+            }
             action("reader_peek_tab", false, () => {
                 this.closePeek();
                 void this.app.workspace.openLinkText(notePath, this.reading() ?? "", "tab");
@@ -2041,6 +2245,12 @@ export class ReaderView extends ItemView {
         return this.source?.chapters[index]?.label ?? String(index + 1);
     }
 
+    /** Where a highlight of chapter `index` is (#681, #751 FR-5): its place, its label, its key and page. */
+    private locatorOf(index: number): ThoughtLocator {
+        const chapter = this.source?.chapters[index];
+        return { at: index, label: this.sourceLabel(index), ...(chapter?.key ? { chapter: chapter.key } : {}), ...(chapter?.page ? { page: chapter.page } : {}) };
+    }
+
     private async renderSourceChapter(): Promise<void> {
         if (!this.els || !this.path || !this.sourcePath) return;
         const generation = ++this.generation;
@@ -2055,6 +2265,7 @@ export class ReaderView extends ItemView {
         const component = new Component();
         component.load();
         this.chapter = component;
+        this.passageHold = null;
 
         // The ink note being written is kept with the page it was written on still there (#745 FR-9).
         this.ink?.leave("turn");
@@ -2127,10 +2338,12 @@ export class ReaderView extends ItemView {
         }
         this.dropRun();
         let picture = false;
+        let pageMarks: PageMark[] = [];
         this.pageLanguage = null;
         try {
             const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
+            pageMarks = drawn.pageMarks ?? [];
             // The column says what it is written in, so it hyphenates by the book's rules (#757 FR-6).
             this.pageLanguage = readingLanguage({ format: doc.format, bookLanguage: doc.language, chapterLanguage: drawn.language });
             if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
@@ -2169,9 +2382,9 @@ export class ReaderView extends ItemView {
         this.onStageScroll();
         this.watchFocus(body, component);
         // The ink layer of this page or chapter (#745).
-        this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component, run: false });
+        this.ink?.attach({ body, page, notePath: path, locator: this.locatorOf(index), component, run: false });
         // The highlights of this page or chapter, found again by their words (#681).
-        void this.highlights?.attach(body, path, component, this.els?.margin ?? null, { at: index, label: this.sourceLabel(index) }).then(() => {
+        void this.highlights?.attach(body, path, component, this.els?.margin ?? null, this.locatorOf(index), pageMarks).then(() => {
             if (generation !== this.generation || !this.pendingHighlight) return;
             if (this.highlights?.reveal(this.pendingHighlight)) this.pendingHighlight = null;
         });
@@ -2386,7 +2599,7 @@ export class ReaderView extends ItemView {
         // Page ink lives on the printed pages (#745 E2): fractions of each page, through every zoom —
         // attached before the pages are shown, so each page made now gets its ink.
         const path = this.sourcePath;
-        if (path && this.chapter) this.ink?.attach({ body, page, notePath: path, locator: { at: index, label: this.sourceLabel(index) }, component: this.chapter, run: true });
+        if (path && this.chapter) this.ink?.attach({ body, page, notePath: path, locator: this.locatorOf(index), component: this.chapter, run: true });
         run.show(index, share);
         this.landShot();
         this.renderZoom();
@@ -2809,6 +3022,8 @@ export class ReaderView extends ItemView {
     }
 
     private closeNote(): void {
+        // The look-up card floats over the words as a footnote does, and goes as it goes (#766 FR-7).
+        this.lookup?.close();
         this.notePop?.remove();
         this.notePop = null;
         this.notePopScope?.unload();
@@ -2915,11 +3130,22 @@ export class ReaderView extends ItemView {
     // ── panels ───────────────────────────────────────────────────────────────
 
     private toggle(panel: Exclude<Panel, null>): void {
+        // Asked for again while it slides away: it stays (#754).
+        if (panel === "context" && this.panel === "context" && this.alongsideLeaving !== undefined) {
+            (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
+            this.alongsideLeaving = undefined;
+            this.els?.panel.removeClass(c("reader-panel--leaving"));
+            this.alongside?.remember(true);
+            this.syncPanelButtons("context");
+            return;
+        }
         if (this.panel === panel) {
             this.closePanel();
             return;
         }
         this.panel = panel;
+        // Whether Alongside is open is kept on this device (#754 FR-13).
+        this.alongside?.remember(panel === "context");
         this.renderPanel();
         // A panel open over the page keeps the chrome with it, in deep reading too (#764 FR-3).
         this.wake();
@@ -2928,19 +3154,44 @@ export class ReaderView extends ItemView {
     private renderPanel(): void {
         if (!this.els) return;
         const host = this.els.panel;
+        // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); Alongside lies beside
+        // the column (#754 FR-14); the other panels are a card over the page.
+        const asSheet = this.panel !== null && this.panelIsSheet();
+        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" ? "side" : "card";
+        // Alongside, still open in the same shape, moves in place: its cards follow the reading, never
+        // a redraw (#754 FR-19).
+        if (this.panel === "context" && shape === this.panelShape && this.alongside?.isMounted(host)) {
+            this.alongside.update();
+            return;
+        }
         // Where the Type panel's markers were, so the one that changed slides from there (#753 FR-14).
         const markers = this.panel === "type" ? snapshotMarkers(host) : undefined;
         this.thumbs?.dispose();
         this.thumbs = null;
+        // The proposals in Alongside go with it, with no verdict (#756 AC-7).
+        this.vaultMoves?.dismissAll();
+        // The AI moves' cards are kept: their answers are still coming (#759 FR-14).
+        this.aiMoves?.detach();
+        // The claim sheet stays while Alongside does — drawn again, it goes back in; otherwise it goes.
+        if (this.panel !== "context") this.claimLink?.drop();
+        this.alongside?.unmount();
+        (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
+        this.alongsideLeaving = undefined;
         host.empty();
         this.panelScope?.unload();
         const scope = new Component();
         scope.load();
         this.panelScope = scope;
+        this.panelShape = shape;
         host.toggleClass(c("reader-panel--open"), this.panel !== null);
-        // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); a card everywhere else.
-        const asSheet = this.panel !== null && this.panelIsSheet();
         host.toggleClass(c("reader-panel--sheet"), asSheet);
+        // A sheet lifts the bar above it, so its door stays in reach (#777 FR-3).
+        this.root?.toggleClass(c("reader--sheet"), asSheet);
+        this.syncPanelButtons(this.panel);
+        host.toggleClass(c("reader-panel--side"), shape === "side");
+        host.removeClass(c("reader-panel--leaving"));
+        // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
+        this.setAlongsideColumn(shape === "side");
         if (asSheet) this.openSheet(host, scope);
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
@@ -2948,9 +3199,254 @@ export class ReaderView extends ItemView {
             // A designed book you never chose a layout for reads *Spread* (#771): the row says so, and
             // only a layout you pick is kept as your choice.
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
-            renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, this.typeContext());
+            renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, { ...this.typeContext(), close: { label: "reader_close_type", onClose: () => this.closeFromPanel(), scope } });
         }
-        else if (this.panel === "context") this.renderContext(host);
+        else if (this.panel === "context") {
+            this.alongside?.mount(host, scope);
+            this.aiMoves?.attach(this.alongside?.proposalsHost() ?? null);
+            this.claimLink?.attach(host);
+        }
+    }
+
+    /**
+     * The column narrows for Alongside on a wide pane, or widens back, in one layout — and the
+     * paragraph at the reading line stays where your eye is (#754 FR-17, AC-10).
+     */
+    private setAlongsideColumn(on: boolean): void {
+        const root = this.root;
+        if (!root || root.hasClass(c("reader--alongside")) === on) return;
+        this.holdReadingLine(() => root.toggleClass(c("reader--alongside"), on));
+    }
+
+    /** Keep the block at the reading line, and how far into it the line is, through `change`. */
+    private holdReadingLine(change: () => void): void {
+        const stage = this.els?.stage;
+        // A paper in Page view lays its pages out again for the new width, the page you were on kept (#767).
+        if (stage && this.runMode() && this.pageRun) {
+            change();
+            this.pageRun.reshape();
+            return;
+        }
+        // In pages the pager keeps its own place through the stage's change, on its own observer (#753).
+        if (!stage || this.pagedNow() || this.runMode()) {
+            change();
+            return;
+        }
+        const line = stage.getBoundingClientRect().top + stage.clientHeight * READING_LINE;
+        const el = this.blockElements().find((block) => {
+            const r = block.getBoundingClientRect();
+            return r.top + r.height > line;
+        });
+        const was = el?.getBoundingClientRect();
+        change();
+        if (!el || !was) return;
+        const within = was.height > 0 ? Math.min(1, Math.max(0, (line - was.top) / was.height)) : 0;
+        const now = el.getBoundingClientRect();
+        const shift = now.top + within * now.height - (was.top + within * was.height);
+        if (Math.abs(shift) >= 1) stage.scrollTop = Math.max(0, stage.scrollTop + shift);
+        const blocks = this.blocks();
+        if (blocks.length > 0) this.place = placeAt(blocks, stage.scrollTop);
+    }
+
+    /** The *Think* row's moves (#756 FR-1): in a book or a paper, answered by your vault. */
+    private thinkMoves(): ThinkMove[] {
+        if (!this.sourcePath || !this.vaultMoves) return [];
+        const run = (move: VaultMoveId) => (passage: ThinkPassage, from: ProposalBox) => {
+            const book = this.sourcePath;
+            if (!book) return;
+            void this.vaultMoves?.run(move, { ...passage, book, bookTitle: this.source?.title ?? noteName(book) }, from);
+        };
+        // The AI's six after them (#759), by the gate as it is each time the popover opens (FR-3).
+        const ask = (move: ReaderAiMoveId) => (passage: ThinkPassage, from: ProposalBox) => {
+            const book = this.sourcePath;
+            if (!book) return;
+            const around = this.highlights?.contextOf(passage.quote) ?? { paragraph: passage.quote.exact, previous: "" };
+            this.aiMoves?.run(move, { ...passage, ...around, book, bookTitle: this.source?.title ?? noteName(book) }, from);
+        };
+        return [
+            { id: "contradict", label: "reader_move_contradict", run: run("contradict") },
+            { id: "connect", label: "reader_move_connect", run: run("connect") },
+            ...(this.aiMoves?.thinkMoves(ask) ?? []),
+        ];
+    }
+
+    /** *Claim* and *Link to an idea* (#762 FR-1): in a book or a paper, where a passage has a page. */
+    private passageActions(): PassageActions | null {
+        const book = this.sourcePath;
+        const claimLink = this.claimLink;
+        if (!book || !claimLink) return null;
+        const full = (passage: ThinkPassage): VaultMovePassage => ({ ...passage, book, bookTitle: this.source?.title ?? noteName(book) });
+        return {
+            claim: (passage, from) => claimLink.claim(full(passage), from),
+            link: (passage, container, from, close) => void claimLink.link({ ...full(passage), paragraph: this.highlights?.contextOf(passage.quote).paragraph }, container, from, close),
+        };
+    }
+
+    /**
+     * *Claim* on an accepted *What's the claim* (#762 FR-1): the sheet, its sentence prefilled — from
+     * its row in *From this reading*, or from Think, which opened the Reader for it.
+     */
+    private claimFromThought(thought: Thought, from?: ProposalBox): void {
+        const book = this.sourcePath;
+        if (!book || thought.about !== book || !thought.quote || !thought.locator || !this.claimLink) return;
+        const stage = this.els?.stage.getBoundingClientRect();
+        const origin = from ?? (stage ? { left: stage.left + stage.width / 2 - 40, top: stage.top + stage.height * READING_LINE, width: 80, height: 24 } : { left: 0, top: 0, width: 0, height: 0 });
+        this.claimLink.claim({ quote: thought.quote, locator: thought.locator, book, bookTitle: this.source?.title ?? noteName(book) }, origin, { accepted: thought });
+    }
+
+    /** The thought `id` names, from Think's store, and the sheet for it. */
+    private async claimFromId(id: string): Promise<void> {
+        try {
+            const store = this.vaultMovesDeps.store ?? ThoughtStore.getInstance();
+            const thought = (await store.all()).find((candidate) => candidate.id === id);
+            if (thought?.madeBy?.move === "claim") this.claimFromThought(thought);
+        } catch (error) {
+            log.warn(`[Reader] the claim could not be opened: ${error instanceof Error ? error.name : "error"}`);
+        }
+    }
+
+    /** What the two gestures lend of the Reader (#762): Alongside's panel, its rows, the peek. */
+    private claimLinkView(): ClaimLinkView {
+        const vault = this.vaultMovesView();
+        return {
+            app: this.app,
+            host: () => this.root ?? this.contentEl,
+            openAlongside: () => {
+                const closed = this.panel !== "context";
+                if (closed || this.alongsideLeaving !== undefined) this.toggle("context");
+                const panel = this.els?.panel;
+                return panel && this.panel === "context" ? { panel, opened: closed } : null;
+            },
+            closeAlongside: () => {
+                if (this.panel === "context") this.closePanel();
+            },
+            nearFor: (text) => vault.nearFor(text),
+            fromReadingBox: () => vault.fromReadingBox(),
+            addFromReading: (entry) => vault.addFromReading(entry),
+            claimed: (id, path) => void this.highlights?.markClaimed(id, path),
+            unclaimed: (id, path) => void this.highlights?.markClaimed(id, path, false),
+            peek: (anchor, path, name) => this.openPeek(anchor, path, name),
+        };
+    }
+
+    /** What Look up and Translate lend of the Reader (#766): its root, the page's language, the settings, the queue. */
+    private lookupView(): LookupView {
+        return {
+            app: this.app,
+            host: () => this.root,
+            bookLanguage: () => this.pageLanguage,
+            uiLanguage: () => getLanguage(),
+            settings: () => dictionarySettings(this.plugin?.settings?.dictionaries),
+            saveTranslateInto: async (tag) => {
+                const settings = this.plugin?.settings;
+                if (!settings) return;
+                settings.dictionaries = { ...dictionarySettings(settings.dictionaries), translateInto: tag };
+                await this.plugin?.saveSettings?.();
+            },
+            // The one queue every request of the Reader waits in (#759 FR-9).
+            queue: () => this.aiMoves?.queue ?? null,
+        };
+    }
+
+    /** What the AI moves lend of the Reader (#759): Alongside, as the vault moves have it, and its dot. */
+    private aiMovesView(): AiMovesView {
+        const vault = this.vaultMovesView();
+        return {
+            app: this.app,
+            openAlongside: () => vault.openAlongside(),
+            fromReadingBox: () => vault.fromReadingBox(),
+            addFromReading: (entry) => vault.addFromReading(entry),
+            dot: (on) => this.alongsideDot?.toggleClass("is-shown", on),
+            claim: (thought, from) => this.claimFromThought(thought, from),
+            language: () => getLanguage(),
+        };
+    }
+
+    /** What the moves lend of the Reader (#756): Alongside, where their answers arrive. */
+    private vaultMovesView(): VaultMovesView {
+        return {
+            app: this.app,
+            openAlongside: () => {
+                const closed = this.panel !== "context";
+                // Closed, it opens; sliding away, it stays (#754).
+                if (closed || this.alongsideLeaving !== undefined) this.toggle("context");
+                const host = this.alongside?.proposalsHost();
+                return host ? { host, opened: closed } : null;
+            },
+            nearFor: (text) => this.alongside?.nearFor(text) ?? null,
+            fromReadingBox: () => this.alongside?.fromReadingBox() ?? null,
+            addFromReading: (entry) => this.alongside?.addFromReading(entry),
+            ruleOut: (book, chapterKey, path) => this.alongside?.ruleOut(book, chapterKey, path),
+            tension: (id) => this.highlights?.markTension(id),
+        };
+    }
+
+    /** What Alongside reads of the Reader (#754). */
+    private alongsideView() {
+        return {
+            app: this.app,
+            owner: this,
+            reading: () => this.alongsideReading(),
+            passage: () => this.alongsidePassage(),
+            marks: () => [...(this.highlights?.items() ?? []), ...(this.highlights?.detachedItems() ?? [])],
+            renderHighlights: (host: HTMLElement, scope: Component) => this.highlights?.renderList(host, scope),
+            peek: (anchor: HTMLElement, path: string, name: string) => this.openPeek(anchor, path, name),
+            close: () => this.closeFromPanel(),
+        };
+    }
+
+    /** The book and the chapter on screen; in a note reading, the reading and its note. */
+    private alongsideReading(): AlongsideReading | null {
+        if (!this.path || this.ended) return null;
+        if (this.sourcePath) {
+            const chapter = this.source?.chapters[this.index];
+            const pdf = sourceFormat(this.sourcePath) === "pdf";
+            return {
+                book: this.sourcePath,
+                bookTitle: this.source?.title ?? noteName(this.sourcePath),
+                chapterKey: chapter?.key ?? (pdf ? `page:${this.index}` : String(this.index)),
+                source: true,
+            };
+        }
+        const note = this.reading();
+        if (!note) return null;
+        return { book: this.path.seed, bookTitle: noteName(this.path.seed), chapterKey: note, source: false, chapterNote: note };
+    }
+
+    /** What Alongside is near (FR-2): the words you selected, a PDF's page in Page view, or the paragraph at the reading line. */
+    private alongsidePassage(): AlongsidePassage | null {
+        const els = this.els;
+        if (!els) return null;
+        const selection = (this.root?.win ?? window).getSelection?.();
+        const selected = selection && !selection.isCollapsed && selection.rangeCount > 0 ? selection.toString().trim() : "";
+        if (selected && selection && els.page.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+            const start = selection.getRangeAt(0).startContainer;
+            const el = start.nodeType === 1 ? (start as HTMLElement) : start.parentElement;
+            return { text: selected, kind: "selection", anchor: el?.closest<HTMLElement>("p, blockquote, li, h1, h2, h3, h4, h5, h6, figure, table, pre") ?? null };
+        }
+        if (this.sourcePath && (this.sourceView === "page" || this.runMode())) {
+            const page = this.runMode() && this.pageRun ? els.page.querySelector<HTMLElement>(`[data-page="${this.pageRun.page()}"]`) : els.page;
+            return { text: page?.textContent ?? "", kind: "page", anchor: null };
+        }
+        const block = this.blockAtReadingLine();
+        return { text: block?.textContent ?? "", kind: "paragraph", anchor: block };
+    }
+
+    /** The block under the reading line, a third of the way down the stage (#751 FR-6). */
+    private blockAtReadingLine(): HTMLElement | null {
+        const stage = this.els?.stage;
+        if (!stage) return null;
+        const elements = this.pagedNow() && this.pager ? this.pager.visibleBlocks() : this.blockElements();
+        if (elements.length === 0) return null;
+        const line = stage.getBoundingClientRect().top + stage.clientHeight * READING_LINE;
+        const at = blockAtLine(
+            elements.map((el) => {
+                const r = el.getBoundingClientRect();
+                return { top: r.top, height: r.height };
+            }),
+            line
+        );
+        return at >= 0 ? elements[at] : null;
     }
 
     /** What the Type panel says besides its rows (#757): the language of the hyphens, Page view's note. */
@@ -2989,7 +3485,7 @@ export class ReaderView extends ItemView {
             this.renderSourceTabs(host);
             return;
         }
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_contents") });
+        panelHead(host, "reader_contents", this.panelCloseFor("reader_close_contents"));
         this.path?.chapters.forEach((chapter, i) => {
             const row = host.createEl("button", {
                 cls: [c("reader-toc-row"), ...(i === this.index ? [c("reader-toc-row--current")] : [])].join(" "),
@@ -3027,6 +3523,9 @@ export class ReaderView extends ItemView {
             });
             this.panelScope?.registerDomEvent(button, "click", () => this.chooseTab(tab.id));
         }
+        // Contents' own way out, at the end of its tabs (#777 FR-1).
+        const close = this.panelCloseFor("reader_close_contents");
+        if (close) panelClose(tabs, close);
         const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
@@ -3190,38 +3689,6 @@ export class ReaderView extends ItemView {
         }, MOTION.base);
     }
 
-    private renderContext(host: HTMLElement): void {
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
-        if (this.sourcePath) {
-            // A source has no neighbours in the graph: what is around a page is what you marked on it.
-            if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
-            if (host.childElementCount <= 1) host.createDiv({ cls: c("reader-context-empty"), text: t("reader_source_context_empty") });
-            return;
-        }
-        const index = KnowledgeIndex.getInstance();
-        if (!this.path || index.status !== "ready") return;
-        const map = buildEvidenceMap(index.getModel(), this.reading() ?? this.path.chapters[this.index].path);
-        const list = (key: LocaleKey, paths: string[]) => {
-            if (paths.length === 0) return;
-            host.createDiv({ cls: c("reader-context-heading"), text: t(key) });
-            for (const p of paths) {
-                // Each is a peek too: read it here, take it as a detour, or add it to this reading.
-                const row = host.createEl("button", { cls: c("reader-context-row"), attr: { type: "button" }, text: noteName(p) });
-                const scope = this.panelScope;
-                scope?.registerDomEvent(row, "click", () => this.openPeek(row, p, noteName(p)));
-                hoverPreview(this.app, row, p, scope ?? this);
-            }
-        };
-        // Your highlights here too: the margin only has room on a wide pane (#671).
-        if (this.panelScope) this.highlights?.renderList(host, this.panelScope);
-        list("reader_supports", map.supports);
-        list("reader_argues", map.contradicts);
-        list("reader_questions", map.gaps.openQuestions);
-        if (map.supports.length + map.contradicts.length + map.gaps.openQuestions.length === 0) {
-            host.createDiv({ cls: c("reader-context-empty"), text: t("reader_context_empty") });
-        }
-    }
-
     // ── the panel as a bottom sheet (#750 D5) ────────────────────────────────
 
     /** Whether the panel opens as a sheet now: a mobile reading taller than it is wide. */
@@ -3319,10 +3786,53 @@ export class ReaderView extends ItemView {
         handle.addEventListener("lostpointercapture", up);
     }
 
+    /**
+     * A panel's own × (#777 FR-1): the steps Esc takes — the claim sheet goes first, nothing written,
+     * then the panel, in the same move Esc plays.
+     */
+    private closeFromPanel(): void {
+        if (this.claimLink?.isOpen()) {
+            this.claimLink.dismissNewest();
+            return;
+        }
+        this.closePanel();
+    }
+
+    /** The × for the panel drawn now, its listener on the panel's scope. */
+    private panelCloseFor(label: "reader_close_contents"): PanelClose | undefined {
+        const scope = this.panelScope;
+        return scope ? { label, onClose: () => this.closeFromPanel(), scope } : undefined;
+    }
+
+    /** Each panel's button on the bar: pressed, and Obsidian's active look, while its panel is open. */
+    private syncPanelButtons(open: Panel): void {
+        if (!this.panelButtons) return;
+        for (const [id, button] of Object.entries(this.panelButtons)) {
+            const on = id === open;
+            button.toggleClass("is-active", on);
+            button.setAttribute("aria-pressed", String(on));
+        }
+    }
+
     /** Close the panel. A sheet slides down and away first; a card, or reduced motion, goes at once. */
     private closePanel(ms: number = MOTION.base): void {
         const host = this.els?.panel;
         if (!host || !this.panel) return;
+        if (this.panel === "context") this.alongside?.remember(false);
+        // The bar lets go of the button at once: the panel is on its way out.
+        this.syncPanelButtons(null);
+        // Alongside slides back to the column's edge, then the column widens, your line kept (#754 FR-17).
+        if (host.hasClass(c("reader-panel--side")) && this.motionAllowed()) {
+            if (this.alongsideLeaving !== undefined) return;
+            host.addClass(c("reader-panel--leaving"));
+            this.alongsideLeaving = (this.root?.win ?? window).setTimeout(() => {
+                this.alongsideLeaving = undefined;
+                if (this.panel !== "context" || !host.hasClass(c("reader-panel--leaving"))) return;
+                this.panel = null;
+                this.renderPanel();
+            }, MOTION.base);
+            return;
+        }
         if (!host.hasClass(c("reader-panel--sheet")) || !this.motionAllowed()) {
             this.panel = null;
             this.renderPanel();
@@ -3419,7 +3929,10 @@ export class ReaderView extends ItemView {
             return;
         }
         const blocks = this.blocks();
-        if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
+        // A passage just landed on stays at the reading line (#751); anything else keeps its top line.
+        const held = this.passageHold !== null ? this.heldPassage() : null;
+        if (held && this.pager) this.pager.reveal(held, false, READING_LINE);
+        else if (this.place && blocks.length > 0) stage.scrollTop = scrollFor(this.place, blocks);
         if (this.panel) this.renderPanel();
         this.refreshRibbon();
     }
@@ -3451,7 +3964,14 @@ export class ReaderView extends ItemView {
             },
             { passive: false }
         );
-        this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => this.onPointerDown(event));
+        // Input during a move jumps it to its end (#751 FR-15): the place is already set under it. And
+        // from then on the page is yours: a landed passage is no longer held at the reading line.
+        this.registerDomEvent(stage, "wheel", () => this.takeOver(), { passive: true });
+        this.registerDomEvent(this.contentEl, "keydown", () => this.takeOver(), { capture: true });
+        this.registerDomEvent(stage, "pointerdown", (event: PointerEvent) => {
+            this.takeOver();
+            this.onPointerDown(event);
+        });
         this.registerDomEvent(stage, "pointermove", (event: PointerEvent) => this.onPointerMove(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
         this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
@@ -3804,7 +4324,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards() || this.lookup?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -3817,7 +4337,11 @@ export class ReaderView extends ItemView {
         });
         switch (step) {
             case "proposal":
-                return this.ink?.reading.dismissNewest();
+                // The newest card of all, whoever opened it — ink's reading or a move (#748, #756, #759).
+                // The claim sheet is one of them (#762): Esc takes it away, nothing written.
+                // The look-up card is one too (#766): Esc puts it back into the words.
+                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup]);
+                return;
             case "shortcuts":
                 return this.closeShortcuts();
             case "note":
@@ -3950,7 +4474,7 @@ export class ReaderView extends ItemView {
             return this.pager.reveal(el, travel);
         }
         const box = stage.getBoundingClientRect();
-        const top = Math.max(0, (el.getBoundingClientRect().top - box.top) / stageScale(stage, box.height) + stage.scrollTop - stage.clientHeight / 3);
+        const top = Math.max(0, (el.getBoundingClientRect().top - box.top) / stageScale(stage, box.height) + stage.scrollTop - stage.clientHeight * READING_LINE);
         if (travel && this.pager) return this.pager.glideTo(top);
         stage.scrollTop = top;
         return 0;

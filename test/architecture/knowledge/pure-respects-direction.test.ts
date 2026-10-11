@@ -7,7 +7,7 @@ const KNOWLEDGE_ROOT = join(__dirname, "..", "..", "..", "src", "architecture", 
 
 // The pure Knowledge layer (same set as pure-is-obsidian-free) — the model + its analyses. The root
 // adapters KnowledgeIndex.ts / snapshot.ts legitimately touch Obsidian and stay OUT of this set.
-const PURE_DIRS = ["model", "parse", "derive", "query", "lifecycle", "relations", "claims", "debt", "review", "balance", "journal", "discovery", "map", "traverse", "questions", "timeline", "synthesis", "dashboard", "home", "projects", "context", "taxonomy", "state"];
+const PURE_DIRS = ["model", "parse", "derive", "query", "lifecycle", "relations", "claims", "debt", "review", "balance", "journal", "discovery", "map", "traverse", "questions", "timeline", "synthesis", "dashboard", "home", "projects", "context", "taxonomy", "state", "alongside"];
 
 // Outer/sibling layers the pure Knowledge layer must never import (§XI: knowledge imports only inward).
 const FORBIDDEN_PREFIXES = [

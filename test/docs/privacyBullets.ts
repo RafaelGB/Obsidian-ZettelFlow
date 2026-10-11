@@ -1,6 +1,7 @@
 /**
  * The Capabilities & privacy bullets: five frozen at 2f6198f5 (#588, disclosure guardrail), and a
- * sixth added by #748 — reading handwriting, new in kind (an image). An addition, never a re-wording.
+ * sixth added by #748 — reading handwriting, new in kind (an image) — and a seventh by #759, the
+ * Reader's AI moves. Additions, never a re-wording.
  *
  * The disclosure may MOVE in the README but never be re-worded (constitution VII). frontDoor.test.ts
  * whitespace-collapses the README and asserts each bullet below still occurs verbatim -- collapsed on
@@ -14,4 +15,5 @@ export const FROZEN_PRIVACY_BULLETS: readonly string[] = [
     "- **Dynamic code execution.** The Script action, dynamic selectors, vault hooks and workflow-event conditions run **JavaScript you write**, with the plugin's access to your vault — including read-only access to the whole knowledge model via `zf.knowledge` — so only run scripts you trust. No remote code is ever fetched or executed, and every runtime function is built in one audited module.",
     "- **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard.",
     "- **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.",
+    "- **The Reader's AI moves — opt-in, per click.** Six moves on a passage you selected (*Why?*, *Challenge*, *Question*, *What's the claim*, *Reflect*, *Explain*) send that passage, its paragraph and the one before, and the book and chapter titles to your AI provider, only when you click one. Nothing from your vault is sent, and nothing runs by itself.",
 ];

@@ -82,6 +82,10 @@ export function makeEpub(book: {
     language?: string;
     /** More `<metadata>`, as it is (#771: `<meta property="rendition:layout">pre-paginated</meta>`). */
     metadata?: string;
+    /** The EPUB 3 nav's `page-list` (#751): each print page and where it begins (`ch1.xhtml#p12`). */
+    pageList?: { label: string; href: string }[];
+    /** An EPUB 2 `toc.ncx`'s `pageList` (#751), in a `toc.ncx` the spine points at. */
+    ncxPageList?: { label: string; href: string }[];
 }): Uint8Array {
     const items = book.chapters
         .map((ch) => `<item id="${ch.id}" href="${ch.href}" media-type="${ch.mediaType ?? "application/xhtml+xml"}"/>`)
@@ -91,17 +95,26 @@ export function makeEpub(book: {
         .filter((ch) => ch.title)
         .map((ch) => `<li><a href="${ch.href}">${ch.title}</a></li>`)
         .join("");
+    const pageList = book.pageList
+        ? `<nav epub:type="page-list"><ol>${book.pageList.map((p) => `<li><a href="${p.href}">${p.label}</a></li>`).join("")}</ol></nav>`
+        : "";
+    const ncx = book.ncxPageList
+        ? `<?xml version="1.0"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><navMap></navMap><pageList>${book.ncxPageList
+              .map((p, i) => `<pageTarget id="pt${i}" type="normal" value="${p.label}"><navLabel><text>${p.label}</text></navLabel><content src="${p.href}"/></pageTarget>`)
+              .join("")}</pageList></ncx>`
+        : "";
     const files: Record<string, string | Uint8Array> = {
         mimetype: "application/epub+zip",
         "META-INF/container.xml":
             '<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
-        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}${book.metadata ?? ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}</manifest><spine${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
+        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}${book.metadata ?? ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}${ncx ? '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>' : ""}</manifest><spine${ncx ? ' toc="ncx"' : ""}${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
         ...(book.nav === false
             ? {}
             : {
-                  "OEBPS/nav.xhtml": `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc"><ol>${navItems}</ol></nav></body></html>`,
+                  "OEBPS/nav.xhtml": `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc"><ol>${navItems}</ol></nav>${pageList}</body></html>`,
               }),
         ...(book.cover ? { "OEBPS/images/cover.png": book.cover } : {}),
+        ...(ncx ? { "OEBPS/toc.ncx": ncx } : {}),
         ...book.extra,
     };
     for (const ch of book.chapters) {

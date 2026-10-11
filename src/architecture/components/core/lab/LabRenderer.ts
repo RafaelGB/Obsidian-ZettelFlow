@@ -3,12 +3,13 @@ import { meaningOf, type HighlightMeaning } from "application/thinking/highlight
 import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
 import type MomentFn from "moment";
 import { openReader } from "architecture/components/core/reader/openReader";
+import { placeOf, serializePlace } from "application/library/provenance";
 import { c, log, ObsidianApi } from "architecture";
 import { t } from "architecture/lang";
 import { KnowledgeModeRenderer } from "architecture/components/core/surface/KnowledgeModeRenderer";
 import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { isInk, linkThoughts, thoughtPath, type ResponseKind, type Thought } from "application/thinking/thought";
+import { isInk, linkThoughts, thoughtPath, type ReaderMoveId, type ResponseKind, type Thought } from "application/thinking/thought";
 import { renderInkCard } from "./labInkCard";
 import { InkReadingController } from "architecture/components/core/reader/readerInkReading";
 import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
@@ -36,6 +37,25 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
 import { dueHighlights } from "application/thinking/highlightReview";
 import { openReview } from "architecture/components/core/review/ReviewModal";
+
+/** The Reader moves a thought can be accepted from, as Think names them (#756). A literal map for the locale guardrail. */
+const MADE_BY_KEY: Partial<Record<ReaderMoveId, Parameters<typeof t>[0]>> = {
+    contradict: "lab_made_by_contradict",
+    // The moves by your AI provider (#759): the chip reads *Why? · AI*.
+    why: "reader_move_why",
+    challenge: "reader_move_challenge",
+    question: "reader_move_question",
+    claim: "reader_move_claim",
+    reflect: "reader_move_reflect",
+    explain: "reader_move_explain",
+};
+
+/** The chip of a thought accepted from a Reader move (#756): *Contradict*, or *Why? · AI* (#759). */
+export function madeByLabel(madeBy: Thought["madeBy"]): string | null {
+    const key = madeBy ? MADE_BY_KEY[madeBy.move] : undefined;
+    if (!key) return null;
+    return madeBy?.ai ? t("lab_made_by_ai", t(key)) : t(key);
+}
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -978,6 +998,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 );
         }
 
+        // Accepted from a Reader move (#756): the move says where the thought came from.
+        // An AI move's answer says so (#759 FR-7): its first words came from your provider.
+        const made = madeByLabel(thought.madeBy);
+        if (made) this.ribbon(box, made, thought.madeBy?.ai ? "sparkles" : "swords");
+
         // Ink written in the Reader (#745): the handwriting itself, never a passage.
         if (isInk(thought) && thought.about) this.renderInk(box, thought, thought.about);
         // A highlight made in the Reader (#671): the passage first, then your note about it.
@@ -1139,6 +1164,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const quote = thought.quote;
         const about = thought.about;
         if (!quote || !about) return;
+        // A Reader move's answer (#756): the passage it answers, and the note it is also about — not a mark.
+        if (thought.madeBy) return this.renderAnswered(box, thought, quote, about);
         const meaning = meaningOf(thought);
         const block = box.createDiv({ cls: [c("lab-quote"), c(`lab-quote--${meaning}`)].join(" ") });
         block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
@@ -1160,6 +1187,25 @@ export class LabRenderer extends KnowledgeModeRenderer {
             attr: { type: "button" },
         });
         this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id }));
+    }
+
+    /** The passage a Reader move answered (#756), where it is, the note it is also about, and the way back. */
+    private renderAnswered(box: HTMLElement, thought: Thought, quote: NonNullable<Thought["quote"]>, about: string): void {
+        const block = box.createDiv({ cls: c("lab-quote") });
+        block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
+        const meta = block.createDiv({ cls: c("lab-quote-meta") });
+        const name = displayName(about, ObsidianApi.getOwnPlugin()?.settings.library);
+        meta.createSpan({ text: t("lab_move_from", quote.heading ? `${name} › ${quote.heading}` : name) });
+        if (thought.alsoAbout) meta.createSpan({ text: t("reader_ink_also_about", (thought.alsoAbout.split("/").pop() ?? thought.alsoAbout).replace(/\.md$/i, "")) });
+        const place = placeOf(thought);
+        if (!place || !this.app.vault.getAbstractFileByPath(about)) return;
+        const open = meta.createEl("button", { cls: c("lab-quote-open"), text: t("lab_highlight_open_reader"), attr: { type: "button" } });
+        this.registerDomEvent(open, "click", () => void openReader(this.app, { source: about, seed: about, at: serializePlace(place), from: open }));
+        // An accepted *What's the claim* is one step from a claim note (#762 FR-1): the Reader opens on
+        // the passage with the claim sheet, its sentence prefilled — one sheet, in one place.
+        if (thought.madeBy?.move !== "claim") return;
+        const claim = meta.createEl("button", { cls: c("lab-quote-open"), text: t("reader_hl_claim"), attr: { type: "button", "data-zf-claim": "" } });
+        this.registerDomEvent(claim, "click", () => void openReader(this.app, { source: about, seed: about, at: serializePlace(place), from: claim, claimFrom: thought.id }));
     }
 
     /** An ink note (#745 FR-13): its drawing, where it was written, and the way back to it. */

@@ -118,6 +118,14 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `think-about` | zettelflow-home | 1 | note menu (`ThinkAboutComponent.ts`) · `think-about-this-note` |
 | `reader` | zettelflow-reader | 1 | note menu (`ReaderComponent.ts`) · control in zettelflow-explore (`AskGraphRenderer.ts`) · control in zettelflow-note (`headBlock.ts`) · control in zettelflow-home (`HomeModeRenderer.ts`) · `open-reader` |
 | `reader-ink` | zettelflow-reader | 1 | control in zettelflow-reader (`readerInk.ts`) · control in zettelflow-home (`LabRenderer.ts`) |
+| `reader-alongside` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) |
+| `reader-contradict` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-connect` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-ai-moves` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-claim` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) · control in zettelflow-home (`LabRenderer.ts`) |
+| `reader-link-idea` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-lookup` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
+| `reader-translate` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) |
 | `library` | zettelflow-library | 1 | ribbon → `open-library` · note menu (`LibraryComponent.ts`) · `open-library` |
 | `highlights-review` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) · recommended on `zettelflow-home:home` |
 | `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |

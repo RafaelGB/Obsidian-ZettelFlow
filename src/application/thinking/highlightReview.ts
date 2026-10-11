@@ -76,6 +76,8 @@ export function isDueInFrontmatter(front: Record<string, unknown> | undefined, n
     if (typeof exact !== "string" || !exact || typeof about !== "string" || !about) return false;
     // Ink carries the words it was written beside, but is never reviewed as a highlight (#745 E6).
     if (front["inkDrawing"]) return false;
+    // Nor is your answer to a Reader move (#756): it carries its passage, and is not a mark.
+    if (front["madeBy"]) return false;
     if (front["reviewRetired"] === true || front["reviewRetired"] === "true") return false;
     if (typeof front["asideReason"] === "string" && front["asideReason"]) return false;
     const due = Number(front["reviewDue"]);

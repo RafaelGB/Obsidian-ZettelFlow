@@ -127,6 +127,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "reader-lookup": { summary: "select a word and look it up in your own StarDict dictionaries — read on the device, no network; a bilingual one gives its translation.", page: "../development/reader-dictionaries.md" },
     "reader-translate": { summary: "select a passage and translate it — through your AI provider on a click, or the system's own Translate on iPad.", page: "../development/reader.md#look-up-and-translate" },
     "reader-overview": { summary: "every page of a book or a paper as a card, your marks on them — one tap on the Reader's bar, from any view; a card becomes its page.", page: "../development/reader.md#the-overview" },
+    "chapter-pause": { summary: "at the end of a chapter you marked, the book turns onto a blank leaf — your marks, what they touched, one question; never a summary. Turned off on the leaf.", page: "../development/reader.md#what-survived" },
     library: { summary: "your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page.", page: "../development/library.md" },
     "highlights-review": { summary: "what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go.", page: "../development/highlights-review.md" },
     "think-about": { summary: "open a thread about a note without writing to it.", page: "../architecture/thought-lab.md" },

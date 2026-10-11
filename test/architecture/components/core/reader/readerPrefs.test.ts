@@ -7,7 +7,7 @@ describe("the layout is one of your reading preferences (#753 AC-1, FR-1)", () =
         expect(normalizeReaderPrefs(undefined).layout).toBe("scroll");
         expect(normalizeReaderPrefs({ layout: "columns" }).layout).toBe("scroll");
         const before = { font: "serif", size: "large", theme: "sepia", focus: true, timeLeft: false };
-        expect(normalizeReaderPrefs(before)).toEqual({ ...before, layout: "scroll", spacing: "normal", width: "medium", margins: "medium", justify: false });
+        expect(normalizeReaderPrefs(before)).toEqual({ ...before, layout: "scroll", spacing: "normal", width: "medium", margins: "medium", justify: false, chapterPause: true });
         expect(DEFAULT_READER_PREFS.layout).toBe("scroll");
     });
 
@@ -28,12 +28,12 @@ describe("the layout is one of your reading preferences (#753 AC-1, FR-1)", () =
 describe("the type you can tune (#757 AC-1, AC-2, FR-9)", () => {
     it("reads every new field at its default for a preference saved before it", () => {
         const before = { font: "serif", size: "large", theme: "sepia", focus: true, timeLeft: false, layout: "page" };
-        expect(normalizeReaderPrefs(before)).toEqual({ ...before, spacing: "normal", width: "medium", margins: "medium", justify: false });
-        expect(DEFAULT_READER_PREFS).toMatchObject({ spacing: "normal", width: "medium", margins: "medium", justify: false });
+        expect(normalizeReaderPrefs(before)).toEqual({ ...before, spacing: "normal", width: "medium", margins: "medium", justify: false, chapterPause: true });
+        expect(DEFAULT_READER_PREFS).toMatchObject({ spacing: "normal", width: "medium", margins: "medium", justify: false, chapterPause: true });
     });
 
     it("falls back on anything unknown, and keeps every valid choice", () => {
-        expect(normalizeReaderPrefs({ spacing: "loose", width: 3, margins: null, justify: "yes" })).toMatchObject({ spacing: "normal", width: "medium", margins: "medium", justify: false });
+        expect(normalizeReaderPrefs({ spacing: "loose", width: 3, margins: null, justify: "yes" })).toMatchObject({ spacing: "normal", width: "medium", margins: "medium", justify: false, chapterPause: true });
         expect(READER_SPACINGS).toEqual(["tight", "normal", "airy"]);
         expect(READER_WIDTHS).toEqual(["narrow", "medium", "wide"]);
         expect(READER_MARGINS).toEqual(["small", "medium", "large"]);

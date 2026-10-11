@@ -127,6 +127,7 @@ export const CAPABILITIES = [
     "reader-lookup",
     "reader-translate",
     "reader-overview",
+    "chapter-pause",
     "library",
     "highlights-review",
     "claim-door",
@@ -446,6 +447,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_overview",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
+    },
+    "chapter-pause": {
+        // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,
+        // the book turns onto a blank leaf. It comes to you, in the book; it is turned off on the leaf.
+        nameKey: "reader_survived_title",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerSurvivedLeaf.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

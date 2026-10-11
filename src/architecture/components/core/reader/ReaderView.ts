@@ -77,7 +77,7 @@ import {
 } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
 import { openSourceDocument, type SourceChapter, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
-import type { Thought, ThoughtLocator } from "application/thinking/thought";
+import { isInk, type Thought, type ThoughtLocator } from "application/thinking/thought";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
@@ -93,6 +93,13 @@ import { PdfPageRun } from "./readerPageRun";
 import { PREVIEW_BLOCKS, cardMarks, cardPixels, cardProgress, normalizeContentsTab, overviewLimit, overviewUnits, renderOverview, OVERVIEW_LIMITS, type ContentsTab, type MarkSource, type Overview, type OverviewUnit } from "./readerOverview";
 import { fly } from "./readerMotion";
 import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
+import { SittingClock, chapterEnds, endingAt, shouldPause, spanOf, touchedNotes, wasSkip, type ChapterSpan } from "./readerSurvived";
+import { renderSurvivedLeaf, type SurvivedCard, type SurvivedLeaf } from "./readerSurvivedLeaf";
+import { isMark } from "application/library/produced";
+import { citedLocator, notesBornFrom, pageOf } from "application/library/born";
+import { readSourceEntry } from "application/library/provenance";
+import { gatherBookNotes } from "architecture/components/core/library/bookNoteIndex";
+import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { dictionarySettings } from "application/library/dictionarySettings";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -145,6 +152,9 @@ function shortcutsFor(layout: ReaderLayout, direction: BookDirection, pageRun = 
 }
 
 const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
+    // What survived? (#755 FR-6, FR-10): on the leaf between two chapters, → turns on and ← goes back.
+    { keys: ["→"], label: "reader_key_survived_next" },
+    { keys: ["←"], label: "reader_key_survived_back" },
     { keys: ["reader_kbd_home", "reader_kbd_end"], label: "reader_key_ends" },
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["1–4"], label: "reader_key_meaning" },
@@ -193,6 +203,20 @@ const APPLE_CAPS: Record<string, string> = { reader_kbd_ctrl: "⌘", reader_kbd_
 function kbdCap(key: string): string {
     if (isApple() && APPLE_CAPS[key]) return APPLE_CAPS[key];
     return KBD_KEY[key] ? t(KBD_KEY[key]) : key;
+}
+
+/** The leaf between two chapters while it is the page (#755). */
+interface LeafState {
+    /** The chapter it ends: the Reader's last chapter (a PDF's last page) of it. */
+    after: number;
+    arrivedAt: number;
+    /** Anything on it was touched: leaving it is no longer a skip (FR-7). */
+    touched: boolean;
+    leaf: SurvivedLeaf | null;
+    /** What was yours in the chapter as the turn was asked: the page's own marks go with the page. */
+    found: Thought[];
+    /** Drawn once: drawn again (a change of view), it is simply there. */
+    drawn: boolean;
 }
 
 /** How long a tap's synthetic click is waited for, to be swallowed (#750): a tap is not also a click. */
@@ -496,6 +520,25 @@ export class ReaderView extends ItemView {
     private searchTimer: number | undefined;
     /** The reading is over and its end card is on screen (#672). */
     private ended = false;
+    /**
+     * *What survived?* (#755): the leaf between chapter `after` and the next, while it is the page —
+     * when it arrived, whether anything on it was touched (a skip is leaving it untouched, FR-7).
+     */
+    private pause: LeafState | null = null;
+    /** The last pause was skipped: the next end that would pause does not (FR-7). Never kept. */
+    private skipPending = false;
+    /** How long this sitting spent on each chapter (FR-2.3), paused while the Reader is hidden. */
+    private readonly sitting = new SittingClock(() => Date.now());
+    /** The notes opened as a peek from each chapter in this sitting: what a chapter touched (FR-3). */
+    private readonly peeked = new Map<number, Set<string>>();
+    /** Your marks in this source (highlights, margin notes, ink), read again when they change. */
+    private survivedMarks: { path: string; thoughts: Thought[] } | null = null;
+    private survivedReading: Promise<void> | null = null;
+    /**
+     * Listen (#765) sets this while it reads the book aloud: no chapter end pauses then (FR-2.7). Set
+     * it back to `false` when it stops.
+     */
+    listening = false;
     /** When this reading began, for the end card's minutes. */
     private startedAt = Date.now();
     /** Detours taken in this reading — counted, never kept. */
@@ -746,6 +789,11 @@ export class ReaderView extends ItemView {
             this.designedHintShown = false;
             this.pageDwells = [];
             this.pageShownAt = 0;
+            // A new reading: no leaf, no skip, no time on its chapters yet (#755).
+            this.pause = null;
+            this.skipPending = false;
+            this.peeked.clear();
+            this.survivedMarks = null;
             // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
             this.pendingShare = highlight || place ? null : keptScroll(this.plugin, path, chapter);
         }
@@ -793,6 +841,9 @@ export class ReaderView extends ItemView {
         }
         if (place && this.source) this.aimAt(place, this.source.chapters);
         this.index = Math.max(0, Math.min(this.index, (this.path?.chapters.length ?? 1) - 1));
+        // Opened somewhere — a resume, a deep link, a passage — never on a leaf (#755 FR-2.1).
+        this.pause = null;
+        if (fresh) void this.readSurvivedMarks();
     }
 
     /**
@@ -903,6 +954,17 @@ export class ReaderView extends ItemView {
         this.claimLink = new ReaderClaimLink(this.claimLinkView(), this.claimLinkDeps);
         this.lookup = new ReaderLookup(this.lookupView(), this.lookupDeps);
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
+        // A thought written in the thinking space is in the cache a moment later: the marks are read then (#755).
+        const thoughtChanged = this.app.metadataCache.on?.("changed", (file: TFile) => {
+            const folder = (this.highlightDeps.store ?? ThoughtStore.getInstance()).folder();
+            if (this.sourcePath && folder && file?.path?.startsWith(`${folder}/`)) void this.readSurvivedMarks();
+        });
+        if (thoughtChanged) this.registerEvent(thoughtChanged);
+        // The sitting's clock stops while the Reader is hidden — a locked iPad, another app (#755 FR-2.3).
+        const doc = (this.contentEl as HTMLElement & { doc?: Document }).doc;
+        if (doc && typeof doc.addEventListener === "function") {
+            this.registerDomEvent(doc, "visibilitychange", () => this.sitting.setVisible(doc.visibilityState !== "hidden"));
+        }
         this.render();
         this.contentEl.focus({ preventScroll: true });
     }
@@ -1101,6 +1163,8 @@ export class ReaderView extends ItemView {
                 scrollTo: (el, travel) => this.scrollToEl(el, travel),
                 onChange: () => {
                     if (this.panel === "context") this.alongside?.update();
+                    // A mark made or taken away: what a chapter end reads is read again (#755 FR-2.4).
+                    void this.readSurvivedMarks();
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
@@ -1325,7 +1389,10 @@ export class ReaderView extends ItemView {
         });
         this.renderPill();
         this.refreshRibbon();
+        // The time this sitting spends on a chapter runs for the chapter on screen (#755 FR-2.3).
+        this.sitting.at(this.sittingKey());
         if (this.ended) this.renderEnd();
+        else if (this.pause) this.renderLeaf();
         else void this.renderChapter();
         if (this.panel) this.renderPanel();
     }
@@ -1968,6 +2035,12 @@ export class ReaderView extends ItemView {
         });
         anchor.after(card);
         this.peek = card;
+        // A note opened from a chapter is one it touched (#755 FR-3), in this sitting only.
+        if (notePath && this.sourcePath && !this.pause && !this.ended) {
+            const seen = this.peeked.get(this.index) ?? new Set<string>();
+            seen.add(notePath);
+            this.peeked.set(this.index, seen);
+        }
 
         const at = notePath ? placeInPath(this.path.chapters, notePath) : -1;
         card.createDiv({
@@ -2045,6 +2118,8 @@ export class ReaderView extends ItemView {
     /** Open chapter `index` — in pages on its first page, or (`land: "end"`) on its last. */
     private show(index: number, land: "start" | "end" = "start"): void {
         if (!this.path) return;
+        // Any other way off the leaf — Contents, Home, a search hit — leaves it, never as a skip (#755).
+        this.leaveLeaf(false);
         this.landing = land;
         this.samplePace();
         this.notePageDwell();
@@ -2076,6 +2151,16 @@ export class ReaderView extends ItemView {
         // An ordinary turn puts the pill away (#718); the trail stays, in *Where you've been* and on
         // Alt+← (#761 G1: a visible trail that vanished on every turn would not be one).
         this.jumpPillShown = false;
+        // On the leaf (#755 FR-6): forward keeps reading, back is the chapter's last page.
+        if (this.pause) {
+            if (delta > 0) {
+                const after = this.pause.after;
+                // Keep reading is the one way a leaf is skipped (FR-7): under four seconds, untouched.
+                this.leaveLeaf(true);
+                this.show(after + 1);
+            } else if (delta < 0) this.backFromLeaf();
+            return;
+        }
         if (this.ended) {
             // Back from the end card lands on the last chapter; forward stays on the end.
             if (delta < 0) this.show(this.index, land);
@@ -2088,7 +2173,255 @@ export class ReaderView extends ItemView {
             return;
         }
         if (next < 0) return;
+        // A reading turn past the end of a chapter is the only turn that may pause (#755 FR-2.1).
+        if (delta > 0 && this.askPause(this.index, next, land)) return;
         this.show(next, land);
+    }
+
+    // ── what survived? (#755) ────────────────────────────────────────────────
+
+    /** The chapters of the source on screen, as their ends are decided (FR-1): an EPUB's or a PDF's only. */
+    private chapterSpans(): ChapterSpan[] {
+        const doc = this.source;
+        // A designed book has nothing to mark, and a paper read as printed shows no section (#767).
+        if (!this.sourcePath || !doc || doc.designed || this.runMode()) return [];
+        return chapterEnds({ format: doc.format, chapters: doc.chapters.length, toc: doc.toc, words: (i) => this.seenWords.get(i) });
+    }
+
+    /** The chapter the sitting's clock runs for: the one on screen, or none (a leaf, the end). */
+    private sittingKey(): number | null {
+        if (!this.sourcePath || this.ended || this.pause) return null;
+        return spanOf(this.chapterSpans(), this.index)?.start ?? null;
+    }
+
+    /** Your marks in this source, read again — one read at a time, and the last change always read. */
+    private readSurvivedMarks(): Promise<void> {
+        const path = this.sourcePath;
+        if (!path) return Promise.resolve();
+        if (this.survivedReading) return this.survivedReading.then(() => this.readSurvivedMarks());
+        const store = this.highlightDeps.store ?? ThoughtStore.getInstance();
+        const reading = store
+            .highlightsAbout(path)
+            .then((thoughts) => {
+                if (this.sourcePath === path) this.survivedMarks = { path, thoughts };
+            })
+            .catch((error: unknown) => log.debug(`[Reader] could not read the marks of ${path}: ${String(error)}`))
+            .finally(() => {
+                this.survivedReading = null;
+            });
+        this.survivedReading = reading;
+        return reading;
+    }
+
+    /**
+     * Yours in a chapter, from any sitting (FR-2.4): highlights and margin notes, and your ink — never
+     * a move's answer or a response. What is on the page now counts too, kept a moment ago.
+     */
+    private marksIn(span: ChapterSpan, also: readonly Thought[] = []): { marks: Thought[]; ink: Thought[] } {
+        const kept = [...(this.survivedMarks?.path === this.sourcePath ? this.survivedMarks.thoughts : []), ...also];
+        const here = span.start <= this.index && this.index <= span.end && this.highlights;
+        const live = here && this.highlights ? [...this.highlights.items(), ...this.highlights.detachedItems()] : [];
+        const byId = new Map<string, Thought>();
+        for (const thought of [...kept, ...live]) byId.set(thought.id, thought);
+        const inside = [...byId.values()]
+            .filter((thought) => thought.locator && thought.locator.at >= span.start && thought.locator.at <= span.end && !thought.madeBy && !thought.respondsTo)
+            .sort((a, b) => (a.locator?.at ?? 0) - (b.locator?.at ?? 0) || a.at - b.at);
+        return { marks: inside.filter((thought) => !isInk(thought) && isMark(thought)), ink: inside.filter(isInk) };
+    }
+
+    /**
+     * Whether this reading turn, from `from` to `to`, pauses on the leaf (FR-2) — and if it does, the
+     * leaf arrives. When only *nothing marked* keeps it away, the marks are read once more first: one
+     * made a moment ago may not be in the vault's cache yet. Returns whether the turn is taken here.
+     */
+    private askPause(from: number, to: number, land: "start" | "end"): boolean {
+        const decide = () => {
+            const end = endingAt(this.chapterSpans(), from, to);
+            const found = end ? this.marksIn(end) : { marks: [], ink: [] };
+            return shouldPause({
+                how: "read",
+                end,
+                last: Boolean(end && end.end >= (this.path?.chapters.length ?? 0) - 1),
+                sittingMs: end ? this.sitting.total(end.start) : 0,
+                marks: found.marks.length + found.ink.length,
+                skipPending: this.skipPending,
+                listening: this.listening,
+                enabled: this.chapterPauseOn(),
+            });
+        };
+        const first = decide();
+        if (first.pause) {
+            this.enterLeaf(from);
+            return true;
+        }
+        if (first.spendSkip) this.skipPending = false;
+        if (first.reason !== "unmarked") return false;
+        void this.readSurvivedMarks().then(() => {
+            if (this.index !== from || this.ended || this.pause || !this.path) return;
+            const again = decide();
+            if (again.pause) this.enterLeaf(from);
+            else this.show(to, land);
+        });
+        return true;
+    }
+
+    /** *Pause at chapter ends*, as it is now (FR-8): Settings → Reading may have changed it meanwhile. */
+    private chapterPauseOn(): boolean {
+        const stored = this.plugin?.settings?.readerPrefs;
+        return stored ? normalizeReaderPrefs(stored).chapterPause : this.prefs.chapterPause;
+    }
+
+    /** The leaf arrives by the reader's own chapter motion, forward (FR-11). */
+    private enterLeaf(after: number): void {
+        if (!this.path) return;
+        this.samplePace();
+        const span = spanOf(this.chapterSpans(), after);
+        const found = span ? this.marksIn(span) : { marks: [], ink: [] };
+        this.pause = { after, arrivedAt: Date.now(), touched: false, leaf: null, drawn: false, found: [...found.marks, ...found.ink] };
+        this.turn = 1;
+        this.render();
+    }
+
+    /**
+     * Off the leaf. Turning on from it under four seconds, untouched, is a skip (FR-7); going back to
+     * the chapter, or jumping somewhere, is not one — the leaf was not turned past.
+     */
+    private leaveLeaf(forward: boolean): void {
+        const pause = this.pause;
+        if (!pause) return;
+        this.pause = null;
+        pause.leaf?.finish();
+        this.skipPending = forward && wasSkip(pause.arrivedAt, Date.now(), pause.touched);
+    }
+
+    /** ← on the leaf (FR-14): the arrival backwards, onto the chapter's last page. */
+    private backFromLeaf(): void {
+        const pause = this.pause;
+        if (!pause || !this.path) return;
+        this.leaveLeaf(false);
+        this.index = pause.after;
+        this.turn = -1;
+        this.landing = "end";
+        this.pendingShare = this.pagedNow() ? null : 1;
+        this.render();
+    }
+
+    /** The turning keys on the leaf (FR-6): → and Space keep reading, ← and Shift+Space go back. */
+    private leafKey(key: string, shifted: boolean): boolean {
+        if (!this.pause) return false;
+        const forward = key === "ArrowRight" || key === "PageDown" || (key === " " && !shifted);
+        this.go(forward ? 1 : -1);
+        return true;
+    }
+
+    /** Draw the leaf into the page, where the chapter was: a page of the book, never a modal (FR-11). */
+    private renderLeaf(): void {
+        const pause = this.pause;
+        const els = this.els;
+        if (!pause || !els || !this.path) return;
+        ++this.generation;
+        this.closePeek();
+        this.highlights?.reset();
+        this.chapter?.unload();
+        const component = new Component();
+        component.load();
+        this.chapter = component;
+        this.ink?.leave("turn");
+        // The page you were on leaves the way a chapter does, and the leaf is under it (#735).
+        this.turnFrom(els.page);
+        this.turn = 0;
+        this.flown = false;
+        this.pager?.reset();
+        this.chapterWords = 0;
+        this.nextCard = null;
+        const card = this.survivedCard(pause);
+        if (!card) {
+            this.pause = null;
+            this.show(pause.after + 1);
+            return;
+        }
+        pause.leaf = renderSurvivedLeaf(els.page, card, component);
+        pause.drawn = true;
+        els.stage.scrollTop = 0;
+        this.onStageScroll();
+    }
+
+    /** What the leaf shows (FR-3): drawn only from your marks and notes, and the locale. */
+    private survivedCard(pause: LeafState): SurvivedCard | null {
+        const doc = this.source;
+        const path = this.sourcePath;
+        const span = spanOf(this.chapterSpans(), pause.after);
+        if (!doc || !path || !span) return null;
+        const { marks, ink } = this.marksIn(span, pause.found);
+        const label = doc.chapters[pause.after]?.label;
+        const number = String(pause.after + 1);
+        const inkStore = this.inkDeps.store ?? ThoughtStore.getInstance();
+        return {
+            kicker: doc.format === "pdf" && span.title ? t("reader_survived_kicker_section", span.title) : t("reader_survived_kicker", number),
+            // A chapter named by its book — not by the number the kicker already says.
+            ...(doc.format !== "pdf" && label && label !== t("reader_source_chapter", number) ? { title: label } : {}),
+            marks,
+            ink,
+            touched: this.touchedBy(span, marks).map((note) => ({ path: note, title: noteName(note) })),
+            drawingOf: (thought) => inkStore.drawingOf(thought),
+            // Drawn again (a change of view), the leaf is simply there: it settled once.
+            motion: this.motionAllowed() && !pause.drawn,
+            // The page is still turning over it: the contents settle once the turn has landed (FR-12).
+            settleAfter: Math.max(0, this.turnLandsAt - Date.now()),
+            actions: {
+                write: (thought, origin) => (this.highlightDeps.toNote ?? ((app, chosen, from) => crystallizeHighlight(app, chosen, undefined, from)))(this.app, thought, origin),
+                keepReading: () => this.go(1),
+                // The same switch as the Type panel's and Settings' (FR-8): the leaf stays until you turn it.
+                dontPause: () => this.savePrefs({ ...this.prefs, chapterPause: false }),
+                open: (anchor, note) => this.openPeek(anchor, note, noteName(note)),
+                touched: () => {
+                    pause.touched = true;
+                },
+            },
+        };
+    }
+
+    /** The notes of yours a chapter touched (FR-3): born from it, linked from its marks, peeked from it. */
+    private touchedBy(span: ChapterSpan, marks: readonly Thought[]): string[] {
+        const path = this.sourcePath;
+        const doc = this.source;
+        if (!path || !doc) return [];
+        const keys = new Set<string>();
+        const peeked: string[] = [];
+        for (let i = span.start; i <= span.end; i++) {
+            const key = doc.chapters[i]?.key;
+            if (key) keys.add(key);
+            peeked.push(...(this.peeked.get(i) ?? []));
+        }
+        const exclude = new Set<string>([path, ...[...gatherBookNotes(this.app).values()].map((note) => note.path)]);
+        const born: { path: string; cites: string[] }[] = [];
+        const index = KnowledgeIndex.getInstance();
+        if (index.status === "ready") {
+            const name = path.split("/").pop() ?? path;
+            const sameBook = (file: string) => file === path || (file.split("/").pop() ?? file) === name;
+            for (const note of notesBornFrom(index.getModel().all(), exclude).get(path) ?? []) {
+                const file = this.app.vault.getAbstractFileByPath(note);
+                const front = file instanceof TFile ? this.app.metadataCache?.getFileCache?.(file)?.frontmatter : undefined;
+                const cites: string[] = [];
+                for (const value of front ? [front.source, front.sources].flat() : []) {
+                    const entry = readSourceEntry(value);
+                    if (entry && sameBook(entry.file) && entry.chapter) cites.push(entry.chapter);
+                    // A citation written before #751 names a page: `[[paper.pdf]] p. 12`.
+                    const cited = typeof value === "string" ? citedLocator(value) : null;
+                    const page = cited && sameBook(cited.link) ? pageOf(cited.locator) : null;
+                    if (page !== null) cites.push(`page:${page}`);
+                }
+                born.push({ path: note, cites });
+            }
+        }
+        const linked: string[] = [];
+        for (const mark of marks) {
+            for (const link of mark.links ?? []) {
+                const file = this.app.vault.getAbstractFileByPath(link.to);
+                if (file instanceof TFile && file.extension === "md") linked.push(file.path);
+            }
+        }
+        return touchedNotes({ keys, born, linked, peeked, exclude });
     }
 
     /** How long the designed page you leave was on screen: this reading's pace (#771 FR-8). */
@@ -3578,6 +3911,8 @@ export class ReaderView extends ItemView {
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
         else if (this.panel === "type") {
+            // Pause at chapter ends is one value with Settings → Reading (#755 FR-8): as it is there now.
+            this.prefs = { ...this.prefs, chapterPause: this.chapterPauseOn() };
             // A designed book you never chose a layout for reads *Spread* (#771): the row says so, and
             // only a layout you pick is kept as your choice.
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
@@ -4789,7 +5124,7 @@ export class ReaderView extends ItemView {
         // What a turning key means depends on the layout and the book's direction (#753): in a scroll
         // the arrows are the chapters and Space a screen, as always; in pages they all turn a page.
         const turning = (key: string, shifted: boolean) =>
-            taken(() => this.runIntent(this.designedTurns() ? designedKeyIntent(key, shifted, this.bookDirection()) : keyIntent(this.effectiveLayout(), key, shifted, this.bookDirection())));
+            taken(() => this.leafKey(key, shifted) || this.runIntent(this.designedTurns() ? designedKeyIntent(key, shifted, this.bookDirection()) : keyIntent(this.effectiveLayout(), key, shifted, this.bookDirection())));
         bind(none, "ArrowRight", turning("ArrowRight", false));
         bind(none, "PageDown", turning("PageDown", false));
         bind(none, "ArrowLeft", turning("ArrowLeft", false));
@@ -4891,7 +5226,7 @@ export class ReaderView extends ItemView {
      */
     private page(direction: 1 | -1): void {
         const stage = this.els?.stage;
-        if (!stage || this.ended) {
+        if (!stage || this.ended || this.pause) {
             this.go(direction);
             return;
         }

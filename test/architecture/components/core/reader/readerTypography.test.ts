@@ -155,7 +155,7 @@ describe("typography you can tune (#757)", () => {
     });
 
     describe("one panel, in order (AC-5, FR-10)", () => {
-        it("reads Layout, Look, Font, Size, Line spacing, Width, Margins, then Justify, Focus mode and the time left", async () => {
+        it("reads Layout, Look, Font, Size, Line spacing, Width, Margins, then Justify, Focus mode, the time left and the pause at chapter ends", async () => {
             const { content } = await openNotes();
             typeButton(content).click();
             expect(content.byClass("reader-type-row").map((row) => row.oneByClass("reader-type-label").textContent)).toEqual([
@@ -167,9 +167,9 @@ describe("typography you can tune (#757)", () => {
                 "Width",
                 "Margins",
             ]);
-            expect(content.byClass("reader-focus-toggle").map((b) => b.textContent)).toEqual(["Justify", "Focus mode", "Time left"]);
+            expect(content.byClass("reader-focus-toggle").map((b) => b.textContent)).toEqual(["Justify", "Focus mode", "Time left", "Pause at chapter ends"]);
             const active = content.byClass("reader-type-option").filter((b) => b.hasClass("is-active")).map((b) => b.textContent);
-            expect(active).toEqual(["Scroll", "Your theme", "Sans", "Medium", "Normal", "Medium", "Medium", "Time left"]);
+            expect(active).toEqual(["Scroll", "Your theme", "Sans", "Medium", "Normal", "Medium", "Medium", "Time left", "Pause at chapter ends"]);
         });
 
         it("saves each pick with the other preferences, and the page wears it at once", async () => {

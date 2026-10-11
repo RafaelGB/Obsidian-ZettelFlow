@@ -36,6 +36,11 @@ export interface ReaderPrefs {
     margins: ReaderMargins;
     /** Justified and hyphenated, in the book's own language (#757 FR-5). Off by default. */
     justify: boolean;
+    /**
+     * *Pause at chapter ends* (#755 FR-8): at the end of a chapter you marked, the book gives you a
+     * page to look back at it. On by default; the Type panel, Settings and the leaf share this value.
+     */
+    chapterPause: boolean;
 }
 
 export const READER_FONTS: readonly ReaderFont[] = ["sans", "serif"];
@@ -58,6 +63,7 @@ export const DEFAULT_READER_PREFS: ReaderPrefs = {
     width: "medium",
     margins: "medium",
     justify: false,
+    chapterPause: true,
 };
 
 /** Whatever was stored, as prefs the reader can use. Unknown values fall back to the default. */
@@ -76,6 +82,7 @@ export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
         width: pick(READER_WIDTHS, value.width, DEFAULT_READER_PREFS.width),
         margins: pick(READER_MARGINS, value.margins, DEFAULT_READER_PREFS.margins),
         justify: value.justify === true,
+        chapterPause: value.chapterPause !== false,
     };
 }
 

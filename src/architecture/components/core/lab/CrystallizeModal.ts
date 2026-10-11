@@ -11,6 +11,15 @@ import { sourceMetaOf } from "architecture/components/core/reader/readerSource";
 import { serializePlace, sourceTitle } from "application/library/provenance";
 import { sourceFormat } from "application/library/sourceMeta";
 import { openReader } from "architecture/components/core/reader/openReader";
+import { MOTION, motionWelcome } from "architecture/components/core/reader/readerMotion";
+
+/** Where a preview was asked from, on screen: a row it grows out of (#755 FR-13). */
+export interface CrystallizeOrigin {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+}
 
 /**
  * The note, before it exists (#468, epic #465).
@@ -29,6 +38,8 @@ export class CrystallizeModal extends Modal {
 
     /** Where it lands. `back` only exists when the thread had a subject that still does. */
     private destination: Destination;
+    /** It grew from its row once; drawn again for another destination, it does not grow again. */
+    private grown = false;
 
     constructor(
         app: App,
@@ -36,7 +47,9 @@ export class CrystallizeModal extends Modal {
         /** Given the path it wrote, so the caller can record what the thinking became (#492). */
         private readonly onDone: (path?: string) => void,
         /** The note the thread was about, when it had one (#474). */
-        private readonly subject?: string
+        private readonly subject?: string,
+        /** The row it was asked from (#755 FR-13): the preview grows out of it. Absent: as always. */
+        private readonly origin?: CrystallizeOrigin
     ) {
         super(app);
         // A passage's source is cited by the title the book declares, as the Library knows it (#751).
@@ -136,6 +149,8 @@ export class CrystallizeModal extends Modal {
                     .onClick(() => void this.apply())
             )
             .addButton((button) => button.setButtonText(t("crystallize_cancel")).onClick(() => this.close()));
+        // Drawn whole, so its box is the one it grows to (#755 FR-13).
+        this.growFromOrigin();
     }
 
     /** The passages' sources: the book, the chapter and the page, each with *Open source passage*. */
@@ -206,6 +221,31 @@ export class CrystallizeModal extends Modal {
             log.error("[lab] crystallization failed", error);
             new Notice(t("crystallize_failed"));
         }
+    }
+
+    /**
+     * Grow from the row it was asked from (#755 FR-13): its transform origin at the row, scale 0.96 → 1
+     * and a fade, fast. Placed by custom properties, never an inline style; nothing under reduced motion.
+     */
+    private growFromOrigin(): void {
+        const origin = this.origin;
+        const modal = this.modalEl as HTMLElement | undefined;
+        if (!origin || this.grown || !modal) return;
+        this.grown = true;
+        const box = modal.getBoundingClientRect();
+        modal.addClass(c("crystallize-grown"));
+        modal.setCssProps({
+            "--zf-origin-x": `${Math.round(origin.left + origin.width / 2 - box.left)}px`,
+            "--zf-origin-y": `${Math.round(origin.top + origin.height / 2 - box.top)}px`,
+        });
+        if (!motionWelcome(modal)) return;
+        modal.animate(
+            [
+                { opacity: 0, transform: "scale(0.96)" },
+                { opacity: 1, transform: "scale(1)" },
+            ],
+            { duration: MOTION.fast, easing: MOTION.ease }
+        );
     }
 
     onClose(): void {

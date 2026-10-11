@@ -1197,6 +1197,62 @@ not a PDF or an EPUB, or not in the vault, is over a cap, misses `file`, `chapte
 field not listed here opens nothing and shows nothing (it is logged at debug). **This shape is a
 public surface:** later versions keep reading it, and any change to it is additive.
 
+## What survived?
+
+A chapter ends and the next one begins in the same breath — and the moment when one of your marks
+could still become a note of your own passes with it. At the end of a chapter worth pausing at, the
+book gives you **a blank leaf** instead: what you marked in the chapter, what it touched in your
+vault, and one question — *is one of these worth a note of its own?* You answer by writing, or you
+turn the leaf and keep reading.
+
+![What survived?: the chapter's last page turning like a leaf onto a page between two chapters — End of chapter 2, What survived?, the chapter's title, two marks in their meanings' colours with the chosen one lifted and its Write a note, your ink, the notes it touched, the question, Keep reading and a quiet Don't pause at chapter ends](../resources/reader/what-survived.svg)
+
+- **When it comes.** Only when all of these hold:
+    - you **turn forward by reading** past the end of a chapter — →, Space or the bar's next at its
+      end, or a swipe on iPad. A Contents jump, a search hit, Home and End, the back pill, a link
+      from a note, a resume or going back never pause;
+    - it is **a real chapter**: at least about 1,500 words in an EPUB, so a cover, a title page or a
+      copyright page never qualifies — or, in a PDF, a top-level section of its outline of at least
+      three pages, read in the reading view. A PDF without an outline, a paper read as printed in
+      Page view, a designed book, an article and a path of notes have no chapter ends;
+    - you **read it in this sitting**: the Reader was on that chapter for at least two minutes. The
+      clock stops while the Reader is hidden — another app, a locked iPad — and is never kept;
+    - **something of yours is in it**: a highlight, a margin note or an ink note, from any sitting.
+      A chapter you marked nothing in never stops you;
+    - it is **not the last chapter** — the book's end card has that place;
+    - you did not skip the last one (below), you are not listening, and the switch is on.
+- **What it shows, and nothing else.** *End of chapter 4* — or *End of* the PDF section's name — the
+  heading **What survived?** and the chapter's title; **Your marks in this chapter**, each in its
+  meaning's colour with its words and your note; **Your ink**, as ink; **It touched** — the notes of
+  yours you crystallized from this chapter, the ones its marks link to, and the ones you opened from
+  it as a peek; and the question.
+- **The answers are yours.** Pick a mark: it lifts, its ink is drawn beside it, and **Write a note**
+  opens the [crystallize preview](#every-note-goes-back-to-its-paragraph) for it, growing from that
+  row. Nothing is written until **Create note**; **Cancel** brings you back to the leaf. A note it
+  touched opens as a peek, where you are.
+- **It never writes for you.** No summary, no key points, no count of what you marked, no score, no
+  AI text — the foot of the leaf says so: *No summary is written for you.* The leaf itself writes
+  nothing, and your place in the book stays the chapter you just finished.
+- **A skip is not asked twice.** Turning on from the leaf within four seconds without touching it
+  is a skip: the next chapter end that would pause does not, and the one after it may. Going back to
+  the chapter with **←**, or jumping elsewhere, is not a skip. Nothing remembers skips
+  beyond that, nothing counts them, and nothing mentions them.
+- **One switch, in three places.** **Pause at chapter ends** — on by default — is in the Reader's
+  **Type** panel, in **Settings → Reading**, and at the foot of the leaf itself as a quiet **Don't
+  pause at chapter ends**. All three are one value.
+- **Keys.** **→** or **Space** keep reading; **←** turns back to the chapter's last page; **Esc**
+  leaves the Reader as it always does. The shortcuts sheet lists them.
+
+### A pause, never a modal
+
+The leaf is a page of the book. It arrives by your own chapter motion — *Leaf turns*, *Keeps flowing*
+or *Sheet slides off* in Settings → Reading — and leaves to the next chapter by the same motion, in
+the same direction: no overlay, no backdrop, nothing dimmed, nothing over the text. Once the turn has
+landed its contents settle in the reading column — the ornament, the heading, then your marks one
+after another, each a fade and a 4 px rise 40 ms apart, the question last; any key or touch completes
+the settle at once. **←** plays the arrival backwards onto the chapter's last page. Under reduced
+motion the leaf is simply there, and simply gone; it is still a page between two chapters.
+
 ## The end of a path
 
 Past the last chapter — **Next**, **Space** or **Finish** — the reading does not just close. An
@@ -1271,7 +1327,8 @@ fits are instant, and a pinch still follows your fingers. See
 
 The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading
 theme), **Font** (your theme's own, or a serif), **Size**, then the finer type — **Line spacing**,
-**Width**, **Margins** and **Justify** — then **Focus mode** and the time left. Each row has its
+**Width**, **Margins** and **Justify** — then **Focus mode**, the time left and
+**Pause at chapter ends** ([what survived?](#what-survived)). Each row has its
 name, and the marker under your choice slides to the next one you pick. Every change applies at
 once, so you choose by looking, and the choices are kept for every book, next time too.
 
@@ -1339,7 +1396,9 @@ judgement record, never a write to a note, and whether it is open and its lens a
 device only. A move by your AI provider writes only what you accept: one thought. **Make it a
 claim** writes one new note when you press *Create* — create-only, through the claim's one writer
 (`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
-the idea's `source` list, through #751's one writer.
+the idea's `source` list, through #751's one writer. **What survived?** writes nothing: the time spent on
+a chapter and a skip live in memory only, the switch is one of your type choices, and a note comes
+only from the preview's *Create note*.
 
 ## For contributors
 

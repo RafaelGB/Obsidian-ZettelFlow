@@ -9,6 +9,7 @@ import { validLanguage } from "application/library/stardict/languages";
 import { DEFAULT_DICTIONARIES_FOLDER, dictionarySettings, translateChoices, type DictionarySettings } from "application/library/dictionarySettings";
 import { DEFAULT_SETTINGS } from "config/typing";
 import { addFolderField } from "./folderField";
+import { normalizeReaderPrefs } from "architecture/components/core/reader/readerPrefs";
 import {
     CHAPTER_MOTIONS,
     OPEN_MOTIONS,
@@ -80,6 +81,20 @@ export function readingSettingsGroup(
                         for (const motion of CHAPTER_MOTIONS) dropdown.addOption(motion, t(CHAPTER_LABEL[motion]));
                         dropdown.setValue(readingMotion(plugin.settings.readingMotion).chapter);
                         dropdown.onChange((value) => save({ chapter: value as ChapterMotion }));
+                    });
+                },
+            },
+            {
+                // What survived? (#755 FR-8): the same value as the Type panel's switch and the leaf's own.
+                name: t("settings_reading_pause_name"),
+                desc: t("settings_reading_pause_desc"),
+                render: (setting: Setting) => {
+                    setting.addToggle((toggle) => {
+                        toggle.setValue(normalizeReaderPrefs(plugin.settings.readerPrefs).chapterPause);
+                        toggle.onChange(async (value) => {
+                            plugin.settings.readerPrefs = { ...normalizeReaderPrefs(plugin.settings.readerPrefs), chapterPause: value };
+                            await plugin.saveSettings();
+                        });
                     });
                 },
             },

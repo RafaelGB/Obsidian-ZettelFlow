@@ -148,6 +148,8 @@ export interface ZettelFlowSettings {
         width?: "narrow" | "medium" | "wide";
         margins?: "small" | "medium" | "large";
         justify?: boolean;
+        /** *Pause at chapter ends* (#755): on unless you turn it off. */
+        chapterPause?: boolean;
     };
     /**
      * Where each recent reading was left (#669): a kind and the note it started from, or a picked

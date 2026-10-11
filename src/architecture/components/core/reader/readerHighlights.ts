@@ -111,7 +111,7 @@ export interface HighlightDeps {
     openThink?: (app: App, notePath: string) => void;
     copy?: (body: HTMLElement, text: string) => void;
     /** A source's highlight into a note (#683): the crystallize preview, never a write of its own. */
-    toNote?: (app: App, thought: Thought) => void;
+    toNote?: (app: App, thought: Thought, origin?: { left: number; top: number; width: number; height: number }) => void;
 }
 
 /** The name each meaning shows (#720). A literal map, so the locale guardrail sees every key. */

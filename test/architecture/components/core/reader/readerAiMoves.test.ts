@@ -537,7 +537,7 @@ describe("the same vocabulary, and the same Esc (#759 AC-10, #756)", () => {
 
     it("joins the Reader's one proposal step: Esc takes the newest card of all its owners", () => {
         const src = readFileSync(join(__dirname, "../../../../../src/architecture/components/core/reader/ReaderView.ts"), "utf8");
-        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink])");
+        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup])");
         expect(src).toContain("this.aiMoves?.hasCards()");
     });
 

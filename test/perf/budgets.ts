@@ -468,6 +468,23 @@ export const BUDGETS = {
         because:
             "a stroke is classified at pen-up inside the frame, before its gesture's motion begins (#747 FR-16); 8 ms leaves half of a 60 Hz frame for that motion to start",
     },
+    "reader.lookup.stardict.open.200k": {
+        name: "open a 200,000-entry StarDict dictionary (and 50,000 synonyms) for look-up: its index parsed into the table",
+        // ~3.5x the measurement. It was 555 ms before the words were decoded in one native pass, not one by one;
+        // in the app, three real dictionaries (the Wiktionary build's million synonyms among them) opened in ~290 ms.
+        limit: 750,
+        measured: "214 ms (the mean of two desktop runs, a dictzip, synonyms in a compact table)",
+        because:
+            "the first look-up in a dictionary opens it (#766 FR-13): past 150 ms the card says Opening …, so a Wiktionary-sized dictionary must open in well under half a second on desktop — an iPad is slower, and #750's device limit bounds what it is asked to open",
+    },
+    "reader.lookup.stardict.find.200k": {
+        name: "look a word up in an opened 200,000-entry dictionary: found, its dictzip chunk inflated, its entry split",
+        // ~10x the measurement: under a millisecond is noise on a busy runner.
+        limit: 3,
+        measured: "0.3 ms (the mean of three runs)",
+        because:
+            "every look-up after the first answers at once (#766 FR-13): a table lookup and one 32 KB chunk inflated, never the whole dictionary — a regression that inflated it whole would cost tens of milliseconds",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

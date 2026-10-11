@@ -1,6 +1,13 @@
-import type { SettingDefinitionItem } from "obsidian";
+import { getLanguage, type Setting, type SettingDefinitionItem } from "obsidian";
 import type ZettelFlow from "main";
+import { c } from "architecture";
 import { t } from "architecture/lang";
+import { rowContainer } from "architecture/components/settings/settingContainer";
+import { DictionaryShelf, type DictionaryFiles, type DictionaryInfo } from "architecture/plugin/library/DictionaryShelf";
+import { languageName } from "architecture/components/core/reader/readerLanguage";
+import { validLanguage } from "application/library/stardict/languages";
+import { DEFAULT_DICTIONARIES_FOLDER, dictionarySettings, translateChoices, type DictionarySettings } from "application/library/dictionarySettings";
+import { addFolderField } from "./folderField";
 import {
     CHAPTER_MOTIONS,
     OPEN_MOTIONS,
@@ -54,6 +61,165 @@ export function readingSettingsGroup(plugin: Pick<ZettelFlow, "settings" | "save
                         for (const motion of CHAPTER_MOTIONS) dropdown.addOption(motion, t(CHAPTER_LABEL[motion]));
                         dropdown.setValue(readingMotion(plugin.settings.readingMotion).chapter);
                         dropdown.onChange((value) => save({ chapter: value as ChapterMotion }));
+                    });
+                },
+            },
+        ],
+    };
+}
+
+/** The shelf, as Settings reads it: the files by name, and each one's small `.ifo`. */
+export interface SettingsShelf {
+    list(folder: string): DictionaryFiles[];
+    info(set: DictionaryFiles, saved?: { from?: string; to?: string }): Promise<DictionaryInfo>;
+    forget(): void;
+}
+
+export interface DictionariesGroupDeps {
+    shelf?: SettingsShelf;
+    /** Obsidian's language, for the languages' names and *Translate into*'s default. */
+    ui?: () => string;
+    /** The folder changed: the *Folders ZettelFlow uses* grid shows the new one. */
+    onFolder?: () => void;
+}
+
+/**
+ * **Look up and Translate** (#766 FR-2, FR-3, FR-9, epic #741), under Reading: the folder your StarDict
+ * dictionaries are in, what was found there and its languages, and the language *Translate* uses.
+ * Nothing here writes into that folder: a dictionary's languages, when it declares none, are kept in
+ * the plugin's settings.
+ */
+export function dictionariesSettingsGroup(plugin: Pick<ZettelFlow, "settings" | "saveSettings">, deps: DictionariesGroupDeps = {}): SettingDefinitionItem {
+    const shelf = (): SettingsShelf => deps.shelf ?? DictionaryShelf.getInstance();
+    const ui = deps.ui ?? (() => getLanguage());
+    const read = () => dictionarySettings(plugin.settings.dictionaries);
+    const save = async (change: Partial<DictionarySettings>) => {
+        plugin.settings.dictionaries = { ...read(), ...change };
+        await plugin.saveSettings();
+    };
+    let redrawFound: (() => void) | null = null;
+    const said = (languages: DictionaryInfo["languages"]) =>
+        languages ? [languages.from, languages.to].filter((tag): tag is string => Boolean(tag)).map((tag) => languageName(tag, ui())).join(" → ") : "";
+
+    /** Two fields for a dictionary that declares no languages (FR-3), set once, kept in the settings. */
+    const languageFields = (row: HTMLElement, line: HTMLElement, set: DictionaryFiles) => {
+        const fields = row.createDiv({ cls: c("settings-dictionary-fields") });
+        const saved = read().languages[set.base];
+        const field = (key: "from" | "to") => {
+            const label = t(key === "from" ? "settings_reading_dictionary_from" : "settings_reading_dictionary_to");
+            const input = fields.createEl("input", { attr: { type: "text", placeholder: label, "aria-label": label, spellcheck: "false" } });
+            input.value = saved?.[key] ?? "";
+            return input;
+        };
+        const from = field("from");
+        const to = field("to");
+        const commit = async () => {
+            const values = { from: from.value.trim(), to: to.value.trim() };
+            const languages = { ...read().languages };
+            if (!values.from || !validLanguage(values.from)) delete languages[set.base];
+            else languages[set.base] = { from: values.from, ...(values.to && validLanguage(values.to) ? { to: values.to } : {}) };
+            await save({ languages });
+            // Folded on its *from* language the next time it opens.
+            shelf().forget();
+            line.setText(languages[set.base] ? said(languages[set.base]) : t("settings_reading_dictionary_set"));
+        };
+        for (const input of [from, to]) {
+            input.addEventListener("blur", () => void commit());
+            input.addEventListener("keydown", (event: KeyboardEvent) => {
+                if (event.key === "Enter" && !event.isComposing) void commit();
+            });
+        }
+    };
+
+    const drawFound = (list: HTMLElement) => {
+        list.empty();
+        let sets: DictionaryFiles[] = [];
+        try {
+            sets = shelf().list(read().folder);
+        } catch {
+            sets = [];
+        }
+        if (sets.length === 0) {
+            list.createDiv({ cls: c("settings-dictionary-line"), text: t("settings_reading_dictionaries_none") });
+            return;
+        }
+        for (const set of sets) {
+            const row = list.createDiv({ cls: c("settings-dictionary") });
+            const name = row.createDiv({ cls: c("settings-dictionary-name"), text: set.base.split("/").pop() ?? set.base });
+            const line = row.createDiv({ cls: c("settings-dictionary-line") });
+            if (set.missing) {
+                // Listed, with why, and never used (FR-3).
+                line.setText(t("settings_reading_dictionary_missing", set.missing));
+                row.addClass(c("settings-dictionary--unused"));
+                continue;
+            }
+            void shelf()
+                .info(set, read().languages[set.base])
+                .then((info) => {
+                    name.setText(info.name);
+                    if (info.reason || !info.ifo) {
+                        line.setText(t("settings_reading_dictionary_bad_ifo"));
+                        row.addClass(c("settings-dictionary--unused"));
+                        return;
+                    }
+                    if (info.ifo.lang) {
+                        line.setText(said(info.languages));
+                        return;
+                    }
+                    line.setText(info.languages ? said(info.languages) : t("settings_reading_dictionary_set"));
+                    languageFields(row, line, set);
+                });
+        }
+    };
+
+    return {
+        type: "group",
+        items: [
+            {
+                name: t("settings_reading_dictionaries_name"),
+                desc: t("settings_reading_dictionaries_desc"),
+                render: (setting: Setting) => {
+                    setting.settingEl.addClass(c("settings-dictionaries-folder"));
+                    const commit = addFolderField(setting, {
+                        read: () => read().folder,
+                        accept: (value) => {
+                            plugin.settings.dictionaries = { ...read(), folder: value };
+                            return true;
+                        },
+                        saved: async () => {
+                            await plugin.saveSettings();
+                            shelf().forget();
+                            redrawFound?.();
+                            deps.onFolder?.();
+                        },
+                        placeholder: DEFAULT_DICTIONARIES_FOLDER,
+                    });
+                    setting.addExtraButton((button) =>
+                        button
+                            .setIcon("rotate-ccw")
+                            .setTooltip(t("reset_to_default"))
+                            .onClick(() => commit(DEFAULT_DICTIONARIES_FOLDER))
+                    );
+                },
+            },
+            {
+                name: t("settings_reading_dictionaries_found"),
+                render: (setting: Setting) => {
+                    setting.settingEl.addClass(c("settings-dictionaries-found-row"));
+                    const list = rowContainer(setting, "settings-dictionaries-found");
+                    redrawFound = () => drawFound(list);
+                    drawFound(list);
+                },
+            },
+            {
+                name: t("settings_reading_translate_name"),
+                desc: t("settings_reading_translate_desc"),
+                render: (setting: Setting) => {
+                    setting.addDropdown((dropdown) => {
+                        dropdown.addOption("", t("settings_reading_translate_obsidian"));
+                        for (const tag of translateChoices(ui())) dropdown.addOption(tag, languageName(tag, ui()));
+                        dropdown.setValue(read().translateInto);
+                        dropdown.onChange((value) => save({ translateInto: value }));
                     });
                 },
             },

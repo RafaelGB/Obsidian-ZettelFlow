@@ -17,7 +17,7 @@ import { rememberedSettingsGroup } from "./handlers/rememberedSettingsGroup";
 import { LOG_LEVEL_OFF } from "config/settingsMigration";
 import { flowsSettingsGroup, flowsWithRole } from "./handlers/flowsSettingsGroup";
 import { creatingSettingsGroup } from "./handlers/creatingSettingsGroup";
-import { readingSettingsGroup } from "./handlers/readingSettingsGroup";
+import { dictionariesSettingsGroup, readingSettingsGroup } from "./handlers/readingSettingsGroup";
 import { settingsGlance } from "config/settingsSummary";
 import {
     SETTINGS_SECTIONS,
@@ -135,6 +135,8 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── 5 · Reading: how a book opens and how a chapter turns (#732, epic #729) ─────────
             this.sectionHead("reading"),
             readingSettingsGroup(plugin),
+            // Look up and Translate (#766): your dictionaries folder, what is in it, the target language.
+            dictionariesSettingsGroup(plugin, { onFolder: () => this.dictionariesPointer?.() }),
 
             this.sectionHead("ai"),
             aiSettingsGroup(plugin, () => this.changedInPlace()),
@@ -166,8 +168,10 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
             // ── 7 · Advanced, folded: nobody meets a log level on their first day (#440) ──────────
             this.sectionHead("advanced"),
             // Every folder the plugin keeps its files in, in one grid with a reset each (#663).
-            foldersSettingsGroup(plugin, advanced, () => this.goToThinkingFolder(), (refresh) => {
-                this.pointerRefresh = refresh;
+            // The dictionaries folder is shown here and edited under Reading, as the thinking space (#766).
+            foldersSettingsGroup(plugin, advanced, () => this.goToThinkingFolder(), (refresh) => (this.pointerRefresh = refresh), {
+                go: () => this.goToDictionariesFolder(),
+                onPointer: (refresh) => (this.dictionariesPointer = refresh),
             }),
             scriptsLoggingGroup(advanced),
 
@@ -292,6 +296,10 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     private advancedToggle: ToggleComponent | null = null;
     /** Redraws the Advanced grid's pointer to the thinking folder. */
     private pointerRefresh: (() => void) | null = null;
+    /** The folders grid's dictionaries cell, redrawn when the folder changes under Reading (#766). */
+    private dictionariesPointer: (() => void) | null = null;
+    /** The one correction a section jump may still make once the pop-out has settled (#766 walk). */
+    private revealFix: number | undefined;
     /** The property-hooks React root, kept across re-renders of its row. */
     private readonly mountHooks = keptRoot((container) => {
         const root = createRoot(container);
@@ -396,6 +404,20 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         const drawn = this.containerEl.querySelector(`.${sectionClass(id)}`) !== null;
         if (drawn && (this.containerEl.clientHeight > 0 || tries === 0)) {
             this.go(id);
+            // A pop-out drawn a moment ago is still settling its layout: the first jump was measured on
+            // the wrong heights and ran to the end of the tab (#766 walk, every section). Once it has
+            // settled, a head that is not where the jump meant it to be is put there.
+            // Your own scroll, click or key in the meantime wins: the correction is let go.
+            window.clearTimeout(this.revealFix);
+            const letGo = () => window.clearTimeout(this.revealFix);
+            for (const type of ["wheel", "pointerdown", "keydown", "touchstart"]) this.containerEl.addEventListener(type, letGo, { once: true, passive: true });
+            this.revealFix = window.setTimeout(() => {
+                if (!this.containerEl.isConnected) return;
+                const head = this.containerEl.querySelector<HTMLElement>(`.${sectionClass(id)}`);
+                if (!head) return;
+                const off = head.getBoundingClientRect().top - this.containerEl.getBoundingClientRect().top - this.barHeight();
+                if (off < 0 || off > 64) scrollToSection(this.containerEl, id, this.barHeight(), !this.reducedMotion());
+            }, 1200);
             return;
         }
         if (tries > 0) window.setTimeout(() => this.revealSection(id, tries - 1), 50);
@@ -415,6 +437,17 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
         const row = this.containerEl.querySelector<HTMLElement>(`.${c("settings-folder-wide")}`);
         if (!row) {
             this.go("thinking");
+            return;
+        }
+        scrollToRow(this.containerEl, row, this.barHeight(), !this.reducedMotion());
+        window.setTimeout(() => row.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true }), 300);
+    }
+
+    /** The grid's arrow for the dictionaries folder (#766): to its field under Reading, ready to type. */
+    private goToDictionariesFolder(): void {
+        const row = this.containerEl.querySelector<HTMLElement>(`.${c("settings-dictionaries-folder")}`);
+        if (!row) {
+            this.go("reading");
             return;
         }
         scrollToRow(this.containerEl, row, this.barHeight(), !this.reducedMotion());

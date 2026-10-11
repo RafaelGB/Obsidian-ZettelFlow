@@ -98,6 +98,8 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `library.epub.fxl.css.200kb` (a designed page's 200 KB stylesheet cleaned: fonts renamed, pictures made placeholders, every function checked, #771) | 15.3 ms | 50 |
 | `reader.alongside.near.10k` (what is near a 120-word paragraph over 10,000 notes, and its six lenses, #754) | 6.7–11.9 ms | 40 (the promise to the reader is 100) |
 | `reader.alongside.vocabulary.10k` (Alongside's index of 10,000 titles and aliases, once per revision, #754) | 11.1–13.0 ms | 50 |
+| `reader.lookup.stardict.open.200k` (a 200,000-entry StarDict dictionary and 50,000 synonyms opened for look-up, once per session, #766) | 205–222 ms (555 ms before its words were decoded in one pass; in the app, three real dictionaries — a million synonyms among them — open in ~290 ms) | 750 |
+| `reader.lookup.stardict.find.200k` (a later look-up in it: the word found, its dictzip chunk inflated, its entry split, #766) | 0.26–0.39 ms | 3 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:

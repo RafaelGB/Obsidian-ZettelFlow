@@ -382,3 +382,50 @@
 .zettelkasten-flow__settings-timing-detail {
     color: $text-faint;
 }
+
+/* Look up's dictionaries (#766): the list found in the folder, under its row, the width of the card. */
+.zettelkasten-flow__settings-dictionaries-found-row.setting-item {
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__settings-dictionaries-found {
+    display: flex;
+    flex: 1 0 100%;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__settings-dictionary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--size-4-1) var(--size-4-3);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+}
+
+.zettelkasten-flow__settings-dictionary-name {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__settings-dictionary-line {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__settings-dictionary--unused .zettelkasten-flow__settings-dictionary-name {
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__settings-dictionary-fields {
+    display: flex;
+    flex: 1 0 100%;
+    gap: var(--size-4-2);
+
+    input {
+        width: var(--size-4-18);
+    }
+}

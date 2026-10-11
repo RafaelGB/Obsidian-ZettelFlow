@@ -499,7 +499,7 @@ describe("one Esc step for every card (#748, #756)", () => {
 
     it("the ReaderView's proposal step asks the ink's reading and the moves alike", () => {
         const src = readFileSync(join(__dirname, "../../../../../src/architecture/components/core/reader/ReaderView.ts"), "utf8");
-        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink])");
+        expect(src).toContain("dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup])");
         expect(src).toContain("this.ink?.reading.hasCards() || this.vaultMoves?.hasCards()");
     });
 });

@@ -679,6 +679,79 @@ for the sheet, it goes with it. The picker grows from its button (0.96 → 1 and
 closes the way it came. In portrait on an iPad the sheet is the panel's bottom sheet. A key or a
 click during a move ends it; under reduced motion everything is instant.
 
+## Look up and translate
+
+A word you do not know should not send you out of the book. **Look up** reads it in dictionaries
+**you** keep in your vault — offline, on the device — and **Translate** puts a passage into your
+language, by the system on iPad and by your own AI provider elsewhere. Both are in the selection's
+popover, after *Copy*.
+
+![Look up: a Spanish book with the word casa selected and its popover's last row reading Copy, Look up and Translate; the card grown from the word, headed casa, From your dictionaries, on this device, then Wiktionary (Spanish) with its definition and FreeDict spa-eng marked Translation with house, home; an offline mark; and Translate's card on a passage, Sent to your AI provider, on your click, with three faint lines breathing where the translation will be](../resources/reader/lookup.svg)
+
+**Look up** is offered for a selection of one to three words. It reads the **StarDict**
+dictionaries — the open format of KOReader and GoldenDict — in the folder chosen in **Settings →
+Reading › Dictionaries folder** (`Dictionaries` by default; the plugin never creates it). The
+dictionaries for the **book's language** answer, one after another, each under its own name:
+monolingual first, then bilingual into Obsidian's language — the word's **translation**, offline, as
+Kindle's translation dictionaries give — then any other bilingual. The word is matched ignoring
+case, then against the dictionary's synonyms (in many builds, the inflected forms: *corrió* finds
+*correr*). There is no guessing beyond that: no stemming, no fuzzy match.
+
+- **No network, ever.** A look-up makes no request of any kind, with AI on or off, online or not.
+- **Read when asked.** A dictionary is read on the first look-up that needs it — never when the plugin
+  loads or a book opens — through the vault's own binary read, and kept for the session. That first
+  one may take a moment: past 150 ms the card says *Opening Wiktionary (Spanish)…*, as text — and,
+  once said, it stays a moment rather than flash — and the entry fades in where it was. Every later look-up answers at once.
+- **Shown, never kept.** Text and phonetic entries are shown as text; HTML, XDXF and Pango entries keep
+  their emphasis and their lists, and lose everything else (scripts, styles, outside links, pictures,
+  sounds) — rebuilt element by element, never as HTML. **Copy** puts the answer on your clipboard; you
+  can paste it into *Highlight and note*. Nothing is written: not the book, not the dictionary, not
+  Think.
+- **Honest when it cannot.** *No dictionaries yet: add StarDict dictionaries to your dictionaries
+  folder* — with **Open settings** and **Where to find free dictionaries**. *No dictionary for Spanish
+  in your dictionaries folder* when none is for the book's language. *No entry for "x" in …*, naming
+  each dictionary it asked. On an iPad, *This dictionary is too large to open on this device*, and
+  the others still answer.
+
+How to install one, where free ones are, and how to set the languages of a dictionary that declares
+none: **[Dictionaries for look up](reader-dictionaries.md)**.
+
+**Translate** a passage, up to Settings › AI's input limit:
+
+| Where you read | Translate |
+|---|---|
+| iPhone and iPad | the system's own, in its callout (offline once you have downloaded the iOS languages) — ours is hidden |
+| Desktop and Android, AI off (the default) | hidden |
+| Desktop and Android, AI on, not set up | a click says *Your AI provider isn't set up yet*, with **Open AI settings**, and sends nothing |
+| Desktop and Android, AI on and set up | a click sends one request to **your** provider |
+
+It translates into **Obsidian's language**, or the one chosen in **Settings → Reading › Translate
+into**; when that is the book's own language, the card asks which, and keeps the answer in the same
+setting. It sends **the passage and the target language, and nothing else** — no notes, no
+highlights, no book title — capped by the input limit and marked as data, not instruction. This is
+the whole task, word for word, with the language named in English:
+
+> Translate the passage into &lt;the target language&gt;: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.
+
+```text
+Translate the passage into <the target language>: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.
+
+<note-content>
+Passage: <the passage you selected>
+</note-content>
+```
+
+One request per click, never on selecting; the same passage clicked again while it waits sends
+nothing more; a timeout or an error says so with **Try again**, and nothing retries by itself. It
+waits in the same queue as [the AI moves](#moves-by-your-ai-provider). The translation is shown and
+copied, never kept.
+
+**It moves like the rest of the Reader.** The card grows from the selected word — 0.96 → 1 and a
+fade, 120 ms, from the word's own point — and Esc, a click outside or a turn of the page takes it
+back the same way; the line you were reading never moves. While a translation is on its way, three
+faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
+appears and goes at once, and the lines are still.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your

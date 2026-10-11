@@ -2,6 +2,9 @@ import { describe, it, expect } from "@jest/globals";
 import {
     READER_AI_MOVES,
     READER_AI_ANSWER_MAX,
+    READER_TRANSLATION_MAX,
+    buildTranslatePrompt,
+    cleanTranslation,
     buildReaderMovePrompt,
     cleanAnswer,
     languageName,
@@ -133,5 +136,31 @@ describe("the verbs of #489, never a twelfth (#759 FR-8, AC-10)", () => {
 
     it("threads Challenge as a challenge, the other five as forks (FR-7)", () => {
         expect(READER_AI_MOVES.filter((m) => m.thread === "challenge").map((m) => m.id)).toEqual(["challenge"]);
+    });
+});
+
+describe("Translate's prompt: the passage and the target, nothing else (#766 FR-9, AC-9)", () => {
+    it("asks for a faithful translation into the target, the passage delimited as data", () => {
+        expect(buildTranslatePrompt("Era una  casa\nvieja.", "en", { maxChars: 12_000 })).toMatchInlineSnapshot(`
+"Translate the passage into English: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.
+
+<note-content>
+Passage: Era una casa vieja.
+</note-content>"
+`);
+    });
+
+    it("is capped by the AI input limit, and has no field for a book, a note or a highlight", () => {
+        const prompt = buildTranslatePrompt("palabra ".repeat(2_000), "fr", { maxChars: 600 });
+        expect(prompt.length).toBeLessThan(900);
+        expect(prompt).toContain("truncated by ZettelFlow");
+        expect(prompt).toContain("into French");
+        expect(buildTranslatePrompt.length).toBe(3);
+        expect(prompt).not.toMatch(/Book:|Chapter:|Paragraph:/);
+    });
+
+    it("cleans the answer and keeps its paragraphs", () => {
+        expect(cleanTranslation("```\nTranslation: It was an old house.\n\nThe rain {{did}} not stop.\n```")).toBe("It was an old house.\n\nThe rain {​{did}​} not stop.");
+        expect(cleanTranslation("x".repeat(5_000)).length).toBe(READER_TRANSLATION_MAX);
     });
 });

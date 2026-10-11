@@ -185,3 +185,38 @@ export function parseClaimAnswer(raw: string): { claim: string; kind?: ClaimKind
     const claim = cleanAnswer(body, { sentences: 1 });
     return { claim, ...(kind && (CLAIM_KINDS as readonly string[]).includes(kind) ? { kind } : {}) };
 }
+
+// ── Translate a passage (#766 FR-9) ──────────────────────────────────────────
+
+/**
+ * What *Translate* asks, fixed in code and quoted word for word in the docs — `{language}` is the
+ * target, named in English for the model. It sends the passage and the target, and nothing else: no
+ * book, no chapter, no note, no highlight (by the shape of {@link buildTranslatePrompt}).
+ */
+export const TRANSLATE_TASK = "Translate the passage into {language}: a faithful translation, with no commentary, no notes and no preamble. Reply with the translation only.";
+
+/** The longest translation shown, in characters (the provider's own output cap bounds it first). */
+export const READER_TRANSLATION_MAX = 4_000;
+
+/** The prompt for one translation: the task, then the passage, capped and delimited as data (#301). */
+export function buildTranslatePrompt(passage: string, target: string, options: { maxChars: number }): string {
+    const task = TRANSLATE_TASK.replace("{language}", languageName(target));
+    const content = `Passage: ${passage.replace(/\s+/g, " ").trim()}`;
+    const room = Math.max(200, options.maxChars - task.length);
+    return `${task}\n\n${delimitContent(capText(content, room))}`;
+}
+
+/**
+ * A translation, as shown: template tokens neutralised, a code fence or a leading *Translation:*
+ * taken off, its paragraphs kept — and no more than {@link READER_TRANSLATION_MAX} characters.
+ */
+export function cleanTranslation(raw: string): string {
+    const text = sanitizeAiText(raw, 16_000)
+        .replace(/```\w*/g, "")
+        .replace(/^\s*(?:translation|traducción)\s*:\s*/i, "")
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").trim())
+        .filter(Boolean)
+        .join("\n\n");
+    return text.length <= READER_TRANSLATION_MAX ? text : `${text.slice(0, READER_TRANSLATION_MAX - 1).trimEnd()}…`;
+}

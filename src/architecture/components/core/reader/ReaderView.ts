@@ -89,6 +89,8 @@ import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
 import { PdfPageRun } from "./readerPageRun";
 import { renderThumbs, type Thumbs } from "./readerThumbs";
 import { fly } from "./readerMotion";
+import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
+import { dictionarySettings } from "application/library/dictionarySettings";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -377,6 +379,8 @@ export class ReaderView extends ItemView {
     private aiMoves: ReaderAiMoves | null = null;
     /** *Make it a claim* and *Link to an idea* (#762): the sheet over Alongside, the picker in the popover. */
     private claimLink: ReaderClaimLink | null = null;
+    /** *Look up* and *Translate* (#766): the card grown from the words, gone on Esc, a click or a turn. */
+    private lookup: ReaderLookup | null = null;
     /** Alongside's button in the bar: a dot on it says an answer landed while it was closed (#759 FR-14). */
     private alongsideDot: HTMLElement | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
@@ -558,7 +562,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the AI layer, the stores and the queue of the AI moves (#759). */
         private readonly aiMovesDeps: AiMovesDeps = {},
         /** Seams for tests: the claim's create, the link's write and the record (#762). */
-        private readonly claimLinkDeps: ClaimLinkDeps = {}
+        private readonly claimLinkDeps: ClaimLinkDeps = {},
+        /** Seams for tests: the dictionaries, the AI layer, Settings and the clipboard of Look up (#766). */
+        private readonly lookupDeps: LookupDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -858,6 +864,7 @@ export class ReaderView extends ItemView {
         this.vaultMoves = new ReaderVaultMoves(this.vaultMovesView(), this.vaultMovesDeps);
         this.aiMoves = new ReaderAiMoves(this.aiMovesView(), this.aiMovesDeps);
         this.claimLink = new ReaderClaimLink(this.claimLinkView(), this.claimLinkDeps);
+        this.lookup = new ReaderLookup(this.lookupView(), this.lookupDeps);
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         this.render();
         this.contentEl.focus({ preventScroll: true });
@@ -887,6 +894,9 @@ export class ReaderView extends ItemView {
         // Undecided proposals go with the Reader, and nothing is recorded (#756 FR-12).
         this.vaultMoves?.dispose();
         this.vaultMoves = null;
+        // A look-up or a translation on screen goes with the Reader; nothing was kept (#766).
+        this.lookup?.dispose();
+        this.lookup = null;
         // Waiting answers are discarded with the Reader: nothing shown, nothing recorded (#759 AC-5).
         this.aiMoves?.dispose();
         this.aiMoves = null;
@@ -976,6 +986,7 @@ export class ReaderView extends ItemView {
             const target = event.target as HTMLElement | null;
             if (this.peek && target && !this.peek.contains(target) && !target.closest?.("a.internal-link")) this.closePeek();
             if (this.notePop && target && !this.notePop.contains(target)) this.closeNote();
+            if (this.lookup?.isOpen() && target && !this.lookup.contains(target)) this.lookup.close();
         });
         const page = stage.createEl("article", { cls: c("reader-page") });
         // Kindle's margin (#671): the chapter's highlights and notes, beside the page on a wide pane.
@@ -1054,6 +1065,7 @@ export class ReaderView extends ItemView {
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
                 thinkMoves: () => this.thinkMoves(),
                 passageActions: () => this.passageActions(),
+                lookup: () => this.lookup,
             },
             this.highlightDeps
         );
@@ -3010,6 +3022,8 @@ export class ReaderView extends ItemView {
     }
 
     private closeNote(): void {
+        // The look-up card floats over the words as a footnote does, and goes as it goes (#766 FR-7).
+        this.lookup?.close();
         this.notePop?.remove();
         this.notePop = null;
         this.notePopScope?.unload();
@@ -3312,6 +3326,25 @@ export class ReaderView extends ItemView {
             claimed: (id, path) => void this.highlights?.markClaimed(id, path),
             unclaimed: (id, path) => void this.highlights?.markClaimed(id, path, false),
             peek: (anchor, path, name) => this.openPeek(anchor, path, name),
+        };
+    }
+
+    /** What Look up and Translate lend of the Reader (#766): its root, the page's language, the settings, the queue. */
+    private lookupView(): LookupView {
+        return {
+            app: this.app,
+            host: () => this.root,
+            bookLanguage: () => this.pageLanguage,
+            uiLanguage: () => getLanguage(),
+            settings: () => dictionarySettings(this.plugin?.settings?.dictionaries),
+            saveTranslateInto: async (tag) => {
+                const settings = this.plugin?.settings;
+                if (!settings) return;
+                settings.dictionaries = { ...dictionarySettings(settings.dictionaries), translateInto: tag };
+                await this.plugin?.saveSettings?.();
+            },
+            // The one queue every request of the Reader waits in (#759 FR-9).
+            queue: () => this.aiMoves?.queue ?? null,
         };
     }
 
@@ -4291,7 +4324,7 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards() || this.lookup?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
@@ -4306,7 +4339,8 @@ export class ReaderView extends ItemView {
             case "proposal":
                 // The newest card of all, whoever opened it — ink's reading or a move (#748, #756, #759).
                 // The claim sheet is one of them (#762): Esc takes it away, nothing written.
-                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink]);
+                // The look-up card is one too (#766): Esc puts it back into the words.
+                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup]);
                 return;
             case "shortcuts":
                 return this.closeShortcuts();

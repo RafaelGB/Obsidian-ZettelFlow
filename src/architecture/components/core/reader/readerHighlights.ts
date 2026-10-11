@@ -64,6 +64,18 @@ export interface HighlightView {
      * row. Offered only in a book or a paper, where a passage has a page to be sourced to.
      */
     passageActions?(): PassageActions | null;
+    /**
+     * *Look up* and *Translate* (#766 FR-1), after *Copy* in the popover's last row: what each
+     * selection is offered, and what each does. The view decides; the popover only draws them.
+     */
+    lookup?(): LookupActions | null;
+}
+
+/** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
+export interface LookupActions {
+    offers(text: string): { lookUp: boolean; translate: boolean };
+    lookUp(text: string, from: ScreenBox): Promise<void> | void;
+    translate(text: string, from: ScreenBox): void;
 }
 
 /** A box on screen: where a gesture was asked from. */
@@ -647,7 +659,36 @@ export class ReaderHighlights {
                 this.status("reader_hl_copied");
             });
         }
+        this.lookupButtons(actions, found.quote.exact, found.selection);
         if (locator) this.thinkRow(pop, { quote: found.quote, locator });
+    }
+
+    /**
+     * *Look up* for one to three words, *Translate* where an honest path exists (#766 FR-1, FR-9) —
+     * in the last row, beside *Copy*; on a touch selection, where the system's callout has its own
+     * Copy, Look Up and Translate, ours sit beside them (FR-10). The card grows from the words.
+     */
+    private lookupButtons(actions: HTMLElement, text: string, selection: SelectionInfo): void {
+        const lookup = this.view.lookup?.();
+        if (!lookup) return;
+        const offer = lookup.offers(text);
+        const r = selection.rect;
+        const from: ScreenBox = { left: r.left, top: r.top, width: r.width, height: r.height ?? 0 };
+        if (offer.lookUp) {
+            this.button(actions, "reader_hl_lookup", false, () => {
+                this.hidePopover();
+                void Promise.resolve(lookup.lookUp(text, from)).catch((error: unknown) => log.warn(`[Reader] a look-up failed: ${error instanceof Error ? error.name : "error"}`));
+                // Let go of the words: a click on the card would offer them again.
+                selection.clear();
+            }).setAttribute("data-zf-lookup", "");
+        }
+        if (offer.translate) {
+            this.button(actions, "reader_hl_translate", false, () => {
+                this.hidePopover();
+                lookup.translate(text, from);
+                selection.clear();
+            }).setAttribute("data-zf-translate", "");
+        }
     }
 
     /**

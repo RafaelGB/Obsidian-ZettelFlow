@@ -124,6 +124,8 @@ export const CAPABILITIES = [
     "reader-ai-moves",
     "reader-claim",
     "reader-link-idea",
+    "reader-lookup",
+    "reader-translate",
     "library",
     "highlights-review",
     "claim-door",
@@ -420,6 +422,20 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "reader-link-idea": {
         // Link to an idea (#762): beside *Claim* — the idea you have in mind gains this passage.
         nameKey: "reader_hl_link_idea",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-lookup": {
+        // Look up (#766, epic #741): the selection popover's last row, beside Copy — your own StarDict
+        // dictionaries, read on the device, no network. Settings › Reading only configures the folder.
+        nameKey: "reader_hl_lookup",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-translate": {
+        // Translate (#766): beside Look up, through your AI provider on a click, while AI is on; on
+        // iPhone and iPad the system's own Translate, in its callout.
+        nameKey: "reader_hl_translate",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },

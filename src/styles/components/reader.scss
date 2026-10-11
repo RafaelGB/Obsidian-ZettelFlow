@@ -1911,6 +1911,135 @@ button.zettelkasten-flow__reader-note-pop-go {
     cursor: pointer;
 }
 
+/*
+ * Look up and Translate (#766): a card grown from the words (FR-12) — the footnote's look, placed by
+ * custom properties and growing from the selection's centre. Its body keeps its height while it waits,
+ * so the answer fades in where the waiting was and nothing above it moves (FR-13).
+ */
+.zettelkasten-flow__reader-lookup-card {
+    position: absolute;
+    left: var(--zf-lookup-x, var(--size-4-4));
+    top: var(--zf-lookup-y, var(--size-4-4));
+    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: min(24rem, calc(100% - var(--size-4-8)));
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.55;
+    user-select: text;
+}
+
+.zettelkasten-flow__reader-lookup-card--leaving {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-lookup-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-lookup-word {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--reader-font, inherit);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-lookup-byline {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-lookup-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    min-height: var(--size-4-12);
+}
+
+.zettelkasten-flow__reader-lookup-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-lookup-source {
+    display: flex;
+    align-items: baseline;
+    gap: var(--size-4-2);
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-lookup-kind {
+    padding: 0 var(--size-4-1);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__reader-lookup-headword {
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-lookup-def {
+    overflow-wrap: anywhere;
+
+    ul,
+    ol {
+        margin: var(--size-4-1) 0;
+        padding-inline-start: var(--size-4-5);
+    }
+
+    p {
+        margin: 0 0 var(--size-4-1);
+    }
+}
+
+.zettelkasten-flow__reader-lookup-def--phonetic {
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-lookup-translation {
+    font-family: var(--reader-font, inherit);
+    font-size: var(--font-ui-medium);
+    white-space: pre-wrap;
+}
+
+.zettelkasten-flow__reader-lookup-line--problem,
+.zettelkasten-flow__reader-lookup-opening,
+.zettelkasten-flow__reader-lookup-entry--refused .zettelkasten-flow__reader-lookup-line {
+    color: var(--reader-faint);
+}
+
+.zettelkasten-flow__reader-lookup-links,
+.zettelkasten-flow__reader-lookup-ask,
+.zettelkasten-flow__reader-lookup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-lookup-card .zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
 .zettelkasten-flow__reader-role-tag--detour {
     color: var(--reader-faint);
     background-color: var(--background-modifier-hover);
@@ -3016,6 +3145,7 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-shortcuts,
     .zettelkasten-flow__reader-shortcuts-card,
     .zettelkasten-flow__reader-note-pop,
+    .zettelkasten-flow__reader-lookup-card,
     .zettelkasten-flow__reader-jump-pill,
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,

@@ -69,6 +69,17 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
         expect(reduced).toMatch(/transition: none;\s*animation: none;/);
     });
 
+    it("gives the look-up card and its ink an instant equivalent (#766 AC-11)", () => {
+        const css = sheet("components/reader.scss");
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain(".zettelkasten-flow__reader-lookup-card");
+        expect(reduced).toContain(".zettelkasten-flow__reader-ink-wait span");
+        // Its card is placed by custom properties, and grows from the words' point: never a layout move.
+        const card = css.slice(css.indexOf(".zettelkasten-flow__reader-lookup-card {"), css.indexOf(".zettelkasten-flow__reader-lookup-card--leaving"));
+        expect(card).toContain("transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);");
+        expect(card).not.toMatch(/transition:/);
+    });
+
     it("animates only what the compositor moves in the Reader's scripted keyframes too (#753 AC-8)", () => {
         const offenders: string[] = [];
         for (const dir of SCRIPTS) {

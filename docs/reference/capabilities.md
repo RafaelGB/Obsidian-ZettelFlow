@@ -46,6 +46,8 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Moves by your AI provider** — select a passage and ask your AI provider why, what it assumes, what it claims, or what follows — one short answer per click, kept only if you accept it. [docs →](../development/reader.md#moves-by-your-ai-provider)
 - **Make it a claim** — select a passage and say in one sentence what you would defend — a new claim note, sourced to its page, ready for every claim reader. [docs →](../development/reader.md#make-it-a-claim-or-link-it-to-an-idea)
 - **Link to an idea** — select a passage and name the idea it belongs to — the idea gains the passage as a source, undoable; no AI. [docs →](../development/reader.md#make-it-a-claim-or-link-it-to-an-idea)
+- **Look up** — select a word and look it up in your own StarDict dictionaries — read on the device, no network; a bilingual one gives its translation. [docs →](../development/reader-dictionaries.md)
+- **Translate** — select a passage and translate it — through your AI provider on a click, or the system's own Translate on iPad. [docs →](../development/reader.md#look-up-and-translate)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
 - **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)

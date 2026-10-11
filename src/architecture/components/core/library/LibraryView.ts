@@ -224,9 +224,13 @@ export class LibraryView extends ItemView {
         this.contentEl.addClass(c("shelf-host"));
         this.root = this.contentEl.createDiv({ cls: c("shelf") });
         this.body = this.root.createDiv({ cls: c("shelf-body") });
-        this.scrim = this.contentEl.createDiv({ cls: c("shelf-scrim") });
+        // The dim and the detail live beside the shelf's scroller, not in it (#779): placed over the pane
+        // you see, they cover it whatever the shelf's scroll, and the shelf waits under them.
+        this.scrim?.remove();
+        this.aside?.remove();
+        this.scrim = this.containerEl.createDiv({ cls: c("shelf-scrim") });
         this.registerDomEvent(this.scrim, "click", () => this.closeDetail());
-        this.aside = this.contentEl.createEl("aside", {
+        this.aside = this.containerEl.createEl("aside", {
             cls: c("shelf-detail"),
             attr: { "aria-label": t("shelf_details"), role: "dialog" },
         });
@@ -288,6 +292,8 @@ export class LibraryView extends ItemView {
         }
         this.renderScope?.unload();
         this.detailScope?.unload();
+        this.scrim?.remove();
+        this.aside?.remove();
         this.contentEl.empty();
         this.root = null;
     }
@@ -306,12 +312,13 @@ export class LibraryView extends ItemView {
         const arrived = known !== null && this.sectioned() && recentlyAdded(this.shelf.items, Date.now()).some((item) => !known.has(item.id));
         if (arrived) flipMove(this.body, () => this.render());
         else this.render();
-        const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
-        if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
+        // The kept place first (#779): a detail opened from view state covers the pane you see there.
         if (this.pendingScroll !== null) {
             this.contentEl.scrollTop = this.pendingScroll;
             this.pendingScroll = null;
         }
+        const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
+        if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
     }
 
     /** Whether a path is in the articles folder (#744). */
@@ -776,9 +783,28 @@ export class LibraryView extends ItemView {
                     ...this.deps.details,
                 }),
         });
+        this.holdPane();
         aside.addClass(c("shelf-detail--open"));
         this.scrim?.addClass(c("shelf-scrim--on"));
         this.app.workspace.requestSaveLayout();
+    }
+
+    /**
+     * The detail and its dim cover the pane you see, whatever the shelf's scroll (#779): they sit over
+     * the shelf's scroller — its scrollbar too — placed on its box by custom properties, never inline.
+     * The shelf is never scrolled, so closing the detail leaves it exactly where it was.
+     */
+    private holdPane(): void {
+        const pane = this.contentEl;
+        const height = Math.round(pane.offsetHeight || 0);
+        // No height to read (a pane not laid out yet): the stylesheet's own 100% stands.
+        const band: Record<string, string> = { "--zf-pane-top": `${Math.round(pane.offsetTop || 0)}px`, ...(height > 0 ? { "--zf-pane-h": `${height}px` } : {}) };
+        for (const layer of [this.scrim, this.aside]) layer?.setCssProps(band);
+    }
+
+    /** A pane resized with the detail open — a narrower split, an iPad turned: the band follows. */
+    onResize(): void {
+        if (this.aside?.hasClass(c("shelf-detail--open"))) this.holdPane();
     }
 
     /**

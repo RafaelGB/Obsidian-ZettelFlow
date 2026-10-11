@@ -80,7 +80,9 @@ and read it.
 facts — how far you have read and when, your highlights, and the notes born from it. Below them,
 [**what it produced in your vault**](#what-a-book-produced-in-your-vault), and **your highlights,
 by chapter** — every passage with your note under it, each one opening the source at that passage.
-**Esc** or **Close** puts the detail away.
+**Esc** or **Close** puts the detail away. However far down the shelf you are, the detail and its
+dim cover the pane where you are, and the shelf waits under them: closing the detail leaves you
+exactly where you were.
 
 The detail also holds the book's **Details** — see [A book's note](#a-books-note).
 

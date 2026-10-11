@@ -589,9 +589,14 @@
 }
 
 /* ── a source in detail: a panel over the shelf ────────────────────────── */
+/* The scrim and the detail sit beside the shelf's scroller, over the pane: placed on its box
+   (`--zf-pane-top`, `--zf-pane-h`, set as the detail opens), never on the scrolled content (#779). */
 .zettelkasten-flow__shelf-scrim {
     position: absolute;
-    inset: 0;
+    top: var(--zf-pane-top, 0);
+    left: 0;
+    right: 0;
+    height: var(--zf-pane-h, 100%);
     z-index: 2;
     background-color: var(--background-modifier-cover);
     opacity: 0;
@@ -606,9 +611,10 @@
 
 .zettelkasten-flow__shelf-detail {
     position: absolute;
-    top: 0;
+    top: var(--zf-pane-top, 0);
     right: 0;
-    bottom: 0;
+    height: var(--zf-pane-h, 100%);
+    box-sizing: border-box;
     z-index: 3;
     width: min(28rem, 92%);
     overflow: auto;

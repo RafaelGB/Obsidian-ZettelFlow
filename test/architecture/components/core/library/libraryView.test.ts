@@ -150,6 +150,41 @@ describe("the Library (#680)", () => {
         expect(content.byClass("mod-cta")).toHaveLength(0);
     });
 
+    it("covers the pane where you are, scrolled however far, and leaves the shelf there (#779)", async () => {
+        const { view, content } = mount(["Papers/cap.pdf"], { library });
+        await view.onOpen();
+        const host = view.contentEl as unknown as DomNode & { offsetTop: number };
+        // The shelf scrolled far down; the pane is 600 px tall, under a 40 px header.
+        host.scrollTop = 900;
+        host.offsetTop = 40;
+        host.offsetHeight = 600;
+        content.oneByClass("shelf-more").click();
+        await flush();
+        // Placed on the pane's box, not on the scrolled content: the scroll plays no part.
+        for (const layer of [content.oneByClass("shelf-scrim"), content.oneByClass("shelf-detail")]) {
+            expect(layer.cssProps).toMatchObject({ "--zf-pane-top": "40px", "--zf-pane-h": "600px" });
+            expect(layer.parent).toBe(view.containerEl as unknown as DomNode);
+        }
+        // A narrower, taller pane while it is open: the band follows.
+        host.offsetHeight = 800;
+        view.onResize();
+        expect(content.oneByClass("shelf-scrim").cssProps["--zf-pane-h"]).toBe("800px");
+        content.oneByClass("shelf-scrim").click();
+        expect(host.scrollTop).toBe(900);
+    });
+
+    it("a detail restored with its scroll covers the pane, the shelf at that scroll; reopened, one dim only (#779)", async () => {
+        const { view, content } = mount(["Papers/cap.pdf"], { library });
+        (view.contentEl as unknown as { offsetHeight: number }).offsetHeight = 500;
+        await view.setState({ detail: "Papers/cap.pdf", scroll: 1200 }, {} as never);
+        await view.onOpen();
+        expect(content.oneByClass("shelf-detail").cssProps["--zf-pane-h"]).toBe("500px");
+        expect((view.contentEl as unknown as DomNode).scrollTop).toBe(1200);
+        await view.onOpen();
+        expect(content.byClass("shelf-scrim")).toHaveLength(1);
+        expect(content.byClass("shelf-detail")).toHaveLength(1);
+    });
+
     it("closes the detail from the scrim, and a missing source opens none", async () => {
         const { view, content } = mount(["Papers/cap.pdf"], { library });
         await view.onOpen();

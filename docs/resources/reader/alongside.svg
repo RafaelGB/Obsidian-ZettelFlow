@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Alongside: your vault beside the page. Left: a book in the Reader, the paragraph at the reading line a third of the way down the column naming the planning fallacy. Right: the Alongside panel slid in from the column's edge, headed Near this paragraph, with seven lens chips — All, Connections, Contradictions, Questions, Your knowledge, Research, Not yet notes — and no number on any of them; your highlight on this page first; then cards, each saying in one line why it is there: Planning fallacy, named in this paragraph; Optimism bias, linked from Planning fallacy; Ship early, which contradicts Planning fallacy and offers Look at both and Not related; and Does this hold for small teams?, an open question of Planning fallacy. Below: Not related sets one card aside for this chapter only, with Undo in its place, and nothing is written to any note.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Alongside: your vault beside the page. Left: a book in the Reader, the paragraph at the reading line a third of the way down the column naming the planning fallacy. The Reader's own exit, Close the reader, sits at the end of the column's top line, never over the panel. Right: the Alongside panel slid in from the column's edge, headed Near this paragraph, with its own close at the end of its head, Close Alongside, which closes the panel and never the Reader; with seven lens chips — All, Connections, Contradictions, Questions, Your knowledge, Research, Not yet notes — and no number on any of them; your highlight on this page first; then cards, each saying in one line why it is there: Planning fallacy, named in this paragraph; Optimism bias, linked from Planning fallacy; Ship early, which contradicts Planning fallacy and offers Look at both and Not related; and Does this hold for small teams?, an open question of Planning fallacy. Below: Not related sets one card aside for this chapter only, with Undo in its place, and nothing is written to any note.">
 <rect width="1200" height="800" fill="#141416"/>
 <text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">ALONGSIDE — YOUR VAULT BESIDE THE PAGE</text>
 
@@ -6,6 +6,9 @@
 <g font-family="sans-serif">
 <rect x="40" y="76" width="1120" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
 <text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">THINKING, FAST AND SLOW · 23 · THE OUTSIDE VIEW</text>
+<!-- the Reader's exit ends the column's top line: it is never stacked over the panel -->
+<path d="M 650 98 l 10 10 M 660 98 l -10 10" stroke="#8b8e94" stroke-width="1.6" stroke-linecap="round"/>
+<text x="640" y="108" fill="#5f6168" font-size="10" text-anchor="end">close the reader</text>
 </g>
 <g font-family="serif" font-size="17" fill="#8b8e94">
 <text x="96" y="160">The first was that we had made a forecast, a plan, and that</text>
@@ -37,6 +40,10 @@
 <path d="M 690 360 l -14 0" stroke="#5f6168" stroke-width="1.5" stroke-dasharray="3 3"/>
 <text x="724" y="126" fill="#8b8e94" font-size="11" font-weight="600" letter-spacing="1.2">ALONGSIDE</text>
 <text x="812" y="126" fill="#b3b5ba" font-size="12">Near this paragraph</text>
+<!-- the panel's own close, in its head -->
+<rect x="1100" y="108" width="24" height="24" rx="6" fill="#26262b"/>
+<path d="M 1107 115 l 10 10 M 1117 115 l -10 10" stroke="#dcddde" stroke-width="1.6" stroke-linecap="round"/>
+<text x="1092" y="126" fill="#a99cf5" font-size="10" text-anchor="end">Close Alongside</text>
 
 <!-- the lenses: chips, no numbers -->
 <rect x="722" y="140" width="38" height="24" rx="12" fill="#a99cf5"/>
@@ -86,7 +93,7 @@
 
 <text x="724" y="582" fill="#a99cf5" font-size="12" font-weight="600">Show more</text>
 <text x="920" y="620" fill="#5f6168" font-size="11" text-anchor="middle">named here · born from here · linked · shared context · marked</text>
-<text x="920" y="638" fill="#5f6168" font-size="11" text-anchor="middle">a click reads it as a peek · the page does not move</text>
+<text x="920" y="638" fill="#5f6168" font-size="11" text-anchor="middle">a click reads it as a peek · its × closes it, as Esc does</text>
 </g>
 
 <!-- ── not related: one chapter, one verdict, nothing written ────────────── -->

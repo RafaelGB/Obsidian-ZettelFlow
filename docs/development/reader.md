@@ -121,10 +121,20 @@ hides it. It holds:
 - **Contents**, the chapters with their roles (in a book or a paper, with its **Bookmarks** and
   **Where you've been** beside them);
 - **Type**;
-- **Alongside**, your own notes near the paragraph you are reading, through six lenses (see
-  [Alongside](#alongside-your-vault-beside-the-page));
+- **Alongside**, the panel-on-the-right icon: your own notes near the paragraph you are reading,
+  through six lenses (see [Alongside](#alongside-your-vault-beside-the-page));
 - **Deep reading**, the page and nothing else (**F**);
 - **Keyboard shortcuts**.
+
+**A panel closes from the panel.** *Contents*, *Type* and *Alongside* each carry their own **×** at
+the end of their head (*Close contents*, *Close type*, *Close Alongside*). It closes the panel in the
+same move as **Esc**, and the Reader stays open. While the [claim sheet](#make-it-a-claim-or-link-it-to-an-idea)
+is open, the first press closes the sheet, as Esc does. The bar's button of an open panel shows as
+pressed, so the way back is always where you opened it.
+
+**The × at the top right is the Reader's own exit** (*Close the reader*, said on hover). It always
+sits over the column: while Alongside lies beside the page, the top line ends where the column ends,
+so the × above the panel is the panel's, never the Reader's.
 
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
 way on lights up: **Next · *its name* · *how long it is***.
@@ -236,7 +246,9 @@ nothing below changes: a click never turns a page.
   **below** it, clear of that callout, and without a second *Copy*.
 - **Panels are a bottom sheet in portrait.** *Contents*, *Type* and *Alongside* rise from
   the bottom edge at half height over the dimmed page. Drag the handle up to nearly full height or
-  down to close it, or tap the page above it. In landscape they open as the usual card.
+  down to close it, tap the page above it, or tap its **×**. The bar stays above the sheet, so the
+  button that opened it closes it too, and the top line steps out under the dim, so the Reader's ×
+  never sits over the sheet's head. In landscape they open as the usual card.
 - **The whole screen is the page.** While a book is open, Obsidian's own toolbar slides away, and it
   slides back as you leave, exactly as it was. The top line, the back pill, the dots, the bar and the
   sheet stay inside the safe area — in both orientations and in a Split View window — and rotating
@@ -387,7 +399,8 @@ written to any note; **Undo** stays in the card's place for five seconds.
 **It moves like a margin.** Opening, it slides in from the column's edge while the column makes room,
 and the paragraph under your eye stays where it is; closing is the same move backwards. On a narrow
 pane it lies over the page's edge, and on an iPad in portrait it rises as the
-[sheet](#on-ipad). Choosing a lens slides the chip's fill to it, and the cards that stay keep their
+[sheet](#on-ipad). **Close Alongside**, the × in its head, closes it in that same move — as **Esc**
+or its button in the bar do — and never the Reader. Choosing a lens slides the chip's fill to it, and the cards that stay keep their
 place while the others fade out or rise in. Reading on, a card still near never moves; new ones
 arrive in their place. While the pointer is in the panel nothing moves under it. *Not related* slides
 the card aside and the ones below close the gap. Under reduced motion every change is instant.

@@ -2,6 +2,7 @@ import { setIcon, type Component } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
+import { panelHead, type PanelClose } from "./readerPanelHead";
 import { READER_FONTS, READER_LAYOUTS, READER_MARGINS, READER_SIZES, READER_SPACINGS, READER_THEMES, READER_WIDTHS, type ReaderPrefs } from "./readerPrefs";
 
 /**
@@ -102,6 +103,8 @@ export interface TypePanelContext {
     pageView?: boolean;
     /** Page view's group, shown in Page view only — in Reading view none of it is (#767 FR-13). */
     pageRun?: PageViewControls;
+    /** The panel's own way out, at the end of its title row (#777 FR-1). */
+    close?: PanelClose;
 }
 
 const FIT_KEY: Record<"width" | "page", LocaleKey> = { width: "reader_pv_fit_width", page: "reader_pv_fit_page" };
@@ -254,7 +257,7 @@ export function renderTypePanel(
     before?: MarkerSnapshot,
     context: TypePanelContext = {}
 ): void {
-    host.createDiv({ cls: c("reader-panel-title"), text: t("reader_type") });
+    panelHead(host, "reader_type", context.close);
     segmentedRow(host, { id: "layout", label: "reader_layout", options: READER_LAYOUTS, current: prefs.layout, key: (o) => LAYOUT_KEY[o], onPick: (layout) => onPick({ ...prefs, layout }) }, scope, before);
     // A paper in Page view: the layout above is read for its printed pages, and its own rows follow (#767).
     if (context.pageRun) pageViewGroup(host, context.pageRun, scope, before);

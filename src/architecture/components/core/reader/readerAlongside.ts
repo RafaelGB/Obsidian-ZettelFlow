@@ -30,6 +30,7 @@ import { sourceFormat } from "application/library/sourceMeta";
 import { isHighlight, thoughtPath, type Thought } from "application/thinking/thought";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
 import { reconcile, type Reconciled } from "./readerFlip";
+import { panelClose } from "./readerPanelHead";
 
 /**
  * **Alongside — your vault beside the page** (#754, epic #741).
@@ -137,6 +138,8 @@ export interface AlongsideView {
     /** Draw the chapter's highlights list (the panel always held it, FR-1). */
     renderHighlights(host: HTMLElement, scope: Component): void;
     peek(anchor: HTMLElement, path: string, name: string): void;
+    /** Close the panel from its head (#777 FR-1): the same steps as Esc. */
+    close?(): void;
 }
 
 interface IndexLike {
@@ -321,6 +324,8 @@ export class ReaderAlongside {
         const head = host.createDiv({ cls: c("reader-alongside-head") });
         head.createDiv({ cls: c("reader-panel-title"), text: t("reader_context") });
         const near = head.createDiv({ cls: c("reader-alongside-near"), attr: { "aria-live": "polite" } });
+        // Its own way out, in its head: the Reader's exit is never the nearest × (#777 FR-1).
+        if (this.view.close) panelClose(head, { label: "reader_close_alongside", onClose: () => this.view.close?.(), scope });
         // A move's proposal arrives here, at the top (#756 FR-4).
         const proposals = host.createDiv({ cls: c("reader-alongside-proposals") });
         const chips = host.createDiv({ cls: c("reader-alongside-lenses"), attr: { role: "group", "aria-label": t("reader_alongside_lenses") } });

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="The Reader on an iPad. Landscape: the outer fifth of the page on each side is a tap zone that turns a screen back or forward, the middle shows the bar, and a finger swiping left holds the chapter's page part-turned under it. Portrait: Contents opens as a bottom sheet at half height, with a grab handle, over the page dimmed behind it.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="The Reader on an iPad. Landscape: the outer fifth of the page on each side is a tap zone that turns a screen back or forward, the middle shows the bar, and a finger swiping left holds the chapter's page part-turned under it. Portrait: Contents opens as a bottom sheet at half height, with a grab handle and its own close at the end of its head, over the page dimmed behind it; the bar stays above the sheet, its Contents button pressed.">
 <rect width="1200" height="820" fill="#141416"/>
 <text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">THE READER ON AN IPAD</text>
 
@@ -88,6 +88,16 @@
 <text x="846" y="428" fill="#dcddde" font-family="sans-serif" font-size="13">The ledger</text>
 <text x="846" y="460" fill="#dcddde" font-family="sans-serif" font-size="13">The storm</text>
 <text x="846" y="492" fill="#dcddde" font-family="sans-serif" font-size="13">The morning</text>
+<!-- its own close, at the end of its head -->
+<path d="M 1080 352 l 9 9 M 1089 352 l -9 9" stroke="#dcddde" stroke-width="1.6" stroke-linecap="round"/>
+<!-- the bar stays above the sheet, its button pressed -->
+<rect x="904" y="508" width="152" height="28" rx="8" fill="#18181b" stroke="#3a3a3a"/>
+<circle cx="926" cy="522" r="3" fill="#5f6168"/>
+<circle cx="950" cy="522" r="3" fill="#5f6168"/>
+<rect x="964" y="512" width="24" height="20" rx="5" fill="#7f6df2" fill-opacity="0.3"/>
+<circle cx="976" cy="522" r="3" fill="#a99cf5"/>
+<circle cx="1002" cy="522" r="3" fill="#5f6168"/>
+<circle cx="1026" cy="522" r="3" fill="#5f6168"/>
 <!-- drag it: up to nearly full, down to close -->
 <path d="M 1112 352 L 1112 300" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round"/>
 <path d="M 1105 310 L 1112 300 L 1119 310" stroke="#a99cf5" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,7 +107,8 @@
 
 <text x="980" y="612" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="600" text-anchor="middle">Portrait: panels are a bottom sheet</text>
 <text x="980" y="636" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">It opens at half height over the dimmed page.</text>
-<text x="980" y="656" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Drag the handle up, or down to close; tap the page to close.</text>
+<text x="980" y="656" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">Drag the handle, tap its ×, or tap the page to close.</text>
+<text x="980" y="676" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">The bar stays above it: its button closes it too.</text>
 
 <line x1="40" y1="726" x2="1160" y2="726" stroke="#3a3a3a" stroke-width="1"/>
 <text x="600" y="758" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">Obsidian's toolbar slides away as the book opens and back as you leave. Everything stays inside the safe area.</text>

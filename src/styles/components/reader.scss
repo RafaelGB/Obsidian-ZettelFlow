@@ -658,6 +658,44 @@ button.zettelkasten-flow__reader-next-button {
     opacity: 0;
 }
 
+/* A panel's head (#777 FR-1): its title, and its own × at the end of the row. */
+.zettelkasten-flow__reader-panel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+
+    .zettelkasten-flow__reader-panel-title {
+        flex: 1;
+    }
+}
+
+.zettelkasten-flow__reader-panel-close {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+}
+
+/*
+ * On a sheet the bar stays above it and its dim, so its door is always in reach (#777 FR-3); the
+ * sheet keeps its last rows clear of the bar.
+ */
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-bar {
+    z-index: 7;
+}
+
+/*
+ * Under the sheet's dim the top line steps out (#777 FR-2): pulled up, the sheet would reach it, and
+ * the Reader's × must never sit over the sheet's head. The sheet carries its own ×.
+ */
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-top {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--sheet,
+.zettelkasten-flow__reader--sheet .zettelkasten-flow__reader-panel--sheet .zettelkasten-flow__reader-claim-sheet {
+    padding-bottom: calc(var(--size-4-18) + #{$safe-bottom});
+}
+
 .zettelkasten-flow__reader-panel-title {
     font-size: var(--font-ui-smaller);
     letter-spacing: 0.08em;
@@ -826,8 +864,17 @@ button.zettelkasten-flow__reader-next-button {
 
 .zettelkasten-flow__reader-alongside-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--size-4-2);
+}
+
+/*
+ * The Reader's exit stays over the column (#777 FR-2): while Alongside lies beside it, the top line
+ * ends where the column ends, so the × above the panel is never the Reader's. It moves in the same
+ * layout that narrows the column — no motion of its own.
+ */
+.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-top {
+    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
 }
 
 .zettelkasten-flow__reader-alongside-near {

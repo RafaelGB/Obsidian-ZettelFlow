@@ -8,6 +8,7 @@ import {
     TFile,
     getLanguage,
     setIcon,
+    setTooltip,
     type Modifier,
     type ViewStateResult,
     type WorkspaceLeaf,
@@ -84,6 +85,7 @@ import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
+import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
 import { PdfPageRun } from "./readerPageRun";
 import { renderThumbs, type Thumbs } from "./readerThumbs";
 import { fly } from "./readerMotion";
@@ -315,6 +317,8 @@ export class ReaderView extends ItemView {
     private index = 0;
     private prefs: ReaderPrefs;
     private panel: Panel = null;
+    /** The bar's door to each panel, pressed while its panel is open (#777 FR-3). */
+    private panelButtons: Record<Exclude<Panel, null>, HTMLElement> | null = null;
     private root: HTMLElement | null = null;
     private els: {
         title: HTMLElement;
@@ -917,6 +921,8 @@ export class ReaderView extends ItemView {
             attr: { type: "button", "aria-label": t("reader_exit") },
         });
         setIcon(close, "x");
+        // It says what it closes — the Reader, never the panel beside it (#777 FR-2).
+        setTooltip(close, t("reader_exit"), { placement: "bottom" });
         this.registerDomEvent(close, "click", () => this.exit());
         // How far through the chapter you are: a hairline across the top, filled by the scroll.
         const hairline = root.createDiv({ cls: c("reader-hairline"), attr: { "aria-hidden": "true" } });
@@ -1004,13 +1010,17 @@ export class ReaderView extends ItemView {
         const minutes = bar.createSpan({ cls: [c("reader-bar-minutes"), c("reader-hidden")].join(" ") });
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
-        this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
+        const contents = this.iconButton(bar, "list", "reader_contents", () => this.toggle("contents"));
         const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
         search.addClass(c("reader-hidden"));
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
         this.ink.mountButton(bar);
-        this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
-        const context = this.iconButton(bar, "git-fork", "reader_context", () => this.toggle("context"));
+        const type = this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
+        // The panel on the right (#777 FR-3): the icon says where it opens.
+        const context = this.iconButton(bar, "panel-right", "reader_context", () => this.toggle("context"));
+        // Each panel's button says whether its panel is open.
+        this.panelButtons = { contents, type, context };
+        for (const button of Object.values(this.panelButtons)) button.setAttribute("aria-pressed", "false");
         context.addClass(c("reader-bar-button--dotted"));
         this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
@@ -1071,7 +1081,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -3112,6 +3122,7 @@ export class ReaderView extends ItemView {
             this.alongsideLeaving = undefined;
             this.els?.panel.removeClass(c("reader-panel--leaving"));
             this.alongside?.remember(true);
+            this.syncPanelButtons("context");
             return;
         }
         if (this.panel === panel) {
@@ -3160,6 +3171,9 @@ export class ReaderView extends ItemView {
         this.panelShape = shape;
         host.toggleClass(c("reader-panel--open"), this.panel !== null);
         host.toggleClass(c("reader-panel--sheet"), asSheet);
+        // A sheet lifts the bar above it, so its door stays in reach (#777 FR-3).
+        this.root?.toggleClass(c("reader--sheet"), asSheet);
+        this.syncPanelButtons(this.panel);
         host.toggleClass(c("reader-panel--side"), shape === "side");
         host.removeClass(c("reader-panel--leaving"));
         // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
@@ -3171,7 +3185,7 @@ export class ReaderView extends ItemView {
             // A designed book you never chose a layout for reads *Spread* (#771): the row says so, and
             // only a layout you pick is kept as your choice.
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
-            renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, this.typeContext());
+            renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, { ...this.typeContext(), close: { label: "reader_close_type", onClose: () => this.closeFromPanel(), scope } });
         }
         else if (this.panel === "context") {
             this.alongside?.mount(host, scope);
@@ -3344,6 +3358,7 @@ export class ReaderView extends ItemView {
             marks: () => [...(this.highlights?.items() ?? []), ...(this.highlights?.detachedItems() ?? [])],
             renderHighlights: (host: HTMLElement, scope: Component) => this.highlights?.renderList(host, scope),
             peek: (anchor: HTMLElement, path: string, name: string) => this.openPeek(anchor, path, name),
+            close: () => this.closeFromPanel(),
         };
     }
 
@@ -3437,7 +3452,7 @@ export class ReaderView extends ItemView {
             this.renderSourceTabs(host);
             return;
         }
-        host.createDiv({ cls: c("reader-panel-title"), text: t("reader_contents") });
+        panelHead(host, "reader_contents", this.panelCloseFor("reader_close_contents"));
         this.path?.chapters.forEach((chapter, i) => {
             const row = host.createEl("button", {
                 cls: [c("reader-toc-row"), ...(i === this.index ? [c("reader-toc-row--current")] : [])].join(" "),
@@ -3475,6 +3490,9 @@ export class ReaderView extends ItemView {
             });
             this.panelScope?.registerDomEvent(button, "click", () => this.chooseTab(tab.id));
         }
+        // Contents' own way out, at the end of its tabs (#777 FR-1).
+        const close = this.panelCloseFor("reader_close_contents");
+        if (close) panelClose(tabs, close);
         const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
@@ -3735,11 +3753,41 @@ export class ReaderView extends ItemView {
         handle.addEventListener("lostpointercapture", up);
     }
 
+    /**
+     * A panel's own × (#777 FR-1): the steps Esc takes — the claim sheet goes first, nothing written,
+     * then the panel, in the same move Esc plays.
+     */
+    private closeFromPanel(): void {
+        if (this.claimLink?.isOpen()) {
+            this.claimLink.dismissNewest();
+            return;
+        }
+        this.closePanel();
+    }
+
+    /** The × for the panel drawn now, its listener on the panel's scope. */
+    private panelCloseFor(label: "reader_close_contents"): PanelClose | undefined {
+        const scope = this.panelScope;
+        return scope ? { label, onClose: () => this.closeFromPanel(), scope } : undefined;
+    }
+
+    /** Each panel's button on the bar: pressed, and Obsidian's active look, while its panel is open. */
+    private syncPanelButtons(open: Panel): void {
+        if (!this.panelButtons) return;
+        for (const [id, button] of Object.entries(this.panelButtons)) {
+            const on = id === open;
+            button.toggleClass("is-active", on);
+            button.setAttribute("aria-pressed", String(on));
+        }
+    }
+
     /** Close the panel. A sheet slides down and away first; a card, or reduced motion, goes at once. */
     private closePanel(ms: number = MOTION.base): void {
         const host = this.els?.panel;
         if (!host || !this.panel) return;
         if (this.panel === "context") this.alongside?.remember(false);
+        // The bar lets go of the button at once: the panel is on its way out.
+        this.syncPanelButtons(null);
         // Alongside slides back to the column's edge, then the column widens, your line kept (#754 FR-17).
         if (host.hasClass(c("reader-panel--side")) && this.motionAllowed()) {
             if (this.alongsideLeaving !== undefined) return;

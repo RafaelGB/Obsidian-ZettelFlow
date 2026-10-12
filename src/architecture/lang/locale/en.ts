@@ -2341,6 +2341,7 @@ export default {
     reader_context: 'Alongside',
     reader_close_alongside: 'Close Alongside',
     reader_close_contents: 'Close contents',
+    reader_close_overview: 'Close overview',
     reader_close_type: 'Close type',
     reader_near_paragraph: 'Near this paragraph',
     reader_near_selection: 'Near your selection',

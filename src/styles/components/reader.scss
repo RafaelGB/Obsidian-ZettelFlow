@@ -1570,16 +1570,16 @@ button.zettelkasten-flow__reader-next-button {
 /* ── bookmarks and where you've been (#761) ─────────────────────────────── */
 
 /*
- * The ribbon at the page's top-right corner (FR-1): quiet and empty, or filled with the accent where
- * the screen holds a bookmark. It hangs from the top of the page, so it drops in — and lifts out —
- * through its own box (FR-14): transform only, never across the top line. Its corner follows the
- * column or the pages on show (`--zf-ribbon-right`, measured by the view).
+ * The ribbon at the pane's top-right corner (FR-1, #784 FR-3): quiet and empty, or filled with the
+ * accent where the screen holds a bookmark. It hangs from the top of the pane, so it drops in — and
+ * lifts out — through its own box (FR-14): transform only, never across the top line. It sits at the
+ * side in every view, never mid-band over a narrow column, and just inside the Reader's ×.
  */
 .zettelkasten-flow__reader button.zettelkasten-flow__reader-ribbon {
     position: absolute;
-    /* It hangs in the band above the page, never over a line; clear of the way out (×) on a narrow screen. */
+    /* It hangs in the band above the page, never over a line; the way out (×) keeps the corner itself. */
     top: calc(var(--size-4-3) + #{$safe-top});
-    right: max(calc(var(--zf-ribbon-right, #{$safe-right}) + var(--size-4-4)), calc(#{$safe-right} + var(--size-4-16)));
+    right: calc(#{$safe-right} + var(--size-4-16));
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -1648,6 +1648,11 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
+/* Beside Alongside the ribbon keeps to the column's side of the panel, as the top line and its × do (#777 FR-2). */
+.zettelkasten-flow__reader--alongside button.zettelkasten-flow__reader-ribbon {
+    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6) + var(--size-4-12));
+}
+
 /* Idle: an empty ribbon steps back with the bar; a filled one stays, as a ribbon in a book does. */
 .zettelkasten-flow__reader--idle button.zettelkasten-flow__reader-ribbon:not(.zettelkasten-flow__reader-ribbon--filled) {
     opacity: 0;
@@ -1661,9 +1666,9 @@ button.zettelkasten-flow__reader-next-button {
     gap: var(--size-4-1);
 }
 
-/* Over the overview's long grid the tabs and the × stay at the panel's top (#776 FR-15): the way out
-   and the other tabs never scroll away with the cards. */
-.zettelkasten-flow__reader-tabs--sticky {
+/* Over the overview's long grid its head and × stay at the panel's top (#776 FR-15, #784): the way
+   out never scrolls away with the cards. */
+.zettelkasten-flow__reader-panel-head--sticky {
     position: sticky;
     top: calc(-1 * var(--size-4-4));
     z-index: 1;

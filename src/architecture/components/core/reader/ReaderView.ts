@@ -266,17 +266,18 @@ const ROLE_KEY: Record<ChapterRole, LocaleKey> = {
 export type { ReaderHost };
 
 
-/** The panels — and Recall (#760), which lies beside the page as Alongside does, with no button of its own. */
-type Panel = "contents" | "type" | "layers" | "context" | "recall" | null;
+/**
+ * The panels — Recall (#760), which lies beside the page as Alongside does, with no button of its
+ * own, and the overview (#784), whose door is the bar's *Overview* and the pinch, never a tab.
+ */
+type Panel = "contents" | "type" | "layers" | "context" | "recall" | "overview" | null;
 
 /**
- * The Contents panel of a book or a paper (#761 FR-4): its contents, the overview, its bookmarks,
- * where you've been.
+ * The Contents panel of a book or a paper (#761 FR-4): its contents, its bookmarks, where you've
+ * been. The overview is a panel of its own (#784 FR-1): one door to one view.
  */
 const CONTENTS_TABS: { id: ContentsTab; label: LocaleKey }[] = [
     { id: "contents", label: "reader_contents" },
-    // Every page or chapter as a card (#776, which #767's *Pages* grew into): every book and paper.
-    { id: "overview", label: "reader_overview" },
     { id: "bookmarks", label: "reader_tab_bookmarks" },
     { id: "trail", label: "reader_tab_trail" },
 ];
@@ -382,7 +383,7 @@ export class ReaderView extends ItemView {
     private prefs: ReaderPrefs;
     private panel: Panel = null;
     /** The bar's door to each panel, pressed while its panel is open (#777 FR-3). */
-    private panelButtons: Record<Exclude<Panel, null | "recall">, HTMLElement> | null = null;
+    private panelButtons: Record<Exclude<Panel, null | "recall" | "overview">, HTMLElement> | null = null;
     private root: HTMLElement | null = null;
     private els: {
         title: HTMLElement;
@@ -1155,7 +1156,7 @@ export class ReaderView extends ItemView {
         this.registerDomEvent(clean, "click", () => this.revealThinking());
         this.cleanPill = clean;
 
-        // The bookmark ribbon at the page's top-right corner (#761 FR-1): a book's or a paper's only.
+        // The bookmark ribbon at the pane's top-right corner (#761 FR-1, #784 FR-3): a book's or a paper's only.
         const ribbon = root.createEl("button", {
             cls: ["clickable-icon", c("reader-ribbon"), c("reader-hidden")].join(" "),
             attr: { type: "button", "aria-pressed": "false", "aria-label": t("reader_bookmark_add") },
@@ -3108,7 +3109,7 @@ export class ReaderView extends ItemView {
             onDrawn: (page, picture) => this.ink?.toneSlot(page, picture),
             // Two fingers let go well under the smallest zoom: the page lands in its card (#776 FR-4).
             onPinchOut: (scale) => {
-                if (!this.sourcePath || (this.panel === "contents" && this.contentsTab === "overview")) return false;
+                if (!this.sourcePath || this.panel === "overview") return false;
                 this.openOverview(scale);
                 return true;
             },
@@ -3130,7 +3131,7 @@ export class ReaderView extends ItemView {
         this.dropOverview();
         if (redraw) {
             win.setTimeout(() => {
-                if (!this.overview && this.panel === "contents" && this.contentsTab === "overview") this.renderPanel();
+                if (!this.overview && this.panel === "overview") this.renderPanel();
             }, 0);
         }
         this.pageRun.dispose();
@@ -3286,24 +3287,32 @@ export class ReaderView extends ItemView {
     // ── the overview (#776): every page or chapter as a card, in one continuous shot ──────────
 
     /**
-     * The bar's *Overview* (FR-1, FR-2): Contents opens straight on the overview, from any view, and the
-     * camera pulls back from the page into its card. Asked again while it is open, the same shot plays
-     * backwards. `from` is the scale two fingers left the page at (FR-23).
+     * The bar's *Overview* (FR-1, FR-2), or the pinch: the overview opens as its own panel (#784), from
+     * any view, and the camera pulls back from the page into its card. Asked again while it is open,
+     * the same shot plays backwards. `from` is the scale two fingers left the page at (FR-23).
      */
     private openOverview(from = 1): void {
         if (!this.sourcePath || !this.source) return;
-        if (this.panel === "contents" && this.contentsTab === "overview") {
+        if (this.panel === "overview") {
             this.closePanel();
             return;
         }
-        this.contentsTab = "overview";
         this.overviewEntering = { from };
-        if (this.panel === "contents") this.renderPanel();
-        else this.toggle("contents");
+        this.toggle("overview");
     }
 
-    /** The overview's grid in the Contents panel (FR-3): every PDF and EPUB, in both views. */
-    private renderOverviewTab(list: HTMLElement): void {
+    /**
+     * The overview's own panel (#784 FR-1): its head and ×, which stay at the top over the long grid
+     * (#776 FR-15), then every page or chapter as a card.
+     */
+    private renderOverviewPanel(host: HTMLElement): void {
+        const head = panelHead(host, "reader_overview", this.panelCloseFor("reader_close_overview"));
+        head.addClass(c("reader-panel-head--sticky"));
+        this.renderOverviewGrid(host.createDiv({ cls: c("reader-tab-list") }));
+    }
+
+    /** The overview's grid (FR-3): every PDF and EPUB, in both views. */
+    private renderOverviewGrid(list: HTMLElement): void {
         const doc = this.source;
         const path = this.sourcePath;
         const scope = this.panelScope;
@@ -4234,9 +4243,10 @@ export class ReaderView extends ItemView {
         // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
         this.setAlongsideColumn(shape === "side");
         // The overview opens the sheet at its full height: a page of cards (#776 D5, P8).
-        if (asSheet) this.openSheet(host, scope, this.panel === "contents" && this.contentsTab === "overview");
+        if (asSheet) this.openSheet(host, scope, this.panel === "overview");
         else this.dropSheet();
         if (this.panel === "contents") this.renderContents(host);
+        else if (this.panel === "overview") this.renderOverviewPanel(host);
         else if (this.panel === "type") {
             // Pause at chapter ends is one value with Settings → Reading (#755 FR-8): as it is there now.
             this.prefs = { ...this.prefs, chapterPause: this.chapterPauseOn() };
@@ -4684,11 +4694,9 @@ export class ReaderView extends ItemView {
      * gesture (FR-16). No tab counts anything (FR-12).
      */
     private renderSourceTabs(host: HTMLElement): void {
-        const tabs = host.createDiv({
-            cls: [c("reader-tabs"), ...(this.contentsTab === "overview" ? [c("reader-tabs--sticky")] : [])],
-            attr: { role: "tablist", "aria-label": t("reader_contents") },
-        });
-        // The overview is every book's and every paper's, in both views (#776 FR-3, FR-6).
+        // A tab kept from before is read as it is now: an old Overview is Contents (#784 FR-2).
+        this.contentsTab = normalizeContentsTab(this.contentsTab);
+        const tabs = host.createDiv({ cls: c("reader-tabs"), attr: { role: "tablist", "aria-label": t("reader_contents") } });
         for (const tab of CONTENTS_TABS) {
             const on = tab.id === this.contentsTab;
             const button = tabs.createEl("button", {
@@ -4704,7 +4712,6 @@ export class ReaderView extends ItemView {
         const list = host.createDiv({ cls: c("reader-tab-list"), attr: { role: "tabpanel" } });
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
-        else if (this.contentsTab === "overview") this.renderOverviewTab(list);
         else this.renderSourceContents(list);
         const dir = this.tabSlide;
         this.tabSlide = 0;
@@ -4723,9 +4730,7 @@ export class ReaderView extends ItemView {
         const tab = normalizeContentsTab(raw);
         if (tab === this.contentsTab) return;
         const order = (id: ContentsTab) => CONTENTS_TABS.findIndex((entry) => entry.id === id);
-        // The overview's entrance is the camera pulling back from the page, never a slide (#776 FR-20).
-        this.tabSlide = tab === "overview" ? 0 : order(tab) > order(this.contentsTab) ? 1 : -1;
-        if (tab === "overview") this.overviewEntering = { from: 1 };
+        this.tabSlide = order(tab) > order(this.contentsTab) ? 1 : -1;
         this.contentsTab = tab;
         this.renderPanel();
     }
@@ -4825,7 +4830,8 @@ export class ReaderView extends ItemView {
 
     /**
      * The ribbon as it is for this screen: shown for a book or a paper being read, filled when the
-     * screen holds a bookmark, and at the page's top-right corner. No count, ever (FR-12).
+     * screen holds a bookmark. It hangs at the pane's top-right corner, placed by the stylesheet alone
+     * (#784 FR-3). No count, ever (FR-12).
      */
     private refreshRibbon(): void {
         const ribbon = this.ribbon;
@@ -4839,10 +4845,6 @@ export class ReaderView extends ItemView {
         if (!this.ribbonLifting) ribbon.toggleClass(c("reader-ribbon--filled"), filled);
         ribbon.setAttribute("aria-pressed", String(filled));
         ribbon.setAttribute("aria-label", t(filled ? "reader_bookmark_remove" : "reader_bookmark_add"));
-        // At the corner of what is on screen: the column, or the pages on show.
-        const root = this.root?.getBoundingClientRect();
-        const box = this.pager?.screenBox();
-        if (root && box && box.width > 0) ribbon.setCssProps({ "--zf-ribbon-right": `${Math.max(0, Math.round(root.left + root.width - (box.left + box.width)))}px` });
     }
 
     /**
@@ -5118,7 +5120,7 @@ export class ReaderView extends ItemView {
     }
 
     /** The × for the panel drawn now, its listener on the panel's scope. */
-    private panelCloseFor(label: "reader_close_contents"): PanelClose | undefined {
+    private panelCloseFor(label: "reader_close_contents" | "reader_close_overview"): PanelClose | undefined {
         const scope = this.panelScope;
         return scope ? { label, onClose: () => this.closeFromPanel(), scope } : undefined;
     }
@@ -5126,10 +5128,10 @@ export class ReaderView extends ItemView {
     /** Each panel's button on the bar: pressed, and Obsidian's active look, while its panel is open. */
     private syncPanelButtons(open: Panel): void {
         if (!this.panelButtons) return;
-        // Contents open on the overview is the overview's own door that is pressed (#776 FR-1).
-        const overview = open === "contents" && this.contentsTab === "overview";
+        // The overview's own door is pressed while it is open (#776 FR-1, #784 FR-1).
+        const overview = open === "overview";
         for (const [id, button] of Object.entries(this.panelButtons)) {
-            const on = id === open && !(overview && id === "contents");
+            const on = id === open;
             // Layers reads as active while any layer is hidden, open or not (#758 FR-5).
             button.toggleClass("is-active", on || (id === "layers" && this.layerView.hiddenLayers().length > 0));
             button.setAttribute("aria-pressed", String(on));
@@ -5146,7 +5148,7 @@ export class ReaderView extends ItemView {
         // Recall ends as its card begins to go: the page is on its way back already (#760).
         if (this.panel === "recall") this.endRecall();
         // Leaving the overview without a pick: the card grows back into the page (#776 FR-22).
-        if (this.panel === "contents" && this.contentsTab === "overview") this.returnToPage();
+        if (this.panel === "overview") this.returnToPage();
         // The bar lets go of the button at once: the panel is on its way out.
         this.syncPanelButtons(null);
         // Alongside slides back to the column's edge, then the column widens, your line kept (#754 FR-17).
@@ -5483,7 +5485,7 @@ export class ReaderView extends ItemView {
     /** Whether two fingers drawn together here shrink the page: a flowing page, not in ink or the overview. */
     private pinchesHere(): boolean {
         if (this.runMode() || !this.sourcePath || this.ended || this.ink?.isOpen()) return false;
-        return !(this.panel === "contents" && this.contentsTab === "overview");
+        return this.panel !== "overview";
     }
 
     /**

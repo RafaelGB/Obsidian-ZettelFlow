@@ -130,10 +130,11 @@ describe("small pictures are small, and few are held (AC-13, AC-12, FR-17, FR-18
     });
 });
 
-describe("the tab, by its new name (AC-2, D7, P5)", () => {
-    it("reads #767's Pages as the overview, and anything unknown as Contents", () => {
-        expect(normalizeContentsTab("pages")).toBe("overview");
-        expect(normalizeContentsTab("overview")).toBe("overview");
+describe("the tab, as it was kept (#776 D7, #784 FR-2)", () => {
+    it("reads an old Overview or #767's Pages as Contents: the overview is its own panel now", () => {
+        expect(normalizeContentsTab("pages")).toBe("contents");
+        expect(normalizeContentsTab("overview")).toBe("contents");
+        expect(normalizeContentsTab("bookmarks")).toBe("bookmarks");
         expect(normalizeContentsTab("trail")).toBe("trail");
         expect(normalizeContentsTab("nonsense")).toBe("contents");
     });

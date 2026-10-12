@@ -935,7 +935,8 @@ themselves.
 
 ![Bookmarks, and where you've been: the ribbon filled at the page's corner and the line you landed on marked under the words; the Contents panel on its Bookmarks tab; the Where you've been tab with its reasons, and the pill, Alt+← and two fingers that walk it; and a far page reached by sliding the last three pages](../resources/reader/bookmarks.svg)
 
-- **The ribbon.** At the page's top-right corner. Tap it — or press **B** — and it drops in: the
+- **The ribbon.** At the pane's top-right corner, just inside the Reader's **×** — at the side in
+  every view, never in the middle of the top band over a narrow column. Tap it — or press **B** — and it drops in: the
   place you are reading is kept, the chapter and the first line on screen. It shows filled on any
   screen that holds a bookmark; tap it there and it lifts out again. An empty ribbon steps back with
   the bar while you read; a filled one stays, as a ribbon in a book does.
@@ -946,8 +947,8 @@ themselves.
 - **Found by its words.** A bookmark keeps where it is in the text, and the words there — the way a
   highlight is found again — so a change of font, size, layout or device lands on the same line. In
   a PDF's Page view a bookmark is its page.
-- **Contents · Overview · Bookmarks · Where you've been.** The Contents panel has four tabs; the
-  [overview](#the-overview) is every page or chapter as a card. **Bookmarks** lists
+- **Contents · Bookmarks · Where you've been.** The Contents panel has three tabs; the
+  [overview](#the-overview) is a panel of its own. **Bookmarks** lists
   the book's bookmarks in reading order: the chapter or page, the first words of the line and when it
   was made (*now*, *2 days ago*); tap one to go there, or remove it in place. Neither tab counts
   anything.
@@ -982,14 +983,14 @@ dense part, the chapter I marked all over?* It is never more than one tap away.
 
 - **One tap from the bar.** The pages-grid button on the Reader's bar, named *Overview*, is there for
   every EPUB and every PDF, in the reading view and in Page view — no menu, no view to change first.
-  It opens **Contents** straight on its **Overview** tab, with the card you are on in the middle,
-  marked as current. The same button again, **Esc**, a tap outside the panel or the panel's **×**
-  closes it, on the same page you left. A note reading has no overview: it has neither pages nor a
+  It opens the **Overview** panel — its own head and **×**, no tabs — with the card you are on in the
+  middle, marked as current, and the button stays pressed while it is open. The same button again,
+  **Esc**, a tap outside the panel or the panel's **×** closes it, on the same page you left. A note reading has no overview: it has neither pages nor a
   book's chapters.
-- **Contents · Overview · Bookmarks · Where you've been.** The overview is also a tab of every book's
-  and every paper's Contents. *Contents* is the book's own table of contents, with its names and
-  nesting; the overview is the book as you would see it, with your marks on it. Neither counts
-  anything.
+- **One door, not two.** The overview is reached from its bar button or a pinch, never from a tab of
+  Contents (#784). *Contents* is the book's own table of contents, with its names and nesting; the
+  overview is the book as you would see it, with your marks on it. Neither counts anything. A
+  Contents tab remembered as *Overview* from an earlier version opens on Contents.
 - **A page, or a chapter.** A PDF's pages are page cards — small pictures of the printed page, with
   the paper's own labels (*p. iv*), turned as you turned them in Page view — in **both** views: the
   overview never switches a paper to Page view or back. A comic's or a picture book's designed pages
@@ -1735,7 +1736,7 @@ thought store), as one recorded batch you can undo. **Cite** writes nothing at a
   mixed book as itself), `cardMarks` (one tick per place and colour — at its share of the drawn text,
   else at the edge — the pen, the ribbon; never a count), `cardProgress`, `cardPixels` (capped at
   `CARD_DPR_MAX`), `releaseFarthest` against `OVERVIEW_LIMITS` and `normalizeContentsTab`
-  (`pages` reads as `overview`), and one DOM `renderOverview` (paper sheets, an
+  (`pages` and `overview` read as `contents`: the overview is its own `Panel`, #784), and one DOM `renderOverview` (paper sheets, an
   `IntersectionObserver` from the panel's window, a `draw → let go` seam, a first-draw fade, roving
   focus). The view draws a card through the run's `drawThumb` in Page view, its own one-at-a-time
   queue over `SourcePages.render` in the reading view, `SourcePages.mount` for a designed page and

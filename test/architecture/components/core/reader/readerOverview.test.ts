@@ -101,6 +101,11 @@ const bar = (content: DomNode, label: string) => content.byClass("reader-bar-but
 const tab = (content: DomNode, label: string) => content.byClass("reader-tab").find((b) => b.textContent === label)!;
 const cards = (content: DomNode) => content.oneByClass("reader-panel").byClass("reader-overview-card");
 const panelOpen = (content: DomNode) => content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"));
+/** The overview is open as its own panel (#784 FR-1): its own head, no tab row. */
+const overviewOpen = (content: DomNode) => {
+    const panel = content.oneByClass("reader-panel");
+    return panelOpen(content) && panel.byClass("reader-tab").length === 0 && panel.byClass("reader-panel-title")[0]?.textContent === "Overview";
+};
 const boxOf = (el: DomNode) => {
     const r = el.getBoundingClientRect();
     return { left: r.left, top: r.top, width: r.width, height: r.height };
@@ -197,21 +202,47 @@ describe("the overview of a flowing book (#776)", () => {
     }
 
     describe("the door, one tap (AC-1, AC-2, FR-1–FR-3)", () => {
-        it("is on the bar, labelled, and opens Contents on the overview with your chapter current", async () => {
+        it("is on the bar, labelled, and opens the overview as its own panel with your chapter current", async () => {
             const { content } = await book([], {}, 1);
             const door = bar(content, "Overview");
             expect(door.hasClass(cls("reader-hidden"))).toBe(false);
             door.click();
-            expect(panelOpen(content)).toBe(true);
-            expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
-            expect(tab(content, "Overview").hasClass("is-active")).toBe(true);
+            // Its own panel (#784 FR-1): its own head and ×, no tab row.
+            expect(overviewOpen(content)).toBe(true);
+            expect(content.oneByClass("reader-panel").oneByClass("reader-panel-close").getAttribute("aria-label")).toBe("Close overview");
             const current = cards(content).filter((card) => card.getAttribute("aria-current") !== null);
             expect(current).toHaveLength(1);
             expect(current[0].getAttribute("data-unit")).toBe("1");
             expect(current[0].getAttribute("aria-current")).toBe("step");
             // The door says it is open; Contents' own button is not the one pressed.
             expect(door.hasClass("is-active")).toBe(true);
+            expect(door.getAttribute("aria-pressed")).toBe("true");
             expect(bar(content, "Contents").hasClass("is-active")).toBe(false);
+        });
+
+        it("is no longer a tab of Contents: Contents keeps its three, and Contents never opens on the overview (#784)", async () => {
+            const { content, view } = await book([], {}, 1);
+            // A remembered Overview tab, from before (FR-2): Contents opens on its contents.
+            (view as any).contentsTab = "overview";
+            bar(content, "Contents").click();
+            expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Bookmarks", "Where you've been"]);
+            expect(tab(content, "Contents").getAttribute("aria-selected")).toBe("true");
+            expect(cards(content)).toHaveLength(0);
+            expect(bar(content, "Overview").getAttribute("aria-pressed")).toBe("false");
+            // From Contents the door changes panel: the overview, on its own.
+            bar(content, "Overview").click();
+            expect(overviewOpen(content)).toBe(true);
+            expect(bar(content, "Contents").getAttribute("aria-pressed")).toBe("false");
+        });
+
+        it("closes from its own ×, as the same shot backwards, and the door lets go (#784 AC-2)", async () => {
+            const { content } = await book([], {}, 1);
+            bar(content, "Overview").click();
+            const before = rec.animations.length;
+            content.oneByClass("reader-panel").oneByClass("reader-panel-close").click();
+            expect(rec.animations.slice(before).some((a) => a.target.classes?.has(cls("reader-overview-ghost")))).toBe(true);
+            expect(bar(content, "Overview").getAttribute("aria-pressed")).toBe("false");
+            await settle(() => !panelOpen(content));
         });
 
         it("is not on a note reading's bar", async () => {
@@ -419,7 +450,7 @@ describe("the overview of a flowing book (#776)", () => {
         });
 
         it("names every mark and the current card in both languages", () => {
-            for (const key of ["reader_overview", "reader_overview_current", "reader_overview_mark_highlight", "reader_overview_mark_ink", "reader_overview_mark_bookmark", "reader_overview_read", "reader_overview_reading"] as const) {
+            for (const key of ["reader_overview", "reader_close_overview", "reader_overview_current", "reader_overview_mark_highlight", "reader_overview_mark_ink", "reader_overview_mark_bookmark", "reader_overview_read", "reader_overview_reading"] as const) {
                 expect(en[key]).toBeTruthy();
                 expect((es as Record<string, string>)[key]).toBeTruthy();
                 expect((es as Record<string, string>)[key]).not.toBe(en[key]);
@@ -446,8 +477,7 @@ describe("the overview of a flowing book (#776)", () => {
             expect(stage.cssProps["--zf-pinch-s"]).toBe("0.3");
             finger(stage, "pointerup", 1, 440, 300, 60);
             finger(stage, "pointerup", 2, 560, 300, 62);
-            expect(panelOpen(content)).toBe(true);
-            expect(tab(content, "Overview").hasClass("is-active")).toBe(true);
+            expect(overviewOpen(content)).toBe(true);
             expect(stage.hasClass(cls("reader-stage--pinching"))).toBe(false);
         });
 
@@ -585,7 +615,7 @@ describe("the overview of a paper, in both views (#776 AC-1, AC-5, FR-6)", () =>
             const door = bar(content, "Overview");
             expect(door.hasClass(cls("reader-hidden"))).toBe(false);
             door.click();
-            expect(tab(content, "Overview").hasClass("is-active")).toBe(true);
+            expect(overviewOpen(content)).toBe(true);
             const list = cards(content);
             expect(list).toHaveLength(6);
             expect(list.filter((card) => card.getAttribute("aria-current") !== null)).toEqual([list[(view as any).index]]);

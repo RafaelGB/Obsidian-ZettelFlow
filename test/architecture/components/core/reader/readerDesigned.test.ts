@@ -361,7 +361,7 @@ describe("a fixed-layout book, read as it was made (#771)", () => {
         it("opens from the bar on one page card per designed page, the one you are on current", async () => {
             const { content } = await open(comic(), { readerPrefs: { layout: "page" } }, 2);
             content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Overview")!.click();
-            expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
+            expect(content.byClass("reader-tab")).toHaveLength(0);
             const cards = cardsOf(content);
             expect(cards).toHaveLength(5);
             expect(cards.every((card) => card.hasClass(cls("reader-overview-card--page")))).toBe(true);

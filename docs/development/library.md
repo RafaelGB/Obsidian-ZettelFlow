@@ -425,7 +425,7 @@ contents, nested as the book nests them.
   right on a touch screen), to return to the very line. The pill fades by itself after a few seconds;
   the way back stays in **Contents → Where you've been**, through page turns, until you close the
   book. In a PDF the pill follows Contents jumps.
-- **Bookmarks.** The ribbon at the page's corner, or **B**, keeps a place without highlighting
+- **Bookmarks.** The ribbon at the pane's top-right corner, or **B**, keeps a place without highlighting
   anything; **Contents → Bookmarks** lists them. See
   [Bookmarks and where you've been](reader.md#bookmarks-and-where-youve-been).
 - **Highlights, notes, resume and the end** work as in a PDF. A highlight carries its chapter

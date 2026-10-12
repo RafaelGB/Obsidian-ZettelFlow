@@ -157,12 +157,14 @@ export function releaseFarthest(held: readonly number[], cap: number, near: numb
         .slice(0, over);
 }
 
-export type ContentsTab = "contents" | "overview" | "bookmarks" | "trail";
-const CONTENTS_TAB_IDS: readonly ContentsTab[] = ["contents", "overview", "bookmarks", "trail"];
+export type ContentsTab = "contents" | "bookmarks" | "trail";
+const CONTENTS_TAB_IDS: readonly ContentsTab[] = ["contents", "bookmarks", "trail"];
 
-/** A tab id as it was kept: #767's *Pages* is the overview now (D7, AC-2); anything else, Contents. */
+/**
+ * A tab id as it was kept. The overview is its own panel now (#784 FR-2): an old *Overview*, or
+ * #767's *Pages* before it, opens Contents on its contents, as anything unknown does.
+ */
 export function normalizeContentsTab(raw: unknown): ContentsTab {
-    if (raw === "pages") return "overview";
     return CONTENTS_TAB_IDS.includes(raw as ContentsTab) ? (raw as ContentsTab) : "contents";
 }
 

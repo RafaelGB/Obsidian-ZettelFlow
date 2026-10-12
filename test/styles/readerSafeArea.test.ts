@@ -48,3 +48,22 @@ describe("the Reader's chrome sits inside the safe area (#750)", () => {
         for (const name of ["top", "bottom", "left", "right"] as const) expect(inset).toMatch(side(name));
     });
 });
+
+/**
+ * **The ribbon at the side** (#784 FR-3): it hangs at the pane's own top-right corner, never from
+ * the column's edge in the middle of the band — and stays clear of the Reader's ×, as the top line
+ * does, Alongside or not.
+ */
+describe("the bookmark ribbon hangs at the pane's top-right corner (#784)", () => {
+    const ribbon = rule(".zettelkasten-flow__reader button.zettelkasten-flow__reader-ribbon");
+
+    it("is placed from the pane's corner, inside the safe area, never from a measured column edge", () => {
+        expect(ribbon).toMatch(/right: calc\(#\{\$safe-right\} \+ var\(--size-4-16\)\);/);
+        expect(ribbon).toMatch(side("top"));
+        expect(SCSS).not.toContain("--zf-ribbon-right");
+    });
+
+    it("steps in beside Alongside as the top line does, so the × above the panel stays the panel's", () => {
+        expect(rule(".zettelkasten-flow__reader--alongside button.zettelkasten-flow__reader-ribbon")).toContain("var(--zf-alongside-w)");
+    });
+});

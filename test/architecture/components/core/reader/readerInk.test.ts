@@ -1195,6 +1195,37 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
             await nothingRead(m);
         });
 
+        it("lets the eraser take page ink, an ink note and a highlight in one pass, and one undo bring all three back (#790 AC-9)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            const hl = await keep(m, "it from");
+            const b = boxOf(m, "it", "from");
+            // Page ink across the highlight's words, and an ink note written before #790 beside "replay".
+            m.draw(straight({ x: b.left, y: b.top + 4 }, { x: b.right, y: b.top + 4 }, 10));
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+            m.ink.onInk([await m.stored("ink1", "replay")]);
+            await flush();
+            m.pick("eraser");
+            // One pass: through the page ink and the highlight, then across the ink note.
+            m.draw([...straight({ x: b.left + 2, y: b.top + 6 }, { x: b.right - 2, y: b.top + 6 }, 10), ...straight({ x: 730, y: 134 }, { x: 760, y: 150 }, 10)]);
+            await flush();
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: hl.id }));
+            expect(m.store.saveDrawing.mock.calls.length + m.store.discard.mock.calls.length).toBeGreaterThanOrEqual(2);
+            expect(m.pageInk.disk()?.clusters).toHaveLength(0);
+            m.root.oneByClass("reader-ink-undo").click();
+            await flush();
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.store.restore).toHaveBeenCalledWith(expect.objectContaining({ id: hl.id }));
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+            // Brought back with a fade, never instantly.
+            expect(rec.animations.some((a) => a.keyframes[0]?.opacity === 0 && a.keyframes[1]?.opacity === 1)).toBe(true);
+        });
+
         it("lets the eraser take a highlight it passes over, with Undo (#747 FR-6)", async () => {
             const m = direct({ textRects: true });
             await flush();

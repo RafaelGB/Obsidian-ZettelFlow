@@ -2322,7 +2322,13 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 
 .zettelkasten-flow__reader-hl-pop--status {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    /* A line and up to three ways back (#790: the lasso's *Keep as note*, *Read as text*, *Delete*), on
+       one row. Placed from the middle (`left: 50%`), a shrink-to-fit box only had the right half of the
+       page to grow into: its own width, bounded, instead. */
+    width: max-content;
+    max-width: min(30rem, calc(100% - var(--size-4-8)));
     transform: translate(-50%, var(--size-4-2));
     transform-origin: top center;
 }
@@ -2663,6 +2669,9 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 .zettelkasten-flow__reader-hl-status {
     color: var(--reader-muted);
     font-size: var(--font-ui-small);
+    /* A short line stays one line (#790: *Ink in the loop* wrapped into three); on a narrow screen the
+       buttons go to the next row instead. */
+    white-space: nowrap;
 }
 
 /* Kindle's margin: beside the page when the pane is wide, folded into Context when it is not. */

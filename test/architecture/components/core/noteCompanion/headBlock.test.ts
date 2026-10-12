@@ -229,6 +229,37 @@ describe("where a note came from (#683)", () => {
         expect(setViewState).toHaveBeenCalledWith(expect.objectContaining({ state: expect.objectContaining({ source: book.path, chapter: 41 }) }));
     });
 
+    it("never calls a book's note born from its own book (#743 FR-12)", async () => {
+        const { TFile } = await import("obsidian");
+        const note = new TFile();
+        note.path = "Library/Thinking, Fast and Slow.md";
+        const book = new TFile();
+        book.path = "Books/Thinking, Fast and Slow.epub";
+        const host = new DomNode();
+        const block = new HeadBlock(host as never);
+        const ctx = {
+            app: {
+                workspace: { trigger: jest.fn(), getMostRecentLeaf: () => null, getLeavesOfType: () => [] },
+                vault: {
+                    getAbstractFileByPath: (path: string) => (path === note.path ? note : null),
+                    cachedRead: async () => '---\nbook: "[[Books/Thinking, Fast and Slow.epub]]"\nsource: "[[Books/Thinking, Fast and Slow.epub]]"\n---\n',
+                },
+                metadataCache: {
+                    getFileCache: () => ({ frontmatter: { book: "[[Books/Thinking, Fast and Slow.epub]]" } }),
+                    getFirstLinkpathDest: (link: string) => (link === book.path ? book : null),
+                },
+            },
+            screen: { kind: "note", model: model() },
+            pinned: false,
+            owner: new Component(),
+            menu: jest.fn(() => []),
+        };
+        block.load();
+        block.update(ctx as unknown as CompanionContext);
+        await new Promise((resolve) => setImmediate(resolve));
+        expect(host.byClass("note-companion-origin")).toHaveLength(0);
+    });
+
     it("says nothing when the note cites no book", async () => {
         const { host } = render({ kind: "note", model: model() });
         await new Promise((resolve) => setImmediate(resolve));

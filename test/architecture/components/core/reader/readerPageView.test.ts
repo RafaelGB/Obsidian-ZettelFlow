@@ -331,6 +331,31 @@ describe("pages arrive quietly, and scrolling is the platform's (#767 FR-19, FR-
             undo();
         }
     });
+
+    it("lands the page in its card when two fingers let go far under the smallest zoom (#776 FR-4, P4)", async () => {
+        const { content, stage } = await open();
+        const touch = (x1: number, x2: number) => ({ touches: [{ clientX: x1, clientY: 300 }, { clientX: x2, clientY: 300 }], cancelable: true });
+        stage.fire("touchstart", touch(200, 600));
+        stage.fire("touchmove", touch(300, 500));
+        stage.fire("touchmove", touch(380, 420));
+        stage.fire("touchmove", touch(395, 405));
+        stage.fire("touchend", { touches: [] });
+        expect(content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"))).toBe(true);
+        expect(content.byClass("reader-tab").find((el) => el.textContent === "Overview")!.hasClass("is-active")).toBe(true);
+    });
+
+    it("only zooms a pinch above that, and never opens the overview from Ctrl + wheel (#776 D14)", async () => {
+        const { content, stage } = await open();
+        const touch = (x1: number, x2: number) => ({ touches: [{ clientX: x1, clientY: 300 }, { clientX: x2, clientY: 300 }], cancelable: true });
+        stage.fire("touchstart", touch(300, 500));
+        stage.fire("touchmove", touch(320, 480));
+        stage.fire("touchmove", touch(330, 470));
+        stage.fire("touchend", { touches: [] });
+        expect(content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"))).toBe(false);
+        for (let i = 0; i < 12; i++) wheel(stage, 400);
+        await wait(300);
+        expect(content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"))).toBe(false);
+    });
 });
 
 describe("the same Layout control, read for a printed page (#767 FR-6, FR-7, FR-13)", () => {
@@ -459,7 +484,7 @@ describe("a page turns, and is kept turned with the paper — never in it (#767 
     });
 });
 
-describe("the Pages tab (#767 FR-10, FR-22, AC-6)", () => {
+describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #776)", () => {
     beforeEach(() => resetReaderWorkspace());
     const g = globalThis as any;
     let observed: any[] = [];
@@ -481,43 +506,50 @@ describe("the Pages tab (#767 FR-10, FR-22, AC-6)", () => {
     afterEach(() => {
         if (!hadObserver) delete g.IntersectionObserver;
     });
+    const overviewTab = (content: DomNode) => content.byClass("reader-tab").find((el) => el.textContent === "Overview")!;
 
     it("lists every page with its label, marks the current one, and draws a picture only once it is seen", async () => {
         const { content, calls } = await open(2, {}, undefined, { labels: ["i", "1", "2", "3", "4", "5", "6", "7"] });
         contents(content);
-        content.byClass("reader-tab").find((el) => el.textContent === "Pages")!.click();
-        const thumbs = content.byClass("reader-pv-thumb");
-        expect(thumbs.map((el) => el.byClass("reader-pv-thumb-label")[0].textContent)).toEqual(["p. i", "p. 1", "p. 2", "p. 3", "p. 4", "p. 5", "p. 6", "p. 7"]);
-        expect(thumbs[2].hasClass("is-active")).toBe(true);
-        expect(thumbs.filter((el) => el.hasClass("is-active"))).toHaveLength(1);
+        overviewTab(content).click();
+        const cards = content.byClass("reader-overview-card");
+        expect(cards.map((el) => el.byClass("reader-overview-label")[0].textContent)).toEqual(["p. i", "p. 1", "p. 2", "p. 3", "p. 4", "p. 5", "p. 6", "p. 7"]);
+        expect(cards[2].hasClass("is-active")).toBe(true);
+        expect(cards.filter((el) => el.hasClass("is-active"))).toHaveLength(1);
         await settle(() => calls.renders.length >= 1);
         const before = calls.renders.length;
-        // Only the thumbnails that come into view are drawn.
+        // Only the cards that come into view are drawn.
         const observer = observed[observed.length - 1];
-        observer.callback([{ target: thumbs[6], isIntersecting: true }]);
+        observer.callback([{ target: cards[6], isIntersecting: true }]);
         await settle(() => calls.renders.length > before);
         expect(calls.renders.slice(before).map((r) => r.page)).toEqual([7]);
     });
 
-    it("flies a thumbnail to its page, which becomes the page; and leaves a place on the trail", async () => {
+    it("flies a card to its page, which becomes the page; leaves a place on the trail, and closes (D15)", async () => {
         const undo = reducedMotion(false);
         const record = recordAnimations();
         try {
             const { content } = await open(0);
             contents(content);
-            content.byClass("reader-tab").find((el) => el.textContent === "Pages")!.click();
-            const thumb = content.byClass("reader-pv-thumb")[5];
-            thumb.click();
-            expect(barLabel(content)).toBe("Chapter 6 / 8");
-            const ghost = record.animations.find((a) => a.target.classes?.has(cls("motion-ghost")));
-            expect(ghost).toBeDefined();
-            expect(ghost!.options.duration).toBe(MOTION.cover);
-            const slot = slots(content).find((el) => el.getAttribute("data-page") === "5")!;
+            overviewTab(content).click();
+            const card = content.byClass("reader-overview-card")[5];
+            const sheet = card.byClass("reader-overview-sheet")[0];
             const box = (el: DomNode) => {
                 const r = el.getBoundingClientRect();
                 return { left: r.left, top: r.top, width: r.width, height: r.height };
             };
-            expect(ghost!.keyframes[ghost!.keyframes.length - 1].transform).toBe(flightTransform(box(thumb.byClass("reader-pv-thumb-sheet")[0]), box(slot)));
+            const from = box(sheet);
+            const before = record.animations.length;
+            card.click();
+            expect(barLabel(content)).toBe("Chapter 6 / 8");
+            const ghost = record.animations.slice(before).find((a) => a.target.classes?.has(cls("motion-ghost")));
+            expect(ghost).toBeDefined();
+            expect(ghost!.options.duration).toBe(MOTION.cover);
+            const slot = slots(content).find((el) => el.getAttribute("data-page") === "5")!;
+            expect(ghost!.keyframes[ghost!.keyframes.length - 1].transform).toBe(flightTransform(from, box(slot)));
+            // The card became the page: the overview is not still beside it, in the card shape too.
+            await settle(() => !content.oneByClass("reader-panel").hasClass(cls("reader-panel--open")));
+            contents(content);
             content.byClass("reader-tab").find((el) => el.textContent === "Where you've been")!.click();
             expect(content.byClass("reader-trail-row")).toHaveLength(1);
         } finally {
@@ -532,8 +564,8 @@ describe("the Pages tab (#767 FR-10, FR-22, AC-6)", () => {
         try {
             const { content } = await open(0);
             contents(content);
-            content.byClass("reader-tab").find((el) => el.textContent === "Pages")!.click();
-            content.byClass("reader-pv-thumb")[4].click();
+            overviewTab(content).click();
+            content.byClass("reader-overview-card")[4].click();
             expect(barLabel(content)).toBe("Chapter 5 / 8");
             expect(record.animations).toHaveLength(0);
         } finally {
@@ -542,10 +574,24 @@ describe("the Pages tab (#767 FR-10, FR-22, AC-6)", () => {
         }
     });
 
-    it("is Page view's only: the reading view's Contents has no Pages tab", async () => {
-        const { content } = await open(0, {}, undefined, { layout: "reading" });
+    it("is in the reading view too, with the printed pages drawn small, and the view is kept (FR-6, AC-5)", async () => {
+        const { content, calls, view } = await open(0, {}, undefined, { layout: "reading" });
         contents(content);
-        expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Bookmarks", "Where you've been"]);
+        expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
+        overviewTab(content).click();
+        const cards = content.byClass("reader-overview-card");
+        expect(cards).toHaveLength(8);
+        const before = calls.renders.length;
+        observed[observed.length - 1].callback([{ target: cards[3], isIntersecting: true }]);
+        await settle(() => calls.renders.length > before);
+        expect(calls.renders.slice(before).map((r) => r.page)).toEqual([4]);
+        expect(content.byClass("reader-pv-run")).toHaveLength(0);
+        cards[4].click();
+        await settle(() => barLabel(content) === "Chapter 5 / 8");
+        expect((view as any).sourceView).toBe("reading");
+        expect(content.byClass("reader-pv-run")).toHaveLength(0);
+        const pageView = content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Page view")!;
+        expect(pageView.hasClass("is-active")).toBe(false);
     });
 });
 

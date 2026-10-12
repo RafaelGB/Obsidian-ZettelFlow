@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Snapshot a figure or a table. Left: a paper in Page view, Snapshot pressed in the bar beside Page view, and a dashed rectangle dragged around a bar chart on page 4; nothing else on the page is dimmed. A dotted arc shows the region lifting off the page and flying to its card in the margin. The card: Figure · p. 4, the same chart, and four buttons — Add note, Fleeting note, Attach to a note, Cancel — with the line Nothing is saved until you choose. Right, the three places it can go: a new note's preview with the image embedded, a caption line and source:: Reference class forecasting p. 4, and Create note; a fleeting note landing in its row under Notes on this page; and a status line, Attached to Planning, with Open and Undo. Underneath: saved where your attachments go, one Undo takes the image and the note back, and the paper is never written.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">SNAPSHOT — A FIGURE OR A TABLE, WITH WHERE IT CAME FROM</text>
+
+<!-- ── the paper in Page view ─────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="660" height="620" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">REFERENCE CLASS FORECASTING · PAGE VIEW</text>
+<!-- the printed page -->
+<rect x="96" y="128" width="420" height="520" rx="3" fill="#ececea"/>
+<g fill="#a7a7a3">
+<rect x="124" y="156" width="250" height="9" rx="2"/>
+<rect x="124" y="176" width="364" height="6" rx="2"/>
+<rect x="124" y="190" width="350" height="6" rx="2"/>
+<rect x="124" y="204" width="360" height="6" rx="2"/>
+<rect x="124" y="218" width="300" height="6" rx="2"/>
+<rect x="124" y="476" width="364" height="6" rx="2"/>
+<rect x="124" y="490" width="356" height="6" rx="2"/>
+<rect x="124" y="504" width="362" height="6" rx="2"/>
+<rect x="124" y="518" width="250" height="6" rx="2"/>
+<rect x="124" y="546" width="364" height="6" rx="2"/>
+<rect x="124" y="560" width="340" height="6" rx="2"/>
+<rect x="124" y="574" width="358" height="6" rx="2"/>
+<rect x="124" y="588" width="210" height="6" rx="2"/>
+</g>
+<!-- the figure: forecasts against outcomes, by project type -->
+<g>
+<line x1="150" y1="420" x2="460" y2="420" stroke="#6d6d69" stroke-width="1.5"/>
+<line x1="150" y1="420" x2="150" y2="258" stroke="#6d6d69" stroke-width="1.5"/>
+<rect x="172" y="350" width="26" height="70" fill="#7c8ea8"/>
+<rect x="202" y="300" width="26" height="120" fill="#b0866a"/>
+<rect x="250" y="362" width="26" height="58" fill="#7c8ea8"/>
+<rect x="280" y="282" width="26" height="138" fill="#b0866a"/>
+<rect x="328" y="340" width="26" height="80" fill="#7c8ea8"/>
+<rect x="358" y="318" width="26" height="102" fill="#b0866a"/>
+<rect x="406" y="370" width="26" height="50" fill="#7c8ea8"/>
+<rect x="436" y="296" width="20" height="124" fill="#b0866a"/>
+<text x="304" y="446" fill="#6d6d69" font-size="10" text-anchor="middle">Figure 2 · Forecast and outcome, by project type</text>
+</g>
+<!-- the dragged rectangle: only it is drawn, nothing is dimmed -->
+<rect x="136" y="244" width="336" height="212" rx="4" fill="none" stroke="#a99cf5" stroke-width="2" stroke-dasharray="7 5"/>
+<circle cx="472" cy="456" r="5" fill="#a99cf5"/>
+<text x="304" y="672" fill="#8b8e94" font-size="12" text-anchor="middle">Drag around it — a mouse, a pen, or a finger on iPad</text>
+<!-- the bar -->
+<rect x="540" y="128" width="136" height="70" rx="10" fill="#26262c" stroke="#45454d"/>
+<rect x="554" y="140" width="50" height="46" rx="6" fill="#33333a" stroke="#45454d"/>
+<text x="579" y="168" fill="#b3b5ba" font-size="10" text-anchor="middle">Page</text>
+<rect x="612" y="140" width="52" height="46" rx="6" fill="#3b3550" stroke="#a99cf5"/>
+<rect x="626" y="152" width="24" height="20" rx="2" fill="none" stroke="#dcddde" stroke-dasharray="3 2"/>
+<text x="638" y="211" fill="#a99cf5" font-size="11" text-anchor="middle">Snapshot</text>
+</g>
+
+<!-- the flight: the region lifts (1.02) and becomes the card's picture -->
+<path d="M472 300 C 560 250, 640 250, 760 168" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<text x="616" y="246" fill="#5f6168" font-family="sans-serif" font-size="10" text-anchor="middle">lifts, flies, becomes its picture</text>
+
+<!-- ── the card in the margin ─────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="740" y="96" width="300" height="300" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="760" y="124" fill="#dcddde" font-size="14" font-weight="600">Figure · p. 4</text>
+<text x="1020" y="124" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<rect x="760" y="138" width="260" height="164" rx="4" fill="#ececea"/>
+<g>
+<line x1="776" y1="290" x2="1006" y2="290" stroke="#6d6d69"/>
+<line x1="776" y1="290" x2="776" y2="166" stroke="#6d6d69"/>
+<rect x="790" y="238" width="18" height="52" fill="#7c8ea8"/>
+<rect x="812" y="200" width="18" height="90" fill="#b0866a"/>
+<rect x="846" y="248" width="18" height="42" fill="#7c8ea8"/>
+<rect x="868" y="186" width="18" height="104" fill="#b0866a"/>
+<rect x="902" y="232" width="18" height="58" fill="#7c8ea8"/>
+<rect x="924" y="214" width="18" height="76" fill="#b0866a"/>
+<rect x="958" y="254" width="18" height="36" fill="#7c8ea8"/>
+<rect x="980" y="196" width="16" height="94" fill="#b0866a"/>
+</g>
+<g font-size="12">
+<rect x="760" y="316" width="84" height="26" rx="5" fill="#7f6df2"/>
+<text x="802" y="333" fill="#ffffff" text-anchor="middle">Add note</text>
+<rect x="852" y="316" width="98" height="26" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="901" y="333" fill="#dcddde" text-anchor="middle">Fleeting note</text>
+<rect x="760" y="350" width="120" height="26" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="820" y="367" fill="#dcddde" text-anchor="middle">Attach to a note</text>
+<rect x="888" y="350" width="64" height="26" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="920" y="367" fill="#dcddde" text-anchor="middle">Cancel</text>
+</g>
+<text x="890" y="418" fill="#8b8e94" font-size="11" text-anchor="middle">Nothing is saved until you choose</text>
+</g>
+
+<!-- ── where it goes ─────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="740" y="456" fill="#5f6168" font-size="11" letter-spacing="1">WHERE IT GOES</text>
+<!-- a new note: the preview grows from the card -->
+<rect x="740" y="468" width="420" height="96" rx="10" fill="#1f1f24" stroke="#3a3a3a"/>
+<text x="756" y="490" fill="#a99cf5" font-size="11" font-weight="600">Add note</text>
+<text x="756" y="510" fill="#b3b5ba" font-family="monospace" font-size="11">![[Reference class forecasting p. 4.png]]</text>
+<text x="756" y="528" fill="#8b8e94" font-size="11" font-style="italic">Your caption</text>
+<text x="756" y="548" fill="#b3b5ba" font-family="monospace" font-size="11">source:: [[paper.pdf#page=4|Reference class forecasting]] p. 4</text>
+<rect x="1066" y="478" width="82" height="22" rx="5" fill="#7f6df2"/>
+<text x="1107" y="493" fill="#ffffff" font-size="11" text-anchor="middle">Create note</text>
+<!-- a fleeting note: lands in its row -->
+<rect x="740" y="576" width="204" height="96" rx="10" fill="#1f1f24" stroke="#3a3a3a"/>
+<text x="756" y="598" fill="#a99cf5" font-size="11" font-weight="600">Fleeting note</text>
+<text x="756" y="616" fill="#8b8e94" font-size="10" letter-spacing="1">NOTES ON THIS PAGE</text>
+<rect x="756" y="624" width="172" height="38" rx="5" fill="#26262c" stroke="#45454d"/>
+<rect x="764" y="630" width="44" height="26" rx="2" fill="#ececea"/>
+<rect x="770" y="644" width="6" height="10" fill="#7c8ea8"/><rect x="778" y="638" width="6" height="16" fill="#b0866a"/><rect x="788" y="646" width="6" height="8" fill="#7c8ea8"/><rect x="796" y="636" width="6" height="18" fill="#b0866a"/>
+<text x="818" y="647" fill="#b3b5ba" font-size="11">in Think, p. 4</text>
+<!-- attach: off to the margin's edge, then a status line -->
+<rect x="956" y="576" width="204" height="96" rx="10" fill="#1f1f24" stroke="#3a3a3a"/>
+<text x="972" y="598" fill="#a99cf5" font-size="11" font-weight="600">Attach to a note</text>
+<text x="972" y="622" fill="#dcddde" font-size="12">Attached to Planning</text>
+<text x="972" y="646" fill="#a99cf5" font-size="12">Open</text>
+<text x="1012" y="646" fill="#a99cf5" font-size="12">Undo</text>
+</g>
+
+<text x="600" y="742" fill="#8b8e94" font-family="sans-serif" font-size="12" text-anchor="middle">Saved where your attachments go, named after the paper and the page · one Undo takes the image and the note back · the paper is never written</text>
+</svg>

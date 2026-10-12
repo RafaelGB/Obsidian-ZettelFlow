@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
-import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn } from "architecture/components/core/reader/readerTurn";
+import { adoptChapterScrub, beginChapterScrub, endChapterTurn, isFolded, playChapterTurn, playFold, unfoldAtOnce } from "architecture/components/core/reader/readerTurn";
 import { MOTION, copyLive } from "architecture/components/core/reader/readerMotion";
 
 const VIEW = readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "reader", "ReaderView.ts"), "utf8");
@@ -271,5 +271,108 @@ describe("what cloneNode leaves behind, copied (#771)", () => {
             expect(source(file)).toContain("copyLive(");
             expect(source(file)).not.toContain("copyCanvases");
         }
+    });
+});
+
+/** Recall's fold (#760 FR-10, FR-11, FR-13): the turn's own sheet, down out of the column and back. */
+describe("recall folds the page away, and back (#760)", () => {
+    let rec: AnimationRecord;
+    afterEach(() => {
+        endChapterTurn();
+        rec?.stop();
+    });
+    const FOLDED = "zettelkasten-flow__reader-page--folded";
+
+    it("away: lays the page on a sheet, folds the live page and slides the sheet down over `cover`, leaving the title", async () => {
+        rec = recordAnimations();
+        const { root, stage, page } = reader();
+        const done = playFold(root as never, stage as never, page as never, "away", "3 · The lazy controller");
+        expect(page.hasClass(FOLDED)).toBe(true);
+        const sheet = sheetOf(root);
+        expect(sheet.findAll((el) => el.tag === "p").map((p) => p.textContent)).toEqual(["The page you were on."]);
+        const slide = rec.animations.find((a) => a.target === sheet)!;
+        expect(slide.duration).toBe(MOTION.cover);
+        expect(slide.keyframes[0]).toEqual({ transform: "translateY(0px)" });
+        expect(String(slide.keyframes[1].transform)).toMatch(/^translateY\(\d/);
+        // The paper under the sheet, with the chapter's title on it.
+        const underlay = root.oneByClass("turn-fold");
+        expect(underlay.textContent).toBe("3 · The lazy controller");
+        expect(root.children.indexOf(underlay)).toBeLessThan(root.children.indexOf(sheet));
+        for (const key of rec.keys()) expect(["transform", "opacity", "offset", "easing"]).toContain(key);
+        rec.finishAll();
+        await done;
+        expect(root.byClass("turn-sheet")).toHaveLength(0);
+        expect(isFolded(page as never)).toBe(true);
+        // The page itself is untouched under the fold.
+        expect(page.findAll((el) => el.tag === "p")[0].textContent).toBe("The page you were on.");
+    });
+
+    it("back: a sheet of the folded page slides up over the paper, then the page is unfolded under it", async () => {
+        rec = recordAnimations();
+        const { root, stage, page } = reader();
+        rec.animations.length = 0;
+        const away = playFold(root as never, stage as never, page as never, "away", "Prelude");
+        rec.finishAll();
+        await away;
+        rec.animations.length = 0;
+        const back = playFold(root as never, stage as never, page as never, "back", "Prelude");
+        const sheet = sheetOf(root);
+        // Drawn as the page is, not as the fold hides it, and above the paper.
+        expect(sheet.findAll((el) => el.hasClass(FOLDED))).toEqual([]);
+        expect(root.children.indexOf(sheet)).toBeGreaterThan(root.children.indexOf(root.oneByClass("turn-fold")));
+        const slide = rec.animations.find((a) => a.target === sheet)!;
+        expect(slide.duration).toBe(MOTION.cover);
+        expect(slide.keyframes[1]).toEqual({ transform: "translateY(0px)" });
+        // Still folded while it rises.
+        expect(page.hasClass(FOLDED)).toBe(true);
+        rec.finishAll();
+        await back;
+        expect(page.hasClass(FOLDED)).toBe(false);
+        expect(root.byClass("turn-fold")).toHaveLength(0);
+        expect(root.byClass("turn-sheet")).toHaveLength(0);
+    });
+
+    it("completes either move at once on any key or press", async () => {
+        rec = recordAnimations();
+        const { root, stage, page, listeners } = reader();
+        const done = playFold(root as never, stage as never, page as never, "away", "Prelude");
+        expect(listeners.keydown).toHaveLength(1);
+        (listeners.keydown[0] as () => void)();
+        await done;
+        expect(root.byClass("turn-sheet")).toHaveLength(0);
+        expect(page.hasClass(FOLDED)).toBe(true);
+        expect(listeners.keydown).toHaveLength(0);
+        const back = playFold(root as never, stage as never, page as never, "back", "Prelude");
+        (listeners.pointerdown[0] as () => void)();
+        await back;
+        expect(page.hasClass(FOLDED)).toBe(false);
+    });
+
+    it("under reduced motion the page simply goes, and is simply back: no animation", async () => {
+        rec = recordAnimations();
+        const { root, stage, page } = reader(true);
+        await playFold(root as never, stage as never, page as never, "away", "Prelude");
+        expect(page.hasClass(FOLDED)).toBe(true);
+        expect(root.oneByClass("turn-fold").textContent).toBe("Prelude");
+        await playFold(root as never, stage as never, page as never, "back", "Prelude");
+        expect(page.hasClass(FOLDED)).toBe(false);
+        expect(root.byClass("turn-fold")).toHaveLength(0);
+        expect(rec.animations).toEqual([]);
+    });
+
+    it("does nothing twice: away when away, back when back; and unfolds at once when asked", async () => {
+        rec = recordAnimations();
+        const { root, stage, page } = reader();
+        await playFold(root as never, stage as never, page as never, "back", "Prelude");
+        expect(rec.animations).toEqual([]);
+        const away = playFold(root as never, stage as never, page as never, "away", "Prelude");
+        rec.finishAll();
+        await away;
+        rec.animations.length = 0;
+        await playFold(root as never, stage as never, page as never, "away", "Prelude");
+        expect(rec.animations).toEqual([]);
+        unfoldAtOnce(root as never, page as never);
+        expect(page.hasClass(FOLDED)).toBe(false);
+        expect(root.byClass("turn-fold")).toHaveLength(0);
     });
 });

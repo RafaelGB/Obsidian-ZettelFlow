@@ -374,6 +374,53 @@
     }
 }
 
+/*
+ * Recently added (#744 FR-8): one row of the shelf's own cards, as many as fit — the row is laid out
+ * like the shelf, and every row after the first is folded to nothing. No measuring: it is the grid.
+ * The breathing room above and beside it keeps a lifted cover and a focus ring from being clipped.
+ */
+.zettelkasten-flow__shelf-shelf--recent {
+    grid-template-rows: auto;
+    grid-auto-rows: 0;
+    row-gap: 0;
+    overflow: hidden;
+    // Room above and beside, never below: the folded rows start right under the first and must not show.
+    padding: var(--size-4-2) var(--size-4-2) 0;
+    margin: calc(-1 * var(--size-4-2)) calc(-1 * var(--size-4-2)) 0;
+
+    // A folded row starts a hair below the first, so not even its top edge is drawn.
+    > .zettelkasten-flow__shelf-card {
+        margin-top: var(--size-2-1);
+    }
+}
+
+/* Where articles come from (#744 FR-2), under the Articles chip: one quiet line, and Change. */
+.zettelkasten-flow__shelf-articles-from {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin: calc(-1 * var(--size-4-2)) 0 var(--size-4-4);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+
+    .setting-item {
+        flex: 0 1 32rem;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+}
+
+.zettelkasten-flow__shelf-empty .zettelkasten-flow__shelf-articles-from {
+    justify-content: center;
+    margin: var(--size-4-4) 0 0;
+}
+
+.zettelkasten-flow__shelf-articles-dot {
+    color: var(--text-faint);
+}
+
 .zettelkasten-flow__shelf-card {
     position: relative;
     display: flex;
@@ -542,9 +589,14 @@
 }
 
 /* ── a source in detail: a panel over the shelf ────────────────────────── */
+/* The scrim and the detail sit beside the shelf's scroller, over the pane: placed on its box
+   (`--zf-pane-top`, `--zf-pane-h`, set as the detail opens), never on the scrolled content (#779). */
 .zettelkasten-flow__shelf-scrim {
     position: absolute;
-    inset: 0;
+    top: var(--zf-pane-top, 0);
+    left: 0;
+    right: 0;
+    height: var(--zf-pane-h, 100%);
     z-index: 2;
     background-color: var(--background-modifier-cover);
     opacity: 0;
@@ -559,9 +611,10 @@
 
 .zettelkasten-flow__shelf-detail {
     position: absolute;
-    top: 0;
+    top: var(--zf-pane-top, 0);
     right: 0;
-    bottom: 0;
+    height: var(--zf-pane-h, 100%);
+    box-sizing: border-box;
     z-index: 3;
     width: min(28rem, 92%);
     overflow: auto;
@@ -644,15 +697,34 @@
     @include hint;
 }
 
-.zettelkasten-flow__shelf-born-list {
+.zettelkasten-flow__shelf-born-mark {
+    color: var(--color-green);
+}
+
+/* What it produced in your vault (#752): lists, never a score. */
+.zettelkasten-flow__shelf-produced-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-produced-heading {
+    margin: 0 0 var(--size-4-1);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-produced-rows {
     display: flex;
     flex-direction: column;
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-born-row,
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-born-row {
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row {
     @include row;
     justify-content: flex-start;
+    gap: var(--size-4-2);
+    width: 100%;
     height: auto;
     padding: var(--size-4-2) 0;
     border: 0;
@@ -663,10 +735,48 @@
     color: var(--text-accent);
     cursor: pointer;
     text-align: left;
+    white-space: normal;
+
+    &:hover {
+        color: var(--text-accent-hover);
+    }
 }
 
-.zettelkasten-flow__shelf-born-mark {
-    color: var(--color-green);
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row--passage {
+    flex-wrap: wrap;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-produced-quote {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+}
+
+.zettelkasten-flow__shelf-produced-answer {
+    flex-basis: 100%;
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-produced-where {
+    margin-left: auto;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-produced-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-more {
+    margin-top: var(--size-4-1);
+    align-self: flex-start;
+}
+
+.zettelkasten-flow__shelf-produced-empty {
+    @include empty-state;
 }
 
 .zettelkasten-flow__shelf-detail-group {
@@ -921,4 +1031,171 @@ button.zettelkasten-flow__notebook-action {
 /* The book is in the closing shot's hands until it is back on the shelf (#734). */
 .zettelkasten-flow__shelf-cover.zettelkasten-flow__shelf-cover--in-shot {
     visibility: hidden;
+}
+
+/* ── a book's note (#743): status and collections over the shelf, Details in the detail ── */
+.zettelkasten-flow__shelf-bar--notes {
+    margin-top: calc(-1 * var(--size-4-2));
+    row-gap: var(--size-4-2);
+    column-gap: var(--size-4-4);
+}
+
+.zettelkasten-flow__shelf-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+/* Where a card stands for you, where it said Never opened. */
+.zettelkasten-flow__shelf-card-status {
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__shelf-details {
+    margin: var(--size-4-4) 0;
+}
+
+/* The fields sit where their values are: an input that looks like text until you go into it (FR-14). */
+.zettelkasten-flow__shelf-details-grid {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--size-4-1) var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-details-label {
+    @include hint;
+}
+
+.zettelkasten-flow__shelf-details-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    min-width: 0;
+}
+
+.zettelkasten-flow__shelf-details .zettelkasten-flow__shelf-details-input {
+    flex: 1;
+    min-width: 0;
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow: none;
+    color: var(--text-normal);
+
+    &:hover {
+        border-color: var(--background-modifier-border);
+    }
+
+    &:focus,
+    &:focus-visible {
+        border-color: var(--background-modifier-border-focus);
+        background-color: var(--background-primary);
+    }
+
+    &[aria-invalid="true"] {
+        border-color: var(--background-modifier-error);
+    }
+}
+
+.zettelkasten-flow__shelf-details-status {
+    flex: 1;
+    min-width: 0;
+}
+
+/* The check that says a field is kept: present, quiet, gone by itself (FR-15). */
+.zettelkasten-flow__shelf-details-check {
+    flex: none;
+    width: 1em;
+    color: var(--text-success);
+    opacity: 0;
+
+    &::before {
+        content: "✓";
+    }
+}
+
+.zettelkasten-flow__shelf-details-check--on {
+    opacity: 1;
+}
+
+.zettelkasten-flow__shelf-details-collections-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-details-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf-details-chip {
+    @include chip;
+    color: var(--text-normal);
+}
+
+.zettelkasten-flow__shelf-details-chip-remove {
+    padding: 0;
+    height: auto;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-details-add {
+    @include chip;
+    @include chip-clickable;
+    border-style: dashed;
+    box-shadow: none;
+}
+
+.zettelkasten-flow__shelf-details .zettelkasten-flow__shelf-details-add-input {
+    width: 14rem;
+    max-width: 100%;
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-details-error {
+    @include hint;
+    margin-top: var(--size-4-2);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__shelf-details-where {
+    @include hint;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1) var(--size-4-2);
+    margin-top: var(--size-4-3);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__shelf-details-note {
+    color: var(--text-accent);
+}
+
+/* As buttons, so they outrank Obsidian's own `button:not(.clickable-icon)` and read as the links they are. */
+button.zettelkasten-flow__shelf-details-undo,
+button.zettelkasten-flow__shelf-details-adopt,
+button.zettelkasten-flow__shelf-articles-change {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: none;
+        text-decoration: underline;
+    }
 }

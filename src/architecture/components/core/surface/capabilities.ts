@@ -126,6 +126,12 @@ export const CAPABILITIES = [
     "reader-link-idea",
     "reader-lookup",
     "reader-translate",
+    "reader-overview",
+    "reader-snapshot",
+    "reader-listen",
+    "reader-cite",
+    "chapter-pause",
+    "chapter-recall",
     "library",
     "highlights-review",
     "claim-door",
@@ -438,6 +444,51 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_hl_translate",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-overview": {
+        // The overview (#776, epic #742): every page or chapter of a book or a paper as a card, one tap
+        // on the Reader's bar from any view — the door #767's Pages tab never had. Also a Contents tab.
+        nameKey: "reader_overview",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
+    },
+    "reader-snapshot": {
+        // Snapshot (#763, epic #742): in Page view's bar, the next drag on a printed page captures a
+        // figure or a table; a picture in a book offers *Snapshot this image* in its popover. Its card
+        // asks where it goes — a note, a fleeting note, a note you have — and nothing is written before.
+        nameKey: "reader_snapshot",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-listen": {
+        // Listen (#765, epic #742): the book read aloud in the device's own voices, the page following
+        // the voice — *Listen* in the Reader's bar, and *Read aloud* in the selection's popover.
+        nameKey: "reader_listen",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-cite": {
+        // Cite (#768, epic #742): a passage in the selection popover or a highlight's menu, a whole book
+        // in its Library detail — Markdown with a link back, inline, a Pandoc key, BibTeX, CSL JSON —
+        // from the book's note, what is missing left out. Copy is the only thing it does; nothing written.
+        nameKey: "reader_cite",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library")],
+    },
+    "chapter-pause": {
+        // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,
+        // the book turns onto a blank leaf. It comes to you, in the book; it is turned off on the leaf.
+        nameKey: "reader_survived_title",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerSurvivedLeaf.ts", "zettelflow-reader")],
+    },
+    "chapter-recall": {
+        // Recall (#760, epic #742): put the chapter and your marks away, write what it argued from
+        // memory, then look. Offered where you read — Contents, on the chapter you are in — and on the
+        // leaf at the chapter's end. Nothing is compared or scored; your words can be kept as a note.
+        nameKey: "reader_recall",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerSurvivedLeaf.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

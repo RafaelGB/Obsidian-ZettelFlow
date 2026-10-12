@@ -139,6 +139,9 @@ both choices are camera moves, never a cut.
 |---|---|---|
 | **Opening a book** | *Camera shot*: the shelf zooms into the book, the cover opens on the page you were on, and that page becomes the Reader. Closing plays it backwards. *Instant*: the same places, no movement. | Camera shot |
 | **Changing chapter** | *Leaf turns* on the spine; *Keeps flowing*, where the chapter carries on up and the next one rises behind it; or *Sheet slides off* the stack. | Leaf turns |
+| **Pause at chapter ends** | [What survived?](reader.md#what-survived): at the end of a chapter you marked and read for two minutes, the book turns onto a blank leaf — your marks, what they touched, one question. The same switch as the Reader's *Type* panel and the leaf's own *Don't pause at chapter ends*. | On |
+| **Book notes folder** | Where [a book's note](library.md) is created, the first time you say something about the book in its Details. A folder field with suggestions and a reset; saving it creates no folder, and changing it moves no note — a book's note is found by its link to the book. *Advanced › Folders ZettelFlow uses* shows it, with a way back here. | `Library` |
+| **Articles folder** | The notes in this folder whose `source` is a web address — as [Web Clipper](library.md) saves them — are on the shelf as articles. Leave it empty to turn articles off. An open Library redraws its shelf when it changes. | `Clippings` |
 
 With your system's **reduced motion** on, both are instant whatever you pick.
 
@@ -198,9 +201,10 @@ should meet a log level on their first day. It remembers whether you left it ope
 
   The three flow folders refuse a folder that is the same as, or inside, another one: a canvas
   cannot be two things at once. A path is checked and saved when you leave the field, press Enter or
-  pick a suggestion, never on a keystroke on the way there. The *Thinking space* cell shows its
-  folder as read-only text (cut short with the whole path on hover), and its arrow takes you to the
-  one place it is edited — the field itself under Thinking, ready to type.
+  pick a suggestion, never on a keystroke on the way there. The *Thinking space*, *Dictionaries* and
+  *Book notes* cells show their folder as read-only text (cut short with the whole path on hover),
+  and each arrow takes you to the one place it is edited — the field itself under Thinking or
+  Reading, ready to type.
 - **Script type declarations** — writes `zettelflow.d.ts` into your scripts folder, so an external
   editor knows the zf API.
 - **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything*.

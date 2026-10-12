@@ -241,6 +241,11 @@ nothing below changes: a click never turns a page.
 - **Back with two fingers.** Two fingers swept right anywhere on the page go back one step along
   [where you've been](#bookmarks-and-where-youve-been), as the back pill and Alt+← do. (The
   screen's left edge would be the obvious place, but it is Obsidian's.)
+- **Pinch to the overview.** Two fingers drawn together on a flowing page shrink it into its card in
+  the [overview](#the-overview); in Page view and a designed book, past the smallest zoom. Two
+  fingers are decided once — drawn together, a pinch; swept sideways, back; lifted at once, ink's
+  undo — so one never does another's work. The overview opens at the sheet's full height in
+  portrait: a page of cards.
 - **Selecting beside the system's menu.** A long press selects words as usual and iPadOS shows its
   own callout (Copy, Look Up, Translate). Once the selection has settled, the four meanings appear
   **below** it, clear of that callout, and without a second *Copy*.
@@ -269,7 +274,7 @@ own callout and Look Up, the Pencil, a hardware keyboard and the memory limits �
 [issue #750](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/750); until it is, those rows
 are assumed, not claimed.
 
-**What a plugin cannot do on iPad.** Hide the status bar; keep reading aloud in the background. These
+**What a plugin cannot do on iPad.** Hide the status bar; keep [reading aloud](#listen) in the background. These
 are the app's, not a plugin's. The Pencil's native gestures are the same — a web view never hears them:
 
 | On iPad | In the Reader | Instead |
@@ -280,9 +285,17 @@ are the app's, not a plugin's. The Pencil's native gestures are the same — a w
 | Apple's tool picker | ✗ native only | the palette: pen, highlighter, lasso, eraser, four inks, undo |
 | Scribble's scratch-out and the lasso tool | ✗ native only | the Reader's own [four gestures](#four-gestures), from the points |
 | Undo from the Pencil | ✗ native only | a two-finger tap on the page |
+| Speech in the background, or with the screen locked | ✗ a web view's limit | [Listen](#listen) pauses at its sentence; play goes on from there |
 
 Ink is drawn from what WebKit reports (about 120–240 Hz, with no predicted points): good ink, honestly
 not PencilKit ink.
+
+**Still to prove on a device: the pinch to the overview.** Obsidian's iPad app never zooms the page
+itself, so two fingers on the Reader reach it as two pointers — the same path Page view's zoom, the
+two-finger *back* and ink's two-finger undo already use. Whether a real iPad's WKWebView keeps it so
+for the pinch is recorded on [issue #776](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/776)
+(rows P13–P16: the pinch reaches the Reader, does not fight *back* or ink's undo, and the card cap
+holds); until it is, the pinch is ◐ to prove on a device, and the bar's button is the door.
 
 **Still to prove on a device: Pencil hover.** An M2-or-later iPad senses an Apple Pencil 2 or a Pencil
 Pro while it is still above the glass, and native apps show where it will land. Whether Obsidian's
@@ -752,6 +765,168 @@ back the same way; the line you were reading never moves. While a translation is
 faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
 appears and goes at once, and the lines are still.
 
+## Cite a passage
+
+A quote you cannot trace back is a quote you cannot use. **Cite** turns a passage, a highlight or a
+whole book into the citation you need, ready to paste. It is offered in three places: the selection's
+popover, after *Copy*; a highlight's menu; and **Cite this book** in the book's detail in the
+[Library](library.md#cite-this-book).
+
+![Cite: a highlighted sentence in a book with its menu, and the Cite panel grown from it, headed Cite this passage, with five chips (Markdown, Inline, Citation key, BibTeX, CSL JSON), Inline chosen and reading (Kahneman, 2011, ch. 3); below it, a paper's panel saying No year in this paper's details · Add it, and the Copy button reading Copied with a check](../resources/reader/cite.svg)
+
+There are five forms, one at a time, chosen by a chip. The panel opens on the form you chose last.
+
+| Form | Reads |
+|---|---|
+| **Markdown** | the passage as a quote, then `> — Daniel Kahneman, *Thinking, Fast and Slow* (2011), p. 42 · [[Books/Thinking, Fast and Slow.epub#OEBPS/ch03.xhtml\|Thinking, Fast and Slow]]` |
+| **Inline** | `(Kahneman, 2011, p. 42)`; two authors are joined by `&`, three or more are *et al.* |
+| **Citation key** | `[@kahneman2011thinking, p. 42]`, Pandoc's form |
+| **BibTeX** | `@book` for a book, `@article` for a paper, `@online` for an article, with `url` and `urldate` |
+| **CSL JSON** | an item of type `book`, `article` or `webpage`, for Zotero and Pandoc, with `page` when a page is cited |
+
+The Markdown link back is the one a note's `source` gets when it is
+[made from a passage](#every-note-goes-back-to-its-paragraph): the book file, with the chapter in
+its subpath. It is never a block id. An article links to its note.
+
+**Where it comes from.** A citation is drawn from what your vault holds, and from nothing else:
+
+- for a book or a paper, its **[book's note](library.md#a-books-note)**, found by its link to the
+  book wherever it is kept;
+- for an [article](library.md#articles-from-web-clipper), its own frontmatter: the author, the year
+  it was published, its `source` address, and the day it was saved (`created`);
+- for the place, the passage's page (`p. 42`), or its chapter in a book without pages (`ch. 3`).
+
+**What is not there is left out, never guessed.** No lookup by ISBN or DOI is made, and no network.
+As citation styles do, *n.d.* stands for a missing year and the title stands where the author is
+missing: `(Reference class forecasting, n.d., p. 6)`. One quiet line says what a form lacks: *No year
+in this paper's details · Add it*. **Add it** opens the book's detail in the Library at that field.
+An article's details live in its own properties, so its line names what is missing and offers
+nothing more. `p.`, `ch.`, `n.d.` and *et al.* are written the English way whatever language the
+plugin speaks, as the styles expect.
+
+**Authors are read as written.** Write them *Family, Given* or *Given Family*, one per entry
+(Details takes them separated by `;`), or joined by *and* / *&*. A name of one word is a family name.
+Write `van Rossum, Guido` to keep a particle with the family name. A PDF with an ISBN in its details
+is cited as a book.
+
+**The citation key** is the book note's `citekey` when it has one. Otherwise one is proposed: the
+first author's family name, the year, and the first word of the title that is not *a*, *an*, *the*,
+*of*, *on*, *in*, *and*, *for* or *to*, all in lowercase ASCII (`kahneman2011thinking`). The **Citation
+key** field in a book's Details shows the proposed key until you set your own.
+
+**Copy** is all it does. It puts exactly the text the panel shows on your clipboard, only when you
+press it, and says *Copied* with a check, in place, for a moment. There is no notice. Cite writes
+nothing: not the book's note, not a note, not the book. The clipboard is never read.
+
+**It moves like the rest of the Reader.** The panel grows from where you asked: 0.96 → 1 and a
+fade, 120 ms, from the popover or the highlight. The page does not move. It is not a modal: Esc, a
+click outside or a turn of the page put it away, and it shrinks back the same way. Changing the form
+crossfades the text alone. The panel keeps its place and its width, so the chips never jump. Under
+reduced motion it appears, changes and goes at once.
+
+## Listen
+
+Some reading is better heard: a long chapter on a walk round the room, a paper read with tired eyes,
+a pencil in hand with nothing to hold the page. **Listen** reads the book aloud in your device's own
+voices, and the page follows the voice.
+
+![Listen: a chapter read aloud with the paragraph being read softly tinted from behind and a sentence kept with Mark; the listening bar above the reader's bar with previous, pause, next, the speed, the voice, Mark and stop; the 85 % line past which the page moves once to the upper third; the Listen menu with From here, This chapter, the device's voices and the iPad line; Back to the voice after a scroll; and a scanned PDF with Listen disabled](../resources/reader/listen.svg)
+
+- **Where it starts.** **Listen** in the Reader's bar offers **From here** — the paragraph at the top
+  of the page, or the one you last tapped — and **This chapter**, from its start. The selection's
+  popover offers **Read aloud**, after *Look up*, for just the selected words.
+- **Sentence by sentence.** *From here* goes on through the following chapters, turning each one by
+  your [chapter motion](#one-continuous-shot), and the voice goes on as the turn lands; *This chapter*
+  stops at its end; *Read aloud* stops after the selection. [What survived?](#what-survived) never
+  pauses while you listen.
+- **The page follows.** The paragraph being read is softly tinted — a crossfade of the tint alone; the
+  words never move or change weight. The column scrolls only when that paragraph nears the bottom of
+  the view (past 85 %), and then by one smooth move that brings it to the upper third — never a
+  scroll per sentence. In *Page* and *Spread*, the page being read is kept on screen. Scroll away
+  yourself and the page stops following; **Back to the voice** in the listening bar brings it back in
+  one move.
+- **The listening bar** rises at the foot of the column while the voice reads: previous and next
+  sentence, pause and play, the speed (0.75× to 2×), the voice, **Mark** and stop. Your voice and
+  speed are kept **on this device** (voices differ from one device to another), never synced.
+  Leaving the Reader stops listening.
+- **Mark as you hear.** **Mark**, or **H** with nothing selected, keeps the sentence being read as a
+  highlight — with the meaning you used last and the [layer new marks go to](#layers-and-read-it-clean),
+  drawn with the marker's sweep. The voice does not stop. Ink with a pen works while you listen.
+- **Keys**, only while listening: **K** pause or play, **[** and **]** the previous or next sentence,
+  **H** mark, **Esc** stop (after anything open over the page). The shortcuts sheet names them.
+- **Writes nothing.** Listening a chapter through leaves nothing behind: no note, no thought, no entry
+  in Recent. Only a mark you make is kept, as any highlight is.
+
+**Your device's voices only.** The voices are the operating system's, through the Web Speech API, and
+only those the engine marks as speaking **on the device** are offered — a voice it marks as remote
+(`localService: false`) is never used, not even as a fallback, so **no text leaves the device** and
+listening works the same with the network off. The book's language picks the voice: its
+[book's note](library.md)'s `language`, else the book's own (an EPUB's `dc:language`, a chapter's
+`lang`), else an article's `lang`, else the system's default. Where the API is missing, or the device
+has no voice of its own, **Listen is not offered** at all. Some engines list their natural voices as
+remote (macOS may, for Siri's); those are left out, honestly, rather than used.
+
+**A scanned PDF** has no text to read: **Listen** is shown disabled, and says *There is no text to read
+aloud in a scanned PDF*. A designed book (a comic) and a paper in Page view have no Listen; switch the
+paper to its Reading view to hear it.
+
+**On iPad and iPhone, listening stops when the screen locks or you leave Obsidian.** This is a web
+view's limit, not a setting: iPadOS stops a web page's speech in the background. The Listen menu says
+so on those devices. Coming back, listening is **paused at the sentence it reached**, and play goes
+on from there. On a desktop the voice goes on while Obsidian is behind another window.
+
+**It moves like the rest of the Reader.** The tint crossfades in 120 ms; the bar rises 8 px with a fade
+in 250 ms and sinks as it goes; the follow is one smooth scroll. Under reduced motion the tint and the
+column jump and the bar simply appears; nothing glides.
+
+## Snapshot a figure or a table
+
+In a paper the argument is often a figure or a table, and a figure cannot be highlighted: it is not
+text. **Snapshot** keeps it the way a highlight keeps words — with where it came from.
+
+![Snapshot: a paper in Page view with Snapshot pressed in the bar and a dashed rectangle dragged around a bar chart; the region flies to a card in the margin, Figure · p. 4, with Add note, Fleeting note, Attach to a note and Cancel, and Nothing is saved until you choose; beside it the three places it can go — a new note's preview with the image, a caption and its source line, a fleeting note in Notes on this page, and Attached to Planning with Open and Undo](../resources/reader/snapshot.svg)
+
+- **Where it is.** **Snapshot** in the bar, beside **Page view**, whenever a paper is shown as
+  printed — [Page view](library.md#page-view), and every page of a scan. Press it and the next drag
+  on a page is a capture: a mouse, a pen, or a finger on an iPad. In the mode a finger drags a
+  rectangle instead of scrolling or turning, and no words are selected. **Esc** or **Snapshot** again
+  leaves it without capturing, and one capture leaves it by itself. Snapshot and the
+  [ink palette](#ink-in-the-margin) never share the page: opening one closes the other.
+- **A picture in a book.** In an EPUB — and on a paper's page drawn as its picture in the Reading
+  view — click the picture and the popover offers **Snapshot this image**: the picture **as the book
+  holds it**, its own bytes and format, never re-encoded.
+- **Sharp, never a screenshot.** A dragged region is drawn again by the PDF engine at **twice the size
+  it has on screen**, up to 4,096 px on its long side (and 16 million pixels in all, which an iPad's
+  memory allows). A rectangle smaller than about 20 px on a side captures nothing and says *Drag
+  around a figure or a table*. Nothing in the image is read as text.
+- **The card.** The capture flies to a card in the margin — *Figure · p. 4*, or *Image · chapter 3* —
+  with the picture and **where it goes**:
+    - **Add note** — a preview of a new note: the image embedded, a line for **your caption**, and
+      `source:: [[the paper#page=4|its title]] p. 4`. **Create note** writes it, create-only, at a free
+      path in Obsidian's *Default location for new notes*, and the Library counts it as a note
+      [born from the paper](library.md).
+    - **Fleeting note** — a thought in [Think](../architecture/thought-lab.md) about the source,
+      carrying the image and its page, listed at once under *Notes on this page*, as its picture.
+    - **Attach to a note** — Obsidian's own picker; the image and its `source::` line are added at the
+      end of the note you pick, and the line says *Attached to «Note»* with **Open** and **Undo**.
+    - **Cancel** (or **Esc**) — the card goes, and nothing was written.
+- **Nothing is saved until you choose.** Choosing saves the image as an attachment — where your
+  *Settings → Files and links → Default location for new attachments* puts it, named after the source
+  and the place (`Reference class forecasting p. 4.png`), at a free path — and what refers to it, as
+  **one recorded batch**: one **Undo**, on the card or in Home → Recent, takes both back. The book is
+  never written, and a capture is never put on the clipboard.
+
+### The snapshot flies to where it goes
+
+While you drag, only the rectangle is drawn: nothing on the page moves and nothing is dimmed. On
+release the region lifts off the page (scale 1 → 1.02) and travels to its card (`cover`, 400 ms, the
+shared curve), **becoming** the card's picture — the same picture all the way, never a second one
+fading in. A choice sends it on: the note's preview grows out of the card (0.96 → 1 and a fade); a
+fleeting note's picture flies into its row under *Notes on this page*; an attached one goes off
+towards the margin's edge, and the status line takes the card's place. **Cancel** lets the card sink
+8 px and fade (`base`, 250 ms). Any key or touch during a flight lands it at once, and under reduced
+motion the card is simply there, and simply goes.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your
@@ -771,7 +946,8 @@ themselves.
 - **Found by its words.** A bookmark keeps where it is in the text, and the words there — the way a
   highlight is found again — so a change of font, size, layout or device lands on the same line. In
   a PDF's Page view a bookmark is its page.
-- **Contents · Bookmarks · Where you've been.** The Contents panel has three tabs. **Bookmarks** lists
+- **Contents · Overview · Bookmarks · Where you've been.** The Contents panel has four tabs; the
+  [overview](#the-overview) is every page or chapter as a card. **Bookmarks** lists
   the book's bookmarks in reading order: the chapter or page, the first words of the line and when it
   was made (*now*, *2 days ago*); tap one to go there, or remove it in place. Neither tab counts
   anything.
@@ -795,6 +971,68 @@ chapter it is the chapter turn you chose in **Settings → Reading**, towards th
 back is its reverse. On landing, the line is marked for a moment by a quiet wash under the words —
 *you are here* — and then nothing. Under reduced motion every move is instant, and the mark shows for
 a moment without fading.
+
+## The overview
+
+Every page of a book or a paper at once, as cards — the page overview of a reMarkable, in the Reader.
+It answers the question a paper reader answers by flicking through: *where was that picture, that
+dense part, the chapter I marked all over?* It is never more than one tap away.
+
+![The overview: the pages-grid button on the Reader's bar; a flowing book's chapters as cards, each the start of its page in your type, with a highlight's tick at its edge, the pen of an ink note, the bookmark's ribbon and a hairline of how far you read; and the page you were reading shrinking into its card as the camera pulls back](../resources/reader/overview.svg)
+
+- **One tap from the bar.** The pages-grid button on the Reader's bar, named *Overview*, is there for
+  every EPUB and every PDF, in the reading view and in Page view — no menu, no view to change first.
+  It opens **Contents** straight on its **Overview** tab, with the card you are on in the middle,
+  marked as current. The same button again, **Esc**, a tap outside the panel or the panel's **×**
+  closes it, on the same page you left. A note reading has no overview: it has neither pages nor a
+  book's chapters.
+- **Contents · Overview · Bookmarks · Where you've been.** The overview is also a tab of every book's
+  and every paper's Contents. *Contents* is the book's own table of contents, with its names and
+  nesting; the overview is the book as you would see it, with your marks on it. Neither counts
+  anything.
+- **A page, or a chapter.** A PDF's pages are page cards — small pictures of the printed page, with
+  the paper's own labels (*p. iv*), turned as you turned them in Page view — in **both** views: the
+  overview never switches a paper to Page view or back. A comic's or a picture book's designed pages
+  are page cards too, each drawn as it was made inside its own boundary, so nothing in it runs and
+  nothing is fetched. A flowing book's pages change with your type, your layout and your window, so
+  its unit is the **chapter**: one card each, named as Contents names it, showing how its page starts
+  — in your face, size and theme, or its opening picture. A book that mixes the two shows each part
+  as itself, in reading order; a right-to-left book reads from the right.
+- **Your marks, never a number.** A highlight is a small tick in its meaning's colour along the card's
+  edge, at its place in the chapter once the card is drawn; an ink note is a pen; a bookmark is the
+  ribbon at the corner. Two highlights at one place are one tick, and a card with no marks shows
+  nothing at all.
+- **How far you read.** A chapter card has a hairline at its foot: filled to your place in the chapter
+  you are in, filled in a chapter you read to its end, empty otherwise — never a percentage. A page
+  is too small a unit for one: its card carries the current marker instead.
+- **A card goes there.** Tap or click a card, or reach it with **Tab**, the arrow keys and **Enter**.
+  A page card lands on that page, in the view you are in; a chapter card on the chapter's start —
+  except the chapter you are in, which lands on your place, never back at its top. Each pick leaves a
+  place on [where you've been](#bookmarks-and-where-youve-been), so you can go back.
+- **Light on memory.** A card is a blank sheet of its shape, with its label, until it scrolls near;
+  only then is it drawn, and a card far away gives its picture back. A 600-page paper, a 300-page
+  comic or a 120-chapter book opens its overview at once.
+- **It writes nothing.** Opening, browsing and picking change only your place and the trail. The
+  chapters you read to their end are kept in the plugin's data beside your place, for the hairline —
+  never in a note, never in the book.
+
+### The camera pulls back
+
+The overview is filmed in [one continuous shot](../manifesto.md#one-continuous-shot), never a panel
+that swaps its contents. Opening it, the page you are reading shrinks into its own card while the
+cards around it settle in from just behind it (400 ms). A card you pick flies from its slot to where
+its page sits and *becomes* it — in another chapter the flight is the move, with no chapter turn on top
+— and the overview steps aside; in the chapter you are in, your line is marked for a moment, *you
+are here*. Closing without a pick is the same shot backwards: the card grows back into the page. A
+card's picture fades in once when it is first drawn (120 ms). Any key, click or touch during a shot
+jumps it to its end, and a second pick never queues behind the first. Under reduced motion every move
+is instant, nothing fades, and your place is still continuous.
+
+On an iPad, a **pinch inward** on a flowing page shrinks the page under your fingers, and let go small
+enough it lands in its card in the overview; short of that it springs back. In Page view and in a
+designed book a pinch zooms, as always — the overview opens only past the smallest zoom. A pinch
+outward on a card pushes back into it. On a desktop a trackpad's pinch is Page view's zoom, so the
+button is the door there.
 
 ## Highlights and notes in the margin
 
@@ -832,6 +1070,50 @@ you write the note, the passage stays marked; cancel and the mark goes.
   still think so? See [A few things you marked](highlights-review.md).
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
+
+## Layers, and read it clean
+
+A book read twice carries two readings on top of each other: what struck you the first time, what
+you wrote back to it later, the references you chased for a project. **Layers** keep each pass in its
+own ink, and **read it clean** puts every mark away so the page is just the book again — then gives
+your thinking back, **in the order you had it**.
+
+![Layers, and read it clean: a chapter mid-reveal, marks returning one after another under still words with their notes sliding into the margin; the Layers panel with Reading, Reflection and Research, each with what it is for and a switch, New marks go to with Reflection chosen, and Hide my annotations; the bar's Layers button with Reflection beside it; the pill Reading clean · Reveal my thinking](../resources/reader/layers.svg)
+
+- **Three layers.** Every mark is on one: **Reading** (*what you mark the first time*),
+  **Reflection** (*what you write after*) and **Research** (*sources, contradictions, references*). A
+  highlight, a margin note, a page note and [ink](#ink-in-the-margin) all use the same three. A mark
+  made before layers existed is on Reading, and nothing is rewritten for it.
+- **The Layers panel.** **Layers** in the Reader's bar, beside *Contents* and *Type*, lists the three
+  with a switch to show each, and **New marks go to** — Reading until you choose another. A layer
+  with nothing in this chapter is dimmed; nothing in the panel counts.
+- **Remembered per book.** Where new marks go and which layers are hidden are kept for each book,
+  paper or article (or the note a reading began from). When new marks go anywhere but Reading, the
+  layer's name sits quietly beside the button — on a narrow pane, a small dot — so a mark never lands
+  where you did not expect. While a layer is hidden the button reads as active.
+- **Hidden means hidden everywhere.** A hidden layer leaves the page, the margin's list, a PDF's
+  notes on a page, Page view's highlights and ink. The margin's meaning chips narrow too: a mark is
+  shown when its layer is shown *and* its meaning is chosen.
+- **Change a mark's layer** from the menu you get by clicking it, under its meanings: one recorded
+  write you can undo, like changing its meaning.
+- **Hide my annotations** — *read it clean* — puts every mark of every layer away in one quiet fade,
+  and a pill at the top of the column says **Reading clean · Reveal my thinking**. A mark you make
+  while reading clean is shown. Clean lasts for the sitting: open the book again and your marks are
+  there.
+- **Reveal my thinking**, from the pill or the panel, brings them back: the marks of the page on
+  screen return **one by one, in the order you made them**, each where it was, its note sliding in
+  beside it; the rest are simply there.
+- **Hiding never writes.** Hiding, showing and revealing change what is drawn, never what is kept:
+  nothing is written to a thought, a book or the write record.
+
+### The ink moves, never the text
+
+A mark's tint is lifted for the move: the words keep their place and their colour, and only the
+ink under them fades — in as each mark returns (250 ms, the next one 350 ms later, or sooner so a
+whole chapter is back within four seconds), out all at once when you hide (120 ms). Showing or
+hiding one layer fades just its ink. Any key, click or scroll during a reveal completes it at once,
+and a reveal never staggers while you are selecting. Under reduced motion every mark simply
+returns, or leaves, at once.
 
 ## Ink in the margin
 
@@ -1122,6 +1404,114 @@ not a PDF or an EPUB, or not in the vault, is over a cap, misses `file`, `chapte
 field not listed here opens nothing and shows nothing (it is logged at debug). **This shape is a
 public surface:** later versions keep reading it, and any change to it is additive.
 
+## What survived?
+
+A chapter ends and the next one begins in the same breath — and the moment when one of your marks
+could still become a note of your own passes with it. At the end of a chapter worth pausing at, the
+book gives you **a blank leaf** instead: what you marked in the chapter, what it touched in your
+vault, and one question — *is one of these worth a note of its own?* You answer by writing, or you
+turn the leaf and keep reading.
+
+![What survived?: the chapter's last page turning like a leaf onto a page between two chapters — End of chapter 2, What survived?, the chapter's title, two marks in their meanings' colours with the chosen one lifted and its Write a note, your ink, the notes it touched, the question, Keep reading and a quiet Don't pause at chapter ends](../resources/reader/what-survived.svg)
+
+- **When it comes.** Only when all of these hold:
+    - you **turn forward by reading** past the end of a chapter — →, Space or the bar's next at its
+      end, or a swipe on iPad. A Contents jump, a search hit, Home and End, the back pill, a link
+      from a note, a resume or going back never pause;
+    - it is **a real chapter**: at least about 1,500 words in an EPUB, so a cover, a title page or a
+      copyright page never qualifies — or, in a PDF, a top-level section of its outline of at least
+      three pages, read in the reading view. A PDF without an outline, a paper read as printed in
+      Page view, a designed book, an article and a path of notes have no chapter ends;
+    - you **read it in this sitting**: the Reader was on that chapter for at least two minutes. The
+      clock stops while the Reader is hidden — another app, a locked iPad — and is never kept;
+    - **something of yours is in it**: a highlight, a margin note or an ink note, from any sitting.
+      A chapter you marked nothing in never stops you;
+    - it is **not the last chapter** — the book's end card has that place;
+    - you did not skip the last one (below), you are not listening, and the switch is on.
+- **What it shows, and nothing else.** *End of chapter 4* — or *End of* the PDF section's name — the
+  heading **What survived?** and the chapter's title; **Your marks in this chapter**, each in its
+  meaning's colour with its words and your note; **Your ink**, as ink; **It touched** — the notes of
+  yours you crystallized from this chapter, the ones its marks link to, and the ones you opened from
+  it as a peek; and the question.
+- **The answers are yours.** Pick a mark: it lifts, its ink is drawn beside it, and **Write a note**
+  opens the [crystallize preview](#every-note-goes-back-to-its-paragraph) for it, growing from that
+  row. Nothing is written until **Create note**; **Cancel** brings you back to the leaf. A note it
+  touched opens as a peek, where you are.
+- **It never writes for you.** No summary, no key points, no count of what you marked, no score, no
+  AI text — the foot of the leaf says so: *No summary is written for you.* The leaf itself writes
+  nothing, and your place in the book stays the chapter you just finished.
+- **A skip is not asked twice.** Turning on from the leaf within four seconds without touching it
+  is a skip: the next chapter end that would pause does not, and the one after it may. Going back to
+  the chapter with **←**, or jumping elsewhere, is not a skip. Nothing remembers skips
+  beyond that, nothing counts them, and nothing mentions them.
+- **One switch, in three places.** **Pause at chapter ends** — on by default — is in the Reader's
+  **Type** panel, in **Settings → Reading**, and at the foot of the leaf itself as a quiet **Don't
+  pause at chapter ends**. All three are one value. Beside it, **Recall this chapter** puts the chapter
+  away to be written from memory ([Recall](#recall)).
+- **Keys.** **→** or **Space** keep reading; **←** turns back to the chapter's last page; **Esc**
+  leaves the Reader as it always does. The shortcuts sheet lists them.
+
+### A pause, never a modal
+
+The leaf is a page of the book. It arrives by your own chapter motion — *Leaf turns*, *Keeps flowing*
+or *Sheet slides off* in Settings → Reading — and leaves to the next chapter by the same motion, in
+the same direction: no overlay, no backdrop, nothing dimmed, nothing over the text. Once the turn has
+landed its contents settle in the reading column — the ornament, the heading, then your marks one
+after another, each a fade and a 4 px rise 40 ms apart, the question last; any key or touch completes
+the settle at once. **←** plays the arrival backwards onto the chapter's last page. Under reduced
+motion the leaf is simply there, and simply gone; it is still a page between two chapters.
+
+## Recall
+
+Highlighting feels like understanding, and is not: what stays from a chapter is what you can say
+without it in front of you. **Recall this chapter** puts the chapter and your marks away, asks for
+the chapter in your own words, then shows you what you marked — yours first, then the book's, the
+way Think does *think first, then look*. **Read → think → recall → rewrite.**
+
+![Recall: on the left the chapter put away — the page has slid down out of the column as a sheet, leaving the paper and the chapter's title, and beside it the card asks Without looking: what was this chapter's argument? above your words, typo and all, with Reveal what I marked and Done; on the right the page is back with your two marks returning in the order you made them, and the card shows What you wrote — your words, where they were — and under it What you marked then, then Keep it as a note and Done](../resources/reader/recall.svg)
+
+- **Where it is.** In **Contents**, at the top, on the chapter you are in — and at the foot of the
+  [*What survived?*](#what-survived) leaf, for the chapter that just ended: the book goes back onto
+  that chapter first, and recall begins once it has landed. It works on an EPUB's chapter, a paper's
+  section (its outline's, or the page you are on when it has none) and an article's section. A
+  designed book, a paper read as printed in Page view and a path of notes have no recall.
+- **The chapter goes away.** The page slides down out of the column as one sheet and leaves the
+  paper with the chapter's title on it; your highlights, margin notes and ink go with it, through the
+  same *hide* as [reading clean](#layers-and-read-it-clean). Beside the page — or, in portrait on a
+  tablet, in the sheet from the bottom — the card asks **Without looking: what was this chapter's
+  argument?** above a box, *In your own words…*.
+- **Your words, exactly.** What you type is kept as you type it: no spellcheck, no autocorrect, no
+  capitals added, nothing completed or suggested. A typo stays a typo.
+- **Reveal what I marked.** The sheet slides back up, then your marks return **in the order you made
+  them**, as *Reveal my thinking* brings them back. The card's question gives way to **What you
+  wrote** — your words where they were, never moved — and under it **What you marked then**: each
+  mark in its meaning's colour, with its passage and your note. A chapter you marked nothing in says
+  so plainly: *You marked nothing in this chapter*.
+- **Not a test.** Nothing compares your words with your marks, nothing is highlighted as a match,
+  nothing is counted or scored, and there is no streak. It is a way to see what stayed.
+- **Keep it as a note.** A preview shows exactly what will be written: a title (*{the chapter} — in
+  my words*, editable), your words **as you wrote them**, and one line,
+  `source:: [[the book#the chapter|its title]] · the chapter`, so the Library counts the note as
+  [born from the book](library.md). Nothing is written until **Create note**: one new note,
+  create-only, at a free path in Obsidian's *Default location for new notes*, recorded — **Undo** is
+  on the card and in Home → Recent. With a canvas holding the *Crystallizes thoughts* role, the
+  preview continues in that flow instead, which decides the folder, the template and the
+  properties. **Cancel** writes nothing.
+- **Done** leaves recall and writes nothing. When you had not looked yet, the page comes back the way
+  it went, then your marks. What you wrote and did not keep stays as a draft for that chapter while
+  the Reader is open, and comes back if you recall it again; closing the Reader lets it go. Nothing
+  asks you to keep it. **Esc**, the card's ×, another panel or turning to another chapter leave
+  recall the same way.
+
+### One gesture each way
+
+Putting the chapter away is the chapter turn's own sheet sliding down out of the column (`cover`,
+400 ms, the shared curve) while the card's question rises 8 px into place; nothing cuts. The reveal
+plays the same shot backwards: the sheet slides back up, and only once it has landed do your marks
+return, one after another, each row of *What you marked then* arriving with its ink in the page. Any
+key or touch during either move completes it. Under reduced motion the page goes and comes back at
+once, and every mark is simply there.
+
 ## The end of a path
 
 Past the last chapter — **Next**, **Space** or **Finish** — the reading does not just close. An
@@ -1196,7 +1586,8 @@ fits are instant, and a pinch still follows your fingers. See
 
 The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading
 theme), **Font** (your theme's own, or a serif), **Size**, then the finer type — **Line spacing**,
-**Width**, **Margins** and **Justify** — then **Focus mode** and the time left. Each row has its
+**Width**, **Margins** and **Justify** — then **Focus mode**, the time left and
+**Pause at chapter ends** ([what survived?](#what-survived)). Each row has its
 name, and the marker under your choice slides to the next one you pick. Every change applies at
 once, so you choose by looking, and the choices are kept for every book, next time too.
 
@@ -1244,8 +1635,9 @@ No colour is invented: every look comes from your theme.
 ## What it writes
 
 **Nothing, to any note you read.** Reading is the whole job, and a test holds the line: nothing in
-the Reader reaches a file writer — except **Export**, the one button that makes a note, and only
-when you press it: create-only, through `FileService`, in a recorded batch you can undo. The things
+the Reader reaches a file writer — except **Export**, [Recall](#recall)'s **Create note** and
+[Snapshot](#snapshot-a-figure-or-a-table)'s choice, and only when you press them: create-only (or an
+append to the note you picked), through `FileService`, in a recorded batch you can undo. The things
 you can make while reading — a highlight, or ink — are **thoughts** in Think, written through the
 thought store like every other thought, and a second test holds that line too. Ink adds one file to
 its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
@@ -1264,7 +1656,17 @@ judgement record, never a write to a note, and whether it is open and its lens a
 device only. A move by your AI provider writes only what you accept: one thought. **Make it a
 claim** writes one new note when you press *Create* — create-only, through the claim's one writer
 (`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
-the idea's `source` list, through #751's one writer.
+the idea's `source` list, through #751's one writer. **Layers** write only the layer a new mark is made on, beside its meaning (`layer:`, never for Reading), and the layers you show and where new marks go, per book, in the plugin's settings; hiding and revealing write nothing. **What survived?** writes nothing: the time spent on
+a chapter and a skip live in memory only, the switch is one of your type choices, and a note comes
+only from the preview's *Create note*. **Recall** writes nothing while you write, reveal or leave —
+your words are a draft in memory for as long as the Reader is open — and one new note only on its
+preview's *Create note*: create-only, through the Reader's second named writer
+(`readerRecallNote.ts`, over `FileService`), in a recorded batch you can undo. **Snapshot** writes
+nothing while you drag or look at its card; a choice writes the image, as an attachment, and the one
+thing that refers to it — a new note, a fleeting note, or the lines added at the end of the note you
+picked — through the Reader's third named writer (`readerSnapshotSave.ts`, over `FileService` and the
+thought store), as one recorded batch you can undo. **Cite** writes nothing at all: its only act is
+*Copy*, which puts the citation you see on your clipboard.
 
 ## For contributors
 
@@ -1273,7 +1675,8 @@ the idea's `source` list, through #751's one writer.
 - Touch (#750) is decided in pure modules the later slices reuse: `readerDevice.ts` (what the device
   is: `touchPointer`, `isApple`, `canFullscreen`, `panelShape`, `DEVICE_LIMITS`/`tooLarge`),
   `readerGestures.ts` (the classifier: `startGesture` locks a tap, swipe, scroll or press once;
-  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`, `twoFingerBack`;
+  `edgeZone`, `isThing`, `releaseTurn`, `rubberBand`, `completionRate`, `twoFingerBack`, and
+  `twoFingers` — two fingers decided once as a pinch, back or a tap (#776);
   `EDGE_BACK_SWIPE` stays off: the left strip is Obsidian's),
   `readerPlace.ts` (`placeAt`/`scrollFor`: a block and a share of it, kept through a reshape) and
   `readerSheet.ts` (the sheet's heights and settle). `beginChapterScrub` in `readerTurn.ts` builds
@@ -1327,6 +1730,20 @@ the idea's `source` list, through #751's one writer.
   `landHere` as a bookmark — a `Spot` with a `passage` quote, anchored on `foldMarks(chapterText)` and
   put at `READING_LINE` (`readerPlace.ts`) with `ReaderPager.reveal(anchor, travel, line)` — or shows
   `reader-passage-missing`. The protocol handler lives in `ReaderComponent` (`readerLink.ts`).
+- The overview (#776) is `readerOverview.ts`, which #767's `readerThumbs.ts` grew into: pure
+  `overviewUnits` (a PDF's and a designed book's pages, a flowing book's chapters, each part of a
+  mixed book as itself), `cardMarks` (one tick per place and colour — at its share of the drawn text,
+  else at the edge — the pen, the ribbon; never a count), `cardProgress`, `cardPixels` (capped at
+  `CARD_DPR_MAX`), `releaseFarthest` against `OVERVIEW_LIMITS` and `normalizeContentsTab`
+  (`pages` reads as `overview`), and one DOM `renderOverview` (paper sheets, an
+  `IntersectionObserver` from the panel's window, a `draw → let go` seam, a first-draw fade, roving
+  focus). The view draws a card through the run's `drawThumb` in Page view, its own one-at-a-time
+  queue over `SourcePages.render` in the reading view, `SourcePages.mount` for a designed page and
+  `SourceDocument.draw` (pruned to `PREVIEW_BLOCKS`) for a chapter. The shots are `pullBack`,
+  `flyToCard` and `returnToPage` over `fly()`, which now returns its `Animation` so input finishes
+  it. Two fingers are `twoFingers` / `pinchRelease` in `readerGestures.ts`; Page view's run asks the
+  view through `PageRunHost.onPinchOut(scale)`. The chapters read to their end are
+  `SourceMeta.read` (`withRead`, `rememberChapterRead`).
 - Deep reading (#764) is the idle bar grown up, not a new state: page only is `reader--deep` +
   `reader--idle`, the overlay is `reader--deep` alone, so `wake()` and the `IDLE_MS` timer are the
   ones the bar always had, and `idleAllowed()` keeps the chrome while a panel, search or a popover is

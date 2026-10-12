@@ -58,7 +58,7 @@ describe("how a book opens and a chapter turns (#732)", () => {
     it("offers both choices in the Reading section and saves what you pick", async () => {
         const host = plugin({ open: "shot", chapter: "leaf" });
         const group = readingSettingsGroup(host as never) as { items: SettingGroupItem[] };
-        expect(group.items).toHaveLength(2);
+        expect(group.items).toHaveLength(5);
 
         const open = renderRow(group.items[0]);
         expect(open.options.map(([key]) => key)).toEqual(["shot", "instant"]);
@@ -71,6 +71,36 @@ describe("how a book opens and a chapter turns (#732)", () => {
         await chapter.pick("stack");
         expect(host.settings.readingMotion).toEqual({ open: "instant", chapter: "stack" });
         expect(host.saveSettings).toHaveBeenCalledTimes(2);
+    });
+
+    it("pauses at chapter ends until you turn it off, the value the Type panel and the leaf write too (#755 FR-8)", async () => {
+        const host = plugin();
+        const group = readingSettingsGroup(host as never) as { items: SettingGroupItem[] };
+        const item = group.items.find((entry) => (entry as { name?: string }).name === "Pause at chapter ends") as SettingGroupItem;
+        expect(item).toBeDefined();
+        let value: boolean | null = null;
+        let change: ((value: boolean) => unknown) | null = null;
+        const toggle = {
+            setValue(next: boolean) {
+                value = next;
+                return toggle;
+            },
+            onChange(cb: (value: boolean) => unknown) {
+                change = cb;
+                return toggle;
+            },
+        };
+        const draw = () => (item as { render: (s: unknown) => void }).render({ addToggle: (cb: (t: unknown) => void) => cb(toggle) });
+        draw();
+        expect(value).toBe(true);
+        await change!(false);
+        expect((host.settings.readerPrefs as { chapterPause?: boolean }).chapterPause).toBe(false);
+        // Written through the prefs' own reading: everything else the Type panel keeps is kept.
+        expect(host.settings.readerPrefs).toMatchObject({ font: "sans", size: "medium", theme: "auto", timeLeft: true });
+        expect(host.saveSettings).toHaveBeenCalledTimes(1);
+        // Off stays off when the row is drawn again.
+        draw();
+        expect(value).toBe(false);
     });
 
     it("speaks both languages", () => {
@@ -86,6 +116,8 @@ describe("how a book opens and a chapter turns (#732)", () => {
             "settings_reading_chapter_leaf",
             "settings_reading_chapter_flow",
             "settings_reading_chapter_stack",
+            "settings_reading_pause_name",
+            "settings_reading_pause_desc",
         ];
         for (const locale of [en, es] as unknown as Record<string, string>[]) {
             for (const key of keys) expect(locale[key]?.length).toBeGreaterThan(0);

@@ -96,7 +96,8 @@ export function chapterText(root: NodeLike): string {
 /** Elements whose text starts a new block: what a reader sees as a break, and a search must too. */
 const BLOCKS = new Set(["p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre", "td", "th", "dt", "dd", "figcaption", "section", "aside", "article", "tr", "svg", "text"]);
 
-function blockOf(node: NodeLike, root: NodeLike): NodeLike | null {
+/** The block a text node is in: its nearest paragraph, list item, heading or cell (or `root`). */
+export function blockOf(node: NodeLike, root: NodeLike): NodeLike | null {
     let at = (node as TextLike).parentNode as unknown as NodeLike | null;
     while (at && at !== root) {
         const name = (at as ParentLike).nodeName?.toLowerCase();

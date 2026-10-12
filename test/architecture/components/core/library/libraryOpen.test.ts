@@ -33,6 +33,14 @@ describe("opening what is on the shelf (#680, #681)", () => {
         expect(openReader.mock.calls[1][1]).toMatchObject({ source: "B/b.epub", chapter: 0, highlight: "h2" });
     });
 
+    it("opens an article in the Reader at the section it was left on (#744 AC-4)", () => {
+        const article = item({ kind: "article", format: "article", file: "Clippings/x.md", place: 2 });
+        expect(openShelfItem(app, article, null)).toBe(true);
+        expect(openReader.mock.calls[0][1]).toMatchObject({ seed: "Clippings/x.md", source: "Clippings/x.md", chapter: 2 });
+        openShelfItem(app, article, null, { highlight: "h3" });
+        expect(openReader.mock.calls[1][1]).toMatchObject({ source: "Clippings/x.md", chapter: 2, highlight: "h3" });
+    });
+
     it("says no to what it cannot open, so the shelf shows the detail instead", () => {
         expect(openShelfItem(app, item({ kind: "path", format: "path" }), null)).toBe(false);
         expect(openShelfItem(app, item({}), null)).toBe(false);

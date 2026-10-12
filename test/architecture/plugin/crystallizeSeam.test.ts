@@ -147,8 +147,12 @@ describe("crystallize through a flow (#712)", () => {
     it("is opened from the confirmation and nowhere else", () => {
         expect(callersOf(/\bcrystallizeThroughFlow\(/, "crystallizeThroughFlow.ts")).toEqual([
             join("architecture", "components", "core", "lab", "CrystallizeModal.ts"),
+            // Recall's preview (#760 FR-6): your own words, opened only from its *Create note*.
+            join("architecture", "components", "core", "reader", "readerRecallNote.ts"),
         ]);
         expect(MODAL).toContain("onClick(() => void this.apply())");
+        const recallCard = readFileSync(join(SRC, "architecture", "components", "core", "reader", "readerRecall.ts"), "utf8");
+        expect(recallCard).toContain('scope.registerDomEvent(create, "click", () => void this.makeNote());');
     });
 
     it("records the verdict only from the route, once the note is built", () => {

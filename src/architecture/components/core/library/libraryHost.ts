@@ -10,6 +10,10 @@ export interface LibraryHost extends ReaderHost {
         library?: unknown;
         /** Where the last reading note from a notebook went (#721). */
         readingNoteFolder?: string;
+        /** Where a book's note is created (#743), `Library` until you choose. */
+        bookNotesFolder?: string;
+        /** Where articles come from (#744): `Clippings` until you choose; empty turns them off. */
+        articlesFolder?: string;
     };
 }
 

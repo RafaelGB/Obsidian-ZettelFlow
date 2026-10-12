@@ -10,6 +10,13 @@ import {
     releaseTurn,
     rubberBand,
     startGesture,
+    twoFingers,
+    pinchRelease,
+    BACK_SWIPE_PX,
+    PINCH_SHARE,
+    PINCH_TO_CARD,
+    TAP_MS,
+    type TwoFingerTrace,
 } from "architecture/components/core/reader/readerGestures";
 
 const at = (x: number, y: number, t: number) => ({ x, y, t });
@@ -103,5 +110,45 @@ describe("a touch on the page is one gesture (#750)", () => {
         expect(completionRate(0.5, 0.1, 1000, 650)).toBe(1);
         expect(completionRate(0.5, -2, 1000, 650)).toBeCloseTo(1.3, 5);
         expect(completionRate(0.5, 9, 1000, 650)).toBe(3);
+    });
+});
+
+describe("two fingers, decided once (#776 D13, AC-14)", () => {
+    const trace = (over: Partial<TwoFingerTrace>): TwoFingerTrace => ({ moves: [{ dx: 0, dy: 0 }, { dx: 0, dy: 0 }], spread0: 200, spread: 200, ms: 100, lifted: false, ...over });
+
+    it("calls fingers drawing together or apart a pinch, never back", () => {
+        expect(twoFingers(trace({ spread: 120, moves: [{ dx: 80, dy: 0 }, { dx: 80, dy: 0 }] }))).toBe("pinch");
+        expect(twoFingers(trace({ spread: 260 }))).toBe("pinch");
+    });
+
+    it("calls an even sideways sweep back", () => {
+        expect(twoFingers(trace({ moves: [{ dx: BACK_SWIPE_PX, dy: 4 }, { dx: BACK_SWIPE_PX + 6, dy: -3 }], spread: 205 }))).toBe("back");
+    });
+
+    it("calls a quick lift where they came down a tap, and anything else still pending or nothing", () => {
+        expect(twoFingers(trace({ lifted: true, ms: TAP_MS - 50, moves: [{ dx: 2, dy: 1 }, { dx: 1, dy: 3 }] }))).toBe("tap");
+        expect(twoFingers(trace({ lifted: true, ms: TAP_MS + 200 }))).toBe("none");
+        expect(twoFingers(trace({ lifted: false }))).toBe("pending");
+    });
+
+    it("never returns two kinds for one trace", () => {
+        const kinds = new Set<string>();
+        for (const spread of [100, 190, 200, 215, 300]) {
+            for (const dx of [0, 20, BACK_SWIPE_PX, 120]) {
+                for (const lifted of [false, true]) {
+                    const kind = twoFingers(trace({ spread, lifted, moves: [{ dx, dy: 0 }, { dx, dy: 0 }] }));
+                    expect(["pending", "pinch", "back", "tap", "none"]).toContain(kind);
+                    kinds.add(kind);
+                    if (Math.abs(spread - 200) / 200 > PINCH_SHARE) expect(kind).toBe("pinch");
+                }
+            }
+        }
+        expect(kinds.size).toBeGreaterThan(3);
+    });
+
+    it("lands the page in its card when let go small enough, and springs back otherwise (FR-23)", () => {
+        expect(pinchRelease(0.4)).toBe("card");
+        expect(pinchRelease(PINCH_TO_CARD)).toBe("card");
+        expect(pinchRelease(0.7)).toBe("spring");
     });
 });

@@ -8,6 +8,10 @@ export function mimeToExtension(mime: string): string {
         case "image/png": return "png";
         case "image/jpeg": return "jpg";
         case "image/webp": return "webp";
+        // A book's own picture keeps its own format (#763 FR-3).
+        case "image/gif": return "gif";
+        case "image/svg+xml": return "svg";
+        case "image/avif": return "avif";
         case "video/webm": return "webm";
         case "video/mp4": return "mp4";
         default: return "bin";

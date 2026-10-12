@@ -225,7 +225,7 @@ describe("ink is a thought (#745 E6)", () => {
         locator: { at: 3, label: "Ch. 4" },
         ink: { drawing: `${NOW}-ink1.svg`, side: "right", x: 0.125, line: -0.25, em: 16 },
     });
-    const page = newThought({ text: "", id: "ink2", at: NOW, about: "Papers/p.pdf", locator: { at: 0, label: "p. 1" }, ink: { drawing: `${NOW}-ink2.svg`, page: { px: 0.1, py: 0.125, pw: 0.2, ph: 0.05 } }, layer: "reading" });
+    const page = newThought({ text: "", id: "ink2", at: NOW, about: "Papers/p.pdf", locator: { at: 0, label: "p. 1" }, ink: { drawing: `${NOW}-ink2.svg`, page: { px: 0.1, py: 0.125, pw: 0.2, ph: 0.05 } }, layer: "reflection" });
 
     it("round-trips its place beside the words, and on a page, with its layer", () => {
         expect(parseThought(renderThought(text), "Lab/x.md")).toEqual(text);
@@ -251,6 +251,39 @@ describe("ink is a thought (#745 E6)", () => {
         expect(isHighlight(parsed)).toBe(true);
         const garbled = renderThought(text).replace("inkSide: right", "inkSide: up");
         expect(parseThought(garbled, "Lab/x.md").ink).toBeUndefined();
+    });
+});
+
+describe("a mark's layer (#758 AC-1, FR-2)", () => {
+    const quote = { exact: "the words", prefix: "", suffix: "" };
+    const highlight = (layer?: "reading" | "reflection" | "research") =>
+        newThought({ text: "", id: "h1", at: NOW, about: "Books/a.epub", quote, locator: { at: 2, label: "Ch. 3" }, meaning: "question", ...(layer ? { layer } : {}) });
+
+    it("round-trips reflection and research, next to its meaning", () => {
+        for (const layer of ["reflection", "research"] as const) {
+            const made = highlight(layer);
+            expect(renderThought(made)).toContain(`  layer: ${layer}`);
+            expect(parseThought(renderThought(made), "Lab/h.md")).toEqual(made);
+        }
+    });
+
+    it("never writes the reading layer: it is the absence of one", () => {
+        const made = highlight("reading");
+        expect(made.layer).toBeUndefined();
+        expect(renderThought(made)).not.toContain("layer:");
+        expect(renderThought(made)).toBe(renderThought(highlight()));
+    });
+
+    it("leaves a file made before layers byte for byte as it was, re-rendered with no change", () => {
+        const before = renderThought(highlight());
+        expect(renderThought(parseThought(before, "Lab/h.md"))).toBe(before);
+    });
+
+    it("ignores a layer it does not know: the mark reads as reading", () => {
+        const odd = renderThought(highlight()).replace("  meaning: question", ["  meaning: question", "  layer: draft"].join("\n"));
+        expect(parseThought(odd, "Lab/h.md").layer).toBeUndefined();
+        const quoted = renderThought(highlight()).replace("  meaning: question", ["  meaning: question", '  layer: "research"'].join("\n"));
+        expect(parseThought(quoted, "Lab/h.md").layer).toBe("research");
     });
 });
 

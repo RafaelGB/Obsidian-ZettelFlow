@@ -2,7 +2,8 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 import { Component } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { FakeEl } from "../../../../support/textDom";
-import { ReaderHighlights, SELECTION_SETTLE_MS, type HighlightDeps, type HighlightStore, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
+import { ReaderHighlights, SELECTION_SETTLE_MS, type HighlightDeps, type HighlightStore, type HighlightView, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
+import { currentWriteOrigin, writeBatchActive } from "architecture/plugin/writes/recordVaultWrite";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import type { Thought, ThoughtQuote } from "application/thinking/thought";
 
@@ -51,7 +52,7 @@ function memoryStore(initial: Thought[] = []) {
     return store;
 }
 
-function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body: FakeEl = chapter()) {
+function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body: FakeEl = chapter(), view: Partial<HighlightView> = {}) {
     const store = memoryStore(initial);
     const host = new DomNode();
     const margin = new DomNode();
@@ -61,7 +62,7 @@ function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body
     const openThink = jest.fn();
     const copy = jest.fn();
     const highlights = new ReaderHighlights(
-        { app: {} as never, host: host as never, owner, scrollTo: jest.fn(), onChange: jest.fn() },
+        { app: {} as never, host: host as never, owner, scrollTo: jest.fn(), onChange: jest.fn(), ...view },
         {
             store: store as HighlightStore,
             selection: () => selection,
@@ -684,5 +685,60 @@ describe("what the gestures ask of the one engine (#747)", () => {
         const made = m.highlights.items()[0];
         m.highlights.adopt({ ...made, links: [{ to: "other" }] });
         expect(m.highlights.items()[0].links).toEqual([{ to: "other" }]);
+    });
+});
+
+describe("a mark's layer (#758)", () => {
+    it("writes a new mark on the layer chosen for the source, and the reading layer as nothing (AC-2)", async () => {
+        let target: "reading" | "reflection" = "reflection";
+        const m = mount([], {}, chapter(), { layerForNew: () => target });
+        await m.attach();
+        m.select("stores changes");
+        m.body.fire("mouseup");
+        m.button("Idea").click();
+        await flush();
+        expect(m.store.write).toHaveBeenLastCalledWith("", expect.objectContaining({ layer: "reflection" }));
+        target = "reading";
+        m.select("Replay");
+        m.body.fire("mouseup");
+        m.button("Idea").click();
+        await flush();
+        expect(m.store.write.mock.calls[1][1]).not.toHaveProperty("layer");
+    });
+
+    it("shows the three layers in a mark's menu, its own pressed", async () => {
+        const m = mount([{ ...thought("h1", { exact: "Replay rebuilds it", prefix: "", suffix: "" }), layer: "research" }]);
+        await m.attach();
+        m.marks()[0].fire("click");
+        const layers = m.host.findAll((el) => el.classes.has("zettelkasten-flow__reader-hl-layer"));
+        expect(layers.map((el) => el.textContent)).toEqual(["Reading", "Reflection", "Research"]);
+        expect(layers.map((el) => el.getAttribute("aria-pressed"))).toEqual(["false", "false", "true"]);
+        expect(m.host.find((el) => el.classes.has("zettelkasten-flow__reader-hl-layers-label"))?.textContent).toBe("Layer");
+    });
+
+    it("changes a mark's layer in place: one recorded save, and the mark drawn again (AC-4, FR-6)", async () => {
+        const onChange = jest.fn();
+        const m = mount([thought("h1", { exact: "Replay rebuilds it", prefix: "", suffix: "" })], {}, chapter(), { onChange });
+        await m.attach();
+        const inBatch: unknown[] = [];
+        m.store.save.mockImplementation(async () => {
+            // Inside one write batch: the save is recorded, and undoable by its batch.
+            inBatch.push(writeBatchActive() && currentWriteOrigin()?.ref);
+        });
+        onChange.mockClear();
+        m.marks()[0].fire("click");
+        m.button("Reflection").click();
+        await flush();
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledWith(expect.objectContaining({ id: "h1", layer: "reflection" }));
+        expect(inBatch).toEqual(["reader-highlight"]);
+        expect(m.highlights.items()[0].layer).toBe("reflection");
+        expect(onChange).toHaveBeenCalled();
+        expect(m.highlights.hasPopover()).toBe(false);
+        // Back to reading: the field goes, it is never written as reading.
+        m.marks()[0].fire("click");
+        m.button("Reading").click();
+        await flush();
+        expect(m.store.save.mock.calls[1][0]).not.toHaveProperty("layer");
     });
 });

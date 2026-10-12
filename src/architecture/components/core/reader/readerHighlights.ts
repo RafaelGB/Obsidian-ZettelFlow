@@ -13,6 +13,7 @@ import { MOTION, fly, motionWelcome } from "./readerMotion";
 import { touchPointer } from "./readerDevice";
 import { markHereOn } from "./readerHere";
 import { printPageAt, type PageMark } from "application/library/provenance";
+import { DEFAULT_LAYER, MARK_LAYERS, layerOf, type MarkLayer } from "application/thinking/markLayer";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -20,7 +21,7 @@ type LocaleKey = Parameters<typeof t>[0];
 export interface HighlightStore {
     folder(): string;
     highlightsAbout(notePath: string): Promise<Thought[]>;
-    write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator; meaning?: HighlightMeaning }): Promise<Thought | undefined>;
+    write(text: string, options: { about?: string; quote?: ThoughtQuote; locator?: ThoughtLocator; meaning?: HighlightMeaning; layer?: MarkLayer }): Promise<Thought | undefined>;
     save(thought: Thought): Promise<void>;
     /** An ink note's drawing goes with it, and comes back as the answer (#745 E7). */
     discard(thought: Thought): Promise<string | undefined | void>;
@@ -50,6 +51,8 @@ export interface HighlightView {
     scrollTo(el: HTMLElement, travel?: boolean): number | void;
     /** Something changed that a panel might show. */
     onChange(): void;
+    /** The layer new marks go to in this reading (#758 FR-4): reading until you choose another. */
+    layerForNew?(): MarkLayer;
     /** The chapter's ink notes (#745 E9): from the same one read, handed to the ink layer. */
     onInk?(thoughts: Thought[]): void;
     /** The ink notes' rows, beside the highlights in the margin's list. */
@@ -69,6 +72,21 @@ export interface HighlightView {
      * selection is offered, and what each does. The view decides; the popover only draws them.
      */
     lookup?(): LookupActions | null;
+    /**
+     * *Snapshot this image* (#763 FR-2): a picture in a book, or a page of a paper drawn as its
+     * picture, clicked. The view captures it; the popover only offers it.
+     */
+    snapshotImage?(el: HTMLElement, from: ScreenBox): void;
+    /**
+     * *Read aloud* (#765 FR-1), after *Look up* in the popover's last row: the selected words, read
+     * by the device's own voice. Absent where Listen is not offered (no on-device voice).
+     */
+    readAloud?(): ((span: TextSpan) => void) | null;
+    /**
+     * *Cite* (#768 FR-1), after *Copy* in the selection popover and in a highlight's menu: the passage,
+     * cited from where the popover was. Absent where there is no source to cite.
+     */
+    cite?(): ((passage: ThinkPassage, from: ScreenBox) => void) | null;
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -111,7 +129,7 @@ export interface HighlightDeps {
     openThink?: (app: App, notePath: string) => void;
     copy?: (body: HTMLElement, text: string) => void;
     /** A source's highlight into a note (#683): the crystallize preview, never a write of its own. */
-    toNote?: (app: App, thought: Thought) => void;
+    toNote?: (app: App, thought: Thought, origin?: { left: number; top: number; width: number; height: number }) => void;
 }
 
 /** The name each meaning shows (#720). A literal map, so the locale guardrail sees every key. */
@@ -120,6 +138,13 @@ const MEANING_LABEL: Record<HighlightMeaning, LocaleKey> = {
     question: "reader_hl_meaning_question",
     quote: "reader_hl_meaning_quote",
     discuss: "reader_hl_meaning_discuss",
+};
+
+/** The name each layer shows (#758): a literal map, so the locale guardrail sees every key. */
+export const LAYER_LABEL: Record<MarkLayer, LocaleKey> = {
+    reading: "reader_layer_reading",
+    reflection: "reader_layer_reflection",
+    research: "reader_layer_research",
 };
 
 /** What a stroke's highlight says it was kept as (#746 FR-7): the article differs per meaning (G2). */
@@ -349,6 +374,16 @@ export class ReaderHighlights {
         return this.anchored.map((entry) => entry.thought);
     }
 
+    /** Every mark of the chapter on screen (#758): the highlights, the detached ones, the page notes. */
+    allMarks(): Thought[] {
+        return [...this.anchored.map((entry) => entry.thought), ...this.detached, ...this.pageNotes];
+    }
+
+    /** The equations and drawings highlight `id` tints whole (#770): what its ink is, besides its marks. */
+    tintsFor(id: string): HTMLElement[] {
+        return this.tintsOf(id);
+    }
+
     detachedItems(): Thought[] {
         return [...this.detached];
     }
@@ -388,6 +423,8 @@ export class ReaderHighlights {
         // The words can be selected at all only because reader.scss gives the body back the
         // `user-select: text` Obsidian's `body { user-select: none }` takes away (#667).
         component.registerDomEvent(body, "mouseup", () => this.onSelect());
+        // A picture in a book, or a page drawn as its picture, offers itself as a snapshot (#763 FR-2).
+        if (locator && this.view.snapshotImage) component.registerDomEvent(body, "click", (event: MouseEvent) => this.offerImage(event));
         component.registerDomEvent(body, "keyup", (event: KeyboardEvent) => {
             if (event.shiftKey) this.onSelect();
         });
@@ -531,6 +568,59 @@ export class ReaderHighlights {
         this.noteForm(pop, "", (text) => void this.keepPageNote(text));
     }
 
+    /**
+     * A note on this page kept elsewhere — a snapshot's fleeting note (#763 FR-5.2): listed under
+     * *Notes on this page* at once. Its row in the margin, for the picture to land in.
+     */
+    addPageNote(thought: Thought): HTMLElement | null {
+        if (!this.locator || thought.locator?.at !== this.locator.at) return null;
+        this.pageNotes.push(thought);
+        this.noted++;
+        this.renderMargin();
+        this.view.onChange();
+        return this.margin?.querySelector<HTMLElement>(`[data-note="${thought.id}"]`) ?? null;
+    }
+
+    /** That note taken back (its Undo): gone from the list. */
+    removePageNote(id: string): void {
+        const before = this.pageNotes.length;
+        this.pageNotes = this.pageNotes.filter((thought) => thought.id !== id);
+        if (this.pageNotes.length === before) return;
+        this.noted = Math.max(0, this.noted - 1);
+        this.renderMargin();
+        this.view.onChange();
+    }
+
+    /** The picture a note is, when its text is one embedded image: `![[x.png]]` or `![](x.png)`. */
+    private embeddedImage(thought: Thought): string | null {
+        const text = thought.text.trim();
+        const link = /^!\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]$/.exec(text)?.[1] ?? /^!\[[^\]]*\]\(<?([^)>]+)>?\)$/.exec(text)?.[1];
+        if (!link || !/\.(png|jpe?g|gif|webp|svg|avif)$/i.test(link)) return null;
+        const app = this.view.app;
+        try {
+            const file = app.metadataCache?.getFirstLinkpathDest?.(decodeURI(link.trim()), thought.about ?? "");
+            return file ? (app.vault.getResourcePath?.(file) ?? null) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    /** A click on a picture (FR-2): the popover offers *Snapshot this image*, and nothing else. */
+    private offerImage(event: MouseEvent): void {
+        const target = event.target as { closest?: (s: string) => HTMLElement | null } | null;
+        const el = target?.closest?.("img, canvas") ?? null;
+        const picture = el && (el.getAttribute("data-zf-src") || el.classList.contains(c("reader-page-picture")));
+        if (!el || !picture || !this.view.snapshotImage || this.currentQuote()) return;
+        const r = el.getBoundingClientRect();
+        const from: ScreenBox = { left: r.left, top: r.top, width: r.width, height: r.height };
+        const pop = this.openPopover({ left: event.clientX, top: event.clientY, width: 0, height: 0 }, "mark", true);
+        const actions = pop.createDiv({ cls: c("reader-hl-actions") });
+        this.button(actions, "reader_snapshot_image", true, () => {
+            this.hidePopover();
+            this.view.snapshotImage?.(el, from);
+        });
+    }
+
     /** Draw the margin's list again: an ink note was kept or taken away (#745). */
     refreshMargin(): void {
         this.renderMargin();
@@ -547,8 +637,11 @@ export class ReaderHighlights {
         if (this.pageNotes.length > 0) {
             host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_page_notes") });
             for (const thought of this.pageNotes) {
-                const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--page")] });
-                row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
+                const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--page")], attr: { "data-note": thought.id } });
+                // A snapshot kept as a fleeting note (#763): its picture, not its embed's text.
+                const picture = this.embeddedImage(thought);
+                if (picture) row.createEl("img", { cls: c("reader-hl-snapshot"), attr: { src: picture, alt: "" } });
+                else row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
             }
         }
         if (this.anchored.length === 0 && this.detached.length === 0) return;
@@ -567,7 +660,7 @@ export class ReaderHighlights {
         if (this.detached.length === 0) return;
         host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_detached") });
         for (const thought of this.detached) {
-            const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--detached")] });
+            const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--detached")], attr: { "data-hl": thought.id } });
             row.createDiv({ cls: c("reader-hl-quote"), text: snippet(thought.quote?.exact ?? "") });
             if (thought.text.trim()) row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
             const open = row.createEl("button", {
@@ -659,8 +752,32 @@ export class ReaderHighlights {
                 this.status("reader_hl_copied");
             });
         }
+        if (locator) this.citeButton(actions, { quote: found.quote, locator }, () => found.selection.clear());
         this.lookupButtons(actions, found.quote.exact, found.selection);
+        const aloud = this.view.readAloud?.();
+        if (aloud) {
+            this.button(actions, "reader_listen_selection", false, () => {
+                this.hidePopover();
+                found.selection.clear();
+                aloud(found.span);
+            }).setAttribute("data-zf-listen", "");
+        }
         if (locator) this.thinkRow(pop, { quote: found.quote, locator });
+    }
+
+    /**
+     * *Cite* (#768 FR-1, FR-10): the popover goes, and the cite panel grows from where it was — the
+     * page does not move. It writes nothing; the panel copies only when you press its *Copy*.
+     */
+    private citeButton(actions: HTMLElement, passage: ThinkPassage, clear?: () => void): void {
+        const cite = this.view.cite?.();
+        if (!cite) return;
+        this.button(actions, "reader_cite", false, () => {
+            const r = (this.popover ?? actions).getBoundingClientRect();
+            this.hidePopover();
+            cite(passage, { left: r.left, top: r.top, width: r.width, height: r.height });
+            clear?.();
+        }).setAttribute("data-zf-cite", "");
     }
 
     /**
@@ -874,6 +991,17 @@ export class ReaderHighlights {
     }
 
     /**
+     * Mark while listening (#765 FR-6): the sentence the voice is reading, kept as a highlight — the
+     * meaning used last (#720) and the layer new marks go to (#758), with the marker's sweep. The same
+     * engine as a selection's *Idea*; nothing else is written, and the voice is not stopped.
+     */
+    markSpan(start: number, end: number): Promise<Thought | undefined> {
+        const found = this.quoteFor(start, end);
+        if (!found) return Promise.resolve(undefined);
+        return this.keepSpan(found.span, found.quote, { origin: "selection" });
+    }
+
+    /**
      * A passage of a printed page in Page view (#746 FR-9): the same write as any highlight, about the
      * paper and cited at that page. Its marks are the ink layer's rectangles over the page.
      */
@@ -903,12 +1031,18 @@ export class ReaderHighlights {
         const cited = locator && !quote.heading && locator.label ? { ...quote, heading: locator.label } : quote;
         try {
             await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: notePath }, async () => {
-                made = await this.store.write(note.trim(), { about: notePath, quote: cited, ...(locator ? { locator } : {}), meaning });
+                made = await this.store.write(note.trim(), { about: notePath, quote: cited, ...(locator ? { locator } : {}), meaning, ...this.newLayer() });
             });
         } catch (error) {
             log.error(`[Reader] could not keep a highlight on ${notePath}: ${String(error)}`);
         }
         return made;
+    }
+
+    /** The layer a mark made now goes to (#758 FR-4); the reading layer is never written. */
+    private newLayer(): { layer?: MarkLayer } {
+        const layer = this.view.layerForNew?.() ?? DEFAULT_LAYER;
+        return layer === DEFAULT_LAYER ? {} : { layer };
     }
 
     private counted(note: string, meaning: HighlightMeaning, remember = true): void {
@@ -1095,7 +1229,7 @@ export class ReaderHighlights {
         let made: Thought | undefined;
         try {
             await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: notePath }, async () => {
-                made = await this.store.write(text.trim(), { about: notePath, locator });
+                made = await this.store.write(text.trim(), { about: notePath, locator, ...this.newLayer() });
             });
         } catch (error) {
             log.error(`[Reader] could not keep a note on ${notePath}: ${String(error)}`);
@@ -1298,6 +1432,18 @@ export class ReaderHighlights {
         for (const meaning of HIGHLIGHT_MEANINGS) {
             this.meaningButton(meanings, meaning, meaning === meaningOf(thought), () => void this.changeMeaning(thought, meaning));
         }
+        // Its layer, changed in place where its meaning is (#758 FR-6).
+        const layers = pop.createDiv({ cls: c("reader-hl-layers"), attr: { role: "group", "aria-label": t("reader_hl_layer") } });
+        layers.createSpan({ cls: c("reader-hl-layers-label"), text: t("reader_hl_layer") });
+        for (const layer of MARK_LAYERS) {
+            const on = layer === layerOf(thought);
+            const button = layers.createEl("button", {
+                cls: [c("reader-hl-layer"), ...(on ? ["is-active"] : [])],
+                text: t(LAYER_LABEL[layer]),
+                attr: { type: "button", "aria-pressed": String(on), "data-layer": layer },
+            });
+            (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", () => void this.changeLayer(thought, layer));
+        }
         const actions = pop.createDiv({ cls: c("reader-hl-actions") });
         this.button(actions, note ? "reader_hl_edit_note" : "reader_hl_add_note", true, () => {
             const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
@@ -1311,6 +1457,7 @@ export class ReaderHighlights {
                 this.toNote(this.view.app, thought);
             });
         }
+        if (thought.locator && thought.quote) this.citeButton(actions, { quote: thought.quote, locator: thought.locator, highlight: thought });
         this.button(actions, "reader_hl_delete", false, () => void this.forget(thought));
         this.button(actions, "reader_hl_open_think", false, () => {
             this.hidePopover();
@@ -1428,6 +1575,31 @@ export class ReaderHighlights {
             }
         }
         this.lastMeaning = meaning;
+        this.renderMargin();
+        this.view.onChange();
+        this.hidePopover();
+    }
+
+    /**
+     * Move a highlight to another layer (#758 FR-6): the thought saved as one recorded, undoable write,
+     * and drawn again — where its layer is hidden, it leaves the page.
+     */
+    async changeLayer(thought: Thought, layer: MarkLayer): Promise<void> {
+        if (layerOf(thought) === layer) {
+            this.hidePopover();
+            return;
+        }
+        const next: Thought = { ...thought, layer };
+        if (layer === DEFAULT_LAYER) delete next.layer;
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not move a highlight to another layer: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
+        if (entry) entry.thought = next;
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();

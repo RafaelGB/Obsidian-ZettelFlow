@@ -3,8 +3,13 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss"];
-const SCRIPTS = [join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"), join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources")];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss"];
+const SCRIPTS = [
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),
+    // The Library's own motion (#743): a book's Details, a card changing row, a chip dropping in.
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "library"),
+];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);
 
@@ -67,6 +72,17 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
             expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
         }
         expect(reduced).toMatch(/transition: none;\s*animation: none;/);
+    });
+
+    it("crossfades Listen's tint by its opacity alone, and jumps under reduced motion (#765 AC-8, FR-11)", () => {
+        const css = sheet("components/readerListen.scss");
+        const transitions = [...css.matchAll(/transition:\s*([^;]+);/g)].map((m) => m[1].trim());
+        expect(transitions).toEqual(["opacity $motion-fast $ease-out", "none"]);
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain(".zettelkasten-flow__reader-listen-para::before");
+        expect(reduced).toMatch(/transition: none;/);
+        // The words never move: the tint is a layer behind them, never the paragraph's own box.
+        expect(css).not.toMatch(/reader-listen-now\s*\{[^}]*(font-weight|padding|margin)/);
     });
 
     it("gives the look-up card and its ink an instant equivalent (#766 AC-11)", () => {
@@ -349,5 +365,41 @@ describe("waiting on your AI provider feels like a pen about to write (#759 FR-1
         const at = css.indexOf(".zettelkasten-flow__reader-bar-dot {");
         const block = css.slice(at, css.indexOf("\n}", at));
         expect(block).toContain("transition: opacity $motion-fast $ease-out;");
+    });
+});
+
+describe("the overview is a camera, never a swap (#776 AC-15)", () => {
+    const css = sheet("components/readerSource.scss");
+
+    it("moves its cards in and its pictures in by transform and opacity only", () => {
+        const frames = [...css.matchAll(/@keyframes\s+(zf-reader-overview[\w-]*)\s*\{([\s\S]*?)\n\}/g)];
+        expect(frames.map((m) => m[1]).sort()).toEqual(["zf-reader-overview-arrive", "zf-reader-overview-in"]);
+        for (const frame of frames) {
+            const props = [...frame[2].matchAll(/^\s*([a-z-]+)\s*:/gm)].map((m) => m[1]);
+            expect(props.every((prop) => prop === "transform" || prop === "opacity")).toBe(true);
+        }
+    });
+
+    it("is instant under reduced motion: the arrival, the fade and the tall sheet", () => {
+        const own = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(own).toContain(".zettelkasten-flow__reader-overview--arriving");
+        expect(own).toContain(".zettelkasten-flow__reader-overview-picture--drawn");
+        const reader = sheet("components/reader.scss");
+        const reduced = [...reader.matchAll(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/g)].map((m) => m[1]).join("\n");
+        expect(reduced).toContain(".zettelkasten-flow__reader-panel--tall,");
+        expect(reduced).toContain(".zettelkasten-flow__reader-overview-picture {");
+    });
+
+    it("pinches the page by a transform only, never a size", () => {
+        const reader = sheet("components/reader.scss");
+        const rule = reader.slice(reader.indexOf(".zettelkasten-flow__reader-stage--pinching {"));
+        const body = rule.slice(0, rule.indexOf("}"));
+        expect(body).toContain("scale: var(--zf-pinch-s, 1);");
+        expect(body).not.toMatch(/\b(width|height|zoom)\s*:/);
+    });
+
+    it("keeps its card picture to a grid of transforms: the preview is scaled, never laid out small", () => {
+        const preview = css.slice(css.indexOf(".zettelkasten-flow__reader-overview-preview {"));
+        expect(preview.slice(0, preview.indexOf("\n}\n"))).toContain("transform: scale(var(--zf-card-scale, 0.16));");
     });
 });

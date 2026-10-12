@@ -152,7 +152,7 @@ describe("the Folders ZettelFlow uses grid (#766 FR-2, AC-7)", () => {
         const p = plugin({ folder: "Reading/Dicts", languages: {}, translateInto: "" });
         const go = jest.fn();
         let refresh: (() => void) | null = null;
-        const cells = items(foldersSettingsGroup(p as never, () => true, jest.fn(), () => undefined, { go, onPointer: (fn) => (refresh = fn) }));
+        const cells = items(foldersSettingsGroup(p as never, () => true, jest.fn(), () => undefined, { dictionaries: { go, onPointer: (fn) => (refresh = fn) } }));
         const row = draw(byName(cells, "Dictionaries"));
         expect(row.searches).toHaveLength(0);
         expect(row.settingEl.oneByClass("settings-folder-path").text).toBe("Reading/Dicts");
@@ -166,8 +166,8 @@ describe("the Folders ZettelFlow uses grid (#766 FR-2, AC-7)", () => {
 
     it("is wired in the tab, under Reading, and in the grid", () => {
         const tab = readFileSync(join(__dirname, "..", "..", "src", "config", "modals", "ZettelFlowSettingsTab.tsx"), "utf8");
-        expect(tab.indexOf("dictionariesSettingsGroup(plugin")).toBeGreaterThan(tab.indexOf("readingSettingsGroup(plugin)"));
+        expect(tab.indexOf("dictionariesSettingsGroup(plugin")).toBeGreaterThan(tab.indexOf("readingSettingsGroup(plugin"));
         expect(tab.indexOf("dictionariesSettingsGroup(plugin")).toBeLessThan(tab.indexOf('this.sectionHead("ai")'));
-        expect(tab).toContain("go: () => this.goToDictionariesFolder()");
+        expect(tab).toContain('go: () => this.goToFolderRow("settings-dictionaries-folder", "reading")');
     });
 });

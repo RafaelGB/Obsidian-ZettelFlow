@@ -1,7 +1,6 @@
 import type { App, Component } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { hoverPreview } from "architecture/components/core/a11y";
 import type { ShelfItem } from "application/library/shelf";
 import type { Thought } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
@@ -10,8 +9,6 @@ import type { OpenAt } from "./libraryOpen";
 export interface DetailParts {
     app: App;
     scope: Component;
-    /** The notes citing this source. */
-    born: readonly string[];
     cover(parent: HTMLElement): HTMLElement;
     facts(parent: HTMLElement): void;
     scanned(parent: HTMLElement): void;
@@ -20,6 +17,12 @@ export interface DetailParts {
     close(): void;
     /** Open the source's notebook (#721); absent for a saved path. */
     notebook?: () => void;
+    /** The book's note, edited in place (#743); absent for a saved path. */
+    details?: (parent: HTMLElement) => void;
+    /** What it produced in your vault (#752), drawn where *Notes born from it* was. */
+    produced?: (parent: HTMLElement) => void;
+    /** *Cite this book* (#768 FR-1): the cite panel, grown from the button; absent for a saved path. */
+    cite?: (from: HTMLElement) => void;
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -73,8 +76,9 @@ export function groupHighlights(item: ShelfItem, thoughts: readonly Thought[]): 
 
 /**
  * **A source, in detail** (#680): its cover and what it is, what came of it — the reading, the
- * highlights, the notes born from it — and every highlight, grouped, each one a way back to the
- * passage. Writes nothing.
+ * highlights, what it produced in your vault (#752) — and every highlight, grouped, each one a way
+ * back to the passage. Writes nothing itself: its *Details* (#743) write the book's note, and only
+ * when you change something.
  */
 export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailParts): void {
     const { scope } = parts;
@@ -96,6 +100,11 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
         const notebook = actions.createEl("button", { attr: { type: "button" }, text: t("notebook_title") });
         scope.registerDomEvent(notebook, "click", () => parts.notebook?.());
     }
+    // The whole source, cited (#768 FR-1): no passage, the panel growing from the button.
+    if (parts.cite && item.kind !== "path") {
+        const cite = actions.createEl("button", { attr: { type: "button", "data-zf-cite": "" }, text: t("shelf_cite_book") });
+        scope.registerDomEvent(cite, "click", () => parts.cite?.(cite));
+    }
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());
 
@@ -109,17 +118,11 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     stat(String(item.highlights), t("shelf_detail_highlights"));
     if (item.kind !== "path") stat(String(item.born), t("shelf_detail_born"), item.born > 0 ? "shelf-detail-stat--born" : undefined);
 
-    if (parts.born.length > 0) {
-        aside.createEl("h3", { cls: c("shelf-section"), text: t("shelf_detail_born_title") });
-        const list = aside.createDiv({ cls: c("shelf-born-list") });
-        for (const path of parts.born) {
-            const row = list.createEl("button", { cls: c("shelf-born-row"), attr: { type: "button" } });
-            row.createSpan({ cls: c("shelf-born-mark"), text: "◆", attr: { "aria-hidden": "true" } });
-            const name = row.createSpan({ cls: c("shelf-born-name"), text: noteName(path) });
-            hoverPreview(parts.app, name, path, scope);
-            scope.registerDomEvent(row, "click", () => void parts.app.workspace.openLinkText(path, "", false));
-        }
-    }
+    // What the book is and what it is to you, part of the same sheet (#743 FR-14).
+    if (item.kind !== "path") parts.details?.(aside);
+
+    // What it produced in your vault (#752): the notes born from it, grown into the lists of what it changed.
+    parts.produced?.(aside);
 
     aside.createEl("h3", { cls: c("shelf-section"), text: t("shelf_detail_highlights_title") });
     const list = aside.createDiv({ cls: c("shelf-detail-highlights") });

@@ -10,6 +10,8 @@ export interface ReaderHost {
     settings?: {
         readerPrefs?: unknown;
         readerResume?: Record<string, { chapter: number; total: number; at: number }>;
+        /** Each reading's layers (#758): where new marks go, which are hidden. Read through `normalizeLayerPrefs()`. */
+        readerLayers?: unknown;
         readerSaved?: unknown;
         /** What the Library knows about each source, and where you are in it (#680, #681). */
         library?: unknown;
@@ -17,6 +19,8 @@ export interface ReaderHost {
         readingMotion?: unknown;
         /** Look up's dictionaries folder and Translate's target (#766): read through `dictionarySettings()`. */
         dictionaries?: unknown;
+        /** The citation form chosen last (#768): read through `citeFormOf()`. */
+        citeForm?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

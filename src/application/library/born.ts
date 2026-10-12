@@ -17,15 +17,31 @@ export interface CitingIdea {
     claims: readonly { sources: readonly { ref: string; kind?: string }[] }[];
 }
 
-/** The notes citing each PDF or EPUB, by the source's path, each list in path order. */
-export function notesBornFrom(ideas: Iterable<CitingIdea>): Map<string, string[]> {
+/**
+ * The notes citing each PDF or EPUB, by the source's path, each list in path order.
+ *
+ * A **book's note** (#743) is never one of them, even when it also cites its book: it is the book,
+ * not something that came of it. Its path is handed in `exclude`.
+ *
+ * An **article** (#744) is a note, not a file the vault calls a source: `resolve` names the shelf
+ * item a link that is not a PDF or an EPUB stands for (`Clippings/The case for slow software.md`),
+ * or `null` when it stands for none.
+ */
+export function notesBornFrom(
+    ideas: Iterable<CitingIdea>,
+    exclude: ReadonlySet<string> = new Set(),
+    resolve: (ref: string) => string | null = () => null
+): Map<string, string[]> {
     const out = new Map<string, Set<string>>();
     for (const idea of ideas) {
+        if (exclude.has(idea.path)) continue;
         for (const claim of idea.claims) {
             for (const source of claim.sources) {
-                if (source.kind !== "link" || !sourceFormat(source.ref)) continue;
-                let notes = out.get(source.ref);
-                if (!notes) out.set(source.ref, (notes = new Set()));
+                if (source.kind !== "link") continue;
+                const ref = sourceFormat(source.ref) ? source.ref : resolve(source.ref);
+                if (!ref || ref === idea.path) continue;
+                let notes = out.get(ref);
+                if (!notes) out.set(ref, (notes = new Set()));
                 notes.add(idea.path);
             }
         }

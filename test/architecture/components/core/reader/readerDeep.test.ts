@@ -50,6 +50,12 @@ describe("deep reading: the pure rules (#764)", () => {
         // A proposal card (#748) is nearer than anything: Esc dismisses it first, with no verdict.
         expect(escapeStep({ proposal: true, shortcuts: true, palette: true })).toBe("proposal");
         expect(escapeStep({ deep: true })).toBe("deep");
+        // Snapshot mode (#763 AC-6): after a popover, before the ink palette (they never share the page).
+        expect(escapeStep({ snapshot: true, palette: true, panel: true })).toBe("snapshot");
+        expect(escapeStep({ popover: true, snapshot: true })).toBe("popover");
+        // Listening (#765): after what floats over the page, before Snapshot, the palette or a panel.
+        expect(escapeStep({ popover: true, listen: true })).toBe("popover");
+        expect(escapeStep({ listen: true, snapshot: true, palette: true, panel: true, deep: true })).toBe("listen");
         expect(escapeStep({})).toBe("exit");
     });
 });

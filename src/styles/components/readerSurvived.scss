@@ -1,0 +1,164 @@
+@use '../utils/mixins' as *;
+@use '../utils/motion' as *;
+
+/*
+ * What survived? (#755, epic #742) — a blank leaf between two chapters: a page of the book, not a
+ * card and never a window over the text. The reading column's own type and palette, the theme's
+ * colours only (§XV). It moves by the chapter turn and by its settle, transform and opacity only,
+ * both scripted (readerSurvivedLeaf.ts); nothing here animates, and reduced motion has it at once.
+ */
+
+.zettelkasten-flow__reader-survived {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-4);
+    padding: var(--size-4-8) 0 var(--size-4-6);
+    font-family: var(--reader-font);
+    color: var(--reader-fg);
+
+    /* The chapter's own ornament, here at once: the leaf opens with it (FR-12). */
+    .zettelkasten-flow__reader-ornament {
+        opacity: 1;
+        scale: 1;
+        margin-bottom: 0;
+    }
+}
+
+/* In pages the leaf is one page: it never breaks across two, and a long one scrolls in its own. */
+.zettelkasten-flow__reader--layout-page,
+.zettelkasten-flow__reader--layout-spread {
+    .zettelkasten-flow__reader-survived {
+        box-sizing: border-box;
+        height: 100%;
+        overflow-y: auto;
+        break-inside: avoid;
+    }
+}
+
+.zettelkasten-flow__reader-survived-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-1);
+    text-align: center;
+
+    .zettelkasten-flow__reader-chapter-title {
+        margin: 0;
+    }
+}
+
+.zettelkasten-flow__reader-survived-chapter {
+    color: var(--reader-muted);
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-survived-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+/* A mark: the margin's own row, which lifts when chosen and shows its meaning's ink beside it. */
+.zettelkasten-flow__reader-survived-mark {
+    position: relative;
+    padding: 0;
+    transform-origin: left center;
+
+    &.is-active {
+        transform: scale(1.02);
+    }
+}
+
+button.zettelkasten-flow__reader-survived-pick {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--size-4-1);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-2) var(--size-4-3);
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__reader-survived-ink-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(-1 * var(--size-4-3));
+    width: var(--size-4-1);
+    border-radius: var(--radius-s);
+    background-color: var(--zf-ink-solid, var(--interactive-accent));
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center;
+}
+
+.zettelkasten-flow__reader-survived-mark.is-active > .zettelkasten-flow__reader-survived-ink-bar {
+    opacity: 1;
+    transform: none;
+}
+
+.zettelkasten-flow__reader-survived-write {
+    align-self: flex-start;
+    margin: 0 var(--size-4-3) var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-survived-touched {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+button.zettelkasten-flow__reader-survived-note {
+    @include text-link-button;
+    font-family: var(--reader-font);
+}
+
+/* The one question, last: the reader's own voice, set like a line of the book. */
+.zettelkasten-flow__reader-survived-question {
+    margin-top: var(--size-4-2);
+    text-align: center;
+    font-size: 1.15em;
+    font-style: italic;
+}
+
+.zettelkasten-flow__reader-survived-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-survived-keep {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+button.zettelkasten-flow__reader-survived-quiet {
+    @include text-link-button;
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__reader-survived-no-summary {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+/* The crystallize preview, asked from a row, grows out of it (#755 FR-13): the origin is the row. */
+.zettelkasten-flow__crystallize-grown {
+    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-survived-mark.is-active {
+        transform: none;
+    }
+}

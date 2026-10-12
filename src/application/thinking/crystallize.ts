@@ -124,13 +124,15 @@ function wordsOf(thought: Thought): string {
 /**
  * The link that cites a highlight's passage: the note, and the heading it sat under. A passage of
  * a PDF or an EPUB (#683) cites the file — its extension kept, so the link resolves — and the
- * place in it as a reader writes it: `[[Thinking, Fast and Slow.epub]] p. 42`.
+ * place in it as a reader writes it: `[[Thinking, Fast and Slow.epub]] p. 42`. A passage of an
+ * article (#744) cites the clipping as a note, and its section: `[[Clippings/Slow software]] Speed`.
  */
 export function citationOf(thought: Thought): string | undefined {
     if (!isHighlight(thought) || !thought.about) return undefined;
     if (thought.locator) {
         const where = thought.locator.label.replace(/[[\]|]/g, " ").replace(/\s+/g, " ").trim();
-        return `[[${thought.about}]]${where ? ` ${where}` : ""}`;
+        // An article is a note, linked the way a note is: without its `.md` (#744 FR-7).
+        return `[[${thought.about.replace(/\.md$/i, "")}]]${where ? ` ${where}` : ""}`;
     }
     const note = thought.about.replace(/\.md$/i, "");
     const heading = thought.quote?.heading?.replace(/[#|[\]^]/g, " ").replace(/\s+/g, " ").trim();
@@ -253,7 +255,9 @@ export function renderCrystallized(
     const cited = (plan.sources ?? []).map((link) => `source:: ${link}`);
     const tail = cited.length > 0 ? `\n\n${cited.join("\n")}` : "";
     const head = properties ? renderSourceProperties(plan) : "";
-    return `${head}${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}${tail}\n`;
+    // Born from no thought — a chapter recalled in your own words (#760): no empty heading for it.
+    const provenance = plan.frozen.length > 0 || plan.omitted > 0 ? `\n\n${renderProvenance(plan, heading, omittedLine)}` : "";
+    return `${head}${body.trim()}${provenance}${tail}\n`;
 }
 
 /**

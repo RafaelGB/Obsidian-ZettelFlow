@@ -310,6 +310,13 @@ export const BUDGETS = {
         because:
             "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
     },
+    "reader.overview.600": {
+        name: "build the overview of a 600-page paper, a 300-page comic and a 120-chapter book, and scroll each from first card to last",
+        // ~4x the first measurement: the fake DOM's cost, not pixels; the held count is asserted beside it.
+        limit: 100,
+        measured: "23 ms",
+        because: "the overview must open a long book without drawing it (#776 FR-17): built at once, drawn only near view, the pictures held at the cap",
+    },
     "library.epub.fxl.window.300": {
         name: "turn a 300-page fixed-layout comic end to end in Spread: pair its pages, lay out each view, keep what the run keeps",
         // ~4.5x the first measurement (a millisecond is noise on a busy runner); the held count is asserted beside it.
@@ -342,9 +349,10 @@ export const BUDGETS = {
             "it is built on the first settle after the vault changes (#754 FR-15); under 50 ms it needs no idle build, and a regression past that would make the first paragraph after an edit wait",
     },
     "library.shelf.500": {
-        name: "build, order and search the Library shelf of 500 sources and 30 saved paths",
+        name: "build, order, filter and search the Library shelf of 500 sources, each with its book's note, and 30 saved paths",
         limit: 10,
-        measured: "1.7 ms",
+        // With 200 Web Clipper articles read off the cache on top (#744 AC-8); 2.9 ms without them on the same machine.
+        measured: "3.5 ms",
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
@@ -372,8 +380,21 @@ export const BUDGETS = {
         // 2,700 → 2,800 (#756): R2's ink (#748, #749) and R3's provenance (#751), Alongside (#754) and the
         // vault's moves (#756) bring it to 2,719 KB — a WebGL library coming back is still a megabyte over.
         // The AI's six moves (#759) add 16 KB: 2,735 KB, under the same ceiling.
-        limit: 2_800,
-        measured: "2,735 KB",
+        // 2,800 → 2,900 (#743): R3's claim sheet (#762) and look-up (#766) bring main to 2,789 KB; the
+        // book's note (#743) adds 24 KB: 2,813 KB — a WebGL library coming back is still a megabyte over.
+        // Articles (#744) add 12 KB: 2,825 KB, under the same ceiling.
+        // The overview (#776), which #767's Pages tab grew into, adds 18 KB: 2,843 KB.
+        // R4's what it produced (#752), the chapter end (#755) and layers (#758) bring it to 2,883 KB;
+        // recall (#760) adds 14 KB: 2,897 KB — under the ceiling, with almost nothing left for the next slice.
+        // 2,900 → 3,000 (#763): Snapshot adds 18 KB (the mode, its card and flight, the one writer), 2,915 KB.
+        // Looked for something to subtract first: it reuses the attachment saver (#386), the note picker
+        // (#641), #751's citation and Page view's own renderer instead of adding its own; the Reader's unused
+        // exports are test-only and already tree-shaken, so taking them out would not shrink main.
+        // A WebGL library coming back is still a megabyte over.
+        // Listen (#765) brings it to 2,935 KB; Cite (#768) adds 14 KB — the five forms, the one panel the
+        // Reader and the Library share, built on #751's link and #743's note: 2,949 KB, under the ceiling.
+        limit: 3_000,
+        measured: "2,949 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

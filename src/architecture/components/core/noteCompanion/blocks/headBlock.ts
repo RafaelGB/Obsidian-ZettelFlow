@@ -11,6 +11,7 @@ import { openZettelFlowSettings } from "architecture/components/core/surface/ope
 import { noteOrigins, pageOf, type NoteOrigin } from "application/library/born";
 import { passageLink, serializePlace, type PassagePlace } from "application/library/provenance";
 import { sourceFormat } from "application/library/sourceMeta";
+import { bookOfNote } from "architecture/components/core/library/bookNoteIndex";
 import type { LifecycleStep, NoteVitals } from "architecture/knowledge/state";
 import { CompanionBlock, noteName, type CompanionContext, type CompanionModel } from "./CompanionBlock";
 
@@ -237,6 +238,9 @@ export class HeadBlock extends CompanionBlock {
         } catch {
             return;
         }
+        // A book's note is the book, not a note born from it (#743 FR-12): its own book is no origin.
+        const own = bookOfNote(ctx.app, file);
+        if (own) origins = origins.filter((origin) => ctx.app.metadataCache.getFirstLinkpathDest(origin.link, path)?.path !== own);
         if (origins.length === 0 || head.isConnected === false) return;
         const row = head.createDiv({ cls: c("note-companion-origin") });
         setIcon(row.createSpan({ cls: c("note-companion-origin-icon") }), "library");

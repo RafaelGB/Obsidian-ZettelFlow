@@ -1,4 +1,5 @@
 import type { HighlightMeaning } from "application/thinking/highlightMeaning";
+import type { MarkLayer } from "application/thinking/markLayer";
 import { TFile } from "obsidian";
 import type { ThoughtRef } from "architecture/knowledge/timeline/timelineEvents";
 import { v4 as uuid4 } from "uuid";
@@ -85,6 +86,8 @@ export class ThoughtStore {
             meaning?: HighlightMeaning;
             /** The Reader's move it was accepted from (#756). */
             madeBy?: ThoughtMadeBy;
+            /** The layer a mark is made on (#758): absent, or reading, is never written. */
+            layer?: MarkLayer;
         } = {}
     ): Promise<Thought | undefined> {
         const folder = this.folder();
@@ -148,7 +151,7 @@ export class ThoughtStore {
             quote?: ThoughtQuote;
             locator?: ThoughtLocator;
             ink: DistributiveOmit<ThoughtInk, "drawing">;
-            layer?: string;
+            layer?: MarkLayer;
         },
         svg: string
     ): Promise<Thought | undefined> {
@@ -270,6 +273,29 @@ export class ThoughtStore {
                 if ((thought.quote?.exact || thought.locator) && thought.about === notePath) out.push(thought);
             } catch (error) {
                 log.warn("[lab] could not read a highlight", error);
+            }
+        }
+        return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
+     * Every thought about a note or a source (#752), read in full: its highlights and what answers
+     * them — a challenge, a fork — since a response inherits the note its thread is about. Which
+     * files to read is decided from the metadata cache, as `highlightsAbout` does.
+     */
+    public async thoughtsAbout(notePath: string): Promise<Thought[]> {
+        if (!notePath || !this.folder()) return [];
+        const out: Thought[] = [];
+        for (const file of this.files()) {
+            try {
+                const front = ObsidianApi.metadataCache().getFileCache(file)?.frontmatter?.["zfThought"] as
+                    | Record<string, unknown>
+                    | undefined;
+                if (!front || front["about"] !== notePath) continue;
+                const thought = parseThought(await ObsidianApi.vault().cachedRead(file), file.path);
+                if (thought.about === notePath) out.push(thought);
+            } catch (error) {
+                log.warn("[lab] could not read a thought", error);
             }
         }
         return out.sort((a, b) => a.at - b.at);

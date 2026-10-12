@@ -66,6 +66,15 @@ export interface EpubPackage {
     language?: string;
     /** What the book declares about its pages (#771), when it declares anything. */
     rendition?: Rendition;
+    /** Every `dc:creator`, in order (#743): the book's note keeps them all. */
+    authors?: string[];
+    /** `dc:publisher` and `dc:date`, as written (#743). */
+    publisher?: string;
+    date?: string;
+    /** Every `dc:identifier`'s text — an ISBN among them, perhaps (#743). */
+    identifiers?: string[];
+    /** The series: EPUB 3 `belongs-to-collection`, or Calibre's `calibre:series` (#743). */
+    series?: string;
 }
 
 export interface TocEntry {
@@ -166,6 +175,17 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
     const title = metadata ? clean(firstNamed(metadata, "title")?.textContent) : "";
     const author = metadata ? clean(firstNamed(metadata, "creator")?.textContent) : "";
     const language = metadata ? languageTag(firstNamed(metadata, "language")?.textContent) : undefined;
+    // What the book's note is filled from (#743): read here, kept nowhere until a note is made.
+    const all = (name: string) => (metadata ? elementsNamed(metadata, name).map((node) => clean(node.textContent)).filter(Boolean) : []);
+    const authors = all("creator");
+    const publisher = all("publisher")[0] ?? "";
+    const date = all("date")[0] ?? "";
+    const identifiers = all("identifier");
+    const metas = metadata ? elementsNamed(metadata, "meta") : [];
+    const series =
+        metas.map((node) => (attr(node, "property") === "belongs-to-collection" ? clean(node.textContent) : "")).find(Boolean) ??
+        metas.map((node) => (attr(node, "name") === "calibre:series" ? attr(node, "content") : "")).find(Boolean) ??
+        "";
 
     const manifest: ManifestItem[] = [];
     const byId = new Map<string, ManifestItem>();
@@ -218,6 +238,11 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         ...(progression === "rtl" || progression === "ltr" ? { direction: progression } : {}),
         ...(language ? { language } : {}),
         ...(rendition ? { rendition } : {}),
+        ...(authors.length > 0 ? { authors } : {}),
+        ...(publisher ? { publisher } : {}),
+        ...(date ? { date } : {}),
+        ...(identifiers.length > 0 ? { identifiers } : {}),
+        ...(series ? { series } : {}),
     };
 }
 

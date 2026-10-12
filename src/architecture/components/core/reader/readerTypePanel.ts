@@ -247,7 +247,7 @@ function toggleRow(host: HTMLElement, icon: string, key: LocaleKey, on: boolean,
 /**
  * The whole panel, read top to bottom (#757 FR-10): **Layout** first (Scroll · Page · Spread, #753),
  * then the look, the face and the size, then the finer type — line spacing, width, margins, justify —
- * then focus mode and the time left. Every pick hands the next prefs to `onPick`.
+ * then focus mode, the time left and the pause at chapter ends (#755). Every pick hands the next prefs to `onPick`.
  */
 export function renderTypePanel(
     host: HTMLElement,
@@ -274,4 +274,6 @@ export function renderTypePanel(
     if (prefs.justify && context.hyphenatedAs) host.createDiv({ cls: c("reader-type-hint"), text: t("reader_hyphenated_as", context.hyphenatedAs) });
     toggleRow(host, "focus", "reader_focus", prefs.focus, scope, () => onPick({ ...prefs, focus: !prefs.focus }));
     toggleRow(host, "hourglass", "reader_time_left_toggle", prefs.timeLeft, scope, () => onPick({ ...prefs, timeLeft: !prefs.timeLeft }));
+    // What survived? (#755 FR-8): the same switch as Settings → Reading and the leaf's own.
+    toggleRow(host, "pause", "reader_chapter_pause_toggle", prefs.chapterPause, scope, () => onPick({ ...prefs, chapterPause: !prefs.chapterPause }));
 }

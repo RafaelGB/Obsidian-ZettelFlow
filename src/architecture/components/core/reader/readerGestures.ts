@@ -185,3 +185,38 @@ export function completionRate(progress: number, vx: number, width: number, dura
 export function twoFingerBack(moves: readonly { dx: number; dy: number }[]): boolean {
     return moves.length >= 2 && moves.every((move) => move.dx >= BACK_SWIPE_PX && move.dx > LOCK_RATIO * Math.abs(move.dy));
 }
+
+/** Two fingers whose spread changed by this share are pinching (#767's own threshold, shared). */
+export const PINCH_SHARE = 0.08;
+/** A pinch let go at or under this scale of the page lands in its card: the overview (#776 FR-23). */
+export const PINCH_TO_CARD = 0.5;
+
+export type TwoFingerKind = "pending" | "pinch" | "back" | "tap" | "none";
+
+/** Two fingers so far (#776 D13): what each moved, how far apart they started and are, for how long. */
+export interface TwoFingerTrace {
+    moves: readonly { dx: number; dy: number }[];
+    spread0: number;
+    spread: number;
+    ms: number;
+    lifted: boolean;
+}
+
+/**
+ * What two fingers are, decided once (#776 D13, AC-14), as one finger is (#750 FR-4): drawn together
+ * or apart, a **pinch**; swept sideways at an even distance, **back** along the trail (#761); lifted
+ * quickly where they came down, a **tap** (ink's undo, #745). Never two of these at once.
+ */
+export function twoFingers(trace: TwoFingerTrace): TwoFingerKind {
+    const change = trace.spread0 > 0 ? Math.abs(trace.spread - trace.spread0) / trace.spread0 : 0;
+    if (change > PINCH_SHARE) return "pinch";
+    if (twoFingerBack(trace.moves)) return "back";
+    const still = trace.moves.every((move) => Math.max(Math.abs(move.dx), Math.abs(move.dy)) < SLOP_PX);
+    if (!trace.lifted) return "pending";
+    return still && trace.ms <= TAP_MS ? "tap" : "none";
+}
+
+/** A pinch let go (#776 FR-23): small enough, the page carries on into its card; else it springs back. */
+export function pinchRelease(scale: number): "card" | "spring" {
+    return scale <= PINCH_TO_CARD ? "card" : "spring";
+}

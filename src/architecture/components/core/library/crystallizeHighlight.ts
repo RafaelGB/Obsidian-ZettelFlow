@@ -4,7 +4,7 @@ import { planCrystallization } from "application/thinking/crystallize";
 import { setAside } from "application/thinking/incubation";
 import { thoughtPath, type Thought } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { CrystallizeModal } from "architecture/components/core/lab/CrystallizeModal";
+import { CrystallizeModal, type CrystallizeOrigin } from "architecture/components/core/lab/CrystallizeModal";
 
 /**
  * **From passage to note** (#683, epic #675): a highlight made in a PDF or an EPUB, crystallized
@@ -14,10 +14,12 @@ import { CrystallizeModal } from "architecture/components/core/lab/CrystallizeMo
  * as born from the book. The note is the only thing written: never the source (L5) — a PDF or an
  * EPUB is never offered as a place to append to.
  *
+ * `origin` is the row it was asked from — *What survived?*'s mark (#755): the preview grows out of it.
+ *
  * Made into a note, the highlight is set aside — never deleted — exactly as crystallizing in Think
  * and in the review does (#590).
  */
-export function crystallizeHighlight(app: App, thought: Thought, done?: (path?: string) => void): void {
+export function crystallizeHighlight(app: App, thought: Thought, done?: (path?: string) => void, origin?: CrystallizeOrigin): void {
     const store = ThoughtStore.getInstance();
     const plan = planCrystallization([thought], { [thought.id]: thoughtPath(store.folder(), thought) });
     if (!plan) return;
@@ -32,6 +34,10 @@ export function crystallizeHighlight(app: App, thought: Thought, done?: (path?: 
             }
             done?.(path);
         },
-        thought.about
+        // A passage read as a source — a book, a paper, an article (#744) — is never appended back
+        // into what it was read in: an article is a note, and reading it never writes it (FR-10).
+        thought.locator ? undefined : thought.about,
+        // The row it was asked from, when there is one (#755 FR-13): the preview grows out of it.
+        origin
     ).open();
 }

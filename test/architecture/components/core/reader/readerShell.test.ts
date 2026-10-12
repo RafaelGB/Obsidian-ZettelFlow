@@ -204,7 +204,7 @@ describe("the reader view (#668)", () => {
         typeButton.click();
         const sepia = content.byClass("reader-type-option").find((b) => b.textContent === "Sepia")!;
         sepia.click();
-        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia", focus: false, timeLeft: true, layout: "scroll", spacing: "normal", width: "medium", margins: "medium", justify: false });
+        expect(plugin.settings.readerPrefs).toEqual({ font: "sans", size: "medium", theme: "sepia", focus: false, timeLeft: true, layout: "scroll", spacing: "normal", width: "medium", margins: "medium", justify: false, chapterPause: true });
         const root = content.children[0];
         expect(root.hasClass("theme-light")).toBe(true);
         expect(root.hasClass("zettelkasten-flow__reader--theme-sepia")).toBe(true);
@@ -229,11 +229,12 @@ describe("the reader writes no note (#667 R2)", () => {
         });
     }
 
-    it("reaches no writer anywhere under its module, but the export you press (#672)", () => {
+    it("reaches no writer anywhere under its module, but the export, the recall and the snapshot you press (#672, #760, #763)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
-        const exporter = join(dir, "readerExport.ts");
+        // The named writers, and nothing else: each is pressed for, create-only and recorded.
+        const named = ["readerExport.ts", "readerRecallNote.ts", "readerSnapshotSave.ts"].map((f) => join(dir, f));
         for (const f of sources(dir)) {
-            if (f === exporter) continue;
+            if (named.includes(f)) continue;
             const src = readFileSync(f, "utf8");
             for (const writer of ["FileService", "FrontmatterService", ".modify(", ".process(", ".create(", "processFrontMatter", ".append("]) {
                 expect({ file: f.replace(dir, "reader"), writer, found: src.includes(writer) }).toEqual({
@@ -243,6 +244,16 @@ describe("the reader writes no note (#667 R2)", () => {
                 });
             }
         }
+    });
+
+    it("puts a mark away in one place only: the layers and the ink lift (#758 FR-11)", () => {
+        const dir = join(ROOT, "src/architecture/components/core/reader");
+        const rel = (f: string) => f.replace(dir, "reader").replace(/\\/g, "/");
+        const naming = sources(dir).filter((f) => readFileSync(f, "utf8").includes("reader-highlight--away"));
+        expect(naming.map(rel)).toEqual(["reader/readerInkLift.ts"]);
+        // What toggles it is imported by the layers alone — Recall (#760) goes through MarkVisibility.
+        const toggling = sources(dir).filter((f) => /\b(putAway|liftInk|fadeOwn)\(/.test(readFileSync(f, "utf8")));
+        expect(toggling.map(rel).sort()).toEqual(["reader/readerInkLift.ts", "reader/readerLayers.ts"]);
     });
 
     it("exports create-only, through FileService, in a recorded batch (#672)", () => {
@@ -255,10 +266,45 @@ describe("the reader writes no note (#667 R2)", () => {
         }
     });
 
+    it("keeps a recall create-only, through FileService, in a recorded batch (#760 AC-4)", () => {
+        const src = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerRecallNote.ts"), "utf8");
+        expect(src).toContain("FileService.createFile(");
+        expect(src).toContain("withWriteBatch(");
+        expect(src).toContain("freeExportPath(");
+        for (const writer of ["FrontmatterService", ".modify(", ".process(", "processFrontMatter", ".append(", "vault.create("]) {
+            expect({ writer, found: src.includes(writer) }).toEqual({ writer, found: false });
+        }
+        // The card writes nothing itself, and hides no mark itself: the view's port does both (AC-2).
+        const card = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerRecall.ts"), "utf8");
+        for (const forbidden of ["FileService", "withWriteBatch", "reader-highlight--away", "putAway", "MarkVisibility("]) {
+            expect({ forbidden, found: card.includes(forbidden) }).toEqual({ forbidden, found: false });
+        }
+    });
+
+    it("keeps a snapshot in one recorded batch, through the attachment saver and FileService (#763 AC-4)", () => {
+        const src = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerSnapshotSave.ts"), "utf8");
+        expect(src).toContain("withWriteBatch(");
+        expect(src).toContain("saveExportToVault(");
+        expect(src).toContain("FileService.createFile(");
+        expect(src).toContain("FileService.appendTo(");
+        expect(src).toContain("freeExportPath(");
+        for (const writer of ["FrontmatterService", ".modify(", ".process(", "processFrontMatter", "vault.create(", "navigator.clipboard", "writeText("]) {
+            expect({ writer, found: src.includes(writer) }).toEqual({ writer, found: false });
+        }
+        // The card writes nothing itself, and never touches the clipboard: the named writer does the writing.
+        const card = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerSnapshot.ts"), "utf8");
+        for (const forbidden of ["FileService", "withWriteBatch", "saveExportToVault", "navigator.clipboard", "writeText(", "store.write("]) {
+            expect({ forbidden, found: card.includes(forbidden) }).toEqual({ forbidden, found: false });
+        }
+    });
+
     it("writes highlights and ink only as thoughts, through the thought store (#671, #745)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
         const writers = sources(dir).filter((f) => /\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/.test(readFileSync(f, "utf8")));
-        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/")).sort()).toEqual(["reader/readerAiMoves.ts", "reader/readerHighlights.ts", "reader/readerInk.ts", "reader/readerInkReading.ts", "reader/readerVaultMoves.ts"]);
+        expect(writers.map((f) => f.replace(dir, "reader").replace(/\\/g, "/")).sort()).toEqual(["reader/readerAiMoves.ts", "reader/readerHighlights.ts", "reader/readerInk.ts", "reader/readerInkReading.ts", "reader/readerSnapshotSave.ts", "reader/readerVaultMoves.ts"]);
+        // A snapshot's fleeting note (#763 FR-5.2) is one new thought, and nothing else.
+        const snapshot = readFileSync(join(dir, "readerSnapshotSave.ts"), "utf8");
+        expect([...snapshot.matchAll(/\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/g)].map((m) => m[1])).toEqual(["write"]);
         // An AI move you kept (#759 FR-7) is one new thought, and nothing else.
         const ai = readFileSync(join(dir, "readerAiMoves.ts"), "utf8");
         expect([...ai.matchAll(/\bstore\.(write|writeInk|save|saveDrawing|discard|restore)\(/g)].map((m) => m[1])).toEqual(["write"]);

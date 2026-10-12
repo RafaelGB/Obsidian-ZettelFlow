@@ -1,5 +1,5 @@
 ---
-description: Your Library — the PDFs and EPUBs already in your vault and the reading paths you saved, on one shelf, with what came of each one. Local only; your files are never modified.
+description: Your Library — the PDFs and EPUBs already in your vault, the articles you clip with Web Clipper and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never modified.
 ---
 
 # Your Library
@@ -24,12 +24,13 @@ a sidebar: the shelf narrows, the cards get smaller and *Continue reading* stack
 
 ## The shelf
 
-Three kinds of things share the shelf:
+Four kinds of things share the shelf:
 
 | Kind | What it is | Its cover |
 |---|---|---|
 | **Books** | the EPUBs in your vault, and any PDF longer than sixty pages | the book's own cover |
 | **Papers** | the PDFs in your vault up to sixty pages | the PDF's first page |
+| **Articles** | the pages you saved with Obsidian Web Clipper (see [Articles from Web Clipper](#articles-from-web-clipper)) | drawn, in one of your theme's colours |
 | **Paths** | the [reading paths](reader.md) you saved at the end of one | a constellation of its notes |
 
 **Nothing is imported.** A source is a file that is already in your vault, in any folder: drop a book
@@ -44,14 +45,27 @@ Each card says **what came of it**:
 - **how many passages you highlighted** in it;
 - **how many notes were born from it** — the notes that cite it as their source (see
   [From passage to note](#from-passage-to-note));
-- **when you last read it**, or *Never opened*.
+- **when you last read it**, or *Never opened* — or, once it has one, where it stands for you:
+  *Want to read* or *Finished* (see [A book's note](#a-books-note)).
 
 **Continue reading** leads the shelf: the two things you were last in and have not finished, with
-where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**.
+where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**. A book you marked
+*Finished*, or put back to *Want to read*, is not offered there. **Want to read** follows it, only
+when something is in it, and the rest of the shelf comes after.
 
-Above the shelf: **All · Books · Papers · Paths**, each with its count; a search over titles and
-authors (*sonke* finds *Sönke*); and the order — **Recently read** (never-opened things come last,
-by title), **Most highlighted** or **Title**. The Library remembers the filter and the order.
+**Recently added** follows *Continue reading*: what came into the vault in the last thirty days and
+is not finished, newest first — one row, as many as fit. A book you dropped in yesterday is found
+the day it lands, not among five hundred. *Added* is when the file came into the vault, or an
+article's `created` when Web Clipper wrote one. The row is hidden when nothing came in, and while
+the shelf is filtered or searched. A file that arrives while the Library is open settles into the
+row — a touch smaller and clear, to itself — and the cards beside it make room; nothing moves when
+the shelf is first drawn, and under reduced motion it is simply there.
+
+Above the shelf: **All · Books · Papers · Articles · Paths**, each with its count; a search over titles,
+authors, series and collections (*sonke* finds *Sönke*); and the order — **Recently read**
+(never-opened things come last, by title), **Most highlighted**, **Title** or **Recently added**. Under them, a second
+row: **All · Reading · Want to read · Finished** — each status once something stands there — and
+**Every collection** with each collection in use. The Library remembers the filters and the order.
 
 ### A scanned PDF says so before you open it
 
@@ -63,10 +77,194 @@ and read it.
 ## A source in detail
 
 **⋯** on a card opens its detail, over the shelf: the cover, the title and author, the file, and three
-facts — how far you have read and when, your highlights, and the notes born from it. Below them, the
-**notes born from it**, each one a click away (Ctrl/Cmd-hover to preview), and **your highlights,
+facts — how far you have read and when, your highlights, and the notes born from it. Below them,
+[**what it produced in your vault**](#what-a-book-produced-in-your-vault), and **your highlights,
 by chapter** — every passage with your note under it, each one opening the source at that passage.
-**Esc** or **Close** puts the detail away.
+**Esc** or **Close** puts the detail away. However far down the shelf you are, the detail and its
+dim cover the pane where you are, and the shelf waits under them: closing the detail leaves you
+exactly where you were.
+
+The detail also holds the book's **Details** — see [A book's note](#a-books-note).
+
+### Cite this book
+
+**Cite this book**, beside **Open** in a source's detail, opens the Reader's
+[cite panel](reader.md#cite-a-passage) for the whole book, with no passage: Markdown, inline, a
+citation key, BibTeX or CSL JSON, drawn from the book's note (or an article's own properties). It
+grows from the button. Esc puts it away and the detail stays. If a form lacks something, **Add it**
+puts the cursor in that field of the Details below. Cite writes nothing; **Copy** puts the citation
+on your clipboard.
+
+## What a book produced in your vault
+
+A source's detail answers *what did this book do to my thinking?* — as **lists, never a score**.
+Under **What it produced in your vault**, each list is shown only when it has something in it:
+
+![What a book produced in your vault: the six lists in the Library's detail, no count beside any heading, and a pair opened in a split beside the Library](../resources/library/produced.svg)
+
+| List | What it is built from |
+|---|---|
+| **Notes born from it** | the notes whose `source` links the book (the list the detail always had) |
+| **Ideas it led to** | notes a note born links to, made after you first read the book — your first highlight, or the first note born, whichever came first — that do not cite it themselves |
+| **Links you made** | the links and typed relations from a note born, or from one of the book's highlights, to a note of yours not born from it: *A ↔ B*, with the relation's name when it has one |
+| **Tensions** | `contradicts` with a note born at either end, and the book's highlights you answered with a challenge in Think |
+| **Open questions** | questions a note born asks that nothing answers yet (the vault's open questions, narrowed to this book) |
+| **Still unresolved** | the book's highlights still on your bench in Think: not crystallized into a note and not set aside — a *Question* highlight among them until you do either |
+
+- **Nothing is inferred.** Every list is read off what the vault already holds — links, typed
+  relations, `source` citations, dates and Think's thoughts. Nothing is classified by its text and
+  nothing is proposed.
+- **No numbers.** A list has a heading and its items: no count, no total, no percentage, no bar. Past
+  five items, **Show all** shows the rest in place.
+- **The book's note is the book** ([A book's note](#a-books-note)): it is in none of the lists,
+  wherever it is kept, and its own links — collections, tags — are not links you made.
+- **Each item opens what it names.** A note opens in the editor (Ctrl/Cmd-hover previews it); a pair
+  opens in a split beside the Library, A above B, while the detail stays where it is; a highlight
+  opens the Reader at its passage; a challenge opens Think on the book.
+- **The same for a paper and an article.** A saved path shows only *Still unresolved*, about its
+  notes.
+- **While your vault is still being read** the section says *Reading your vault…* and fills in when
+  it is ready; the rest of the detail works meanwhile. A book nothing came of yet says *Nothing yet.
+  What you make from this book shows here.*
+- **Motion.** The first time you open a book's detail, the items rise into place a few milliseconds
+  apart; the next time they are simply there. Under reduced motion everything appears at once.
+- **It writes nothing.** Opening the detail adds nothing to *What ZettelFlow changed*.
+
+*Ideas it led to* uses a note's creation date as Obsidian knows it, which a sync or a copy can reset.
+Computing the lists over a 10,000-note vault takes about 2 ms, so they cost nothing to open.
+
+## A book's note
+
+**Every book and paper can have a note of its own**: an ordinary Markdown note whose properties say
+what the book is — its title, author, series, publisher, year, language, ISBN, citation key and tags — and what
+it is *to you*: a **status** and its **collections**. You never write it by hand: it is edited from
+the book's detail, and the vault keeps it, so Bases, Dataview and search see your library as data.
+
+![A book's note: the Details section in the Library's detail, the note itself with its properties, and the shelf filtered by Want to read and a collection](../resources/library/book-note.svg)
+
+**Details**, in a source's detail (**⋯** on its card), shows the fields as quiet inline fields —
+already filled with the title and author the file declares. Change one and leave the field (or press
+**Enter**): it is saved, and a small check beside it fades in and out by itself. No dialog, no
+notice; if a write fails, your text stays in the field and a line under it says so.
+
+- **Status** is one of three: **Want to read**, **Reading**, **Finished** — stored as `to-read`,
+  `reading`, `finished`, whatever language the plugin speaks. While you have set none it is read
+  from your reading and nothing is written: *Finished* once you reached the end, *Reading* once you
+  opened it. One you set wins.
+- **Collections** are names you give — *Planning*, *Software design* — and a book can be in several.
+  **+ Collection** suggests the names you already use; **×** takes a book out of one. They are a list
+  of their own, never tags, so they do not mix with the tags you file the book under.
+- **Citation key** is the key a [citation](reader.md#cite-a-passage) cites the book by, saved as
+  `citekey` (the name Pandoc and Better BibTeX use). Until you set one, the field shows the key a
+  citation proposes, such as `kahneman2011thinking`. A key starts with a letter, a digit or `_` and
+  has no spaces.
+- **Saved in Library/…** says where the note is and opens it. Right after a change, **Undo** beside it
+  takes the last one back — the whole note, if that change created it.
+
+**Nothing is written until you change something.** Opening, reading, highlighting or finishing a
+book creates no note. The first change creates one, named after the book, in the **Book notes
+folder** — **Settings → Reading → Book notes folder**, `Library` until you choose — and fills it
+with what the file declares (an EPUB's creator, publisher, date, language, ISBN and series; a PDF's
+title and author), plus your change. The folder is made then, with the first note, if it is missing;
+a note is never written over a file that is already there (`Thinking, Fast and Slow 1.md`). Every
+later change edits only the property you changed. Each write is on the write record, so it can be
+taken back.
+
+**A book's note is found by its link to the book, never by where it is kept.** Its `book` property
+links the book file — for a paper too:
+
+```yaml
+---
+book: "[[Books/Thinking, Fast and Slow.epub]]"
+author:
+  - "Daniel Kahneman"
+publisher: "Farrar, Straus and Giroux"
+year: 2011
+status: "to-read"
+collections:
+  - "Planning"
+---
+```
+
+Rename or move the book and Obsidian updates the link; move the note and it is still the book's
+note. **Changing the Book notes folder moves nothing**: new notes go to the new folder, the ones you
+have stay where they are and are still found. If two notes link the same book, the first by path is
+the one the Library shows, and *Saved in* names it.
+
+**Use a note you already have**, under Details while a book has no note, picks one of your notes and
+adds only the `book` link to it — its text and its other properties stay as they are. (Obsidian
+rewrites the properties block when any property changes, so the block's own layout may be tidied;
+the values and the note's body are untouched.)
+
+A book's note **is the book, not something that came of it**: it never counts among the *notes
+born* from the book — not on the card, not in the detail, not in *This note* — even when it also
+cites the book in a `source` property.
+
+Your library, as a Base — every book you want to read, by collection:
+
+```yaml
+filters:
+  and:
+    - note.status == "to-read"
+views:
+  - type: table
+    name: Want to read
+    groupBy: collections
+    order: [file.name, author, year]
+```
+
+## Articles from Web Clipper
+
+**What you clip joins what you read.** A long read saved from the web with
+[Obsidian Web Clipper](https://obsidian.md/clipper) is an ordinary note in your vault. The Library
+shelves it as an **Article**, beside the books, and the Reader reads it like one — its column, your
+type, highlights with meanings, search, footnotes, time left and bookmarks — with no import and no
+copy: the clipping stays the note it is.
+
+![Articles from Web Clipper: the Articles chip and where articles come from, the Recently added row with a new card settling in, and a clipping read in the Reader with its headings in Contents](../resources/library/articles.svg)
+
+**What is an article.** A note in the **articles folder** — or any folder inside it — whose `source`
+property is a web address (`https://…`). That is exactly what Web Clipper's default template
+writes, into its default folder, `Clippings`. A `clippings` tag alone is not enough: a note outside
+the folder is never an article, whatever it carries, and neither is a note in it whose `source` is a
+`[[link]]` or plain text.
+
+**Where articles come from** is one setting, in two places: under the **Articles** chip on the shelf
+(*Articles come from Clippings · Change*) and in **Settings → Reading → Articles folder**. Both edit
+the same value. Empty it to turn articles off (*Articles are off*). The Library reads articles from
+the metadata cache — it never opens a clipping to put it on the shelf.
+
+**On the shelf**, an article's card shows its `title`, its author — Web Clipper writes a list of
+links (`[[Jane Doe]]`), and their names are shown — or, when nobody signed it, the site it came from
+(`example.com`), and the year it was `published`. Its cover is drawn in one of your theme's colours,
+as a book's is before its cover is read.
+
+**Reading one.** Click it, or **Resume**: the camera pushes into its drawn cover and it opens in the
+Reader, in the Library's tab, as [one continuous shot](reader.md#one-continuous-shot) — closing plays
+it back onto its card. Its **sections are its headings** at the shallowest level it uses (its H1s,
+or its H2s when it has no H1), and the text before the first one is a section of its own, named
+after the article. **Contents** lists every heading. The corner says *Section 2 / 5*. The Library
+remembers where you are, like a book's place, and reaching the last section makes it *Finished* —
+read, not written. A footnote is read where it is referenced. A link to the web or to another note
+is not followed from the page, as in a book.
+
+**Notes born from it.** A note that cites the clipping — `source:: [[Clippings/The case for slow
+software]]` — is born from it, counted on its card and listed in its detail. Crystallizing a
+passage writes exactly that, with the section after it.
+
+**Its status and collections are its own properties.** An article has no separate
+[book's note](#a-books-note): its own frontmatter is its note. **Details** offers its **Status** and
+**Collections** only, and writes those keys into the clipping — through the same recorded write,
+with **Undo** — and nothing else in it. (Obsidian rewrites the properties block when a property
+changes, so its layout may be tidied; the values and the body are untouched.)
+
+**Reading never writes it.** No highlight, no place, nothing reaches the clipping's body or
+properties — only a status or a collection you set. Highlights are thoughts in Think, the place is
+plugin data.
+
+**Network.** None of ZettelFlow's own: Web Clipper saved the page, and ZettelFlow never fetches a
+URL. A remote picture inside a clipping is loaded by Obsidian's own Markdown renderer, exactly as it
+is in the editor.
 
 ## Reading a PDF
 
@@ -90,6 +288,9 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
   whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
   It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
+  A figure or a table is kept with **Snapshot**, beside Page view in the bar: drag around it, and it
+  becomes a note, a fleeting note or part of a note you have, with its page — see
+  [Snapshot a figure or a table](reader.md#snapshot-a-figure-or-a-table).
 - **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF
   without one lists its pages. The section you are in is shown above the page.
 - **Highlights and margin notes**, exactly as in a note: select words, **Highlight** or **Highlight and
@@ -104,7 +305,7 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 
 ### Page view
 
-![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the Pages tab with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
+![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the overview with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)
 
 Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
 an iPad (#767):
@@ -125,9 +326,11 @@ an iPad (#767):
   it is tall (an iPad in portrait).
 - **Rotate page** (in **Type**) turns the page most on screen a quarter, into its new place, and draws
   it upright.
-- **The Pages tab** in **Contents**: every page as a small picture, the current one marked, each with
+- **The overview**, one tap on the bar's pages-grid button — in Page view and in the reading view
+  alike — and a tab of **Contents**: every page as a small picture, the current one marked, each with
   the paper's own label (*p. iv*). Pictures are drawn as they scroll into view. Tapping one flies it to
-  its page, which it becomes; the place you left is kept in *Where you've been*.
+  its page, which it becomes, in the view you are in; the place you left is kept in *Where you've
+  been*. See [the overview](reader.md#the-overview).
 - **Links.** A link to a place in the paper — a reference, a citation, its own contents — shows as a
   link under the pointer and jumps there, with the back pill and **Alt+←**. A link that leaves the
   paper (a web address, a DOI) is never followed: clicking it shows its address with **Copy link**.
@@ -165,7 +368,7 @@ view → Crop margins** frames each page on what is printed on it, and *Fit widt
   reading staying under your eyes. Turning it off is the same move backwards. Under reduced motion the
   page is simply shown cropped (or whole), the line kept.
 - **Everything else still works**: *Scroll*, *Page* and *Spread*, the zoom, *Rotate page* (the frame
-  turns with the page), links (they stay on their words), the *Pages* tab (its pictures show the
+  turns with the page), links (they stay on their words), the overview (its pictures show the
   cropped page) and every jump, which lands on the same line as without crop.
 - **A scan is not cropped.** It has no text to frame a page on; the switch says *Cropping needs a
   page's text, and this PDF has none.* A page that is a picture in an otherwise printed paper is shown
@@ -181,8 +384,8 @@ you try: *This PDF is made of images, so there is no text to highlight. You can 
 the margin by page.* **Note this page** writes a note in the margin of the page you are on — a thought
 in Think with the page and no passage — listed under **Notes on this page**.
 
-A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its *Pages*
-tab like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
+A scan is read in Page view, its only view, so it zooms, scrolls, turns, rotates and has its
+overview like any paper. A scanned PDF that another tool has already made searchable (OCR'd) carries a text
 layer, and the Reader reads it as text today: Reading view, search and highlights work on it. A scan
 without one stays pictures, with notes by page.
 
@@ -314,10 +517,14 @@ note exists — see
 
 ## What it keeps, and where
 
-**Your files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation layer, no
-sidecar file next to it. What the Library remembers about a source is kept in the plugin's settings:
+**Your book files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation
+layer, nothing next to it. When you say something about a book, it gets an ordinary note in your
+Book notes folder ([A book's note](#a-books-note)) — the only thing the Library ever writes, and only
+then. What the Library remembers about a source is kept in the plugin's settings:
 the title, author and length the file declares, whether a PDF is only images, and where you are in
 it — each with the size and date of the file it was read from, so a replaced file is read again.
+An article's place is kept the same way, under the clipping's path; a status or a collection you
+set on an article is the one thing written into it.
 Covers are kept for the session only, in memory: never in your vault, never in the settings.
 
 What you *mark* — highlights and margin notes — is not kept by the Library at all: those are
@@ -348,7 +555,8 @@ declare.
   page sits on the right of the spine.
 - **Read-only, and said so once.** Highlights and search are not available on a designed page, and
   the first one of a reading says so in one quiet line. Contents, bookmarks, the trail, resume and the
-  end card work as in any book; the time left is counted in **pages**, at this reading's own pace
+  end card work as in any book, and so does [the overview](reader.md#the-overview): each designed page
+  is its own small picture, drawn inside its own boundary as the page is; the time left is counted in **pages**, at this reading's own pace
   (half a minute a page until you have read three).
 - **Light on memory.** Only the pages on screen and two either side are held; a page further away
   lets its pictures go. A page waits as a blank sheet of its size and fades in when it is drawn.
@@ -375,18 +583,23 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 
 | Command | Proves |
 |---|---|
-| `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package |
+| `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package; a book's note read (string or list, an unknown status ignored), its status read from the reading, its first write and file name, found by its link, never born from its book |
+| `npx jest test/architecture/components/core/library/bookNoteWriter test/architecture/components/core/library/libraryDetails test/architecture/components/core/library/libraryBookNotes` | a book's note created at a free path in the Book notes folder with what the file declares, edited key by key, adopted with only its link (body to the byte), each one undone; Details saving on leaving a field or Enter, the status, collections, the check's fade and reduced motion; the status and collection chips, *Want to read*, a card carried to its new row, nothing written by opening |
+| `npx jest test/application/library/article test/application/library/shelf test/application/library/passageToNote` | what an article is (the folder and a web `source`, never a tag alone, none when the folder is empty), its fields (authors' names from links, the year, the site), its sections (H1s, else H2s, a lede, code blocks, footnotes carried), its kind, byline and count on the shelf; *Recently added* (30 days, unfinished, newest first, one row) and its order; a note citing an article born from it |
+| `npx jest test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle test/architecture/components/core/library/bookNoteWriter` | the *Articles* chip and *Change* writing the same setting as Settings → Reading, articles off; an article opened with the shot from its drawn cover; a clipping in the Reader (its sections, Contents, no Page view, highlights at their section, its place kept, the note never written); its status written alone into its own frontmatter, recorded, undone; *Recently added* and its fourth order, a card settling in, nothing at the first draw, reduced motion |
+| `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses*; the *Articles folder* row: `Clippings` by default, emptied to turn articles off, a reset |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
+| `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists over a hand-built vault, each deduplicated and stable, the book's note in none of them; an empty source, highlights only, notes only, an article, a saved path; no digit in a heading, five then *Show all*, the empty message, *Reading your vault…* filled when ready; each item opening its note, its pair in a split, its passage, Think; nothing written; the rise in turn, none the second time, *Show all* by translate, reduced motion |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
 | `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
 | `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
 | `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
-| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the Pages tab and its flight; links in and out; a scan; reduced motion |
+| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the overview and its flight, in both views, and a pinch past the smallest zoom; links in and out; a scan; reduced motion |
 | `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
 | `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
-| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no Pages tab, no rotate or crop; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
-| `npm run test:perf -- library` | the shelf of 500 sources builds, orders and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
+| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no rotate or crop; the overview's cards inside their own boundaries, nothing fetched; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
+| `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, and 200 articles read off the cache, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
 
 In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
 
@@ -444,8 +657,32 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
     *Page n / N* and a time left; the Reader's bar and top line are in your theme, not the comic's.
     A right-to-left sample turns with **←**. On an iPad (landscape) a spread, (portrait) one page; a
     pinch follows your fingers, a swipe the page. Close halfway and open again: the same page.
-13. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-   No file was created in the vault. A hostile fixed-layout page (a style sheet that imports, loads a
-   font and a picture from `https://example.com`, a `<script>`, a `position: fixed` overlay): with the
-   developer tools' network panel open, nothing is fetched, nothing runs, the overlay stays inside its
-   page, and the Reader's bar is unchanged.
+13. **A book's note.** In the Library, a book's **⋯** → **Details**: the title and author are filled
+    in. Set **Status → Want to read**: a check fades beside it, a `Library` folder appears holding a
+    note named after the book with `status: to-read` and `book:` linking it, and on the shelf a
+    *Want to read* section holds the book. **+ Collection** → *Planning* → **Enter**: a *Planning*
+    chip appears over the shelf; click it — only that book. Change **Settings → Reading → Book notes
+    folder** to `Reading notes`: no folder appears; give another book a status: its note is in
+    `Reading notes`, the first one still in `Library`, and both details say where. **Undo** on the
+    *Saved in* line takes the last change back.
+14. **An article.** Clip a long page with Web Clipper (or put a note in `Clippings` with
+    `source: https://example.com/slow-software`, `author: ["[[Jane Doe]]"]`, a few paragraphs and two
+    headings). Expect it in **Recently added** and under **Articles**, by *Jane Doe*. Open it: the
+    camera pushes into its cover; **Contents** lists its headings; highlight a sentence; close it: the
+    camera pulls back onto its card, which says *1 highlight*. Its file is unchanged. Set its
+    **Status → Finished** in Details: only `status` is added to it. A note in `Clippings` whose
+    `source` is `[[Some note]]` is not on the shelf.
+15. **What it produced.** In a book with three highlights (one marked *Question*), crystallize one
+    into *Note A*; in it link an older note (*Planning fallacy*) and a new one (*Risk window*); in an
+    older note write `contradicts:: [[Note A]]`. Open the book's **⋯**. Expect **What it produced in
+    your vault**: *Notes born from it* lists Note A, *Ideas it led to* Risk window (not Planning
+    fallacy), *Links you made* Note A ↔ Planning fallacy, *Tensions* the older note ↔ Note A, *Still
+    unresolved* the two other highlights. No heading carries a number. Click the *Question* highlight:
+    the Reader opens at it. Click the pair: a split opens beside the Library, which stays as it was.
+    A book you never opened says *Nothing yet. What you make from this book shows here.* Home →
+    Recent shows no entry for any of it.
+16. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+    Opening and reading a book created no note; only changing its Details did. A hostile fixed-layout
+    page (a style sheet that imports, loads a font and a picture from `https://example.com`, a
+    `<script>`, a `position: fixed` overlay): with the developer tools' network panel open, nothing is
+    fetched, nothing runs, the overlay stays inside its page, and the Reader's bar is unchanged.

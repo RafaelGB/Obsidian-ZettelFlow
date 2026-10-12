@@ -82,8 +82,8 @@ describe("the Library (#680)", () => {
     it("filters with counts, searches titles and authors, and sorts", async () => {
         const { view, content } = mount(["Books/Thinking, Fast and Slow.epub", "Papers/cap.pdf", "Papers/scan.pdf"], { library });
         await view.onOpen();
-        const chips = content.byClass("shelf-filter");
-        expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Paths0"]);
+        const chips = content.oneByClass("shelf-bar").byClass("shelf-filter");
+        expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Articles0", "Paths0"]);
         chips[2].click();
         expect(content.byClass("shelf-hero")).toHaveLength(0);
         expect(content.oneByClass("shelf-section").textContent).toBe("Papers");
@@ -91,7 +91,7 @@ describe("the Library (#680)", () => {
         input.value = "kahneman";
         input.fire("input");
         expect(content.oneByClass("shelf-no-match").textContent).toBe("Nothing matches “kahneman”.");
-        content.byClass("shelf-filter")[0].click();
+        content.oneByClass("shelf-bar").byClass("shelf-filter")[0].click();
         expect(titles(content)).toEqual(["Thinking, Fast and Slow"]);
         input.value = "";
         content.oneByClass("shelf-search-input").value = "";
@@ -148,6 +148,41 @@ describe("the Library (#680)", () => {
         await view.onOpen();
         expect(content.oneByClass("shelf-empty-title")).toBeDefined();
         expect(content.byClass("mod-cta")).toHaveLength(0);
+    });
+
+    it("covers the pane where you are, scrolled however far, and leaves the shelf there (#779)", async () => {
+        const { view, content } = mount(["Papers/cap.pdf"], { library });
+        await view.onOpen();
+        const host = view.contentEl as unknown as DomNode & { offsetTop: number };
+        // The shelf scrolled far down; the pane is 600 px tall, under a 40 px header.
+        host.scrollTop = 900;
+        host.offsetTop = 40;
+        host.offsetHeight = 600;
+        content.oneByClass("shelf-more").click();
+        await flush();
+        // Placed on the pane's box, not on the scrolled content: the scroll plays no part.
+        for (const layer of [content.oneByClass("shelf-scrim"), content.oneByClass("shelf-detail")]) {
+            expect(layer.cssProps).toMatchObject({ "--zf-pane-top": "40px", "--zf-pane-h": "600px" });
+            expect(layer.parent).toBe(view.containerEl as unknown as DomNode);
+        }
+        // A narrower, taller pane while it is open: the band follows.
+        host.offsetHeight = 800;
+        view.onResize();
+        expect(content.oneByClass("shelf-scrim").cssProps["--zf-pane-h"]).toBe("800px");
+        content.oneByClass("shelf-scrim").click();
+        expect(host.scrollTop).toBe(900);
+    });
+
+    it("a detail restored with its scroll covers the pane, the shelf at that scroll; reopened, one dim only (#779)", async () => {
+        const { view, content } = mount(["Papers/cap.pdf"], { library });
+        (view.contentEl as unknown as { offsetHeight: number }).offsetHeight = 500;
+        await view.setState({ detail: "Papers/cap.pdf", scroll: 1200 }, {} as never);
+        await view.onOpen();
+        expect(content.oneByClass("shelf-detail").cssProps["--zf-pane-h"]).toBe("500px");
+        expect((view.contentEl as unknown as DomNode).scrollTop).toBe(1200);
+        await view.onOpen();
+        expect(content.byClass("shelf-scrim")).toHaveLength(1);
+        expect(content.byClass("shelf-detail")).toHaveLength(1);
     });
 
     it("closes the detail from the scrim, and a missing source opens none", async () => {
@@ -271,5 +306,40 @@ describe("the book notebook (#721)", () => {
         content.byText("Notebook")!.click();
         await flush();
         expect(content.byClass("notebook-title")).toHaveLength(1);
+    });
+});
+
+describe("what it produced, across a trip to the Reader (#752 FR-9)", () => {
+    it("rises in turn the first time a book's detail opens this session, and is simply there after", async () => {
+        const { recordAnimations } = await import("../../../../support/motionDom");
+        const { KnowledgeModel } = await import("architecture/knowledge");
+        const BOOKX = "Books/Seen once.epub";
+        const model = new KnowledgeModel();
+        model.build([
+            { path: "A.md", title: "A", created: 2, modified: 2, state: "unknown", relations: [], claims: [{ text: "", sources: [{ ref: BOOKX, kind: "link" }] }], maturitySignals: { inDegree: 0, outDegree: 0, degree: 0, hasSources: true } },
+        ]);
+        const deps = { produced: { index: { status: "ready" as const, getModel: () => model }, store: { thoughtsAbout: async () => [] } } };
+        const record = recordAnimations();
+        try {
+            const open = async () => {
+                const { app, content } = mount([BOOKX]);
+                (app.vault as unknown as { getMarkdownFiles: () => [] }).getMarkdownFiles = () => [];
+                const view = new LibraryView(new WorkspaceLeaf(app, content), { settings: {}, saveSettings: jest.fn(async () => undefined) }, deps as never);
+                await view.onOpen();
+                await view.setState({ detail: BOOKX }, {} as never);
+                await flush();
+                return content;
+            };
+            const first = await open();
+            expect(first.byClass("shelf-produced-row").map((row) => row.textContent)).toEqual(["◆A"]);
+            const rose = record.animations.filter((a) => a.target.hasClass?.("zettelkasten-flow__shelf-produced-row")).length;
+            expect(rose).toBe(1);
+            // Back from the Reader the Library is drawn anew: the same book's lists are simply there.
+            const again = await open();
+            expect(again.byClass("shelf-produced-row")).toHaveLength(1);
+            expect(record.animations.filter((a) => a.target.hasClass?.("zettelkasten-flow__shelf-produced-row")).length).toBe(rose);
+        } finally {
+            record.stop();
+        }
     });
 });

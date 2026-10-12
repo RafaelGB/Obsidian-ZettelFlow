@@ -35,6 +35,11 @@ export interface SourceMeta {
     at?: number;
     /** You reached the end at least once. */
     done?: boolean;
+    /**
+     * The chapters you read to their end (#776 P1), by place: the overview fills their hairline. Kept
+     * as you leave each one at its end — never a count shown anywhere.
+     */
+    read?: number[];
     /** The places you bookmarked (#761): places, never thoughts — kept beside where you are. */
     bookmarks?: Bookmark[];
     /**
@@ -55,6 +60,14 @@ export function sourceFormat(path: string): SourceFormat | null {
     if (lower.endsWith(".pdf")) return "pdf";
     if (lower.endsWith(".epub")) return "epub";
     return null;
+}
+
+/**
+ * Whether plugin data may keep a place under this path (#744): a PDF, an EPUB — and a Markdown note,
+ * for an article read in the Reader. Not {@link sourceFormat}, which says what is a book *file*.
+ */
+export function libraryKey(path: string): boolean {
+    return sourceFormat(path) !== null || path.toLowerCase().endsWith(".md");
 }
 
 /** A BCP 47 shape, as the chapter sanitiser keeps it: letters, then dash-separated parts. */
@@ -79,7 +92,7 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
     const out: LibraryMeta = {};
     for (const [path, value] of Object.entries(raw as Record<string, unknown>)) {
         const v = value as Record<string, unknown> | null;
-        if (!v || !sourceFormat(path) || !num(v.size) || !num(v.mtime)) continue;
+        if (!v || !libraryKey(path) || !num(v.size) || !num(v.mtime)) continue;
         const meta: SourceMeta = { size: v.size, mtime: v.mtime };
         if (text(v.title)) meta.title = v.title.trim();
         if (text(v.author)) meta.author = v.author.trim();
@@ -89,6 +102,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (num(v.scroll) && v.scroll >= 0 && v.scroll <= 1) meta.scroll = v.scroll;
         if (num(v.at) && v.at > 0) meta.at = v.at;
         if (v.done === true) meta.done = true;
+        const read = normalizeRead(v.read, meta.chapters);
+        if (read.length > 0) meta.read = read;
         const bookmarks = normalizeBookmarks(v.bookmarks);
         if (bookmarks.length > 0) meta.bookmarks = bookmarks;
         const view = normalizePageView(v.view);
@@ -121,6 +136,9 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.chapter !== undefined) next.chapter = Math.min(previous.chapter, next.chapters! - 1);
     if (previous?.at) next.at = previous.at;
     if (previous?.done) next.done = true;
+    // The chapters read to their end are kept, as the place is (#776 P1).
+    const read = normalizeRead(previous?.read, next.chapters);
+    if (read.length > 0) next.read = read;
     // A new copy of the book keeps its bookmarks, as it keeps its place (#761 FR-2).
     if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
     // And how you read it in Page view (#767).
@@ -158,6 +176,24 @@ export function withBookmarks(map: LibraryMeta, path: string, list: readonly Boo
     return prune({ ...map, [path]: next });
 }
 
+/** Chapter places, whole, in range, once each and in order: at most one per chapter (#776 P1). */
+function normalizeRead(raw: unknown, chapters?: number): number[] {
+    if (!Array.isArray(raw)) return [];
+    const limit = chapters ?? LIBRARY_LIMIT;
+    const seen = new Set<number>();
+    for (const value of raw) if (num(value) && Number.isInteger(value) && value >= 0 && value < limit) seen.add(value);
+    return [...seen].sort((a, b) => a - b).slice(0, limit);
+}
+
+/** A chapter read to its end (#776 P1): kept once, beside the place. */
+export function withRead(map: LibraryMeta, path: string, chapter: number, total: number, size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    const chapters = previous.chapters ?? Math.max(1, total);
+    const read = normalizeRead([...(previous.read ?? []), chapter], chapters);
+    if (read.length === (previous.read?.length ?? 0)) return map;
+    return prune({ ...map, [path]: { ...previous, read } });
+}
+
 /** Remember where you are in a source. The last chapter marks it read, and stays read. */
 export function withPlace(map: LibraryMeta, path: string, chapter: number, total: number, now: number, size = 0, mtime = 0): LibraryMeta {
     const previous = map[path] ?? { size, mtime };
@@ -191,7 +227,7 @@ export function resumeScroll(share: number, scrollHeight: number, clientHeight: 
 
 /** A source renamed in the vault keeps everything the Library knew about it. */
 export function renameSource(map: LibraryMeta, from: string, to: string): LibraryMeta {
-    if (!map[from] || !sourceFormat(to)) return map;
+    if (!map[from] || !libraryKey(to)) return map;
     const next = { ...map, [to]: map[from] };
     delete next[from];
     return next;

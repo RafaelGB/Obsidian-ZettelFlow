@@ -124,6 +124,8 @@ function sheetOf(root: HTMLElement, stage: HTMLElement, page: HTMLElement): HTML
     const copy = page.cloneNode(false) as HTMLElement;
     copy.removeClass(c("reader-page--enter"));
     copy.removeClass(c("reader-page--under-scrub"));
+    // A folded page (#760) is drawn on the sheet as it is under the fold.
+    copy.removeClass(c("reader-page--folded"));
     place(copy, rectOf(page), view, true);
     copyVisible(page, copy, view);
     clip.appendChild(copy);
@@ -385,4 +387,89 @@ export function adoptChapterScrub(): boolean {
     // Under the sheet, the next chapter is drawn on the live page now — no longer the paper.
     turn.reveal?.();
     return true;
+}
+
+// ── recall's fold (#760) ───────────────────────────────────────────────────────
+
+/** Where the page is while a chapter is recalled: away, under its title, or back. */
+export type FoldWay = "away" | "back";
+
+const FOLDED = "reader-page--folded";
+
+/** Whether the page is folded away for a recall (#760). */
+export function isFolded(page: HTMLElement): boolean {
+    return page.hasClass(c(FOLDED));
+}
+
+/** The paper the fold leaves behind, with the chapter's title where the page was. */
+function foldUnderlay(root: HTMLElement): HTMLElement | null {
+    return root.querySelector<HTMLElement>(`.${c("turn-fold")}`);
+}
+
+function foldPage(root: HTMLElement, stage: HTMLElement, page: HTMLElement, label: string, before: Node | null): void {
+    page.addClass(c(FOLDED));
+    if (foldUnderlay(root)) return;
+    const underlay = root.createDiv({ cls: [c("turn-underlay"), c("turn-fold")], attr: { "aria-hidden": "true" } });
+    underlay.createDiv({ cls: c("turn-fold-title"), text: label });
+    root.insertBefore(underlay, before ?? stage.nextSibling);
+}
+
+/** The page back from under the fold, at once: no sheet, nothing moves. */
+export function unfoldAtOnce(root: HTMLElement, page: HTMLElement): void {
+    page.removeClass(c(FOLDED));
+    foldUnderlay(root)?.remove();
+}
+
+/**
+ * **Recall's fold** (#760 FR-10, FR-11, FR-13): the turn's own sheet, sliding down and up.
+ *
+ * *Away*: the page as it is on screen is laid on a sheet, the live page is folded (hidden, its layout
+ * and its scroll kept) and the sheet slides down out of the column (`cover`, the shared curve),
+ * leaving the paper and the chapter's `label` where the page was. *Back* plays the same shot
+ * backwards: a sheet of the folded page slides up over the paper, and the page is unfolded under it
+ * as it lands. Any key or press completes either (`endChapterTurn`); under reduced motion the page
+ * simply goes, or is back. Resolves once the page is where it goes.
+ */
+export function playFold(root: HTMLElement, stage: HTMLElement, page: HTMLElement, way: FoldWay, label: string): Promise<void> {
+    endChapterTurn();
+    if ((way === "away") === isFolded(page)) return Promise.resolve();
+    const view = rectOf(stage);
+    const moving = motionWelcome(root) && Boolean(page.firstElementChild) && view.width > 0 && view.height > 0;
+    if (!moving) {
+        if (way === "away") foldPage(root, stage, page, label, null);
+        else unfoldAtOnce(root, page);
+        return Promise.resolve();
+    }
+    const win = (root as El).win ?? window;
+    const sheet = sheetOf(root, stage, page);
+    sheet.addClass(c("turn-sheet--fold"));
+    const below = `translateY(${px(view.height * 1.04)})`;
+    let frames: Keyframe[];
+    if (way === "away") {
+        // The paper under the sheet, the title on it: the sheet goes and it is there.
+        foldPage(root, stage, page, label, sheet);
+        frames = [{ transform: "translateY(0px)" }, { transform: below }];
+    } else {
+        // The sheet comes back over the paper: above it.
+        const underlay = foldUnderlay(root);
+        if (underlay) root.insertBefore(sheet, underlay.nextSibling);
+        frames = [{ transform: below }, { transform: "translateY(0px)" }];
+    }
+    const animation = sheet.animate(frames, { duration: MOTION.cover, easing: MOTION.ease, fill: "forwards" });
+    return new Promise((resolve) => {
+        const stopSkip = armSkip(win);
+        const turn: Turn = {
+            animations: animation ? [animation] : [],
+            cleanup: () => {
+                stopSkip();
+                // Back: the page is unfolded under the sheet, as it was on it, before the sheet goes.
+                if (way === "back") unfoldAtOnce(root, page);
+                releaseCanvases(sheet);
+                sheet.remove();
+                resolve();
+            },
+        };
+        running = turn;
+        whenPlayed(turn, win);
+    });
 }

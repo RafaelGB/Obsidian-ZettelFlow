@@ -148,6 +148,8 @@ export interface ZettelFlowSettings {
         width?: "narrow" | "medium" | "wide";
         margins?: "small" | "medium" | "large";
         justify?: boolean;
+        /** *Pause at chapter ends* (#755): on unless you turn it off. */
+        chapterPause?: boolean;
     };
     /**
      * Where each recent reading was left (#669): a kind and the note it started from, or a picked
@@ -155,10 +157,21 @@ export interface ZettelFlowSettings {
      */
     readerResume?: Record<string, { chapter: number; total: number; at: number }>;
     /**
+     * Each reading's layers (#758, epic #742): the layer new marks go to and the layers hidden, by the
+     * source's path (or the note a reading began from). Authored from the Reader's *Layers* panel
+     * (§XIII); the defaults — reading, all shown — are never kept. Read through `normalizeLayerPrefs()`.
+     */
+    readerLayers?: Record<string, { target?: "reading" | "reflection" | "research"; hidden?: ("reading" | "reflection" | "research")[] }>;
+    /**
      * How a book opens from the Library and how a chapter turns (#732, epic #729) — the settings'
      * *Reading* section. Read through `readingMotion()`, which mends anything unknown.
      */
     readingMotion?: { open: "shot" | "instant"; chapter: "leaf" | "flow" | "stack" };
+    /**
+     * The citation form *Cite* shows first (#768, epic #742): the one you chose last, in the panel
+     * itself (§XIII). Read through `citeFormOf()`, Markdown when unknown.
+     */
+    citeForm?: "markdown" | "inline" | "key" | "bibtex" | "csl";
     /**
      * Look up and Translate (#766, epic #741) — the settings' *Reading* section: the folder your
      * StarDict dictionaries are in (never written), the languages set for a dictionary that declares
@@ -166,6 +179,17 @@ export interface ZettelFlowSettings {
      * Obsidian's). Read through `dictionarySettings()`, which fills anything missing.
      */
     dictionaries?: { folder: string; languages: Record<string, { from: string; to?: string }>; translateInto: string };
+    /**
+     * Where a book's note is created (#743, epic #742): the first time you say something about a
+     * book in the Library. Changing it moves nothing — a book's note is found by its link to the book.
+     */
+    bookNotesFolder?: string;
+    /**
+     * Where articles come from (#744, epic #742): the notes in this folder whose `source` is a web
+     * address are on the Library's shelf as articles. Web Clipper's own `Clippings` until you choose;
+     * empty turns articles off.
+     */
+    articlesFolder?: string;
     /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
@@ -445,6 +469,8 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     readerResume: {}, // nothing to resume until you stop part-way through a reading (#669).
     readingMotion: { open: "shot", chapter: "leaf" }, // one continuous shot, a leaf that turns (#732).
     dictionaries: { folder: "Dictionaries", languages: {}, translateInto: "" }, // nothing found until you add one (#766).
+    bookNotesFolder: "Library", // a book's note lands here, made only with the first one (#743).
+    articlesFolder: "Clippings", // Web Clipper's own folder: its clippings are articles on the shelf (#744).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

@@ -1,3 +1,5 @@
+import { PINCH_SHARE, PINCH_TO_CARD } from "./readerGestures";
+import { CARD_DPR_MAX } from "./readerOverview";
 import { Component } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
@@ -84,8 +86,6 @@ import {
 const SETTLE_MS = 120;
 /** How much a wheel notch zooms: e^(−deltaY × rate), a mouse notch of 100 is about a fifth. */
 const WHEEL_RATE = 0.0022;
-/** Two fingers whose spread changed by this share are pinching, not swiping. */
-const PINCH_SHARE = 0.08;
 /** Faster than a screen in this long is a fling: nothing is drawn until it slows. */
 const FLING_MS = 400;
 /** A drawing is sharp enough when it is within this share of the size it is shown at. */
@@ -114,6 +114,12 @@ export interface PageRunHost {
     onSlot?(page: number, el: HTMLElement, aspect: number): void;
     /** A page's picture is in its slot (drawn, or drawn again sharper): ink reads the page's tone. */
     onDrawn?(page: number, picture: HTMLElement): void;
+    /**
+     * Two fingers let go well under the smallest zoom (#776 FR-4, P4): the page lands in its card.
+     * Asked only there — above it a pinch zooms, as it always has (#767 FR-17) — with the scale the
+     * fingers left the page at, so the shot carries on from it. True when it was taken.
+     */
+    onPinchOut?(scale: number): boolean;
 }
 
 /** Where *Crop margins* is (#769): off, measuring the paper, or on. */
@@ -170,6 +176,7 @@ interface ThumbRequest {
     width: number;
     cancelled: boolean;
     done: () => void;
+    fail?: (error: unknown) => void;
 }
 
 const px = (n: number) => `${Math.round(n * 100) / 100}px`;
@@ -360,6 +367,36 @@ export class PdfPageRun {
         return { left: r.left, top: r.top, width: r.width, height: r.height };
     }
 
+    /**
+     * Where a box on screen falls on a printed page (#763): the page under its centre, the box as
+     * shares of the page as drawn at its turn — inside the crop's frame when crop is on — the CSS
+     * pixels a point is shown at, and the box in the page's own units. `null` off the pages.
+     */
+    regionAt(box: { left: number; top: number; width: number; height: number }): { page: number; frame: CropBox; rotation: number; onScreen: number; size: { width: number; height: number } } | null {
+        if (this.designed()) return null;
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        for (const view of this.slots.values()) {
+            const r = view.el.getBoundingClientRect();
+            if (!(r.width > 0 && r.height > 0) || cx < r.left || cx > r.left + r.width || cy < r.top || cy > r.top + r.height) continue;
+            // The box as shares of the slot, held inside it.
+            const share = (n: number, from: number, size: number) => Math.min(1, Math.max(0, (n - from) / size));
+            const x0 = share(box.left, r.left, r.width);
+            const y0 = share(box.top, r.top, r.height);
+            const shares = { x: x0, y: y0, w: share(box.left + box.width, r.left, r.width) - x0, h: share(box.top + box.height, r.top, r.height) - y0 };
+            const shown = this.shownFrame(view.page);
+            const points = this.boxOf(view.page);
+            return {
+                page: view.page,
+                frame: { x: shown.x + shares.x * shown.w, y: shown.y + shares.y * shown.h, w: shares.w * shown.w, h: shares.h * shown.h },
+                rotation: this.rotationOf(view.page),
+                onScreen: r.width / Math.max(1e-6, points.width),
+                size: { width: shares.w * points.width, height: shares.h * points.height },
+            };
+        }
+        return null;
+    }
+
     /** A designed page at *Fit page*, in *Page* or *Spread*: centred, not held where it was (#771). */
     private centred(): boolean {
         return this.designed() && this.fit === "page" && this.host.layout() !== "scroll";
@@ -526,10 +563,10 @@ export class PdfPageRun {
      * A thumbnail of `page`, `width` CSS pixels wide, drawn through the same queue as the pages — after
      * them. Returns its cancel, for a thumbnail that leaves the list before it is drawn.
      */
-    drawThumb(page: number, canvas: HTMLCanvasElement, width: number, done: () => void = () => undefined): () => void {
-        // A designed page has no picture to make small (#771): the *Pages* tab is not offered for it.
+    drawThumb(page: number, canvas: HTMLCanvasElement, width: number, done: () => void = () => undefined, fail?: (error: unknown) => void): () => void {
+        // A designed page is mounted, never rendered: the overview draws its card itself (#776).
         if (!this.pages.render) return () => undefined;
-        const request: ThumbRequest = { page, canvas, width, cancelled: false, done };
+        const request: ThumbRequest = { page, canvas, width, cancelled: false, done, ...(fail ? { fail } : {}) };
         this.thumbs.push(request);
         this.pump();
         return () => {
@@ -1178,7 +1215,8 @@ export class PdfPageRun {
         // A thumbnail shows the page as it is read: on its frame, with crop on (#769 FR-5).
         const box = this.boxOf(request.page);
         const frame = this.shownFrame(request.page);
-        const ratio = this.el.win?.devicePixelRatio || 1;
+        // A card is never drawn denser than the cap, whatever the screen (#776 FR-18).
+        const ratio = Math.min(CARD_DPR_MAX, this.el.win?.devicePixelRatio || 1);
         const scale = (request.width * ratio) / Math.max(1e-6, box.width);
         const render = this.pages.render?.bind(this.pages);
         if (!render) {
@@ -1190,7 +1228,10 @@ export class PdfPageRun {
             .then(() => {
                 if (!this.disposed) request.done();
             })
-            .catch((error: unknown) => log.debug(`[Reader] thumbnail ${request.page + 1} not drawn: ${String(error)}`))
+            .catch((error: unknown) => {
+                if (!request.cancelled && !this.disposed) request.fail?.(error);
+                log.debug(`[Reader] thumbnail ${request.page + 1} not drawn: ${String(error)}`);
+            })
             .finally(() => {
                 this.thumbRunning = null;
                 this.pump();
@@ -1354,7 +1395,7 @@ export class PdfPageRun {
      * limit — in the very frame its transform is cleared, so nothing jumps; it springs back from where
      * the fingers left it; and the pages on screen are drawn again, sharp.
      */
-    private settle(): void {
+    private settle(fingers = false): void {
         const g = this.gesture;
         this.el.win.clearTimeout(this.settleTimer);
         if (!g) return;
@@ -1364,6 +1405,9 @@ export class PdfPageRun {
         this.el.removeClass(c("reader-pv-run--zooming"));
         this.el.setCssProps({ "--zf-run-x": "0px", "--zf-run-y": "0px", "--zf-run-scale": "1" });
         const asked = g.base * g.raw;
+        // Two fingers let go well under the smallest zoom: the page goes on into its card (#776 FR-4,
+        // P4). Never Ctrl+wheel: a desktop has no pinch to the overview (D14).
+        if (fingers && asked < g.min * PINCH_TO_CARD && this.host.onPinchOut?.(g.s)) return;
         this.fit = null;
         this.level = Math.min(ZOOM_MAX, Math.max(g.min, asked));
         this.relayout();
@@ -1453,7 +1497,7 @@ export class PdfPageRun {
     private onTouchEnd(event: TouchEvent): void {
         if (!this.pinch || (event.touches && event.touches.length >= 2)) return;
         this.pinch = null;
-        if (this.gesture) this.settle();
+        if (this.gesture) this.settle(true);
     }
 }
 

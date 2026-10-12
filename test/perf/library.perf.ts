@@ -1,5 +1,7 @@
 import { describe, it } from "@jest/globals";
-import { buildShelf, continueReading, viewShelf, type ShelfInputs } from "application/library/shelf";
+import { buildShelf, continueReading, recentlyAdded, statusCounts, viewShelf, wantToRead, type ShelfInputs } from "application/library/shelf";
+import { articleAdded, articleFields, isArticle } from "application/library/article";
+import { indexBookNotes } from "application/library/bookNote";
 import { reflowPage, type TextRun } from "application/library/pdfText";
 import { ZipArchive } from "application/library/zip";
 import { chapterTitles, packagePath, parseNav, parsePackage, type XmlParse } from "application/library/epubPackage";
@@ -12,6 +14,9 @@ import { cleanDesignedCss, designedCssBook, pairSpreads } from "application/libr
 import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
 import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
+import { Component } from "obsidian";
+import { DomNode } from "../support/dashboardDom";
+import { OVERVIEW_LIMITS, renderOverview, type CardKind } from "architecture/components/core/reader/readerOverview";
 
 /**
  * Library budgets (epic #675, L8).
@@ -43,12 +48,19 @@ function shelfInputs(sources: number, paths: number): ShelfInputs {
     const highlights = new Map<string, number>();
     const born = new Map<string, number>();
     const list = [];
+    const notes: { path: string; source: string; frontmatter: unknown }[] = [];
     for (let i = 0; i < sources; i++) {
         const path = `Library/${i % 2 ? "Books" : "Papers"}/Source number ${i}.${i % 2 ? "epub" : "pdf"}`;
         list.push({ path, basename: path.split("/").pop() as string });
         meta[path] = { size: i, mtime: i, title: `Source ${i}`, author: `Author ${i % 37}`, chapters: 10 + (i % 300), chapter: i % 9, at: i * 1000 };
         highlights.set(path, i % 13);
         born.set(path, i % 3);
+        // A book's note for every source (#743 AC-8): read from the cache, never from a file.
+        notes.push({
+            path: `Library/Source number ${i}.md`,
+            source: path,
+            frontmatter: { title: `Source ${i}`, author: [`Author ${i % 37}`], series: `Series ${i % 11}`, status: ["to-read", "reading", "finished"][i % 3], collections: [`Collection ${i % 7}`, "Planning"] },
+        });
     }
     const saved = Array.from({ length: paths }, (_, i) => ({
         id: `r${i}`,
@@ -57,17 +69,47 @@ function shelfInputs(sources: number, paths: number): ShelfInputs {
         paths: Array.from({ length: 12 }, (_, j) => `n${i}-${j}.md`),
         at: i,
     }));
-    return { sources: list, meta, saved, highlights, born, pathPlaces: new Map() };
+    return { sources: list, meta, saved, highlights, born, pathPlaces: new Map(), notes: indexBookNotes(notes) };
+}
+
+/** 200 clippings as the metadata cache holds them (#744 AC-8): what Web Clipper's default template writes. */
+const CLIPPINGS = Array.from({ length: 200 }, (_, i) => ({
+    path: `Clippings/Article number ${i}.md`,
+    ctime: i * 1000,
+    frontmatter: {
+        title: `Article ${i}`,
+        source: `https://site${i % 17}.example.com/post/${i}`,
+        author: [`[[Writer ${i % 23}]]`],
+        published: `20${10 + (i % 15)}-03-02`,
+        created: `2026-${String(1 + (i % 12)).padStart(2, "0")}-04`,
+        description: `What article ${i} is about.`,
+        tags: ["clippings"],
+        ...(i % 4 === 0 ? { status: "to-read", collections: ["Planning"] } : {}),
+    },
+}));
+
+/** What `gatherArticles` does with the cache: the rule, the fields, the date — no file read. */
+function articlesFromCache(): NonNullable<ShelfInputs["articles"]> {
+    return CLIPPINGS.filter((clip) => isArticle(clip.path, clip.frontmatter, "Clippings")).map((clip) => {
+        const fields = articleFields(clip.frontmatter);
+        return { path: clip.path, basename: clip.path.split("/").pop() as string, details: fields.details, ...(fields.host ? { host: fields.host } : {}), added: articleAdded(fields.created, clip.ctime) };
+    });
 }
 
 describe("the Library (#675)", () => {
     it("library.shelf.500", () => {
         const inputs = shelfInputs(500, 30);
         const ms = best(5, () => {
-            const items = buildShelf(inputs);
+            // And 200 articles, read off the cache (#744 AC-8).
+            const items = buildShelf({ ...inputs, articles: articlesFromCache() });
+            recentlyAdded(items, Date.now());
+            viewShelf(items, { filter: "articles", sort: "added", search: "writer 4" });
             continueReading(items);
             viewShelf(items, { filter: "all", sort: "recent", search: "" });
             viewShelf(items, { filter: "all", sort: "highlighted", search: "author 3" });
+            viewShelf(items, { filter: "all", sort: "recent", search: "series 4", status: "reading", collection: "Planning" });
+            wantToRead(items);
+            statusCounts(items);
         });
         assertBudget("library.shelf.500", ms);
     });
@@ -160,6 +202,75 @@ describe("the Library (#675)", () => {
         if (drawn > MAX_DRAWN || drawn === 0) throw new Error(`drew ${drawn} pages at once`);
         if (most !== 599) throw new Error(`the last page most on screen was ${most}`);
         assertBudget("reader.pdf.window.600", ms);
+    });
+    it("reader.overview.600", () => {
+        // The overview of a 600-page paper, a 300-page comic and a 120-chapter book (#776 FR-17, AC-12):
+        // built, then scrolled from the first card to the last, ten cards in view at a time — a fake
+        // draw, no pixels. Only what is in view is drawn, and the pictures held stay at the cap.
+        const g = globalThis as unknown as { IntersectionObserver?: unknown };
+        const had = g.IntersectionObserver;
+        let seen: (entries: { target: unknown; isIntersecting: boolean }[]) => void = () => undefined;
+        g.IntersectionObserver = class {
+            constructor(callback: typeof seen) {
+                seen = callback;
+            }
+            observe(): void {}
+            disconnect(): void {}
+        };
+        const cap = OVERVIEW_LIMITS.mobile.pictures;
+        const freed: { width: number }[] = [];
+        let worst = 0;
+        try {
+            const books: [number, CardKind][] = [[600, "page"], [300, "page"], [120, "chapter"]];
+            const ms = best(3, () => {
+                for (const [count, kind] of books) {
+                    const list = new DomNode();
+                    const scope = new Component();
+                    scope.load();
+                    let draws = 0;
+                    const overview = renderOverview(
+                        list as unknown as HTMLElement,
+                        {
+                            units: Array.from({ length: count }, (_, index) => ({ index, kind, label: `Card ${index + 1}` })),
+                            current: 0,
+                            ratio: () => 1.3,
+                            draw: (_i, picture, _w, done) => {
+                                draws++;
+                                const canvas = picture.createEl("canvas") as unknown as { width: number; height: number };
+                                canvas.width = 192;
+                                canvas.height = 248;
+                                freed.push(canvas);
+                                done();
+                                return () => undefined;
+                            },
+                            marks: () => ({ ticks: [], pen: false, ribbon: false }),
+                            progress: () => (kind === "chapter" ? 0 : null),
+                            onPick: () => undefined,
+                            limit: cap,
+                            fade: true,
+                        },
+                        scope
+                    );
+                    if (draws !== 0) throw new Error("the overview drew before anything was in view");
+                    const cards = list.byClass("reader-overview-card");
+                    for (let top = 0; top + 10 <= count; top += 3) {
+                        seen([
+                            ...cards.slice(Math.max(0, top - 3), top).map((target) => ({ target, isIntersecting: false })),
+                            ...cards.slice(top, top + 10).map((target) => ({ target, isIntersecting: true })),
+                        ]);
+                        worst = Math.max(worst, overview.held().length);
+                    }
+                    if (draws > count + cap) throw new Error(`drew ${draws} cards for ${count}`);
+                    overview.dispose();
+                    scope.unload();
+                }
+            });
+            if (worst > cap || worst === 0) throw new Error(`held ${worst} pictures at once (cap ${cap})`);
+            if (freed.some((canvas) => canvas.width !== 0)) throw new Error("a released card kept its pixels");
+            assertBudget("reader.overview.600", ms);
+        } finally {
+            g.IntersectionObserver = had;
+        }
     });
     it("library.epub.fxl.window.300", () => {
         // A 300-page comic in Spread, its first page alone: turned end to end, each view laid out and the

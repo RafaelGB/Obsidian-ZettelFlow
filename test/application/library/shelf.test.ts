@@ -3,7 +3,12 @@ import {
     BOOK_PAGES,
     buildShelf,
     continueReading,
+    recentlyAdded,
+    RECENT_LIMIT,
+    shelfCollections,
     shelfCounts,
+    statusCounts,
+    wantToRead,
     titleFromName,
     viewShelf,
     type ShelfInputs,
@@ -21,6 +26,7 @@ import {
     LIBRARY_LIMIT,
 } from "application/library/sourceMeta";
 import { bornCounts, notesBornFrom } from "application/library/born";
+import { indexBookNotes } from "application/library/bookNote";
 
 const DAY = 86_400_000;
 
@@ -74,7 +80,7 @@ describe("the Library shelf (#680)", () => {
 
     it("filters, searches without accents, and counts each filter", () => {
         const shelf = buildShelf(inputs());
-        expect(shelfCounts(shelf)).toEqual({ all: 4, books: 2, papers: 1, paths: 1 });
+        expect(shelfCounts(shelf)).toEqual({ all: 4, books: 2, papers: 1, articles: 0, paths: 1 });
         expect(viewShelf(shelf, { filter: "papers", sort: "recent", search: "" }).map((i) => i.title)).toEqual(["gilbert lynch cap"]);
         expect(viewShelf(shelf, { filter: "all", sort: "recent", search: "KAHNEMAN" }).map((i) => i.title)).toEqual(["Thinking, Fast and Slow"]);
         const withAccent = buildShelf(inputs({ meta: { "Books/Thinking, Fast and Slow.epub": { size: 1, mtime: 1, author: "Sönke Ahrens", chapters: 3 } } }));
@@ -110,7 +116,7 @@ describe("what the Library remembers (#680)", () => {
         expect(
             normalizeLibrary({
                 "a.pdf": { size: 3, mtime: 4, title: " T ", chapters: 12.2, imageOnly: true, chapter: 2, at: 9, done: true },
-                "b.md": { size: 1, mtime: 1 },
+                "b.txt": { size: 1, mtime: 1 },
                 "c.epub": { size: "x" },
             })
         ).toEqual({ "a.pdf": { size: 3, mtime: 4, title: "T", chapters: 12, imageOnly: true, chapter: 2, at: 9, done: true } });
@@ -191,5 +197,165 @@ describe("notes born from a source (#680)", () => {
             ["Papers/cap.pdf", ["z/cap.md"]],
         ]);
         expect(bornCounts(born).get("Papers/cap.pdf")).toBe(1);
+    });
+});
+
+describe("the shelf reads the book notes (#743)", () => {
+    const BOOK = "Books/Thinking, Fast and Slow.epub";
+    const PAPER = "Papers/gilbert_lynch_cap.pdf";
+    const notes = indexBookNotes([
+        {
+            path: "Library/Thinking, Fast and Slow.md",
+            source: BOOK,
+            frontmatter: { title: "Thinking, fast and slow", author: ["Daniel Kahneman", "Amos Tversky"], series: "Penguin Psychology", status: "finished", collections: ["Planning"] },
+        },
+        { path: "Elsewhere/cap.md", source: PAPER, frontmatter: { status: "to-read", collections: ["Software design", "Planning"] } },
+    ]);
+
+    it("shows the note's title and author over the file's, and carries its status, collections and series (AC-6)", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const book = shelf.find((item) => item.id === BOOK)!;
+        expect(book).toMatchObject({
+            title: "Thinking, fast and slow",
+            author: "Daniel Kahneman, Amos Tversky",
+            status: "finished",
+            note: "Library/Thinking, Fast and Slow.md",
+            collections: ["Planning"],
+            series: "Penguin Psychology",
+        });
+        // Without a note, the file's own, and a status read from the reading.
+        const bare = buildShelf(inputs());
+        expect(bare.find((item) => item.id === BOOK)).toMatchObject({ title: "Thinking, Fast and Slow", author: "Daniel Kahneman", status: "reading" });
+        expect(bare.find((item) => item.id === BOOK)).not.toHaveProperty("note");
+        expect(bare.find((item) => item.id === "Papers/scan.pdf")).not.toHaveProperty("status");
+        expect(bare.find((item) => item.kind === "path")?.status).toBe("reading");
+    });
+
+    it("filters by status and by collection", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const ids = (query: Partial<Parameters<typeof viewShelf>[1]>) =>
+            viewShelf(shelf, { filter: "all", sort: "title", search: "", ...query }).map((item) => item.id);
+        expect(ids({ status: "to-read" })).toEqual([PAPER]);
+        expect(ids({ status: "finished" })).toEqual([BOOK]);
+        expect(ids({ status: "reading" })).toEqual(["path:r1"]);
+        expect(ids({ collection: "planning" })).toEqual([PAPER, BOOK]);
+        expect(ids({ collection: "Software design", status: "finished" })).toEqual([]);
+        expect(statusCounts(shelf)).toEqual({ all: 4, "to-read": 1, reading: 1, finished: 1 });
+        expect(shelfCollections(shelf)).toEqual(["Planning", "Software design"]);
+    });
+
+    it("offers Want to read only when something is in it", () => {
+        expect(wantToRead(buildShelf(inputs({ notes }))).map((item) => item.id)).toEqual([PAPER]);
+        expect(wantToRead(buildShelf(inputs()))).toEqual([]);
+    });
+
+    it("offers no Continue reading for a book you said you finished, or put back to Want to read", () => {
+        expect(continueReading(buildShelf(inputs())).map((item) => item.id)).toEqual([PAPER, BOOK]);
+        const set = indexBookNotes([
+            { path: "Library/T.md", source: BOOK, frontmatter: { status: "finished" } },
+            { path: "Library/C.md", source: PAPER, frontmatter: { status: "to-read" } },
+        ]);
+        expect(continueReading(buildShelf(inputs({ notes: set }))).map((item) => item.id)).toEqual(["path:r1"]);
+    });
+
+    it("finds a book by its series and by its collection (FR-10)", () => {
+        const shelf = buildShelf(inputs({ notes }));
+        const found = (search: string) => viewShelf(shelf, { filter: "all", sort: "title", search }).map((item) => item.id);
+        expect(found("penguin")).toEqual([BOOK]);
+        expect(found("software design")).toEqual([PAPER]);
+        expect(found("tversky")).toEqual([BOOK]);
+    });
+});
+
+describe("a book's note is never born from its book (#743 AC-7)", () => {
+    it("is left out even when it also cites the book", () => {
+        const ideas = [
+            { path: "Library/Thinking, Fast and Slow.md", claims: [{ sources: [{ ref: "Books/Thinking, Fast and Slow.epub", kind: "link" }] }] },
+            { path: "z/system 1.md", claims: [{ sources: [{ ref: "Books/Thinking, Fast and Slow.epub", kind: "link" }] }] },
+        ];
+        expect(notesBornFrom(ideas).get("Books/Thinking, Fast and Slow.epub")).toEqual(["Library/Thinking, Fast and Slow.md", "z/system 1.md"]);
+        expect(notesBornFrom(ideas, new Set(["Library/Thinking, Fast and Slow.md"])).get("Books/Thinking, Fast and Slow.epub")).toEqual(["z/system 1.md"]);
+    });
+});
+
+describe("articles on the shelf, and what is new (#744)", () => {
+    const NOW = 100 * DAY;
+    const article = {
+        path: "Clippings/The case for slow software.md",
+        basename: "The case for slow software.md",
+        details: { title: "The case for slow software", author: ["Jane Doe"], year: 2025, collections: ["Software design"] },
+        host: "example.com",
+        added: NOW - 2 * DAY,
+    };
+
+    it("gives an article its kind, title, byline, year, highlights, notes born and place (AC-2)", () => {
+        const shelf = buildShelf(
+            inputs({
+                articles: [article, { path: "Clippings/untitled_note.md", basename: "untitled_note.md", details: {}, host: "blog.example.org", added: NOW - 40 * DAY }],
+                meta: { "Clippings/The case for slow software.md": { size: 1, mtime: 1, chapters: 4, chapter: 1, at: 3 * DAY } },
+                highlights: new Map([["Clippings/The case for slow software.md", 1]]),
+                born: new Map([["Clippings/The case for slow software.md", 2]]),
+            })
+        );
+        const [slow, untitled] = shelf.filter((item) => item.kind === "article");
+        expect(slow).toMatchObject({
+            id: "Clippings/The case for slow software.md",
+            kind: "article",
+            format: "article",
+            title: "The case for slow software",
+            author: "Jane Doe",
+            file: "Clippings/The case for slow software.md",
+            note: "Clippings/The case for slow software.md",
+            highlights: 1,
+            born: 2,
+            place: 1,
+            chapters: 4,
+            lastRead: 3 * DAY,
+            status: "reading",
+            collections: ["Software design"],
+            host: "example.com",
+        });
+        expect(slow.details?.year).toBe(2025);
+        expect(slow.progress).toBeCloseTo(2 / 4);
+        // Nobody signed it: the site is the byline; no title: the file's name, tidied.
+        expect(untitled).toMatchObject({ title: "untitled note", author: "blog.example.org", progress: 0 });
+        expect(shelfCounts(shelf)).toMatchObject({ all: 6, articles: 2 });
+        expect(viewShelf(shelf, { filter: "articles", sort: "title", search: "" }).map((item) => item.title)).toEqual(["The case for slow software", "untitled note"]);
+        expect(viewShelf(shelf, { filter: "all", sort: "recent", search: "jane" }).map((item) => item.title)).toEqual(["The case for slow software"]);
+    });
+
+    it("holds what came in the last 30 days and is not finished, newest first (AC-3)", () => {
+        const sources = [
+            { path: "Books/new.epub", basename: "new.epub", added: NOW - DAY },
+            { path: "Books/done.epub", basename: "done.epub", added: NOW - DAY },
+            { path: "Books/old.epub", basename: "old.epub", added: NOW - 31 * DAY },
+            { path: "Papers/edge.pdf", basename: "edge.pdf", added: NOW - 30 * DAY },
+        ];
+        const shelf = buildShelf(
+            inputs({
+                sources,
+                articles: [article],
+                meta: { "Books/done.epub": { size: 1, mtime: 1, chapters: 3, chapter: 2, at: NOW, done: true } },
+            })
+        );
+        expect(recentlyAdded(shelf, NOW).map((item) => item.title)).toEqual(["new", "The case for slow software", "edge"]);
+        // A saved path is not a file: it never arrived.
+        expect(recentlyAdded(shelf, NOW).some((item) => item.kind === "path")).toBe(false);
+        // Set to Finished counts as finished, whatever the reading says.
+        const set = shelf.map((item) => (item.title === "new" ? { ...item, status: "finished" as const } : item));
+        expect(recentlyAdded(set, NOW).map((item) => item.title)).toEqual(["The case for slow software", "edge"]);
+        expect(recentlyAdded(shelf, NOW + 60 * DAY)).toEqual([]);
+        // As many as one row can hold.
+        const many = buildShelf(inputs({ sources: Array.from({ length: 20 }, (_, i) => ({ path: `B/${i}.epub`, basename: `${i}.epub`, added: NOW - i })) }));
+        expect(recentlyAdded(many, NOW)).toHaveLength(RECENT_LIMIT);
+        // The Recently added order sorts by the same date; what is not a file goes last.
+        expect(viewShelf(shelf, { filter: "all", sort: "added", search: "" }).map((item) => item.title)).toEqual([
+            "done",
+            "new",
+            "The case for slow software",
+            "edge",
+            "old",
+            "Distributed systems · Argument",
+        ]);
     });
 });

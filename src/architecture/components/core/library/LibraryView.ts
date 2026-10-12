@@ -1,22 +1,36 @@
-import { Component, ItemView, Scope, TFile, moment as obsidianMoment, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { Component, ItemView, Scope, Setting, TFile, moment as obsidianMoment, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import {
     SHELF_FILTERS,
     SHELF_SORTS,
+    STATUS_FILTERS,
     continueReading,
+    fold,
+    recentlyAdded,
+    shelfCollections,
     shelfCounts,
+    statusCounts,
+    titleFromName,
     viewShelf,
+    wantToRead,
     type ShelfFilter,
     type ShelfItem,
     type ShelfSort,
+    type StatusFilter,
 } from "application/library/shelf";
+import { BOOK_LINK_KEY, TEXT_FIELDS, collectionsInUse, effectiveStatus, type BookDetails, type TextField } from "application/library/bookNote";
 import { isFresh, normalizeLibrary, renameSource, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
+import { renderDetails, STATUS_KEY, type DetailsParts } from "./libraryDetails";
+import { arriveIn, dropIn, flipMove, FLIP_KEY } from "./libraryFlip";
+import { addFolderField } from "config/modals/handlers/folderField";
+import { ARTICLES_DEFAULT, inFolder } from "application/library/article";
+import { declaredMetadata } from "./sources/declared";
 import { beginOpenShot } from "architecture/components/core/reader/readerShot";
 import { readingMotion } from "architecture/components/core/reader/readingMotion";
 import { renderNotebook, type NotebookFilter } from "./libraryNotebook";
@@ -24,7 +38,12 @@ import { crystallizeHighlight } from "./crystallizeHighlight";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
-import { gatherShelf, type Shelf } from "./libraryShelf";
+import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
+import { gatherProduced, renderProduced } from "./libraryProduced";
+import { CitePanel } from "architecture/components/core/reader/readerCite";
+import { citeFormOf } from "application/library/citation";
+import { citeSourceOf } from "./libraryCite";
+import type { KnowledgeIndex } from "architecture/knowledge";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -33,30 +52,48 @@ const FILTER_KEY: Record<ShelfFilter, LocaleKey> = {
     all: "shelf_filter_all",
     books: "shelf_filter_books",
     papers: "shelf_filter_papers",
+    articles: "shelf_filter_articles",
     paths: "shelf_filter_paths",
 };
 const SECTION_KEY: Record<ShelfFilter, LocaleKey> = {
     all: "shelf_shelf",
     books: "shelf_filter_books",
     papers: "shelf_filter_papers",
+    articles: "shelf_section_articles",
     paths: "shelf_section_paths",
 };
 const SORT_KEY: Record<ShelfSort, LocaleKey> = {
     recent: "shelf_sort_recent",
     highlighted: "shelf_sort_highlighted",
     title: "shelf_sort_title",
+    added: "shelf_sort_added",
 };
 const KIND_KEY: Record<ShelfItem["format"], LocaleKey> = {
     pdf: "shelf_kind_pdf",
     epub: "shelf_kind_epub",
+    article: "shelf_kind_article",
     path: "shelf_kind_path",
 };
+
+/** A card in *Recently added* is known by this across a redraw — apart from the same item's card on the shelf. */
+const recentKey = (id: string) => `recent:${id}`;
 
 // Obsidian re-exports its moment typed as a namespace; the callable signature is type-only.
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
+/** A folder field left unchanged closes after its own commit would have run (see `addFolderField`). */
+const FOLDER_BLUR_MS = 300;
+
+/**
+ * The sources whose *What it produced* was shown this session (#752 FR-9): the second opening is
+ * simply there — also after a trip to the Reader, which draws the Library anew. Never persisted.
+ */
+const PRODUCED_SEEN = new Set<string>();
+
 /** Saving what was read off the files waits for a quiet moment, so a shelf of covers saves once. */
 const SAVE_MS = 800;
+/** How long a detail opened at a field (#768) keeps that field through the shelf's redraw. */
+const FIELD_HOLD_MS = 2000;
 
 /** When you last read it, in the words Obsidian uses for time. */
 export function lastReadLabel(at: number): string {
@@ -70,6 +107,7 @@ export function whereLabel(item: ShelfItem): string {
     const of = String(item.chapters);
     if (item.format === "pdf") return t("shelf_where_page", at, of);
     if (item.format === "epub") return t("shelf_where_chapter", at, of);
+    if (item.format === "article") return t("shelf_where_section", at, of);
     return t("shelf_where_note", at, of);
 }
 
@@ -89,7 +127,25 @@ export class LibraryView extends ItemView {
     private filter: ShelfFilter = "all";
     private sort: ShelfSort = "recent";
     private search = "";
+    /** Where things stand for you, and one collection (#743): the second row of chips. */
+    private status: StatusFilter = "all";
+    private collection: string | null = null;
+    /** The collections the chip row last drew: a new one drops in (FR-16). */
+    private drawnCollections: Set<string> | null = null;
+    /** What *Recently added* last drew (#744 FR-13): a card new since then settles in. `null` before the first draw. */
+    private drawnRecent: Set<string> | null = null;
+    /** The inline *Change* of the articles folder is open (#744 FR-2). */
+    private changingFolder = false;
+    /** A refresh waiting to run keeps an open detail as it is (#743). */
+    private keepDetail = false;
     private detail: string | null = null;
+    /**
+     * One-shot (#768 FR-4): the Details field the detail opens at — Cite's *Add it*. Held for the
+     * moment the shelf takes to arrive, which draws the detail a second time, then let go.
+     */
+    private openField: { field: TextField; detail: string; until: number } | null = null;
+    /** *Cite this book* (#768): the one cite panel, grown from the detail's button. */
+    private citePanel: CitePanel | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
     /** The Library came back into view: the continue card breathes once (#724). */
@@ -98,7 +154,7 @@ export class LibraryView extends ItemView {
     private pendingScroll: number | null = null;
     private notebookFilter: NotebookFilter = { meaning: null, withNotes: false };
     private notebookScope: Component | null = null;
-    private shelf: Shelf = { items: [], born: new Map(), meta: {} };
+    private shelf: Shelf = { items: [], born: new Map(), meta: {}, notes: new Map() };
     private root: HTMLElement | null = null;
     private body: HTMLElement | null = null;
     private aside: HTMLElement | null = null;
@@ -114,13 +170,22 @@ export class LibraryView extends ItemView {
     constructor(
         leaf: WorkspaceLeaf,
         private readonly plugin?: LibraryHost,
-        /** Seams for tests: the thought store the notebook reads. */
-        private readonly deps: { store?: Pick<ThoughtStore, "highlightsAbout"> } = {}
+        /** Seams for tests: the thought store the notebook reads, the writes and suggests of Details. */
+        private readonly deps: {
+            store?: Pick<ThoughtStore, "highlightsAbout">;
+            details?: Pick<DetailsParts, "port" | "suggest">;
+            produced?: { store?: Pick<ThoughtStore, "thoughtsAbout">; index?: Pick<KnowledgeIndex, "status" | "getModel"> };
+        } = {}
     ) {
         super(leaf);
         this.scope = new Scope(this.app?.scope);
         // Esc closes the detail, then the notebook; with neither open it is Obsidian's.
         this.scope.register([], "Escape", () => {
+            // The cite panel is the nearest thing: it goes first, and the detail stays (#768 FR-10).
+            if (this.citePanel?.isOpen()) {
+                this.citePanel.close();
+                return false;
+            }
             if (!this.detail && this.notebook) {
                 this.closeNotebook();
                 return false;
@@ -149,6 +214,8 @@ export class LibraryView extends ItemView {
             ...super.getState(),
             filter: this.filter,
             sort: this.sort,
+            ...(this.status !== "all" ? { status: this.status } : {}),
+            ...(this.collection ? { collection: this.collection } : {}),
             ...(this.detail ? { detail: this.detail } : {}),
             ...(this.notebook ? { notebook: this.notebook } : {}),
         };
@@ -159,7 +226,11 @@ export class LibraryView extends ItemView {
         const value = (state ?? {}) as Record<string, unknown>;
         if (typeof value.filter === "string" && (SHELF_FILTERS as readonly string[]).includes(value.filter)) this.filter = value.filter as ShelfFilter;
         if (typeof value.sort === "string" && (SHELF_SORTS as readonly string[]).includes(value.sort)) this.sort = value.sort as ShelfSort;
+        this.status = typeof value.status === "string" && (STATUS_FILTERS as readonly string[]).includes(value.status) ? (value.status as StatusFilter) : "all";
+        this.collection = typeof value.collection === "string" && value.collection ? value.collection : null;
         this.detail = typeof value.detail === "string" && value.detail ? value.detail : null;
+        this.openField =
+            this.detail && typeof value.field === "string" && (TEXT_FIELDS as readonly string[]).includes(value.field) ? { field: value.field as TextField, detail: this.detail, until: Date.now() + FIELD_HOLD_MS } : null;
         const notebook = typeof value.notebook === "string" && value.notebook ? value.notebook : null;
         if (notebook !== this.notebook) this.notebookFilter = { meaning: null, withNotes: false };
         this.notebook = notebook;
@@ -172,9 +243,13 @@ export class LibraryView extends ItemView {
         this.contentEl.addClass(c("shelf-host"));
         this.root = this.contentEl.createDiv({ cls: c("shelf") });
         this.body = this.root.createDiv({ cls: c("shelf-body") });
-        this.scrim = this.contentEl.createDiv({ cls: c("shelf-scrim") });
+        // The dim and the detail live beside the shelf's scroller, not in it (#779): placed over the pane
+        // you see, they cover it whatever the shelf's scroll, and the shelf waits under them.
+        this.scrim?.remove();
+        this.aside?.remove();
+        this.scrim = this.containerEl.createDiv({ cls: c("shelf-scrim") });
         this.registerDomEvent(this.scrim, "click", () => this.closeDetail());
-        this.aside = this.contentEl.createEl("aside", {
+        this.aside = this.containerEl.createEl("aside", {
             cls: c("shelf-detail"),
             attr: { "aria-label": t("shelf_details"), role: "dialog" },
         });
@@ -185,19 +260,37 @@ export class LibraryView extends ItemView {
             this.observer = new Observer((entries) => this.onCoversVisible(entries), { root: this.contentEl, rootMargin: "200px 0px" });
             this.register(() => this.observer?.disconnect());
         }
-        // A source added, renamed or removed is on the shelf the moment the vault says so.
+        // A source added, renamed or removed is on the shelf the moment the vault says so — and an
+        // article, in the articles folder (#744); a new one is read once the cache has its properties.
         const onVault = (file: unknown) => {
-            if (file instanceof TFile && sourceFormat(file.path)) this.scheduleRefresh();
+            if (file instanceof TFile && (sourceFormat(file.path) || this.inArticles(file.path))) this.scheduleRefresh();
         };
         this.registerEvent(this.app.vault.on("create", onVault));
         this.registerEvent(this.app.vault.on("delete", onVault));
         this.registerEvent(
             this.app.vault.on("rename", (file, oldPath) => {
-                if (!(file instanceof TFile) || !sourceFormat(file.path)) return;
+                if (!(file instanceof TFile)) return;
+                // An article moved into, or out of, the articles folder comes, or goes (#744).
+                if (this.inArticles(file.path) || this.inArticles(oldPath)) {
+                    this.updateMeta((map) => renameSource(map, oldPath, file.path));
+                    this.scheduleRefresh();
+                    return;
+                }
+                if (!sourceFormat(file.path)) return;
                 this.updateMeta((map) => renameSource(map, oldPath, file.path));
                 this.scheduleRefresh();
             })
         );
+        // A book's note changed — here, in its editor, in a Base (#743): the shelf follows it, and a
+        // detail you are typing in is left alone.
+        const onNote = (file: unknown) => {
+            if (!(file instanceof TFile) || file.extension !== "md") return;
+            const known = [...this.shelf.notes.values()].some((note) => note.path === file.path);
+            const fm = this.app.metadataCache.getFileCache?.(file)?.frontmatter;
+            if (known || (fm && BOOK_LINK_KEY in fm) || this.inArticles(file.path)) this.scheduleRefresh(true);
+        };
+        if (typeof this.app.metadataCache?.on === "function") this.registerEvent(this.app.metadataCache.on("changed", onNote));
+        this.registerEvent(this.app.vault.on("delete", onNote));
         // Back from the Reader, the counts and the place have moved.
         this.registerEvent(
             this.app.workspace.on("active-leaf-change", (leaf) => {
@@ -218,27 +311,50 @@ export class LibraryView extends ItemView {
         }
         this.renderScope?.unload();
         this.detailScope?.unload();
+        this.citePanel?.dispose();
+        this.citePanel = null;
+        this.scrim?.remove();
+        this.aside?.remove();
         this.contentEl.empty();
         this.root = null;
     }
 
-    /** Read the shelf again and draw it. */
-    refresh(): void {
+    /**
+     * Read the shelf again and draw it. `keepDetail`: a book's note changed under an open detail —
+     * the shelf follows, the detail you are typing in is not redrawn under you (#743).
+     */
+    refresh(keepDetail = false): void {
         if (!this.body) return;
         this.shelf = gatherShelf(this.app, this.plugin ?? null);
         if (this.notebook && this.renderNotebookPage()) return;
         this.notebook = null;
-        this.render();
-        if (this.detail) this.openDetail(this.detail);
+        // Something arrived while the shelf was open (#744 FR-13): the row makes room for it by a translate.
+        const known = this.drawnRecent;
+        const arrived = known !== null && this.sectioned() && recentlyAdded(this.shelf.items, Date.now()).some((item) => !known.has(item.id));
+        if (arrived) flipMove(this.body, () => this.render());
+        else this.render();
+        // The kept place first (#779): a detail opened from view state covers the pane you see there.
         if (this.pendingScroll !== null) {
             this.contentEl.scrollTop = this.pendingScroll;
             this.pendingScroll = null;
         }
+        const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
+        if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
     }
 
-    private scheduleRefresh(): void {
+    /** Whether a path is in the articles folder (#744). */
+    private inArticles(path: string): boolean {
+        return inFolder(path, articlesFolderOf(this.plugin));
+    }
+
+    private scheduleRefresh(keepDetail = false): void {
+        // A full refresh already waiting wins over keeping the detail.
+        this.keepDetail = keepDetail && (this.refreshTimer === undefined || this.keepDetail);
         window.clearTimeout(this.refreshTimer);
-        this.refreshTimer = window.setTimeout(() => this.refresh(), 150);
+        this.refreshTimer = window.setTimeout(() => {
+            this.refreshTimer = undefined;
+            this.refresh(this.keepDetail);
+        }, 150);
     }
 
     // ── the shelf ────────────────────────────────────────────────────────────
@@ -291,6 +407,8 @@ export class LibraryView extends ItemView {
             });
         }
         const sort = bar.createEl("select", { cls: ["dropdown", c("shelf-sort")], attr: { "aria-label": t("shelf_sort_label") } });
+        if (this.filter === "articles") this.renderArticlesFrom(body, scope);
+        this.renderNoteChips(body, scope);
         for (const option of SHELF_SORTS) sort.createEl("option", { text: t(SORT_KEY[option]), attr: { value: option } });
         sort.value = this.sort;
         scope.registerDomEvent(sort, "change", () => {
@@ -303,23 +421,156 @@ export class LibraryView extends ItemView {
         this.renderShelf(shelfHost, scope);
     }
 
-    /** *Continue reading* and the shelf itself — what the search and the sort redraw. */
+    /**
+     * The second row of chips (#743 FR-9): **All · Reading · Want to read · Finished**, each status
+     * once something stands there, and **Every collection** with each collection in use.
+     */
+    private renderNoteChips(body: HTMLElement, scope: Component): void {
+        const items = this.shelf.items;
+        const row = body.createDiv({ cls: [c("shelf-bar"), c("shelf-bar--notes")] });
+        const statuses = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_status_row") } });
+        const counts = statusCounts(items);
+        for (const status of STATUS_FILTERS) {
+            if (status !== "all" && counts[status] === 0 && this.status !== status) continue;
+            const on = status === this.status;
+            const chip = statuses.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--status"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on) },
+            });
+            chip.createSpan({ text: t(status === "all" ? "shelf_filter_all" : STATUS_KEY[status]) });
+            chip.createSpan({ cls: c("shelf-filter-count"), text: String(counts[status]) });
+            scope.registerDomEvent(chip, "click", () => {
+                this.status = status;
+                this.app.workspace.requestSaveLayout();
+                this.render();
+            });
+        }
+        const names = shelfCollections(items);
+        const chosen = this.collection;
+        if (chosen && !names.some((name) => fold(name) === fold(chosen))) names.push(chosen);
+        const groups = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_collection_row") } });
+        const known = this.drawnCollections;
+        for (const name of [null, ...names]) {
+            const on = name === null ? chosen === null : fold(name) === fold(chosen ?? "");
+            const chip = groups.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--collection"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on) },
+                text: name ?? t("shelf_filter_collection_all"),
+            });
+            scope.registerDomEvent(chip, "click", () => {
+                this.collection = name;
+                this.app.workspace.requestSaveLayout();
+                this.render();
+            });
+            // A collection you just gave a book drops into the row (FR-16); the first draw is still.
+            if (name !== null && known && !known.has(fold(name))) dropIn(chip);
+        }
+        this.drawnCollections = new Set(names.map(fold));
+    }
+
+    /**
+     * Where articles come from (#744 FR-2), under the *Articles* chip: the folder, and *Change* — an
+     * inline folder field, the same setting as Settings → Reading. Empty turns articles off.
+     */
+    private renderArticlesFrom(body: HTMLElement, scope: Component): void {
+        const line = body.createDiv({ cls: c("shelf-articles-from") });
+        const settings = this.plugin?.settings;
+        if (this.changingFolder && settings) {
+            const setting = new Setting(line).setName(t("shelf_articles_folder"));
+            setting.settingEl?.addClass(c("shelf-articles-field"));
+            addFolderField(setting, {
+                read: () => articlesFolderOf(this.plugin),
+                // Empty is a choice: no articles on the shelf.
+                accept: (value) => {
+                    settings.articlesFolder = value.replace(/^\/+|\/+$/g, "");
+                    return true;
+                },
+                saved: async () => {
+                    this.changingFolder = false;
+                    await this.plugin?.saveSettings?.();
+                    this.refresh();
+                },
+                placeholder: ARTICLES_DEFAULT,
+            });
+            const input = line.querySelector?.<HTMLInputElement>("input");
+            input?.focus?.();
+            // Left as it was — Esc, or leaving the field unchanged — the line comes back as it was.
+            const putAway = () => {
+                if (!this.changingFolder) return;
+                this.changingFolder = false;
+                this.render();
+            };
+            if (input) {
+                scope.registerDomEvent(input, "keydown", (event: KeyboardEvent) => {
+                    if (event.key !== "Escape") return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    putAway();
+                });
+                scope.registerDomEvent(input, "blur", () => {
+                    window.setTimeout(() => {
+                        if (input.value.trim().replace(/^\/+|\/+$/g, "") === articlesFolderOf(this.plugin)) putAway();
+                    }, FOLDER_BLUR_MS);
+                });
+            }
+            return;
+        }
+        const folder = articlesFolderOf(this.plugin);
+        line.createSpan({ text: folder ? t("shelf_articles_from", folder) : t("shelf_articles_off") });
+        line.createSpan({ cls: c("shelf-articles-dot"), text: "·", attr: { "aria-hidden": "true" } });
+        const change = line.createEl("button", { cls: c("shelf-articles-change"), text: t("shelf_articles_change"), attr: { type: "button" } });
+        scope.registerDomEvent(change, "click", () => {
+            this.changingFolder = true;
+            this.render();
+        });
+    }
+
+    /** Nothing narrowed: the shelf reads in sections. */
+    private sectioned(): boolean {
+        return this.filter === "all" && this.status === "all" && !this.collection && !this.search.trim();
+    }
+
+    /** *Continue reading*, *Recently added*, *Want to read* and the shelf itself — what the search and the sort redraw. */
     private renderShelf(host: HTMLElement, scope: Component): void {
         host.empty();
         this.observer?.disconnect();
         const items = this.shelf.items;
-        if (this.filter === "all" && !this.search.trim()) {
+        const sectioned = this.sectioned();
+        if (sectioned) {
             const going = continueReading(items);
             if (going.length > 0) {
                 host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_continue") });
                 const hero = host.createDiv({ cls: c("shelf-hero") });
                 for (const item of going) this.renderHeroCard(hero, item, scope);
             }
+            // What came into the vault lately (#744 FR-8): one row, hidden when there is nothing.
+            const recent = recentlyAdded(items, Date.now());
+            const known = this.drawnRecent;
+            if (recent.length > 0) {
+                host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_recent") });
+                const row = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--recent")], attr: { role: "list" } });
+                for (const item of recent) {
+                    const card = this.renderCard(row, item, scope, recentKey(item.id));
+                    // A card new since the last draw settles in; the first draw is still (FR-13).
+                    if (known && !known.has(item.id)) arriveIn(card);
+                }
+            }
+            this.drawnRecent = new Set(recent.map((item) => item.id));
+        }
+        // What you said you want to read, after what you are reading — only when it holds something (FR-9).
+        const want = sectioned ? viewShelf(wantToRead(items), { filter: "all", sort: this.sort, search: "" }) : [];
+        if (want.length > 0) {
+            host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_status_to_read") });
+            const grid = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--want")], attr: { role: "list" } });
+            for (const item of want) this.renderCard(grid, item, scope);
         }
         host.createEl("h3", { cls: c("shelf-section"), text: t(SECTION_KEY[this.filter]) });
-        const shown = viewShelf(items, { filter: this.filter, sort: this.sort, search: this.search });
+        const query = { filter: this.filter, sort: this.sort, search: this.search, status: this.status, collection: this.collection };
+        const wanted = new Set(want.map((item) => item.id));
+        const shown = viewShelf(items, query).filter((item) => !wanted.has(item.id));
         if (shown.length === 0) {
-            host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
+            // No articles yet: the line under the chip already says where they come from (#744).
+            if (this.filter !== "articles" || this.search.trim()) host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
             return;
         }
         const grid = host.createDiv({ cls: c("shelf-shelf"), attr: { role: "list" } });
@@ -331,6 +582,8 @@ export class LibraryView extends ItemView {
         setIcon(empty.createDiv({ cls: c("shelf-empty-icon") }), "library");
         empty.createEl("h2", { cls: c("shelf-empty-title"), text: t("shelf_empty_title") });
         empty.createDiv({ cls: c("shelf-empty-body"), text: t("shelf_empty_body") });
+        // Clipping into another folder? Where articles come from is changed from here too (#744 FR-2).
+        this.renderArticlesFrom(empty, scope);
         const note = this.lastNote();
         if (!note) return;
         const read = empty.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("shelf_empty_read") });
@@ -345,10 +598,11 @@ export class LibraryView extends ItemView {
         return recent.find((path) => path.toLowerCase().endsWith(".md")) ?? null;
     }
 
-    private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component): void {
+    private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component, key = item.id): HTMLElement {
         const card = grid.createDiv({
             cls: [c("shelf-card"), ...(item.imageOnly ? [c("shelf-card--scanned")] : [])],
-            attr: { role: "listitem" },
+            // Known across a redraw, so a card that changes row is carried there (#743 FR-16).
+            attr: { role: "listitem", [FLIP_KEY]: key },
         });
         const open = card.createEl("button", {
             cls: c("shelf-card-open"),
@@ -374,8 +628,15 @@ export class LibraryView extends ItemView {
         if (byline) card.createDiv({ cls: c("shelf-card-author"), text: byline });
         this.renderFacts(card, item);
         const last = card.createDiv({ cls: c("shelf-meta") });
-        last.createSpan({ text: lastReadLabel(item.lastRead) });
+        // Where it stands for you, where it said *Never opened* (#743 FR-9) — and *Reading* you set on
+        // a book not opened yet, rather than a *Never opened* that contradicts it.
+        if (item.status === "to-read" || item.status === "finished" || (item.status === "reading" && item.lastRead === 0)) {
+            last.createSpan({ cls: c("shelf-card-status"), text: t(STATUS_KEY[item.status]) });
+        } else {
+            last.createSpan({ text: lastReadLabel(item.lastRead) });
+        }
         if (item.imageOnly) this.scannedBadge(last);
+        return card;
     }
 
     /** Progress, highlights and notes born: what came of it, in one line. */
@@ -430,7 +691,8 @@ export class LibraryView extends ItemView {
 
     /** A cover is read the first time it scrolls into view; one already read is laid on at once. */
     private watchCover(cover: HTMLElement, item: ShelfItem): void {
-        if (!item.file) return;
+        // An article has no cover to read: its drawn one, in a theme colour, is its cover (#744 FR-3).
+        if (!item.file || item.kind === "article") return;
         const file = this.app.vault.getAbstractFileByPath(item.file);
         if (!(file instanceof TFile)) return;
         const known = cachedCover(file);
@@ -498,6 +760,9 @@ export class LibraryView extends ItemView {
             return;
         }
         this.detail = id;
+        const focus = this.openField && this.openField.detail === id && this.openField.until > Date.now() ? this.openField.field : null;
+        if (!focus) this.openField = null;
+        this.citePanel?.close(false);
         this.detailScope?.unload();
         const scope = new Component();
         scope.load();
@@ -506,7 +771,6 @@ export class LibraryView extends ItemView {
         renderDetail(aside, item, {
             app: this.app,
             scope,
-            born: this.shelf.born.get(item.file ?? "") ?? [],
             cover: (parent) => {
                 const cover = drawCover(parent, item, "detail");
                 this.watchCover(cover, item);
@@ -518,10 +782,104 @@ export class LibraryView extends ItemView {
             open: (at) => this.openItem(item, at),
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
+            cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
+            produced: (parent) =>
+                renderProduced(parent, {
+                    app: this.app,
+                    scope,
+                    item,
+                    gather: () => gatherProduced(this.app, item, { articles: () => gatherArticles(this.app, articlesFolderOf(this.plugin)), ...this.deps.produced }),
+                    open: (at) => this.openItem(item, at),
+                    seen: PRODUCED_SEEN.has(item.id),
+                    shown: () => PRODUCED_SEEN.add(item.id),
+                }),
+            details: (parent) =>
+                renderDetails(parent, {
+                    app: this.app,
+                    scope,
+                    item,
+                    folder: () => this.plugin?.settings?.bookNotesFolder || "Library",
+                    collections: () => collectionsInUse([...this.shelf.notes.values(), ...this.articleNotes()]),
+                    declared: async () => {
+                        const file = item.file ? this.app.vault.getAbstractFileByPath(item.file) : null;
+                        return file instanceof TFile ? declaredMetadata(this.app, file) : {};
+                    },
+                    saved: (details, note) => this.noteSaved(item.id, details, note),
+                    ...(focus ? { focus } : {}),
+                    ...this.deps.details,
+                }),
         });
+        this.holdPane();
         aside.addClass(c("shelf-detail--open"));
         this.scrim?.addClass(c("shelf-scrim--on"));
         this.app.workspace.requestSaveLayout();
+    }
+
+    /**
+     * The detail and its dim cover the pane you see, whatever the shelf's scroll (#779): they sit over
+     * the shelf's scroller — its scrollbar too — placed on its box by custom properties, never inline.
+     * The shelf is never scrolled, so closing the detail leaves it exactly where it was.
+     */
+    private holdPane(): void {
+        const pane = this.contentEl;
+        const height = Math.round(pane.offsetHeight || 0);
+        // No height to read (a pane not laid out yet): the stylesheet's own 100% stands.
+        const band: Record<string, string> = { "--zf-pane-top": `${Math.round(pane.offsetTop || 0)}px`, ...(height > 0 ? { "--zf-pane-h": `${height}px` } : {}) };
+        for (const layer of [this.scrim, this.aside]) layer?.setCssProps(band);
+    }
+
+    /** A pane resized with the detail open — a narrower split, an iPad turned: the band follows. */
+    onResize(): void {
+        if (this.aside?.hasClass(c("shelf-detail--open"))) this.holdPane();
+    }
+
+    /**
+     * A book's note was written from its detail (#743): the shelf shows it at once — before the
+     * metadata cache has caught up — and a card that changes row is carried there by a translate.
+     */
+    private noteSaved(id: string, details: BookDetails, note: string | null): void {
+        const at = this.shelf.items.findIndex((candidate) => candidate.id === id);
+        const item = this.shelf.items[at];
+        if (!item?.file) return;
+        const meta = this.shelf.meta[item.file];
+        if (item.kind === "article") {
+            // Its own frontmatter is its note (#744 FR-4): only the status and the collections changed.
+            const next: ShelfItem = { ...item, details };
+            delete next.status;
+            delete next.collections;
+            const status = effectiveStatus(details, meta);
+            if (status) next.status = status;
+            if (details.collections) next.collections = [...details.collections];
+            this.shelf.items[at] = next;
+            if (this.body) flipMove(this.body, () => this.render());
+            return;
+        }
+        const status = effectiveStatus(note ? details : undefined, meta);
+        const author = (note ? details.author?.join(", ") : undefined) ?? meta?.author;
+        const next: ShelfItem = {
+            ...item,
+            title: (note ? details.title : undefined) ?? meta?.title ?? titleFromName(item.file.split("/").pop() ?? item.file),
+        };
+        for (const key of ["author", "status", "note", "details", "collections", "series"] as const) delete next[key];
+        if (author) next.author = author;
+        if (status) next.status = status;
+        if (note) {
+            next.note = note;
+            next.details = details;
+            if (details.collections) next.collections = [...details.collections];
+            if (details.series) next.series = details.series;
+            this.shelf.notes.set(item.file, { path: note, source: item.file, details });
+        } else {
+            this.shelf.notes.delete(item.file);
+        }
+        this.shelf.items[at] = next;
+        if (!this.body) return;
+        flipMove(this.body, () => this.render());
+    }
+
+    /** The articles' own frontmatter, as notes: their collections are suggested too (#744). */
+    private articleNotes(): { details: BookDetails }[] {
+        return this.shelf.items.filter((item) => item.kind === "article" && item.details).map((item) => ({ details: item.details! }));
     }
 
     // ── the notebook (#721) ──────────────────────────────────────────────────
@@ -575,7 +933,37 @@ export class LibraryView extends ItemView {
         return true;
     }
 
+    /**
+     * *Cite this book* (#768 FR-1): the whole source, no passage, from what its note (or the article's
+     * frontmatter) says now. *Add it* puts the cursor in that field of the Details just below.
+     */
+    private citeBook(item: ShelfItem, from: HTMLElement): void {
+        const file = item.file;
+        if (!file) return;
+        this.citePanel ??= new CitePanel({
+            host: () => this.containerEl,
+            form: () => citeFormOf(this.plugin?.settings?.citeForm),
+            saveForm: (form) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.citeForm === form) return;
+                settings.citeForm = form;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
+            addIt: (_file, field) => {
+                const input = this.aside?.querySelector<HTMLInputElement>(`#zf-book-${field}`);
+                input?.scrollIntoView?.({ block: "center" });
+                input?.focus();
+            },
+        });
+        const format = item.kind === "article" ? "article" : item.format === "epub" ? "epub" : "pdf";
+        const r = from.getBoundingClientRect();
+        const panel = this.citePanel.show({ source: citeSourceOf(this.app, file, format, item.title), file, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
+        panel?.addClass(c("reader-cite--library"));
+    }
+
     private closeDetail(): void {
+        this.citePanel?.close();
+        this.openField = null;
         this.detail = null;
         this.aside?.removeClass(c("shelf-detail--open"));
         this.scrim?.removeClass(c("shelf-scrim--on"));

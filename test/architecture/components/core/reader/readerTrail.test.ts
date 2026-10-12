@@ -179,6 +179,8 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
             const m = await book();
             expect(ribbon(m.content).hasClass(cls("reader-hidden"))).toBe(false);
             expect(ribbon(m.content).getAttribute("aria-pressed")).toBe("false");
+            // At the pane's corner (#784 FR-3): nothing measured from the column.
+            expect(ribbon(m.content).cssProps["--zf-ribbon-right"]).toBeUndefined();
             m.stage.scrollTop = 450;
             ribbon(m.content).click();
             expect(bookmarks(m)).toHaveLength(1);
@@ -244,7 +246,7 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
         it("has the three tabs for a book, each empty state saying what to do", async () => {
             const m = await book();
             button(m.content, "Contents").click();
-            expect(m.content.byClass("reader-tab").map((b) => b.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
+            expect(m.content.byClass("reader-tab").map((b) => b.textContent)).toEqual(["Contents", "Bookmarks", "Where you've been"]);
             expect(tab(m.content, "Contents").getAttribute("aria-selected")).toBe("true");
             tab(m.content, "Bookmarks").click();
             expect(m.content.oneByClass("reader-empty").textContent).toBe("No bookmarks yet. Tap the ribbon, or press B, to keep a place without highlighting anything.");

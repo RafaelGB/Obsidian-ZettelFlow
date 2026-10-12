@@ -341,7 +341,7 @@ describe("pages arrive quietly, and scrolling is the platform's (#767 FR-19, FR-
         stage.fire("touchmove", touch(395, 405));
         stage.fire("touchend", { touches: [] });
         expect(content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"))).toBe(true);
-        expect(content.byClass("reader-tab").find((el) => el.textContent === "Overview")!.hasClass("is-active")).toBe(true);
+        expect(content.oneByClass("reader-panel").oneByClass("reader-panel-title").textContent).toBe("Overview");
     });
 
     it("only zooms a pinch above that, and never opens the overview from Ctrl + wheel (#776 D14)", async () => {
@@ -506,12 +506,11 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
     afterEach(() => {
         if (!hadObserver) delete g.IntersectionObserver;
     });
-    const overviewTab = (content: DomNode) => content.byClass("reader-tab").find((el) => el.textContent === "Overview")!;
+    const overviewDoor = (content: DomNode) => content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Overview")!;
 
     it("lists every page with its label, marks the current one, and draws a picture only once it is seen", async () => {
         const { content, calls } = await open(2, {}, undefined, { labels: ["i", "1", "2", "3", "4", "5", "6", "7"] });
-        contents(content);
-        overviewTab(content).click();
+        overviewDoor(content).click();
         const cards = content.byClass("reader-overview-card");
         expect(cards.map((el) => el.byClass("reader-overview-label")[0].textContent)).toEqual(["p. i", "p. 1", "p. 2", "p. 3", "p. 4", "p. 5", "p. 6", "p. 7"]);
         expect(cards[2].hasClass("is-active")).toBe(true);
@@ -530,8 +529,7 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
         const record = recordAnimations();
         try {
             const { content } = await open(0);
-            contents(content);
-            overviewTab(content).click();
+            overviewDoor(content).click();
             const card = content.byClass("reader-overview-card")[5];
             const sheet = card.byClass("reader-overview-sheet")[0];
             const box = (el: DomNode) => {
@@ -563,8 +561,7 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
         const record = recordAnimations();
         try {
             const { content } = await open(0);
-            contents(content);
-            overviewTab(content).click();
+            overviewDoor(content).click();
             content.byClass("reader-overview-card")[4].click();
             expect(barLabel(content)).toBe("Chapter 5 / 8");
             expect(record.animations).toHaveLength(0);
@@ -577,8 +574,8 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
     it("is in the reading view too, with the printed pages drawn small, and the view is kept (FR-6, AC-5)", async () => {
         const { content, calls, view } = await open(0, {}, undefined, { layout: "reading" });
         contents(content);
-        expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Overview", "Bookmarks", "Where you've been"]);
-        overviewTab(content).click();
+        expect(content.byClass("reader-tab").map((el) => el.textContent)).toEqual(["Contents", "Bookmarks", "Where you've been"]);
+        overviewDoor(content).click();
         const cards = content.byClass("reader-overview-card");
         expect(cards).toHaveLength(8);
         const before = calls.renders.length;

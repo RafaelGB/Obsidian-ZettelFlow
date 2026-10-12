@@ -418,18 +418,6 @@ export class ReaderPager {
         return box.top + Math.max(1, box.height) > stage.top && box.top < stage.top + stage.height;
     }
 
-    /** The box of what is on screen: the pages on show, or the column in a scroll (the ribbon's corner). */
-    screenBox(): Box {
-        if (this.paged && this.geometry) {
-            const strip = this.page.getBoundingClientRect();
-            const stage = this.stage.getBoundingClientRect();
-            // The pages on show sit where the strip's box is when it is not moved.
-            const left = this.direction === "rtl" ? strip.left - this.x + strip.width - this.geometry.viewPx : strip.left - this.x;
-            return { left, top: stage.top, width: this.geometry.viewPx, height: stage.height };
-        }
-        return boxOf(this.page.getBoundingClientRect());
-    }
-
     /**
      * The strip under a finger (FR-13), 1:1 — under reduced motion too: direct manipulation is not
      * animation. Where there is no page that way (the first or last page of the book), it follows a third.

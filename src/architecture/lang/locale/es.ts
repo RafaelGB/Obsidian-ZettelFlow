@@ -2340,6 +2340,7 @@ export default {
     reader_context: 'Al lado',
     reader_close_alongside: 'Cerrar Al lado',
     reader_close_contents: 'Cerrar el índice',
+    reader_close_overview: 'Cerrar la vista general',
     reader_close_type: 'Cerrar tipografía',
     reader_near_paragraph: 'Cerca de este párrafo',
     reader_near_selection: 'Cerca de tu selección',

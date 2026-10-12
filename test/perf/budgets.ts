@@ -175,7 +175,7 @@ export const BUDGETS = {
         limit: 400,
         measured: "70.4 ms",
         because:
-            "the half of the 3D graph a headless runner can see (#539). The view has a documented 600-node cap that nothing ever called, and the question -- apply it or delete it -- needed evidence. This is the evidence that exists without a screen: what the *plugin* spends turning a model into nodes and links before WebGL is handed anything. Frames per second is the other half, and no Node process can measure it. Two runs measured 70.4 ms and 27.2 ms; the **slower** is recorded here, because a ceiling should clear the worst seen and because one number from one run is how the last speed claim in this repo went wrong",
+            "the half of the 3D graph a headless runner can see (#539). The view has a documented 600-node cap that nothing ever called, and the question -- apply it or delete it -- needed evidence. This is the evidence that exists without a screen: what the *plugin* spends turning a model into nodes and links before WebGL is handed anything. Frames per second is the other half, and no Node process can measure it. Two runs measured 70.4 ms and 27.2 ms; the **slower** is recorded here, because a ceiling should clear the worst seen and because one number from one run is how the last speed claim in this repo went wrong. It times the projection **over** a warm map and Louvain pass, which have budgets of their own: from #644 until the fix it timed all three cold by accident (205-250 ms locally, 404-413 ms on CI, the same at every commit since 3697fc6f) and sat on this limit",
     },
     "analysis.gaps.seams.10k": {
         name: "aggregate every gap into seams over 10,000 notes",

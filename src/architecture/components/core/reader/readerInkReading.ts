@@ -190,6 +190,87 @@ export class InkReadingController implements ProposalOwner {
         for (const note of all) void this.read(note.thought, note.origin);
     }
 
+    /**
+     * Read page ink that is not a note yet (#790 FR-14): the same request and the same card as
+     * {@link read}, from the lasso's press only. Nothing exists to write until you decide: **Accept**
+     * or **Edit** keeps the strokes as an ink note with that text (`keep`), and its move follows;
+     * **Reject** and Esc write nothing, and the strokes stay page ink.
+     */
+    async readDraft(draft: {
+        key: string;
+        drawing: InkDrawing;
+        passage: string;
+        origin?: HTMLElement | ProposalBox;
+        keep(text: string): Promise<Thought | undefined>;
+        say(key: LocaleKey): void;
+        breathing?(on: boolean): void;
+    }): Promise<void> {
+        const id = draft.key;
+        if (this.disposed || this.inFlight.has(id)) return;
+        const ai = this.deps.ai ?? AiService.getInstance();
+        if (ai.gate() !== "ready") {
+            draft.say("reader_ink_needs_ai");
+            openZettelFlowSettings(this.deps.app, "ai");
+            return;
+        }
+        const provider = ai.getProvider();
+        if (typeof provider.see !== "function") {
+            draft.say("reader_ink_no_image");
+            return;
+        }
+        const generation = ++this.generation;
+        this.inFlight.set(id, generation);
+        draft.breathing?.(true);
+        let raw: string;
+        try {
+            const host = this.deps.host();
+            const image = host ? (this.deps.image ?? inkImage)(draft.drawing, host) : null;
+            if (!image) throw new AiVisionError("failed");
+            const maxChars = Math.max(200, aiMaxInputChars(ai.config()) - INK_READING_TASK.length);
+            const { prompt } = buildInkReadingRequest({ passage: draft.passage, maxChars });
+            raw = await provider.see(prompt, image);
+        } catch (error) {
+            if (this.inFlight.get(id) !== generation) return;
+            this.inFlight.delete(id);
+            draft.breathing?.(false);
+            const kind = error instanceof AiVisionError ? error.kind : "failed";
+            log.warn(`[reader] ink reading failed: ${kind}`);
+            draft.say(kind === "no-image" ? "reader_ink_no_image" : "reader_ink_read_failed");
+            return;
+        }
+        if (this.inFlight.get(id) !== generation || this.disposed) return;
+        this.inFlight.delete(id);
+        draft.breathing?.(false);
+        const parsed = parseInkReading(raw);
+        const host = this.deps.host();
+        if (!parsed || !host) {
+            log.warn("[reader] ink reading failed: empty");
+            draft.say("reader_ink_read_failed");
+            return;
+        }
+        if (draft.origin) this.origins.set(id, draft.origin);
+        const card = openProposal(host, draft.origin ?? host, {
+            intro: t("reader_proposal_reads_as", parsed.reading),
+            text: parsed.reading,
+            editable: true,
+            landing: () => this.originBox(id),
+        });
+        this.cards.add(card);
+        const decision = await card.decision;
+        this.cards.delete(card);
+        // Rejected or dismissed: there is no note, and nothing is written (§XII — no verdict to keep).
+        if (!decision || decision.verdict === "rejected") return;
+        const thought = await draft.keep(decision.text);
+        if (!thought) return;
+        this.latest.set(thought.id, thought);
+        this.judge(thought, "ink-reading", decision.verdict);
+        this.deps.saved?.(thought);
+        if (draft.origin) this.origins.set(thought.id, draft.origin);
+        const titles = this.deps.titles ? this.deps.titles() : KnowledgeIndex.getInstance().getModel().all().map((idea) => ({ path: idea.path, title: idea.title }));
+        const move = proposedMove(parsed as Parameters<typeof proposedMove>[0], matchNamedNote(parsed.names, titles));
+        if (move) await this.proposeMove(thought.id, move);
+    }
+
     /** Whether a proposal card is up: Esc dismisses it first. */
     hasCards(): boolean {
         return this.cards.size > 0;

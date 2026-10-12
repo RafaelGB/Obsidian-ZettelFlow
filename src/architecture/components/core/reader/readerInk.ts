@@ -1729,7 +1729,36 @@ export class ReaderInk {
 
     /** *Read as text* on page ink (FR-14): kept as a note only if you accept the reading. */
     private async readPage(caught: Caught[], surface: Surface): Promise<void> {
-        await this.keepAsNote(caught, surface);
+        const { lives, box } = this.liftCaught(caught, surface);
+        for (const live of lives) live.el.remove();
+        if (lives.length === 0) return;
+        const unit = surface.unit;
+        // The strokes alone, in ems from their own corner: the image sent is of nothing else.
+        const drawing: InkDrawing = {
+            strokes: lives.map((live) => ({ colour: live.colour, pointerType: live.pointerType, points: live.stroke.points.map((pt) => ({ ...pt, x: (pt.x - box.left) / unit, y: (pt.y - box.top) / unit })) })),
+        };
+        const breathe = (on: boolean) => {
+            for (const { note } of caught) (note.el as unknown as HTMLElement).toggleClass(c("reader-ink--reading"), on);
+        };
+        await this.reading.readDraft({
+            key: `page:${caught.map(({ note }) => note.cluster?.id ?? "").join(",")}`,
+            drawing,
+            passage: this.pagePassage(caught),
+            origin: caught[0].strokes[0].el as unknown as HTMLElement,
+            keep: async (text) => (await this.keepAsNote(caught, surface, text))?.thought ?? undefined,
+            say: (key) => this.status(key),
+            breathing: breathe,
+        });
+    }
+
+    /** The passage page ink was written beside: its sentence in the chapter, as an ink note's is. */
+    private pagePassage(caught: Caught[]): string {
+        const chapter = this.chapter;
+        const place = caught[0]?.note.cluster?.place;
+        if (!chapter || chapter.run || place?.view !== "text" || !place.quote) return "";
+        const text = this.text(chapter.body);
+        const span = anchorQuote(text, place.quote);
+        return span ? passageAround(text, span) : `${place.quote.prefix}${place.quote.exact}${place.quote.suffix}`;
     }
 
     /** *Delete* (FR-15): the strokes fade from the page and leave the book's file, with Undo. */

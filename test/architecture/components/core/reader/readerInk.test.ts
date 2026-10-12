@@ -1312,6 +1312,29 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
             expect(m.pageInk.save.mock.calls.length).toBe(saves);
         });
 
+        it("reads page ink as text from the loop, and keeps it as a note only with the reading you accept (FR-14, AC-14)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            const read = jest.spyOn(m.ink.reading, "readDraft").mockImplementation(async () => undefined);
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            m.button("Read as text")!.click();
+            await flush();
+            expect(read).toHaveBeenCalledTimes(1);
+            const draft = read.mock.calls[0][0];
+            expect(draft.drawing.strokes).toHaveLength(1);
+            // Nothing is kept by the press itself.
+            expect(m.store.writeInk).not.toHaveBeenCalled();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+            // An accepted reading keeps the strokes as a note with that text.
+            const thought = await draft.keep("ship early");
+            expect(thought?.id).toBe("ink1");
+            expect((m.store.writeInk.mock.calls[0] as [any])[0].text).toBe("ship early");
+            expect(m.pageInk.disk()?.clusters).toHaveLength(0);
+        });
+
         it("lets page ink win over the words under it: the loop offers the ink, not the selection (FR-12)", async () => {
             const m = direct({ textRects: true });
             await flush();

@@ -600,3 +600,70 @@ describe("the strokes alone, as an image (#748 FR-3)", () => {
         expect(calls.some((c) => /drawImage|fillText/.test(c))).toBe(false);
     });
 });
+
+describe("reading page ink that is not a note yet (#790 FR-14, AC-14)", () => {
+    function draft(h: Harness) {
+        const origin = h.root.createDiv();
+        origin.getBoundingClientRect = () => ({ left: 700, top: 200, width: 40, height: 20 });
+        const said = jest.fn();
+        const kept = inkThought("drawn");
+        const keep = jest.fn(async (text: string) => ({ ...kept, text }));
+        const breathing = jest.fn();
+        const run = () => h.controller.readDraft({ key: "page:c1", drawing: DRAWING, passage: "Ship early, they said.", origin: origin as never, keep, say: said, breathing });
+        return { run, keep, said, breathing };
+    }
+
+    it("sends one image of only those strokes and the passage, on press only", async () => {
+        const h = harness();
+        const d = draft(h);
+        expect(h.see).not.toHaveBeenCalled();
+        void d.run();
+        await flush();
+        expect(h.see).toHaveBeenCalledTimes(1);
+        expect(h.image).toHaveBeenCalledWith(DRAWING, h.root);
+        expect(String(h.see.mock.calls[0][0])).toContain("Ship early, they said.");
+        expect(d.breathing).toHaveBeenCalledWith(true);
+        expect(d.breathing).toHaveBeenLastCalledWith(false);
+        expect(card(h)).toBeDefined();
+        expect(d.keep).not.toHaveBeenCalled();
+    });
+
+    it("keeps the ink as a note with the reading only when you accept it, then offers its move", async () => {
+        const h = harness();
+        const d = draft(h);
+        void d.run();
+        await flush();
+        await decide(h, "Accept");
+        expect(d.keep).toHaveBeenCalledTimes(1);
+        expect(d.keep).toHaveBeenCalledWith("contradicts 'ship early'?");
+        expect(h.judgements.settings.judgements.log.at(-1)).toMatchObject({ subject: "ink-reading", verdict: "accepted" });
+        // The move follows on the note it now is.
+        expect(card(h)).toBeDefined();
+    });
+
+    it("writes nothing when the reading is rejected or dismissed: the strokes stay page ink", async () => {
+        const h = harness();
+        const d = draft(h);
+        void d.run();
+        await flush();
+        await decide(h, "Reject");
+        expect(d.keep).not.toHaveBeenCalled();
+        expect(h.store.save).not.toHaveBeenCalled();
+        void d.run();
+        await flush();
+        card(h)!.fire("keydown", { key: "Escape" });
+        rec.finishAll();
+        await flush();
+        expect(d.keep).not.toHaveBeenCalled();
+    });
+
+    it("sends nothing without a provider, says so, and opens Settings › AI", async () => {
+        const h = harness();
+        h.gate.state = "unconfigured";
+        const d = draft(h);
+        await d.run();
+        expect(h.see).not.toHaveBeenCalled();
+        expect(d.said).toHaveBeenCalledWith("reader_ink_needs_ai");
+        expect(h.app.setting.open).toHaveBeenCalled();
+    });
+});

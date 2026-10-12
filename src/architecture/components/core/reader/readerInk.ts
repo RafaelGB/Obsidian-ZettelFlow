@@ -2,6 +2,7 @@ import { Component, Platform, setIcon, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
+import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { anchorAll, anchorQuote, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
 import { isHighlight, isInk, isPageInk, type Thought, type ThoughtInk, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
@@ -9,6 +10,7 @@ import { meaningOf, type HighlightMeaning } from "application/thinking/highlight
 import { DEFAULT_LAYER, type MarkLayer } from "application/thinking/markLayer";
 import { bandWords, extendsHighlight, linesOf, strokeMetrics } from "application/reader/ink/strokeHighlight";
 import { pageHeadingAt, type PageText } from "application/library/pdfWords";
+import { chapterKey, dropCluster, mergePageInk, putCluster, type PageInk, type PageInkCluster, type PageInkPlace } from "application/reader/ink/pageInk";
 import { appendPoint, distanceToSegment, mergedPaths, newStroke, segmentPath, segmentsOf, type InkPoint, type LiveStroke, type Segment } from "application/reader/ink/inkStroke";
 import { pageTone } from "./readerPageTone";
 import type { PageTone } from "application/reader/ink/inkTone";
@@ -140,9 +142,17 @@ interface LastStroke {
     entry: StrokeHighlight;
 }
 
+/** Where a book's page ink is kept (#790): read once as the book opens, merged and written as it changes. */
+export interface PageInkPort {
+    load(about: string): Promise<PageInk | null>;
+    save(about: string, doc: PageInk): Promise<PageInk | null>;
+}
+
 /** Seams for tests; the defaults are the real DOM, the real store and the real clock. */
 export interface InkDeps {
     store?: InkStore;
+    /** The book's page ink (#790). */
+    pageInk?: PageInkPort;
     /**
      * The words near `y` (client px) in `body`, in client coordinates, and the chapter's text: within
      * `reach` px of it, four lines when not said.
@@ -211,12 +221,17 @@ interface KeptStroke {
     from?: LiveInk;
 }
 
-/** An ink note on screen: written, being written, or — when the write failed — waiting to be. */
+/**
+ * Ink on screen: page ink — the document's own, kept in the book's ink file (#790) — or an ink note,
+ * written, being written, or (when the write failed) waiting to be.
+ */
 interface KeptNote {
     thought: Thought | null;
     strokes: KeptStroke[];
     el: SVGGElement;
-    state: "saving" | "kept" | "unsaved";
+    state: "page" | "saving" | "kept" | "unsaved";
+    /** Page ink: the cluster of the book's ink file it is. */
+    cluster?: PageInkCluster;
     surface: "text" | number;
     /** Text ink: its anchor and the span it is anchored to now. */
     anchor?: InkAnchor;
@@ -229,6 +244,17 @@ interface KeptNote {
     retry?: { input: Parameters<InkStore["writeInk"]>[0] };
     /** The write in flight, so an undo waits for it rather than racing it. */
     saving?: Promise<void>;
+}
+
+/** A book's page ink while it is open (#790). `doc` is `null` when it cannot be kept: no file can be written. */
+interface Book {
+    about: string;
+    doc: PageInk | null;
+    ready: Promise<void>;
+    dirty: boolean;
+    saving: Promise<void> | null;
+    again: boolean;
+    timer?: number;
 }
 
 /** An entry in the margin's list: an ink note not drawn here, with why (FR-12). */
@@ -316,6 +342,9 @@ function readSpanBox(body: HTMLElement, span: TextSpan): Box | null {
  */
 export class ReaderInk {
     private readonly store: InkStore;
+    private readonly pageStore: PageInkPort;
+    /** The open book's page ink (#790): what is in its file, and whether a change waits to be kept. */
+    private book: Book | null = null;
     /** Reading handwriting as text (#748): one press, one ink note, a proposal. */
     readonly reading: InkReadingController;
     /** The margin's row of each ink note, by thought — where an accepted tension lands (FR-19). */
@@ -375,6 +404,7 @@ export class ReaderInk {
         deps: InkDeps = {}
     ) {
         this.store = deps.store ?? (ThoughtStore.getInstance());
+        this.pageStore = deps.pageInk ?? PageInkStore.getInstance();
         this.words = deps.words ?? readWords;
         this.spanBox = deps.spanBox ?? readSpanBox;
         this.metrics = deps.metrics ?? readMetrics;
@@ -580,7 +610,9 @@ export class ReaderInk {
      */
     leave(reason: FlushReason): void {
         this.endStroke(null);
-        void this.flush(reason);
+        // The page ink of the open note joins the book, then the book's file is kept (#790 FR-7).
+        const book = this.book;
+        void this.flush(reason).then(() => this.savePage(book));
         this.generation++;
         this.chapter = null;
         this.layer = null;
@@ -615,9 +647,14 @@ export class ReaderInk {
         this.notes = [];
         this.listed = [];
         this.layer = null;
+        const book = this.openBook(chapter.notePath);
         if (!chapter.run) {
             const layer = chapter.page.createSvg("svg", { cls: [c("reader-ink-layer")], attr: { "aria-hidden": "true" } });
             this.layer = layer;
+            const generation = this.generation;
+            void book.ready.then(() => {
+                if (generation === this.generation && this.chapter === chapter) this.showPageText(chapter, book);
+            });
             return;
         }
         // A paper in Page view: its ink is read once per paper and drawn on each page as it appears.
@@ -630,6 +667,131 @@ export class ReaderInk {
             this.slotTones.clear();
             void this.loadRunInk(chapter.notePath);
         }
+        void book.ready.then(() => {
+            if (this.book !== book) return;
+            for (const [index, slot] of this.slots) this.drawPagePageInk(index, slot.svg, slot.aspect);
+            this.view.drawn?.();
+        });
+    }
+
+    // ── page ink: the document's own (#790) ──────────────────────────────────
+
+    /** The book this chapter is of: its page ink read once, as it opens, and kept across its chapters. */
+    private openBook(about: string): Book {
+        if (this.book?.about === about) return this.book;
+        // Another book: what waits of the last one is kept first.
+        if (this.book) void this.savePage(this.book);
+        const book: Book = { about, doc: null, ready: Promise.resolve(), dirty: false, saving: null, again: false };
+        book.ready = this.pageStore
+            .load(about)
+            .catch((error) => {
+                log.warn(`[Reader] could not read the page ink of ${about}: ${String(error)}`);
+                return null;
+            })
+            .then((doc) => {
+                book.doc = doc;
+            });
+        this.book = book;
+        return book;
+    }
+
+    /** The chapter's page ink, at its words: what was written beside them, through any re-flow (FR-6). */
+    private showPageText(chapter: InkChapter, book: Book): void {
+        const key = chapterKey(chapter.locator);
+        const placeable: { cluster: PageInkCluster; quote: ThoughtQuote; place: Extract<PageInkPlace, { view: "text" }> }[] = [];
+        for (const cluster of book.doc?.clusters ?? []) {
+            const place = cluster.place;
+            if (place.view !== "text" || !place.quote || chapterKey(place.locator) !== key) continue;
+            if (this.notes.some((note) => note.cluster?.id === cluster.id)) continue;
+            placeable.push({ cluster, quote: place.quote, place });
+        }
+        // A cluster whose words are gone is kept in the file and simply not drawn (FR-8).
+        const { anchored } = anchorAll(this.text(chapter.body), placeable);
+        for (const entry of anchored) {
+            const { quote, side, x, line, em } = entry.place;
+            const note = this.drawNote(null, { strokes: entry.cluster.strokes }, { quote, side, x, line, em }, entry.span, "page");
+            if (!note) continue;
+            note.cluster = entry.cluster;
+            this.notes.push(note);
+        }
+        this.layout();
+        this.view.drawn?.();
+    }
+
+    /** A printed page's page ink, at its place on the page: exact under zoom, fit and crop. */
+    private drawPagePageInk(index: number, svg: SVGSVGElement, aspect: number): void {
+        for (const cluster of this.book?.doc?.clusters ?? []) {
+            const place = cluster.place;
+            if (place.view !== "page" || place.locator.at !== index) continue;
+            if (this.runNotes.some((note) => note.cluster?.id === cluster.id && note.surface === index)) continue;
+            const origin: [number, number] = [place.px * PAGE_EMS, place.py * PAGE_EMS * aspect];
+            const note = this.makeNoteEl(svg, null, { strokes: cluster.strokes }, "page");
+            note.cluster = cluster;
+            note.surface = index;
+            note.origin = origin;
+            note.el.setAttribute("transform", `translate(${round3(origin[0])} ${round3(origin[1])})`);
+            this.runNotes.push(note);
+        }
+    }
+
+    /** A change to the book's page ink: kept once you pause, never mid-stroke (FR-7). */
+    private markDirty(): void {
+        const book = this.book;
+        if (!book) return;
+        book.dirty = true;
+        const win = this.window();
+        win.clearTimeout(book.timer);
+        book.timer = win.setTimeout(() => void this.savePage(book), GROUP_IDLE_MS);
+    }
+
+    /**
+     * Keep the book's page ink: one write of its file, merged with what is on disk (FR-4, FR-7).
+     * Quiet when it works; a failure says so once and is tried again at the next pause.
+     */
+    private async savePage(book: Book | null = this.book): Promise<void> {
+        if (!book) return;
+        this.window().clearTimeout(book.timer);
+        await book.ready;
+        if (book.saving) {
+            book.again = true;
+            return book.saving;
+        }
+        if (!book.dirty || !book.doc) return;
+        book.dirty = false;
+        const sent = book.doc;
+        book.saving = (async () => {
+            try {
+                const merged = await withWriteBatch({ kind: "manual", ref: "reader-ink", label: book.about }, () => this.pageStore.save(book.about, sent));
+                if (!merged) book.dirty = true;
+                // What changed while it was written stays: the newer of each cluster, and every erase.
+                else book.doc = book.doc === sent ? merged : mergePageInk(merged, book.doc ?? merged, this.now());
+            } catch (error) {
+                log.error(`[Reader] could not keep the page ink of ${book.about}: ${String(error)}`);
+                book.dirty = true;
+                this.status("reader_hl_failed");
+            } finally {
+                book.saving = null;
+            }
+        })();
+        await book.saving;
+        if (book.again) {
+            book.again = false;
+            await this.savePage(book);
+        }
+    }
+
+    /** A cluster written, changed or erased, in the book's ink and on the note that draws it. */
+    private putPage(note: KeptNote, strokes: InkStrokeData[]): void {
+        const book = this.book;
+        const cluster = note.cluster;
+        if (!book?.doc || !cluster) return;
+        if (strokes.length === 0) book.doc = dropCluster(book.doc, cluster.id, this.now());
+        else {
+            // Newer than the version it replaces, and than any erase of it: what a merge keeps.
+            note.cluster = { ...cluster, at: Math.max(this.now(), cluster.at + 1, (book.doc.erased[cluster.id] ?? 0) + 1), strokes };
+            book.doc = putCluster(book.doc, note.cluster);
+        }
+        this.markDirty();
     }
 
     /** The chapter's ink notes, from the margin's one read of the thoughts (#745 E9). */
@@ -792,6 +954,7 @@ export class ReaderInk {
     }
 
     private drawPageInk(index: number, svg: SVGSVGElement, aspect: number): void {
+        this.drawPagePageInk(index, svg, aspect);
         const run = this.runInk;
         if (!run) return;
         for (const thought of run.thoughts) {
@@ -1470,7 +1633,7 @@ export class ReaderInk {
         const group = this.grouping.flush(force ? "turn" : reason, this.now());
         const retries = this.allNotes().filter((note) => note.state === "unsaved" && note.retry);
         const work: Promise<void>[] = [];
-        if (group) work.push(this.writeGroup(group));
+        if (group) work.push(this.writeGroup(group).then(() => undefined));
         for (const note of retries) work.push(this.save(note));
         await Promise.all(work);
     }
@@ -1480,10 +1643,15 @@ export class ReaderInk {
         return this.grouping.current()?.strokes.length ?? 0;
     }
 
-    private async writeGroup(group: InkGroup<LiveInk>, appear = false): Promise<void> {
+    /**
+     * Strokes written together, kept as one: as **page ink** — the document's own, in the book's ink
+     * file, never a thought (#790 FR-1) — or, when you chose to keep them (`asNote`), as an ink note.
+     */
+    private async writeGroup(group: InkGroup<LiveInk>, appear = false, asNote = false): Promise<KeptNote | null> {
         const chapter = this.chapter;
         const first = group.strokes[0];
-        if (!chapter || !first) return;
+        if (!chapter || !first) return null;
+        const state: KeptNote["state"] = asNote ? "saving" : "page";
         const surface = first.surface;
         const box: Box = { left: group.box.left, top: group.box.top, width: group.box.right - group.box.left, height: group.box.bottom - group.box.top };
         const origin: [number, number] = [box.left, box.top];
@@ -1495,12 +1663,15 @@ export class ReaderInk {
         }));
         const drawing: InkDrawing = { strokes };
         let input: Parameters<InkStore["writeInk"]>[0];
+        let place: PageInkPlace;
         let note: KeptNote;
         if (surface.page) {
             const aspect = surface.page.aspect;
             const anchor = pageAnchor(box, { left: 0, top: 0, width: PAGE_EMS, height: PAGE_EMS * aspect });
-            input = { about: chapter.notePath, locator: this.view.pageLocator?.(surface.page.index) ?? { at: surface.page.index, label: chapter.locator?.label ?? "" }, ink: { page: anchor }, ...this.newLayer() };
-            note = this.makeNoteEl(surface.svg, null, drawing, "saving");
+            const locator = this.view.pageLocator?.(surface.page.index) ?? { at: surface.page.index, label: chapter.locator?.label ?? "" };
+            input = { about: chapter.notePath, locator, ink: { page: anchor }, ...this.newLayer() };
+            place = { view: "page", locator, ...anchor };
+            note = this.makeNoteEl(surface.svg, null, drawing, state);
             note.surface = surface.page.index;
             note.origin = origin;
             note.el.setAttribute("transform", `translate(${round3(origin[0])} ${round3(origin[1])})`);
@@ -1520,7 +1691,8 @@ export class ReaderInk {
                 ink: { side: anchor.side, x: anchor.x, line: anchor.line, em: anchor.em },
                 ...this.newLayer(),
             };
-            note = this.makeNoteEl(surface.svg, null, drawing, "saving");
+            place = { view: "text", locator: chapter.locator, quote: anchor.quote, side: anchor.side, x: anchor.x, line: anchor.line, em: anchor.em };
+            note = this.makeNoteEl(surface.svg, null, drawing, state);
             note.surface = "text";
             note.anchor = anchor;
             note.span = word ? { start: word.start, end: word.end } : null;
@@ -1532,12 +1704,25 @@ export class ReaderInk {
             note.strokes[i].from = live;
             live.el.remove();
         });
-        note.retry = { input };
         // Kept as ink (#746 FR-14): the stroke fades back in where it was drawn.
         if (appear) this.fadeIn(note.el);
         if (typeof note.surface === "number") this.runNotes.push(note);
         else if (this.chapter === chapter) this.notes.push(note);
-        await this.save(note);
+        if (asNote) {
+            note.retry = { input };
+            await this.save(note);
+            return note;
+        }
+        // Page ink: it stays as it was drawn, quietly — no line, no row, no thought (FR-1, MF-1).
+        const layer = this.newLayer();
+        note.cluster = { id: clusterId(this.now()), at: this.now(), place, strokes, ...layer };
+        const book = this.book;
+        if (book?.doc) {
+            book.doc = putCluster(book.doc, note.cluster);
+            book.dirty = true;
+        }
+        await this.savePage(book);
+        return note;
     }
 
     /** The reading column and the room beside it, relative to the page. */
@@ -1598,7 +1783,8 @@ export class ReaderInk {
 
     /** An ink note drawn from its points: a group per stroke, inside one group the stylesheet places. */
     private makeNoteEl(svg: SVGSVGElement, thought: Thought | null, drawing: InkDrawing, state: KeptNote["state"]): KeptNote {
-        const el = svg.createSvg("g", { cls: [c("reader-ink-note"), c(state === "kept" ? "reader-ink--kept" : "reader-ink--live")] });
+        const tone = state === "kept" ? "reader-ink--kept" : state === "page" ? "reader-ink--page" : "reader-ink--live";
+        const el = svg.createSvg("g", { cls: [c("reader-ink-note"), c(tone)] });
         if (thought) el.setAttribute("data-ink", thought.id);
         const strokes = drawing.strokes.map((data) => ({ data, el: this.strokeEl(el, data) }));
         return { thought, strokes, el, state, surface: "text" };
@@ -1610,7 +1796,7 @@ export class ReaderInk {
         return g;
     }
 
-    private drawNote(thought: Thought, drawing: InkDrawing, anchor: InkAnchor, span: TextSpan | null, state: KeptNote["state"]): KeptNote | null {
+    private drawNote(thought: Thought | null, drawing: InkDrawing, anchor: InkAnchor, span: TextSpan | null, state: KeptNote["state"]): KeptNote | null {
         const layer = this.layer;
         if (!layer) return null;
         const note = this.makeNoteEl(layer, thought, drawing, state);
@@ -1849,6 +2035,12 @@ export class ReaderInk {
     private async eraseFromNote(note: KeptNote, strokes: KeptStroke[], quiet: boolean | "silent"): Promise<string | undefined> {
         for (const stroke of strokes) this.fadeOut(stroke.el);
         note.strokes = note.strokes.filter((s) => !strokes.includes(s));
+        // Page ink (#790 FR-10): the book's file loses the strokes at the next pause; nothing goes to the trash.
+        if (note.state === "page") {
+            this.putPage(note, note.strokes.map((s) => s.data));
+            if (note.strokes.length === 0) this.forgetNote(note);
+            return undefined;
+        }
         const thought = note.thought;
         if (note.state !== "kept" || !thought) {
             if (note.strokes.length === 0) {
@@ -1888,6 +2080,14 @@ export class ReaderInk {
     private async bringBack(note: KeptNote, before: InkStrokeData[], wasKept: boolean, thrown: string | undefined): Promise<void> {
         const thought = note.thought;
         const missing = before.filter((data) => !note.strokes.some((s) => s.data === data));
+        if (note.state === "page") {
+            // Back on the page, and in the book's file at the next pause (FR-11).
+            if (!this.allNotes().includes(note)) this.keepNote(note);
+            if (!note.el.isConnected) this.parentOf(note)?.appendChild(note.el);
+            note.strokes = before.map((data) => note.strokes.find((s) => s.data === data) ?? { data, el: this.fadeIn(this.strokeEl(note.el, data)) });
+            this.putPage(note, before);
+            return;
+        }
         if (!thought || !wasKept) {
             for (const data of missing) note.strokes.push({ data, el: this.fadeIn(this.strokeEl(note.el, data)) });
             return;
@@ -2087,6 +2287,8 @@ export class ReaderInk {
     dispose(): void {
         this.reading.dispose();
         this.leave("close");
+        // `leave` keeps what waits of the book; the next reader reads it again.
+        this.book = null;
         this.openScope?.unload();
         this.openScope = null;
         this.window().clearTimeout(this.idleTimer);
@@ -2098,6 +2300,11 @@ export class ReaderInk {
         this.pageTexts.clear();
         this.pageMarks.clear();
     }
+}
+
+/** A cluster's id: unique across devices writing the same book, without a lookup. */
+function clusterId(now: number): string {
+    return `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function round3(n: number): number {

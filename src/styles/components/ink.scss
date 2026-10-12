@@ -72,6 +72,11 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     opacity: 1;
 }
 
+/* Page ink (#790) is the document's own, like ink on paper: it stays as it was drawn. */
+.zettelkasten-flow__reader-ink--page {
+    opacity: 1;
+}
+
 .zettelkasten-flow__reader-ink--kept {
     opacity: 0.86;
 }

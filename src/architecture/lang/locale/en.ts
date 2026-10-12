@@ -2578,7 +2578,7 @@ export default {
     reader_ink_colour_red: 'Red',
     reader_ink_colour_blue: 'Blue',
     reader_ink_colour_green: 'Green',
-    reader_ink_no_lab: 'Ink is kept in Think. Set a thinking space folder in Settings › Thinking to write.',
+    reader_ink_no_lab: 'Ink is kept in your thinking space. Choose its folder in Settings › Thinking to write.',
     reader_ink_nothing_erased: 'Nothing under the eraser',
     reader_ink_highlighter: 'Highlighter',
     reader_ink_highlighted_idea: 'Highlighted as an idea. Kept in Think.',

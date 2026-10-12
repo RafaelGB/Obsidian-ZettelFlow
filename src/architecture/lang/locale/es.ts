@@ -2577,7 +2577,7 @@ export default {
     reader_ink_colour_red: 'Rojo',
     reader_ink_colour_blue: 'Azul',
     reader_ink_colour_green: 'Verde',
-    reader_ink_no_lab: 'La tinta se guarda en Pensar. Elige una carpeta para el espacio de pensamiento en Ajustes › Thinking para escribir.',
+    reader_ink_no_lab: 'La tinta se guarda en tu espacio de pensamiento. Elige su carpeta en Ajustes › Thinking para escribir.',
     reader_ink_nothing_erased: 'No hay nada bajo el borrador',
     reader_ink_highlighter: 'Rotulador',
     reader_ink_highlighted_idea: 'Subrayado como idea. Guardado en Pensar.',

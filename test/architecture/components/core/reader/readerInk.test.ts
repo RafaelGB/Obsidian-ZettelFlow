@@ -24,6 +24,23 @@ import { GROUP_IDLE_MS } from "application/reader/ink/inkGroup";
 import { PALM_WINDOW_MS } from "application/reader/ink/inkInput";
 import { parseInkSvg, renderInkSvg, type InkDrawing } from "application/reader/ink/inkSvg";
 import type { Thought, ThoughtLocator } from "application/thinking/thought";
+import { emptyPageInk, type PageInk } from "application/reader/ink/pageInk";
+
+/** The book's ink file, in memory (#790): what was read, and every save. */
+function fakePageInk(initial: PageInk | null = null) {
+    let disk = initial;
+    const saves: PageInk[] = [];
+    return {
+        saves,
+        disk: () => disk,
+        load: jest.fn(async (about: string) => disk ?? emptyPageInk(about)),
+        save: jest.fn(async (_about: string, doc: PageInk) => {
+            disk = doc;
+            saves.push(doc);
+            return doc;
+        }),
+    };
+}
 
 function file(path: string): TFile {
     const f = new TFile();
@@ -58,7 +75,8 @@ function inkThought(id: string, over: Partial<Thought> = {}): Thought {
 
 let clock = 10_000;
 
-function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<string, string>; local?: string; writeInk?: InkStore["writeInk"] } = {}) {
+function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<string, string>; local?: string; writeInk?: InkStore["writeInk"]; pageInk?: PageInk } = {}) {
+    const pageInk = fakePageInk(options.pageInk ?? null);
     const files: Record<string, string> = { "a.md": BODY, "b.md": "The body of B.", "c.md": "The body of C." };
     const local = new Map<string, unknown>(options.local ? [[INK_STORAGE_KEY, options.local]] : []);
     const app = {
@@ -97,6 +115,7 @@ function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<st
     };
     const deps = {
         store,
+        pageInk,
         words: () => ({ words: [{ start: BODY.indexOf("Paragraph 2"), end: BODY.indexOf("Paragraph 2") + 9, left: 120, top: 180, width: 60, height: 16 }], text: BODY }),
         spanBox: () => ({ left: 120, top: 180, width: 60, height: 16 }),
         metrics: jest.fn(() => ({ fontPx: 16, linePx: 28 })),
@@ -107,7 +126,7 @@ function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<st
     const leaf = new WorkspaceLeaf(app, content) as unknown as WorkspaceLeaf & { detach: jest.Mock };
     leaf.detach = jest.fn();
     const view = new ReaderView(leaf, { settings: { readingMotion: { chapter: "stack" } }, saveSettings: jest.fn(async () => undefined) }, { store: store as any }, deps as any);
-    return { view, app, content, leaf, store, deps, drawings };
+    return { view, app, content, leaf, store, deps, drawings, pageInk };
 }
 
 async function open(options: Parameters<typeof mount>[0] = {}) {
@@ -247,43 +266,116 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(finger.defaultPrevented).toBe(false);
     });
 
-    it("keeps an ink note once it goes idle: one write of a thought and its drawing, about the note (AC-4, AC-5)", async () => {
-        const { content, stage, store, app } = await open();
+    it("keeps what the pen writes on the page: one save of the book's ink file, never a thought, a row or a line (#790 AC-1, AC-6)", async () => {
+        const { content, stage, store, app, pageInk } = await open();
         openPalette(content);
         penStroke(stage, word, { pointerId: PEN });
         penStroke(stage, word.map((p) => ({ ...p, x: p.x + 40 })), { pointerId: PEN });
-        expect(store.writeInk).not.toHaveBeenCalled();
+        // Never mid-stroke, and not before a pause.
+        expect(pageInk.save).not.toHaveBeenCalled();
         wait(GROUP_IDLE_MS);
         await flush();
-        expect(store.writeInk).toHaveBeenCalledTimes(1);
-        const [input, svg] = store.writeInk.mock.calls[0] as [any, string];
-        expect(input.about).toBe("a.md");
-        expect(input.quote.exact).toBe("Paragraph");
-        // The body is 100 px wide here: the word was written in its right margin.
-        expect(input.ink).toMatchObject({ side: "right", em: 16 });
-        const drawing = parseInkSvg(svg) as InkDrawing;
-        expect(drawing.strokes).toHaveLength(2);
-        // Kept quietly: the ink settles into its kept tone, and no line shows over the page.
+        expect(pageInk.save).toHaveBeenCalledTimes(1);
+        const [about, doc] = pageInk.save.mock.calls[0] as [string, PageInk];
+        expect(about).toBe("a.md");
+        // Written together, kept as one: a word's strokes never come apart in a re-flow.
+        expect(doc.clusters).toHaveLength(1);
+        expect(doc.clusters[0].strokes).toHaveLength(2);
+        const place = doc.clusters[0].place;
+        expect(place.view).toBe("text");
+        // The body is 100 px wide here: the word was written in its right margin, beside "Paragraph".
+        expect(place).toMatchObject({ side: "right", em: 16, quote: { exact: "Paragraph" } });
+        // Quietly: the page tone, no line over the page, no row in the margin.
         const note = layer(content).oneByClass("reader-ink-note");
-        expect(note.hasClass("zettelkasten-flow__reader-ink--kept")).toBe(true);
+        expect(note.hasClass("zettelkasten-flow__reader-ink--page")).toBe(true);
         expect(status(content).hasClass("is-shown")).toBe(false);
-        // The note being read is never written.
+        expect(content.byClass("reader-ink-item")).toHaveLength(0);
+        // No thought, no drawing, and the note being read is never written.
+        expect(store.writeInk).not.toHaveBeenCalled();
+        expect(store.write).not.toHaveBeenCalled();
+        expect(store.save).not.toHaveBeenCalled();
         expect(app.vault.modify).not.toHaveBeenCalled();
         expect(app.vault.create).not.toHaveBeenCalled();
-        expect(store.write).not.toHaveBeenCalled();
     });
 
-    it("keeps the note before the chapter turns, and before the Reader closes (AC-4, FR-9)", async () => {
-        const { content, stage, store, view } = await open();
+    it("keeps the page ink before the chapter turns, and before the Reader closes (FR-7, FR-9)", async () => {
+        const { content, stage, store, view, pageInk } = await open();
         openPalette(content);
         penStroke(stage, word, { pointerId: PEN });
         press(content as never, "ArrowRight");
-        expect(store.writeInk).toHaveBeenCalledTimes(1);
         await flush();
+        expect(pageInk.save).toHaveBeenCalledTimes(1);
         expect(count(content)).toBe("02 / 03");
         penStroke(stage, word, { pointerId: PEN });
         view.exit();
-        expect(store.writeInk).toHaveBeenCalledTimes(2);
+        await flush();
+        expect(pageInk.save).toHaveBeenCalledTimes(2);
+        expect(pageInk.disk()?.clusters).toHaveLength(2);
+        expect(store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("draws the book's page ink again when it opens, beside its words (AC-4)", async () => {
+        const first = await open();
+        openPalette(first.content);
+        penStroke(first.stage, word, { pointerId: PEN });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        const kept = first.pageInk.disk()!;
+        first.view.exit();
+        await flush();
+        const again = await open({ pageInk: kept });
+        await flush();
+        const note = layer(again.content).oneByClass("reader-ink-note");
+        expect(note.hasClass("zettelkasten-flow__reader-ink--page")).toBe(true);
+        expect(paths(again.content).length).toBeGreaterThan(0);
+        // Opening reads; it never writes.
+        expect(again.pageInk.save).not.toHaveBeenCalled();
+        expect(again.store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("keeps page ink whose words are gone in the file, draws none of it, and writes nothing (FR-8, AC-7)", async () => {
+        const doc: PageInk = {
+            about: "a.md",
+            clusters: [{ id: "gone", at: 1, place: { view: "text", locator: null, quote: { exact: "words no longer here", prefix: "", suffix: "" }, side: "right", x: 0.1, line: 0, em: 16 }, strokes: TWO_STROKES.strokes }],
+            erased: {},
+        };
+        const { content, pageInk } = await open({ pageInk: doc });
+        await flush();
+        expect(layer(content).byClass("reader-ink-note")).toHaveLength(0);
+        wait(GROUP_IDLE_MS * 2);
+        await flush();
+        expect(pageInk.save).not.toHaveBeenCalled();
+    });
+
+    it("never undoes ink that is no longer on screen: undo belongs to the chapter", async () => {
+        const { content, stage, pageInk } = await open();
+        openPalette(content);
+        penStroke(stage, word, { pointerId: PEN });
+        press(content as never, "ArrowRight");
+        await flush();
+        content.oneByClass("reader-ink-undo").click();
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(pageInk.save).toHaveBeenCalledTimes(1);
+        expect(pageInk.disk()?.clusters).toHaveLength(1);
+    });
+
+    it("takes an undone stroke out of the book's file at the next pause, and remembers it was erased (AC-10)", async () => {
+        const { content, stage, pageInk } = await open();
+        openPalette(content);
+        penStroke(stage, word, { pointerId: PEN });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        const id = pageInk.disk()!.clusters[0].id;
+        content.oneByClass("reader-ink-undo").click();
+        await flush();
+        rec.finishAll();
+        expect(paths(content)).toHaveLength(0);
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(pageInk.save).toHaveBeenCalledTimes(2);
+        expect(pageInk.disk()?.clusters).toHaveLength(0);
+        expect(Object.keys(pageInk.disk()!.erased)).toEqual([id]);
     });
 
     it("never writes a stroke undone before its note was kept (AC-8)", async () => {
@@ -300,39 +392,6 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(store.writeInk).not.toHaveBeenCalled();
     });
 
-    it("never undoes ink that is no longer on screen: undo belongs to the chapter", async () => {
-        const { content, stage, store } = await open();
-        openPalette(content);
-        penStroke(stage, word, { pointerId: PEN });
-        press(content as never, "ArrowRight");
-        await flush();
-        content.oneByClass("reader-ink-undo").click();
-        await flush();
-        expect(store.writeInk).toHaveBeenCalledTimes(1);
-        expect(store.saveDrawing).not.toHaveBeenCalled();
-        expect(store.discard).not.toHaveBeenCalled();
-    });
-
-    it("waits for a write in flight before undoing its stroke, so the file never keeps it", async () => {
-        let finish: (thought: Thought) => void = () => undefined;
-        const { content, stage, store } = await open({
-            writeInk: (input: any) =>
-                new Promise<Thought>((resolve) => {
-                    finish = () => resolve({ id: "w1", at: 1, text: "", links: [], about: input.about, ink: { ...input.ink, drawing: "1-w1.svg" } });
-                }),
-        });
-        openPalette(content);
-        penStroke(stage, word, { pointerId: PEN });
-        wait(GROUP_IDLE_MS);
-        await flush();
-        expect(store.writeInk).toHaveBeenCalledTimes(1);
-        content.oneByClass("reader-ink-undo").click();
-        await flush();
-        expect(store.discard).not.toHaveBeenCalled();
-        finish({} as Thought);
-        await flush();
-        expect(store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: "w1" }));
-    });
 
     it("undoes with two fingers tapped together — with no toast — and never with a pinch (FR-8, FR-21)", async () => {
         const { content, stage, store } = await withPlatform(IPAD, () => open());
@@ -455,27 +514,34 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(store.saveDrawing).not.toHaveBeenCalled();
     });
 
-    it("explains where ink is kept with no thinking space, and draws nothing (AC-13, FR-15)", async () => {
-        const { content, stage, store } = await open({ lab: "" });
+    it("explains where ink is kept with no thinking space, and draws nothing (AC-8, FR-9)", async () => {
+        const { content, stage, store, pageInk } = await open({ lab: "" });
         openPalette(content);
-        expect(status(content).textContent).toBe("Ink is kept in Think. Set a thinking space folder in Settings › Thinking to write.");
+        expect(status(content).textContent).toBe("Ink is kept in your thinking space. Choose its folder in Settings › Thinking to write.");
         penStroke(stage, word, { pointerId: PEN });
         expect(paths(content)).toHaveLength(0);
         wait(GROUP_IDLE_MS);
+        await flush();
         expect(store.writeInk).not.toHaveBeenCalled();
+        expect(pageInk.save).not.toHaveBeenCalled();
     });
 
-    it("keeps the strokes on screen when a write fails, says so, and logs it (FR-23)", async () => {
-        const error = jest.spyOn(log, "error");
-        const { content, stage } = await open({ writeInk: async () => Promise.reject(new Error("disk full")) });
+    it("keeps the strokes on screen when the ink file cannot be written, says so, logs it, and tries again (FR-23)", async () => {
+        const error = jest.spyOn(log, "error").mockImplementation(() => undefined);
+        const { content, stage, pageInk } = await open();
+        pageInk.save.mockImplementationOnce(async () => Promise.reject(new Error("disk full")));
         openPalette(content);
         penStroke(stage, word, { pointerId: PEN });
         wait(GROUP_IDLE_MS);
         await flush();
         expect(status(content).textContent).toContain("Could not keep that");
         expect(paths(content).length).toBeGreaterThan(0);
-        expect(layer(content).oneByClass("reader-ink-note").hasClass("zettelkasten-flow__reader-ink--live")).toBe(true);
         expect(error).toHaveBeenCalled();
+        // The next pause tries again, and keeps it.
+        penStroke(stage, word.map((p) => ({ ...p, y: p.y + 200 })), { pointerId: PEN });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(pageInk.disk()?.clusters).toHaveLength(2);
         error.mockRestore();
     });
 
@@ -526,7 +592,8 @@ const middle = (line: number) => TOP + line * LINE + 14;
 /** A pen drawn along line `line`, from `from` to `to`, with the slight tremor a hand has. */
 const along = (line: number, from = 90, to = 480) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: middle(line) + (k % 2 ? 1 : -1) }));
 
-function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean; pageLocator?: (index: number) => ThoughtLocator } = {}) {
+function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean; pageLocator?: (index: number) => ThoughtLocator; pageInk?: PageInk } = {}) {
+    const pageInk = fakePageInk(options.pageInk ?? null);
     const body = chapterEl();
     const text = chapterText(body as never);
     const words = layout(text);
@@ -537,7 +604,8 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
     page.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 2000 });
     root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 800 });
     (body as any).getBoundingClientRect = () => ({ left: LEFT, top: 0, width: 600, height: 2000 });
-    const batches: Record<string, (string | undefined)[]> = { write: [], save: [], discard: [], writeInk: [] };
+    const batches: Record<string, (string | undefined)[]> = { write: [], save: [], discard: [], writeInk: [], pageInk: [] };
+    const drawings = new Map<string, string>();
     let n = 0;
     let release: () => void = () => undefined;
     const store = {
@@ -556,7 +624,7 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
             batches.writeInk.push(currentWriteBatch());
             return { id: `ink${++n}`, at: n, text: "", links: [], about: input.about, ink: { ...input.ink, drawing: `${n}.svg` } } as unknown as Thought;
         }),
-        drawingOf: jest.fn(async () => undefined),
+        drawingOf: jest.fn(async (t: Thought) => drawings.get(t.id)),
         saveDrawing: jest.fn(async () => undefined),
         discard: jest.fn(async (_t: Thought) => {
             batches.discard.push(currentWriteBatch());
@@ -581,7 +649,7 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
     );
     const ink = new ReaderInk(
         { app: {} as never, root: root as never, stage: () => stage as never, owner, refreshList: jest.fn(), highlights: () => highlights, pageWords: options.pageWords, pageLabel: (i) => `p. ${i + 1}`, pageLocator: options.pageLocator },
-        { store: store as never, words: () => ({ words, text }), spanBox: () => null, metrics: () => ({ fontPx: 16, linePx: LINE }), text: () => text, now: () => clock }
+        { store: store as never, pageInk, words: () => ({ words, text }), spanBox: (_body: unknown, span: { start: number }) => words.find((w) => w.start <= span.start && w.end > span.start) ?? null, metrics: () => ({ fontPx: 16, linePx: LINE }), text: () => text, now: () => clock }
     );
     const component = new Component();
     void highlights.attach(body as never, "a.md", component, null);
@@ -607,7 +675,13 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
     const marks = () => body.all("mark");
     const status = () => root.byClass("reader-hl-pop--status")[0];
     const button = (label: string) => status()?.find((el) => el.tag === "button" && el.textContent === label);
-    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, marks, status, button, release: () => release() };
+    /** An ink note written before #790, in the right margin beside word: shown as the margin shows it. */
+    const stored = async (id: string, word: string) => {
+        const thought: Thought = { id, at: 1, text: "", links: [], about: "a.md", quote: { exact: word, prefix: "", suffix: "" }, ink: { drawing: `1-${id}.svg`, side: "right", x: 0.1, line: 0, em: 16 } };
+        drawings.set(id, renderInkSvg(TWO_STROKES));
+        return thought;
+    };
+    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, marks, status, button, pageInk, drawings, stored, release: () => release() };
 }
 
 /** The box of each line's run of the words a mark's text covers, as `getClientRects` gives them. */
@@ -730,7 +804,7 @@ describe("the highlighter (#746)", () => {
         expect(m.ink.undoKey()).toBe(false);
     });
 
-    it("keeps the stroke as ink instead: the highlight to the trash and one ink note, in one batch (FR-7, AC-7)", async () => {
+    it("keeps the stroke as page ink instead: the highlight to the trash, the stroke on the page, no ink note (FR-7, #790 AC-3)", async () => {
         const m = direct();
         m.pick("highlighter");
         await flush();
@@ -739,11 +813,11 @@ describe("the highlighter (#746)", () => {
         m.button("Keep as ink")!.click();
         await flush();
         expect(m.store.discard).toHaveBeenCalledTimes(1);
-        expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-        expect(m.batches.discard[0]).toBeDefined();
-        expect(m.batches.writeInk[0]).toBe(m.batches.discard[0]);
-        const svg = (m.store.writeInk.mock.calls[0] as [any, string])[1];
-        expect((parseInkSvg(svg) as InkDrawing).strokes).toHaveLength(1);
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+        expect(m.pageInk.save).toHaveBeenCalledTimes(1);
+        const doc = m.pageInk.disk()!;
+        expect(doc.clusters).toHaveLength(1);
+        expect(doc.clusters[0].strokes).toHaveLength(1);
         expect(m.marks()).toHaveLength(0);
         // The stroke comes back as a note: it fades in where it was drawn.
         expect(rec.animations.some((a) => a.keyframes[0]?.opacity === 0 && a.keyframes[1]?.opacity === 1 && a.duration === MOTION.fast)).toBe(true);
@@ -896,7 +970,6 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
 
     async function printed(text: PageText | null, pageLocator?: (index: number) => ThoughtLocator) {
         const m = direct({ run: true, pageWords: async () => text, pageLocator });
-        m.pick("highlighter");
         const slot = new DomNode();
         slot.addClass("zettelkasten-flow__reader-pv-slot");
         slot.setAttribute("data-page", "2");
@@ -976,6 +1049,30 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         expect(m.store.write).not.toHaveBeenCalled();
         expect(m.store.writeInk).not.toHaveBeenCalled();
         expect(m.root.oneByClass("reader-ink-status").textContent).toBe("Nothing under the highlighter");
+    });
+
+    it("keeps what the pen writes on a printed page as that page's ink, and draws it again when the page appears (#790 FR-6)", async () => {
+        const m = await printed(PRINTED);
+        m.pick("pen");
+        m.draw(printedLine(), { target: m.slot });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(m.store.write).not.toHaveBeenCalled();
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+        const doc = m.pageInk.disk()!;
+        expect(doc.clusters).toHaveLength(1);
+        expect(doc.clusters[0].place).toMatchObject({ view: "page", locator: { at: 2 } });
+        // Scrolled away and back: a fresh page, its ink drawn anew from the book.
+        const again = new DomNode();
+        again.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 520 });
+        m.page.appendChild(again);
+        m.ink.decorateSlot(2, again as never, 1.3);
+        expect(again.byClass("reader-ink-note").filter((el) => el.hasClass("zettelkasten-flow__reader-ink--page"))).toHaveLength(1);
+        // Another page has none of it.
+        const other = new DomNode();
+        m.page.appendChild(other);
+        m.ink.decorateSlot(3, other as never, 1.3);
+        expect(other.byClass("reader-ink-note")).toHaveLength(0);
     });
 
     it("takes the rectangles away with Undo", async () => {
@@ -1157,11 +1254,10 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
         it("offers Delete for the ink notes inside the loop", async () => {
             const m = direct({ textRects: true });
             await flush();
-            m.draw(scrawl(600, 300));
-            wait(GROUP_IDLE_MS);
+            m.ink.onInk([await m.stored("ink1", "replay")]);
             await flush();
             m.pick("lasso");
-            m.draw(around({ left: 590, top: 285, right: 650, bottom: 315 }));
+            m.draw(around({ left: 715, top: 125, right: 780, bottom: 158 }));
             await flush();
             expect(m.status().textContent).toContain("Ink notes in the loop");
             m.button("Delete ink")!.click();
@@ -1177,8 +1273,8 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
         it("puts the Read as text chip under each ink note in the margin (#748 FR-1)", async () => {
             const m = direct({ textRects: true });
             await flush();
-            m.draw(scrawl(600, 300));
-            wait(GROUP_IDLE_MS);
+            const kept = await m.stored("ink1", "replay");
+            m.ink.onInk([kept]);
             await flush();
             const host = new DomNode();
             m.ink.renderList(host as never, new Component());
@@ -1187,8 +1283,7 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
             expect(chips[0].textContent).toContain("Ink · kept as you wrote it");
             expect(chips[0].byText("Read as text")).toBeDefined();
             // Once a reading and its tension are accepted, the entry says it and names the note (FR-19).
-            const thought = (m.store.writeInk.mock.results[0] as any).value as Promise<Thought>;
-            (m.ink as any).readingSaved({ ...(await thought), text: "contradicts ship early", alsoAbout: "Ideas/Ship early, learn from reality.md" });
+            (m.ink as any).readingSaved({ ...kept, text: "contradicts ship early", alsoAbout: "Ideas/Ship early, learn from reality.md" });
             const again = new DomNode();
             m.ink.renderList(again as never, new Component());
             expect(again.oneByClass("reader-ink-chip").textContent).toContain("Read as: “contradicts ship early”");
@@ -1209,15 +1304,11 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
         it("offers Read as text for the ink notes in the loop: one request per note, each its own (#748 FR-12)", async () => {
             const m = direct({ textRects: true });
             await flush();
-            m.draw(scrawl(600, 300));
-            wait(GROUP_IDLE_MS);
-            await flush();
-            m.draw(scrawl(600, 420));
-            wait(GROUP_IDLE_MS);
+            m.ink.onInk([await m.stored("ink1", "replay"), await m.stored("ink2", "every")]);
             await flush();
             const read = jest.spyOn(m.ink.reading, "readEach").mockImplementation(() => undefined);
             m.pick("lasso");
-            m.draw(around({ left: 590, top: 285, right: 650, bottom: 440 }));
+            m.draw(around({ left: 715, top: 125, right: 780, bottom: 195 }));
             await flush();
             expect(m.status().textContent).toContain("Ink notes in the loop");
             m.button("Read as text")!.click();

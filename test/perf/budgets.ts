@@ -482,13 +482,14 @@ export const BUDGETS = {
         because:
             "ink moves with its words in the same frame as a change of size or column (#745 FR-22); 200 notes is a heavily annotated chapter, and a frame is 16 ms",
     },
-    "ink.classify.1000": {
-        name: "recognise a 1,000-point stroke against a page of 400 words and 40 marks",
-        limit: 8,
-        measured: "1.19 ms",
+    "ink.pageink.merge": {
+        name: "read two copies of a book's page ink (2,000 clusters of 150 points each) and merge them",
+        limit: 2000,
+        measured: "603 ms",
         because:
-            "a stroke is classified at pen-up inside the frame, before its gesture's motion begins (#747 FR-16); 8 ms leaves half of a 60 Hz frame for that motion to start",
+            "a book's page ink is read and merged on open, and before a save when another device changed it (#790). Two 9 MB copies are a book written on cover to cover",
     },
+
     "reader.lookup.stardict.open.200k": {
         name: "open a 200,000-entry StarDict dictionary (and 50,000 synonyms) for look-up: its index parsed into the table",
         // ~3.5x the measurement. It was 555 ms before the words were decoded in one native pass, not one by one;

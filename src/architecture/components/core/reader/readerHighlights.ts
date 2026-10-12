@@ -175,13 +175,6 @@ export interface KeepOptions {
     actions?: (thought: Thought) => StatusAction[];
     /** Called once the thought is written: a selection lets go of its words. */
     clear?: () => void;
-    /** What the status line says instead of the meaning's own line: a circle's *Circled* (#747). */
-    status?: LocaleKey;
-    /**
-     * Whether this keep becomes the meaning H and the next stroke use (#720). A gesture's fixed meaning
-     * — a circle's question (#747) — does not: it is a shortcut, never a choice of the pen's colour.
-     */
-    remember?: boolean;
 }
 
 /** The id a stroke's marks carry while their thought is being written (#746 FR-12). */
@@ -971,7 +964,7 @@ export class ReaderHighlights {
             this.status("reader_hl_failed");
             return undefined;
         }
-        this.counted(options.note ?? "", meaning, options.remember !== false);
+        this.counted(options.note ?? "", meaning);
         options.clear?.();
         if (this.body !== body) return made; // the chapter turned while the thought was written
         this.clearPending(); // the real marks take its place
@@ -986,7 +979,7 @@ export class ReaderHighlights {
         }
         this.insert(thought, marks, span.start);
         this.settleIntoMargin(marks[0], thought);
-        this.status(options.status ?? (stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved"), options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
+        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
         return thought;
     }
 
@@ -1045,10 +1038,10 @@ export class ReaderHighlights {
         return layer === DEFAULT_LAYER ? {} : { layer };
     }
 
-    private counted(note: string, meaning: HighlightMeaning, remember = true): void {
+    private counted(note: string, meaning: HighlightMeaning): void {
         this.made++;
         if (note.trim()) this.noted++;
-        if (remember) this.lastMeaning = meaning;
+        this.lastMeaning = meaning;
     }
 
     /**
@@ -1149,13 +1142,13 @@ export class ReaderHighlights {
     }
 
     /**
-     * A scribble or the eraser over a highlight (#747 FR-5, FR-6): to the trash as removing one does,
+     * The eraser over a highlight (#747 FR-6): to the trash as removing one does,
      * its wash fading. It stays counted — it was made, and an erase is not an undo. Joins the caller's
-     * batch, so a scribble over several marks is one recorded write.
+     * batch, so an eraser over several marks is one recorded write.
      */
     async erase(thought: Thought): Promise<boolean> {
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
-        // The wash goes with the scribble, before the write (FR-14, FR-16) — and comes back if it fails.
+        // The wash goes with the eraser, before the write (FR-14, FR-16) — and comes back if it fails.
         this.fadeMarks(entry?.marks ?? []);
         this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== thought.id);
         try {

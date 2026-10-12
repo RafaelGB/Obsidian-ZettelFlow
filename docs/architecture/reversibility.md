@@ -57,15 +57,17 @@ The one thing that cannot be taken back is therefore `content-replaced`: overwri
 file. It is still **recorded**, because *what ZettelFlow changed* is worth answering even where
 *take it back* has no answer.
 
-### A week, and a ceiling
+### Two minutes, and a ceiling
 
-The record is kept for **seven days at most**, and never more than **1,000 entries** — whichever
-comes first. Time is the policy; the entry cap is the safety net for a vault whose hooks fire all
-day. Neither is configurable: a write record carries the values it would restore, and the honest
-way to keep that small is to keep it short.
+The record is kept **in memory** for **two minutes** (`WRITE_WINDOW_MS`), and never more than **200
+entries** (`MAX_WRITES`) — whichever comes first. Its only reader is the thirty-second undo offer,
+so it only has to outlive one. Neither is configurable, nothing is written to disk, and a reload
+empties it.
 
-It lives in the plugin's settings (`data.json`), like the
-[script run log](scripting.md#every-run-leaves-a-fact-444).
+**Page ink** (the Reader's, #790) is one entry per save of a book's ink file: the first save is a
+file created, which undo by batch can take back; later saves are replacements, recorded but not
+undoable, like every overwrite. Taking strokes back is the ink palette's own undo. A *Keep as note*
+is one batch: the ink note, its drawing and the ink file's save together.
 
 ### A batch is what one action did
 
@@ -197,7 +199,7 @@ offers nothing. That is the common case for an idempotent hook, and it stays sil
 
 An **append** is the exception to *no note content*: the record keeps the exact text ZettelFlow
 added, up to 2,000 characters, because removing it again is the only way an append can be reversed.
-It is ZettelFlow's own output, capped, and gone in a week. Past the cap the write is recorded as an
+It is ZettelFlow's own output, capped, and gone with the record. Past the cap the write is recorded as an
 overwrite instead, and cannot be taken back.
 
 ### Undoing is not a write

@@ -3,6 +3,7 @@ import { appendPoint, newStroke, type InkPoint } from "application/reader/ink/in
 import { placeInk, type Column, type InkAnchor } from "application/reader/ink/inkAnchor";
 import { recognise, type MarkBox } from "application/reader/ink/gestures";
 import type { WordBox } from "application/reader/ink/inkAnchor";
+import { emptyPageInk, mergePageInk, parsePageInk, renderPageInk, type PageInk } from "application/reader/ink/pageInk";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -64,22 +65,23 @@ describe("ink (#745)", () => {
         assertBudget("ink.layout.200", ms);
     });
 
-    it("recognises a 1,000-point stroke against a page of words and marks inside a frame (#747 AC-9)", () => {
-        // 400 words: 20 lines of 20, 16 px type on a 28 px line; 40 marks among them.
-        const words: WordBox[] = [];
-        for (let i = 0; i < 400; i++) words.push({ start: i * 6, end: i * 6 + 5, left: 100 + (i % 20) * 44, top: 100 + Math.floor(i / 20) * 28 + 6, width: 40, height: 16 });
-        const marks: MarkBox[] = Array.from({ length: 40 }, (_, i) => ({ ref: { kind: "highlight", id: `h${i}` }, rects: [words[i * 10]] }));
-        // The worst stroke there is: a closed loop round a quarter of the page, so every check runs to the end.
-        const loop = Array.from({ length: 1000 }, (_, i) => {
-            const a = (i / 999) * Math.PI * 2.05;
-            return { x: 540 + 300 * Math.cos(a) + Math.sin(i / 3), y: 380 + 120 * Math.sin(a) + Math.cos(i / 4) };
-        });
-        const ctx = { words, marks, linePx: 28, emPx: 16 };
-        const ms = best(5, () => {
+    it("reads and merges two copies of a heavily inked book's page ink (#790)", () => {
+        // 2,000 clusters of 150 points each side, half of them shared: a book written on cover to cover.
+        const doc = (offset: number): PageInk => {
+            let ink = emptyPageInk("Books/Heavy.epub");
+            for (let i = 0; i < 2000; i++) {
+                const id = `c${i + offset}`;
+                ink = { ...ink, clusters: [...ink.clusters, { id, at: 1000 + i, place: { view: "text", locator: { at: i % 40, label: "" }, quote: { exact: `w${i}`, prefix: "", suffix: "" }, side: "right", x: 0.2, line: 0, em: 18 }, strokes: [{ colour: "pencil", pointerType: "pen", points: Array.from({ length: 150 }, (_, j) => point(j)) }] }] };
+            }
+            return ink;
+        };
+        const a = renderPageInk(doc(0));
+        const b = renderPageInk(doc(1000));
+        const ms = best(3, () => {
             const started = performance.now();
-            for (let round = 0; round < 10; round++) recognise({ strokes: [loop] }, ctx);
-            return (performance.now() - started) / 10;
+            mergePageInk(parsePageInk(a) as PageInk, parsePageInk(b) as PageInk, 5000);
+            return performance.now() - started;
         });
-        assertBudget("ink.classify.1000", ms);
+        assertBudget("ink.pageink.merge", ms);
     });
 });

@@ -1,30 +1,17 @@
 /**
- * **Draw across a line and it is highlighted** (#746, epic #740) — pure.
+ * **The highlighter** (#746, epic #740) — pure.
  *
- * A pen stroke that runs *along* a line of text — flat, long enough for a couple of words, open and
- * straight — is a highlight stroke; anything else stays ink (FR-1). The words it covers are the ones
- * whose middle lies under it, on the single line nearest the stroke, snapped to whole words (FR-2).
+ * A highlighter stroke over text keeps the words under it: the ones whose middle lies under it, on the
+ * single line nearest the stroke, snapped to whole words (FR-2). The pen never highlights (#790 FR-2).
  *
- * Every threshold is in the reading text's own units (line heights and ems), so it holds at every
- * size. They are tunable: the device walk on #746 records the values a real hand needs.
- *
- * The geometry is the caller's: px on the page, or any unit, as long as points, words, line height
- * and em share it. #747's recogniser reuses `strokeMetrics` and owns the classification from then on.
+ * The band is in line heights, so it holds at every size. The geometry is the caller's: px on the
+ * page, or any unit, as long as points, words and line height share it. The lasso reuses
+ * `strokeMetrics`.
  */
 
 import type { TextSpan } from "application/thinking/quoteAnchor";
 import type { WordBox } from "./inkAnchor";
 
-/** A highlight stroke is less tall than this share of a line. */
-export const LINE_MAX_HEIGHT_LH = 0.6;
-/** …at least this many ems wide: about two words. */
-export const LINE_MIN_WIDTH_EM = 2.5;
-/** …no steeper than this (its height over its width): a diagonal is not a line. */
-export const LINE_MAX_SLOPE = 0.12;
-/** …this straight (end to end over the path's length): a scribble or a written word is not. */
-export const LINE_MIN_STRAIGHTNESS = 0.85;
-/** …and open: an end that comes back near its start (a circle, a loop) is not a line. */
-export const LINE_MAX_CLOSURE = 0.3;
 /** A stroke takes the line whose middle is nearest, within this many line heights — never two. */
 export const LINE_BAND_LH = 0.75;
 /** A second stroke this soon after the first, on contiguous words, extends the same highlight (FR-5). */
@@ -105,25 +92,6 @@ export function strokeMetrics(points: readonly StrokePoint[], tolerance = 0): St
         meanY: length > 0 ? weighted / length : first.y,
         direction: last.x < first.x ? "rtl" : "ltr",
     };
-}
-
-/** The reading type a stroke is judged by: its line and its em, in the stroke's own unit. */
-export interface LineContext {
-    linePx: number;
-    emPx: number;
-}
-
-/** Whether a stroke runs along a line of text (FR-1). Over text or not is the caller's (`bandWords`). */
-export function isLineStroke(metrics: StrokeMetrics, ctx: LineContext): boolean {
-    const { width, height } = metrics.box;
-    if (!(width > 0) || !(ctx.linePx > 0) || !(ctx.emPx > 0)) return false;
-    return (
-        height < LINE_MAX_HEIGHT_LH * ctx.linePx &&
-        width >= LINE_MIN_WIDTH_EM * ctx.emPx &&
-        height / width <= LINE_MAX_SLOPE &&
-        metrics.straightness >= LINE_MIN_STRAIGHTNESS &&
-        metrics.closure <= LINE_MAX_CLOSURE
-    );
 }
 
 /** The words a stroke covers: their span of the text, the words themselves, and the line's middle. */

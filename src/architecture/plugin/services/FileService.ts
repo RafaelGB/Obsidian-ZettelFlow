@@ -204,6 +204,30 @@ export class FileService {
         return true;
     }
 
+    /**
+     * Rewrite a file from what is in it **now** (#790): atomic (`vault.process`), so a sync that lands
+     * between a read and a write is never overwritten. `change` returns the new content, or `null` to
+     * leave the file exactly as it is (nothing is written, nothing recorded). A missing file is created
+     * from `change("")`. Returns whether anything was written.
+     */
+    public static async rewriteFile(path: string, change: (content: string) => string | null): Promise<boolean> {
+        const existing = ObsidianApi.vault().getFileByPath(path);
+        if (!(existing instanceof TFile)) {
+            const content = change("");
+            if (content === null) return false;
+            await FileService.writeFile(path, content, false);
+            return true;
+        }
+        let changed = false;
+        await ObsidianApi.vault().process(existing, (content) => {
+            const next = change(content);
+            changed = next !== null && next !== content;
+            return changed && next !== null ? next : content;
+        });
+        if (changed) recordVaultWrite({ kind: "content-replaced", path });
+        return changed;
+    }
+
     public static async modify(file: TFile, content: string, options?: DataWriteOptions): Promise<void> {
         await ObsidianApi.vault().modify(file, content, options);
         recordVaultWrite({ kind: "content-replaced", path: file.path });

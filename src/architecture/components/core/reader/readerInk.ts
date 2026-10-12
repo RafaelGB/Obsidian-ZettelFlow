@@ -246,6 +246,12 @@ interface KeptNote {
     saving?: Promise<void>;
 }
 
+/** Page ink a lasso holds, by the cluster it is part of (#790 FR-12). */
+interface Caught {
+    note: KeptNote;
+    strokes: KeptStroke[];
+}
+
 /** A book's page ink while it is open (#790). `doc` is `null` when it cannot be kept: no file can be written. */
 interface Book {
     about: string;
@@ -1507,9 +1513,10 @@ export class ReaderInk {
     }
 
     /**
-     * The lasso, at pen-up (FR-7): words inside the loop open the selection popover for exactly those
-     * words; ink notes alone offer *Delete*; nothing says so. The lasso never writes by itself, and its
-     * loop stays, dashed, while what it caught is offered (FR-15).
+     * The lasso, at pen-up (#747 FR-7, #790 FR-12) — the door to keeping. What it caught decides, in
+     * order: page ink offers *Keep as note*, *Read as text* and *Delete*; ink notes offer *Read as text*
+     * and *Delete ink*; words open the selection popover for exactly those words; nothing says so. The
+     * lasso never writes by itself, and its loop stays, dashed, while what it caught is offered (FR-15).
      */
     private finishLasso(live: LiveInk): void {
         const chapter = this.chapter;
@@ -1517,6 +1524,14 @@ export class ReaderInk {
         const points = live.stroke.points;
         const loop = this.closeLoop(live);
         const surface = live.surface;
+        // What was just written joins the page first, so the loop can hold it too.
+        if (this.grouping.current()) void this.flush("turn", true);
+        const caught = this.pageCaught(points, surface);
+        if (caught.length > 0) {
+            this.offerPage(caught, surface, () => this.fadeOut(loop, MOTION.fast));
+            return;
+        }
+        if (this.offerNotes(points, surface, engine, loop)) return;
         if (chapter && !surface.page && engine?.hasText()) {
             const page = chapter.page.getBoundingClientRect();
             const { linePx } = this.metrics(chapter.body);
@@ -1529,6 +1544,12 @@ export class ReaderInk {
             const rect = { left: page.left + box.left, top: page.top + box.top, width: box.right - box.left, height: box.bottom - box.top };
             if (held && engine.offerSpan(held.span, rect, () => this.fadeOut(loop, MOTION.fast))) return;
         }
+        this.fadeOut(loop, MOTION.fast);
+        this.status("reader_ink_lasso_nothing");
+    }
+
+    /** Ink notes in the loop (#747 FR-7): *Read as text* and *Delete ink*. Whether any were. */
+    private offerNotes(points: readonly InkPoint[], surface: Surface, engine: InkHighlighter | null, loop: SVGGElement): boolean {
         const notes = this.allNotes().filter((note) => {
             const box = note.thought && note.state === "kept" ? this.noteBoxOn(note, surface) : null;
             return box !== null && lassoHolds(points, box);
@@ -1552,10 +1573,173 @@ export class ReaderInk {
                         },
                     },
                 ], () => this.fadeOut(loop, MOTION.fast));
-            return;
+            return true;
         }
-        this.fadeOut(loop, MOTION.fast);
-        this.status("reader_ink_lasso_nothing");
+        return false;
+    }
+
+    // ── keep what you lasso (#790) ───────────────────────────────────────────
+
+    /** Where a note's strokes are on a surface: its origin there, and surface units per em. */
+    private noteFrame(note: KeptNote, surface: Surface): { left: number; top: number; unit: number } | null {
+        if (surface.page) return note.surface === surface.page.index && note.origin ? { left: note.origin[0], top: note.origin[1], unit: 1 } : null;
+        return note.surface === "text" && note.placed ? note.placed : null;
+    }
+
+    /** The page ink a loop holds, stroke by stroke — a stroke is held when its middle is inside (FR-12). */
+    private pageCaught(points: readonly InkPoint[], surface: Surface): Caught[] {
+        const caught: Caught[] = [];
+        for (const note of this.allNotes()) {
+            if (note.state !== "page") continue;
+            const frame = this.noteFrame(note, surface);
+            if (!frame) continue;
+            const strokes = note.strokes.filter((stroke) => {
+                const b = drawingBox({ strokes: [stroke.data] });
+                return lassoHolds(points, { left: frame.left + b.left * frame.unit, top: frame.top + b.top * frame.unit, width: (b.right - b.left) * frame.unit, height: (b.bottom - b.top) * frame.unit });
+            });
+            if (strokes.length > 0) caught.push({ note, strokes });
+        }
+        return caught;
+    }
+
+    /** Page ink in the loop: *Keep as note*, *Read as text*, *Delete* — nothing until you choose (FR-16). */
+    private offerPage(caught: Caught[], surface: Surface, onClose: () => void): void {
+        const engine = this.view.highlights?.() ?? null;
+        const actions: StatusAction[] = [
+            { key: "reader_ink_keep_note", run: () => void this.keepAsNote(caught, surface) },
+            { key: "reader_ink_read", run: () => void this.readPage(caught, surface) },
+            { key: "reader_ink_delete_strokes", run: () => this.deletePageInk(caught) },
+        ];
+        const chosen = (action: StatusAction): StatusAction => ({
+            key: action.key,
+            run: () => {
+                // Chosen: the offer and its loop go.
+                engine?.hidePopover();
+                action.run();
+            },
+        });
+        if (engine) engine.say("reader_ink_lasso_page", actions.map(chosen), onClose);
+        else {
+            onClose();
+            this.status("reader_ink_lasso_page", () => actions[0].run());
+        }
+    }
+
+    /** The caught strokes, lifted off the page as they are on the surface: what a new note is made of. */
+    private liftCaught(caught: Caught[], surface: Surface): { lives: LiveInk[]; box: InkBox } {
+        const lives: LiveInk[] = [];
+        const box: InkBox = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+        for (const { note, strokes } of caught) {
+            const frame = this.noteFrame(note, surface);
+            if (!frame) continue;
+            for (const kept of strokes) {
+                const stroke = newStroke(kept.data.pointerType);
+                const own: InkBox = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+                for (const pt of kept.data.points) {
+                    const x = frame.left + pt.x * frame.unit;
+                    const y = frame.top + pt.y * frame.unit;
+                    stroke.points.push({ ...pt, x, y });
+                    own.left = Math.min(own.left, x);
+                    own.top = Math.min(own.top, y);
+                    own.right = Math.max(own.right, x);
+                    own.bottom = Math.max(own.bottom, y);
+                }
+                box.left = Math.min(box.left, own.left);
+                box.top = Math.min(box.top, own.top);
+                box.right = Math.max(box.right, own.right);
+                box.bottom = Math.max(box.bottom, own.bottom);
+                // Its own element stands in for the stroke until the note is drawn over the same pixels.
+                lives.push({ colour: kept.data.colour, pointerType: kept.data.pointerType, stroke, el: surface.svg.createSvg("g"), provisional: null, surface, box: own, startedAt: 0, downAt: this.now() });
+            }
+        }
+        return { lives, box };
+    }
+
+    /** Strokes leave the page ink they were part of: at once on screen, in the book's file at the next save. */
+    private takeFromPage(caught: Caught[], fade: boolean): { note: KeptNote; before: InkStrokeData[] }[] {
+        const taken: { note: KeptNote; before: InkStrokeData[] }[] = [];
+        for (const { note, strokes } of caught) {
+            taken.push({ note, before: note.strokes.map((s) => s.data) });
+            for (const stroke of strokes) {
+                if (fade) this.fadeOut(stroke.el);
+                else stroke.el.remove();
+            }
+            note.strokes = note.strokes.filter((s) => !strokes.includes(s));
+            this.putPage(note, note.strokes.map((s) => s.data));
+            if (note.strokes.length === 0) this.forgetNote(note);
+        }
+        return taken;
+    }
+
+    /**
+     * *Keep as note* (FR-13): the strokes become one ink note — a thought in the thinking space, a row in
+     * the margin — and leave the page ink, in one recorded batch. The ink settles into its kept tone where
+     * it was drawn (MF-2); Undo puts it back as page ink. `text` is a reading you accepted (FR-14).
+     */
+    private async keepAsNote(caught: Caught[], surface: Surface, text?: string): Promise<KeptNote | null> {
+        const chapter = this.chapter;
+        if (!chapter || caught.length === 0) return null;
+        const { lives, box } = this.liftCaught(caught, surface);
+        if (lives.length === 0) return null;
+        let made: KeptNote | null = null;
+        let taken: { note: KeptNote; before: InkStrokeData[] }[] = [];
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter.notePath }, async () => {
+                made = await this.writeGroup({ strokes: lives, box, lastUpAt: this.now() }, false, true, text);
+                // Never both, never neither: the page ink goes only once the note is written.
+                if (!made?.thought) return;
+                taken = this.takeFromPage(caught, false);
+                await this.savePage();
+            });
+        } catch (error) {
+            log.error(`[Reader] could not keep ink as a note: ${String(error)}`);
+            this.status("reader_hl_failed");
+        }
+        const note = made as KeptNote | null;
+        if (!note?.thought) {
+            // The write failed (and said so): the strokes stay page ink, and the note that was not kept goes.
+            if (note) {
+                note.retry = undefined;
+                note.el.remove();
+                this.forgetNote(note);
+            }
+            return null;
+        }
+        const thought = note.thought;
+        const undo = async () => {
+            try {
+                await withWriteBatch({ kind: "manual", ref: "reader-ink", label: chapter.notePath }, async () => {
+                    await this.store.discard(thought);
+                    this.fadeOut(note.el);
+                    this.forgetNote(note);
+                    this.listed = this.listed.filter((entry) => entry.thought.id !== thought.id);
+                    for (const { note: page, before } of taken) await this.bringBack(page, before, false, undefined);
+                    await this.savePage();
+                });
+            } catch (error) {
+                log.error(`[Reader] could not take an ink note back: ${String(error)}`);
+                this.status("reader_hl_failed");
+            }
+            this.view.refreshList();
+        };
+        const settle = this.pushStep(undo);
+        this.say("reader_ink_kept_note", [{ key: "reader_hl_undo", run: () => void (settle() && undo()) }]);
+        return note;
+    }
+
+    /** *Read as text* on page ink (FR-14): kept as a note only if you accept the reading. */
+    private async readPage(caught: Caught[], surface: Surface): Promise<void> {
+        await this.keepAsNote(caught, surface);
+    }
+
+    /** *Delete* (FR-15): the strokes fade from the page and leave the book's file, with Undo. */
+    private deletePageInk(caught: Caught[]): void {
+        const taken = this.takeFromPage(caught, true);
+        const undo = async () => {
+            for (const { note, before } of taken) await this.bringBack(note, before, false, undefined);
+        };
+        const settle = this.pushStep(undo);
+        this.say("reader_ink_removed", [{ key: "reader_hl_undo", run: () => void (settle() && undo()) }]);
     }
 
     /** The lasso's loop, closed: one dashed path where it was drawn, a shimmer as it closes (FR-15). */
@@ -1647,7 +1831,7 @@ export class ReaderInk {
      * Strokes written together, kept as one: as **page ink** — the document's own, in the book's ink
      * file, never a thought (#790 FR-1) — or, when you chose to keep them (`asNote`), as an ink note.
      */
-    private async writeGroup(group: InkGroup<LiveInk>, appear = false, asNote = false): Promise<KeptNote | null> {
+    private async writeGroup(group: InkGroup<LiveInk>, appear = false, asNote = false, text?: string): Promise<KeptNote | null> {
         const chapter = this.chapter;
         const first = group.strokes[0];
         if (!chapter || !first) return null;
@@ -1709,7 +1893,7 @@ export class ReaderInk {
         if (typeof note.surface === "number") this.runNotes.push(note);
         else if (this.chapter === chapter) this.notes.push(note);
         if (asNote) {
-            note.retry = { input };
+            note.retry = { input: text ? { ...input, text } : input };
             await this.save(note);
             return note;
         }

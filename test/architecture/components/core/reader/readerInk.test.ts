@@ -30,11 +30,14 @@ import { emptyPageInk, type PageInk } from "application/reader/ink/pageInk";
 function fakePageInk(initial: PageInk | null = null) {
     let disk = initial;
     const saves: PageInk[] = [];
+    const batches: (string | undefined)[] = [];
     return {
         saves,
+        batches,
         disk: () => disk,
         load: jest.fn(async (about: string) => disk ?? emptyPageInk(about)),
         save: jest.fn(async (_about: string, doc: PageInk) => {
+            batches.push(currentWriteBatch());
             disk = doc;
             saves.push(doc);
             return doc;
@@ -1280,6 +1283,132 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
             expect(m.page.byClass("reader-ink--lasso-closed").filter((el) => el.isConnected)).toHaveLength(0);
             expect(m.store.write).not.toHaveBeenCalled();
             expect(m.store.writeInk).not.toHaveBeenCalled();
+        });
+
+        /** Page ink written in the right margin, gone idle: a cluster in the book's file. */
+        const pageInkAt = async (m: M, x: number, y: number) => {
+            m.pick("pen");
+            m.draw(scrawl(x, y));
+            wait(GROUP_IDLE_MS);
+            await flush();
+        };
+        const pageBox = { left: 590, top: 285, right: 650, bottom: 315 };
+
+        it("offers Keep as note, Read as text and Delete for the page ink in the loop, and writes nothing until you choose (#790 FR-12, FR-16, AC-11)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            const saves = m.pageInk.save.mock.calls.length;
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            expect(m.status().textContent).toContain("Ink in the loop");
+            expect(m.button("Keep as note")).toBeDefined();
+            expect(m.button("Read as text")).toBeDefined();
+            expect(m.button("Delete")).toBeDefined();
+            wait(GROUP_IDLE_MS * 2);
+            await flush();
+            expect(m.store.writeInk).not.toHaveBeenCalled();
+            expect(m.pageInk.save.mock.calls.length).toBe(saves);
+        });
+
+        it("lets page ink win over the words under it: the loop offers the ink, not the selection (FR-12)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            const b = boxOf(m, "sourcing", "stores");
+            m.draw(straight({ x: b.left, y: b.top + 8 }, { x: b.right, y: b.top + 8 }, 10));
+            wait(GROUP_IDLE_MS);
+            await flush();
+            m.pick("lasso");
+            m.draw(around(b));
+            await flush();
+            expect(m.root.byClass("reader-hl-pop--select")).toHaveLength(0);
+            expect(m.button("Keep as note")).toBeDefined();
+        });
+
+        it("keeps the strokes in the loop as one ink note, and takes them off the page, in one batch (FR-13, AC-12, MF-2)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            await pageInkAt(m, 600, 600);
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            m.button("Keep as note")!.click();
+            await flush();
+            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
+            const [input, svg] = m.store.writeInk.mock.calls[0] as [any, string];
+            expect(input.about).toBe("a.md");
+            expect((parseInkSvg(svg) as InkDrawing).strokes).toHaveLength(1);
+            // The note and the page ink it came from are one recorded batch.
+            const batch = m.batches.writeInk[0];
+            expect(batch).toBeDefined();
+            expect(m.pageInk.batches.at(-1)).toBe(batch);
+            // What was outside the loop stays on the page.
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+            expect(m.status().textContent).toContain("Kept as an ink note.");
+            // It settles into the kept tone where it was drawn.
+            const kept = m.page.findAll((el) => el.hasClass("zettelkasten-flow__reader-ink-note") && el.isConnected && el.getAttribute("data-ink") === "ink1");
+            expect(kept).toHaveLength(1);
+        });
+
+        it("puts the strokes back on the page when Keep as note is undone: the note to the trash, as one action (AC-13)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            m.button("Keep as note")!.click();
+            await flush();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(0);
+            m.button("Undo")!.click();
+            await flush();
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: "ink1" }));
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+        });
+
+        it("leaves the strokes as page ink when the note cannot be written, and says so (FR-13)", async () => {
+            const error = jest.spyOn(log, "error").mockImplementation(() => undefined);
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            m.store.writeInk.mockImplementationOnce(async () => Promise.reject(new Error("locked")));
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            m.button("Keep as note")!.click();
+            await flush();
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
+            expect(m.root.oneByClass("reader-ink-status").textContent).toContain("Could not keep that");
+            expect(error).toHaveBeenCalled();
+            error.mockRestore();
+        });
+
+        it("deletes the page ink in the loop with a fade, and brings it back with Undo (FR-15, AC-15, MF-3)", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            const before = rec.animations.length;
+            m.button("Delete")!.click();
+            await flush();
+            expect(rec.animations.slice(before).some((a) => a.keyframes[0]?.opacity === 1 && a.keyframes[1]?.opacity === 0)).toBe(true);
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(0);
+            expect(m.store.discard).not.toHaveBeenCalled();
+            m.button("Undo")!.click();
+            await flush();
+            wait(GROUP_IDLE_MS);
+            await flush();
+            expect(m.pageInk.disk()?.clusters).toHaveLength(1);
         });
 
         it("offers Delete for the ink notes inside the loop", async () => {

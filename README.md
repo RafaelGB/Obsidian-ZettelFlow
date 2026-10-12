@@ -1,112 +1,119 @@
-<p align="center"><img src="docs/resources/logo.svg" width="72" alt="ZettelFlow logo"></p>
-
-<h1 align="center">ZettelFlow</h1>
-
-<p align="center"><b>Draw your note workflow on a Canvas once — then think with every note it makes.</b></p>
+<a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/resources/readme/banner-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/resources/readme/banner-light.svg">
+  <img src="docs/resources/readme/banner-dark.svg" width="100%" alt="ZettelFlow — draw your note workflow on a Canvas once, then read, think and practise with every note it makes.">
+</picture></a>
 
 <p align="center">
-  <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest"><img src="https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?style=for-the-badge&sort=semver" alt="GitHub release"></a>
-  <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/releases"><img src="https://img.shields.io/github/downloads/RafaelGB/Obsidian-ZettelFlow/total?style=for-the-badge" alt="Total downloads"></a>
-  <a href="https://github.com/sponsors/RafaelGB"><img src="https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge" alt="GitHub Sponsors"></a>
+  <a href="https://github.com/RafaelGB/Obsidian-ZettelFlow/releases/latest"><img src="https://img.shields.io/github/v/release/RafaelGB/Obsidian-ZettelFlow?sort=semver&label=release&color=7f6df2" alt="Latest release"></a>
+  <a href="https://obsidian.md/plugins?id=zettelflow"><img src="https://img.shields.io/badge/dynamic/json?logo=obsidian&color=7f6df2&label=downloads&query=%24%5B%22zettelflow%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json" alt="Obsidian downloads"></a>
+  <img src="https://img.shields.io/badge/desktop%20%26%20mobile-supported-44cf6e" alt="Desktop and mobile">
+  <img src="https://img.shields.io/badge/telemetry-none-44cf6e" alt="No telemetry">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/RafaelGB/Obsidian-ZettelFlow?color=8b8e94" alt="MIT license"></a>
 </p>
 
 <p align="center">
-  <a href="#get-started-in-5-minutes"><b>Get started</b></a> ·
+  <a href="https://obsidian.md/plugins?id=zettelflow"><img src="https://img.shields.io/badge/Install%20in%20Obsidian-7f6df2?style=for-the-badge&logo=obsidian&logoColor=white" alt="Install in Obsidian"></a>
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/showcase/"><img src="https://img.shields.io/badge/See%20the%20showcase-2a2938?style=for-the-badge" alt="See the showcase"></a>
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/"><img src="https://img.shields.io/badge/Read%20the%20docs-2a2938?style=for-the-badge" alt="Read the docs"></a>
+</p>
+
+<p align="center">
+  <a href="#-what-it-asks-of-you">Practice loops</a> ·
+  <a href="#-read-like-a-book--the-reader-and-your-library"><b>Reader &amp; Library</b></a> ·
+  <a href="#-how-it-works">Canvas workflows</a> ·
+  <a href="#-get-started-in-5-minutes">Get started</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/why/">Why ZettelFlow</a> ·
-  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/showcase/">Showcase</a> ·
-  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/">Documentation</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/">Everything it does</a>
 </p>
+
+> **Most plugins help you _write_. Almost none help you _think_.**
+
+**Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine that makes the knowledge inside it evolve.** It turns a native Canvas into a note-creation wizard, opens your notes, PDFs and EPUBs in a Reader built for thinking, and gives you a small set of **practice loops** that ask something of *you*. Every loop is offline, works with AI switched off, and writes nothing to your vault you did not decide.
+
+## 🔁 What it asks of you
+
+Before any feature list, the things ZettelFlow asks you to **do** — each a small loop on your own notes, each reached where you already are (**Home**, **Think**, the **Reader**, a note's right-click menu):
+
+| | |
+|---|---|
+| 🔁 **Return a claim** — say in one sentence what a note claims; later it comes back **blind** from Home and asks what you say about it *now*. [The return of a claim →](docs/development/claim-returns.md) | 📖 **Look again at what you marked** — your Reader highlights come back from Home a few at a time, with one question: *do you still think so?* [A few things you marked →](docs/development/highlights-review.md) |
+| 📄 **What survived?** — at the end of a chapter you marked, the book gives you a blank leaf: your marks, what they touched, and *is one worth a note?* [What survived →](docs/development/reader.md#what-survived) | ✍️ **Recall a chapter** — put the chapter and your marks away, write what it argued in your own words, then look. Nothing is scored. [Recall →](docs/development/reader.md#recall) |
+| 🎲 **Collide two notes** — from Think, two of your notes with nothing in common, side by side: what could they share? It never answers. [Two things far apart (collision) →](docs/architecture/collision.md) | ⚖️ **Place a wager** — add *what you expect to see* and *by when* to a claim; on the day, it asks what happened *before* it shows your prediction. [A wager →](docs/development/wagers.md) |
+| 🧠 **Make a move on an idea** — challenge it, reframe it, branch it, set it aside: a cognitive move, recorded as something you did. [Make a move →](docs/development/cultivate.md#the-moves) | ✨ **And everything else** — the Canvas wizard, the semantic graph, health, discovery, dashboards. [Everything it does →](https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/) |
+
+**AI is one action, never the product.** Every loop and every view works fully with AI disabled; when it is on it **proposes**, and you accept, edit or reject — the verdict is recorded, never assumed. **Knowledge with purpose** — starting from your own question and writing a provisional response — needs no AI, methodology or Canvas setup; see [Cultivate](docs/development/cultivate.md).
+
+---
+
+## 📚 Read like a book — the Reader and your Library
+
+**Right-click any note → _Read from here_.** The Reader takes the window and walks you through the note and the notes around it, one chapter at a time — no MOC needed. **Your Library** puts your PDFs, EPUBs and Web Clipper articles on one shelf, beside the reading paths you saved, and opens them in the same Reader. What you mark lands in **Think**, never in the book; **Esc** gives your workspace back exactly as it was.
+
+<p align="center">
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/"><img src="docs/resources/readme/reader-hero.svg" width="100%" alt="The Reader: the Library shelf, a book open as a two-page spread, a sentence highlighted, a question written in the margin, the thought landing in Think, your notes Alongside the page, and Listen reading aloud."></a>
+</p>
+
+<table>
+<tr>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/#the-shelf"><img src="docs/resources/library/shelf.svg" alt="The Library shelf"></a><br><b>One shelf</b><br><sub>Books, papers, clipped articles and saved paths — with what each one produced in your vault.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#ink-in-the-margin"><img src="docs/resources/reader/ink.svg" alt="Ink in the margin"></a><br><b>Highlight and write in the margin</b><br><sub>Select to highlight, or write with a pen. <i>Read as text</i>, when you ask, proposes what your hand says.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#alongside-your-vault-beside-the-page"><img src="docs/resources/reader/alongside.svg" alt="Alongside"></a><br><b>Alongside</b><br><sub>Your own notes beside the page you are reading, each saying why it is there — and what argues with it.</sub></td>
+</tr>
+<tr>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#listen"><img src="docs/resources/reader/listen.svg" alt="Listen"></a><br><b>Listen</b><br><sub>Reads aloud in your device's own voices, the page following the voice. <b>Mark</b> keeps the sentence you hear.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#cite-a-passage"><img src="docs/resources/reader/cite.svg" alt="Cite a passage"></a><br><b>Cite a passage</b><br><sub>Markdown with a link back, inline, a Pandoc key, BibTeX or CSL JSON — never a guessed field.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#snapshot-a-figure-or-a-table"><img src="docs/resources/reader/snapshot.svg" alt="Snapshot"></a><br><b>Snapshot a figure</b><br><sub>Drag around a chart or a table on a printed page and keep it as a note that cites its page.</sub></td>
+</tr>
+<tr>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#look-up-and-translate"><img src="docs/resources/reader/lookup.svg" alt="Look up"></a><br><b>Look up, offline</b><br><sub>A word in your own dictionaries, beside the line, with no network.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#the-overview"><img src="docs/resources/reader/overview.svg" alt="The overview"></a><br><b>Every page at once</b><br><sub>The camera pulls back to the whole book: your marks, your ink, your bookmarks, how far you read.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#on-ipad"><img src="docs/resources/reader/ipad.svg" alt="The Reader on iPad"></a><br><b>Desktop and iPad</b><br><sub>Pages, scroll or a two-page spread; swipe to turn, type you can tune, Pencil in the margin.</sub></td>
+</tr>
+</table>
+
+<p align="center"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/"><b>The Reader →</b></a> &nbsp;·&nbsp; <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/"><b>Your library →</b></a> &nbsp;·&nbsp; <sub>Nothing is imported or uploaded, and your book files are never modified.</sub></p>
+
+---
+
+## ⚡ How it works
+
+**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates and selectors without you touching a template by hand. Each note lands already related, cross-checked and scored, with a companion beside it.
 
 <p align="center">
   <img src="docs/resources/readme/hero.svg" width="100%" alt="ZettelFlow at a glance: a Canvas flow, the wizard it drives for every new note, and the This note companion that helps you think with the result.">
 </p>
 
-> **Most plugins help you _write_. Almost none help you _think_.**
-
-**Stop managing notes. Start managing knowledge.** Obsidian is the store; **ZettelFlow is the engine that makes the knowledge inside it evolve.** It turns a native Canvas into a note-creation wizard — and then gives you a small set of **practice loops** that ask something of *you*, so a slip-box becomes thinking you actually do rather than notes you merely keep. Every loop is offline, works with AI switched off, and writes nothing to your vault you did not decide.
-
-## What it asks of you
-
-Before any feature list, the handful of things ZettelFlow asks you to **do** — each a small loop on your own notes, each reached where you already are:
-
-- 🔁 **Return a claim** — say in one sentence what a note claims; after a while ZettelFlow brings it back **blind** from **Home** and asks what you say about it *now*, then sets the two sentences side by side. See [the return of a claim](docs/development/claim-returns.md).
-- 📖 **Look again at what you marked** — what you highlight in the Reader comes back from **Home** a few days later, a few at a time, with one question: *do you still think so?* Keep it, write what you think now, make it a note that cites the passage, or let it go. See [a few things you marked](docs/development/highlights-review.md).
-- 📄 **What survived?** — at the end of a chapter you marked, the book gives you a blank leaf: your marks, what they touched in your vault, and one question — *is one of these worth a note of its own?* Write a note or turn the page. See [the Reader](docs/development/reader.md#what-survived).
-- ✍️ **Recall a chapter** — from **Contents** or the chapter's end, put the chapter and your marks away, write what it argued in your own words, then see what you marked. Nothing is compared or scored; keep your words as a note that cites the book. See [the Reader](docs/development/reader.md#recall).
-- 🎲 **Collide two notes** — from **Think**, it puts two of your notes with nothing in common side by side and asks what they could share. It never answers; the connection is your thinking. See [two things far apart](docs/architecture/collision.md).
-- ⚖️ **Place a wager** — add *what you expect to see* and *by when* to a claim, from the **note's right-click menu**; on the day you named, it asks what actually happened *before* it shows your prediction. See [a wager](docs/development/wagers.md).
-- 🧠 **Make a move on an idea** — challenge it, reframe it, branch it, set it aside: a **cognitive move** from the **note's right-click menu**, recorded as something you did and never written for you. See [make a move](docs/development/cultivate.md#the-moves).
-
-Everything else — the Canvas wizard, the semantic graph, health, discovery, cultivation — is one click away: **[Everything it does →](https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/)**, or read the **[manifesto](https://rafaelgb.github.io/Obsidian-ZettelFlow/manifesto/)** and the **[full documentation](https://rafaelgb.github.io/Obsidian-ZettelFlow/)**.
-
-**AI is one action, never the product.** Every loop and every view works fully with AI disabled; when it is on it **proposes**, and you accept, edit or reject — the verdict is recorded, never assumed. **Knowledge with purpose** — starting from your own question and writing a provisional response — shipped in 3.3 and needs no AI, methodology or Canvas setup; see [Cultivate](docs/development/cultivate.md).
-
----
-
-## How it works
-
-**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates and selectors without you touching a template by hand. Each step is a piece of the cognitive engine; each note lands already related, cross-checked and scored.
-
-![Your first flow in three steps: design a Canvas, configure a step, run the wizard](docs/resources/readme/first-flow.svg)
-
 1. **Design** — create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
 2. **Configure** — select a canvas node → *Edit step* to add actions (ask for text, pick a date, choose an option, add tags…).
-3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to the *Open workflow* command). ZettelFlow walks the graph and builds the note.
+3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to *Open workflow*). ZettelFlow walks the graph and builds the note.
 
-**…and the wizard is only the door.** The note it makes lands inside a knowledge engine you can walk. **[Home](docs/development/zettelflow-home.md)** is where you land each day: a greeting, Think's composer, where you left off and what came back today, answered in place.
+**…and the wizard is only the door.** **[Home](docs/development/zettelflow-home.md)** is where you land each day: a greeting, Think's composer, where you left off and what came back today, answered in place.
 
 <p align="center">
-  <a href="docs/architecture/thought-lab.md"><img src="docs/resources/showcase/think.svg" width="31%" alt="Think — a place to think before it has to be knowledge"></a>
-  <a href="docs/development/ask-your-graph.md"><img src="docs/resources/graph/answer.svg" width="31%" alt="Explore — ask, and the graph answers"></a>
-  <a href="docs/development/cultivate.md"><img src="docs/resources/home/cultivate.svg" width="31%" alt="Cultivate — one idea, one move at a time"></a>
+  <a href="docs/architecture/thought-lab.md"><img src="docs/resources/showcase/think.svg" width="32%" alt="Think — a place to think before it has to be knowledge"></a>
+  <a href="docs/development/ask-your-graph.md"><img src="docs/resources/graph/answer.svg" width="32%" alt="Explore — ask, and the graph answers"></a>
+  <a href="docs/development/cultivate.md"><img src="docs/resources/home/cultivate.svg" width="32%" alt="Cultivate — one idea, one move at a time"></a>
 </p>
 <p align="center"><sub><b>Think</b> · a place for what isn't knowledge yet &nbsp;·&nbsp; <b>Explore</b> · ask, and the graph answers &nbsp;·&nbsp; <b>Cultivate</b> · grow an idea by hand</sub></p>
 
----
-
-## Dashboards for your vault
-
-Point an **[Obsidian Base](https://help.obsidian.md/bases)** at any folder and ZettelFlow turns it into a **dashboard** — a local "Grafana" that never leaves Obsidian. Compose **stat, bar, line, area, scatter, bubble, pie, donut, table, heatmap and calendar** panels over the same filtered notes: map fields with working defaults, reshape them with no-code transforms (filter · group · aggregate · moving average…), and match light/dark automatically. Track daily productivity, mood or habits with **no `dataviewjs`**, click any bar or day to open its note, and tick off the notes' tasks right from the dashboard — the one thing it ever writes.
-
-![A Base dashboard with stats, a bubble chart, tasks and a calendar](docs/resources/dashboards/dashboard-hero.svg)
-
-**[Base dashboards →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/base-dashboards/)**
+<table>
+<tr>
+<td width="50%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/this-note/"><img src="docs/resources/this-note/companion.svg" alt="This note, docked in the right sidebar"></a><br><b>🧭 This note, beside every note</b><br><sub>A sidebar companion: where the note stands, what argues with it, what supports it, what it is missing — and its next step, finished in place.</sub></td>
+<td width="50%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/base-dashboards/"><img src="docs/resources/dashboards/dashboard-hero.svg" alt="A Base dashboard with stats, a bubble chart, tasks and a calendar"></a><br><b>📊 Dashboards for your vault</b><br><sub>Point an <a href="https://help.obsidian.md/bases">Obsidian Base</a> at a folder: stat, bar, line, pie, heatmap and calendar panels with no <code>dataviewjs</code> — a local Grafana.</sub></td>
+</tr>
+</table>
 
 ---
 
-## This note, beside every note
+## 🚀 Get started in 5 minutes
 
-Open **This note** from the ribbon menu and the note you are reading gets a companion in the right sidebar: where it stands on its lifecycle, four plain counts, what argues with it, what supports it, what it is missing and what you wrote near it and forgot — then how it got here. It says the note's next step and lets you finish it in place. Pin it to one note while you work in another; link a forgotten note into it with one click and an Undo.
+**Fastest path** — no Canvas needed, works in an empty vault:
 
-![This note, docked in the right sidebar](docs/resources/this-note/companion.svg)
-
-**[This note →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/this-note/)**
-
----
-
-## Read your notes like a book
-
-Right-click any note and choose **Read from here**. The Reader takes the window and walks you through the note and the notes around it, one chapter at a time, each tagged with its role (thesis, support, counterpoint), in one long scroll or in pages, or as a two-page spread on a wide screen. It needs no MOC. Select a sentence to highlight it, or write in the margin with a pen: the passage, your margin note and your handwriting land in Think, never in the note — and **Read as text**, when you ask, proposes what your handwriting says, so you can find it. At the end, save the path, export it as one document, or cultivate its thesis. **Esc** gives your workspace back exactly as it was.
-
-![The Reader: a chapter of a reading path](docs/resources/reader/reader.svg)
-
-**Your Library** (ribbon menu → *Library*) puts the PDFs, EPUBs and the articles you clip with Web Clipper on one shelf, beside the paths you saved — and *Recently added* shows what just arrived. Open a paper or a book in the same Reader (zoom, scroll and rotate a paper's printed pages, and follow its links), see [every page at once](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#the-overview), one tap from the bar, highlight it, crystallize a passage into a note that cites the page, or make it a claim sourced to its page — the shelf counts the notes born from each one, and each book's detail lists [what it produced in your vault](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/#what-a-book-produced-in-your-vault): the ideas it led to, the links and tensions you made, what is still unresolved. Each book can have its own note — a status, collections and its details, edited from the shelf, kept as ordinary properties Bases and Dataview read. Alongside puts your own notes beside the page you are reading, each saying why it is there, and can argue with a passage in your own words. Look a word up in your own offline dictionaries, beside the line, with no network. [**Listen**](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#listen) reads the book aloud in your device's own voices — from here, the chapter or a selection — with the page following the voice, and **Mark** keeps the sentence you are hearing. Drag around a figure or a table on a printed page — **Snapshot** — and keep it as a note, a fleeting thought or part of a note you have, with its page. [**Cite**](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#cite-a-passage) a passage or a whole book as Markdown with a link back, inline, a Pandoc key, BibTeX or CSL JSON, drawn from its book's note — what it does not know is left out, never guessed. Nothing is imported or uploaded, and your book files are never modified.
-
-![The Library: Continue reading and the shelf of books, papers and reading paths](docs/resources/library/shelf.svg)
-
-**[The Reader →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/)** · **[Your library →](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/)**
-
----
-
-## Get started in 5 minutes
-
-**Fastest path:**
-
-1. Install **ZettelFlow** from the Obsidian community plugin browser.
+1. Install **ZettelFlow** from the Obsidian community plugin browser — or [open it in Obsidian](https://obsidian.md/plugins?id=zettelflow).
 2. Click the ZettelFlow ribbon button (or run *Open ZettelFlow* from the command palette).
 3. On the welcome screen, click **Start with my own idea**, then choose an existing note or capture one.
-4. State a question, inspect the material, write a response or a gap, and **Save progress** — this needs no Canvas setup and works in an empty vault.
+4. State a question, inspect the material, write a response or a gap, and **Save progress**.
 
 **Build your own flow:**
 
@@ -115,15 +122,25 @@ Right-click any note and choose **Read from here**. The Reader takes the window 
 3. On the canvas, press *Create a step* (the Z in the bottom bar), and turn on **Starts the flow**.
 4. Click the ribbon button → **Create note** — your first wizard run.
 
-Stuck? Read the [getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
+<details>
+<summary><b>See it drawn</b> — installing, and your first flow in three steps</summary>
 
 ![Installing ZettelFlow: Settings → Community plugins → Browse, search ZettelFlow, Install and Enable](docs/resources/readme/install.svg)
 
+![Your first flow in three steps: design a Canvas, configure a step, run the wizard](docs/resources/readme/first-flow.svg)
+
+</details>
+
+Stuck? Read the [getting started guide](https://rafaelgb.github.io/Obsidian-ZettelFlow/) or open a [discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions).
+
 ---
 
-## Capabilities & privacy
+## 🔒 Capabilities & privacy
 
-ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. The plugin uses these capabilities:
+ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. No account, no backend: the network is touched only by the two opt-in paths below.
+
+<details>
+<summary><b>Everything the plugin can touch, and when</b></summary>
 
 - **File system (vault).** Reads canvas flow files and creates/edits notes (e.g. the **Change note state** command writes a single lifecycle property to the active note). All access goes through Obsidian's `Vault` / `FrontmatterService` API — never a hardcoded path. Works on desktop and mobile.
 - **Vault enumeration.** ZettelFlow lists every markdown file **path** to build the offline knowledge model that health, discovery, the graph and Cultivate all read. Paths and metadata only, all local — and you can keep folders out of it with the knowledge scope.
@@ -133,21 +150,19 @@ ZettelFlow collects **no telemetry** and sends **no personal data or vault conte
 - **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.
 - **The Reader's AI moves — opt-in, per click.** Six moves on a passage you selected (*Why?*, *Challenge*, *Question*, *What's the claim*, *Reflect*, *Explain*) send that passage, its paragraph and the one before, and the book and chapter titles to your AI provider, only when you click one. Nothing from your vault is sent, and nothing runs by itself. On desktop and Android, **Translate** sends one selected passage and the target language, on a click; **Look up** reads your own dictionaries on the device and makes no request at all. **Listen** uses only your device's own voices: no text leaves the device.
 
+</details>
+
 See [Capabilities & privacy](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/capabilities-and-privacy/) for full details.
 
 ---
 
-## Contributing
+## 🤝 Contributing & support
 
-- **Bug?** → [Open a bug report](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=bug_report.yaml)
-- **Idea?** → [Open a feature request](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=feature_request.yaml)
-- **Question?** → [Start a discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)
-- **Code?** → Read [Contributing & conventions](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/contributing-and-conventions/) and open a PR.
+**[Report a bug](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=bug_report.yaml)** · **[Request a feature](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=feature_request.yaml)** · **[Start a discussion](https://github.com/RafaelGB/Obsidian-ZettelFlow/discussions)** · **[Contribute code](https://rafaelgb.github.io/Obsidian-ZettelFlow/development/contributing-and-conventions/)**
 
----
+If ZettelFlow saves you time, a ⭐ helps others find it — and you can support development:
 
-## Support
-
-If ZettelFlow saves you time, consider supporting development:
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/5tsytn22v9Z)
+<p align="center">
+  <a href="https://github.com/sponsors/RafaelGB"><img src="https://img.shields.io/github/sponsors/RafaelGB?label=Sponsor&logo=GitHub%20Sponsors&style=for-the-badge&color=ea4aaa" alt="GitHub Sponsors"></a>
+  <a href="https://www.buymeacoffee.com/5tsytn22v9Z"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-ffdd00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me A Coffee"></a>
+</p>

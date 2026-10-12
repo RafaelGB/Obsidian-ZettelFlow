@@ -2595,6 +2595,7 @@ export default {
     reader_ink_keep_note: 'Guardar como nota',
     reader_ink_delete_strokes: 'Eliminar',
     reader_ink_kept_note: 'Guardada como nota de tinta.',
+    reader_ink_page_unreadable: 'No se ha podido leer el fichero de tinta de este libro: la tinta nueva aquí no se guarda.',
     reader_ink_chip: 'Tinta · tal como la escribiste',
     reader_ink_read: 'Leer como texto',
     reader_ink_reading: 'Leyendo…',

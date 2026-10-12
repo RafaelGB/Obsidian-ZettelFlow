@@ -46,6 +46,15 @@ beforeEach(() => {
                 disk.set(file.path, content);
             },
             cachedRead: async (file: TFile) => disk.get(file.path) ?? "",
+            process: async (file: TFile, fn: (content: string) => string) => {
+                const before = disk.get(file.path) ?? "";
+                const next = fn(before);
+                if (next !== before) {
+                    writes(file.path);
+                    disk.set(file.path, next);
+                }
+                return next;
+            },
             read: async (file: TFile) => disk.get(file.path) ?? "",
         },
         fileManager: { trashFile: async () => undefined },
@@ -97,6 +106,15 @@ describe("where page ink is kept (#790 FR-4, FR-5, FR-7, AC-5)", () => {
         await store.save(BOOK, putCluster(emptyPageInk(BOOK), cluster("b")));
         const mine = bufferedWrites().filter((w) => !seen.has(w) && w.path === PATH);
         expect(mine.map((w) => w.kind).sort()).toEqual(["content-replaced", "file-created"]);
+    });
+
+    it("writes the file again when it was deleted outside the Reader, with nothing new to add", async () => {
+        const store = PageInkStore.getInstance();
+        const doc = putCluster(emptyPageInk(BOOK), cluster("a", 5));
+        await store.save(BOOK, doc);
+        disk.delete(PATH);
+        await store.save(BOOK, doc);
+        expect(disk.has(PATH)).toBe(true);
     });
 
     it("does not write when nothing changed", async () => {

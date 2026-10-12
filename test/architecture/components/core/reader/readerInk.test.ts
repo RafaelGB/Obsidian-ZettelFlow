@@ -27,7 +27,7 @@ import type { Thought, ThoughtLocator } from "application/thinking/thought";
 import { emptyPageInk, type PageInk } from "application/reader/ink/pageInk";
 
 /** The book's ink file, in memory (#790): what was read, and every save. */
-function fakePageInk(initial: PageInk | null = null) {
+function fakePageInk(initial: PageInk | null = null, unreadable = false) {
     let disk = initial;
     const saves: PageInk[] = [];
     const batches: (string | undefined)[] = [];
@@ -35,7 +35,7 @@ function fakePageInk(initial: PageInk | null = null) {
         saves,
         batches,
         disk: () => disk,
-        load: jest.fn(async (about: string) => disk ?? emptyPageInk(about)),
+        load: jest.fn(async (about: string) => (unreadable ? null : (disk ?? emptyPageInk(about)))),
         save: jest.fn(async (_about: string, doc: PageInk) => {
             batches.push(currentWriteBatch());
             disk = doc;
@@ -78,8 +78,8 @@ function inkThought(id: string, over: Partial<Thought> = {}): Thought {
 
 let clock = 10_000;
 
-function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<string, string>; local?: string; writeInk?: InkStore["writeInk"]; pageInk?: PageInk } = {}) {
-    const pageInk = fakePageInk(options.pageInk ?? null);
+function mount(options: { lab?: string; stored?: Thought[]; drawings?: Record<string, string>; local?: string; writeInk?: InkStore["writeInk"]; pageInk?: PageInk; inkUnreadable?: boolean } = {}) {
+    const pageInk = fakePageInk(options.pageInk ?? null, options.inkUnreadable);
     const files: Record<string, string> = { "a.md": BODY, "b.md": "The body of B.", "c.md": "The body of C." };
     const local = new Map<string, unknown>(options.local ? [[INK_STORAGE_KEY, options.local]] : []);
     const app = {
@@ -350,6 +350,15 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(pageInk.save).not.toHaveBeenCalled();
     });
 
+    it("says once that new ink is not kept when the book's ink file cannot be read, and never writes over it (FR-8)", async () => {
+        const { content, stage, pageInk } = await open({ inkUnreadable: true });
+        openPalette(content);
+        penStroke(stage, word, { pointerId: PEN });
+        wait(GROUP_IDLE_MS);
+        await flush();
+        expect(status(content).textContent).toBe("This book's ink file could not be read, so new ink here is not kept.");
+        expect(pageInk.save).not.toHaveBeenCalled();
+    });
     it("never undoes ink that is no longer on screen: undo belongs to the chapter", async () => {
         const { content, stage, pageInk } = await open();
         openPalette(content);
@@ -1335,6 +1344,23 @@ describe("the pen only draws, and the lasso (#747, #790)", () => {
             expect(m.pageInk.disk()?.clusters).toHaveLength(0);
         });
 
+        it("keeps only what is still on the page when a reading is accepted: a stroke erased meanwhile stays erased", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await pageInkAt(m, 600, 300);
+            const read = jest.spyOn(m.ink.reading, "readDraft").mockImplementation(async () => undefined);
+            m.pick("lasso");
+            m.draw(around(pageBox));
+            await flush();
+            m.button("Read as text")!.click();
+            await flush();
+            // Erased while the card is up.
+            m.pick("eraser");
+            m.draw(scrawl(600, 300));
+            await flush();
+            expect(await read.mock.calls[0][0].keep("ship early")).toBeUndefined();
+            expect(m.store.writeInk).not.toHaveBeenCalled();
+        });
         it("lets page ink win over the words under it: the loop offers the ink, not the selection (FR-12)", async () => {
             const m = direct({ textRects: true });
             await flush();

@@ -2596,6 +2596,7 @@ export default {
     reader_ink_keep_note: 'Keep as note',
     reader_ink_delete_strokes: 'Delete',
     reader_ink_kept_note: 'Kept as an ink note.',
+    reader_ink_page_unreadable: "This book's ink file could not be read, so new ink here is not kept.",
     reader_ink_chip: 'Ink · kept as you wrote it',
     reader_ink_read: 'Read as text',
     reader_ink_reading: 'Reading…',

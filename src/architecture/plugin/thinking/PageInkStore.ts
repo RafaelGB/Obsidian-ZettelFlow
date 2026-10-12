@@ -42,13 +42,17 @@ export class PageInkStore {
         const folder = this.folder();
         if (!folder) return null;
         const path = pageInkPath(folder, about);
-        const disk = await this.read(path, about);
-        if (!disk) return null;
-        const merged = mergePageInk(disk, { ...mine, about }, now);
-        const text = renderPageInk(merged);
-        if (text === this.known.get(path)?.text) return merged;
-        await FileService.writeFile(path, text, false);
-        this.known.set(path, { text, doc: merged });
+        let merged: PageInk | null = null;
+        // Read, merge and write as one step: a sync landing in between is never overwritten.
+        await FileService.rewriteFile(path, (content) => {
+            const disk = content ? this.parse(path, content, about) : emptyPageInk(about);
+            if (!disk) return null;
+            merged = mergePageInk(disk, { ...mine, about }, now);
+            const text = renderPageInk(merged);
+            this.known.set(path, { text, doc: merged });
+            // Unchanged on disk: nothing to write — and a file deleted meanwhile is made again.
+            return text === content ? null : text;
+        });
         return merged;
     }
 
@@ -62,6 +66,11 @@ export class PageInkStore {
             log.warn(`[Reader] could not read the page ink of ${about}: ${String(error)}`);
             return null;
         }
+        return this.parse(path, text, about);
+    }
+
+    /** A file's text as page ink — parsed once per text — or `null` when this build cannot read it. */
+    private parse(path: string, text: string, about: string): PageInk | null {
         const known = this.known.get(path);
         if (known?.text === text) return known.doc;
         const doc = parsePageInk(text);

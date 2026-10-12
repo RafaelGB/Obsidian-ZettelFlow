@@ -103,10 +103,9 @@ export interface InkHighlighter {
     extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions">): Promise<Thought | undefined>;
     unextend(grown: Thought, before: Thought): Promise<boolean>;
     takeBack(thought: Thought): Promise<boolean>;
-    /** The gestures' part (#747): the marks on screen, a link adopted, an erase and its undo, the lasso. */
+    /** The eraser's and the lasso's part (#747): the marks on screen, an erase and its undo, a selection. */
     markBoxes(): { thought: Thought; rects: Box[] }[];
     marksOf(id: string): HTMLElement[];
-    adopt(thought: Thought): void;
     erase(thought: Thought): Promise<boolean>;
     unerase(thought: Thought): Promise<HTMLElement[] | null>;
     offerSpan(span: TextSpan, rect: { left: number; top: number; width: number; height?: number }, onClose?: () => void): boolean;
@@ -261,6 +260,8 @@ interface Book {
     saving: Promise<void> | null;
     again: boolean;
     timer?: number;
+    /** Whether the palette has said this book's ink cannot be kept: once is enough. */
+    warned?: boolean;
 }
 
 /** An entry in the margin's list: an ink note not drawn here, with why (FR-12). */
@@ -768,7 +769,10 @@ export class ReaderInk {
         book.saving = (async () => {
             try {
                 const merged = await withWriteBatch({ kind: "manual", ref: "reader-ink", label: book.about }, () => this.pageStore.save(book.about, sent));
-                if (!merged) book.dirty = true;
+                if (!merged) {
+                    book.dirty = true;
+                    this.cannotKeep(book);
+                }
                 // What changed while it was written stays: the newer of each cluster, and every erase.
                 else book.doc = book.doc === sent ? merged : mergePageInk(merged, book.doc ?? merged, this.now());
             } catch (error) {
@@ -784,6 +788,13 @@ export class ReaderInk {
             book.again = false;
             await this.savePage(book);
         }
+    }
+
+    /** The book's ink file cannot be read (a newer version's, or broken): the palette says so, once. */
+    private cannotKeep(book: Book): void {
+        if (book.warned || !this.store.folder()) return;
+        book.warned = true;
+        this.status("reader_ink_page_unreadable", undefined, true);
     }
 
     /** A cluster written, changed or erased, in the book's ink and on the note that draws it. */
@@ -1745,10 +1756,18 @@ export class ReaderInk {
             drawing,
             passage: this.pagePassage(caught),
             origin: caught[0].strokes[0].el as unknown as HTMLElement,
-            keep: async (text) => (await this.keepAsNote(caught, surface, text))?.thought ?? undefined,
+            // Only what is still on the page when you accept: a stroke erased meanwhile stays erased.
+            keep: async (text) => (await this.keepAsNote(this.stillThere(caught), surface, text))?.thought ?? undefined,
             say: (key) => this.status(key),
             breathing: breathe,
         });
+    }
+
+    /** What a lasso caught that is still page ink now. */
+    private stillThere(caught: Caught[]): Caught[] {
+        return caught
+            .map(({ note, strokes }) => ({ note, strokes: note.state === "page" && this.allNotes().includes(note) ? strokes.filter((s) => note.strokes.includes(s)) : [] }))
+            .filter(({ strokes }) => strokes.length > 0);
     }
 
     /** The passage page ink was written beside: its sentence in the chapter, as an ink note's is. */
@@ -1933,6 +1952,13 @@ export class ReaderInk {
         if (book?.doc) {
             book.doc = putCluster(book.doc, note.cluster);
             book.dirty = true;
+        } else if (book) {
+            // Drawn, but there is nowhere to keep it: said once, and nothing written over the file.
+            await book.ready;
+            if (book.doc) {
+                book.doc = putCluster(book.doc, note.cluster);
+                book.dirty = true;
+            } else this.cannotKeep(book);
         }
         await this.savePage(book);
         return note;

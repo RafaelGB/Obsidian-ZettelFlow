@@ -2669,9 +2669,6 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 .zettelkasten-flow__reader-hl-status {
     color: var(--reader-muted);
     font-size: var(--font-ui-small);
-    /* A short line stays one line (#790: *Ink in the loop* wrapped into three); on a narrow screen the
-       buttons go to the next row instead. */
-    white-space: nowrap;
 }
 
 /* Kindle's margin: beside the page when the pane is wide, folded into Context when it is not. */

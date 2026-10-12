@@ -10,9 +10,9 @@ import type { TextSpan } from "application/thinking/quoteAnchor";
 import type { Box, WordBox } from "./inkAnchor";
 import { strokeMetrics, type StrokePoint } from "./strokeHighlight";
 
-/** A mark the eraser can act on: a highlight or an ink note, by its thought. */
+/** A mark the eraser can act on: a highlight, by its thought. */
 export interface MarkRef {
-    kind: "highlight" | "ink";
+    kind: "highlight";
     id: string;
 }
 

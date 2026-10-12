@@ -1292,7 +1292,10 @@ never written.
   either has synced, your sync service decides between the two files, and one side's latest strokes
   can be lost.
 - **When the words change.** Page ink whose words are gone stays in the file and is simply not drawn.
-  A file from a newer version of the plugin is left as it is, never written over.
+  A file from a newer version of the plugin is left as it is, never written over, and the palette
+  says *This book's ink file could not be read, so new ink here is not kept*.
+- **A book renamed or moved.** Its ink file is named after where the book was, so its ink stops
+  showing at the new place. Nothing is lost: the file still says which book it is about.
 - **Taking it back.** The eraser and **Undo** take strokes off the page; the file follows at the next
   pause. The file's first save is in the [write record](../architecture/reversibility.md) as a file
   created; later saves are recorded as replacements.

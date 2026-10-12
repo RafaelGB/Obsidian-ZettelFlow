@@ -267,7 +267,7 @@ export class InkReadingController implements ProposalOwner {
         this.deps.saved?.(thought);
         if (draft.origin) this.origins.set(thought.id, draft.origin);
         const titles = this.deps.titles ? this.deps.titles() : KnowledgeIndex.getInstance().getModel().all().map((idea) => ({ path: idea.path, title: idea.title }));
-        const move = proposedMove(parsed as Parameters<typeof proposedMove>[0], matchNamedNote(parsed.names, titles));
+        const move = proposedMove(parsed, matchNamedNote(parsed.names, titles));
         if (move) await this.proposeMove(thought.id, move);
     }
 

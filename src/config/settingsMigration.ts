@@ -82,9 +82,10 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
     }
 
     // Excluded folders become folder rules (#713). A union, not a conversion: every folder the
-    // list names that no rule already says is appended, in order. On the first load that is each
-    // folder becoming its rule; later it is a no-op — or, after a downgrade where the older version
-    // added a folder, exactly that folder. The list itself stays: it is the previous version's.
+    // list names that no rule already says is appended, in order — each folder becoming its rule,
+    // or, after a downgrade where an older version added a folder, exactly that folder. Then the
+    // list is dropped (#715): nothing writes it any more, so a stale copy left behind would bring
+    // back, on every load, a folder rule the user had removed.
     if ("excludedPaths" in settings || "knowledgeScope" in settings) {
         const existing = normalizeScopeRules(settings.knowledgeScope);
         const said = new Set(folderMirror(existing.leaveOut));
@@ -93,6 +94,10 @@ export function migrateSettings(input: MigratableSettings): SettingsMigration {
         const next = { leaveOut: [...existing.leaveOut, ...added], keep: existing.keep };
         if (!("knowledgeScope" in settings) || JSON.stringify(next) !== JSON.stringify(settings.knowledgeScope)) {
             settings.knowledgeScope = next;
+            changed = true;
+        }
+        if ("excludedPaths" in settings) {
+            delete settings.excludedPaths;
             changed = true;
         }
     }

@@ -59,7 +59,7 @@ describe("two rows become one decision, losing nothing (#439)", () => {
             excludedPaths: ["_ZettelFlow"],
         });
         expect(settings.ribbonCanvas).toBe("Flows/Create.canvas");
-        expect(settings.excludedPaths).toEqual(["_ZettelFlow"]);
+        expect(scopeRulesOf(settings).leaveOut).toEqual([{ kind: "folder", op: "in", folder: "_ZettelFlow", subfolders: true }]);
     });
 });
 
@@ -74,8 +74,18 @@ describe("excluded folders become folder rules, losing nothing (#713, AC-6)", ()
             keep: [],
         });
         expect(changed).toBe(true);
-        // The old list stays: it is what the previous version reads, for one release.
-        expect(settings.excludedPaths).toEqual(["Templates", "Archive/Old"]);
+        // The old list is folded in once and then dropped (#715): the rules are the only record.
+        expect("excludedPaths" in settings).toBe(false);
+    });
+
+    it("never brings back a folder rule you removed, once the old list is folded in (#715)", () => {
+        const once = migrateSettings({ excludedPaths: ["Templates", "Archive/Old"] }).settings;
+        const scope = once.knowledgeScope as { leaveOut: unknown[]; keep: unknown[] };
+        // The user removes Templates' rule in the scope editor, which writes only the rules.
+        const edited = { ...once, knowledgeScope: { leaveOut: scope.leaveOut.slice(1), keep: scope.keep } };
+        const reloaded = migrateSettings(edited);
+        expect(reloaded.changed).toBe(false);
+        expect(scopeRulesOf(reloaded.settings).leaveOut).toEqual([{ kind: "folder", op: "in", folder: "Archive/Old", subfolders: true }]);
     });
 
     it("is a no-op the second time", () => {

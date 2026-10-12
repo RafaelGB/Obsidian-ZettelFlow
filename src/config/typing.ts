@@ -98,16 +98,6 @@ export interface ZettelFlowSettings {
      */
     eventFlowsPath: string;
     /**
-     * Path prefixes to exclude from the knowledge system (#311). Notes under any of these (config,
-     * templates, other vault tooling) never enter the index, so they drop out of every mechanism —
-     * graph, health, discovery, cultivate, home. Folder-boundary "starts with" match. Default: none.
-     *
-     * Since #713 this is the **downgrade mirror** of {@link knowledgeScope}'s folder rules: every
-     * committed rule change rewrites it, so the previous version keeps the folders it understands.
-     * Read only by the migration. To be removed the release after #713.
-     */
-    excludedPaths: string[];
-    /**
      * What is left out of the thinking system (#713): closed folder / tag / property rules, and the
      * exceptions that keep a note in anyway. Undefined until the migration has run once.
      */
@@ -443,7 +433,6 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     jsLibraryFolderPath: "", // No JS library folder configured by default.
     foldersFlowsPath: "_ZettelFlow/folders", // Default folder for storing flows.
     eventFlowsPath: "_ZettelFlow/events", // Home of the flows that react to vault events (#436).
-    excludedPaths: [], // Nothing excluded by default — the user opts in (#311).
     scriptLog: { runs: [], retentionDays: DEFAULT_RETENTION_DAYS }, // The script run log (#444).
     thoughtLabPath: "_ZettelFlow/lab", // Where thinking lives before it is knowledge (#466).
     installedTemplates: {

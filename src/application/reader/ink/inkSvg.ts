@@ -72,20 +72,46 @@ export function drawingBox(drawing: InkDrawing): { left: number; top: number; ri
 
 const n = (value: number) => String(fix(value));
 
+/** Strokes at the kept precision, every colour one the palette knows. */
+export function keptStrokes(strokes: readonly InkStrokeData[]): InkStrokeData[] {
+    return strokes.map((stroke) => ({ ...stroke, colour: isInkColour(stroke.colour) ? stroke.colour : "pencil", points: keptPoints(stroke.points) }));
+}
+
+/** Strokes as a file holds them: short keys, a point as five numbers. Shared with page ink (#790). */
+export function packStrokes(strokes: readonly InkStrokeData[]): { c: InkColour; t: string; pts: number[][] }[] {
+    return keptStrokes(strokes).map((stroke) => ({ c: stroke.colour, t: stroke.pointerType, pts: stroke.points.map((pt) => [pt.x, pt.y, pt.p, pt.tilt, pt.t]) }));
+}
+
+/** Strokes read back from a file: anything that is not one is skipped, an unknown colour is pencil. */
+export function unpackStrokes(raw: unknown): InkStrokeData[] {
+    const strokes: InkStrokeData[] = [];
+    if (!Array.isArray(raw)) return strokes;
+    for (const item of raw) {
+        if (!item || typeof item !== "object") continue;
+        const stroke = item as { c?: unknown; t?: unknown; pts?: unknown };
+        const points: InkPoint[] = [];
+        if (Array.isArray(stroke.pts))
+            for (const raw of stroke.pts) {
+                const pt = readPoint(raw);
+                if (pt) points.push(pt);
+            }
+        if (points.length === 0) continue;
+        strokes.push({
+            colour: isInkColour(stroke.c) ? stroke.c : "pencil",
+            pointerType: typeof stroke.t === "string" && /^[a-z]{1,10}$/.test(stroke.t) ? stroke.t : "pen",
+            points,
+        });
+    }
+    return strokes;
+}
+
 /** The drawing as an SVG file. A pure function of the points: two renders are byte-equal. */
 export function renderInkSvg(drawing: InkDrawing): string {
-    const strokes = drawing.strokes.map((stroke) => ({ ...stroke, colour: isInkColour(stroke.colour) ? stroke.colour : "pencil", points: keptPoints(stroke.points) }));
+    const strokes = keptStrokes(drawing.strokes);
     const box = drawingBox({ strokes });
     const width = Math.max(0.01, box.right - box.left);
     const height = Math.max(0.01, box.bottom - box.top);
-    const data = {
-        v: INK_VERSION,
-        strokes: strokes.map((stroke) => ({
-            c: stroke.colour,
-            t: stroke.pointerType,
-            pts: stroke.points.map((pt) => [pt.x, pt.y, pt.p, pt.tilt, pt.t]),
-        })),
-    };
+    const data = { v: INK_VERSION, strokes: packStrokes(strokes) };
     const lines = [
         // 16 px to the em outside the Reader: the size it was written at, near enough.
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n(box.left)} ${n(box.top)} ${n(width)} ${n(height)}" width="${n(width * 16)}" height="${n(height * 16)}">`,
@@ -107,9 +133,11 @@ function finite(value: unknown): number | null {
 
 function readPoint(raw: unknown): InkPoint | null {
     if (!Array.isArray(raw) || raw.length < 2) return null;
-    const [x, y, p, tilt, t] = raw.map(finite);
+    // Read in place, no copy: a heavily inked book's file is hundreds of thousands of points (#790).
+    const x = finite(raw[0]);
+    const y = finite(raw[1]);
     if (x === null || y === null) return null;
-    return { x, y, p: p ?? 0.5, tilt: tilt ?? Math.PI / 2, t: t ?? 0 };
+    return { x, y, p: finite(raw[2]) ?? 0.5, tilt: finite(raw[3]) ?? Math.PI / 2, t: finite(raw[4]) ?? 0 };
 }
 
 /**
@@ -130,19 +158,7 @@ export function parseInkSvg(text: string): InkDrawing | UnreadableInk {
     const record = data as { v?: unknown; strokes?: unknown };
     const version = finite(record.v);
     if (version !== INK_VERSION || !Array.isArray(record.strokes)) return { unreadable: true, version };
-    const strokes: InkStrokeData[] = [];
-    for (const raw of record.strokes) {
-        if (!raw || typeof raw !== "object") continue;
-        const stroke = raw as { c?: unknown; t?: unknown; pts?: unknown };
-        const points = Array.isArray(stroke.pts) ? stroke.pts.map(readPoint).filter((pt): pt is InkPoint => pt !== null) : [];
-        if (points.length === 0) continue;
-        strokes.push({
-            colour: isInkColour(stroke.c) ? stroke.c : "pencil",
-            pointerType: typeof stroke.t === "string" && /^[a-z]{1,10}$/.test(stroke.t) ? stroke.t : "pen",
-            points,
-        });
-    }
-    return { strokes };
+    return { strokes: unpackStrokes(record.strokes) };
 }
 
 export function isUnreadable(drawing: InkDrawing | UnreadableInk): drawing is UnreadableInk {

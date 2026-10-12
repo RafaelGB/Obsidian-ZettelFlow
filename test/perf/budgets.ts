@@ -482,6 +482,13 @@ export const BUDGETS = {
         because:
             "ink moves with its words in the same frame as a change of size or column (#745 FR-22); 200 notes is a heavily annotated chapter, and a frame is 16 ms",
     },
+    "ink.pageink.merge": {
+        name: "read two copies of a book's page ink (2,000 clusters of 150 points each) and merge them",
+        limit: 2000,
+        measured: "603 ms",
+        because:
+            "a book's page ink is read and merged on open, and before a save when another device changed it (#790). Two 9 MB copies are a book written on cover to cover",
+    },
     "ink.classify.1000": {
         name: "recognise a 1,000-point stroke against a page of 400 words and 40 marks",
         limit: 8,

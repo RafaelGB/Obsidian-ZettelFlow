@@ -3,6 +3,7 @@ import { appendPoint, newStroke, type InkPoint } from "application/reader/ink/in
 import { placeInk, type Column, type InkAnchor } from "application/reader/ink/inkAnchor";
 import { recognise, type MarkBox } from "application/reader/ink/gestures";
 import type { WordBox } from "application/reader/ink/inkAnchor";
+import { emptyPageInk, mergePageInk, parsePageInk, renderPageInk, type PageInk } from "application/reader/ink/pageInk";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
 
 /**
@@ -62,6 +63,26 @@ describe("ink (#745)", () => {
             return (performance.now() - started) / 10;
         });
         assertBudget("ink.layout.200", ms);
+    });
+
+    it("reads and merges two copies of a heavily inked book's page ink (#790)", () => {
+        // 2,000 clusters of 150 points each side, half of them shared: a book written on cover to cover.
+        const doc = (offset: number): PageInk => {
+            let ink = emptyPageInk("Books/Heavy.epub");
+            for (let i = 0; i < 2000; i++) {
+                const id = `c${i + offset}`;
+                ink = { ...ink, clusters: [...ink.clusters, { id, at: 1000 + i, place: { view: "text", locator: { at: i % 40, label: "" }, quote: { exact: `w${i}`, prefix: "", suffix: "" }, side: "right", x: 0.2, line: 0, em: 18 }, strokes: [{ colour: "pencil", pointerType: "pen", points: Array.from({ length: 150 }, (_, j) => point(j)) }] }] };
+            }
+            return ink;
+        };
+        const a = renderPageInk(doc(0));
+        const b = renderPageInk(doc(1000));
+        const ms = best(3, () => {
+            const started = performance.now();
+            mergePageInk(parsePageInk(a) as PageInk, parsePageInk(b) as PageInk, 5000);
+            return performance.now() - started;
+        });
+        assertBudget("ink.pageink.merge", ms);
     });
 
     it("recognises a 1,000-point stroke against a page of words and marks inside a frame (#747 AC-9)", () => {

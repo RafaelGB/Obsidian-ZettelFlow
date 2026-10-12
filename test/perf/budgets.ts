@@ -386,8 +386,13 @@ export const BUDGETS = {
         // The overview (#776), which #767's Pages tab grew into, adds 18 KB: 2,843 KB.
         // R4's what it produced (#752), the chapter end (#755) and layers (#758) bring it to 2,883 KB;
         // recall (#760) adds 14 KB: 2,897 KB — under the ceiling, with almost nothing left for the next slice.
-        limit: 2_900,
-        measured: "2,897 KB",
+        // 2,900 → 3,000 (#763): Snapshot adds 18 KB (the mode, its card and flight, the one writer), 2,915 KB.
+        // Looked for something to subtract first: it reuses the attachment saver (#386), the note picker
+        // (#641), #751's citation and Page view's own renderer instead of adding its own; the Reader's unused
+        // exports are test-only and already tree-shaken, so taking them out would not shrink main.
+        // A WebGL library coming back is still a megabyte over.
+        limit: 3_000,
+        measured: "2,915 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

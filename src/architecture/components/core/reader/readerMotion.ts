@@ -53,8 +53,18 @@ export function flightTransform(from: Box, to: Box): string {
  * `grown`: the ghost is drawn at the size it lands at, and starts shrunk onto `from` — for a ghost of
  * something big (a page) flown out of something small (its card), whose content must land at its own
  * size rather than be blown up (#776 FR-22).
+ *
+ * `land: "become"` (#763 FR-10): the ghost stays whole to the end and **becomes** what it lands on —
+ * `onLanded` shows the real thing in the same frame the ghost goes, so there is one picture, never a
+ * second one fading in. `lift` lifts it off where it was first (scale 1 → `lift`, about its centre).
  */
-export function fly(host: HTMLElement, ghost: HTMLElement, from: Box, to: Box, options: { duration: number; startOpacity?: number; grown?: boolean }): Animation | null {
+export function fly(
+    host: HTMLElement,
+    ghost: HTMLElement,
+    from: Box,
+    to: Box,
+    options: { duration: number; startOpacity?: number; grown?: boolean; land?: "fade" | "become"; lift?: number; onLanded?: () => void }
+): Animation | null {
     const box = host.getBoundingClientRect();
     const at = options.grown ? to : from;
     ghost.addClass(c("motion-ghost"));
@@ -65,13 +75,25 @@ export function fly(host: HTMLElement, ghost: HTMLElement, from: Box, to: Box, o
         "--zf-ghost-h": `${Math.round(at.height)}px`,
     });
     host.appendChild(ghost);
-    const done = () => ghost.remove();
+    let landed = false;
+    const done = () => {
+        if (!landed) {
+            landed = true;
+            options.onLanded?.();
+        }
+        ghost.remove();
+    };
     const still = "translate(0px, 0px) scale(1, 1)";
+    const opacity = options.startOpacity ?? 1;
+    const lift = options.lift;
+    // Lifted about its centre: the scale from the top-left corner, pulled back by half its growth.
+    const lifted = lift ? [{ transform: `translate(${Math.round(((1 - lift) * from.width) / 2)}px, ${Math.round(((1 - lift) * from.height) / 2)}px) scale(${lift}, ${lift})`, opacity, offset: 0.2 }] : [];
     const animation = ghost.animate(
         [
-            { transform: options.grown ? flightTransform(to, from) : still, opacity: options.startOpacity ?? 1 },
-            { opacity: options.startOpacity ?? 1, offset: 0.7 },
-            { transform: options.grown ? still : flightTransform(from, to), opacity: 0 },
+            { transform: options.grown ? flightTransform(to, from) : still, opacity },
+            ...lifted,
+            { opacity, offset: 0.7 },
+            { transform: options.grown ? still : flightTransform(from, to), opacity: options.land === "become" ? opacity : 0 },
         ],
         { duration: options.duration, easing: MOTION.ease, fill: "forwards" }
     );

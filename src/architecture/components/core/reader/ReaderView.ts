@@ -108,6 +108,8 @@ import { MarkVisibility, layerPrefsOf, normalizeLayerPrefs, withLayerPrefs } fro
 import { renderLayersPanel } from "./readerLayersPanel";
 import { LAYER_LABEL } from "./readerHighlights";
 import { DEFAULT_LAYER, type MarkLayer } from "application/thinking/markLayer";
+import { ReaderSnapshot, captureRegion, captureScale, snapshotName, type Box as SnapshotBox, type SnapshotCapture, type SnapshotDeps, type SnapshotView } from "./readerSnapshot";
+import { saveSnapshot } from "./readerSnapshotSave";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -430,6 +432,10 @@ export class ReaderView extends ItemView {
     private claimLink: ReaderClaimLink | null = null;
     /** *Look up* and *Translate* (#766): the card grown from the words, gone on Esc, a click or a turn. */
     private lookup: ReaderLookup | null = null;
+    /** *Snapshot* (#763): the mode that turns a drag on Page view into a capture, and its card. */
+    private snapshot: ReaderSnapshot | null = null;
+    /** Its door in the bar: shown in Page view, pressed while the mode is on. */
+    private snapshotButton: HTMLElement | null = null;
     /** Alongside's button in the bar: a dot on it says an answer landed while it was closed (#759 FR-14). */
     private alongsideDot: HTMLElement | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
@@ -680,7 +686,9 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the claim's create, the link's write and the record (#762). */
         private readonly claimLinkDeps: ClaimLinkDeps = {},
         /** Seams for tests: the dictionaries, the AI layer, Settings and the clipboard of Look up (#766). */
-        private readonly lookupDeps: LookupDeps = {}
+        private readonly lookupDeps: LookupDeps = {},
+        /** Seams for tests: the snapshot's writer, its undo and the note picker (#763). */
+        private readonly snapshotDeps: SnapshotDeps = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
@@ -1032,6 +1040,9 @@ export class ReaderView extends ItemView {
         // A look-up or a translation on screen goes with the Reader; nothing was kept (#766).
         this.lookup?.dispose();
         this.lookup = null;
+        // A capture not yet kept goes with the Reader: nothing written (#763 AC-3).
+        this.snapshot?.dispose();
+        this.snapshot = null;
         // Waiting answers are discarded with the Reader: nothing shown, nothing recorded (#759 AC-5).
         this.aiMoves?.dispose();
         this.aiMoves = null;
@@ -1128,6 +1139,8 @@ export class ReaderView extends ItemView {
                 // Ink takes the layer new marks go to, and is shown and hidden with the rest (#758).
                 layerForNew: () => this.layerTarget(),
                 drawn: () => this.syncLayers(),
+                // One pointer owner at a time (#763): the palette opening leaves Snapshot.
+                opened: () => this.snapshot?.leave(),
             },
             this.inkDeps
         );
@@ -1193,6 +1206,11 @@ export class ReaderView extends ItemView {
         this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
         const view = this.iconButton(bar, "file-image", "reader_source_page_view", () => this.toggleView());
         view.addClass(c("reader-hidden"));
+        // Snapshot (#763 FR-1), beside Page view: the next drag on a printed page is a capture.
+        const snap = this.iconButton(bar, "scan", "reader_snapshot", () => this.snapshot?.toggle());
+        snap.addClass(c("reader-hidden"));
+        snap.setAttribute("aria-pressed", "false");
+        this.snapshotButton = snap;
         // The zoom level, beside it (#767 FR-13): the camera goes back to the width of the screen.
         const zoom = bar.createEl("button", {
             cls: [c("reader-bar-zoom"), c("reader-hidden")].join(" "),
@@ -1228,9 +1246,15 @@ export class ReaderView extends ItemView {
                 passageActions: () => this.passageActions(),
                 lookup: () => this.lookup,
                 layerForNew: () => this.layerTarget(),
+                snapshotImage: (el, from) => void this.snapshotImage(el, from),
             },
             this.highlightDeps
         );
+        this.snapshot = new ReaderSnapshot(this.snapshotView(root), {
+            save: (app, shot, choice) => saveSnapshot(app, shot, choice, this.highlightDeps.store ?? ThoughtStore.getInstance()),
+            open: (app, path) => void app.workspace.openLinkText(path, "", "tab"),
+            ...this.snapshotDeps,
+        });
         this.watchShape(root);
         // Words selected: Alongside follows the selection once it settles (#754 FR-2).
         const doc = (root as HTMLElement & { doc?: Document }).doc;
@@ -1255,7 +1279,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet", "reader--snapshot"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1423,6 +1447,10 @@ export class ReaderView extends ItemView {
         els.view.toggleClass("is-active", Boolean(this.source?.hasPageView) && pageView);
         els.view.setAttribute("aria-label", t(pageView ? "reader_source_reading_view" : "reader_source_page_view"));
         els.view.setAttribute("aria-pressed", String(pageView));
+        // Snapshot is Page view's (#763 FR-1): out of it, the mode is left and the door hidden.
+        const snapshotOffered = this.snapshotOffered();
+        this.snapshotButton?.toggleClass(c("reader-hidden"), !snapshotOffered);
+        if (!snapshotOffered) this.snapshot?.leave();
         this.renderZoom();
         const total = path?.chapters.length ?? 0;
         this.renderBarPlace();
@@ -4275,6 +4303,93 @@ export class ReaderView extends ItemView {
     }
 
     /** What Look up and Translate lend of the Reader (#766): its root, the page's language, the settings, the queue. */
+    // ── Snapshot (#763) ──────────────────────────────────────────────────────
+
+    /** Whether Snapshot is offered: a paper's printed pages in Page view, a scan's too (FR-1, FR-4). */
+    private snapshotOffered(): boolean {
+        return this.runMode() && this.source?.format === "pdf" && typeof this.source.pages?.render === "function";
+    }
+
+    private snapshotView(root: HTMLElement): SnapshotView {
+        return {
+            app: this.app,
+            root,
+            owner: this,
+            stage: () => this.els?.stage ?? null,
+            margin: () => this.els?.margin ?? null,
+            regionAt: (box: SnapshotBox) => (this.runMode() ? (this.pageRun?.regionAt(box) ?? null) : null),
+            capture: async (region, scale) => {
+                const render = this.source?.pages?.render?.bind(this.source.pages);
+                if (!render) return null;
+                const blob = await captureRegion(render, () => this.scratchCanvas(root), region.page, { scale, rotation: region.rotation, frame: region.frame });
+                return blob ? this.snapshotOf(blob, "figure", region.page) : null;
+            },
+            modeChanged: (on) => {
+                this.snapshotButton?.setAttribute("aria-pressed", String(on));
+                this.snapshotButton?.toggleClass("is-active", on);
+                if (!on) return;
+                // One pointer owner at a time: the ink palette steps aside, and so does a popover.
+                this.ink?.closePalette(false);
+                this.highlights?.hidePopover();
+            },
+            canThink: () => Boolean((this.highlightDeps.store ?? ThoughtStore.getInstance()).folder()),
+            pageNoteAdded: (thought) => this.highlights?.addPageNote(thought) ?? null,
+            pageNoteRemoved: (id) => this.highlights?.removePageNote(id),
+        };
+    }
+
+    /** A canvas a capture is drawn in, off the page: made in the Reader's window, never shown. */
+    private scratchCanvas(host: HTMLElement): HTMLCanvasElement {
+        const canvas = host.createEl("canvas");
+        canvas.remove();
+        return canvas;
+    }
+
+    /** A capture, with where it came from: its name, its place and its `source::` citation (#751). */
+    private snapshotOf(blob: Blob, kind: SnapshotCapture["kind"], index: number): SnapshotCapture | null {
+        const doc = this.source;
+        const path = this.sourcePath;
+        if (!doc || !path) return null;
+        const chapter = doc.chapters[index];
+        const label = this.sourceLabel(index);
+        const place = doc.format === "pdf" ? `p. ${chapter?.page ?? index + 1}` : `ch. ${index + 1}`;
+        return {
+            blob,
+            kind,
+            label,
+            name: snapshotName(doc.title, place),
+            citation: recallCitation({ file: path, ...(chapter?.key ? { chapter: chapter.key } : {}), label, ...(chapter?.page ? { page: chapter.page } : {}), bookTitle: doc.title }),
+            source: path,
+            locator: this.locatorOf(index),
+        };
+    }
+
+    /**
+     * *Snapshot this image* (FR-2): a book's picture as the book holds it — its own bytes — or a page
+     * of a paper drawn as its picture, drawn again whole at twice its size on screen.
+     */
+    private async snapshotImage(el: HTMLElement, from: SnapshotBox): Promise<void> {
+        const doc = this.source;
+        const index = this.index;
+        if (!doc || !this.snapshot) return;
+        let blob: Blob | null = null;
+        let kind: SnapshotCapture["kind"] = "image";
+        try {
+            const archived = el.getAttribute("data-zf-src");
+            if (archived && doc.imageBytes) blob = await doc.imageBytes(archived);
+            else if (!archived && doc.pages?.render) {
+                const size = await doc.pages.size(index);
+                const scale = captureScale(from.width / Math.max(1e-6, size.width), size);
+                blob = await captureRegion(doc.pages.render.bind(doc.pages), () => this.scratchCanvas(this.root ?? this.contentEl), index, { scale, rotation: 0 });
+                kind = "figure";
+            }
+        } catch (error) {
+            log.warn(`[Reader] a picture could not be captured: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        const shot = blob && this.source === doc ? this.snapshotOf(blob, kind, index) : null;
+        if (shot) this.snapshot.show(shot, from);
+    }
+
     private lookupView(): LookupView {
         return {
             app: this.app,
@@ -5079,6 +5194,7 @@ export class ReaderView extends ItemView {
         this.registerDomEvent(stage, "touchcancel", (event: TouchEvent) => this.onPinchTouchEnd(event));
         this.registerDomEvent(stage, "pointerup", (event: PointerEvent) => this.onPointerUp(event));
         this.registerDomEvent(stage, "pointercancel", (event: PointerEvent) => {
+            this.snapshot?.cancel(event);
             this.ink?.cancel(event);
             // The system took a finger (a pinch, a gesture of its own): no two-finger back from it.
             this.fingers.delete(event?.pointerId);
@@ -5111,6 +5227,11 @@ export class ReaderView extends ItemView {
 
     private onPointerDown(event: PointerEvent): void {
         if (event.pointerType) this.lastPointerType = event.pointerType;
+        // Snapshot mode owns the pointer (#763 AC-6): a drag draws its rectangle — no selection, no scroll, no turn.
+        if (this.snapshot?.claims(event)) {
+            this.dropTouch();
+            return;
+        }
         // Ink is asked before a gesture starts (#745): a pen or a mouse with the palette open writes,
         // and a palm on the glass does nothing at all. A finger goes on as it always has.
         if (this.ink?.claims(event)) {
@@ -5143,6 +5264,7 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerMove(event: PointerEvent): void {
+        if (this.snapshot?.move(event)) return;
         if (this.ink?.move(event)) return;
         const finger = this.fingers.get(event.pointerId);
         if (finger) {
@@ -5172,6 +5294,10 @@ export class ReaderView extends ItemView {
     }
 
     private onPointerUp(event: PointerEvent): void {
+        if (this.snapshot?.release(event)) {
+            this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
+            return;
+        }
         if (this.ink?.up(event)) {
             // A stroke that ended on a link is a stroke, never a click on the link.
             this.swallowClickUntil = Date.now() + TAP_CLICK_MS;
@@ -5551,12 +5677,13 @@ export class ReaderView extends ItemView {
     /** Esc: one thing at a time, nearest first — then deep reading, then the reader itself (#764 FR-6). */
     private escape(): void {
         const step = escapeStep({
-            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards() || this.lookup?.hasCards()),
+            proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards() || this.lookup?.hasCards() || this.snapshot?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
             note: Boolean(this.notePop),
             search: Boolean(this.searchEl),
             popover: Boolean(this.highlights?.hasPopover()),
             peek: Boolean(this.peek),
+            snapshot: Boolean(this.snapshot?.active()),
             palette: Boolean(this.ink?.isOpen()),
             detour: this.detours.length > 0,
             panel: Boolean(this.panel),
@@ -5567,7 +5694,8 @@ export class ReaderView extends ItemView {
                 // The newest card of all, whoever opened it — ink's reading or a move (#748, #756, #759).
                 // The claim sheet is one of them (#762): Esc takes it away, nothing written.
                 // The look-up card is one too (#766): Esc puts it back into the words.
-                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup]);
+                // A snapshot's card too (#763): Esc is its Cancel, nothing written.
+                dismissNewestOf([this.ink?.reading, this.vaultMoves, this.aiMoves, this.claimLink, this.lookup, this.snapshot]);
                 return;
             case "shortcuts":
                 return this.closeShortcuts();
@@ -5579,6 +5707,8 @@ export class ReaderView extends ItemView {
                 return this.highlights?.hidePopover();
             case "peek":
                 return this.closePeek();
+            case "snapshot":
+                return this.snapshot?.leave();
             case "palette":
                 return this.ink?.closePalette();
             case "detour":

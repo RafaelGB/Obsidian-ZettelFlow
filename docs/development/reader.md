@@ -764,6 +764,54 @@ back the same way; the line you were reading never moves. While a translation is
 faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
 appears and goes at once, and the lines are still.
 
+## Snapshot a figure or a table
+
+In a paper the argument is often a figure or a table, and a figure cannot be highlighted: it is not
+text. **Snapshot** keeps it the way a highlight keeps words — with where it came from.
+
+![Snapshot: a paper in Page view with Snapshot pressed in the bar and a dashed rectangle dragged around a bar chart; the region flies to a card in the margin, Figure · p. 4, with Add note, Fleeting note, Attach to a note and Cancel, and Nothing is saved until you choose; beside it the three places it can go — a new note's preview with the image, a caption and its source line, a fleeting note in Notes on this page, and Attached to Planning with Open and Undo](../resources/reader/snapshot.svg)
+
+- **Where it is.** **Snapshot** in the bar, beside **Page view**, whenever a paper is shown as
+  printed — [Page view](library.md#page-view), and every page of a scan. Press it and the next drag
+  on a page is a capture: a mouse, a pen, or a finger on an iPad. In the mode a finger drags a
+  rectangle instead of scrolling or turning, and no words are selected. **Esc** or **Snapshot** again
+  leaves it without capturing, and one capture leaves it by itself. Snapshot and the
+  [ink palette](#ink-in-the-margin) never share the page: opening one closes the other.
+- **A picture in a book.** In an EPUB — and on a paper's page drawn as its picture in the Reading
+  view — click the picture and the popover offers **Snapshot this image**: the picture **as the book
+  holds it**, its own bytes and format, never re-encoded.
+- **Sharp, never a screenshot.** A dragged region is drawn again by the PDF engine at **twice the size
+  it has on screen**, up to 4,096 px on its long side (and 16 million pixels in all, which an iPad's
+  memory allows). A rectangle smaller than about 20 px on a side captures nothing and says *Drag
+  around a figure or a table*. Nothing in the image is read as text.
+- **The card.** The capture flies to a card in the margin — *Figure · p. 4*, or *Image · chapter 3* —
+  with the picture and **where it goes**:
+    - **Add note** — a preview of a new note: the image embedded, a line for **your caption**, and
+      `source:: [[the paper#page=4|its title]] p. 4`. **Create note** writes it, create-only, at a free
+      path in Obsidian's *Default location for new notes*, and the Library counts it as a note
+      [born from the paper](library.md).
+    - **Fleeting note** — a thought in [Think](../architecture/thought-lab.md) about the source,
+      carrying the image and its page, listed at once under *Notes on this page*, as its picture.
+    - **Attach to a note** — Obsidian's own picker; the image and its `source::` line are added at the
+      end of the note you pick, and the line says *Attached to «Note»* with **Open** and **Undo**.
+    - **Cancel** (or **Esc**) — the card goes, and nothing was written.
+- **Nothing is saved until you choose.** Choosing saves the image as an attachment — where your
+  *Settings → Files and links → Default location for new attachments* puts it, named after the source
+  and the place (`Reference class forecasting p. 4.png`), at a free path — and what refers to it, as
+  **one recorded batch**: one **Undo**, on the card or in Home → Recent, takes both back. The book is
+  never written, and a capture is never put on the clipboard.
+
+### The snapshot flies to where it goes
+
+While you drag, only the rectangle is drawn: nothing on the page moves and nothing is dimmed. On
+release the region lifts off the page (scale 1 → 1.02) and travels to its card (`cover`, 400 ms, the
+shared curve), **becoming** the card's picture — the same picture all the way, never a second one
+fading in. A choice sends it on: the note's preview grows out of the card (0.96 → 1 and a fade); a
+fleeting note's picture flies into its row under *Notes on this page*; an attached one goes off
+towards the margin's edge, and the status line takes the card's place. **Cancel** lets the card sink
+8 px and fade (`base`, 250 ms). Any key or touch during a flight lands it at once, and under reduced
+motion the card is simply there, and simply goes.
+
 ## Bookmarks and where you've been
 
 Two small tools every reading app has, made so that following a reference is never a risk to your
@@ -1472,9 +1520,9 @@ No colour is invented: every look comes from your theme.
 ## What it writes
 
 **Nothing, to any note you read.** Reading is the whole job, and a test holds the line: nothing in
-the Reader reaches a file writer — except **Export** and [Recall](#recall)'s **Create note**, the two
-buttons that make a note, and only when you press them: create-only, through `FileService`, in a
-recorded batch you can undo. The things
+the Reader reaches a file writer — except **Export**, [Recall](#recall)'s **Create note** and
+[Snapshot](#snapshot-a-figure-or-a-table)'s choice, and only when you press them: create-only (or an
+append to the note you picked), through `FileService`, in a recorded batch you can undo. The things
 you can make while reading — a highlight, or ink — are **thoughts** in Think, written through the
 thought store like every other thought, and a second test holds that line too. Ink adds one file to
 its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
@@ -1498,7 +1546,11 @@ a chapter and a skip live in memory only, the switch is one of your type choices
 only from the preview's *Create note*. **Recall** writes nothing while you write, reveal or leave —
 your words are a draft in memory for as long as the Reader is open — and one new note only on its
 preview's *Create note*: create-only, through the Reader's second named writer
-(`readerRecallNote.ts`, over `FileService`), in a recorded batch you can undo.
+(`readerRecallNote.ts`, over `FileService`), in a recorded batch you can undo. **Snapshot** writes
+nothing while you drag or look at its card; a choice writes the image, as an attachment, and the one
+thing that refers to it — a new note, a fleeting note, or the lines added at the end of the note you
+picked — through the Reader's third named writer (`readerSnapshotSave.ts`, over `FileService` and the
+thought store), as one recorded batch you can undo.
 
 ## For contributors
 

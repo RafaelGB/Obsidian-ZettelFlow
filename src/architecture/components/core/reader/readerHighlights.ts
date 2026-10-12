@@ -72,6 +72,11 @@ export interface HighlightView {
      * selection is offered, and what each does. The view decides; the popover only draws them.
      */
     lookup?(): LookupActions | null;
+    /**
+     * *Snapshot this image* (#763 FR-2): a picture in a book, or a page of a paper drawn as its
+     * picture, clicked. The view captures it; the popover only offers it.
+     */
+    snapshotImage?(el: HTMLElement, from: ScreenBox): void;
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -408,6 +413,8 @@ export class ReaderHighlights {
         // The words can be selected at all only because reader.scss gives the body back the
         // `user-select: text` Obsidian's `body { user-select: none }` takes away (#667).
         component.registerDomEvent(body, "mouseup", () => this.onSelect());
+        // A picture in a book, or a page drawn as its picture, offers itself as a snapshot (#763 FR-2).
+        if (locator && this.view.snapshotImage) component.registerDomEvent(body, "click", (event: MouseEvent) => this.offerImage(event));
         component.registerDomEvent(body, "keyup", (event: KeyboardEvent) => {
             if (event.shiftKey) this.onSelect();
         });
@@ -551,6 +558,59 @@ export class ReaderHighlights {
         this.noteForm(pop, "", (text) => void this.keepPageNote(text));
     }
 
+    /**
+     * A note on this page kept elsewhere — a snapshot's fleeting note (#763 FR-5.2): listed under
+     * *Notes on this page* at once. Its row in the margin, for the picture to land in.
+     */
+    addPageNote(thought: Thought): HTMLElement | null {
+        if (!this.locator || thought.locator?.at !== this.locator.at) return null;
+        this.pageNotes.push(thought);
+        this.noted++;
+        this.renderMargin();
+        this.view.onChange();
+        return this.margin?.querySelector<HTMLElement>(`[data-note="${thought.id}"]`) ?? null;
+    }
+
+    /** That note taken back (its Undo): gone from the list. */
+    removePageNote(id: string): void {
+        const before = this.pageNotes.length;
+        this.pageNotes = this.pageNotes.filter((thought) => thought.id !== id);
+        if (this.pageNotes.length === before) return;
+        this.noted = Math.max(0, this.noted - 1);
+        this.renderMargin();
+        this.view.onChange();
+    }
+
+    /** The picture a note is, when its text is one embedded image: `![[x.png]]` or `![](x.png)`. */
+    private embeddedImage(thought: Thought): string | null {
+        const text = thought.text.trim();
+        const link = /^!\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]$/.exec(text)?.[1] ?? /^!\[[^\]]*\]\(<?([^)>]+)>?\)$/.exec(text)?.[1];
+        if (!link || !/\.(png|jpe?g|gif|webp|svg|avif)$/i.test(link)) return null;
+        const app = this.view.app;
+        try {
+            const file = app.metadataCache?.getFirstLinkpathDest?.(decodeURI(link.trim()), thought.about ?? "");
+            return file ? (app.vault.getResourcePath?.(file) ?? null) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    /** A click on a picture (FR-2): the popover offers *Snapshot this image*, and nothing else. */
+    private offerImage(event: MouseEvent): void {
+        const target = event.target as { closest?: (s: string) => HTMLElement | null } | null;
+        const el = target?.closest?.("img, canvas") ?? null;
+        const picture = el && (el.getAttribute("data-zf-src") || el.classList.contains(c("reader-page-picture")));
+        if (!el || !picture || !this.view.snapshotImage || this.currentQuote()) return;
+        const r = el.getBoundingClientRect();
+        const from: ScreenBox = { left: r.left, top: r.top, width: r.width, height: r.height };
+        const pop = this.openPopover({ left: event.clientX, top: event.clientY, width: 0, height: 0 }, "mark", true);
+        const actions = pop.createDiv({ cls: c("reader-hl-actions") });
+        this.button(actions, "reader_snapshot_image", true, () => {
+            this.hidePopover();
+            this.view.snapshotImage?.(el, from);
+        });
+    }
+
     /** Draw the margin's list again: an ink note was kept or taken away (#745). */
     refreshMargin(): void {
         this.renderMargin();
@@ -568,7 +628,10 @@ export class ReaderHighlights {
             host.createDiv({ cls: c("reader-hl-heading"), text: t("reader_hl_page_notes") });
             for (const thought of this.pageNotes) {
                 const row = host.createDiv({ cls: [c("reader-hl-item"), c("reader-hl-item--page")], attr: { "data-note": thought.id } });
-                row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
+                // A snapshot kept as a fleeting note (#763): its picture, not its embed's text.
+                const picture = this.embeddedImage(thought);
+                if (picture) row.createEl("img", { cls: c("reader-hl-snapshot"), attr: { src: picture, alt: "" } });
+                else row.createDiv({ cls: c("reader-hl-note"), text: thought.text.trim() });
             }
         }
         if (this.anchored.length === 0 && this.detached.length === 0) return;

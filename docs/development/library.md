@@ -275,6 +275,9 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
   whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
   It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
+  A figure or a table is kept with **Snapshot**, beside Page view in the bar: drag around it, and it
+  becomes a note, a fleeting note or part of a note you have, with its page — see
+  [Snapshot a figure or a table](reader.md#snapshot-a-figure-or-a-table).
 - **The paper's own contents.** **Contents** lists the PDF's outline, each entry with its page; a PDF
   without one lists its pages. The section you are in is shown above the page.
 - **Highlights and margin notes**, exactly as in a note: select words, **Highlight** or **Highlight and

@@ -143,6 +143,10 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
                 ...(pageMarks.length > 0 ? { pageMarks } : {}),
             };
         },
+        async imageBytes(archivePath: string): Promise<Blob | null> {
+            const bytes = await book.archive.bytes(archivePath);
+            return bytes ? new Blob([bytes as BlobPart], { type: imageType(book, archivePath) }) : null;
+        },
         resolveLink(_from: number, href: string) {
             const [path] = href.split("#");
             const chapter = spineIndexOf(spine, path);

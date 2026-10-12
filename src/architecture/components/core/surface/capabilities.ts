@@ -127,6 +127,7 @@ export const CAPABILITIES = [
     "reader-lookup",
     "reader-translate",
     "reader-overview",
+    "reader-snapshot",
     "chapter-pause",
     "chapter-recall",
     "library",
@@ -448,6 +449,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_overview",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
+    },
+    "reader-snapshot": {
+        // Snapshot (#763, epic #742): in Page view's bar, the next drag on a printed page captures a
+        // figure or a table; a picture in a book offers *Snapshot this image* in its popover. Its card
+        // asks where it goes — a note, a fleeting note, a note you have — and nothing is written before.
+        nameKey: "reader_snapshot",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     "chapter-pause": {
         // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,

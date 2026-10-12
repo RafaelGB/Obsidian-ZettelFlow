@@ -367,6 +367,36 @@ export class PdfPageRun {
         return { left: r.left, top: r.top, width: r.width, height: r.height };
     }
 
+    /**
+     * Where a box on screen falls on a printed page (#763): the page under its centre, the box as
+     * shares of the page as drawn at its turn — inside the crop's frame when crop is on — the CSS
+     * pixels a point is shown at, and the box in the page's own units. `null` off the pages.
+     */
+    regionAt(box: { left: number; top: number; width: number; height: number }): { page: number; frame: CropBox; rotation: number; onScreen: number; size: { width: number; height: number } } | null {
+        if (this.designed()) return null;
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        for (const view of this.slots.values()) {
+            const r = view.el.getBoundingClientRect();
+            if (!(r.width > 0 && r.height > 0) || cx < r.left || cx > r.left + r.width || cy < r.top || cy > r.top + r.height) continue;
+            // The box as shares of the slot, held inside it.
+            const share = (n: number, from: number, size: number) => Math.min(1, Math.max(0, (n - from) / size));
+            const x0 = share(box.left, r.left, r.width);
+            const y0 = share(box.top, r.top, r.height);
+            const shares = { x: x0, y: y0, w: share(box.left + box.width, r.left, r.width) - x0, h: share(box.top + box.height, r.top, r.height) - y0 };
+            const shown = this.shownFrame(view.page);
+            const points = this.boxOf(view.page);
+            return {
+                page: view.page,
+                frame: { x: shown.x + shares.x * shown.w, y: shown.y + shares.y * shown.h, w: shares.w * shown.w, h: shares.h * shown.h },
+                rotation: this.rotationOf(view.page),
+                onScreen: r.width / Math.max(1e-6, points.width),
+                size: { width: shares.w * points.width, height: shares.h * points.height },
+            };
+        }
+        return null;
+    }
+
     /** A designed page at *Fit page*, in *Page* or *Spread*: centred, not held where it was (#771). */
     private centred(): boolean {
         return this.designed() && this.fit === "page" && this.host.layout() !== "scroll";

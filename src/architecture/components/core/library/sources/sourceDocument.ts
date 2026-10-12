@@ -162,6 +162,11 @@ export interface SourceDocument {
      * the run — and nothing in it can be highlighted or searched (FR-8).
      */
     designed?: boolean;
+    /**
+     * A picture the book holds (#763 FR-3), by the archive path a drawn chapter keeps on it
+     * (`data-zf-src`): its own bytes and type, never re-encoded. `null` when the book has no such file.
+     */
+    imageBytes?(archivePath: string): Promise<Blob | null>;
     close(): void;
 }
 

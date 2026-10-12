@@ -87,6 +87,8 @@ export interface InkView {
     layerForNew?(): MarkLayer;
     /** Marks were drawn outside a chapter's redraw — a printed page's, as it appeared (#758). */
     drawn?(): void;
+    /** The palette opened: Snapshot mode steps aside, one pointer owner at a time (#763). */
+    opened?(): void;
 }
 
 /** What a stroke across a line asks of the highlights — the same engine a selection uses (#746). */
@@ -428,6 +430,7 @@ export class ReaderInk {
         if (remember) this.view.app?.saveLocalStorage?.(INK_STORAGE_KEY, "open");
         this.palette?.addClass("is-open");
         this.palette?.setAttribute("aria-hidden", "false");
+        this.view.opened?.();
         this.syncButton();
         this.syncStage();
         this.guardTouches();

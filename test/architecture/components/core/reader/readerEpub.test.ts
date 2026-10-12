@@ -126,6 +126,46 @@ describe("an EPUB in the Reader (#682)", () => {
         expect(app.workspace.openLinkText).not.toHaveBeenCalled();
     });
 
+    it("offers a picture as a snapshot, its own bytes, kept as a fleeting note on this page (#763 FR-2, FR-3)", async () => {
+        const book = file("Books/tfs.epub");
+        const saved: any[] = [];
+        const thought = { id: "snap1", text: "![[Thinking, Fast and Slow ch. 2.png]]", created: "2026-10-12", about: book.path, locator: { at: 1, label: "2 · Attention and effort" } };
+        const m = mount();
+        const view = new ReaderView(m.view.leaf, { settings: {}, saveSettings: jest.fn(async () => undefined) } as never, { store: { folder: () => "Lab", highlightsAbout: jest.fn(async () => []), write: jest.fn(), save: jest.fn(), discard: jest.fn(), restore: jest.fn() } as never }, {}, {}, {}, {}, {}, {}, {
+            save: async (_app, shot, choice) => {
+                saved.push({ shot, choice, bytes: Array.from(new Uint8Array(await shot.blob.arrayBuffer())), type: shot.blob.type });
+                return { batch: "b1", image: "Attachments/Thinking, Fast and Slow ch. 2.png", thought: thought as never };
+            },
+        });
+        (m.app as any).metadataCache.getFirstLinkpathDest = () => null;
+        await view.setState({ source: book.path, chapter: 1 }, {} as never);
+        await view.onOpen();
+        const content = m.content;
+        await settle(() => content.byClass("reader-source-body")[0]?.find((el) => el.tag === "img")?.getAttribute("src") != null);
+        const body = content.oneByClass("reader-source-body");
+        const img = body.find((el) => el.tag === "img") as DomNode;
+        expect(img.getAttribute("data-zf-src")).toBe("OEBPS/images/fig.png");
+        body.fire("click", { target: img, clientX: 200, clientY: 300 });
+        const offer = content.find((el) => el.tag === "button" && el.textContent === "Snapshot this image")!;
+        expect(offer).toBeDefined();
+        offer.click();
+        await settle(() => content.byClass("reader-snapshot-card").length > 0);
+        const card = content.oneByClass("reader-snapshot-card");
+        expect(card.oneByClass("reader-snapshot-title").textContent).toBe("Image · 2 · Attention and effort");
+        // Nothing written until a choice.
+        expect(saved).toHaveLength(0);
+        card.find((el) => el.tag === "button" && el.textContent === "Fleeting note")!.click();
+        await settle(() => saved.length > 0 && content.byClass("reader-snapshot-status").length > 0);
+        // The archive's own bytes, in its own format; named after the book and the chapter.
+        expect(saved[0].bytes).toEqual([137, 80, 78, 71]);
+        expect(saved[0].type).toBe("image/png");
+        expect(saved[0].shot.name).toBe("Thinking, Fast and Slow ch. 2");
+        expect(saved[0].shot.citation).toBe("[[Books/tfs.epub#OEBPS/text/ch2.xhtml|Thinking, Fast and Slow]] · 2 · Attention and effort");
+        expect(saved[0].choice).toEqual({ kind: "fleeting", locator: { at: 1, label: "2 · Attention and effort", chapter: "OEBPS/text/ch2.xhtml" } });
+        expect(content.oneByClass("reader-margin").find((el) => el.getAttribute("data-note") === "snap1")).toBeDefined();
+        await view.onClose();
+    });
+
     it("lets a chapter's images go when the page turns", async () => {
         const { content } = await open(1);
         await settle(() => content.oneByClass("reader-source-body").find((el) => el.tag === "img")?.getAttribute("src") !== null);

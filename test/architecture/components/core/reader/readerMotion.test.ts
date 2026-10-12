@@ -58,3 +58,43 @@ describe("a flight you can finish (#776 FR-26, FR-22)", () => {
         }
     });
 });
+
+describe("a flight that becomes what it lands on (#763 FR-10)", () => {
+    const from = { left: 100, top: 200, width: 300, height: 200 };
+    const to = { left: 900, top: 120, width: 270, height: 180 };
+
+    it("stays whole to the end, lifts first, and shows the real thing as the ghost goes", () => {
+        const record = recordAnimations();
+        try {
+            const host = new DomNode();
+            const ghost = new DomNode();
+            const order: string[] = [];
+            const shot = fly(host as never, ghost as never, from, to, { duration: MOTION.cover, land: "become", lift: 1.02, onLanded: () => order.push(host.children.includes(ghost) ? "landed, ghost still there" : "landed after") }) as unknown as FakeAnimation;
+            const frames = shot.keyframes;
+            expect(shot.options.duration).toBe(MOTION.cover);
+            // Lifted about its centre, by 1.02, at the start of the same keyframes.
+            expect(frames[1]).toEqual({ transform: "translate(-3px, -2px) scale(1.02, 1.02)", opacity: 1, offset: 0.2 });
+            expect(frames[frames.length - 1]).toEqual({ transform: flightTransform(from, to), opacity: 1 });
+            for (const frame of frames) for (const key of Object.keys(frame)) expect(["transform", "opacity", "offset"]).toContain(key);
+            shot.finish();
+            // The real picture is shown in the frame the ghost goes: one picture, never two.
+            expect(order).toEqual(["landed, ghost still there"]);
+            expect(host.children).not.toContain(ghost);
+        } finally {
+            record.stop();
+        }
+    });
+
+    it("leaves every other flight as it was: it fades as it lands", () => {
+        const record = recordAnimations();
+        try {
+            const host = new DomNode();
+            fly(host as never, new DomNode() as never, from, to, { duration: MOTION.base });
+            const frames = record.animations[0].keyframes;
+            expect(frames).toHaveLength(3);
+            expect(frames[2].opacity).toBe(0);
+        } finally {
+            record.stop();
+        }
+    });
+});

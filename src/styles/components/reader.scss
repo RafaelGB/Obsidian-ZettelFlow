@@ -3423,3 +3423,162 @@ button.zettelkasten-flow__reader-hl-layer {
         display: none;
     }
 }
+
+/*
+ * Snapshot a figure or a table (#763). In the mode a finger drags instead of scrolling, and nothing
+ * on the page is selected: only the rectangle is drawn, placed by custom properties, and nothing
+ * under it is dimmed (FR-9).
+ */
+.zettelkasten-flow__reader--snapshot .zettelkasten-flow__reader-stage,
+.zettelkasten-flow__reader--snapshot.zettelkasten-flow__reader--page-run .zettelkasten-flow__reader-stage,
+.zettelkasten-flow__reader--snapshot .zettelkasten-flow__reader-stage * {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: crosshair;
+}
+
+.zettelkasten-flow__reader-snapshot-rect {
+    position: absolute;
+    left: var(--zf-snap-x, 0);
+    top: var(--zf-snap-y, 0);
+    width: var(--zf-snap-w, 0);
+    height: var(--zf-snap-h, 0);
+    z-index: 6;
+    pointer-events: none;
+    border: var(--size-2-1) dashed var(--interactive-accent);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-snapshot-hint {
+    position: absolute;
+    left: 50%;
+    bottom: var(--size-4-16);
+    z-index: 7;
+    transform: translateX(-50%);
+    padding: var(--size-4-1) var(--size-4-3);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    pointer-events: none;
+}
+
+/* The card: in the margin beside the page, or at the page's right edge on a narrow pane (FR-5). */
+.zettelkasten-flow__reader-snapshot-card {
+    position: absolute;
+    top: var(--size-4-12);
+    right: var(--size-4-4);
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: min(18rem, calc(100% - var(--size-4-8)));
+    max-height: calc(100% - var(--size-4-16));
+    overflow-y: auto;
+    padding: var(--size-4-3);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    transform-origin: top center;
+}
+
+.zettelkasten-flow__reader-snapshot-card--margin {
+    left: var(--zf-snap-card-x, auto);
+    top: var(--zf-snap-card-y, var(--size-4-12));
+    right: auto;
+}
+
+.zettelkasten-flow__reader-snapshot-card.zettelkasten-flow__reader-snapshot-card--low {
+    top: auto;
+    left: auto;
+    right: var(--size-4-4);
+    bottom: var(--size-4-16);
+}
+
+.zettelkasten-flow__reader-snapshot-card--leaving {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-snapshot-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-snapshot-title {
+    flex: 1;
+    min-width: 0;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-snapshot-img {
+    display: block;
+    width: 100%;
+    max-height: 40vh;
+    aspect-ratio: var(--zf-snap-ratio, auto);
+    object-fit: contain;
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary);
+}
+
+/* Until the flight lands, the picture is the ghost's: one picture, never two (FR-10). */
+.zettelkasten-flow__reader-snapshot-img--waiting {
+    opacity: 0;
+}
+
+.zettelkasten-flow__reader-snapshot-card--status .zettelkasten-flow__reader-snapshot-img {
+    display: none;
+}
+
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-snapshot-ghost {
+    object-fit: fill;
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+}
+
+.zettelkasten-flow__reader-snapshot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-snapshot-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    transform-origin: top center;
+}
+
+.zettelkasten-flow__reader-snapshot-caption {
+    width: 100%;
+    resize: vertical;
+}
+
+.zettelkasten-flow__reader-snapshot-source {
+    color: var(--reader-faint);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__reader-snapshot-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+/* A snapshot kept as a fleeting note, in *Notes on this page*: its picture. */
+.zettelkasten-flow__reader-hl-snapshot {
+    display: block;
+    width: 100%;
+    max-height: 8rem;
+    object-fit: contain;
+    border-radius: var(--radius-s);
+}

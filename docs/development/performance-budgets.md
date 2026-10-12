@@ -171,6 +171,13 @@ stopped being a memory ceiling at all.
   `SELECTION_MAX` it collects and sorts instead, and `analysis.gaps.top.all.10k` is the budget that
   keeps that honest.
 
+**And a third, which did.** `view.graph3d.build.10k` reads `buildKnowledgeMap` and
+`communitiesOf`, both memoised per model, and it inherited them warm from the cases declared above
+it (26–29 ms). When `analysis.tend.10k` began clearing the memo (#644) it started timing all three
+cold — 205–250 ms locally, 404–413 ms on CI against a 400 ms ceiling — while `build3DGraph` itself
+had not changed. A case that reads a memoised dependency warms that dependency **itself**, as the
+gap cases do; it never relies on the order of the cases around it.
+
 ## What these numbers do not include
 
 Everything above is the **pure model layer**: snapshots in, ideas and projections out. That is what

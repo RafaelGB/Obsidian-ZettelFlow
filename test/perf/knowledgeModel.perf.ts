@@ -138,6 +138,14 @@ describe("the projections the surfaces run", () => {
         // What the plugin spends before WebGL sees anything (#539). The other half of that
         // question -- what the scene then does per frame -- needs a screen, and is recorded as
         // unmeasured rather than guessed at.
+        //
+        // Its two dependencies are warmed first, here, rather than left to whichever case ran
+        // before: the map and the Louvain pass have budgets of their own, and this one is the
+        // projection on top of them. It used to inherit a warm memo from the cases above it until
+        // `analysis.tend.10k` began clearing the memo (#644) -- from then on it timed all three,
+        // cold, against a ceiling set for one, and sat on the limit on CI.
+        buildKnowledgeMap(model);
+        communitiesOf(model);
         assertBudget("view.graph3d.build.10k", timed("analysis.heaviest", () => build3DGraph(model), 10_000));
     });
 

@@ -86,6 +86,15 @@ exactly where you were.
 
 The detail also holds the book's **Details** — see [A book's note](#a-books-note).
 
+### Cite this book
+
+**Cite this book**, beside **Open** in a source's detail, opens the Reader's
+[cite panel](reader.md#cite-a-passage) for the whole book, with no passage: Markdown, inline, a
+citation key, BibTeX or CSL JSON, drawn from the book's note (or an article's own properties). It
+grows from the button. Esc puts it away and the detail stays. If a form lacks something, **Add it**
+puts the cursor in that field of the Details below. Cite writes nothing; **Copy** puts the citation
+on your clipboard.
+
 ## What a book produced in your vault
 
 A source's detail answers *what did this book do to my thinking?* — as **lists, never a score**.
@@ -127,7 +136,7 @@ Computing the lists over a 10,000-note vault takes about 2 ms, so they cost noth
 ## A book's note
 
 **Every book and paper can have a note of its own**: an ordinary Markdown note whose properties say
-what the book is — its title, author, series, publisher, year, language, ISBN and tags — and what
+what the book is — its title, author, series, publisher, year, language, ISBN, citation key and tags — and what
 it is *to you*: a **status** and its **collections**. You never write it by hand: it is edited from
 the book's detail, and the vault keeps it, so Bases, Dataview and search see your library as data.
 
@@ -145,6 +154,10 @@ notice; if a write fails, your text stays in the field and a line under it says 
 - **Collections** are names you give — *Planning*, *Software design* — and a book can be in several.
   **+ Collection** suggests the names you already use; **×** takes a book out of one. They are a list
   of their own, never tags, so they do not mix with the tags you file the book under.
+- **Citation key** is the key a [citation](reader.md#cite-a-passage) cites the book by, saved as
+  `citekey` (the name Pandoc and Better BibTeX use). Until you set one, the field shows the key a
+  citation proposes, such as `kahneman2011thinking`. A key starts with a letter, a digit or `_` and
+  has no spaces.
 - **Saved in Library/…** says where the note is and opens it. Right after a change, **Undo** beside it
   takes the last one back — the whole note, if that change created it.
 

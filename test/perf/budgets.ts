@@ -391,8 +391,10 @@ export const BUDGETS = {
         // (#641), #751's citation and Page view's own renderer instead of adding its own; the Reader's unused
         // exports are test-only and already tree-shaken, so taking them out would not shrink main.
         // A WebGL library coming back is still a megabyte over.
+        // Listen (#765) brings it to 2,935 KB; Cite (#768) adds 14 KB — the five forms, the one panel the
+        // Reader and the Library share, built on #751's link and #743's note: 2,949 KB, under the ceiling.
         limit: 3_000,
-        measured: "2,915 KB",
+        measured: "2,949 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

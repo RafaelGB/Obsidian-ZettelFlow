@@ -765,6 +765,65 @@ back the same way; the line you were reading never moves. While a translation is
 faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
 appears and goes at once, and the lines are still.
 
+## Cite a passage
+
+A quote you cannot trace back is a quote you cannot use. **Cite** turns a passage, a highlight or a
+whole book into the citation you need, ready to paste. It is offered in three places: the selection's
+popover, after *Copy*; a highlight's menu; and **Cite this book** in the book's detail in the
+[Library](library.md#cite-this-book).
+
+![Cite: a highlighted sentence in a book with its menu, and the Cite panel grown from it, headed Cite this passage, with five chips (Markdown, Inline, Citation key, BibTeX, CSL JSON), Inline chosen and reading (Kahneman, 2011, ch. 3); below it, a paper's panel saying No year in this paper's details · Add it, and the Copy button reading Copied with a check](../resources/reader/cite.svg)
+
+There are five forms, one at a time, chosen by a chip. The panel opens on the form you chose last.
+
+| Form | Reads |
+|---|---|
+| **Markdown** | the passage as a quote, then `> — Daniel Kahneman, *Thinking, Fast and Slow* (2011), p. 42 · [[Books/Thinking, Fast and Slow.epub#OEBPS/ch03.xhtml\|Thinking, Fast and Slow]]` |
+| **Inline** | `(Kahneman, 2011, p. 42)`; two authors are joined by `&`, three or more are *et al.* |
+| **Citation key** | `[@kahneman2011thinking, p. 42]`, Pandoc's form |
+| **BibTeX** | `@book` for a book, `@article` for a paper, `@online` for an article, with `url` and `urldate` |
+| **CSL JSON** | an item of type `book`, `article` or `webpage`, for Zotero and Pandoc, with `page` when a page is cited |
+
+The Markdown link back is the one a note's `source` gets when it is
+[made from a passage](#every-note-goes-back-to-its-paragraph): the book file, with the chapter in
+its subpath. It is never a block id. An article links to its note.
+
+**Where it comes from.** A citation is drawn from what your vault holds, and from nothing else:
+
+- for a book or a paper, its **[book's note](library.md#a-books-note)**, found by its link to the
+  book wherever it is kept;
+- for an [article](library.md#articles-from-web-clipper), its own frontmatter: the author, the year
+  it was published, its `source` address, and the day it was saved (`created`);
+- for the place, the passage's page (`p. 42`), or its chapter in a book without pages (`ch. 3`).
+
+**What is not there is left out, never guessed.** No lookup by ISBN or DOI is made, and no network.
+As citation styles do, *n.d.* stands for a missing year and the title stands where the author is
+missing: `(Reference class forecasting, n.d., p. 6)`. One quiet line says what a form lacks: *No year
+in this paper's details · Add it*. **Add it** opens the book's detail in the Library at that field.
+An article's details live in its own properties, so its line names what is missing and offers
+nothing more. `p.`, `ch.`, `n.d.` and *et al.* are written the English way whatever language the
+plugin speaks, as the styles expect.
+
+**Authors are read as written.** Write them *Family, Given* or *Given Family*, one per entry
+(Details takes them separated by `;`), or joined by *and* / *&*. A name of one word is a family name.
+Write `van Rossum, Guido` to keep a particle with the family name. A PDF with an ISBN in its details
+is cited as a book.
+
+**The citation key** is the book note's `citekey` when it has one. Otherwise one is proposed: the
+first author's family name, the year, and the first word of the title that is not *a*, *an*, *the*,
+*of*, *on*, *in*, *and*, *for* or *to*, all in lowercase ASCII (`kahneman2011thinking`). The **Citation
+key** field in a book's Details shows the proposed key until you set your own.
+
+**Copy** is all it does. It puts exactly the text the panel shows on your clipboard, only when you
+press it, and says *Copied* with a check, in place, for a moment. There is no notice. Cite writes
+nothing: not the book's note, not a note, not the book. The clipboard is never read.
+
+**It moves like the rest of the Reader.** The panel grows from where you asked: 0.96 → 1 and a
+fade, 120 ms, from the popover or the highlight. The page does not move. It is not a modal: Esc, a
+click outside or a turn of the page put it away, and it shrinks back the same way. Changing the form
+crossfades the text alone. The panel keeps its place and its width, so the chips never jump. Under
+reduced motion it appears, changes and goes at once.
+
 ## Listen
 
 Some reading is better heard: a long chapter on a walk round the room, a paper read with tired eyes,
@@ -1606,7 +1665,8 @@ preview's *Create note*: create-only, through the Reader's second named writer
 nothing while you drag or look at its card; a choice writes the image, as an attachment, and the one
 thing that refers to it — a new note, a fleeting note, or the lines added at the end of the note you
 picked — through the Reader's third named writer (`readerSnapshotSave.ts`, over `FileService` and the
-thought store), as one recorded batch you can undo.
+thought store), as one recorded batch you can undo. **Cite** writes nothing at all: its only act is
+*Copy*, which puts the citation you see on your clipboard.
 
 ## For contributors
 

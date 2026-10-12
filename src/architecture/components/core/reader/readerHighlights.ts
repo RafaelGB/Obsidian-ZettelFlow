@@ -82,6 +82,11 @@ export interface HighlightView {
      * by the device's own voice. Absent where Listen is not offered (no on-device voice).
      */
     readAloud?(): ((span: TextSpan) => void) | null;
+    /**
+     * *Cite* (#768 FR-1), after *Copy* in the selection popover and in a highlight's menu: the passage,
+     * cited from where the popover was. Absent where there is no source to cite.
+     */
+    cite?(): ((passage: ThinkPassage, from: ScreenBox) => void) | null;
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -747,6 +752,7 @@ export class ReaderHighlights {
                 this.status("reader_hl_copied");
             });
         }
+        if (locator) this.citeButton(actions, { quote: found.quote, locator }, () => found.selection.clear());
         this.lookupButtons(actions, found.quote.exact, found.selection);
         const aloud = this.view.readAloud?.();
         if (aloud) {
@@ -757,6 +763,21 @@ export class ReaderHighlights {
             }).setAttribute("data-zf-listen", "");
         }
         if (locator) this.thinkRow(pop, { quote: found.quote, locator });
+    }
+
+    /**
+     * *Cite* (#768 FR-1, FR-10): the popover goes, and the cite panel grows from where it was — the
+     * page does not move. It writes nothing; the panel copies only when you press its *Copy*.
+     */
+    private citeButton(actions: HTMLElement, passage: ThinkPassage, clear?: () => void): void {
+        const cite = this.view.cite?.();
+        if (!cite) return;
+        this.button(actions, "reader_cite", false, () => {
+            const r = (this.popover ?? actions).getBoundingClientRect();
+            this.hidePopover();
+            cite(passage, { left: r.left, top: r.top, width: r.width, height: r.height });
+            clear?.();
+        }).setAttribute("data-zf-cite", "");
     }
 
     /**
@@ -1436,6 +1457,7 @@ export class ReaderHighlights {
                 this.toNote(this.view.app, thought);
             });
         }
+        if (thought.locator && thought.quote) this.citeButton(actions, { quote: thought.quote, locator: thought.locator, highlight: thought });
         this.button(actions, "reader_hl_delete", false, () => void this.forget(thought));
         this.button(actions, "reader_hl_open_think", false, () => {
             this.hidePopover();

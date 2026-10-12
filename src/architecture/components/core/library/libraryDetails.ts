@@ -21,6 +21,7 @@ import {
 } from "application/library/bookNote";
 import { adoptNote, createBookNote, editArticle, editBookNote, noteAt, type BookNoteWrite, type CreateBookNote } from "./bookNoteWriter";
 import { dropIn } from "./libraryFlip";
+import { parseAuthors, proposedKey } from "application/library/citation";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -33,6 +34,7 @@ const FIELD_KEY: Record<TextField, LocaleKey> = {
     year: "shelf_details_field_year",
     language: "shelf_details_field_language",
     isbn: "shelf_details_field_isbn",
+    citekey: "shelf_details_field_citekey",
     tags: "shelf_details_field_tags",
 };
 export const STATUS_KEY: Record<BookStatus, LocaleKey> = {
@@ -43,6 +45,7 @@ export const STATUS_KEY: Record<BookStatus, LocaleKey> = {
 const INVALID_KEY: Partial<Record<TextField, LocaleKey>> = {
     year: "shelf_details_year_invalid",
     isbn: "shelf_details_isbn_invalid",
+    citekey: "shelf_details_citekey_invalid",
 };
 
 /** How long the check stays before it fades by itself (FR-15). */
@@ -89,6 +92,14 @@ export interface DetailsParts {
     port?: DetailsPort;
     /** The suggest under an input; Obsidian's own unless a test hands one in. */
     suggest?: Suggest;
+    /** The field to open at (#768 FR-4): Cite's *Add it* — focused, brought into view. */
+    focus?: TextField;
+}
+
+/** The key a citation would propose (#768 FR-5), from what the section holds now. */
+function proposedFor(details: BookDetails, item: ShelfItem): string {
+    const author = details.author ?? (item.author ? [item.author] : undefined);
+    return proposedKey({ title: details.title ?? item.title, authors: parseAuthors(author), ...(details.year ? { year: details.year } : {}) });
 }
 
 /** Obsidian's suggest, fed by a function. */
@@ -242,7 +253,10 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
             entry.input.value = entry.committed;
             entry.input.removeAttribute("aria-invalid");
         }
+        hintKey();
     };
+    /** The *Citation key* shows the key a citation proposes until you set your own (#768 FR-5). */
+    const hintKey = () => inputs.get("citekey")?.input.setAttribute("placeholder", proposedFor(details, item));
 
     section.createEl("h3", { cls: c("shelf-section"), text: t("shelf_details") });
     const grid = section.createDiv({ cls: c("shelf-details-grid") });
@@ -258,6 +272,7 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
                 spellcheck: "false",
                 ...(field === "year" ? { inputmode: "numeric" } : {}),
                 ...(field === "author" ? { placeholder: t("shelf_details_author_hint") } : {}),
+                ...(field === "citekey" ? { placeholder: proposedFor(details, item) } : {}),
             },
         });
         const check = checkIn(cell);
@@ -279,6 +294,7 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
             void save(change, check).then((ok) => {
                 inflight = null;
                 if (ok) entry.committed = value;
+                if (ok) hintKey();
             });
         };
         scope.registerDomEvent(input, "blur", commit);
@@ -498,4 +514,17 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
     };
 
     drawWhere();
+
+    // Opened at a field (#768 FR-4): the cursor is in it, and it is in view.
+    const wanted = parts.focus ? inputs.get(parts.focus)?.input : undefined;
+    if (wanted) {
+        const land = () => {
+            if (wanted.isConnected === false) return;
+            wanted.scrollIntoView?.({ block: "center" });
+            wanted.focus();
+        };
+        land();
+        // The leaf is revealed after its state is set, and takes the focus back: land again after it.
+        later(60, land);
+    }
 }

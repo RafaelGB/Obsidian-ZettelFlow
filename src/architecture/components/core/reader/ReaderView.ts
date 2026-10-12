@@ -96,6 +96,9 @@ import { PdfPageRun } from "./readerPageRun";
 import { PREVIEW_BLOCKS, cardMarks, cardPixels, cardProgress, normalizeContentsTab, overviewLimit, overviewUnits, renderOverview, OVERVIEW_LIMITS, type ContentsTab, type MarkSource, type Overview, type OverviewUnit } from "./readerOverview";
 import { fly } from "./readerMotion";
 import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
+import { CitePanel } from "./readerCite";
+import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
+import { citeSourceOf } from "architecture/components/core/library/libraryCite";
 import { SittingClock, chapterEnds, endingAt, shouldPause, spanOf, touchedNotes, wasSkip, type ChapterSpan } from "./readerSurvived";
 import { renderSurvivedLeaf, type SurvivedCard, type SurvivedLeaf } from "./readerSurvivedLeaf";
 import { isMark } from "application/library/produced";
@@ -442,6 +445,8 @@ export class ReaderView extends ItemView {
     private claimLink: ReaderClaimLink | null = null;
     /** *Look up* and *Translate* (#766): the card grown from the words, gone on Esc, a click or a turn. */
     private lookup: ReaderLookup | null = null;
+    /** *Cite* (#768): the panel grown from the popover or the highlight, gone on Esc, a click or a turn. */
+    private citePanel: CitePanel | null = null;
     /** *Snapshot* (#763): the mode that turns a drag on Page view into a capture, and its card. */
     private snapshot: ReaderSnapshot | null = null;
     /** Its door in the bar: shown in Page view, pressed while the mode is on. */
@@ -1027,6 +1032,12 @@ export class ReaderView extends ItemView {
         this.aiMoves = new ReaderAiMoves(this.aiMovesView(), this.aiMovesDeps);
         this.claimLink = new ReaderClaimLink(this.claimLinkView(), this.claimLinkDeps);
         this.lookup = new ReaderLookup(this.lookupView(), this.lookupDeps);
+        this.citePanel = new CitePanel({
+            host: () => this.root,
+            form: () => citeFormOf(this.plugin?.settings?.citeForm),
+            saveForm: (form) => this.saveCiteForm(form),
+            addIt: (file, field) => this.addCiteField(file, field),
+        });
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         // A thought written in the thinking space is in the cache a moment later: the marks are read then (#755).
         const thoughtChanged = this.app.metadataCache.on?.("changed", (file: TFile) => {
@@ -1078,6 +1089,9 @@ export class ReaderView extends ItemView {
         // A look-up or a translation on screen goes with the Reader; nothing was kept (#766).
         this.lookup?.dispose();
         this.lookup = null;
+        // A citation on screen goes with the Reader: it never wrote anything (#768 FR-7).
+        this.citePanel?.dispose();
+        this.citePanel = null;
         // A capture not yet kept goes with the Reader: nothing written (#763 AC-3).
         this.snapshot?.dispose();
         this.snapshot = null;
@@ -1293,6 +1307,7 @@ export class ReaderView extends ItemView {
                 thinkMoves: () => this.thinkMoves(),
                 passageActions: () => this.passageActions(),
                 lookup: () => this.lookup,
+                cite: () => this.citeAction(),
                 layerForNew: () => this.layerTarget(),
                 snapshotImage: (el, from) => void this.snapshotImage(el, from),
                 // *Read aloud* (#765 FR-1): the selected words, where Listen is offered.
@@ -2791,6 +2806,8 @@ export class ReaderView extends ItemView {
         const index = this.index;
         this.visited.add(`${path}#${index}`);
         this.closePeek();
+        // Another chapter: a citation of the one before goes, as on a page turn (#768 FR-10).
+        this.citePanel?.close();
         this.highlights?.reset();
         this.chapter?.unload();
         const component = new Component();
@@ -3887,6 +3904,8 @@ export class ReaderView extends ItemView {
     private closeNote(): void {
         // The look-up card floats over the words as a footnote does, and goes as it goes (#766 FR-7).
         this.lookup?.close();
+        // So does the cite panel (#768 FR-10): Esc, a click outside, a page turn.
+        this.citePanel?.close();
         this.notePop?.remove();
         this.notePop = null;
         this.notePopScope?.unload();
@@ -4297,6 +4316,46 @@ export class ReaderView extends ItemView {
             { id: "connect", label: "reader_move_connect", run: run("connect") },
             ...(this.aiMoves?.thinkMoves(ask) ?? []),
         ];
+    }
+
+    /**
+     * *Cite* (#768 FR-1): a passage of the book, the paper or the article open now, from what its note
+     * (or its frontmatter) says and where the passage is (#751). Never a write.
+     */
+    private citeAction(): ((passage: ThinkPassage, from: { left: number; top: number; width: number; height: number }) => void) | null {
+        const path = this.sourcePath;
+        const doc = this.source;
+        const panel = this.citePanel;
+        if (!path || !doc || !panel) return null;
+        return (passage, from) => {
+            const locator = passage.locator;
+            panel.show({
+                source: citeSourceOf(this.app, path, doc.format, doc.title || noteName(path)),
+                file: path,
+                ...(locator.chapter ? { chapterKey: locator.chapter } : {}),
+                // An article is cited as a page of the web: its section is no place a style names.
+                place: doc.format === "article" ? {} : { ...(locator.page ? { page: locator.page } : {}), chapter: locator.label },
+                passage: passage.quote.exact,
+                from,
+            });
+        };
+    }
+
+    /** The form chosen last (#768 FR-2), kept in the plugin's data. */
+    private saveCiteForm(form: CiteForm): void {
+        const settings = this.plugin?.settings;
+        if (!settings || settings.citeForm === form) return;
+        settings.citeForm = form;
+        void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not save: ${String(error)}`));
+    }
+
+    /**
+     * *Add it* (#768 FR-4): the source's details in the Library, at the field a citation lacks. From
+     * the Library, its own leaf comes back on the detail (#733); otherwise the Library opens beside.
+     */
+    private addCiteField(file: string, field: MissingField): void {
+        if (this.back) return exitReader(this.app, this.leaf, { ...this.back, detail: file, field });
+        void openLibrary(this.app, file, undefined, field);
     }
 
     /** *Claim* and *Link to an idea* (#762 FR-1): in a book or a paper, where a passage has a page. */
@@ -5916,7 +5975,7 @@ export class ReaderView extends ItemView {
         const step = escapeStep({
             proposal: Boolean(this.ink?.reading.hasCards() || this.vaultMoves?.hasCards() || this.aiMoves?.hasCards() || this.claimLink?.hasCards() || this.lookup?.hasCards() || this.snapshot?.hasCards()),
             shortcuts: Boolean(this.shortcuts),
-            note: Boolean(this.notePop),
+            note: Boolean(this.notePop || this.citePanel?.isOpen()),
             search: Boolean(this.searchEl),
             popover: Boolean(this.highlights?.hasPopover()),
             peek: Boolean(this.peek),

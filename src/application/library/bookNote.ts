@@ -23,11 +23,11 @@ export const BOOK_STATUSES = ["to-read", "reading", "finished"] as const;
 export type BookStatus = (typeof BOOK_STATUSES)[number];
 
 /** The fields a book's note carries, in the order they are written. */
-export const BOOK_FIELDS = ["title", "author", "series", "publisher", "year", "language", "isbn", "tags", "status", "collections"] as const;
+export const BOOK_FIELDS = ["title", "author", "series", "publisher", "year", "language", "isbn", "citekey", "tags", "status", "collections"] as const;
 export type BookField = (typeof BOOK_FIELDS)[number];
 
 /** The fields the Details section edits as text, in the order it shows them. */
-export const TEXT_FIELDS = ["title", "author", "series", "publisher", "year", "language", "isbn", "tags"] as const;
+export const TEXT_FIELDS = ["title", "author", "series", "publisher", "year", "language", "isbn", "citekey", "tags"] as const;
 export type TextField = (typeof TEXT_FIELDS)[number];
 
 /** What a book's note says, read. Every field is optional; unknown keys are never read. */
@@ -39,6 +39,8 @@ export interface BookDetails {
     year?: number;
     language?: string;
     isbn?: string;
+    /** The key a citation cites it by (#768 FR-5): a Pandoc / Better BibTeX name you set. */
+    citekey?: string;
     tags?: string[];
     status?: BookStatus;
     collections?: string[];
@@ -103,7 +105,7 @@ export function readBookNote(frontmatter: unknown): BookDetails {
     if (title) out.title = title;
     const author = list(fm.author);
     if (author) out.author = author;
-    for (const key of ["series", "publisher", "language", "isbn"] as const) {
+    for (const key of ["series", "publisher", "language", "isbn", "citekey"] as const) {
         const value = text(fm[key]);
         if (value) out[key] = value;
     }
@@ -279,8 +281,13 @@ export function parseField(field: TextField, raw: string): BookChange | undefine
         const isbn = isbnOf(value);
         return isbn ? { isbn } : undefined;
     }
+    // A key Pandoc can cite (#768 FR-5): a letter, digit or `_` first, then no space.
+    if (field === "citekey") return CITEKEY.test(value) ? { citekey: value } : undefined;
     return { [field]: value };
 }
+
+/** What a citation key may be: Pandoc's `@key` grammar, without the `@`. */
+export const CITEKEY = /^[\p{L}\p{N}_][\p{L}\p{N}_:.#$%&+?<>~/-]*$/u;
 
 /** A field as the Details section shows it. */
 export function fieldText(details: BookDetails, field: TextField): string {

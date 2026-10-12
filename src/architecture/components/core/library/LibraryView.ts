@@ -20,7 +20,7 @@ import {
     type ShelfSort,
     type StatusFilter,
 } from "application/library/shelf";
-import { BOOK_LINK_KEY, collectionsInUse, effectiveStatus, type BookDetails } from "application/library/bookNote";
+import { BOOK_LINK_KEY, TEXT_FIELDS, collectionsInUse, effectiveStatus, type BookDetails, type TextField } from "application/library/bookNote";
 import { isFresh, normalizeLibrary, renameSource, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
@@ -40,6 +40,9 @@ import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { gatherProduced, renderProduced } from "./libraryProduced";
+import { CitePanel } from "architecture/components/core/reader/readerCite";
+import { citeFormOf } from "application/library/citation";
+import { citeSourceOf } from "./libraryCite";
 import type { KnowledgeIndex } from "architecture/knowledge";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -89,6 +92,8 @@ const PRODUCED_SEEN = new Set<string>();
 
 /** Saving what was read off the files waits for a quiet moment, so a shelf of covers saves once. */
 const SAVE_MS = 800;
+/** How long a detail opened at a field (#768) keeps that field through the shelf's redraw. */
+const FIELD_HOLD_MS = 2000;
 
 /** When you last read it, in the words Obsidian uses for time. */
 export function lastReadLabel(at: number): string {
@@ -134,6 +139,13 @@ export class LibraryView extends ItemView {
     /** A refresh waiting to run keeps an open detail as it is (#743). */
     private keepDetail = false;
     private detail: string | null = null;
+    /**
+     * One-shot (#768 FR-4): the Details field the detail opens at — Cite's *Add it*. Held for the
+     * moment the shelf takes to arrive, which draws the detail a second time, then let go.
+     */
+    private openField: { field: TextField; detail: string; until: number } | null = null;
+    /** *Cite this book* (#768): the one cite panel, grown from the detail's button. */
+    private citePanel: CitePanel | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
     /** The Library came back into view: the continue card breathes once (#724). */
@@ -169,6 +181,11 @@ export class LibraryView extends ItemView {
         this.scope = new Scope(this.app?.scope);
         // Esc closes the detail, then the notebook; with neither open it is Obsidian's.
         this.scope.register([], "Escape", () => {
+            // The cite panel is the nearest thing: it goes first, and the detail stays (#768 FR-10).
+            if (this.citePanel?.isOpen()) {
+                this.citePanel.close();
+                return false;
+            }
             if (!this.detail && this.notebook) {
                 this.closeNotebook();
                 return false;
@@ -212,6 +229,8 @@ export class LibraryView extends ItemView {
         this.status = typeof value.status === "string" && (STATUS_FILTERS as readonly string[]).includes(value.status) ? (value.status as StatusFilter) : "all";
         this.collection = typeof value.collection === "string" && value.collection ? value.collection : null;
         this.detail = typeof value.detail === "string" && value.detail ? value.detail : null;
+        this.openField =
+            this.detail && typeof value.field === "string" && (TEXT_FIELDS as readonly string[]).includes(value.field) ? { field: value.field as TextField, detail: this.detail, until: Date.now() + FIELD_HOLD_MS } : null;
         const notebook = typeof value.notebook === "string" && value.notebook ? value.notebook : null;
         if (notebook !== this.notebook) this.notebookFilter = { meaning: null, withNotes: false };
         this.notebook = notebook;
@@ -292,6 +311,8 @@ export class LibraryView extends ItemView {
         }
         this.renderScope?.unload();
         this.detailScope?.unload();
+        this.citePanel?.dispose();
+        this.citePanel = null;
         this.scrim?.remove();
         this.aside?.remove();
         this.contentEl.empty();
@@ -739,6 +760,9 @@ export class LibraryView extends ItemView {
             return;
         }
         this.detail = id;
+        const focus = this.openField && this.openField.detail === id && this.openField.until > Date.now() ? this.openField.field : null;
+        if (!focus) this.openField = null;
+        this.citePanel?.close(false);
         this.detailScope?.unload();
         const scope = new Component();
         scope.load();
@@ -758,6 +782,7 @@ export class LibraryView extends ItemView {
             open: (at) => this.openItem(item, at),
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
+            cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
             produced: (parent) =>
                 renderProduced(parent, {
                     app: this.app,
@@ -780,6 +805,7 @@ export class LibraryView extends ItemView {
                         return file instanceof TFile ? declaredMetadata(this.app, file) : {};
                     },
                     saved: (details, note) => this.noteSaved(item.id, details, note),
+                    ...(focus ? { focus } : {}),
                     ...this.deps.details,
                 }),
         });
@@ -907,7 +933,37 @@ export class LibraryView extends ItemView {
         return true;
     }
 
+    /**
+     * *Cite this book* (#768 FR-1): the whole source, no passage, from what its note (or the article's
+     * frontmatter) says now. *Add it* puts the cursor in that field of the Details just below.
+     */
+    private citeBook(item: ShelfItem, from: HTMLElement): void {
+        const file = item.file;
+        if (!file) return;
+        this.citePanel ??= new CitePanel({
+            host: () => this.containerEl,
+            form: () => citeFormOf(this.plugin?.settings?.citeForm),
+            saveForm: (form) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.citeForm === form) return;
+                settings.citeForm = form;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
+            addIt: (_file, field) => {
+                const input = this.aside?.querySelector<HTMLInputElement>(`#zf-book-${field}`);
+                input?.scrollIntoView?.({ block: "center" });
+                input?.focus();
+            },
+        });
+        const format = item.kind === "article" ? "article" : item.format === "epub" ? "epub" : "pdf";
+        const r = from.getBoundingClientRect();
+        const panel = this.citePanel.show({ source: citeSourceOf(this.app, file, format, item.title), file, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
+        panel?.addClass(c("reader-cite--library"));
+    }
+
     private closeDetail(): void {
+        this.citePanel?.close();
+        this.openField = null;
         this.detail = null;
         this.aside?.removeClass(c("shelf-detail--open"));
         this.scrim?.removeClass(c("shelf-scrim--on"));

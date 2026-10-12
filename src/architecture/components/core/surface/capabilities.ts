@@ -129,6 +129,7 @@ export const CAPABILITIES = [
     "reader-overview",
     "reader-snapshot",
     "reader-listen",
+    "reader-cite",
     "chapter-pause",
     "chapter-recall",
     "library",
@@ -465,6 +466,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_listen",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-cite": {
+        // Cite (#768, epic #742): a passage in the selection popover or a highlight's menu, a whole book
+        // in its Library detail — Markdown with a link back, inline, a Pandoc key, BibTeX, CSL JSON —
+        // from the book's note, what is missing left out. Copy is the only thing it does; nothing written.
+        nameKey: "reader_cite",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library")],
     },
     "chapter-pause": {
         // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,

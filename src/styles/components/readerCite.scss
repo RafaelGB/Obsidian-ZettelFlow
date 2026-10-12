@@ -1,0 +1,131 @@
+@use '../utils/mixins' as *;
+
+/*
+ * Cite a passage (#768, epic #742): a small panel grown from where you asked — the popover, a
+ * highlight, a book's detail — placed by custom properties and growing from that point (FR-10). It
+ * is not a modal: no backdrop, the page stays. Its width is fixed and its text box keeps its height,
+ * so changing the form crossfades the text alone and the chips never jump (FR-11). The theme's
+ * colours only (§XV). Nothing here animates: the grow, the crossfade and the check are scripted,
+ * transform and opacity, and none of them plays under reduced motion.
+ */
+.zettelkasten-flow__reader-cite {
+    position: absolute;
+    left: var(--zf-cite-x, var(--size-4-4));
+    top: var(--zf-cite-y, var(--size-4-4));
+    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    box-sizing: border-box;
+    width: min(30rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface, var(--background-primary));
+    color: var(--reader-fg, var(--text-normal));
+    border: var(--border-width) solid var(--reader-line, var(--background-modifier-border));
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.5;
+}
+
+/* In the Library it floats over the book's detail, which sits over the shelf. */
+.zettelkasten-flow__reader-cite--library {
+    z-index: 5;
+}
+
+.zettelkasten-flow__reader-cite--leaving {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-cite-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-cite-title {
+    flex: 1;
+    min-width: 0;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-cite-forms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-1);
+}
+
+button.zettelkasten-flow__reader-cite-form {
+    @include chip;
+    @include chip-clickable;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+/* The text, exactly as it is copied: selectable, its lines kept, one fixed height that scrolls. */
+.zettelkasten-flow__reader-cite-text {
+    box-sizing: border-box;
+    height: 12rem;
+    margin: 0;
+    overflow: auto;
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--background-secondary);
+    border-radius: var(--radius-s);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    user-select: text;
+}
+
+/* What a form lacks: one quiet line, its height kept when there is nothing to say. */
+.zettelkasten-flow__reader-cite-missing {
+    min-height: 1.5em;
+    color: var(--reader-faint, var(--text-faint));
+    font-size: var(--font-ui-smaller);
+}
+
+button.zettelkasten-flow__reader-cite-add {
+    @include text-link-button;
+    font-size: inherit;
+}
+
+.zettelkasten-flow__reader-cite-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Copy keeps its width when it says Copied: the check has its place before it is there (FR-12). */
+.zettelkasten-flow__reader-cite-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--size-4-1);
+    min-width: 7rem;
+}
+
+.zettelkasten-flow__reader-cite-check {
+    display: inline-flex;
+    opacity: 0;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__reader-cite-copy--done .zettelkasten-flow__reader-cite-check {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-cite,
+    .zettelkasten-flow__reader-cite-text,
+    .zettelkasten-flow__reader-cite-check {
+        transition: none;
+        animation: none;
+    }
+}

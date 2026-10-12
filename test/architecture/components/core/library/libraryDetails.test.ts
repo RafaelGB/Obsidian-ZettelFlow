@@ -106,6 +106,7 @@ describe("Details: the book's note, edited where you look at the book (#743 FR-8
             "Year",
             "Language",
             "ISBN",
+            "Citation key",
             "Tags",
             "Status",
             "Collections",

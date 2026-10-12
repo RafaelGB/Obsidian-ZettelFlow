@@ -19,6 +19,8 @@ export interface ReaderHost {
         readingMotion?: unknown;
         /** Look up's dictionaries folder and Translate's target (#766): read through `dictionarySettings()`. */
         dictionaries?: unknown;
+        /** The citation form chosen last (#768): read through `citeFormOf()`. */
+        citeForm?: unknown;
     };
     saveSettings?(): Promise<void>;
 }

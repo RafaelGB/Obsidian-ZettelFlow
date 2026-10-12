@@ -168,6 +168,11 @@ export interface ZettelFlowSettings {
      */
     readingMotion?: { open: "shot" | "instant"; chapter: "leaf" | "flow" | "stack" };
     /**
+     * The citation form *Cite* shows first (#768, epic #742): the one you chose last, in the panel
+     * itself (§XIII). Read through `citeFormOf()`, Markdown when unknown.
+     */
+    citeForm?: "markdown" | "inline" | "key" | "bibtex" | "csl";
+    /**
      * Look up and Translate (#766, epic #741) — the settings' *Reading* section: the folder your
      * StarDict dictionaries are in (never written), the languages set for a dictionary that declares
      * none (by its path without extension), and the language *Translate* translates into (`""` is

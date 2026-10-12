@@ -21,6 +21,8 @@ export interface DetailParts {
     details?: (parent: HTMLElement) => void;
     /** What it produced in your vault (#752), drawn where *Notes born from it* was. */
     produced?: (parent: HTMLElement) => void;
+    /** *Cite this book* (#768 FR-1): the cite panel, grown from the button; absent for a saved path. */
+    cite?: (from: HTMLElement) => void;
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -97,6 +99,11 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     if (parts.notebook && item.kind !== "path") {
         const notebook = actions.createEl("button", { attr: { type: "button" }, text: t("notebook_title") });
         scope.registerDomEvent(notebook, "click", () => parts.notebook?.());
+    }
+    // The whole source, cited (#768 FR-1): no passage, the panel growing from the button.
+    if (parts.cite && item.kind !== "path") {
+        const cite = actions.createEl("button", { attr: { type: "button", "data-zf-cite": "" }, text: t("shelf_cite_book") });
+        scope.registerDomEvent(cite, "click", () => parts.cite?.(cite));
     }
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());

@@ -283,7 +283,7 @@ are the app's, not a plugin's. The Pencil's native gestures are the same — a w
 | Pencil squeeze (Pencil Pro) for a palette | ✗ native only | the pencil in the reader bar |
 | PencilKit's ink | ✗ native only | the Reader's own ink, drawn from the points |
 | Apple's tool picker | ✗ native only | the palette: pen, highlighter, lasso, eraser, four inks, undo |
-| Scribble's scratch-out and the lasso tool | ✗ native only | the Reader's own [four gestures](#four-gestures), from the points |
+| Scribble's scratch-out and the lasso tool | ✗ native only | the palette's eraser, and the Reader's own [lasso](#keep-what-you-lasso), from the points |
 | Undo from the Pencil | ✗ native only | a two-finger tap on the page |
 | Speech in the background, or with the screen locked | ✗ a web view's limit | [Listen](#listen) pauses at its sentence; play goes on from there |
 
@@ -1120,9 +1120,10 @@ returns, or leaves, at once.
 
 With an Apple Pencil in hand, selecting words with a finger and typing is the wrong tool. Tap the
 **pencil** in the reader bar (or press **P**) and the page takes ink: write in the margin beside the
-paragraph, the way you would on paper or a reMarkable.
+paragraph, the way you would on paper or a reMarkable. What you write stays on the page, and only
+what you choose to keep becomes a note.
 
-![Ink in the margin: handwriting in the outer margin beside a paragraph, the palette strip with the pen, the eraser, four inks and undo, and the thinking-space folder holding the thought and its drawing](../resources/reader/ink.svg)
+![Ink in the margin: handwriting in the outer margin beside a paragraph, the palette strip with the pen, the highlighter, the lasso, the eraser, four inks and undo, and the thinking space holding one ink file for the book and no thought for the loose strokes](../resources/reader/ink.svg)
 
 - **The palette.** A small strip at the edge of the reading column, never over the text: **pen**,
   **highlighter**, **lasso**, **eraser**, four inks (**pencil**, **red**, **blue**, **green**, each your theme's own colour) and
@@ -1148,30 +1149,28 @@ paragraph, the way you would on paper or a reMarkable.
 - **The eraser takes whole strokes.** Drag it across your ink and every stroke it touches goes — and
   a highlight it passes over goes too, to the trash as removing one does, with **Undo** (it says
   *Erased*). Over nothing, it says so quietly.
-- **Strokes written together are one ink note.** A stroke that starts soon after the last one lifted,
-  and near it, joins it; otherwise a new one begins. The note is kept when you pause, when you turn
-  the page and when you close the Reader — never while you are writing — and its ink settles from its
-  live tone into its kept tone. No toast.
+- **What you write stays on the page.** Like ink on paper, or a document opened on a reMarkable: what
+  the pen writes is the document's own **page ink**. It is not a note, it is not a thought, and it
+  never appears in the margin's list or in Think. Strokes written together, soon after each other and
+  close together, are kept as one, so a word you write never comes apart when the text re-flows.
+  The page ink is saved when you pause, when you turn the page and when you close the Reader, never
+  while you are writing. Nothing is said: no toast, no line.
+- **Keeping it is a choice.** To turn some of it into knowledge, loop it with the
+  [lasso](#keep-what-you-lasso) and press **Keep as note**. Until you do, it is only ink on the page.
 
-### Draw across a line
+### The highlighter
 
-On a reMarkable a highlight is one gesture: you draw across the line. In the Reader it is the same.
-With the palette open, **draw along a line of text with the pen** and the words under it are
-highlighted. The stroke itself turns into the mark: the ink fades while the marker sweeps across the
-words from the side you started on.
+**The pen only draws.** A line under a sentence, a circle round a phrase, an arrow between two
+marks or a scribble are ink, exactly as you drew them: nothing the pen writes is read as a gesture.
+To highlight, choose the palette's **highlighter** and draw over the words. The stroke turns into the
+mark: the ink fades while the marker sweeps across the words from the side you started on.
 
-![Draw across a line: a pen stroke along a line of text, the stroke fading as the marker sweeps from where it began, and the status line with Undo and Keep as ink](../resources/reader/ink-highlight.svg)
+![The highlighter: a highlighter stroke along a line of text, the stroke fading as the marker sweeps from where it began, and the status line with Undo and Keep as ink](../resources/reader/ink-highlight.svg)
 
-- **What counts as a line.** A stroke that runs *along* the text: flatter than a line is tall, long
-  enough for a couple of words, straight and open. A word or a diagonal stays ink; a circle and an
-  arrow are [gestures of their own](#four-gestures).
-  The measures are in the text's own line height and em, so they hold at every type size.
 - **The words it takes.** The single line nearest the stroke, never two, even when you draw a little
-  above or below it; and every word whose middle lies under the stroke, whole.
-- **The highlighter.** The palette's **highlighter** turns any stroke over text into a highlight,
-  whatever its shape: the tool for a mouse, or for anyone who would rather not rely on recognition.
-  While you draw it is a wide, translucent nib in the highlight's colour, so what you see under the
-  pen is what you get. Over no text it keeps nothing, and says *Nothing under the highlighter*.
+  above or below it; and every word whose middle lies under the stroke, whole. While you draw it is a
+  wide, translucent nib in the highlight's colour, so what you see under the nib is what you get. Over
+  no text it keeps nothing, and says *Nothing under the highlighter*.
 - **Its meaning.** The one **H** uses: the meaning you chose last, an *Idea* the first time. Click
   the highlight afterwards to change it, as for any highlight.
 - **Several lines.** Draw across the next line within a few seconds and the same highlight grows onto
@@ -1180,70 +1179,39 @@ words from the side you started on.
   place in the book, the same heading, in Think, in review and in the notebook.
 - **The way back.** A quiet line says *Highlighted as an idea. Kept in Think.* with **Undo** and
   **Keep as ink**. Undo takes the highlight away, its mark fading. *Keep as ink* takes it away and
-  gives you back the stroke you drew, as an ink note. The palette's undo, **Ctrl/⌘+Z** and the
+  gives you back the stroke you drew, as page ink. The palette's undo, **Ctrl/⌘+Z** and the
   two-finger tap take it back too: it is your last ink action.
-- **Why it does not ask.** The stroke interprets your gesture, not the book: it is the choice you make
-  when you select words and press a meaning, and it writes your own mark. Asking on every stroke
-  would be friction where there is no judgement at stake; the instant Undo and *Keep as ink* are
-  the safety ([constitution §XII](constitution.md)).
-- **On a printed page.** In Page view the stroke reads the page's own text, so a PDF with text
+- **On a printed page.** In Page view the highlighter reads the page's own text, so a PDF with text
   highlights there too: the mark is drawn as a wash over the printed words, and every highlight of
-  that page is drawn the same way, so what you marked is there next time. On a page with no text, a
-  scan, a pen stroke stays ink. A highlight made in Page view is found again in the Reading view, and
-  the other way round. Growing a highlight onto the next line works in the Reading view.
+  that page is drawn the same way. On a page with no text, a scan, it keeps nothing. A highlight made
+  in Page view is found again in the Reading view, and the other way round.
 - **Reduced motion.** The stroke goes and the mark is there, at once; Undo and *Keep as ink* are
   instant too.
 
-### Four gestures
+### Keep what you lasso
 
-A Pencil reader marks a book with more than lines: you circle a phrase you doubt, draw an arrow from
-a claim to the passage that answers it, scratch out a mark you regret, and loop a passage to do
-something with it. With the palette open, the Reader understands those four — no mode to enter, no
-menu to open — and each one says what it did, with its way back.
+The lasso is the one gesture, and the door from ink to knowledge. Choose the palette's **lasso** and
+draw a loop: what it caught decides what it offers, in this order.
 
-![Four gestures with the pen: a circle round a phrase tightening into a clean ring as the words take the question wash; an arrow from one highlight to another fading as both brighten once; a scribble over a highlight fading with it; and a dashed lasso round a sentence opening the selection popover](../resources/reader/ink-gestures.svg)
+![Keep what you lasso: a dashed loop round a handwritten word in the margin, the offer Ink in the loop with Keep as note, Read as text and Delete, and the word arriving as a row under Ink notes in the margin](../resources/reader/ink-lasso.svg)
 
-- **Circle words → a question.** Draw a closed loop round a few words with the pen and they are kept
-  as a highlight with the meaning **Question**: exactly the highlight a selection of those words with
-  *Question* makes. Your stroke settles into a clean ring that tightens onto the words as their
-  question wash sweeps in. The quiet line says *Circled — kept as a question*, with **Undo** and
-  **Keep as ink**. The meaning **H** and the next line use stays the one you chose: a circle is a
-  shortcut, not a change of pen. A loop round no words, or a written *o*, stays ink.
-- **An arrow between two marks → a link.** Draw an arrow from one mark — a highlight or an ink note
-  — to another on the page, in one stroke or with its head as a short second stroke, and their two
-  thoughts are connected in Think, both ways: Think's plain connection, with no direction, never a
-  relation such as *supports*. The arrow fades as both marks brighten once, so you see which two are
-  linked; the line says *Linked*, with **Undo** and **Keep as ink**. An end on an ink note you are
-  still writing writes that note first. An arrow with an end on plain text stays ink, and says *Arrows
-  link marks — highlight both ends first*. Between two marks on the same line, draw the arrow in one
-  stroke: a straight shaft drawn along a line is read as a line first, and highlights it.
-- **Scribble over a mark → erased.** Scratch back and forth over a highlight or over ink, as you
-  would to cross something out, and it goes: the ink strokes it touches, and the highlights it
-  crosses, to the trash as removing a highlight does. The mark and the scribble fade together; the
-  line says *Erased*, with **Undo**, which brings all of it back as one action. A scribble over
-  nothing erases nothing, leaves no ink, and says *Nothing to erase*.
-- **The lasso → the selection popover.** Choose the palette's **lasso** and loop some words: the
-  **same popover a selection opens** comes up for exactly those words — the four meanings, *Highlight
-  and note*, *Copy* — so the lasso is selection with the Pencil. The loop stays, dashed, while the
-  popover is up, and fades when it goes. Loop only ink notes and it offers **Read as text** and **Delete ink** for them;
-  loop nothing and it says *The lasso caught nothing*. The lasso never writes anything by itself.
-- **The way back, every time.** The palette's undo, **Ctrl/⌘+Z** and the two-finger tap take back a
-  gesture as one action, as its line's **Undo** does. *Keep as ink* takes the question or the link
-  back and keeps your stroke as an ink note instead, in one recorded batch.
-- **Handwriting is never read as an erase.** The gestures are plain geometry — the stroke's points
-  and the boxes of the words and marks under it, in the text's own line height and em, with no native
-  API and nothing sent anywhere — so they work the same with a Pencil, a pen tablet and a mouse. The
-  recogniser is biased toward keeping what you wrote: a scribble needs every one of its conditions
-  (many turns back, regular, wide, over the same ground, never round), and anything unclear stays ink.
-  Misreading a word as an erase would be worse than missing an erase.
-- **Why it does not ask.** A circle and an arrow are fixed conventions you perform on purpose, listed
-  in the shortcuts sheet under *Gestures* — a shortcut, like pressing **2** for *Question*. They read
-  your gesture, never the book: you chose the words, the meaning and the pair. So they apply at once,
-  with an instant Undo and *Keep as ink*; a confirmation would be friction where no judgement is at
-  stake ([constitution §XII](constitution.md)). Nothing here infers what a passage means.
-- **Where they work.** In the Reading view. On a printed page in Page view, drawing across a line
-  still highlights, the lasso can catch ink notes, and the other gestures stay ink.
-- **Reduced motion.** No ring, no brightening, no fade: the marks appear or go, at once.
+- **Page ink → Keep as note, Read as text, Delete.** A stroke is caught when its middle is inside the
+  loop. **Keep as note** makes those strokes one **ink note**: a thought in your thinking space with its
+  drawing, a row under **Ink notes** in the margin, a card in Think. The strokes leave the page ink in
+  the same recorded batch, and settle into the kept tone where you drew them. The line says *Kept as an
+  ink note.*, with **Undo**, which puts them back on the page. **Read as text** reads them first and
+  keeps them only with a reading you accept ([below](#read-as-text)). **Delete** fades them from the
+  page, with **Undo**. Page ink wins over the words under it: loop ink written over a sentence and the
+  ink is what is offered.
+- **Ink notes → Read as text, Delete ink.** Loop ink notes and it offers **Read as text** (one request
+  per note) and **Delete ink** for them.
+- **Words → the selection popover.** Loop words with no ink and the **same popover a selection
+  opens** comes up for exactly those words — the four meanings, *Highlight and note*, *Copy* — so the
+  lasso is selection with the Pencil.
+- **Nothing → it says so.** *The lasso caught nothing*.
+- **Nothing until you choose.** The loop stays, dashed, while its offer is up, and fades when it goes.
+  The lasso never writes anything by itself ([constitution §XII](constitution.md)).
+- **Reduced motion.** No fade: the loop and the strokes appear or go, at once.
 
 ### Read as text
 
@@ -1260,6 +1228,10 @@ AI provider **you** configured — and what comes back is a proposal, never a wr
   lasso, ink notes caught in a loop offer **Read as text** too: one request per note, each its own
   proposal. Nothing reads ink by itself — not as you write, not when a book opens, not in an
   automation, never in bulk.
+- **Page ink, read before it is kept.** Loop page ink and press **Read as text**: the same request
+  and the same card, for exactly the strokes in the loop. **Accept** or **Edit** keeps them as an ink
+  note with that reading as its text, in one recorded batch, and its move follows. **Reject** or
+  **Esc** writes nothing: the strokes stay on the page as they were.
 - **Exactly what is sent, and to whom.** An **image of that one ink note's strokes alone** — drawn
   from its points, dark on plain light, at most 1024 px on its long side, without the page, your
   other marks or your theme — and **the passage it sits beside** (its sentence), capped by your AI
@@ -1301,36 +1273,45 @@ AI provider **you** configured — and what comes back is a proposal, never a wr
 
 ### Where ink is kept
 
-**In Think, as a thought, with its drawing beside it.** Each ink note is a
-[thought](../architecture/thought-lab.md) in your thinking space (the folder in **Settings ›
-Thinking**), about the book you were reading — and, with the same name, an **SVG file** of the
-drawing. The SVG opens anywhere an SVG does; inside it, the raw points (where the nib was, how hard
-and how leaned) are kept as data, so the Reader draws it again exactly, erases it stroke by stroke,
-and later versions can read it. The colour is kept by name, and drawn from your theme.
+**Page ink: one file per book.** What the pen writes is kept in your thinking space (the folder in
+**Settings › Thinking**), in its `ink/` folder: one file per book, named after it. It is an SVG
+container with the points inside as data, as an ink note's drawing is, so it syncs wherever your
+drawings sync. It is never a thought, so Think, the shelf and review never see it. The book itself is
+never written.
 
-- **It stays with its words.** Ink is anchored to the words nearest its first stroke — the same
-  anchor highlights use — and to which side of them it was written on. Make the type larger and it
-  grows with the text; narrow the column and it keeps its side; change the theme and it takes the
-  theme's colour; let the text re-flow and it follows its words. A note written in a wide margin
-  moves in to stay on screen when the margin narrows.
+- **It stays with its words.** Ink is anchored to the words nearest it — the same anchor highlights
+  use — and to which side of them it was written on. Make the type larger and it grows with the text;
+  narrow the column and it keeps its side; change the theme and it takes the theme's colour; let the
+  text re-flow and it follows its words. Ink written in a wide margin moves in to stay on screen when
+  the margin narrows.
 - **On a printed page** (a PDF in Page view, or a designed book's page) ink is kept as a place on that
   page, so it stays on the same spot through any zoom. Its colours follow the page, not the theme:
-  the page is read once it is drawn (a PDF's pixels; a designed page's backgrounds and pictures), so
-  pencil is dark on white paper and light on a page designed in black. Ink beside the text keeps
-  following your theme.
-- **Listed where it cannot be drawn.** Ink whose words have changed is listed in the margin under
-  **Ink notes**, with a small drawing and *Detached — the passage has changed*. Ink written in Page
-  view is listed in the reading view as *Written in Page view*, and the other way round. A drawing from
-  a newer version of the plugin is listed, never thrown away.
-- **Shown, never counted.** Ink appears beside the highlights in the margin, in Think as a card of
-  your handwriting, and in the book notebook (where a reading note embeds the drawing) — but it is not
-  a highlight: it is not counted on the shelf and never comes back for review.
-- **The book is never written.** Only the thinking space is.
+  pencil is dark on white paper and light on a page designed in black.
+- **Two devices.** Each save reads the file again and merges with it first: what another device
+  wrote is kept, and what you erased stays erased. If two devices both write the same book before
+  either has synced, your sync service decides between the two files, and one side's latest strokes
+  can be lost.
+- **When the words change.** Page ink whose words are gone stays in the file and is simply not drawn.
+  A file from a newer version of the plugin is left as it is, never written over.
+- **Taking it back.** The eraser and **Undo** take strokes off the page; the file follows at the next
+  pause. The file's first save is in the [write record](../architecture/reversibility.md) as a file
+  created; later saves are recorded as replacements.
+
+**Ink notes: in Think, as a thought, with its drawing beside it.** What you keep with the lasso is a
+[thought](../architecture/thought-lab.md) about the book you were reading — and, with the same name,
+an **SVG file** of the drawing. Ink notes you kept before page ink existed are exactly what they were.
+
+- **Listed where it cannot be drawn.** An ink note whose words have changed is listed in the margin
+  under **Ink notes**, with a small drawing and *Detached — the passage has changed*. One written in
+  Page view is listed in the reading view as *Written in Page view*, and the other way round. A
+  drawing from a newer version of the plugin is listed, never thrown away.
+- **Shown, never counted.** Ink notes appear in the margin, in Think as a card of your handwriting,
+  and in the book notebook — but they are not highlights: not counted on the shelf, never in review.
 - **Taking it back.** **Delete ink** on its row sends the thought and its drawing to Obsidian's trash
   together, with **Undo**. Erasing an ink note's last stroke does the same. A kept ink note is one
   recorded batch in the [write record](../architecture/reversibility.md), undone as one.
-- **No thinking space?** The pencil is still there; the palette says that ink is kept in Think and how
-  to choose a folder, and nothing draws.
+- **No thinking space?** The pencil is still there; the palette says that ink is kept in your thinking
+  space and how to choose its folder, and nothing draws.
 
 ## Every note goes back to its paragraph
 
@@ -1639,10 +1620,12 @@ No colour is invented: every look comes from your theme.
 the Reader reaches a file writer — except **Export**, [Recall](#recall)'s **Create note** and
 [Snapshot](#snapshot-a-figure-or-a-table)'s choice, and only when you press them: create-only (or an
 append to the note you picked), through `FileService`, in a recorded batch you can undo. The things
-you can make while reading — a highlight, or ink — are **thoughts** in Think, written through the
-thought store like every other thought, and a second test holds that line too. Ink adds one file to
-its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
-same recorded batch. An older version of the plugin reads an ink note as a highlight with no note;
+you can keep while reading — a highlight, or an ink note — are **thoughts** in Think, written through
+the thought store like every other thought, and a second test holds that line too. An ink note adds one
+file to its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written
+in the same recorded batch. What the pen writes and you have not kept is **page ink**: one file per book
+in the thinking space's `ink/` folder, never a thought, written through `FileService` once per pause,
+turn or close (`PageInkStore.ts`). An older version of the plugin reads an ink note as a highlight with no note;
 nothing is lost. A note made from a passage — through the same preview as everywhere, create-only —
 carries its `source` list from the start; a crystallize flow's note gets it added once the flow has
 built the note, as one recorded property write you can undo (its own row in *Recent*, after the

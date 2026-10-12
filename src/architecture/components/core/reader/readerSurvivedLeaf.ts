@@ -51,6 +51,8 @@ export interface SurvivedCard {
         keepReading(): void;
         /** *Don't pause at chapter ends* (FR-8). */
         dontPause(): void;
+        /** *Recall this chapter* (#760): write it from memory, then look. */
+        recall?(): void;
         /** A note it touched, opened where you are. */
         open(anchor: HTMLElement, path: string, title: string): void;
         /** Anything on the leaf was touched: leaving it is no longer a skip (FR-7). */
@@ -155,6 +157,14 @@ export function renderSurvivedLeaf(page: HTMLElement, card: SurvivedCard, owner:
         card.actions.touched();
         card.actions.dontPause();
     });
+    // The way into recall (#760): the chapter, put away, to be written in your own words.
+    if (card.actions.recall) {
+        const recall = foot.createEl("button", { cls: c("reader-survived-quiet"), attr: { type: "button", "data-zf-recall": "true" }, text: t("reader_recall") });
+        owner.registerDomEvent(recall, "click", () => {
+            card.actions.touched();
+            card.actions.recall?.();
+        });
+    }
     foot.createDiv({ cls: c("reader-survived-no-summary"), text: t("reader_survived_no_summary") });
 
     const animations = card.motion ? settle([...settling, ...rows.slice(0, SURVIVED_STAGGERED)], [question, foot], Math.max(0, card.settleAfter ?? 0)) : [];

@@ -32,6 +32,7 @@ const LOOPS = [
     { label: "a wager", re: /wager/i, target: "docs/development/wagers.md" },
     { label: "cognitive moves", re: /make a move|cognitive move/i, target: "docs/development/cultivate.md" },
     { label: "what survived", re: /what survived/i, target: "docs/development/reader.md" },
+    { label: "recall", re: /recall a chapter/i, target: "docs/development/reader.md" },
 ];
 
 /** The longest markdown table's body-row count: a run of `|` lines, less its header + separator. */

@@ -229,11 +229,12 @@ describe("the reader writes no note (#667 R2)", () => {
         });
     }
 
-    it("reaches no writer anywhere under its module, but the export you press (#672)", () => {
+    it("reaches no writer anywhere under its module, but the export and the recall you press (#672, #760)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
-        const exporter = join(dir, "readerExport.ts");
+        // The named writers, and nothing else: each is pressed for, create-only and recorded.
+        const named = ["readerExport.ts", "readerRecallNote.ts"].map((f) => join(dir, f));
         for (const f of sources(dir)) {
-            if (f === exporter) continue;
+            if (named.includes(f)) continue;
             const src = readFileSync(f, "utf8");
             for (const writer of ["FileService", "FrontmatterService", ".modify(", ".process(", ".create(", "processFrontMatter", ".append("]) {
                 expect({ file: f.replace(dir, "reader"), writer, found: src.includes(writer) }).toEqual({
@@ -262,6 +263,21 @@ describe("the reader writes no note (#667 R2)", () => {
         expect(src).toContain("freeExportPath(");
         for (const writer of ["FrontmatterService", ".modify(", ".process(", "processFrontMatter", ".append(", "vault.create("]) {
             expect({ writer, found: src.includes(writer) }).toEqual({ writer, found: false });
+        }
+    });
+
+    it("keeps a recall create-only, through FileService, in a recorded batch (#760 AC-4)", () => {
+        const src = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerRecallNote.ts"), "utf8");
+        expect(src).toContain("FileService.createFile(");
+        expect(src).toContain("withWriteBatch(");
+        expect(src).toContain("freeExportPath(");
+        for (const writer of ["FrontmatterService", ".modify(", ".process(", "processFrontMatter", ".append(", "vault.create("]) {
+            expect({ writer, found: src.includes(writer) }).toEqual({ writer, found: false });
+        }
+        // The card writes nothing itself, and hides no mark itself: the view's port does both (AC-2).
+        const card = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerRecall.ts"), "utf8");
+        for (const forbidden of ["FileService", "withWriteBatch", "reader-highlight--away", "putAway", "MarkVisibility("]) {
+            expect({ forbidden, found: card.includes(forbidden) }).toEqual({ forbidden, found: false });
         }
     });
 

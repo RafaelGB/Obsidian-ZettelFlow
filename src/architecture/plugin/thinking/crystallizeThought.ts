@@ -68,6 +68,8 @@ export async function crystallize(request: CrystallizeRequest): Promise<string |
  * was an idea — in the same log, subject only, no content. Called once the note exists.
  */
 export function recordCrystallizedThroughFlow(path: string, plan: Crystallization): void {
+    // No thought behind it — a chapter recalled in your own words (#760): nothing was proposed to accept.
+    if (plan.frozen.length === 0 && plan.omitted === 0) return;
     JudgementLog.getInstance().record({
         path,
         subject: `crystallize:${plan.frozen.length}`,

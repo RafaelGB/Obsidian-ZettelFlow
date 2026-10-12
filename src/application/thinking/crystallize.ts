@@ -255,7 +255,9 @@ export function renderCrystallized(
     const cited = (plan.sources ?? []).map((link) => `source:: ${link}`);
     const tail = cited.length > 0 ? `\n\n${cited.join("\n")}` : "";
     const head = properties ? renderSourceProperties(plan) : "";
-    return `${head}${body.trim()}\n\n${renderProvenance(plan, heading, omittedLine)}${tail}\n`;
+    // Born from no thought — a chapter recalled in your own words (#760): no empty heading for it.
+    const provenance = plan.frozen.length > 0 || plan.omitted > 0 ? `\n\n${renderProvenance(plan, heading, omittedLine)}` : "";
+    return `${head}${body.trim()}${provenance}${tail}\n`;
 }
 
 /**

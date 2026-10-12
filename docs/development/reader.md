@@ -1283,7 +1283,8 @@ turn the leaf and keep reading.
   beyond that, nothing counts them, and nothing mentions them.
 - **One switch, in three places.** **Pause at chapter ends** — on by default — is in the Reader's
   **Type** panel, in **Settings → Reading**, and at the foot of the leaf itself as a quiet **Don't
-  pause at chapter ends**. All three are one value.
+  pause at chapter ends**. All three are one value. Beside it, **Recall this chapter** puts the chapter
+  away to be written from memory ([Recall](#recall)).
 - **Keys.** **→** or **Space** keep reading; **←** turns back to the chapter's last page; **Esc**
   leaves the Reader as it always does. The shortcuts sheet lists them.
 
@@ -1296,6 +1297,57 @@ landed its contents settle in the reading column — the ornament, the heading, 
 after another, each a fade and a 4 px rise 40 ms apart, the question last; any key or touch completes
 the settle at once. **←** plays the arrival backwards onto the chapter's last page. Under reduced
 motion the leaf is simply there, and simply gone; it is still a page between two chapters.
+
+## Recall
+
+Highlighting feels like understanding, and is not: what stays from a chapter is what you can say
+without it in front of you. **Recall this chapter** puts the chapter and your marks away, asks for
+the chapter in your own words, then shows you what you marked — yours first, then the book's, the
+way Think does *think first, then look*. **Read → think → recall → rewrite.**
+
+![Recall: on the left the chapter put away — the page has slid down out of the column as a sheet, leaving the paper and the chapter's title, and beside it the card asks Without looking: what was this chapter's argument? above your words, typo and all, with Reveal what I marked and Done; on the right the page is back with your two marks returning in the order you made them, and the card shows What you wrote — your words, where they were — and under it What you marked then, then Keep it as a note and Done](../resources/reader/recall.svg)
+
+- **Where it is.** In **Contents**, at the top, on the chapter you are in — and at the foot of the
+  [*What survived?*](#what-survived) leaf, for the chapter that just ended: the book goes back onto
+  that chapter first, and recall begins once it has landed. It works on an EPUB's chapter, a paper's
+  section (its outline's, or the page you are on when it has none) and an article's section. A
+  designed book, a paper read as printed in Page view and a path of notes have no recall.
+- **The chapter goes away.** The page slides down out of the column as one sheet and leaves the
+  paper with the chapter's title on it; your highlights, margin notes and ink go with it, through the
+  same *hide* as [reading clean](#layers-and-read-it-clean). Beside the page — or, in portrait on a
+  tablet, in the sheet from the bottom — the card asks **Without looking: what was this chapter's
+  argument?** above a box, *In your own words…*.
+- **Your words, exactly.** What you type is kept as you type it: no spellcheck, no autocorrect, no
+  capitals added, nothing completed or suggested. A typo stays a typo.
+- **Reveal what I marked.** The sheet slides back up, then your marks return **in the order you made
+  them**, as *Reveal my thinking* brings them back. The card's question gives way to **What you
+  wrote** — your words where they were, never moved — and under it **What you marked then**: each
+  mark in its meaning's colour, with its passage and your note. A chapter you marked nothing in says
+  so plainly: *You marked nothing in this chapter*.
+- **Not a test.** Nothing compares your words with your marks, nothing is highlighted as a match,
+  nothing is counted or scored, and there is no streak. It is a way to see what stayed.
+- **Keep it as a note.** A preview shows exactly what will be written: a title (*{the chapter} — in
+  my words*, editable), your words **as you wrote them**, and one line,
+  `source:: [[the book#the chapter|its title]] · the chapter`, so the Library counts the note as
+  [born from the book](library.md). Nothing is written until **Create note**: one new note,
+  create-only, at a free path in Obsidian's *Default location for new notes*, recorded — **Undo** is
+  on the card and in Home → Recent. With a canvas holding the *Crystallizes thoughts* role, the
+  preview continues in that flow instead, which decides the folder, the template and the
+  properties. **Cancel** writes nothing.
+- **Done** leaves recall and writes nothing. When you had not looked yet, the page comes back the way
+  it went, then your marks. What you wrote and did not keep stays as a draft for that chapter while
+  the Reader is open, and comes back if you recall it again; closing the Reader lets it go. Nothing
+  asks you to keep it. **Esc**, the card's ×, another panel or turning to another chapter leave
+  recall the same way.
+
+### One gesture each way
+
+Putting the chapter away is the chapter turn's own sheet sliding down out of the column (`cover`,
+400 ms, the shared curve) while the card's question rises 8 px into place; nothing cuts. The reveal
+plays the same shot backwards: the sheet slides back up, and only once it has landed do your marks
+return, one after another, each row of *What you marked then* arriving with its ink in the page. Any
+key or touch during either move completes it. Under reduced motion the page goes and comes back at
+once, and every mark is simply there.
 
 ## The end of a path
 
@@ -1420,8 +1472,9 @@ No colour is invented: every look comes from your theme.
 ## What it writes
 
 **Nothing, to any note you read.** Reading is the whole job, and a test holds the line: nothing in
-the Reader reaches a file writer — except **Export**, the one button that makes a note, and only
-when you press it: create-only, through `FileService`, in a recorded batch you can undo. The things
+the Reader reaches a file writer — except **Export** and [Recall](#recall)'s **Create note**, the two
+buttons that make a note, and only when you press them: create-only, through `FileService`, in a
+recorded batch you can undo. The things
 you can make while reading — a highlight, or ink — are **thoughts** in Think, written through the
 thought store like every other thought, and a second test holds that line too. Ink adds one file to
 its thought: the **drawing**, an SVG of the same name beside it in the thinking space, written in the
@@ -1442,7 +1495,10 @@ claim** writes one new note when you press *Create* — create-only, through the
 (`claimWrites.ts`, over `FileService`), in a recorded batch — and **Link to an idea** one entry of
 the idea's `source` list, through #751's one writer. **Layers** write only the layer a new mark is made on, beside its meaning (`layer:`, never for Reading), and the layers you show and where new marks go, per book, in the plugin's settings; hiding and revealing write nothing. **What survived?** writes nothing: the time spent on
 a chapter and a skip live in memory only, the switch is one of your type choices, and a note comes
-only from the preview's *Create note*.
+only from the preview's *Create note*. **Recall** writes nothing while you write, reveal or leave —
+your words are a draft in memory for as long as the Reader is open — and one new note only on its
+preview's *Create note*: create-only, through the Reader's second named writer
+(`readerRecallNote.ts`, over `FileService`), in a recorded batch you can undo.
 
 ## For contributors
 

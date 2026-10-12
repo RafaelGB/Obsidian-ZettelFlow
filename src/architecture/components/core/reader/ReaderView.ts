@@ -25,7 +25,10 @@ import { markHereAt, markHereOn } from "./readerHere";
 import { relativeLabel } from "architecture/components/core/noteCompanion/storyFormat";
 import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 import { beginCloseShot, landOpenShot, shotIncoming } from "./readerShot";
-import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, type ChapterScrub } from "./readerTurn";
+import { adoptChapterScrub, beginChapterScrub, endChapterTurn, playChapterTurn, playFold, unfoldAtOnce, type ChapterScrub } from "./readerTurn";
+import { RecallSession, type RecallChapter, type RecallPort } from "./readerRecall";
+import { keepRecall, recallFlowName, undoRecall } from "./readerRecallNote";
+import { recallCitation } from "application/library/recallNote";
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { PINCH_SHARE, completionRate, edgeZone, isThing, pinchRelease, releaseTurn, rubberBand, startGesture, twoFingers, type Gesture, type TwoFingerKind, SYSTEM_EDGE_PX } from "./readerGestures";
@@ -248,7 +251,8 @@ const ROLE_KEY: Record<ChapterRole, LocaleKey> = {
 export type { ReaderHost };
 
 
-type Panel = "contents" | "type" | "layers" | "context" | null;
+/** The panels — and Recall (#760), which lies beside the page as Alongside does, with no button of its own. */
+type Panel = "contents" | "type" | "layers" | "context" | "recall" | null;
 
 /**
  * The Contents panel of a book or a paper (#761 FR-4): its contents, the overview, its bookmarks,
@@ -363,7 +367,7 @@ export class ReaderView extends ItemView {
     private prefs: ReaderPrefs;
     private panel: Panel = null;
     /** The bar's door to each panel, pressed while its panel is open (#777 FR-3). */
-    private panelButtons: Record<Exclude<Panel, null>, HTMLElement> | null = null;
+    private panelButtons: Record<Exclude<Panel, null | "recall">, HTMLElement> | null = null;
     private root: HTMLElement | null = null;
     private els: {
         title: HTMLElement;
@@ -543,6 +547,16 @@ export class ReaderView extends ItemView {
      * it back to `false` when it stops.
      */
     listening = false;
+    /**
+     * Recall (#760): the chapter being written from memory, while its card is open — and what you
+     * wrote in each chapter and did not keep, for as long as this Reader is open (FR-7). Never saved.
+     */
+    private recall: RecallSession | null = null;
+    private readonly recallDrafts = new Map<string, string>();
+    /** You were reading clean when recall began: its end leaves the marks away, as they were (FR-8). */
+    private recallWasClean = false;
+    /** Recall asked for on the leaf: it begins once the chapter is back under the turn. */
+    private recallPending = false;
     /**
      * What is drawn of your marks (#758): the layers hidden, reading clean, the reveal in order — the
      * one mechanism Recall (#760) uses too. It holds no marks; it reads what is drawn.
@@ -1390,6 +1404,8 @@ export class ReaderView extends ItemView {
 
     private render(): void {
         if (!this.els) return;
+        // Recall is about the chapter on the page: another one, the leaf or the end card lets it go.
+        if (this.recall && !this.recallHere(this.recall)) this.dropRecall();
         const els = this.els;
         const path = this.path;
         if (this.sourcePath) {
@@ -2416,6 +2432,8 @@ export class ReaderView extends ItemView {
                 keepReading: () => this.go(1),
                 // The same switch as the Type panel's and Settings' (FR-8): the leaf stays until you turn it.
                 dontPause: () => this.savePrefs({ ...this.prefs, chapterPause: false }),
+                // Recall (#760): back onto the chapter, and it is put away to be written from memory.
+                recall: () => this.startRecall(),
                 open: (anchor, note) => this.openPeek(anchor, note, noteName(note)),
                 touched: () => {
                     pause.touched = true;
@@ -2815,7 +2833,15 @@ export class ReaderView extends ItemView {
         this.ink?.attach({ body, page, notePath: path, locator: this.locatorOf(index), component, run: false });
         // The highlights of this page or chapter, found again by their words (#681).
         void this.highlights?.attach(body, path, component, this.els?.margin ?? null, this.locatorOf(index), pageMarks).then(() => {
-            if (generation !== this.generation || !this.pendingHighlight) return;
+            if (generation !== this.generation) return;
+            // Recall asked for on the leaf (#760): the chapter is back, and the turn lands first.
+            if (this.recallPending) {
+                this.recallPending = false;
+                stage.win.setTimeout(() => {
+                    if (generation === this.generation) this.startRecall();
+                }, Math.max(0, this.turnLandsAt - Date.now()));
+            }
+            if (!this.pendingHighlight) return;
             if (this.highlights?.reveal(this.pendingHighlight)) this.pendingHighlight = null;
         });
 
@@ -3810,6 +3836,13 @@ export class ReaderView extends ItemView {
     private renderSourceContents(host: HTMLElement): void {
         const doc = this.source;
         if (!doc) return;
+        // Recall the chapter you are in (#760 FR-1): at the top, where you read.
+        if (this.recallSpan()) {
+            const recall = host.createEl("button", { cls: [c("reader-notebook-link"), c("reader-recall-door")], attr: { type: "button" } });
+            setIcon(recall.createSpan({ cls: c("reader-notebook-icon") }), "pencil-line");
+            recall.createSpan({ text: t("reader_recall") });
+            this.panelScope?.registerDomEvent(recall, "click", () => this.startRecall());
+        }
         // Everything you marked in this book, in one place (#721).
         const sourcePath = this.sourcePath;
         if (sourcePath) {
@@ -3885,6 +3918,151 @@ export class ReaderView extends ItemView {
         this.els.stage.scrollTop = 0;
     }
 
+    // ── recall (#760) ────────────────────────────────────────────────────────
+
+    /**
+     * The chapter recall is about (FR-1): an EPUB's chapter, a paper's section, an article's section —
+     * the one you are in, or the one the leaf ends. Never a designed book, a paper read as printed, or
+     * a reading of notes.
+     */
+    private recallSpan(): ChapterSpan | null {
+        const doc = this.source;
+        if (!this.sourcePath || !doc || doc.designed || this.runMode() || this.ended) return null;
+        const index = this.pause ? this.pause.after : this.index;
+        if (index < 0 || index >= doc.chapters.length) return null;
+        return spanOf(this.chapterSpans(), index) ?? { start: index, end: index };
+    }
+
+    /** The chapter, as the card names it and the note cites it. */
+    private recallChapter(span: ChapterSpan): RecallChapter | null {
+        const doc = this.source;
+        const path = this.sourcePath;
+        if (!doc || !path) return null;
+        const first = doc.chapters[span.start];
+        const name = doc.format === "pdf" && span.title ? span.title : this.sourceLabel(span.start);
+        return {
+            key: `${path}#${span.start}`,
+            name,
+            proposal: t("reader_recall_title", name),
+            citation: recallCitation({ file: path, ...(first?.key ? { chapter: first.key } : {}), label: name, ...(first?.page ? { page: first.page } : {}), bookTitle: doc.title }),
+        };
+    }
+
+    /** Whether a recall is still about the page on screen. */
+    private recallHere(session: RecallSession): boolean {
+        if (this.pause || this.ended) return false;
+        const span = this.recallSpan();
+        return Boolean(span && this.sourcePath && session.chapter.key === `${this.sourcePath}#${span.start}`);
+    }
+
+    /**
+     * *Recall this chapter* (FR-1, FR-2): from Contents, or the leaf. The page slides away as a sheet,
+     * your marks go, and the card beside the page asks for the chapter in your own words. On the leaf,
+     * the book goes back onto the chapter first, and recall begins once it has landed.
+     */
+    private startRecall(): void {
+        if (this.pause) {
+            this.recallPending = true;
+            this.backFromLeaf();
+            return;
+        }
+        const span = this.recallSpan();
+        const chapter = span ? this.recallChapter(span) : null;
+        if (!span || !chapter || !this.els || !this.root) return;
+        if (this.recall?.chapter.key === chapter.key) {
+            if (this.panel !== "recall") {
+                this.panel = "recall";
+                this.renderPanel();
+            }
+            return;
+        }
+        if (this.recall) this.endRecall();
+        this.closePeek();
+        this.highlights?.hidePopover();
+        const session = new RecallSession(chapter, this.recallPort(chapter, span), this.recallDrafts.get(chapter.key) ?? "");
+        this.recall = session;
+        void session.start(() => {
+            this.panel = "recall";
+            this.renderPanel();
+            this.wake();
+        });
+    }
+
+    /** What the card needs of the Reader: the fold, #758's one mechanism, the chapter's marks, the writer. */
+    private recallPort(chapter: RecallChapter, span: ChapterSpan): RecallPort {
+        return {
+            fold: (way) => (this.root && this.els ? playFold(this.root, this.els.stage, this.els.page, way, chapter.name) : Promise.resolve()),
+            hideMarks: () => {
+                this.recallWasClean = this.layerView.isClean();
+                this.layerView.hideAll();
+            },
+            revealMarks: () => {
+                if (!this.layerView.isClean()) return;
+                // Reading clean ends here too: you asked to see your marks.
+                this.showCleanPill(false, false);
+                this.layerView.reveal();
+            },
+            marksDrawn: () => this.layerView.apply(),
+            marks: () => this.marksIn(span).marks,
+            draft: (words) => {
+                if (words.trim()) this.recallDrafts.set(chapter.key, words);
+                else this.recallDrafts.delete(chapter.key);
+            },
+            flowName: () => recallFlowName(),
+            keep: async (title, words) => {
+                const path = this.sourcePath;
+                if (!path) return null;
+                const result = await keepRecall(this.app, { title, words, citation: chapter.citation, sourcePath: path });
+                if (!result.ok) return null;
+                if (result.flow) return { title, flow: recallFlowName() };
+                const written = result.path ?? "";
+                const batch = result.batch;
+                return {
+                    title: noteName(written),
+                    open: () => void this.app.workspace.openLinkText(written, "", "tab"),
+                    ...(batch ? { undo: () => undoRecall(batch) } : {}),
+                };
+            },
+            done: () => this.closePanel(),
+            motion: () => this.motionAllowed(),
+        };
+    }
+
+    /**
+     * Recall ends (FR-7, FR-8): what you wrote stays as a draft, and — when the page is still away — it
+     * comes back the way it went, then your marks, unless you were reading clean before.
+     */
+    private endRecall(): void {
+        const session = this.recall;
+        if (!session) return;
+        this.recall = null;
+        session.keepDraft();
+        session.unmount();
+        if (!session.isFolded() || !this.root || !this.els) return;
+        const wasClean = this.recallWasClean;
+        void playFold(this.root, this.els.stage, this.els.page, "back", session.chapter.name).then(() => {
+            if (!wasClean && this.layerView.isClean()) this.layerView.reveal();
+        });
+    }
+
+    /** Recall let go at once: the page it was about is going (a turn, a jump, the leaf). */
+    private dropRecall(): void {
+        const session = this.recall;
+        if (!session) return;
+        this.recall = null;
+        session.keepDraft();
+        session.unmount();
+        if (this.root && this.els) unfoldAtOnce(this.root, this.els.page);
+        if (!this.recallWasClean && this.layerView.isClean()) {
+            this.layerView.reveal();
+            this.layerView.finish();
+        }
+        if (this.panel === "recall") {
+            this.panel = null;
+            this.renderPanel();
+        }
+    }
+
     // ── panels ───────────────────────────────────────────────────────────────
 
     private toggle(panel: Exclude<Panel, null>): void {
@@ -3915,7 +4093,7 @@ export class ReaderView extends ItemView {
         // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); Alongside lies beside
         // the column (#754 FR-14); the other panels are a card over the page.
         const asSheet = this.panel !== null && this.panelIsSheet();
-        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" ? "side" : "card";
+        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" || this.panel === "recall" ? "side" : "card";
         // Alongside, still open in the same shape, moves in place: its cards follow the reading, never
         // a redraw (#754 FR-19).
         if (this.panel === "context" && shape === this.panelShape && this.alongside?.isMounted(host)) {
@@ -3932,6 +4110,9 @@ export class ReaderView extends ItemView {
         // The claim sheet stays while Alongside does — drawn again, it goes back in; otherwise it goes.
         if (this.panel !== "context") this.claimLink?.drop();
         this.alongside?.unmount();
+        // Another panel, or none: recall ends — the page comes back, nothing written (#760 FR-7).
+        if (this.recall && this.panel !== "recall") this.endRecall();
+        this.recall?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
         host.empty();
@@ -3962,6 +4143,7 @@ export class ReaderView extends ItemView {
             renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, { ...this.typeContext(), close: { label: "reader_close_type", onClose: () => this.closeFromPanel(), scope } });
         }
         else if (this.panel === "layers") this.renderLayers(host, scope, markers);
+        else if (this.panel === "recall") this.recall?.mount(host, scope, { label: "reader_close_recall", onClose: () => this.closeFromPanel(), scope });
         else if (this.panel === "context") {
             this.alongside?.mount(host, scope);
             this.aiMoves?.attach(this.alongside?.proposalsHost() ?? null);
@@ -4731,6 +4913,8 @@ export class ReaderView extends ItemView {
         const host = this.els?.panel;
         if (!host || !this.panel) return;
         if (this.panel === "context") this.alongside?.remember(false);
+        // Recall ends as its card begins to go: the page is on its way back already (#760).
+        if (this.panel === "recall") this.endRecall();
         // Leaving the overview without a pick: the card grows back into the page (#776 FR-22).
         if (this.panel === "contents" && this.contentsTab === "overview") this.returnToPage();
         // The bar lets go of the button at once: the panel is on its way out.
@@ -4739,9 +4923,10 @@ export class ReaderView extends ItemView {
         if (host.hasClass(c("reader-panel--side")) && this.motionAllowed()) {
             if (this.alongsideLeaving !== undefined) return;
             host.addClass(c("reader-panel--leaving"));
+            const leaving = this.panel;
             this.alongsideLeaving = (this.root?.win ?? window).setTimeout(() => {
                 this.alongsideLeaving = undefined;
-                if (this.panel !== "context" || !host.hasClass(c("reader-panel--leaving"))) return;
+                if (this.panel !== leaving || !host.hasClass(c("reader-panel--leaving"))) return;
                 this.panel = null;
                 this.renderPanel();
             }, MOTION.base);

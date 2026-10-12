@@ -128,6 +128,7 @@ export const CAPABILITIES = [
     "reader-translate",
     "reader-overview",
     "chapter-pause",
+    "chapter-recall",
     "library",
     "highlights-review",
     "claim-door",
@@ -454,6 +455,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_survived_title",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerSurvivedLeaf.ts", "zettelflow-reader")],
+    },
+    "chapter-recall": {
+        // Recall (#760, epic #742): put the chapter and your marks away, write what it argued from
+        // memory, then look. Offered where you read — Contents, on the chapter you are in — and on the
+        // leaf at the chapter's end. Nothing is compared or scored; your words can be kept as a note.
+        nameKey: "reader_recall",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerSurvivedLeaf.ts", "zettelflow-reader")],
     },
     library: {
         // Your sources (#680, epic #675): the PDFs and EPUBs in the vault and your saved reading

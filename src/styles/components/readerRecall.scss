@@ -1,0 +1,173 @@
+@use '../utils/mixins' as *;
+
+/*
+ * Recall (#760, epic #742) — the chapter put away, to be written from memory, then looked at.
+ *
+ * The page folds away under its sheet (readerTurn.ts `playFold`: a transform, scripted) and leaves
+ * the paper with the chapter's title on it; the card lies beside the page as Alongside does, and in
+ * portrait on a tablet it is #750's sheet. The theme's colours only (§XV). Nothing here animates:
+ * the fold, the question rising and the marks returning are scripted, and none of them plays under
+ * reduced motion.
+ */
+
+/* The page under the fold: still laid out, so its place is kept for the reveal — but not there. */
+.zettelkasten-flow__reader-page.zettelkasten-flow__reader-page--folded {
+    visibility: hidden;
+}
+
+/* The paper the fold leaves, with the chapter's title where the page began. */
+.zettelkasten-flow__turn-underlay.zettelkasten-flow__turn-fold {
+    align-items: flex-start;
+    padding-top: var(--size-4-16);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* The card lies beside the page: the title stays in the part of the column still in view. */
+.zettelkasten-flow__reader--alongside .zettelkasten-flow__turn-fold {
+    padding-right: calc(var(--zf-alongside-w) + var(--size-4-6));
+}
+
+.zettelkasten-flow__turn-fold-title {
+    max-width: var(--file-line-width);
+    padding: 0 var(--size-4-6);
+    font-family: var(--reader-font);
+    font-size: var(--h2-size);
+    font-weight: var(--h2-weight);
+    line-height: var(--line-height-tight);
+    color: var(--reader-fg);
+    text-align: center;
+}
+
+/* The sheet that carries the page away lies on the paper: a shadow under it, as a stack's has. */
+.zettelkasten-flow__turn-sheet--fold .zettelkasten-flow__turn-clip {
+    box-shadow: var(--shadow-l);
+}
+
+/* ── the card ─────────────────────────────────────────────────────────── */
+.zettelkasten-flow__reader-recall {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    min-height: 0;
+    overflow-y: auto;
+    color: var(--reader-fg);
+}
+
+.zettelkasten-flow__reader-recall-chapter {
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+/* The question, and *What you wrote* in its place: one cell, so the text below never moves (FR-12). */
+.zettelkasten-flow__reader-recall-ask {
+    display: grid;
+
+    > * {
+        grid-area: 1 / 1;
+        visibility: hidden;
+    }
+
+    > .is-shown {
+        visibility: visible;
+    }
+}
+
+.zettelkasten-flow__reader-recall-question {
+    font-family: var(--reader-font);
+    font-size: var(--font-ui-large);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__reader-recall-wrote {
+    @include hint;
+    align-self: end;
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Your words, in the book's own type: a box to write in, nothing more. */
+textarea.zettelkasten-flow__reader-recall-box {
+    width: 100%;
+    resize: vertical;
+    padding: var(--size-4-2) var(--size-4-3);
+    font-family: var(--reader-font);
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-normal);
+    color: var(--reader-fg);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-recall-marked {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-recall-nothing {
+    @include empty-state;
+    color: var(--reader-muted);
+}
+
+.zettelkasten-flow__reader-recall-foot,
+.zettelkasten-flow__reader-recall-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-recall-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-recall-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-3);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+button.zettelkasten-flow__reader-recall-link {
+    @include text-link-button;
+    font-size: var(--font-ui-small);
+}
+
+/* The preview: exactly what will be written, as text — never rendered (FR-6). */
+.zettelkasten-flow__reader-recall-title-label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    color: var(--reader-muted);
+    font-size: var(--font-ui-small);
+}
+
+input.zettelkasten-flow__reader-recall-title {
+    width: 100%;
+}
+
+pre.zettelkasten-flow__reader-recall-note {
+    margin: 0;
+    padding: var(--size-4-2) var(--size-4-3);
+    max-height: calc(var(--size-4-16) * 3);
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    color: var(--reader-fg);
+    background-color: var(--reader-surface);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-recall-flow {
+    @include hint;
+}

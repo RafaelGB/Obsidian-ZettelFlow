@@ -156,6 +156,20 @@ UPDATE_DOCS=1 npx jest capabilityIndex
 Its generator lives in `test/docs/capabilityIndex.ts` rather than beside `capabilityAudit.ts` because
 #588's AC-10 froze `src/`; it moves next to its sibling the next time `src/` is unfrozen.
 
+### The README's animated art
+
+The README's masthead (`docs/resources/readme/banner-dark.svg` / `banner-light.svg`, swapped by a
+`<picture>` on the reader's GitHub theme) and the Reader showcase (`reader-hero.svg`) are
+**generated** — edit `scripts/readme-art.mjs`, never the SVGs, then run:
+
+```bash
+node scripts/readme-art.mjs
+```
+
+GitHub runs no JavaScript in a README but does render an SVG's CSS keyframes through `<img>`, so the
+JavaScript runs here, at build time. Each animation loops quietly, uses only system fonts (an `<img>`
+SVG cannot load a web font) and settles into a readable still frame under `prefers-reduced-motion`.
+
 ## The write-path harness (#317, E2)
 
 `test/support/harness.ts` (`wireHarness`) gives a test an **in-memory Obsidian** whose

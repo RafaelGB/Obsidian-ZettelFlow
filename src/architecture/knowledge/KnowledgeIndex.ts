@@ -136,7 +136,7 @@ export class KnowledgeIndex {
     }
 
     /**
-     * The out-of-scope path prefixes (#311, extended): the user's `excludedPaths` **plus** ZettelFlow's
+     * The out-of-scope notes (#311, extended): the user's scope rules (#713) **plus** ZettelFlow's
      * own managed system folders (flows, hook flows, JS library), which are auto-excluded so system notes
      * are never treated as knowledge.
      */

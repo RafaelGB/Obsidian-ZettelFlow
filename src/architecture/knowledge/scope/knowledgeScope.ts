@@ -53,8 +53,9 @@ export function excludedPrefixOf(path: string, prefixes: readonly string[]): str
  */
 export interface ScopeSettings {
     /**
-     * The folders the previous version excluded. Since #713 a mirror of the folder rules, written
-     * for one release so a downgrade keeps them; read only to migrate.
+     * The folders a version before #713 excluded. Nothing writes it any more (#715): the migration
+     * folds it into {@link knowledgeScope} once and drops it; read only by a settings object that
+     * has not been migrated yet.
      */
     excludedPaths?: readonly string[];
     /** What is left out (#713): closed rules and the exceptions that keep a note in anyway. */

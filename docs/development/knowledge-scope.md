@@ -65,12 +65,12 @@ property test over thousands of generated paths (accented names in both Unicode 
 siblings, `X-other/` folders) proves the new verdict equals the old prefix match, and a fixture
 vault's left-out list is compared byte for byte.
 
-**Downgrade mirror (one release).** Every change also writes those folder rules back to the old
-`excludedPaths` list, so the previous version still excludes every folder it understands (it
-ignores tag and property rules and keeps them in `data.json`). If you add a folder there and
-upgrade again, it is appended as a rule. The one lossy direction: a folder **removed** in the old
-version is not removed from the rules — no configured exclusion is ever lost. The mirror goes away
-in the next release ([#715](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/715)).
+**The old list is folded in once, then dropped.** 3.6 also wrote the folder rules back to the old
+`excludedPaths` list, so a downgrade kept every folder exclusion. Since 3.7 nothing writes it
+([#715](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/715)): on load, any folder the list
+still names that no rule already says is appended as a rule, and the list is removed from
+`data.json` — so a folder rule you remove stays removed. Going back to a version before 3.6 now
+starts with no excluded folders; the rules themselves are kept in `data.json` untouched.
 
 **What was deliberately left out.** File type (only Markdown ever becomes knowledge), created or
 modified age (notes would drift out on their own over time), file-name patterns, link counts,

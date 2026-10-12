@@ -4,7 +4,7 @@ description: Install ZettelFlow from Obsidian's community plugins and get your f
 
 # Get started in 5 minutes
 
-ZettelFlow is an Obsidian plugin. You need **Obsidian 1.13.1 or newer**, on desktop or mobile.
+ZettelFlow is an Obsidian plugin. You need **Obsidian 1.14.4 or newer**, on desktop or mobile.
 
 ![Installing ZettelFlow: Settings → Community plugins → Browse, search ZettelFlow, Install and Enable](resources/readme/install.svg)
 

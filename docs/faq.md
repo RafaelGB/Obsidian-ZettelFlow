@@ -7,7 +7,7 @@ description: ZettelFlow FAQ — installing, mobile, offline use, AI, privacy, wh
 ??? question "How do I install it?"
 
     In Obsidian: **Settings → Community plugins → Browse**, search for **ZettelFlow**, then **Install**
-    and **Enable**. It needs Obsidian 1.13.1 or newer. → [Get started](get-started.md)
+    and **Enable**. It needs Obsidian 1.14.4 or newer. → [Get started](get-started.md)
 
 ??? question "Does it work on mobile?"
 

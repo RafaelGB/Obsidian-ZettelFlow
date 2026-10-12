@@ -12,7 +12,7 @@ How to set up, build, run, and iterate on ZettelFlow.
 
 - **Node.js** (CI uses Node 23; any recent LTS ≥ 18 works locally).
 - **npm** (the repo ships a lockfile-friendly `package.json`).
-- An **Obsidian vault** for testing. The plugin targets `minAppVersion 1.13.1`.
+- An **Obsidian vault** for testing. The plugin targets `minAppVersion 1.14.4`.
 
 ## Install
 

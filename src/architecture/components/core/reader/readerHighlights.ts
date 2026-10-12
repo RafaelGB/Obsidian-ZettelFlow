@@ -77,6 +77,11 @@ export interface HighlightView {
      * picture, clicked. The view captures it; the popover only offers it.
      */
     snapshotImage?(el: HTMLElement, from: ScreenBox): void;
+    /**
+     * *Read aloud* (#765 FR-1), after *Look up* in the popover's last row: the selected words, read
+     * by the device's own voice. Absent where Listen is not offered (no on-device voice).
+     */
+    readAloud?(): ((span: TextSpan) => void) | null;
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -743,6 +748,14 @@ export class ReaderHighlights {
             });
         }
         this.lookupButtons(actions, found.quote.exact, found.selection);
+        const aloud = this.view.readAloud?.();
+        if (aloud) {
+            this.button(actions, "reader_listen_selection", false, () => {
+                this.hidePopover();
+                found.selection.clear();
+                aloud(found.span);
+            }).setAttribute("data-zf-listen", "");
+        }
         if (locator) this.thinkRow(pop, { quote: found.quote, locator });
     }
 
@@ -954,6 +967,17 @@ export class ReaderHighlights {
         this.settleIntoMargin(marks[0], thought);
         this.status(options.status ?? (stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved"), options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
         return thought;
+    }
+
+    /**
+     * Mark while listening (#765 FR-6): the sentence the voice is reading, kept as a highlight — the
+     * meaning used last (#720) and the layer new marks go to (#758), with the marker's sweep. The same
+     * engine as a selection's *Idea*; nothing else is written, and the voice is not stopped.
+     */
+    markSpan(start: number, end: number): Promise<Thought | undefined> {
+        const found = this.quoteFor(start, end);
+        if (!found) return Promise.resolve(undefined);
+        return this.keepSpan(found.span, found.quote, { origin: "selection" });
     }
 
     /**

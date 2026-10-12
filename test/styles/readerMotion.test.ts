@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss"];
 const SCRIPTS = [
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),
@@ -72,6 +72,17 @@ describe("motion in the Reader and the Library never costs a frame (#724)", () =
             expect({ selector, inReduced: reduced.includes(selector) }).toEqual({ selector, inReduced: true });
         }
         expect(reduced).toMatch(/transition: none;\s*animation: none;/);
+    });
+
+    it("crossfades Listen's tint by its opacity alone, and jumps under reduced motion (#765 AC-8, FR-11)", () => {
+        const css = sheet("components/readerListen.scss");
+        const transitions = [...css.matchAll(/transition:\s*([^;]+);/g)].map((m) => m[1].trim());
+        expect(transitions).toEqual(["opacity $motion-fast $ease-out", "none"]);
+        const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+        expect(reduced).toContain(".zettelkasten-flow__reader-listen-para::before");
+        expect(reduced).toMatch(/transition: none;/);
+        // The words never move: the tint is a layer behind them, never the paragraph's own box.
+        expect(css).not.toMatch(/reader-listen-now\s*\{[^}]*(font-weight|padding|margin)/);
     });
 
     it("gives the look-up card and its ink an instant equivalent (#766 AC-11)", () => {

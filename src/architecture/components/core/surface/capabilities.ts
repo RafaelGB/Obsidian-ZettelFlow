@@ -128,6 +128,7 @@ export const CAPABILITIES = [
     "reader-translate",
     "reader-overview",
     "reader-snapshot",
+    "reader-listen",
     "chapter-pause",
     "chapter-recall",
     "library",
@@ -455,6 +456,13 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // figure or a table; a picture in a book offers *Snapshot this image* in its popover. Its card
         // asks where it goes — a note, a fleeting note, a note you have — and nothing is written before.
         nameKey: "reader_snapshot",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
+    },
+    "reader-listen": {
+        // Listen (#765, epic #742): the book read aloud in the device's own voices, the page following
+        // the voice — *Listen* in the Reader's bar, and *Read aloud* in the selection's popover.
+        nameKey: "reader_listen",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },

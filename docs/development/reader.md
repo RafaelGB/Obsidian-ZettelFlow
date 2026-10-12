@@ -274,7 +274,7 @@ own callout and Look Up, the Pencil, a hardware keyboard and the memory limits �
 [issue #750](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/750); until it is, those rows
 are assumed, not claimed.
 
-**What a plugin cannot do on iPad.** Hide the status bar; keep reading aloud in the background. These
+**What a plugin cannot do on iPad.** Hide the status bar; keep [reading aloud](#listen) in the background. These
 are the app's, not a plugin's. The Pencil's native gestures are the same — a web view never hears them:
 
 | On iPad | In the Reader | Instead |
@@ -285,6 +285,7 @@ are the app's, not a plugin's. The Pencil's native gestures are the same — a w
 | Apple's tool picker | ✗ native only | the palette: pen, highlighter, lasso, eraser, four inks, undo |
 | Scribble's scratch-out and the lasso tool | ✗ native only | the Reader's own [four gestures](#four-gestures), from the points |
 | Undo from the Pencil | ✗ native only | a two-finger tap on the page |
+| Speech in the background, or with the screen locked | ✗ a web view's limit | [Listen](#listen) pauses at its sentence; play goes on from there |
 
 Ink is drawn from what WebKit reports (about 120–240 Hz, with no predicted points): good ink, honestly
 not PencilKit ink.
@@ -763,6 +764,61 @@ fade, 120 ms, from the word's own point — and Esc, a click outside or a turn o
 back the same way; the line you were reading never moves. While a translation is on its way, three
 faint lines breathe where it will be, and it fades in in their place. Under reduced motion the card
 appears and goes at once, and the lines are still.
+
+## Listen
+
+Some reading is better heard: a long chapter on a walk round the room, a paper read with tired eyes,
+a pencil in hand with nothing to hold the page. **Listen** reads the book aloud in your device's own
+voices, and the page follows the voice.
+
+![Listen: a chapter read aloud with the paragraph being read softly tinted from behind and a sentence kept with Mark; the listening bar above the reader's bar with previous, pause, next, the speed, the voice, Mark and stop; the 85 % line past which the page moves once to the upper third; the Listen menu with From here, This chapter, the device's voices and the iPad line; Back to the voice after a scroll; and a scanned PDF with Listen disabled](../resources/reader/listen.svg)
+
+- **Where it starts.** **Listen** in the Reader's bar offers **From here** — the paragraph at the top
+  of the page, or the one you last tapped — and **This chapter**, from its start. The selection's
+  popover offers **Read aloud**, after *Look up*, for just the selected words.
+- **Sentence by sentence.** *From here* goes on through the following chapters, turning each one by
+  your [chapter motion](#one-continuous-shot), and the voice goes on as the turn lands; *This chapter*
+  stops at its end; *Read aloud* stops after the selection. [What survived?](#what-survived) never
+  pauses while you listen.
+- **The page follows.** The paragraph being read is softly tinted — a crossfade of the tint alone; the
+  words never move or change weight. The column scrolls only when that paragraph nears the bottom of
+  the view (past 85 %), and then by one smooth move that brings it to the upper third — never a
+  scroll per sentence. In *Page* and *Spread*, the page being read is kept on screen. Scroll away
+  yourself and the page stops following; **Back to the voice** in the listening bar brings it back in
+  one move.
+- **The listening bar** rises at the foot of the column while the voice reads: previous and next
+  sentence, pause and play, the speed (0.75× to 2×), the voice, **Mark** and stop. Your voice and
+  speed are kept **on this device** (voices differ from one device to another), never synced.
+  Leaving the Reader stops listening.
+- **Mark as you hear.** **Mark**, or **H** with nothing selected, keeps the sentence being read as a
+  highlight — with the meaning you used last and the [layer new marks go to](#layers-and-read-it-clean),
+  drawn with the marker's sweep. The voice does not stop. Ink with a pen works while you listen.
+- **Keys**, only while listening: **K** pause or play, **[** and **]** the previous or next sentence,
+  **H** mark, **Esc** stop (after anything open over the page). The shortcuts sheet names them.
+- **Writes nothing.** Listening a chapter through leaves nothing behind: no note, no thought, no entry
+  in Recent. Only a mark you make is kept, as any highlight is.
+
+**Your device's voices only.** The voices are the operating system's, through the Web Speech API, and
+only those the engine marks as speaking **on the device** are offered — a voice it marks as remote
+(`localService: false`) is never used, not even as a fallback, so **no text leaves the device** and
+listening works the same with the network off. The book's language picks the voice: its
+[book's note](library.md)'s `language`, else the book's own (an EPUB's `dc:language`, a chapter's
+`lang`), else an article's `lang`, else the system's default. Where the API is missing, or the device
+has no voice of its own, **Listen is not offered** at all. Some engines list their natural voices as
+remote (macOS may, for Siri's); those are left out, honestly, rather than used.
+
+**A scanned PDF** has no text to read: **Listen** is shown disabled, and says *There is no text to read
+aloud in a scanned PDF*. A designed book (a comic) and a paper in Page view have no Listen; switch the
+paper to its Reading view to hear it.
+
+**On iPad and iPhone, listening stops when the screen locks or you leave Obsidian.** This is a web
+view's limit, not a setting: iPadOS stops a web page's speech in the background. The Listen menu says
+so on those devices. Coming back, listening is **paused at the sentence it reached**, and play goes
+on from there. On a desktop the voice goes on while Obsidian is behind another window.
+
+**It moves like the rest of the Reader.** The tint crossfades in 120 ms; the bar rises 8 px with a fade
+in 250 ms and sinks as it goes; the follow is one smooth scroll. Under reduced motion the tint and the
+column jump and the bar simply appears; nothing glides.
 
 ## Snapshot a figure or a table
 

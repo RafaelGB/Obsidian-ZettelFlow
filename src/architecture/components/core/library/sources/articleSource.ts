@@ -1,6 +1,7 @@
 import { MarkdownRenderer, type App, type Component, type TFile } from "obsidian";
 import { articleFields, articleSections, type ArticleSection } from "application/library/article";
 import { titleFromName } from "application/library/shelf";
+import { languageTag } from "application/library/sourceMeta";
 import { stripFrontmatter } from "architecture/components/core/reader/readerDocument";
 import type { DrawnChapter, SourceDocument, SourceTocEntry } from "./sourceDocument";
 
@@ -21,7 +22,10 @@ const headingId = (index: number) => `zf-heading-${index}`;
  */
 export async function openArticleSource(app: App, file: TFile): Promise<SourceDocument> {
     const markdown = await app.vault.cachedRead(file);
-    const fields = articleFields(app.metadataCache.getFileCache?.(file)?.frontmatter);
+    const frontmatter = app.metadataCache.getFileCache?.(file)?.frontmatter;
+    const fields = articleFields(frontmatter);
+    // The language a clipping says it is in (`lang`): its column and its voice read by it (#757, #765).
+    const language = languageTag(frontmatter?.lang ?? frontmatter?.language);
     const title = fields.details.title ?? titleFromName(file.name);
     const sections: ArticleSection[] = articleSections(stripFrontmatter(markdown), title);
     const toc: SourceTocEntry[] = [];
@@ -42,6 +46,7 @@ export async function openArticleSource(app: App, file: TFile): Promise<SourceDo
         path: file.path,
         title,
         ...(author ? { author } : {}),
+        ...(language ? { language } : {}),
         chapters: sections.map((section) => ({ label: section.title })),
         toc,
         imageOnly: false,

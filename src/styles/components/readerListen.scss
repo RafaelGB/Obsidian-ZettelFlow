@@ -1,0 +1,127 @@
+@use '../utils/motion' as *;
+
+/*
+ * Listen (#765, epic #742) — the book read aloud, and the page following the voice.
+ *
+ * The paragraph being read is tinted from behind: a `::before` on the block, in the theme's own
+ * highlight colour, whose opacity alone crossfades from one paragraph to the next (`fast`, FR-11) —
+ * the text never moves or changes weight. The listening bar floats above the reader's bar; it rises
+ * and sinks by script (readerListenBar.ts: a transform and an opacity). The theme's colours only (§XV).
+ */
+
+$safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
+
+/* ── the paragraph being read ────────────────────────────────────────── */
+.zettelkasten-flow__reader-listen-para {
+    position: relative;
+    /* Its own stacking context: the tint lies behind the words, never behind the page. */
+    isolation: isolate;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: calc(-1 * var(--size-2-1)) calc(-1 * var(--size-4-2));
+        z-index: -1;
+        border-radius: var(--radius-s);
+        background-color: var(--highlight-background, var(--text-highlight-bg));
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity $motion-fast $ease-out;
+    }
+}
+
+.zettelkasten-flow__reader-listen-now::before {
+    opacity: 0.6;
+}
+
+/* ── the listening bar ───────────────────────────────────────────────── */
+.zettelkasten-flow__reader-listen-bar {
+    position: absolute;
+    left: 50%;
+    /* Above the reader's own bar, which stays where it is (and fades when idle). */
+    bottom: calc(max(var(--size-4-4), calc(var(--size-4-2) + #{$safe-bottom})) + var(--size-4-12));
+    max-width: calc(100% - var(--size-4-4));
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-1) var(--size-4-2);
+    background-color: var(--reader-surface, var(--background-primary));
+    border: var(--border-width) solid var(--reader-line, var(--background-modifier-border));
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+    color: var(--reader-fg, var(--text-normal));
+    z-index: 4;
+
+    select.dropdown {
+        height: var(--size-4-8);
+        padding-top: 0;
+        padding-bottom: 0;
+        font-size: var(--font-ui-small);
+    }
+}
+
+.zettelkasten-flow__reader-listen-voice {
+    max-width: 12rem;
+}
+
+.zettelkasten-flow__reader-listen-mark,
+.zettelkasten-flow__reader-listen-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    height: var(--size-4-8);
+    padding: 0 var(--size-4-2);
+    font-size: var(--font-ui-small);
+    white-space: nowrap;
+}
+
+/* Hidden means hidden: its own display above must not win over the Reader's hidden class. */
+.zettelkasten-flow__reader-listen-bar > .zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__reader-listen-mark-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+.zettelkasten-flow__reader-listen-line {
+    color: var(--text-error);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+/* The bar's Listen while the voice reads: pressed, as the panel buttons are. */
+.zettelkasten-flow__reader--listening button.zettelkasten-flow__reader-bar-button[aria-pressed="true"] {
+    color: var(--interactive-accent);
+}
+
+/* A scanned PDF: Listen shown, and disabled, with its reason in its tooltip (FR-8). */
+button.zettelkasten-flow__reader-bar-button.is-disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* A narrow pane (about 620 px): the bar keeps its controls, not the voice's name or its words. */
+@container zf-reader (max-width: 46rem) {
+    .zettelkasten-flow__reader-listen-voice,
+    .zettelkasten-flow__reader-listen-mark > span:not(.zettelkasten-flow__reader-listen-mark-icon) {
+        display: none;
+    }
+
+    .zettelkasten-flow__reader-listen-line {
+        white-space: normal;
+    }
+}
+
+/* Reduced motion (FR-15): the tint jumps; the bar is simply there (it is scripted, and skipped). */
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-listen-para::before {
+        transition: none;
+    }
+}

@@ -53,6 +53,9 @@ describe("deep reading: the pure rules (#764)", () => {
         // Snapshot mode (#763 AC-6): after a popover, before the ink palette (they never share the page).
         expect(escapeStep({ snapshot: true, palette: true, panel: true })).toBe("snapshot");
         expect(escapeStep({ popover: true, snapshot: true })).toBe("popover");
+        // Listening (#765): after what floats over the page, before Snapshot, the palette or a panel.
+        expect(escapeStep({ popover: true, listen: true })).toBe("popover");
+        expect(escapeStep({ listen: true, snapshot: true, palette: true, panel: true, deep: true })).toBe("listen");
         expect(escapeStep({})).toBe("exit");
     });
 });

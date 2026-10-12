@@ -22,6 +22,8 @@ const FRONTMATTER = {
     published: "2025-03-02",
     created: "2025-03-04",
     tags: ["clippings"],
+    // Web Clipper's `lang`: the column and Listen's voice read by it (#765).
+    lang: "en-GB",
 };
 const NOTE = [
     "---",
@@ -122,6 +124,8 @@ describe("an article in the Reader (#744)", () => {
         expect(drawn[0].markdown).not.toContain("source:");
         expect(content.oneByClass("reader-source-body").hasClass("zettelkasten-flow__reader-source-body--article")).toBe(true);
         expect(content.oneByClass("reader-next-label").textContent).toBe("Next · Speed");
+        // The language it says it is in: the column declares it (#765, for Listen's voice).
+        expect(content.oneByClass("reader-source-body").getAttribute("lang")).toBe("en-GB");
     });
 
     it("lists its headings in Contents, and goes to a section from there", async () => {

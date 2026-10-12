@@ -39,6 +39,11 @@ export interface OpenOverPage {
     search?: boolean;
     popover?: boolean;
     peek?: boolean;
+    /**
+     * Listening (#765 FR-5): the voice reading aloud — after what floats over the page, before any mode
+     * or panel. Esc stops it, and nothing else that press.
+     */
+    listen?: boolean;
     /** Snapshot mode (#763 FR-1): the next drag is a capture; Esc leaves it without one. */
     snapshot?: boolean;
     /** The ink palette (#745 G3): nearer than a detour, a panel or deep reading. */
@@ -48,10 +53,10 @@ export interface OpenOverPage {
     deep?: boolean;
 }
 
-export type EscapeStep = "proposal" | "shortcuts" | "note" | "search" | "popover" | "peek" | "snapshot" | "palette" | "detour" | "panel" | "deep" | "exit";
+export type EscapeStep = "proposal" | "shortcuts" | "note" | "search" | "popover" | "peek" | "listen" | "snapshot" | "palette" | "detour" | "panel" | "deep" | "exit";
 
 /** The Esc order: today's nearest-first order, with deep reading just before leaving the Reader (FR-6). */
-const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["proposal", "shortcuts", "note", "search", "popover", "peek", "snapshot", "palette", "detour", "panel", "deep"];
+const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["proposal", "shortcuts", "note", "search", "popover", "peek", "listen", "snapshot", "palette", "detour", "panel", "deep"];
 
 /** The one thing the next Esc closes: the nearest open thing, and the Reader itself when nothing is. */
 export function escapeStep(open: OpenOverPage): EscapeStep {

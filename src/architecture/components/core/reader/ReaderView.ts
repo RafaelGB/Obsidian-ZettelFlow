@@ -110,6 +110,12 @@ import { LAYER_LABEL } from "./readerHighlights";
 import { DEFAULT_LAYER, type MarkLayer } from "application/thinking/markLayer";
 import { ReaderSnapshot, captureRegion, captureScale, snapshotName, type Box as SnapshotBox, type SnapshotCapture, type SnapshotDeps, type SnapshotView } from "./readerSnapshot";
 import { saveSnapshot } from "./readerSnapshotSave";
+import { LISTEN_STORAGE_KEY, normalizeListenPrefs, type ListenPrefs } from "./readerListen";
+import { ListenSession, speechPortOf, type ListenMode, type ListenView, type SpeechPort } from "./readerListenSession";
+import { ListenBar, openListenMenu } from "./readerListenBar";
+import { bookNoteOf } from "architecture/components/core/library/bookNoteIndex";
+import { languageTag } from "application/library/sourceMeta";
+import type { TextSpan } from "application/thinking/quoteAnchor";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -168,6 +174,10 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
+    // Listen (#765 FR-10): while the voice reads, the listening bar's keys.
+    { keys: ["K"], label: "reader_key_listen_toggle" },
+    { keys: ["[", "]"], label: "reader_key_listen_step" },
+    { keys: ["H"], label: "reader_key_listen_mark" },
     { keys: ["B"], label: "reader_key_bookmark" },
     // Ink (#745): the pencil in the bar is the door; P is the way back to it, Ctrl/⌘+Z undoes.
     { keys: ["P"], label: "reader_key_ink" },
@@ -554,6 +564,21 @@ export class ReaderView extends ItemView {
      */
     listening = false;
     /**
+     * Listen (#765): the voice reading the book aloud, its bar while it reads, and the *Listen* button.
+     * The speech is the window's own (`null` where the Web Speech API is missing: no button, FR-8).
+     */
+    private listen: ListenSession | null = null;
+    private listenBar: ListenBar | null = null;
+    private listenScope: Component | null = null;
+    private listenButton: HTMLElement | null = null;
+    /** The device has a voice of its own (FR-2): known once its voices are listed. */
+    private listenOffered = false;
+    private listenPrefs: ListenPrefs;
+    /** The language the voice reads in, decided when listening begins and at each chapter (FR-2). */
+    private listenLang: string | null = null;
+    /** The paragraph you last tapped: *From here* begins there while it is on screen (FR-1). */
+    private lastTapped: { el: HTMLElement; chapter: number } | null = null;
+    /**
      * Recall (#760): the chapter being written from memory, while its card is open — and what you
      * wrote in each chapter and did not keep, for as long as this Reader is open (FR-7). Never saved.
      */
@@ -688,11 +713,14 @@ export class ReaderView extends ItemView {
         /** Seams for tests: the dictionaries, the AI layer, Settings and the clipboard of Look up (#766). */
         private readonly lookupDeps: LookupDeps = {},
         /** Seams for tests: the snapshot's writer, its undo and the note picker (#763). */
-        private readonly snapshotDeps: SnapshotDeps = {}
+        private readonly snapshotDeps: SnapshotDeps = {},
+        /** Seams for tests: the speech engine of Listen (#765) — `null` is a device without one. */
+        private readonly listenDeps: { speech?: SpeechPort | null } = {}
     ) {
         super(leaf);
         this.prefs = normalizeReaderPrefs(plugin?.settings?.readerPrefs);
         this.pace = normalizePace(this.app?.loadLocalStorage?.(PACE_STORAGE_KEY));
+        this.listenPrefs = normalizeListenPrefs(this.app?.loadLocalStorage?.(LISTEN_STORAGE_KEY));
         // Obsidian's way (#667): the active leaf's scope gets the keys, wherever focus is, and only
         // the keys it registers — Ctrl/Cmd/Alt combinations fall through to the app's hotkeys.
         this.scope = new Scope(this.app?.scope);
@@ -908,6 +936,8 @@ export class ReaderView extends ItemView {
 
     /** Close the source being read, before another reading takes its place. */
     private leaveSource(): void {
+        // Another reading in this leaf: the voice of this one stops (#765).
+        this.stopListening();
         this.closeSearch();
         this.searchTexts = null;
         this.searchBuilding = null;
@@ -1007,7 +1037,13 @@ export class ReaderView extends ItemView {
         // The sitting's clock stops while the Reader is hidden — a locked iPad, another app (#755 FR-2.3).
         const doc = (this.contentEl as HTMLElement & { doc?: Document }).doc;
         if (doc && typeof doc.addEventListener === "function") {
-            this.registerDomEvent(doc, "visibilitychange", () => this.sitting.setVisible(doc.visibilityState !== "hidden"));
+            this.registerDomEvent(doc, "visibilitychange", () => {
+                this.sitting.setVisible(doc.visibilityState !== "hidden");
+                // A locked iPad, another app (#765 FR-7, AC-6): the web view stops the voice, so listening
+                // is paused at its sentence. On a desktop the voice goes on behind other windows — a
+                // window covered by another is "hidden" too, and must not stop it (found in the walk).
+                if (doc.visibilityState === "hidden" && Platform.isMobile) this.listen?.hidden();
+            });
         }
         this.render();
         this.contentEl.focus({ preventScroll: true });
@@ -1016,6 +1052,8 @@ export class ReaderView extends ItemView {
     async onClose(): Promise<void> {
         // Closing the tab in deep reading still gives the window back as it was.
         this.leaveDeep(true);
+        // Leaving the Reader stops listening (#765 FR-5).
+        this.stopListening();
         window.clearTimeout(this.idleTimer);
         window.clearTimeout(this.placeTimer);
         (this.root?.win ?? window).clearTimeout(this.missingTimer);
@@ -1123,6 +1161,11 @@ export class ReaderView extends ItemView {
             this.notePlace();
         });
         this.wireTouch(stage);
+        // The page moved by your hand while listening (#765 FR-14): it stops following the voice.
+        this.registerDomEvent(stage, "wheel", () => this.listen?.userScrolled(), { passive: true });
+        this.registerDomEvent(stage, "touchmove", () => this.listen?.userScrolled(), { passive: true });
+        // The paragraph you tap is where *From here* begins (FR-1).
+        this.registerDomEvent(stage, "click", (event: MouseEvent) => this.noteTapped(event.target));
         // Ink (#745): its palette floats over the reading, docked in the margin.
         this.ink = new ReaderInk(
             {
@@ -1191,6 +1234,11 @@ export class ReaderView extends ItemView {
         overview.setAttribute("aria-pressed", "false");
         const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
         search.addClass(c("reader-hidden"));
+        // Listen (#765 FR-1): offered once the device's voices are known to include one of its own.
+        const listen = this.iconButton(bar, "audio-lines", "reader_listen", (event) => this.openListen(event));
+        listen.addClass(c("reader-hidden"));
+        listen.setAttribute("data-zf-listen", "");
+        this.listenButton = listen;
         // The pencil (#745 FR-1): the page takes ink while the palette is open.
         this.ink.mountButton(bar);
         const type = this.iconButton(bar, "type", "reader_type", () => this.toggle("type"));
@@ -1247,6 +1295,8 @@ export class ReaderView extends ItemView {
                 lookup: () => this.lookup,
                 layerForNew: () => this.layerTarget(),
                 snapshotImage: (el, from) => void this.snapshotImage(el, from),
+                // *Read aloud* (#765 FR-1): the selected words, where Listen is offered.
+                readAloud: () => (this.listenAvailable() ? (span: TextSpan) => this.startListening("selection", span) : null),
             },
             this.highlightDeps
         );
@@ -1255,6 +1305,7 @@ export class ReaderView extends ItemView {
             open: (app, path) => void app.workspace.openLinkText(path, "", "tab"),
             ...this.snapshotDeps,
         });
+        this.setUpListen(root);
         this.watchShape(root);
         // Words selected: Alongside follows the selection once it settles (#754 FR-2).
         const doc = (root as HTMLElement & { doc?: Document }).doc;
@@ -1264,7 +1315,7 @@ export class ReaderView extends ItemView {
         this.wake();
     }
 
-    private iconButton(parent: HTMLElement, icon: string, key: LocaleKey, onClick: () => void): HTMLElement {
+    private iconButton(parent: HTMLElement, icon: string, key: LocaleKey, onClick: (event: MouseEvent) => void): HTMLElement {
         const button = parent.createEl("button", {
             cls: ["clickable-icon", c("reader-bar-button")].join(" "),
             attr: { type: "button", "aria-label": t(key) },
@@ -1279,7 +1330,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet", "reader--snapshot"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet", "reader--snapshot", "reader--listening"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1452,6 +1503,9 @@ export class ReaderView extends ItemView {
         this.snapshotButton?.toggleClass(c("reader-hidden"), !snapshotOffered);
         if (!snapshotOffered) this.snapshot?.leave();
         this.renderZoom();
+        // The end card has nothing to read aloud: the voice stops there (#765).
+        if (this.ended) this.listen?.stop();
+        this.renderListenButton();
         const total = path?.chapters.length ?? 0;
         this.renderBarPlace();
 
@@ -1618,6 +1672,7 @@ export class ReaderView extends ItemView {
         // Everything is on the page, the end card too: lay it out in pages (#753), then say where you are.
         this.layPages();
         this.onStageScroll();
+        this.listenDrawn();
     }
 
     /** How long a chapter takes to read, from its words; 0 when it cannot be read. */
@@ -2890,6 +2945,7 @@ export class ReaderView extends ItemView {
         this.layPages();
         this.onStageScroll();
         this.refreshRibbon();
+        this.listenDrawn();
     }
 
     /** Back to the shelf: the Library's own leaf as it was, or the Library opened on this source. */
@@ -5594,6 +5650,182 @@ export class ReaderView extends ItemView {
         if (this.idleAllowed()) root.addClass(c("reader--idle"));
     }
 
+    // ── listen (#765) ────────────────────────────────────────────────────────
+
+    /** The window's speech, and whether the device has a voice of its own (FR-2, FR-8). */
+    private setUpListen(root: HTMLElement): void {
+        const port = this.listenDeps.speech !== undefined ? this.listenDeps.speech : speechPortOf(root.win);
+        if (!port) return;
+        const session = new ListenSession(this.listenView(), port);
+        this.listen = session;
+        session.whenVoices((available) => {
+            if (this.listen !== session) return;
+            this.listenOffered = available;
+            this.renderListenButton();
+        });
+    }
+
+    private listenView(): ListenView {
+        const win = () => this.root?.win ?? window;
+        return {
+            body: () => this.els?.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? null,
+            stage: () => this.els?.stage ?? null,
+            pager: () => this.pager,
+            chapter: () => this.index,
+            isLast: () => this.index >= (this.path?.chapters.length ?? 1) - 1,
+            // A reading turn (#755): listening is on, so no chapter end pauses it.
+            turn: () => this.go(1),
+            landsIn: () => Math.max(0, this.turnLandsAt - Date.now()),
+            motion: () => this.motionAllowed(),
+            lang: () => this.listenLang,
+            prefs: () => this.listenPrefs,
+            savePrefs: (prefs) => {
+                this.listenPrefs = prefs;
+                this.app?.saveLocalStorage?.(LISTEN_STORAGE_KEY, prefs);
+            },
+            setListening: (on) => {
+                this.listening = on;
+                this.root?.toggleClass(c("reader--listening"), on);
+            },
+            changed: () => this.renderListenBar(),
+            setTimeout: (fn, ms) => win().setTimeout(fn, ms),
+            clearTimeout: (id) => win().clearTimeout(id),
+        };
+    }
+
+    /** Listen is offered here: a voice on the device, and words on the page (FR-8). */
+    private listenAvailable(): boolean {
+        return Boolean(this.listen && this.listenOffered && !this.listenHidden() && !this.source?.imageOnly);
+    }
+
+    /**
+     * Where the button is not drawn at all: no voice of the device's own (FR-8), the end card, a
+     * designed book (pictures, no text), and a paper in Page view — Listen reads the Reading view.
+     */
+    private listenHidden(): boolean {
+        if (!this.listen || !this.listenOffered || this.ended) return true;
+        if (this.sourcePath && !this.source) return true;
+        // A scanned paper is read as printed, and says why it cannot be heard (FR-8): shown, disabled.
+        if (this.source?.imageOnly) return false;
+        return Boolean(this.source?.designed) || this.runMode();
+    }
+
+    /** The bar's *Listen*: hidden, offered — or, in a scanned PDF, shown disabled with its reason (FR-8, AC-7). */
+    private renderListenButton(): void {
+        const button = this.listenButton;
+        if (!button) return;
+        const hidden = this.listenHidden();
+        button.toggleClass(c("reader-hidden"), hidden);
+        if (hidden && this.listen?.active()) this.stopListening();
+        const scanned = Boolean(this.source?.imageOnly);
+        const label = t(scanned ? "reader_listen_scanned" : "reader_listen");
+        button.toggleClass("is-disabled", scanned);
+        if (scanned) button.setAttribute("aria-disabled", "true");
+        else button.removeAttribute("aria-disabled");
+        button.setAttribute("aria-label", label);
+        setTooltip(button, label, { placement: "top" });
+        button.setAttribute("aria-pressed", String(Boolean(this.listen?.active())));
+    }
+
+    private openListen(event: MouseEvent): void {
+        const session = this.listen;
+        // A scanned PDF has no text to read: the button says so, and does nothing (FR-8).
+        if (!session || !this.listenAvailable()) return;
+        this.listenLang = this.readingLang();
+        openListenMenu(event, { session, start: (mode) => this.startListening(mode), lang: () => this.listenLang });
+    }
+
+    /**
+     * The language the voice reads in (FR-2): the book's note's `language` (#743), the book's own or
+     * its chapter's (#757), an article's `lang`; else none, and the device's default voice reads.
+     */
+    private readingLang(): string | null {
+        const noted = this.sourcePath ? languageTag(bookNoteOf(this.app, this.sourcePath)?.details.language) : undefined;
+        return noted ?? this.pageLanguage ?? languageTag(this.source?.language) ?? null;
+    }
+
+    /** Begin reading aloud (FR-1): *From here*, *This chapter*, or the selected words. */
+    private startListening(mode: ListenMode, span?: TextSpan): void {
+        const session = this.listen;
+        if (!session || !this.listenAvailable()) return;
+        this.listenLang = this.readingLang();
+        const from = mode === "here" ? this.listenFrom() : { at: 0, top: false };
+        if (!session.start(mode, { from: from.at, top: from.top, onScreen: (el) => this.onScreen(el), ...(span ? { span } : {}) })) return;
+        this.renderListenBar();
+    }
+
+    /** Where *From here* begins: the paragraph you last tapped, while it is on screen; else the top of the page. */
+    private listenFrom(): { at: number; top: boolean } {
+        const body = this.els?.page.querySelector<HTMLElement>(`.${c("reader-body")}`);
+        if (!body) return { at: 0, top: false };
+        const tapped = this.lastTapped;
+        if (tapped && tapped.chapter === this.index && body.contains(tapped.el) && this.onScreen(tapped.el)) {
+            return { at: offsetAt(body, tapped.el, 0) ?? 0, top: false };
+        }
+        const top = this.pager?.firstVisible() ?? null;
+        if (!top) return { at: 0, top: true };
+        if ("startContainer" in top) return { at: offsetAt(body, top.startContainer, top.startOffset) ?? 0, top: true };
+        return { at: offsetAt(body, top, 0) ?? 0, top: true };
+    }
+
+    /** A tap on the page notes its paragraph, for *From here*. */
+    private noteTapped(target: EventTarget | null): void {
+        const el = (target as HTMLElement | null)?.closest?.("p, li, h1, h2, h3, h4, h5, h6, blockquote, dd, dt, td, th, figcaption, pre") as HTMLElement | null;
+        if (el && this.els?.page.contains(el)) this.lastTapped = { el, chapter: this.index };
+    }
+
+    /** The chapter on the page was drawn: the voice goes on there, or keeps its place (FR-12). */
+    private listenDrawn(): void {
+        this.lastTapped = null;
+        if (!this.listen?.active()) return;
+        this.listenLang = this.readingLang();
+        this.listen.chapterDrawn();
+    }
+
+    /** The listening bar, as the session is: drawn while it reads, taken away when it stops. */
+    private renderListenBar(): void {
+        const session = this.listen;
+        const root = this.root;
+        if (session?.active() && root) {
+            if (!this.listenBar) {
+                this.listenScope?.unload();
+                const scope = new Component();
+                scope.load();
+                this.listenScope = scope;
+                this.listenBar = new ListenBar(root, { session, owner: scope, mark: () => void this.listenMark(), lang: () => this.listenLang });
+            } else this.listenBar.update();
+        } else if (this.listenBar) {
+            this.listenBar.remove();
+            this.listenBar = null;
+            this.listenScope?.unload();
+            this.listenScope = null;
+        }
+        this.listenButton?.setAttribute("aria-pressed", String(Boolean(session?.active())));
+    }
+
+    private stopListening(): void {
+        this.listen?.stop();
+        this.renderListenBar();
+    }
+
+    /**
+     * *Mark* (FR-6): the sentence being read, kept as a highlight with the meaning used last and the
+     * layer new marks go to. The voice goes on. Returns whether there was a sentence to keep.
+     */
+    private listenMark(): boolean {
+        const sentence = this.listen?.active() ? this.listen.sentence() : null;
+        if (!sentence || !this.highlights) return false;
+        void this.highlights.markSpan(sentence.start, sentence.end);
+        return true;
+    }
+
+    /** A key of the listening bar: taken only while listening — otherwise it goes on to the app. */
+    private listenKey(run: () => void): boolean {
+        if (!this.listen?.active()) return false;
+        run();
+        return true;
+    }
+
     // ── keys, idle bar ───────────────────────────────────────────────────────
 
     /**
@@ -5641,7 +5873,12 @@ export class ReaderView extends ItemView {
             return true;
         });
         // H keeps the selection as a highlight; Shift+H asks for a note with it (#671).
-        bind(none, "H", () => this.highlights?.highlightCurrent(false) ?? false);
+        // While listening with nothing selected, H keeps the sentence being read (#765 FR-6).
+        bind(none, "H", () => (this.highlights?.highlightCurrent(false) ?? false) || this.listenMark());
+        // The listening bar's keys (#765 FR-10): only while the voice reads; otherwise the app's.
+        bind(none, "K", () => this.listenKey(() => this.listen?.toggle()));
+        bind(none, "[", () => this.listenKey(() => this.listen?.step(-1)));
+        bind(none, "]", () => this.listenKey(() => this.listen?.step(1)));
         bind(shift, "H", () => this.highlights?.highlightCurrent(true) ?? false);
         // B bookmarks the place you are reading, or takes the bookmark on this screen away (#761).
         bind(none, "B", () => this.toggleBookmark());
@@ -5683,6 +5920,7 @@ export class ReaderView extends ItemView {
             search: Boolean(this.searchEl),
             popover: Boolean(this.highlights?.hasPopover()),
             peek: Boolean(this.peek),
+            listen: Boolean(this.listen?.active()),
             snapshot: Boolean(this.snapshot?.active()),
             palette: Boolean(this.ink?.isOpen()),
             detour: this.detours.length > 0,
@@ -5707,6 +5945,8 @@ export class ReaderView extends ItemView {
                 return this.highlights?.hidePopover();
             case "peek":
                 return this.closePeek();
+            case "listen":
+                return this.stopListening();
             case "snapshot":
                 return this.snapshot?.leave();
             case "palette":
@@ -5727,6 +5967,8 @@ export class ReaderView extends ItemView {
      * Shift+Space the same, backwards. Reading never needs the mouse.
      */
     private page(direction: 1 | -1): void {
+        // A page turned or scrolled by your key while listening: the page stops following (#765 FR-14).
+        this.listen?.userScrolled();
         const stage = this.els?.stage;
         if (!stage || this.ended || this.pause) {
             this.go(direction);
@@ -5752,6 +5994,7 @@ export class ReaderView extends ItemView {
     private scrollStage(share: number): void {
         const stage = this.els?.stage;
         if (!stage) return;
+        this.listen?.userScrolled();
         const top = Math.round((stage.clientHeight || 0) * share);
         if (typeof stage.scrollBy === "function") stage.scrollBy({ top, behavior: this.motionAllowed() ? "smooth" : "auto" });
         else stage.scrollTop = Math.max(0, stage.scrollTop + top);

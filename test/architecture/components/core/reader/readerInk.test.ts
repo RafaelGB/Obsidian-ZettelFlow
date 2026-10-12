@@ -629,7 +629,7 @@ const LINE_1 = (m: { words: WordBox[]; text: string }) => {
     return m.text.slice(line[0].start, line[line.length - 1].end);
 };
 
-describe("draw across a line and it is highlighted (#746)", () => {
+describe("the highlighter (#746)", () => {
     let rec: AnimationRecord;
     beforeEach(() => {
         installBrowserGlobals();
@@ -644,8 +644,9 @@ describe("draw across a line and it is highlighted (#746)", () => {
         delete (globalThis as any).matchMedia;
     });
 
-    it("keeps a pen stroke along a line as a highlight of its words: one write of a highlight, no ink (FR-1, FR-2)", async () => {
+    it("keeps a highlighter stroke along a line as a highlight of its words: one write of a highlight, no ink (FR-1, FR-2)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -659,22 +660,22 @@ describe("draw across a line and it is highlighted (#746)", () => {
         expect(m.store.writeInk).not.toHaveBeenCalled();
     });
 
-    it("leaves handwriting as ink, over the words or in the margin (AC-1, the negative)", async () => {
+    it("never highlights with the pen: handwriting and a line across words stay ink (#790 FR-2, AC-2)", async () => {
         const m = direct();
         await flush();
         const written = loadInk("write-flat-synth-01").strokes[0].points.map((p) => ({ x: 200 + p.x * 16, y: middle(1) - 4 + p.y * 16 }));
         m.draw(written);
-        m.draw(along(1, 700, 990));
+        m.draw(along(0));
         wait(GROUP_IDLE_MS);
         await flush();
         expect(m.store.write).not.toHaveBeenCalled();
-        // Far apart: two ink notes, and no highlight.
-        expect(m.store.writeInk).toHaveBeenCalledTimes(2);
         expect(m.marks()).toHaveLength(0);
+        expect(m.status()).toBeUndefined();
     });
 
     it("takes the meaning H uses: an idea at first, then the one chosen last (FR-4, AC-4)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         const first = m.highlights.quoteFor(0, 5)!;
         await m.highlights.keepSpan(first.span, first.quote, { meaning: "question", origin: "selection" });
@@ -685,6 +686,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("turns any highlighter stroke over words into a highlight, and keeps nothing over the margin (FR-6, AC-6)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.pick("highlighter");
         // A wiggle no pen line would be, still over the words of line 0.
@@ -702,6 +704,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("draws the highlighter as one, in the meaning's wash, while you draw (FR-15)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.pick("highlighter");
         m.draw(along(0), { lift: false });
@@ -713,6 +716,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("says what it kept, with Undo and Keep as ink (FR-7, AC-7)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -728,6 +732,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("keeps the stroke as ink instead: the highlight to the trash and one ink note, in one batch (FR-7, AC-7)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -747,6 +752,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
     it("keeps the highlight, and writes no ink, when Keep as ink cannot take it back: never both", async () => {
         const error = jest.spyOn(log, "error").mockImplementation(() => undefined);
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -760,6 +766,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("is the session's last ink action: the palette's undo and two fingers take it back (FR-7)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -780,6 +787,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("grows the same highlight onto the next line drawn soon after: one update, only the new words sweep (FR-5, FR-13, AC-5)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(0));
         await flush();
@@ -801,6 +809,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("makes a second highlight when the next line comes too late (AC-5)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(0));
         await flush();
@@ -813,6 +822,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("turns the stroke into the mark: the ink fades as the mark sweeps from where it began, before the write answers (FR-11, FR-12)", async () => {
         const m = direct({ writePending: true });
+        m.pick("highlighter");
         await flush();
         m.draw(along(1, 480, 90)); // right to left
         // The write is still pending: the marks are already on the words, sweeping from the right.
@@ -832,6 +842,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
 
     it("fades the mark away on Undo: opacity only, 120 ms (FR-14)", async () => {
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -849,6 +860,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
     it("is instant under reduced motion: the stroke goes and the mark is there (FR-16)", async () => {
         (globalThis as any).matchMedia = () => ({ matches: true });
         const m = direct();
+        m.pick("highlighter");
         await flush();
         m.draw(along(1));
         await flush();
@@ -860,7 +872,7 @@ describe("draw across a line and it is highlighted (#746)", () => {
     });
 });
 
-describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
+describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
     let rec: AnimationRecord;
     beforeEach(() => {
         installBrowserGlobals();
@@ -884,6 +896,7 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
 
     async function printed(text: PageText | null, pageLocator?: (index: number) => ThoughtLocator) {
         const m = direct({ run: true, pageWords: async () => text, pageLocator });
+        m.pick("highlighter");
         const slot = new DomNode();
         slot.addClass("zettelkasten-flow__reader-pv-slot");
         slot.setAttribute("data-page", "2");
@@ -900,6 +913,7 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
 
     it("gives a dark printed page light ink, and paper dark ink — from the page as drawn (ink on dark pages)", async () => {
         const m = await printed(PRINTED);
+        m.pick("highlighter");
         const surface = () => m.slot.byClass("reader-ink-page")[0] as DomNode;
         // Until the page is read, it is paper: the light palette, dark pencil.
         expect(surface().hasClass("theme-light")).toBe(true);
@@ -928,6 +942,7 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
 
     it("cites a line of a printed page exactly: its key and its print page ride with it (#751 FR-5)", async () => {
         const m = await printed(PRINTED, (at) => ({ at, label: "p. iii", chapter: `page:${at}`, page: "iii" }));
+        m.pick("highlighter");
         m.draw(printedLine(), { target: m.slot });
         await flush();
         const [, options] = m.store.write.mock.calls[0] as [string, any];
@@ -936,6 +951,7 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
 
     it("keeps a line of a text page as a highlight cited at that page, drawn as rectangles over its words", async () => {
         const m = await printed(PRINTED);
+        m.pick("highlighter");
         m.draw(printedLine(), { target: m.slot });
         await flush();
         expect(m.store.write).toHaveBeenCalledTimes(1);
@@ -951,18 +967,20 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
         expect(m.store.writeInk).not.toHaveBeenCalled();
     });
 
-    it("leaves a stroke on a page with no text, a scan, as ink, and makes no highlight (AC-8, the empty state)", async () => {
+    it("keeps nothing for a highlighter stroke on a page with no text, a scan (AC-8, the empty state)", async () => {
         const m = await printed({ text: "", words: [], headings: [] });
+        m.pick("highlighter");
         m.draw(printedLine(), { target: m.slot });
         wait(GROUP_IDLE_MS);
         await flush();
         expect(m.store.write).not.toHaveBeenCalled();
-        expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-        expect((m.store.writeInk.mock.calls[0] as [any])[0].ink.page).toBeDefined();
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+        expect(m.root.oneByClass("reader-ink-status").textContent).toBe("Nothing under the highlighter");
     });
 
     it("takes the rectangles away with Undo", async () => {
         const m = await printed(PRINTED);
+        m.pick("highlighter");
         m.draw(printedLine(), { target: m.slot });
         await flush();
         m.button("Undo")!.click();
@@ -973,9 +991,9 @@ describe("draw across a line on a printed page (#746 FR-9, AC-8)", () => {
     });
 });
 
-// ── #747: circle, arrow, scribble and lasso ─────────────────────────────────────────────────────
+// ── #747, #790: the pen only draws, and the lasso ─────────────────────────────────────────────────────
 
-describe("circle, arrow, scribble and lasso (#747)", () => {
+describe("the pen only draws, and the lasso (#747, #790)", () => {
     let rec: AnimationRecord;
     beforeEach(() => {
         installBrowserGlobals();
@@ -1033,328 +1051,54 @@ describe("circle, arrow, scribble and lasso (#747)", () => {
     const inkStatus = (m: M) => m.root.oneByClass("reader-ink-status").textContent;
     const scrawl = (x: number, y: number) => [0, 1, 2, 3, 4, 5].map((k) => ({ x: x + k * 8, y: y + (k % 2 ? -6 : 6) }));
 
-    describe("a circle keeps its words as a question (FR-3, AC-3)", () => {
-        it("keeps the words inside it with the meaning Question — the thought a selection with Question makes", async () => {
-            const m = direct({ textRects: true });
+    describe("the pen only draws (#790 FR-2, AC-2)", () => {
+        /** Nothing the pen draws is read: no highlight, no link, no erase, and no line said about it. */
+        const nothingRead = async (m: M) => {
             await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            await flush();
-            expect(m.store.write).toHaveBeenCalledTimes(1);
-            const [note, circled] = m.store.write.mock.calls[0] as [string, any];
-            expect(circled.quote.exact).toBe("sourcing stores");
-            expect(circled.meaning).toBe("question");
-            // The same words, selected, with Question: the same write, field for field.
-            const at = m.text.indexOf("sourcing stores");
-            const found = m.highlights.quoteFor(at, at + "sourcing stores".length)!;
-            await m.highlights.keepSpan(found.span, found.quote, { meaning: "question", origin: "selection" });
-            expect(m.store.write.mock.calls[1]).toEqual([note, circled]);
-            wait(GROUP_IDLE_MS * 2);
-            await flush();
-            expect(m.store.writeInk).not.toHaveBeenCalled();
-        });
-
-        it("says so, with Undo and Keep as ink, and leaves the meaning H uses as it was", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            await flush();
-            expect(m.status().textContent).toContain("Circled — kept as a question");
-            expect(m.button("Keep as ink")).toBeDefined();
-            expect(m.highlights.currentMeaning()).toBe("idea");
-            m.button("Undo")!.click();
-            await flush();
-            expect(m.store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: "hl1" }));
-            expect(m.ink.undoKey()).toBe(false);
-        });
-
-        it("keeps the circle as ink instead: the highlight to the trash and the stroke written, in one batch (AC-7)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            await flush();
-            m.button("Keep as ink")!.click();
-            await flush();
-            expect(m.store.discard).toHaveBeenCalledTimes(1);
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-            expect(m.batches.writeInk[0]).toBe(m.batches.discard[0]);
-            expect(m.marks()).toHaveLength(0);
-        });
-
-        it("is taken back by the palette's undo (FR-8)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            await flush();
-            m.root.oneByClass("reader-ink-undo").click();
-            await flush();
-            expect(m.store.discard).toHaveBeenCalledTimes(1);
-        });
-
-        it("stays ink round no words: a loop in the margin", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(around({ left: 600, top: 120, right: 700, bottom: 150 }));
-            wait(GROUP_IDLE_MS);
-            await flush();
-            expect(m.store.write).not.toHaveBeenCalled();
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-        });
-
-        it("tightens a clean ring onto its words as the question sweeps in, before the write answers (FR-12, FR-16)", async () => {
-            const m = direct({ textRects: true, writePending: true });
-            await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            const ring = rec.animations.find((a) => a.target.hasClass?.("zettelkasten-flow__reader-ink-ring"));
-            expect(ring).toBeDefined();
-            expect(ring!.duration).toBe(MOTION.base);
-            expect(new Set(ring!.keyframes.flatMap((k) => Object.keys(k)))).toEqual(new Set(["opacity", "transform", "offset"]));
-            expect(ring!.target.hasClass("zettelkasten-flow__reader-ink--hl-question")).toBe(true);
-            expect(ring!.target.cssProps["--zf-ink-origin"]).toMatch(/px .*px$/);
-            // The mark is already on the words, sweeping; the write is still out.
-            expect(m.marks().length).toBeGreaterThan(0);
-            for (const mark of m.marks()) {
-                expect(mark.hasClass("zettelkasten-flow__reader-highlight--new")).toBe(true);
-                expect(mark.hasClass("zettelkasten-flow__reader-highlight--question")).toBe(true);
-            }
-            m.release();
-            await flush();
-            rec.finishAll();
-            expect(ring!.target.isConnected).toBe(false);
-        });
-    });
-
-    describe("an arrow links two marks (FR-4, AC-4)", () => {
-        it("links the two highlights it is drawn between, both ways, in one recorded write", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            const a = await keep(m, "stores changes");
-            const b = await keep(m, "it from");
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-            await flush();
-            expect(m.store.save).toHaveBeenCalledTimes(2);
-            const saved = m.store.save.mock.calls.map((call) => call[0] as Thought);
-            expect(saved.find((t) => t.id === a.id)?.links).toEqual([{ to: b.id }]);
-            expect(saved.find((t) => t.id === b.id)?.links).toEqual([{ to: a.id }]);
-            expect(m.batches.save[0]).toBeDefined();
-            expect(m.batches.save[1]).toBe(m.batches.save[0]);
-            expect(m.status().textContent).toContain("Linked");
-            expect(m.button("Keep as ink")).toBeDefined();
-            wait(GROUP_IDLE_MS * 2);
-            await flush();
-            expect(m.store.writeInk).not.toHaveBeenCalled();
-        });
-
-        it("fades the arrow as the two marks brighten once: opacity only, gone at the end (FR-13)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            await keep(m, "it from");
-            const before = rec.animations.length;
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-            const moved = rec.animations.slice(before);
-            const fade = moved.find((a) => a.target.hasClass?.("zettelkasten-flow__reader-ink-live"));
-            expect(fade?.keyframes).toEqual([{ opacity: 1 }, { opacity: 0 }]);
-            expect(fade?.duration).toBe(MOTION.base);
-            const flashes = moved.filter((a) => a.target.hasClass?.("zettelkasten-flow__reader-ink-flash"));
-            expect(flashes).toHaveLength(2);
-            for (const f of flashes) expect(new Set(f.keyframes.flatMap((k) => Object.keys(k)).filter((k) => k !== "offset"))).toEqual(new Set(["opacity"]));
-            rec.finishAll();
-            expect(m.page.byClass("reader-ink-flash").filter((el) => el.isConnected)).toHaveLength(0);
-            await flush();
-        });
-
-        it("stays ink when an end is on plain text, and says what it needs; no link is written", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "every", "change"))));
-            await flush();
-            expect(inkStatus(m)).toBe("Arrows link marks — highlight both ends first");
-            wait(GROUP_IDLE_MS);
-            await flush();
+            expect(m.store.write).toHaveBeenCalledTimes(2);
             expect(m.store.save).not.toHaveBeenCalled();
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-        });
-
-        it("writes an ink note it ends on first, then links it (G3)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            const a = await keep(m, "stores changes");
-            m.draw(scrawl(600, 170));
-            clock += 300;
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), { x: 615, y: 172 }));
-            await flush();
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-            expect(m.store.save).toHaveBeenCalledTimes(2);
-            const saved = m.store.save.mock.calls.map((call) => call[0] as Thought);
-            const ink = saved.find((t) => t.id !== a.id)!;
-            expect(ink.id).toMatch(/^ink/);
-            expect(saved.find((t) => t.id === a.id)?.links).toEqual([{ to: ink.id }]);
-        });
-
-        it("keeps the arrow as ink instead: both saved without the link, and the stroke written (AC-7)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            await keep(m, "it from");
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-            await flush();
-            m.button("Keep as ink")!.click();
-            await flush();
-            const saves = m.store.save.mock.calls.map((call) => call[0] as Thought);
-            expect(saves).toHaveLength(4);
-            expect(saves.slice(2).every((t) => t.links.length === 0)).toBe(true);
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-            expect(m.batches.writeInk[0]).toBe(m.batches.save[2]);
-        });
-
-        it("is taken back by the palette's undo: both saved as they were, in one batch", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            await keep(m, "it from");
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-            await flush();
-            m.root.oneByClass("reader-ink-undo").click();
-            await flush();
-            const saves = m.store.save.mock.calls.map((call) => call[0] as Thought);
-            expect(saves).toHaveLength(4);
-            expect(saves.slice(2).every((t) => t.links.length === 0)).toBe(true);
-            expect(m.batches.save[3]).toBe(m.batches.save[2]);
-            // Its line goes with it: no Undo is left offering what is already undone.
-            expect(m.status()).toBeUndefined();
-        });
-    });
-
-    describe("the way back stays true (review of #747)", () => {
-        it("takes back only the arrow's link: a change made since stays", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            const a = await keep(m, "stores changes");
-            await keep(m, "it from");
-            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-            await flush();
-            const linked = (m.store.save.mock.calls[0] as [Thought])[0];
-            // The highlight's meaning changed after the arrow.
-            m.highlights.adopt({ ...linked, meaning: "quote" });
-            m.root.oneByClass("reader-ink-undo").click();
-            await flush();
-            const undone = m.store.save.mock.calls.slice(2).map((call) => call[0] as Thought);
-            const back = undone.find((t) => t.id === a.id)!;
-            expect(back.meaning).toBe("quote");
-            expect(back.links).toEqual([]);
-        });
-
-        it("turns a shaft and its head into one arrow and one step: Undo takes the link, nothing is left dead", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            await keep(m, "it from");
-            const tail = centre(boxOf(m, "stores", "changes"));
-            const tip = centre(boxOf(m, "it", "from"));
-            m.draw(straight(tail, tip));
-            clock += 300;
-            const back = Math.atan2(tail.y - tip.y, tail.x - tip.x);
-            const arm = (k: number) => ({ x: tip.x + 24 * Math.cos(back + k), y: tip.y + 24 * Math.sin(back + k) });
-            m.draw([...straight(arm(0.6), tip, 6), ...straight(tip, arm(-0.6), 6).slice(1)]);
-            await flush();
-            expect(m.store.save).toHaveBeenCalledTimes(2);
-            m.root.oneByClass("reader-ink-undo").click();
-            await flush();
-            expect(m.store.save).toHaveBeenCalledTimes(4);
-            expect(m.ink.undoKey()).toBe(false);
-            wait(GROUP_IDLE_MS * 2);
-            await flush();
-            expect(m.store.writeInk).not.toHaveBeenCalled();
-        });
-
-        it("never says Erased when the erase failed, and leaves nothing to undo", async () => {
-            const error = jest.spyOn(log, "error").mockImplementation(() => undefined);
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            m.store.discard.mockImplementationOnce(async () => Promise.reject(new Error("locked")));
-            m.draw(scratch(boxOf(m, "stores", "changes")));
-            await flush();
-            expect(m.status()?.textContent ?? "").not.toContain("Erased");
-            expect(m.marks().length).toBeGreaterThan(0);
-            expect(m.ink.undoKey()).toBe(false);
-            error.mockRestore();
-        });
-
-        it("leaves a popover that is not its line alone when the palette's undo takes a gesture back", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(around(boxOf(m, "sourcing", "stores")));
-            await flush();
-            m.pick("lasso");
-            m.draw(around(boxOf(m, "the", "state")));
-            await flush();
-            expect(m.root.byClass("reader-hl-pop--select")).toHaveLength(1);
-            m.root.oneByClass("reader-ink-undo").click();
-            await flush();
-            expect(m.store.discard).toHaveBeenCalledTimes(1);
-            expect(m.root.byClass("reader-hl-pop--select")).toHaveLength(1);
-        });
-    });
-
-    describe("a scribble erases, and the eraser reaches highlights (FR-5, FR-6, AC-5)", () => {
-        it("takes the ink stroke and the highlight it is drawn over, in one batch, and brings both back as one action", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            const hl = await keep(m, "stores changes");
-            // A tick of ink through the highlight, written.
-            m.draw(straight({ x: 300, y: 96 }, { x: 302, y: 130 }, 8));
-            wait(GROUP_IDLE_MS);
-            await flush();
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-            m.draw(scratch(boxOf(m, "stores", "changes")));
-            await flush();
-            expect(m.store.discard).toHaveBeenCalledTimes(2);
-            expect(m.store.discard).toHaveBeenCalledWith(expect.objectContaining({ id: hl.id }));
-            expect(m.batches.discard[1]).toBe(m.batches.discard[0]);
-            expect(m.marks()).toHaveLength(0);
-            expect(m.status().textContent).toContain("Erased");
-            m.button("Undo")!.click();
-            await flush();
-            expect(m.store.restore).toHaveBeenCalledTimes(2);
-            expect(m.marks().length).toBeGreaterThan(0);
-            // Nothing of the scribble is ever kept.
-            wait(GROUP_IDLE_MS * 2);
-            await flush();
-            expect(m.store.writeInk).toHaveBeenCalledTimes(1);
-        });
-
-        it("fades the scribble and what it took together: opacity, 120 ms (FR-14)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            await keep(m, "stores changes");
-            const before = rec.animations.length;
-            m.draw(scratch(boxOf(m, "stores", "changes")));
-            const moved = rec.animations.slice(before);
-            expect(moved.length).toBeGreaterThanOrEqual(2);
-            for (const a of moved) {
-                expect(a.duration).toBe(MOTION.fast);
-                expect(new Set(a.keyframes.flatMap((k) => Object.keys(k)))).toEqual(new Set(["opacity"]));
-            }
-            expect(moved.some((a) => a.target.hasClass?.("zettelkasten-flow__reader-ink-live"))).toBe(true);
-            expect(moved.some((a) => a.target.hasClass?.("zettelkasten-flow__reader-hl-washout"))).toBe(true);
-            await flush();
-        });
-
-        it("erases nothing over nothing, keeps no ink, and says so (the empty state)", async () => {
-            const m = direct({ textRects: true });
-            await flush();
-            m.draw(scratch({ left: 620, top: 300, right: 700, bottom: 316 }));
-            await flush();
-            expect(inkStatus(m)).toBe("Nothing to erase");
-            wait(GROUP_IDLE_MS * 2);
-            await flush();
             expect(m.store.discard).not.toHaveBeenCalled();
-            expect(m.store.writeInk).not.toHaveBeenCalled();
+            expect(m.status()).toBeUndefined();
+            expect(m.marks().length).toBeGreaterThan(0);
+        };
+        const twoMarks = async (m: M) => {
+            await keep(m, "stores changes");
+            await keep(m, "it from");
+        };
+
+        it("leaves a circle round words as ink", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await twoMarks(m);
+            m.draw(around(boxOf(m, "the", "state")));
+            await nothingRead(m);
         });
 
-        it("lets the eraser take a highlight it passes over, with Undo", async () => {
+        it("leaves an arrow between two highlights as ink", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await twoMarks(m);
+            m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
+            await nothingRead(m);
+        });
+
+        it("leaves a scribble over a highlight as ink", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await twoMarks(m);
+            m.draw(scratch(boxOf(m, "it", "from")));
+            await nothingRead(m);
+        });
+
+        it("leaves a stroke along a line as ink", async () => {
+            const m = direct({ textRects: true });
+            await flush();
+            await twoMarks(m);
+            m.draw(along(1));
+            await nothingRead(m);
+        });
+
+        it("lets the eraser take a highlight it passes over, with Undo (#747 FR-6)", async () => {
             const m = direct({ textRects: true });
             await flush();
             const hl = await keep(m, "it from");
@@ -1501,22 +1245,4 @@ describe("circle, arrow, scribble and lasso (#747)", () => {
         });
     });
 
-    it("is all instant under reduced motion: no ring, no brightening, no fade (FR-17)", async () => {
-        (globalThis as any).matchMedia = () => ({ matches: true });
-        const m = direct({ textRects: true });
-        await flush();
-        await keep(m, "stores changes");
-        await keep(m, "it from");
-        m.draw(around(boxOf(m, "the", "state")));
-        await flush();
-        m.draw(arrow(centre(boxOf(m, "stores", "changes")), centre(boxOf(m, "it", "from"))));
-        await flush();
-        m.draw(scratch(boxOf(m, "it", "from")));
-        await flush();
-        expect(m.store.write).toHaveBeenCalledTimes(3);
-        expect(m.store.save).toHaveBeenCalledTimes(2);
-        expect(m.store.discard).toHaveBeenCalledTimes(1);
-        expect(rec.animations).toHaveLength(0);
-        expect(m.page.findAll((el) => el.hasClass("zettelkasten-flow__reader-ink-live") && el.isConnected)).toHaveLength(0);
-    });
 });

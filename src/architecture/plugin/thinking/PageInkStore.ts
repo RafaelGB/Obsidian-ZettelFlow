@@ -3,7 +3,6 @@ import { log } from "architecture/monitoring/Logger";
 import { ObsidianApi } from "architecture/plugin/ObsidianAPI";
 import { FileService } from "architecture/plugin/services/FileService";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
-import { isUnreadable } from "application/reader/ink/inkSvg";
 import { emptyPageInk, mergePageInk, pageInkPath, parsePageInk, renderPageInk, type PageInk } from "application/reader/ink/pageInk";
 
 /**
@@ -66,7 +65,7 @@ export class PageInkStore {
         const known = this.known.get(path);
         if (known?.text === text) return known.doc;
         const doc = parsePageInk(text);
-        if (isUnreadable(doc)) {
+        if ("unreadable" in doc) {
             log.warn(`[Reader] the page ink of ${about} is from a newer version or broken: it is left as it is`);
             return null;
         }

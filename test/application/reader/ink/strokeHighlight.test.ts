@@ -1,81 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-    bandWords,
-    extendsHighlight,
-    isLineStroke,
-    strokeMetrics,
-    EXTEND_WINDOW_MS,
-    LINE_BAND_LH,
-    LINE_MAX_CLOSURE,
-    LINE_MAX_HEIGHT_LH,
-    LINE_MAX_SLOPE,
-    LINE_MIN_STRAIGHTNESS,
-    LINE_MIN_WIDTH_EM,
-} from "application/reader/ink/strokeHighlight";
+import { bandWords, extendsHighlight, strokeMetrics, EXTEND_WINDOW_MS, LINE_BAND_LH } from "application/reader/ink/strokeHighlight";
 import type { WordBox } from "application/reader/ink/inkAnchor";
-import { fixtureNames, loadInk, synthetic } from "../../../support/inkFixtures";
 
-/** The reading line, in ems: a little tighter than the Reader's default, so the test is the stricter. */
-const LINE_EM = 1.5;
-const SIZES = [14, 18, 24];
-
-/** A recorded stroke (kept in ems) at a reading size: points and line height scaled together. */
-function at(name: string, fontPx: number) {
-    const points = loadInk(name).strokes.flatMap((stroke) => stroke.points.map((p) => ({ x: p.x * fontPx, y: p.y * fontPx })));
-    return { metrics: strokeMetrics(points), ctx: { linePx: LINE_EM * fontPx, emPx: fontPx } };
-}
-
-const named = (prefix: string) => fixtureNames().filter((name) => name.startsWith(prefix));
-const LINES = named("line-");
-const NOT_LINES = [...named("write-"), ...named("diagonal-"), ...named("circle-"), ...named("arrow-")];
-
-describe("a line, not a drawing (#746 FR-1, AC-1)", () => {
-    it("has its thresholds as named constants, in reading units", () => {
-        expect({ LINE_MAX_HEIGHT_LH, LINE_MIN_WIDTH_EM, LINE_MAX_SLOPE, LINE_MIN_STRAIGHTNESS, LINE_MAX_CLOSURE, LINE_BAND_LH, EXTEND_WINDOW_MS }).toEqual({
-            LINE_MAX_HEIGHT_LH: 0.6,
-            LINE_MIN_WIDTH_EM: 2.5,
-            LINE_MAX_SLOPE: 0.12,
-            LINE_MIN_STRAIGHTNESS: 0.85,
-            LINE_MAX_CLOSURE: 0.3,
-            LINE_BAND_LH: 0.75,
-            EXTEND_WINDOW_MS: 4000,
-        });
-    });
-
-    it("has recorded strokes of every class to judge", () => {
-        expect(LINES.length).toBeGreaterThanOrEqual(20);
-        expect(named("diagonal-").length).toBeGreaterThanOrEqual(10);
-        expect(named("write-flat-").length).toBeGreaterThanOrEqual(10);
-        expect(named("circle-").length + named("arrow-").length).toBeGreaterThan(0);
-    });
-
-    it.each(SIZES)("accepts every recorded line stroke at %i px", (fontPx) => {
-        const missed = LINES.filter((name) => {
-            const { metrics, ctx } = at(name, fontPx);
-            return !isLineStroke(metrics, ctx);
-        });
-        expect(missed).toEqual([]);
-    });
-
-    it.each(SIZES)("rejects handwriting, long flat words, diagonals, circles and arrows at %i px", (fontPx) => {
-        const taken = NOT_LINES.filter((name) => {
-            const { metrics, ctx } = at(name, fontPx);
-            return isLineStroke(metrics, ctx);
-        });
-        expect(taken).toEqual([]);
-    });
-
-    it("rejects the synthetic handwriting, and #745's walk scrawl", () => {
-        for (const stroke of synthetic()) expect({ name: stroke.name, line: isLineStroke(strokeMetrics(stroke.points), { linePx: 28, emPx: 16 }) }).toEqual({ name: stroke.name, line: false });
-        const { metrics, ctx } = at("walk-mouse-scrawl-01", 16);
-        expect(isLineStroke(metrics, ctx)).toBe(false);
-    });
-
-    it("rejects a word too short to be two words, and a stroke too tall to be on one line", () => {
-        const flat = (width: number, height: number) => strokeMetrics([{ x: 0, y: 0 }, { x: width / 2, y: height }, { x: width, y: 0 }]);
-        expect(isLineStroke(flat(2 * 16, 0), { linePx: 24, emPx: 16 })).toBe(false);
-        expect(isLineStroke(flat(3 * 16, 0), { linePx: 24, emPx: 16 })).toBe(true);
-        expect(isLineStroke(flat(30 * 16, 0.7 * 24), { linePx: 24, emPx: 16 })).toBe(false);
+describe("a highlighter stroke, measured (#746)", () => {
+    it("has its band and its window as named constants", () => {
+        expect({ LINE_BAND_LH, EXTEND_WINDOW_MS }).toEqual({ LINE_BAND_LH: 0.75, EXTEND_WINDOW_MS: 4000 });
     });
 
     it("measures direction, closure and the turns back", () => {

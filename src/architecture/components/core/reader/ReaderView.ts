@@ -194,14 +194,10 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
 ];
 
 /**
- * What the page does under a pen or a finger (#746 G3, #747), a group of its own. Each gesture is a
- * glyph, like →: a line, a circle, an arrow, a scribble and the lasso.
+ * What the page does under a pen or a finger (#747, #790), a group of its own. The pen only draws:
+ * the lasso is the one gesture, as a glyph like →.
  */
 const GESTURES: { keys: string[]; label: LocaleKey }[] = [
-    { keys: ["—"], label: "reader_gesture_line" },
-    { keys: ["○"], label: "reader_gesture_circle" },
-    { keys: ["→"], label: "reader_gesture_arrow" },
-    { keys: ["≋"], label: "reader_gesture_scribble" },
     { keys: ["◌"], label: "reader_gesture_lasso" },
     { keys: ["reader_kbd_two_fingers"], label: "reader_key_ink_undo" },
 ];

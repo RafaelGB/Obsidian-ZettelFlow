@@ -489,13 +489,7 @@ export const BUDGETS = {
         because:
             "a book's page ink is read and merged on open, and before a save when another device changed it (#790). Two 9 MB copies are a book written on cover to cover",
     },
-    "ink.classify.1000": {
-        name: "recognise a 1,000-point stroke against a page of 400 words and 40 marks",
-        limit: 8,
-        measured: "1.19 ms",
-        because:
-            "a stroke is classified at pen-up inside the frame, before its gesture's motion begins (#747 FR-16); 8 ms leaves half of a 60 Hz frame for that motion to start",
-    },
+
     "reader.lookup.stardict.open.200k": {
         name: "open a 200,000-entry StarDict dictionary (and 50,000 synonyms) for look-up: its index parsed into the table",
         // ~3.5x the measurement. It was 555 ms before the words were decoded in one native pass, not one by one;

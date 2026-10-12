@@ -608,24 +608,7 @@ describe("one highlight engine: a stroke and a selection keep the same thought (
     });
 });
 
-describe("what the gestures ask of the one engine (#747)", () => {
-    it("keeps a circle's words as the same thought a selection with Question keeps, and leaves H's meaning alone (AC-3)", async () => {
-        const m = mount();
-        await m.attach();
-        const text = chapterText(m.body as never);
-        const at = text.indexOf("stores changes");
-        const found = m.highlights.quoteFor(at, at + "stores changes".length)!;
-        await m.highlights.keepSpan(found.span, found.quote, { meaning: "question", origin: "stroke", status: "reader_ink_circled", remember: false });
-        expect(m.highlights.currentMeaning()).toBe("idea");
-        expect(m.host.find((el) => el.textContent === "Circled — kept as a question")).toBeDefined();
-        m.select("stores changes");
-        m.body.fire("mouseup");
-        m.button("Question").click();
-        await flush();
-        const [circled, selected] = m.store.write.mock.calls as unknown as [string, unknown][];
-        expect(selected).toEqual(circled);
-    });
-
+describe("what the lasso asks of the one engine (#747)", () => {
     it("offers the lasso's words in the selection popover — every meaning, the note and Copy — and writes nothing (FR-7, AC-6)", async () => {
         const m = mount();
         await m.attach();

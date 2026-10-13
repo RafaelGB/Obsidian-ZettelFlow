@@ -11,6 +11,7 @@
  *   docs/resources/readme/banner-light.svg  the same masthead, for a light one
  *   docs/resources/readme/reader-hero.svg   the Reader and the Library, in one continuous shot
  *   docs/resources/readme/hero.svg          How it works: the Canvas walked, the wizard filled, the graph it lands in
+ *   docs/resources/readme/first-flow.svg    Your first flow: every click from an empty canvas to a note
  *
  * Every animation settles into a readable still frame under `prefers-reduced-motion`, uses only
  * system fonts (an `<img>` SVG cannot load a web font), and loops quietly.
@@ -828,7 +829,333 @@ ${beatSvg}
 `;
 }
 
+// ─── Your first flow: from an empty canvas to a note, every click shown ──────────────────────────
+
+function firstFlow() {
+    const t = THEMES.dark;
+    const W = 1200;
+    const H = 640;
+    const D = 18;
+    const panel = "#211f29";
+    const panelStroke = "#2f2d3a";
+    const card = "#2a2936";
+    const cardStroke = "#3d3b54";
+    const modal = "#26252f";
+    const field = "#1c1b22";
+    const END = 97;
+
+    const css = [];
+    const anim = (cls, frames, base = "") => css.push(`.${cls}{${base}animation:${cls} ${D}s infinite}\n@keyframes ${cls}{${frames}}`);
+    /** Visible between a and b; hidden in the still frame unless `keep`. */
+    const win = (cls, a, b, keep = false) =>
+        anim(cls, `0%,${a - 1}%{opacity:0;transform:translateY(6px)}${a}%,${b}%{opacity:1;transform:none}${b + 1}%,100%{opacity:0}`, keep ? "" : "opacity:0;");
+    /** Appears at a and stays until the loop resets; part of the still frame. */
+    const from = (cls, a) => anim(cls, `0%,${a - 1}%{opacity:0;transform:translateY(4px)}${a}%,${END}%{opacity:1;transform:none}100%{opacity:0}`);
+    /** A press: a ring that flashes on the control at a. */
+    const press = (cls, a) => anim(cls, `0%,${a - 0.6}%{opacity:0}${a}%{opacity:1}${a + 1.6}%,100%{opacity:0}`, "opacity:0;");
+    /** Typing: a cover that steps off the text between a and b. */
+    const typing = (cls, a, b, chars) =>
+        anim(cls, `0%,${a}%{transform:scaleX(1);animation-timing-function:steps(${chars},end)}${b}%,100%{transform:scaleX(0)}`, "transform-box:fill-box;transform-origin:right;transform:scaleX(0);");
+
+    const text = (x, y, s, { size = 13, color = t.text, weight = 400, anchor = "start", family = SANS, cls = "" } = {}) =>
+        `<text${cls ? ` class="${cls}"` : ""} x="${x}" y="${y}" fill="${color}" font-family="${family}" font-size="${size}"${weight !== 400 ? ` font-weight="${weight}"` : ""}${anchor !== "start" ? ` text-anchor="${anchor}"` : ""}>${esc(s)}</text>`;
+    const btn = (x, y, w, label, cta = false, h = 28) =>
+        `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${cta ? t.accent : card}" stroke="${cta ? t.accent : cardStroke}"/>${text(x + w / 2, y + h / 2 + 4.5, label, { size: 12.5, color: cta ? "#fff" : t.text, weight: cta ? 650 : 500, anchor: "middle" })}`;
+    const ring = (cls, x, y, w, h, rx = 8) => `<rect class="${cls}" x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="${rx + 2}" fill="none" stroke="#cfc8ff" stroke-width="2"/>`;
+    const shade = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#0b0a10" opacity="0.5"/>`;
+
+    // Clicks — the pointer's whole path is one list, so its moves and the presses agree.
+    const C = {
+        rowClick: 6, menuClick: 13, roleClick: 24, firstClick: 34, kindClick: 40, editClick: 48,
+        addClick: 53, tileClick: 57, closeClick: 69, ribbonClick: 72, createClick: 76, confirmClick: 91,
+    };
+    const P = [
+        [0, 520, 420], [C.rowClick - 3, 160, 128], [C.rowClick, 160, 128, true],
+        [C.menuClick - 3, 310, 238], [C.menuClick, 310, 238, true],
+        [C.roleClick - 4, 880, 352], [C.roleClick, 880, 352, true],
+        [C.firstClick - 4, 664, 366], [C.firstClick, 664, 366, true],
+        [C.kindClick - 3, 740, 280], [C.kindClick, 740, 280, true],
+        [C.editClick - 3, 742, 192], [C.editClick, 742, 192, true],
+        [C.addClick - 3, 688, 190], [C.addClick, 688, 190, true],
+        [C.tileClick - 3, 706, 246], [C.tileClick, 706, 246, true],
+        [C.closeClick - 4, 1128, 92], [C.closeClick, 1128, 92, true],
+        [C.ribbonClick - 2.5, 37, 150], [C.ribbonClick, 37, 150, true],
+        [C.createClick - 3, 140, 190], [C.createClick, 140, 190, true],
+        [C.confirmClick - 4, 912, 436], [C.confirmClick, 912, 436, true],
+        [95, 980, 520],
+    ];
+    const frames = [];
+    for (const [p, x, y, click] of P) {
+        if (click) {
+            frames.push(`${(p - 0.5).toFixed(1)}%{transform:translate(${x}px,${y}px) scale(1)}`);
+            frames.push(`${p}%{transform:translate(${x}px,${y}px) scale(.8)}`);
+            frames.push(`${(p + 0.7).toFixed(1)}%{transform:translate(${x}px,${y}px) scale(1)}`);
+        } else frames.push(`${p}%{transform:translate(${x}px,${y}px)}`);
+    }
+    anim("ptr", `${frames.join("")}96%{opacity:1}97%,100%{opacity:0;transform:translate(980px,520px)}`, "opacity:0;");
+
+    // ── The window: ribbon, file explorer, the canvas ──
+    const RX = 16, EX = 58, MX = 278;
+    const ribbonIcons = [66, 102, 150, 186]
+        .map((y, i) =>
+            i === 2
+                ? `<rect x="${RX + 9}" y="${y - 12}" width="24" height="24" rx="6" fill="url(#logo)"/><path d="M${RX + 15} ${y - 6} H${RX + 27} L${RX + 15} ${y + 6} H${RX + 27}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+                : `<rect x="${RX + 12}" y="${y - 9}" width="18" height="18" rx="4" fill="none" stroke="#6c6a80" stroke-width="1.5"/>`
+        )
+        .join("");
+    const row = (y, label, { indent = 0, icon = "", muted = false, cls = "" } = {}) =>
+        `<g${cls ? ` class="${cls}"` : ""}>${icon ? `<rect x="${EX + 22 + indent}" y="${y - 10}" width="12" height="12" rx="2.5" fill="none" stroke="${icon}" stroke-width="1.4"/>` : ""}${text(EX + (icon ? 42 : 20) + indent, y, label, { size: 13, color: muted ? t.muted : "#d9d6ea" })}</g>`;
+
+    const explorer = `<rect x="${EX}" y="50" width="${MX - EX}" height="510" fill="${panel}"/>
+<line x1="${MX}" y1="50" x2="${MX}" y2="560" stroke="${panelStroke}"/>
+${text(EX + 18, 78, "MY VAULT", { size: 11, color: t.muted, weight: 700 })}
+${row(104, "▾ flows", { muted: true })}
+<rect class="rowhl" x="${EX + 6}" y="114" width="${MX - EX - 12}" height="24" rx="5" fill="#34314a"/>
+${row(131, "Daily note.canvas", { indent: 10, icon: t.accent })}
+${row(160, "▾ Journal", { muted: true })}
+${row(186, "2026-10-12.md", { indent: 10, icon: "#6c6a80" })}
+<g class="newnote"><rect x="${EX + 6}" y="196" width="${MX - EX - 12}" height="24" rx="5" fill="#2d2945" stroke="${t.accent}" stroke-opacity="0.6"/>${row(213, "What went well.md", { indent: 10, icon: t.green })}</g>
+${row(242, "Welcome.md", { icon: "#6c6a80" })}`;
+    anim("rowhl", `0%,${C.rowClick - 0.5}%{opacity:0}${C.rowClick}%,${C.menuClick + 1}%{opacity:1}${C.menuClick + 2}%,100%{opacity:0}`, "opacity:0;");
+    from("newnote", 93);
+
+    const canvasArea = `<rect x="${MX}" y="50" width="${1184 - MX}" height="34" fill="#24232c"/>
+<rect x="${MX + 10}" y="56" width="170" height="28" rx="7" fill="#1c1b22"/>
+${text(MX + 26, 75, "Daily note", { size: 12.5, color: "#d9d6ea" })}
+<rect x="${MX}" y="84" width="${1184 - MX}" height="476" fill="url(#dots)"/>`;
+
+    // ── Beat 1: the canvas's menu, and the role ──
+    const menuX = 190, menuY = 124;
+    const ctx = `<g class="ctx">
+<rect x="${menuX}" y="${menuY}" width="250" height="126" rx="8" fill="#2a2936" stroke="#45425e" filter="url(#lift)"/>
+${["Open in new tab", "Rename…", "Move file to…"].map((s, i) => text(menuX + 34, menuY + 24 + i * 26, s, { size: 13, color: "#d9d6ea" })).join("")}
+<line x1="${menuX + 8}" y1="${menuY + 90}" x2="${menuX + 242}" y2="${menuY + 90}" stroke="#45425e"/>
+<rect class="ctxhl" x="${menuX + 5}" y="${menuY + 96}" width="240" height="24" rx="5" fill="${t.accent}" opacity="0.85"/>
+<rect x="${menuX + 12}" y="${menuY + 101}" width="14" height="14" rx="3" fill="none" stroke="#fff" stroke-width="1.4"/>
+${text(menuX + 34, menuY + 113, "Use this canvas to create notes", { size: 13, color: "#fff", weight: 600 })}
+</g>`;
+    win("ctx", C.rowClick + 0.5, C.menuClick + 0.5);
+    anim("ctxhl", `0%,${C.menuClick - 3.5}%{opacity:0}${C.menuClick - 3}%,100%{opacity:.85}`, "opacity:0;");
+
+    const dX = 511, dY = 196, dW = 440, dH = 186;
+    const dialog = `<g class="dialog">
+${shade(MX, 84, 1184 - MX, 476)}
+<rect x="${dX}" y="${dY}" width="${dW}" height="${dH}" rx="12" fill="${modal}" stroke="#45425e" filter="url(#lift)"/>
+${text(dX + 24, dY + 38, "Give this canvas a role", { size: 17, weight: 700 })}
+<rect x="${dX + 24}" y="${dY + 56}" width="${dW - 48}" height="34" rx="7" fill="${field}" stroke="${cardStroke}"/>
+${text(dX + 38, dY + 78, "flows/Daily note.canvas", { size: 13, color: "#d9d6ea", family: "ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" })}
+<rect x="${dX + dW - 140}" y="${dY + 62}" width="104" height="22" rx="11" fill="#2d2945" stroke="${t.accent}"/>
+${text(dX + dW - 88, dY + 77.5, "Creates notes", { size: 12, color: "#cfc8ff", weight: 600, anchor: "middle" })}
+${text(dX + 24, dY + 118, "The ribbon icon and the create command will open it.", { size: 13, color: t.muted })}
+${btn(dX + dW - 236, dY + dH - 50, 76, "Cancel")}
+${btn(dX + dW - 150, dY + dH - 50, 126, "Give it the role", true)}
+${ring("pr-role", dX + dW - 150, dY + dH - 50, 126, 28, 6)}
+</g>`;
+    win("dialog", C.menuClick + 1, C.roleClick + 1.5);
+    press("pr-role", C.roleClick);
+
+    // ── Beat 2: the empty flow, and its first step ──
+    const eX = 521, eY = 200, eW = 420;
+    const empty = `<g class="empty">
+<rect x="${eX}" y="${eY}" width="${eW}" height="196" rx="12" fill="${modal}" stroke="#45425e" filter="url(#lift)"/>
+<circle cx="${eX + eW / 2}" cy="${eY + 40}" r="18" fill="#2d2945"/>
+<path d="M${eX + eW / 2 - 8} ${eY + 46} c 0 -10 16 -2 16 -12" fill="none" stroke="${t.accent}" stroke-width="2" stroke-linecap="round"/>
+<circle cx="${eX + eW / 2 - 8}" cy="${eY + 47}" r="2.5" fill="${t.accent}"/><circle cx="${eX + eW / 2 + 8}" cy="${eY + 33}" r="2.5" fill="${t.accent}"/>
+${text(eX + eW / 2, eY + 86, "This canvas has no steps yet", { size: 16, weight: 700, anchor: "middle" })}
+${text(eX + eW / 2, eY + 110, "A step is a note or a card the wizard walks. Start with one,", { size: 12.5, color: t.muted, anchor: "middle" })}
+${text(eX + eW / 2, eY + 128, "or install a system that already works.", { size: 12.5, color: t.muted, anchor: "middle" })}
+${btn(eX + 50, eY + 148, 180, "+  Create the first step", true, 30)}
+${btn(eX + 242, eY + 148, 128, "Browse systems", false, 30)}
+${ring("pr-first", eX + 50, eY + 148, 180, 30, 6)}
+</g>`;
+    win("empty", C.roleClick + 2, C.firstClick + 1);
+    press("pr-first", C.firstClick);
+
+    const kX = 531, kY = 196, kW = 400;
+    const kinds = ["Note — file with frontmatter (recommended)", "Text card (inline, legacy)", "Group (inline, legacy)"];
+    const kind = `<g class="kind">
+${shade(MX, 84, 1184 - MX, 476)}
+<rect x="${kX}" y="${kY}" width="${kW}" height="196" rx="12" fill="${modal}" stroke="#45425e" filter="url(#lift)"/>
+${text(kX + 24, kY + 38, "What kind of step?", { size: 17, weight: 700 })}
+${kinds.map((s, i) => `<rect x="${kX + 24}" y="${kY + 62 + i * 40}" width="${kW - 48}" height="32" rx="7" fill="${i === 0 ? "#2d2945" : field}" stroke="${i === 0 ? t.accent : cardStroke}"/>${text(kX + 38, kY + 83 + i * 40, s, { size: 13, color: i === 0 ? "#fff" : "#d9d6ea", weight: i === 0 ? 600 : 400 })}`).join("\n")}
+${ring("pr-kind", kX + 24, kY + 62, kW - 48, 32, 7)}
+</g>`;
+    win("kind", C.firstClick + 1.5, C.kindClick + 1.5);
+    press("pr-kind", C.kindClick);
+
+    // The step on the canvas: it starts the flow by itself.
+    const sX = 616, sY = 216, sW = 250;
+    const step = `<g class="step">
+<rect x="${sX}" y="${sY}" width="${sW}" height="118" rx="10" fill="${card}" stroke="${cardStroke}" stroke-width="1.5"/>
+<rect x="${sX}" y="${sY}" width="${sW}" height="30" rx="10" fill="#302e40"/><rect x="${sX}" y="${sY + 20}" width="${sW}" height="10" fill="#302e40"/>
+${text(sX + 14, sY + 20, "Step.md", { size: 12, color: t.muted })}
+<rect x="${sX + sW - 112}" y="${sY + 7}" width="100" height="18" rx="9" fill="${t.accent}"/>
+${text(sX + sW - 62, sY + 20, "Starts the flow", { size: 10.5, color: "#fff", weight: 700, anchor: "middle" })}
+${text(sX + 16, sY + 62, "# Step", { size: 15, weight: 700 })}
+<g class="stepask">${text(sX + 16, sY + 88, "Ask for text · What went well today?", { size: 12, color: t.muted })}</g>
+</g>
+<g class="sel">
+<rect x="${sX - 4}" y="${sY - 4}" width="${sW + 8}" height="126" rx="12" fill="none" stroke="${t.accent}" stroke-width="2"/>
+<rect x="${sX + sW / 2 - 70}" y="${sY - 44}" width="140" height="30" rx="8" fill="#2a2936" stroke="#45425e"/>
+${text(sX + sW / 2 - 50, sY - 24, "⋯", { size: 13, color: t.muted })}
+<rect x="${sX + sW / 2 - 34}" y="${sY - 40}" width="98" height="22" rx="5" fill="#34314a"/>
+${text(sX + sW / 2 + 15, sY - 25, "Edit step", { size: 12.5, color: "#fff", weight: 600, anchor: "middle" })}
+${ring("pr-edit", sX + sW / 2 - 34, sY - 40, 98, 22, 5)}
+</g>`;
+    from("step", C.kindClick + 1.5);
+    win("sel", C.kindClick + 4, C.editClick + 1);
+    press("pr-edit", C.editClick);
+    from("stepask", C.closeClick + 1);
+
+    // ── Beat 3: the step editor ──
+    const zX = 560, zY = 66, zW = 600, zH = 482;
+    const L0 = zX + 28;
+    const tiles = ["Ask for text", "Ask for a number", "Pick a date", "Choose an option", "Add tags", "Link a note"];
+    const editor = `<g class="editor">
+${shade(MX, 84, 1184 - MX, 476)}
+<rect x="${zX}" y="${zY}" width="${zW}" height="${zH}" rx="12" fill="${modal}" stroke="#45425e" filter="url(#lift)"/>
+${text(L0, zY + 40, "Step", { size: 19, weight: 700 })}
+${text(zX + zW - 32, zY + 32, "✕", { size: 15, color: t.muted, anchor: "middle" })}
+${ring("pr-close", zX + zW - 44, zY + 16, 24, 24, 6)}
+<rect x="${L0}" y="${zY + 54}" width="78" height="22" rx="11" fill="${card}" stroke="${cardStroke}"/>${text(L0 + 39, zY + 69, "Step note", { size: 11.5, color: "#d9d6ea", anchor: "middle" })}
+<rect x="${L0 + 86}" y="${zY + 54}" width="104" height="22" rx="11" fill="#2d2945" stroke="${t.accent}"/>${text(L0 + 138, zY + 69, "Starts the flow", { size: 11.5, color: "#cfc8ff", weight: 600, anchor: "middle" })}
+<rect x="${L0}" y="${zY + 92}" width="${zW - 56}" height="${zH - 196}" rx="10" fill="${field}" stroke="${cardStroke}"/>
+${text(L0 + 18, zY + 120, "What does this step ask?", { size: 14.5, weight: 700 })}
+<g class="meta0">${text(zX + zW - 46, zY + 120, "nothing yet", { size: 12, color: t.faint, anchor: "end" })}</g>
+<g class="meta1">${text(zX + zW - 46, zY + 120, "1 action", { size: 12, color: t.muted, anchor: "end" })}</g>
+<g class="addbtn">${btn(L0 + 18, zY + 108 + 26, 130, "+  Add an action")}${ring("pr-add", L0 + 18, zY + 134, 130, 28, 6)}</g>
+<g class="grid">
+${tiles.map((s, i) => {
+        const x = L0 + 18 + (i % 3) * 176;
+        const y = zY + 172 + Math.floor(i / 3) * 52;
+        return `<rect x="${x}" y="${y}" width="166" height="44" rx="8" fill="${i === 0 ? "#2d2945" : card}" stroke="${i === 0 ? t.accent : cardStroke}"/>${text(x + 14, y + 27, s, { size: 13, color: "#fff", weight: i === 0 ? 650 : 500 })}`;
+    }).join("\n")}
+${ring("pr-tile", L0 + 18, zY + 172, 166, 44, 8)}
+</g>
+<g class="acard">
+<rect x="${L0 + 18}" y="${zY + 134}" width="${zW - 92}" height="${zH - 254}" rx="9" fill="${card}" stroke="${cardStroke}"/>
+${text(L0 + 34, zY + 160, "⠿", { size: 13, color: t.faint })}
+${text(L0 + 54, zY + 160, "Ask for text", { size: 14, weight: 650 })}
+${text(L0 + 34, zY + 182, "A text field. The answer is written to the note.", { size: 12, color: t.muted })}
+${text(L0 + 34, zY + 212, "Question", { size: 13, color: "#d9d6ea", weight: 600 })}
+<rect x="${L0 + 180}" y="${zY + 196}" width="${zW - 290}" height="26" rx="6" fill="${field}" stroke="${t.accent}"/>
+${text(L0 + 192, zY + 213.5, "What went well today?", { size: 13 })}
+<rect class="typeq" x="${L0 + 190}" y="${zY + 199}" width="160" height="20" fill="${field}"/>
+${text(L0 + 34, zY + 250, "Where it writes", { size: 13, color: "#d9d6ea", weight: 600 })}
+<rect x="${L0 + 180}" y="${zY + 234}" width="130" height="26" rx="6" fill="${field}" stroke="${cardStroke}"/>
+${text(L0 + 192, zY + 251.5, "Body", { size: 13 })}${text(L0 + 296, zY + 251.5, "▾", { size: 11, color: t.muted, anchor: "end" })}
+</g>
+<rect x="${L0}" y="${zY + zH - 92}" width="${zW - 56}" height="34" rx="9" fill="${field}" stroke="${cardStroke}"/>
+${text(L0 + 18, zY + zH - 70, "▸  When does it appear?", { size: 13.5, weight: 600 })}
+${text(zX + zW - 46, zY + zH - 70, "starts the flow", { size: 12, color: "#cfc8ff", anchor: "end" })}
+<rect x="${L0}" y="${zY + zH - 50}" width="${zW - 56}" height="34" rx="9" fill="${field}" stroke="${cardStroke}"/>
+${text(L0 + 18, zY + zH - 28, "▸  Where does it go?", { size: 13.5, weight: 600 })}
+</g>`;
+    win("editor", C.editClick + 1, C.closeClick + 1);
+    press("pr-close", C.closeClick);
+    anim("meta0", `0%,${C.tileClick}%{opacity:1}${C.tileClick + 0.5}%,100%{opacity:0}`);
+    anim("meta1", `0%,${C.tileClick}%{opacity:0}${C.tileClick + 0.5}%,100%{opacity:1}`, "opacity:0;");
+    anim("addbtn", `0%,${C.addClick + 0.8}%{opacity:1}${C.addClick + 1}%,100%{opacity:0}`, "opacity:0;");
+    press("pr-add", C.addClick);
+    win("grid", C.addClick + 1, C.tileClick + 0.5);
+    press("pr-tile", C.tileClick);
+    anim("acard", `0%,${C.tileClick + 0.5}%{opacity:0;transform:translateY(6px)}${C.tileClick + 1.5}%,100%{opacity:1;transform:none}`);
+    typing("typeq", 60, 65, 21);
+
+    // ── Beat 4: the ribbon, and the wizard ──
+    const rmX = 62, rmY = 128;
+    const rmenu = `<g class="rmenu">
+<rect x="${rmX}" y="${rmY}" width="260" height="160" rx="8" fill="#2a2936" stroke="#45425e" filter="url(#lift)"/>
+${text(rmX + 34, rmY + 24, "Think — open your thinking space", { size: 13, color: "#d9d6ea" })}
+<rect x="${rmX + 5}" y="${rmY + 36}" width="250" height="24" rx="5" fill="${t.accent}" opacity="0.85"/>
+${text(rmX + 34, rmY + 53, "Create note", { size: 13, color: "#fff", weight: 600 })}
+<line x1="${rmX + 8}" y1="${rmY + 70}" x2="${rmX + 252}" y2="${rmY + 70}" stroke="#45425e"/>
+${["Community", "Run the current canvas as a flow", "Open canvas"].map((s, i) => text(rmX + 34, rmY + 92 + i * 26, s, { size: 13, color: "#d9d6ea" })).join("")}
+</g>`;
+    win("rmenu", C.ribbonClick + 0.5, C.createClick + 0.5);
+
+    const wX = 420, wY = 120, wW = 560, wH = 356;
+    const wizard = `<g class="wizard">
+${shade(MX, 84, 1184 - MX, 476)}
+<rect x="${wX}" y="${wY}" width="${wW}" height="${wH}" rx="12" fill="${modal}" stroke="#45425e" filter="url(#lift)"/>
+${text(wX + 28, wY + 38, "Step", { size: 13, color: t.muted, weight: 600 })}
+<rect x="${wX + 28}" y="${wY + 50}" width="${wW - 56}" height="3" rx="1.5" fill="#3a3847"/><rect x="${wX + 28}" y="${wY + 50}" width="${wW - 56}" height="3" rx="1.5" fill="${t.accent}"/>
+${text(wX + 28, wY + 96, "What went well today?", { size: 20, weight: 700 })}
+<rect x="${wX + 28}" y="${wY + 114}" width="${wW - 56}" height="110" rx="8" fill="${field}" stroke="${t.accent}" stroke-width="1.5"/>
+${text(wX + 44, wY + 142, "Drew my first flow, and it worked.", { size: 15 })}
+<rect class="typea" x="${wX + 42}" y="${wY + 126}" width="250" height="22" fill="${field}"/>
+<line x1="${wX}" y1="${wY + wH - 66}" x2="${wX + wW}" y2="${wY + wH - 66}" stroke="#3a3847"/>
+${btn(wX + 28, wY + wH - 48, 70, "Back")}
+${btn(wX + wW - 128, wY + wH - 48, 100, "Confirm", true)}
+${ring("pr-confirm", wX + wW - 128, wY + wH - 48, 100, 28, 6)}
+</g>`;
+    win("wizard", C.createClick + 1, C.confirmClick + 1);
+    typing("typea", 80, 86, 34);
+    press("pr-confirm", C.confirmClick);
+    press("pr-ribbon", C.ribbonClick);
+
+    // ── The bar: four beats, the words you will see ──
+    const beats = [
+        { label: "Give the canvas its role", sub: "right-click it → Use this canvas to create notes", span: [0, 27] },
+        { label: "Create the first step", sub: "it starts the flow on its own", span: [27, 49] },
+        { label: "Say what it asks", sub: "Edit step → Add an action → Ask for text", span: [49, 71] },
+        { label: "Create a note", sub: "ribbon → Create note: the wizard walks it", span: [71, 100] },
+    ];
+    const bX = 28, bW = 1144, segW = bW / 4;
+    const beatSvg = beats
+        .map((b, i) => {
+            const x = bX + i * segW + 20;
+            const cls = `beat${i}`;
+            const [s0, s1] = [b.span[0], Math.min(b.span[1], END)];
+            anim(cls, i === 0 ? `0%,${s1 - 0.5}%{opacity:1}${s1}%,100%{opacity:0}` : `0%,${s0}%{opacity:0}${s0 + 0.5}%,${s1 - 0.5}%{opacity:1}${s1}%,100%{opacity:0}`, "opacity:0;");
+            return `<circle cx="${x + 10}" cy="586" r="10" fill="#2d2b3a" stroke="${cardStroke}"/>${text(x + 10, 590, String(i + 1), { size: 11, color: t.muted, weight: 700, anchor: "middle" })}
+${text(x + 28, 590, b.label, { size: 13.5, color: "#d9d6ea", weight: 650 })}
+${text(x + 28, 607, b.sub, { size: 11, color: t.faint })}
+<g class="${cls}"><circle cx="${x + 10}" cy="586" r="10" fill="${t.accent}"/>${text(x + 10, 590, String(i + 1), { size: 11, color: "#fff", weight: 700, anchor: "middle" })}${text(x + 28, 590, b.label, { size: 13.5, color: "#fff", weight: 650 })}</g>`;
+        })
+        .join("\n");
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Your first flow, from an empty canvas to a note: right-click the canvas and choose Use this canvas to create notes, give it the role, press Create the first step and pick a note step, which starts the flow on its own; Edit step, Add an action, Ask for text, write the question; then the ribbon's Create note opens the wizard, which asks it and creates the note.">
+<title>Your first flow</title>
+<defs>
+<pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#2a2938"/></pattern>
+<linearGradient id="logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7ff5"/><stop offset="1" stop-color="#5b45d6"/></linearGradient>
+<filter id="lift" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/></filter>
+</defs>
+<style>
+${css.join("\n")}
+@media (prefers-reduced-motion: reduce){
+*{animation:none!important}
+}
+</style>
+<rect width="${W}" height="${H}" rx="16" fill="#141319"/>
+<rect x="16" y="16" width="${W - 32}" height="${H - 32}" rx="12" fill="#1c1b22" stroke="#34323f" stroke-width="1.5"/>
+<path d="M16 28 a12 12 0 0 1 12 -12 h${W - 56} a12 12 0 0 1 12 12 v22 h-${W - 32} z" fill="#24232c"/>
+<circle cx="38" cy="33" r="5" fill="#fb464c"/><circle cx="56" cy="33" r="5" fill="#e0de71"/><circle cx="74" cy="33" r="5" fill="#44cf6e"/>
+${text(W / 2, 38, "My vault — Obsidian", { size: 12.5, color: "#8b8a98", anchor: "middle" })}
+<line x1="16" y1="50" x2="${W - 16}" y2="50" stroke="#34323f"/>
+<rect x="${RX}" y="50" width="${EX - RX}" height="510" fill="#1a1920"/>
+${ribbonIcons}
+${ring("pr-ribbon", RX + 9, 138, 24, 24, 6)}
+${explorer}
+${canvasArea}
+${step}
+${empty}
+${kind}
+${dialog}
+${editor}
+${wizard}
+${ctx}
+${rmenu}
+<line x1="16" y1="560" x2="${W - 16}" y2="560" stroke="#34323f"/>
+${beatSvg}
+<g class="ptr"><path d="M0 0 L0 17 L4.5 13 L7.5 20 L10.5 18.6 L7.6 12 L13 12 Z" fill="#fff" stroke="#141319" stroke-width="1.2" stroke-linejoin="round"/></g>
+</svg>
+`;
+}
+
 writeFileSync(join(OUT, "hero.svg"), flowHero());
+writeFileSync(join(OUT, "first-flow.svg"), firstFlow());
 writeFileSync(join(OUT, "banner-dark.svg"), banner("dark"));
 writeFileSync(join(OUT, "banner-light.svg"), banner("light"));
 writeFileSync(join(OUT, "reader-hero.svg"), readerHero());

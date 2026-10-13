@@ -160,7 +160,8 @@ Its generator lives in `test/docs/capabilityIndex.ts` rather than beside `capabi
 
 The README's masthead (`docs/resources/readme/banner-dark.svg` / `banner-light.svg`, swapped by a
 `<picture>` on the reader's GitHub theme), the Reader showcase (`reader-hero.svg`) and How it works
-(`hero.svg` — the Canvas walked, the wizard filled, the note landing in the graph) are
+(`hero.svg` — the Canvas walked, the wizard filled, the note landing in the graph) and the first
+flow (`first-flow.svg` — every click from an empty canvas to a note) are
 **generated** — edit `scripts/readme-art.mjs`, never the SVGs, then run:
 
 ```bash

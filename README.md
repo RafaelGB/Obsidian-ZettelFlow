@@ -86,7 +86,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 <table>
 <tr>
-<td width="33%" valign="top"><b>1 · Draw it once</b><br><sub>Create a <code>.canvas</code>. Each card is a step, arrows set the order, a branch is a choice. Mark one card as the root.</sub></td>
+<td width="33%" valign="top"><b>1 · Draw it once</b><br><sub>Right-click a <code>.canvas</code> → <b>Use this canvas to create notes</b>. Each card is a step, arrows set the order, a branch is a choice.</sub></td>
 <td width="33%" valign="top"><b>2 · Give each step its actions</b><br><sub>Select a card → <i>Edit step</i>: ask for text, pick a date, choose an option, add tags, suggest links from your graph — <a href="docs/architecture/actions-and-note-builder.md">31 built-in actions</a>.</sub></td>
 <td width="33%" valign="top"><b>3 · Walk it for every note</b><br><sub>Ribbon → <b>Create note</b> (or a hotkey for <i>Open workflow</i>). The wizard walks the graph, the preview shows the note before it exists, and <b>Create</b> lands it linked.</sub></td>
 </tr>
@@ -112,26 +112,27 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 ## 🚀 Get started in 5 minutes
 
-**Fastest path** — no Canvas needed, works in an empty vault:
+Install **ZettelFlow** from Obsidian's community plugins — or [open it in Obsidian](https://obsidian.md/plugins?id=zettelflow). Everything starts at the **ZettelFlow ribbon button**, which opens a menu.
 
-1. Install **ZettelFlow** from the Obsidian community plugin browser — or [open it in Obsidian](https://obsidian.md/plugins?id=zettelflow).
-2. Click the ZettelFlow ribbon button (or run *Open ZettelFlow* from the command palette).
-3. On the welcome screen, click **Start with my own idea**, then choose an existing note or capture one.
-4. State a question, inspect the material, write a response or a gap, and **Save progress**.
+- **See it work in one click** — ribbon → **Create note**. While no canvas creates notes, it offers **Create the example flow**: a small canvas with one step, ready to run. Press *Create note* again and walk it.
+- **Install a ready-made system** — ribbon → **Community**: Zettelkasten, PARA, GTD, research… **Try it** before it writes anything, then **Install system**.
+- **No canvas at all** — ribbon → **Think** to write down a thought, or **Cultivate** to grow one idea.
 
-**Build your own flow:**
+**Draw your own flow:**
 
-1. Create a `.canvas` file (e.g. `flows/daily-note.canvas`).
-2. In **Settings → ZettelFlow**, set that canvas as the "new notes canvas".
-3. On the canvas, press *Create a step* (the Z in the bottom bar), and turn on **Starts the flow**.
-4. Click the ribbon button → **Create note** — your first wizard run.
+1. Create a canvas (e.g. `flows/Daily note.canvas`), right-click it → **Use this canvas to create notes** → **Give it the role**.
+2. Open it and press **Create the first step** → *Note — file with frontmatter*. The first step starts the flow on its own.
+3. Select the step → **Edit step** → **Add an action** → *Ask for text*, and write its **Question**.
+4. Ribbon → **Create note**: the wizard walks your flow and creates the note.
+
+<p align="center">
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/get-started/"><img src="docs/resources/readme/first-flow.svg" width="100%" alt="Your first flow, from an empty canvas to a note: right-click the canvas and choose Use this canvas to create notes, give it the role, create the first step, add Ask for text in Edit step, then the ribbon's Create note opens the wizard, which asks the question and creates the note."></a>
+</p>
 
 <details>
-<summary><b>See it drawn</b> — installing, and your first flow in three steps</summary>
+<summary><b>Installing, drawn</b> — Settings → Community plugins → Browse</summary>
 
 ![Installing ZettelFlow: Settings → Community plugins → Browse, search ZettelFlow, Install and Enable](docs/resources/readme/install.svg)
-
-![Your first flow in three steps: design a Canvas, configure a step, run the wizard](docs/resources/readme/first-flow.svg)
 
 </details>
 

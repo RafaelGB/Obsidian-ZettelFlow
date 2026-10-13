@@ -1,3 +1,244 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-label="Your first flow in three steps: design a Canvas, configure a step, run the wizard">
-<rect width="1200" height="620" fill="#1e1e1e"/><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7f6df2"/></marker></defs><rect x="24" y="24" width="360" height="500" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="48" y="60" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Design</text><text x="48" y="82" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">a .canvas file: each node a step, arrows the order</text><rect x="420" y="24" width="360" height="500" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="444" y="60" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Configure</text><text x="444" y="82" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">select a node → Edit step</text><rect x="816" y="24" width="360" height="500" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="840" y="60" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Run</text><text x="840" y="82" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">ribbon button → Create note</text><circle cx="36" cy="36" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/><text x="36" y="41" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text><circle cx="432" cy="36" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/><text x="432" y="41" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text><circle cx="828" cy="36" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/><text x="828" y="41" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#323232"/></pattern><rect x="44" y="100" width="320" height="404" rx="8" fill="url(#dots)" stroke="#2e2e2e" stroke-width="1"/><rect x="74" y="130" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="74" y="130" width="5" height="64" rx="2" fill="#fb464c"/><text x="90" y="156" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Daily note</text><text x="90" y="177" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Root · Target folder: Journal</text><rect x="276" y="138" width="38.64" height="20" rx="10.0" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5"/><text x="295.32" y="151.96" fill="#fff" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle">Root</text><rect x="74" y="250" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="74" y="250" width="5" height="64" rx="2" fill="#e9973f"/><text x="90" y="276" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Mood</text><text x="90" y="297" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Selector · 😀 😐 😞</text><rect x="74" y="370" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="74" y="370" width="5" height="64" rx="2" fill="#44cf6e"/><text x="90" y="396" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Highlights</text><text x="90" y="417" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Ask for text · what went well?</text><line x1="204" y1="194" x2="204" y2="246" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><line x1="204" y1="314" x2="204" y2="366" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><rect x="440" y="100" width="320" height="404" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="460" y="128" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">Classify the day</text><text x="460" y="162" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">Starts the flow</text><text x="460" y="180" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">The flow starts here.</text><rect x="704" y="154" width="40" height="22" rx="11" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><circle cx="733" cy="165" r="8" fill="#fff" stroke="none" stroke-width="2"/><line x1="460" y1="196" x2="744" y2="196" stroke="#3a3a3a" stroke-width="1"/><text x="460" y="222" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">Can be skipped</text><text x="460" y="240" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">The step can be skipped.</text><rect x="704" y="214" width="40" height="22" rx="11" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="2"/><circle cx="715" cy="225" r="8" fill="#8b8e94" stroke="none" stroke-width="2"/><line x1="460" y1="256" x2="744" y2="256" stroke="#3a3a3a" stroke-width="1"/><text x="460" y="282" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">Target folder</text><text x="460" y="300" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Where the note is created.</text><rect x="640" y="272" width="104" height="32" rx="6" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="2"/><text x="650" y="293.0" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Journal</text><line x1="460" y1="316" x2="744" y2="316" stroke="#3a3a3a" stroke-width="1"/><text x="460" y="344" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">What does this step ask?</text><rect x="460" y="358" width="284" height="28" rx="6" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/><text x="474" y="377" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Pick a date</text><text x="730" y="377" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="400" text-anchor="end">date</text><rect x="460" y="392" width="284" height="28" rx="6" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/><text x="474" y="411" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Choose an option</text><text x="730" y="411" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="400" text-anchor="end">mood</text><rect x="460" y="426" width="284" height="28" rx="6" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/><text x="474" y="445" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Ask for text</text><text x="730" y="445" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="400" text-anchor="end">highlights</text><rect x="836" y="100" width="320" height="404" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><rect x="852" y="116" width="44" height="44" rx="8" fill="#262626" stroke="#7f6df2" stroke-width="2"/><text x="874" y="145" fill="#7f6df2" font-family="sans-serif" font-size="20" font-weight="800" text-anchor="middle">Z</text><rect x="908" y="116" width="232" height="128" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="928" y="142" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Think</text><rect x="914" y="152" width="220" height="26" rx="5" fill="#33305a" stroke="none" stroke-width="2"/><text x="928" y="170" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Create note</text><text x="928" y="198" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Community</text><text x="928" y="226" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">This note</text><line x1="996" y1="248" x2="996" y2="284" stroke="#7f6df2" stroke-width="2.5" marker-end="url(#arrA)"/><rect x="852" y="292" width="288" height="196" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="868" y="316" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Step 2 · about 1 left</text><text x="868" y="344" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="650" text-anchor="start">How do you feel today?</text><rect x="868" y="360" width="256" height="30" rx="7" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><text x="882" y="380" fill="#fff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">😀  Good</text><rect x="868" y="398" width="256" height="30" rx="7" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="882" y="418" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">😐  Neutral</text><rect x="868" y="436" width="256" height="30" rx="7" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="882" y="456" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">😞  Low</text><circle cx="46" cy="556" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/><text x="46" y="561" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text><text x="66" y="561" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Mark one node as the root: that is where the wizard starts.</text><circle cx="46" cy="582" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/><text x="46" y="587" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text><text x="66" y="587" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Each step holds actions — prompt, calendar, selector, tags… — that fill the note.</text><text x="620" y="561" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Then every new note walks the same flow — no template to copy by hand.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="Your first flow, from an empty canvas to a note: right-click the canvas and choose Use this canvas to create notes, give it the role, press Create the first step and pick a note step, which starts the flow on its own; Edit step, Add an action, Ask for text, write the question; then the ribbon's Create note opens the wizard, which asks it and creates the note.">
+<title>Your first flow</title>
+<defs>
+<pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#2a2938"/></pattern>
+<linearGradient id="logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7ff5"/><stop offset="1" stop-color="#5b45d6"/></linearGradient>
+<filter id="lift" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/></filter>
+</defs>
+<style>
+.ptr{opacity:0;animation:ptr 18s infinite}
+@keyframes ptr{0%{transform:translate(520px,420px)}3%{transform:translate(160px,128px)}5.5%{transform:translate(160px,128px) scale(1)}6%{transform:translate(160px,128px) scale(.8)}6.7%{transform:translate(160px,128px) scale(1)}10%{transform:translate(310px,238px)}12.5%{transform:translate(310px,238px) scale(1)}13%{transform:translate(310px,238px) scale(.8)}13.7%{transform:translate(310px,238px) scale(1)}20%{transform:translate(880px,352px)}23.5%{transform:translate(880px,352px) scale(1)}24%{transform:translate(880px,352px) scale(.8)}24.7%{transform:translate(880px,352px) scale(1)}30%{transform:translate(664px,366px)}33.5%{transform:translate(664px,366px) scale(1)}34%{transform:translate(664px,366px) scale(.8)}34.7%{transform:translate(664px,366px) scale(1)}37%{transform:translate(740px,280px)}39.5%{transform:translate(740px,280px) scale(1)}40%{transform:translate(740px,280px) scale(.8)}40.7%{transform:translate(740px,280px) scale(1)}45%{transform:translate(742px,192px)}47.5%{transform:translate(742px,192px) scale(1)}48%{transform:translate(742px,192px) scale(.8)}48.7%{transform:translate(742px,192px) scale(1)}50%{transform:translate(688px,190px)}52.5%{transform:translate(688px,190px) scale(1)}53%{transform:translate(688px,190px) scale(.8)}53.7%{transform:translate(688px,190px) scale(1)}54%{transform:translate(706px,246px)}56.5%{transform:translate(706px,246px) scale(1)}57%{transform:translate(706px,246px) scale(.8)}57.7%{transform:translate(706px,246px) scale(1)}65%{transform:translate(1128px,92px)}68.5%{transform:translate(1128px,92px) scale(1)}69%{transform:translate(1128px,92px) scale(.8)}69.7%{transform:translate(1128px,92px) scale(1)}69.5%{transform:translate(37px,150px)}71.5%{transform:translate(37px,150px) scale(1)}72%{transform:translate(37px,150px) scale(.8)}72.7%{transform:translate(37px,150px) scale(1)}73%{transform:translate(140px,190px)}75.5%{transform:translate(140px,190px) scale(1)}76%{transform:translate(140px,190px) scale(.8)}76.7%{transform:translate(140px,190px) scale(1)}87%{transform:translate(912px,436px)}90.5%{transform:translate(912px,436px) scale(1)}91%{transform:translate(912px,436px) scale(.8)}91.7%{transform:translate(912px,436px) scale(1)}95%{transform:translate(980px,520px)}96%{opacity:1}97%,100%{opacity:0;transform:translate(980px,520px)}}
+.rowhl{opacity:0;animation:rowhl 18s infinite}
+@keyframes rowhl{0%,5.5%{opacity:0}6%,14%{opacity:1}15%,100%{opacity:0}}
+.newnote{animation:newnote 18s infinite}
+@keyframes newnote{0%,92%{opacity:0;transform:translateY(4px)}93%,97%{opacity:1;transform:none}100%{opacity:0}}
+.ctx{opacity:0;animation:ctx 18s infinite}
+@keyframes ctx{0%,5.5%{opacity:0;transform:translateY(6px)}6.5%,13.5%{opacity:1;transform:none}14.5%,100%{opacity:0}}
+.ctxhl{opacity:0;animation:ctxhl 18s infinite}
+@keyframes ctxhl{0%,9.5%{opacity:0}10%,100%{opacity:.85}}
+.dialog{opacity:0;animation:dialog 18s infinite}
+@keyframes dialog{0%,13%{opacity:0;transform:translateY(6px)}14%,25.5%{opacity:1;transform:none}26.5%,100%{opacity:0}}
+.pr-role{opacity:0;animation:pr-role 18s infinite}
+@keyframes pr-role{0%,23.4%{opacity:0}24%{opacity:1}25.6%,100%{opacity:0}}
+.empty{opacity:0;animation:empty 18s infinite}
+@keyframes empty{0%,25%{opacity:0;transform:translateY(6px)}26%,35%{opacity:1;transform:none}36%,100%{opacity:0}}
+.pr-first{opacity:0;animation:pr-first 18s infinite}
+@keyframes pr-first{0%,33.4%{opacity:0}34%{opacity:1}35.6%,100%{opacity:0}}
+.kind{opacity:0;animation:kind 18s infinite}
+@keyframes kind{0%,34.5%{opacity:0;transform:translateY(6px)}35.5%,41.5%{opacity:1;transform:none}42.5%,100%{opacity:0}}
+.pr-kind{opacity:0;animation:pr-kind 18s infinite}
+@keyframes pr-kind{0%,39.4%{opacity:0}40%{opacity:1}41.6%,100%{opacity:0}}
+.step{animation:step 18s infinite}
+@keyframes step{0%,40.5%{opacity:0;transform:translateY(4px)}41.5%,97%{opacity:1;transform:none}100%{opacity:0}}
+.sel{opacity:0;animation:sel 18s infinite}
+@keyframes sel{0%,43%{opacity:0;transform:translateY(6px)}44%,49%{opacity:1;transform:none}50%,100%{opacity:0}}
+.pr-edit{opacity:0;animation:pr-edit 18s infinite}
+@keyframes pr-edit{0%,47.4%{opacity:0}48%{opacity:1}49.6%,100%{opacity:0}}
+.stepask{animation:stepask 18s infinite}
+@keyframes stepask{0%,69%{opacity:0;transform:translateY(4px)}70%,97%{opacity:1;transform:none}100%{opacity:0}}
+.editor{opacity:0;animation:editor 18s infinite}
+@keyframes editor{0%,48%{opacity:0;transform:translateY(6px)}49%,70%{opacity:1;transform:none}71%,100%{opacity:0}}
+.pr-close{opacity:0;animation:pr-close 18s infinite}
+@keyframes pr-close{0%,68.4%{opacity:0}69%{opacity:1}70.6%,100%{opacity:0}}
+.meta0{animation:meta0 18s infinite}
+@keyframes meta0{0%,57%{opacity:1}57.5%,100%{opacity:0}}
+.meta1{opacity:0;animation:meta1 18s infinite}
+@keyframes meta1{0%,57%{opacity:0}57.5%,100%{opacity:1}}
+.addbtn{opacity:0;animation:addbtn 18s infinite}
+@keyframes addbtn{0%,53.8%{opacity:1}54%,100%{opacity:0}}
+.pr-add{opacity:0;animation:pr-add 18s infinite}
+@keyframes pr-add{0%,52.4%{opacity:0}53%{opacity:1}54.6%,100%{opacity:0}}
+.grid{opacity:0;animation:grid 18s infinite}
+@keyframes grid{0%,53%{opacity:0;transform:translateY(6px)}54%,57.5%{opacity:1;transform:none}58.5%,100%{opacity:0}}
+.pr-tile{opacity:0;animation:pr-tile 18s infinite}
+@keyframes pr-tile{0%,56.4%{opacity:0}57%{opacity:1}58.6%,100%{opacity:0}}
+.acard{animation:acard 18s infinite}
+@keyframes acard{0%,57.5%{opacity:0;transform:translateY(6px)}58.5%,100%{opacity:1;transform:none}}
+.typeq{transform-box:fill-box;transform-origin:right;transform:scaleX(0);animation:typeq 18s infinite}
+@keyframes typeq{0%,60%{transform:scaleX(1);animation-timing-function:steps(21,end)}65%,100%{transform:scaleX(0)}}
+.rmenu{opacity:0;animation:rmenu 18s infinite}
+@keyframes rmenu{0%,71.5%{opacity:0;transform:translateY(6px)}72.5%,76.5%{opacity:1;transform:none}77.5%,100%{opacity:0}}
+.wizard{opacity:0;animation:wizard 18s infinite}
+@keyframes wizard{0%,76%{opacity:0;transform:translateY(6px)}77%,92%{opacity:1;transform:none}93%,100%{opacity:0}}
+.typea{transform-box:fill-box;transform-origin:right;transform:scaleX(0);animation:typea 18s infinite}
+@keyframes typea{0%,80%{transform:scaleX(1);animation-timing-function:steps(34,end)}86%,100%{transform:scaleX(0)}}
+.pr-confirm{opacity:0;animation:pr-confirm 18s infinite}
+@keyframes pr-confirm{0%,90.4%{opacity:0}91%{opacity:1}92.6%,100%{opacity:0}}
+.pr-ribbon{opacity:0;animation:pr-ribbon 18s infinite}
+@keyframes pr-ribbon{0%,71.4%{opacity:0}72%{opacity:1}73.6%,100%{opacity:0}}
+.beat0{opacity:0;animation:beat0 18s infinite}
+@keyframes beat0{0%,26.5%{opacity:1}27%,100%{opacity:0}}
+.beat1{opacity:0;animation:beat1 18s infinite}
+@keyframes beat1{0%,27%{opacity:0}27.5%,48.5%{opacity:1}49%,100%{opacity:0}}
+.beat2{opacity:0;animation:beat2 18s infinite}
+@keyframes beat2{0%,49%{opacity:0}49.5%,70.5%{opacity:1}71%,100%{opacity:0}}
+.beat3{opacity:0;animation:beat3 18s infinite}
+@keyframes beat3{0%,71%{opacity:0}71.5%,96.5%{opacity:1}97%,100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){
+*{animation:none!important}
+}
+</style>
+<rect width="1200" height="640" rx="16" fill="#141319"/>
+<rect x="16" y="16" width="1168" height="608" rx="12" fill="#1c1b22" stroke="#34323f" stroke-width="1.5"/>
+<path d="M16 28 a12 12 0 0 1 12 -12 h1144 a12 12 0 0 1 12 12 v22 h-1168 z" fill="#24232c"/>
+<circle cx="38" cy="33" r="5" fill="#fb464c"/><circle cx="56" cy="33" r="5" fill="#e0de71"/><circle cx="74" cy="33" r="5" fill="#44cf6e"/>
+<text x="600" y="38" fill="#8b8a98" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="16" y1="50" x2="1184" y2="50" stroke="#34323f"/>
+<rect x="16" y="50" width="42" height="510" fill="#1a1920"/>
+<rect x="28" y="57" width="18" height="18" rx="4" fill="none" stroke="#6c6a80" stroke-width="1.5"/><rect x="28" y="93" width="18" height="18" rx="4" fill="none" stroke="#6c6a80" stroke-width="1.5"/><rect x="25" y="138" width="24" height="24" rx="6" fill="url(#logo)"/><path d="M31 144 H43 L31 156 H43" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="28" y="177" width="18" height="18" rx="4" fill="none" stroke="#6c6a80" stroke-width="1.5"/>
+<rect class="pr-ribbon" x="22" y="135" width="30" height="30" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+<rect x="58" y="50" width="220" height="510" fill="#211f29"/>
+<line x1="278" y1="50" x2="278" y2="560" stroke="#2f2d3a"/>
+<text x="76" y="78" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700">MY VAULT</text>
+<g><text x="78" y="104" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">▾ flows</text></g>
+<rect class="rowhl" x="64" y="114" width="208" height="24" rx="5" fill="#34314a"/>
+<g><rect x="90" y="121" width="12" height="12" rx="2.5" fill="none" stroke="#8f7ff5" stroke-width="1.4"/><text x="110" y="131" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Daily note.canvas</text></g>
+<g><text x="78" y="160" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">▾ Journal</text></g>
+<g><rect x="90" y="176" width="12" height="12" rx="2.5" fill="none" stroke="#6c6a80" stroke-width="1.4"/><text x="110" y="186" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">2026-10-12.md</text></g>
+<g class="newnote"><rect x="64" y="196" width="208" height="24" rx="5" fill="#2d2945" stroke="#8f7ff5" stroke-opacity="0.6"/><g><rect x="90" y="203" width="12" height="12" rx="2.5" fill="none" stroke="#5cc98a" stroke-width="1.4"/><text x="110" y="213" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">What went well.md</text></g></g>
+<g><rect x="80" y="232" width="12" height="12" rx="2.5" fill="none" stroke="#6c6a80" stroke-width="1.4"/><text x="100" y="242" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Welcome.md</text></g>
+<rect x="278" y="50" width="906" height="34" fill="#24232c"/>
+<rect x="288" y="56" width="170" height="28" rx="7" fill="#1c1b22"/>
+<text x="304" y="75" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5">Daily note</text>
+<rect x="278" y="84" width="906" height="476" fill="url(#dots)"/>
+<g class="step">
+<rect x="616" y="216" width="250" height="118" rx="10" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="616" y="216" width="250" height="30" rx="10" fill="#302e40"/><rect x="616" y="236" width="250" height="10" fill="#302e40"/>
+<text x="630" y="236" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">Step.md</text>
+<rect x="754" y="223" width="100" height="18" rx="9" fill="#8f7ff5"/>
+<text x="804" y="236" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">Starts the flow</text>
+<text x="632" y="278" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700"># Step</text>
+<g class="stepask"><text x="632" y="304" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">Ask for text · What went well today?</text></g>
+</g>
+<g class="sel">
+<rect x="612" y="212" width="258" height="126" rx="12" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+<rect x="671" y="172" width="140" height="30" rx="8" fill="#2a2936" stroke="#45425e"/>
+<text x="691" y="192" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">⋯</text>
+<rect x="707" y="176" width="98" height="22" rx="5" fill="#34314a"/>
+<text x="756" y="191" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">Edit step</text>
+<rect class="pr-edit" x="704" y="173" width="104" height="28" rx="7" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="empty">
+<rect x="521" y="200" width="420" height="196" rx="12" fill="#26252f" stroke="#45425e" filter="url(#lift)"/>
+<circle cx="731" cy="240" r="18" fill="#2d2945"/>
+<path d="M723 246 c 0 -10 16 -2 16 -12" fill="none" stroke="#8f7ff5" stroke-width="2" stroke-linecap="round"/>
+<circle cx="723" cy="247" r="2.5" fill="#8f7ff5"/><circle cx="739" cy="233" r="2.5" fill="#8f7ff5"/>
+<text x="731" y="286" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">This canvas has no steps yet</text>
+<text x="731" y="310" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle">A step is a note or a card the wizard walks. Start with one,</text>
+<text x="731" y="328" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle">or install a system that already works.</text>
+<rect x="571" y="348" width="180" height="30" rx="6" fill="#8f7ff5" stroke="#8f7ff5"/><text x="661" y="367.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="650" text-anchor="middle">+  Create the first step</text>
+<rect x="763" y="348" width="128" height="30" rx="6" fill="#2a2936" stroke="#3d3b54"/><text x="827" y="367.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" text-anchor="middle">Browse systems</text>
+<rect class="pr-first" x="568" y="345" width="186" height="36" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="kind">
+<rect x="278" y="84" width="906" height="476" fill="#0b0a10" opacity="0.5"/>
+<rect x="531" y="196" width="400" height="196" rx="12" fill="#26252f" stroke="#45425e" filter="url(#lift)"/>
+<text x="555" y="234" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="700">What kind of step?</text>
+<rect x="555" y="258" width="352" height="32" rx="7" fill="#2d2945" stroke="#8f7ff5"/><text x="569" y="279" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Note — file with frontmatter (recommended)</text>
+<rect x="555" y="298" width="352" height="32" rx="7" fill="#1c1b22" stroke="#3d3b54"/><text x="569" y="319" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Text card (inline, legacy)</text>
+<rect x="555" y="338" width="352" height="32" rx="7" fill="#1c1b22" stroke="#3d3b54"/><text x="569" y="359" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Group (inline, legacy)</text>
+<rect class="pr-kind" x="552" y="255" width="358" height="38" rx="9" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="dialog">
+<rect x="278" y="84" width="906" height="476" fill="#0b0a10" opacity="0.5"/>
+<rect x="511" y="196" width="440" height="186" rx="12" fill="#26252f" stroke="#45425e" filter="url(#lift)"/>
+<text x="535" y="234" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="700">Give this canvas a role</text>
+<rect x="535" y="252" width="392" height="34" rx="7" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="549" y="274" fill="#d9d6ea" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13">flows/Daily note.canvas</text>
+<rect x="811" y="258" width="104" height="22" rx="11" fill="#2d2945" stroke="#8f7ff5"/>
+<text x="863" y="273.5" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Creates notes</text>
+<text x="535" y="314" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">The ribbon icon and the create command will open it.</text>
+<rect x="715" y="332" width="76" height="28" rx="6" fill="#2a2936" stroke="#3d3b54"/><text x="753" y="350.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" text-anchor="middle">Cancel</text>
+<rect x="801" y="332" width="126" height="28" rx="6" fill="#8f7ff5" stroke="#8f7ff5"/><text x="864" y="350.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="650" text-anchor="middle">Give it the role</text>
+<rect class="pr-role" x="798" y="329" width="132" height="34" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="editor">
+<rect x="278" y="84" width="906" height="476" fill="#0b0a10" opacity="0.5"/>
+<rect x="560" y="66" width="600" height="482" rx="12" fill="#26252f" stroke="#45425e" filter="url(#lift)"/>
+<text x="588" y="106" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" font-weight="700">Step</text>
+<text x="1128" y="98" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" text-anchor="middle">✕</text>
+<rect class="pr-close" x="1113" y="79" width="30" height="30" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+<rect x="588" y="120" width="78" height="22" rx="11" fill="#2a2936" stroke="#3d3b54"/><text x="627" y="135" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle">Step note</text>
+<rect x="674" y="120" width="104" height="22" rx="11" fill="#2d2945" stroke="#8f7ff5"/><text x="726" y="135" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" text-anchor="middle">Starts the flow</text>
+<rect x="588" y="158" width="544" height="286" rx="10" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="606" y="186" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700">What does this step ask?</text>
+<g class="meta0"><text x="1114" y="186" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" text-anchor="end">nothing yet</text></g>
+<g class="meta1"><text x="1114" y="186" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" text-anchor="end">1 action</text></g>
+<g class="addbtn"><rect x="606" y="200" width="130" height="28" rx="6" fill="#2a2936" stroke="#3d3b54"/><text x="671" y="218.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" text-anchor="middle">+  Add an action</text><rect class="pr-add" x="603" y="197" width="136" height="34" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/></g>
+<g class="grid">
+<rect x="606" y="238" width="166" height="44" rx="8" fill="#2d2945" stroke="#8f7ff5"/><text x="620" y="265" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="650">Ask for text</text>
+<rect x="782" y="238" width="166" height="44" rx="8" fill="#2a2936" stroke="#3d3b54"/><text x="796" y="265" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Ask for a number</text>
+<rect x="958" y="238" width="166" height="44" rx="8" fill="#2a2936" stroke="#3d3b54"/><text x="972" y="265" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Pick a date</text>
+<rect x="606" y="290" width="166" height="44" rx="8" fill="#2a2936" stroke="#3d3b54"/><text x="620" y="317" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Choose an option</text>
+<rect x="782" y="290" width="166" height="44" rx="8" fill="#2a2936" stroke="#3d3b54"/><text x="796" y="317" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Add tags</text>
+<rect x="958" y="290" width="166" height="44" rx="8" fill="#2a2936" stroke="#3d3b54"/><text x="972" y="317" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500">Link a note</text>
+<rect class="pr-tile" x="603" y="235" width="172" height="50" rx="10" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="acard">
+<rect x="606" y="200" width="508" height="228" rx="9" fill="#2a2936" stroke="#3d3b54"/>
+<text x="622" y="226" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">⠿</text>
+<text x="642" y="226" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Ask for text</text>
+<text x="622" y="248" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">A text field. The answer is written to the note.</text>
+<text x="622" y="278" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Question</text>
+<rect x="768" y="262" width="310" height="26" rx="6" fill="#1c1b22" stroke="#8f7ff5"/>
+<text x="780" y="279.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">What went well today?</text>
+<rect class="typeq" x="778" y="265" width="160" height="20" fill="#1c1b22"/>
+<text x="622" y="316" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Where it writes</text>
+<rect x="768" y="300" width="130" height="26" rx="6" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="780" y="317.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Body</text><text x="884" y="317.5" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" text-anchor="end">▾</text>
+</g>
+<rect x="588" y="456" width="544" height="34" rx="9" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="606" y="478" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600">▸  When does it appear?</text>
+<text x="1114" y="478" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" text-anchor="end">starts the flow</text>
+<rect x="588" y="498" width="544" height="34" rx="9" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="606" y="520" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600">▸  Where does it go?</text>
+</g>
+<g class="wizard">
+<rect x="278" y="84" width="906" height="476" fill="#0b0a10" opacity="0.5"/>
+<rect x="420" y="120" width="560" height="356" rx="12" fill="#26252f" stroke="#45425e" filter="url(#lift)"/>
+<text x="448" y="158" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Step</text>
+<rect x="448" y="170" width="504" height="3" rx="1.5" fill="#3a3847"/><rect x="448" y="170" width="504" height="3" rx="1.5" fill="#8f7ff5"/>
+<text x="448" y="216" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="700">What went well today?</text>
+<rect x="448" y="234" width="504" height="110" rx="8" fill="#1c1b22" stroke="#8f7ff5" stroke-width="1.5"/>
+<text x="464" y="262" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15">Drew my first flow, and it worked.</text>
+<rect class="typea" x="462" y="246" width="250" height="22" fill="#1c1b22"/>
+<line x1="420" y1="410" x2="980" y2="410" stroke="#3a3847"/>
+<rect x="448" y="428" width="70" height="28" rx="6" fill="#2a2936" stroke="#3d3b54"/><text x="483" y="446.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="500" text-anchor="middle">Back</text>
+<rect x="852" y="428" width="100" height="28" rx="6" fill="#8f7ff5" stroke="#8f7ff5"/><text x="902" y="446.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="650" text-anchor="middle">Confirm</text>
+<rect class="pr-confirm" x="849" y="425" width="106" height="34" rx="8" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+</g>
+<g class="ctx">
+<rect x="190" y="124" width="250" height="126" rx="8" fill="#2a2936" stroke="#45425e" filter="url(#lift)"/>
+<text x="224" y="148" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Open in new tab</text><text x="224" y="174" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Rename…</text><text x="224" y="200" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Move file to…</text>
+<line x1="198" y1="214" x2="432" y2="214" stroke="#45425e"/>
+<rect class="ctxhl" x="195" y="220" width="240" height="24" rx="5" fill="#8f7ff5" opacity="0.85"/>
+<rect x="202" y="225" width="14" height="14" rx="3" fill="none" stroke="#fff" stroke-width="1.4"/>
+<text x="224" y="237" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Use this canvas to create notes</text>
+</g>
+<g class="rmenu">
+<rect x="62" y="128" width="260" height="160" rx="8" fill="#2a2936" stroke="#45425e" filter="url(#lift)"/>
+<text x="96" y="152" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Think — open your thinking space</text>
+<rect x="67" y="164" width="250" height="24" rx="5" fill="#8f7ff5" opacity="0.85"/>
+<text x="96" y="181" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600">Create note</text>
+<line x1="70" y1="198" x2="314" y2="198" stroke="#45425e"/>
+<text x="96" y="220" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Community</text><text x="96" y="246" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Run the current canvas as a flow</text><text x="96" y="272" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13">Open canvas</text>
+</g>
+<line x1="16" y1="560" x2="1184" y2="560" stroke="#34323f"/>
+<circle cx="58" cy="586" r="10" fill="#2d2b3a" stroke="#3d3b54"/><text x="58" y="590" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">1</text>
+<text x="76" y="590" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Give the canvas its role</text>
+<text x="76" y="607" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11">right-click it → Use this canvas to create notes</text>
+<g class="beat0"><circle cx="58" cy="586" r="10" fill="#8f7ff5"/><text x="58" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">1</text><text x="76" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Give the canvas its role</text></g>
+<circle cx="344" cy="586" r="10" fill="#2d2b3a" stroke="#3d3b54"/><text x="344" y="590" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">2</text>
+<text x="362" y="590" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Create the first step</text>
+<text x="362" y="607" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11">it starts the flow on its own</text>
+<g class="beat1"><circle cx="344" cy="586" r="10" fill="#8f7ff5"/><text x="344" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">2</text><text x="362" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Create the first step</text></g>
+<circle cx="630" cy="586" r="10" fill="#2d2b3a" stroke="#3d3b54"/><text x="630" y="590" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">3</text>
+<text x="648" y="590" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Say what it asks</text>
+<text x="648" y="607" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11">Edit step → Add an action → Ask for text</text>
+<g class="beat2"><circle cx="630" cy="586" r="10" fill="#8f7ff5"/><text x="630" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">3</text><text x="648" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Say what it asks</text></g>
+<circle cx="916" cy="586" r="10" fill="#2d2b3a" stroke="#3d3b54"/><text x="916" y="590" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">4</text>
+<text x="934" y="590" fill="#d9d6ea" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Create a note</text>
+<text x="934" y="607" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11">ribbon → Create note: the wizard walks it</text>
+<g class="beat3"><circle cx="916" cy="586" r="10" fill="#8f7ff5"/><text x="916" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">4</text><text x="934" y="590" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="650">Create a note</text></g>
+<g class="ptr"><path d="M0 0 L0 17 L4.5 13 L7.5 20 L10.5 18.6 L7.6 12 L13 12 Z" fill="#fff" stroke="#141319" stroke-width="1.2" stroke-linejoin="round"/></g>
 </svg>

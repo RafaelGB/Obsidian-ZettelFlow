@@ -21,7 +21,7 @@
 <p align="center">
   <a href="#-what-it-asks-of-you">Practice loops</a> ·
   <a href="#-read-like-a-book--the-reader-and-your-library"><b>Reader &amp; Library</b></a> ·
-  <a href="#-how-it-works">Canvas workflows</a> ·
+  <a href="#-how-it-works--draw-it-once-every-note-walks-it">Canvas workflows</a> ·
   <a href="#-get-started-in-5-minutes">Get started</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/why/">Why ZettelFlow</a> ·
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/reference/capabilities/">Everything it does</a>
@@ -76,17 +76,21 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 ---
 
-## ⚡ How it works
+## ⚡ How it works — draw it once, every note walks it
 
-**ZettelFlow turns an Obsidian Canvas into a guided note-creation wizard.** Draw your workflow as a graph — steps as nodes, order as arrows — and the plugin walks you through it every time you create a note, filling in frontmatter, body content, dates and selectors without you touching a template by hand. Each note lands already related, cross-checked and scored, with a companion beside it.
+**Your note workflow is a Canvas.** A card is a step, an arrow is the order, a branch is a choice. Press **Create note** and ZettelFlow walks that graph with you as a short wizard — the idea, its kind, its tags, the links your vault suggests — while a live preview writes the note: frontmatter, body and file name, no template edited by hand. Then the note doesn't land alone: it arrives **in your graph, already linked**, in the region it belongs to — and you see the bridge it just made.
 
 <p align="center">
-  <img src="docs/resources/readme/hero.svg" width="100%" alt="ZettelFlow at a glance: a Canvas flow, the wizard it drives for every new note, and the This note companion that helps you think with the result.">
+  <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/ask-your-graph/"><img src="docs/resources/readme/hero.svg" width="100%" alt="How ZettelFlow works, in one continuous shot: a Canvas flow is walked step by step — Capture, Classify, the Concept branch, Connect — while the wizard asks for the idea, its kind, its tags and the links your graph suggests, and the live preview fills in. Create, and the note flies into your graph, lands between two regions and draws its links."></a>
 </p>
 
-1. **Design** — create a `.canvas` file. Each node is a step; arrows define the order. Mark one node as the root.
-2. **Configure** — select a canvas node → *Edit step* to add actions (ask for text, pick a date, choose an option, add tags…).
-3. **Run** — click the ZettelFlow ribbon button → **Create note** (or bind a hotkey to *Open workflow*). ZettelFlow walks the graph and builds the note.
+<table>
+<tr>
+<td width="33%" valign="top"><b>1 · Draw it once</b><br><sub>Create a <code>.canvas</code>. Each card is a step, arrows set the order, a branch is a choice. Mark one card as the root.</sub></td>
+<td width="33%" valign="top"><b>2 · Give each step its actions</b><br><sub>Select a card → <i>Edit step</i>: ask for text, pick a date, choose an option, add tags, suggest links from your graph — <a href="docs/architecture/actions-and-note-builder.md">31 built-in actions</a>.</sub></td>
+<td width="33%" valign="top"><b>3 · Walk it for every note</b><br><sub>Ribbon → <b>Create note</b> (or a hotkey for <i>Open workflow</i>). The wizard walks the graph, the preview shows the note before it exists, and <b>Create</b> lands it linked.</sub></td>
+</tr>
+</table>
 
 **…and the wizard is only the door.** **[Home](docs/development/zettelflow-home.md)** is where you land each day: a greeting, Think's composer, where you left off and what came back today, answered in place.
 

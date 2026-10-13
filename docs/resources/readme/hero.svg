@@ -1,3 +1,543 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="ZettelFlow at a glance: a Canvas flow on the left, the wizard it drives in the middle, and the This note companion in the right sidebar">
-<rect width="1200" height="640" fill="#1e1e1e"/><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7f6df2"/></marker></defs><rect x="20" y="20" width="1160" height="560" rx="12" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><path d="M20 32 a12 12 0 0 1 12 -12 h1136 a12 12 0 0 1 12 12 v22 h-1160 z" fill="#262626"/><circle cx="40" cy="37" r="5" fill="#fb464c" stroke="none" stroke-width="2"/><circle cx="58" cy="37" r="5" fill="#e0de71" stroke="none" stroke-width="2"/><circle cx="76" cy="37" r="5" fill="#44cf6e" stroke="none" stroke-width="2"/><text x="600.0" y="42" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text><line x1="20" y1="54" x2="1180" y2="54" stroke="#3a3a3a" stroke-width="1"/><text x="44" y="84" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">Your flow</text><text x="44" y="102" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">a native Canvas</text><pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern><rect x="36" y="114" width="300" height="440" rx="10" fill="url(#dots)" stroke="#2e2e2e" stroke-width="1"/><rect x="56" y="140" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="56" y="140" width="5" height="64" rx="2" fill="#fb464c"/><text x="72" y="166" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Capture</text><text x="72" y="187" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Prompt · title, idea</text><rect x="258" y="148" width="38.64" height="20" rx="10.0" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5"/><text x="277.32" y="161.96" fill="#fff" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle">Root</text><rect x="56" y="260" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="56" y="260" width="5" height="64" rx="2" fill="#e9973f"/><text x="72" y="286" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Classify</text><text x="72" y="307" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Selector · concept / source</text><rect x="56" y="380" width="120" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="56" y="380" width="5" height="64" rx="2" fill="#44cf6e"/><text x="72" y="406" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Concept</text><text x="72" y="427" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Tags · links</text><rect x="196" y="380" width="120" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="196" y="380" width="5" height="64" rx="2" fill="#e0de71"/><text x="212" y="406" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Source</text><text x="212" y="427" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Backlink</text><line x1="186" y1="204" x2="186" y2="256" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><line x1="150" y1="324" x2="116" y2="376" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><line x1="222" y1="324" x2="256" y2="376" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><text x="118" y="346" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="end">if concept</text><text x="256" y="346" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">if source</text><rect x="56" y="476" width="260" height="64" rx="8" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><rect x="56" y="476" width="5" height="64" rx="2" fill="#44cf6e"/><text x="72" y="502" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="650" text-anchor="start">Connect</text><text x="72" y="523" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Suggest connections</text><line x1="116" y1="444" x2="160" y2="472" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><line x1="256" y1="444" x2="212" y2="472" stroke="#8b8e94" stroke-width="2" marker-end="url(#arr)"/><text x="372" y="84" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">Walk the wizard</text><text x="372" y="102" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">every new note, step by step</text><rect x="364" y="114" width="440" height="440" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="2"/><text x="384" y="142" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Step 2</text><text x="430" y="142" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">· about 2 left · Will be created at Zettel/</text><rect x="384" y="154" width="69.19999999999999" height="26" rx="13" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="418.6" y="172" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Capture</text><text x="460.2" y="172" fill="#5c5f66" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">›</text><rect x="471.2" y="154" width="76.8" height="26" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><text x="509.59999999999997" y="172" fill="#fff" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Classify</text><line x1="364" y1="194" x2="804" y2="194" stroke="#3a3a3a" stroke-width="1"/><text x="384" y="222" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">What kind of note is it?</text><rect x="384" y="240" width="400" height="36" rx="8" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><text x="400" y="263" fill="#fff" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start">Concept — an idea in my words</text><rect x="384" y="284" width="400" height="36" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="400" y="307" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">Source — something I read</text><rect x="384" y="328" width="400" height="36" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="400" y="351" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">Question — something I want to know</text><rect x="384" y="384" width="400" height="150" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/><text x="400" y="408" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Live preview</text><text x="400" y="432" fill="#8b8e94" font-family="monospace" font-size="13" font-weight="400" text-anchor="start">---</text><text x="400" y="452" fill="#8b8e94" font-family="monospace" font-size="13" font-weight="400" text-anchor="start">state: fleeting</text><text x="400" y="472" fill="#a99cf7" font-family="monospace" font-size="13" font-weight="600" text-anchor="start">type: concept</text><text x="400" y="492" fill="#8b8e94" font-family="monospace" font-size="13" font-weight="400" text-anchor="start">---</text><text x="400" y="512" fill="#dcddde" font-family="monospace" font-size="13" font-weight="400" text-anchor="start"># Ideas as debt</text><line x1="338" y1="300" x2="360" y2="300" stroke="#7f6df2" stroke-width="3" marker-end="url(#arrA)"/><line x1="806" y1="300" x2="834" y2="300" stroke="#7f6df2" stroke-width="3" marker-end="url(#arrA)"/><text x="848" y="84" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">Think with the note</text><text x="848" y="102" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">This note, beside every note</text><rect x="840" y="114" width="324" height="440" rx="10" fill="#232323" stroke="#3a3a3a" stroke-width="2"/><text x="860" y="144" fill="#dcddde" font-family="sans-serif" font-size="16" font-weight="650" text-anchor="start">Ideas as debt</text><text x="1112" y="144" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">📌</text><text x="1138" y="144" fill="#8b8e94" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start">⋯</text><text x="860" y="172" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Fleeting</text><line x1="918" y1="168" x2="932" y2="168" stroke="#3a3a3a" stroke-width="2"/><rect x="938" y="156" width="94.64000000000001" height="22" rx="11.0" fill="#7f6df2" stroke="#7f6df2" stroke-width="1.5"/><text x="985.32" y="171.32" fill="#fff" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">📝 Literature</text><line x1="1036" y1="168" x2="1050" y2="168" stroke="#3a3a3a" stroke-width="2"/><rect x="1056" y="157" width="86" height="21" rx="10.5" fill="none" stroke="#7f6df2" stroke-width="1.5" stroke-dasharray="4 3"/><text x="1099" y="172" fill="#a99cf7" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Permanent</text><rect x="860" y="186" width="68" height="28" rx="6" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/><text x="894" y="205" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">3 links in</text><rect x="934" y="186" width="68" height="28" rx="6" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/><text x="968" y="205" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">5 out</text><rect x="1008" y="186" width="68" height="28" rx="6" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/><text x="1042" y="205" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">2 claims</text><rect x="1082" y="186" width="68" height="28" rx="6" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/><text x="1116" y="205" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">0 sources</text><rect x="860" y="226" width="284" height="92" rx="8" fill="#2a2640" stroke="#4b4380" stroke-width="2"/><text x="874" y="248" fill="#a99cf7" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">NEXT STEP</text><text x="1130" y="248" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="end">1 of 3</text><text x="874" y="270" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Makes 2 claims with no source.</text><rect x="874" y="282" width="118" height="26" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><text x="933" y="300" fill="#fff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">+ Add a source</text><text x="1004" y="300" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Another step ›</text><text x="860" y="342" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">NEIGHBOURHOOD</text><line x1="1002" y1="400" x2="910" y2="370" stroke="#44cf6e" stroke-width="1.6"/><line x1="1002" y1="400" x2="932" y2="438" stroke="#fb464c" stroke-width="1.6"/><line x1="1002" y1="400" x2="1002" y2="356" stroke="#8b8e94" stroke-width="1.6"/><line x1="1002" y1="400" x2="1080" y2="378" stroke="#4a9dff" stroke-width="1.6"/><line x1="1002" y1="400" x2="1088" y2="436" stroke="#8b8e94" stroke-width="1.6"/><line x1="1002" y1="400" x2="1032" y2="456" stroke="#5c5f66" stroke-width="1.4" stroke-dasharray="3 3"/><circle cx="1002" cy="400" r="9" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/><circle cx="910" cy="370" r="6" fill="#1e1e1e" stroke="#44cf6e" stroke-width="2"/><text x="900" y="374" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="end">Compound…</text><circle cx="932" cy="438" r="6" fill="#1e1e1e" stroke="#fb464c" stroke-width="2"/><text x="922" y="442" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="end">Notes owe…</text><circle cx="1002" cy="356" r="6" fill="#1e1e1e" stroke="#8b8e94" stroke-width="2"/><text x="1002" y="345" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="middle">Zettelkasten</text><circle cx="1080" cy="378" r="6" fill="#1e1e1e" stroke="#4a9dff" stroke-width="2"/><text x="1090" y="382" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Refactor</text><circle cx="1088" cy="436" r="6" fill="#1e1e1e" stroke="#8b8e94" stroke-width="2"/><text x="1098" y="440" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Atomic</text><circle cx="1032" cy="456" r="6" fill="#1e1e1e" stroke="#5c5f66" stroke-width="2"/><text x="1042" y="460" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Luhmann (near)</text><text x="860" y="478" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">▸ In tension</text><text x="1144" y="478" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">1</text><text x="860" y="502" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">▸ Gaps</text><text x="1144" y="502" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">3</text><text x="860" y="526" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">▸ Near and forgotten</text><text x="1144" y="526" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">2</text><text x="600" y="612" fill="#8b8e94" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="middle">Draw the flow once  ·  every note walks it  ·  every note gets a companion that helps you think</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="How ZettelFlow works, in one continuous shot: a Canvas flow is walked step by step — Capture, Classify, then the Concept branch, then Connect — while the wizard it drives asks for the idea, its kind, its tags and the links your graph suggests, and the live preview fills in. Create, and the new note flies into your graph, lands between two regions and draws its links, becoming a bridge.">
+<title>How it works: the Canvas, the wizard, your graph</title>
+<defs>
+<pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#2a2938"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6c6a80"/></marker>
+<marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8f7ff5"/></marker>
+<radialGradient id="starglow"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="0.25" stop-color="#8f7ff5" stop-opacity="0.75"/><stop offset="1" stop-color="#8f7ff5" stop-opacity="0"/></radialGradient>
+<radialGradient id="neb0"><stop offset="0" stop-color="#5aa9f0" stop-opacity="0.24"/><stop offset="0.55" stop-color="#5aa9f0" stop-opacity="0.08"/><stop offset="1" stop-color="#5aa9f0" stop-opacity="0"/></radialGradient>
+<radialGradient id="neb1"><stop offset="0" stop-color="#e0a351" stop-opacity="0.24"/><stop offset="0.55" stop-color="#e0a351" stop-opacity="0.08"/><stop offset="1" stop-color="#e0a351" stop-opacity="0"/></radialGradient>
+<radialGradient id="neb2"><stop offset="0" stop-color="#5cc98a" stop-opacity="0.24"/><stop offset="0.55" stop-color="#5cc98a" stop-opacity="0.08"/><stop offset="1" stop-color="#5cc98a" stop-opacity="0"/></radialGradient>
+<radialGradient id="neb3"><stop offset="0" stop-color="#e87fc0" stop-opacity="0.24"/><stop offset="0.55" stop-color="#e87fc0" stop-opacity="0.08"/><stop offset="1" stop-color="#e87fc0" stop-opacity="0"/></radialGradient>
+<clipPath id="graphclip"><rect x="800" y="66" width="368" height="490" rx="10"/></clipPath>
+</defs>
+<style>
+.ring-capture{opacity:0;animation:ring-capture 14s infinite}
+@keyframes ring-capture{0%,1.5%{opacity:0}3%,22%{opacity:1}23.5%,100%{opacity:0}}
+.done-capture{animation:done-capture 14s infinite}
+@keyframes done-capture{0%,22%{opacity:0}23.5%,97%{opacity:1}100%{opacity:0}}
+.ring-classify{opacity:0;animation:ring-classify 14s infinite}
+@keyframes ring-classify{0%,24.5%{opacity:0}26%,44%{opacity:1}45.5%,100%{opacity:0}}
+.done-classify{animation:done-classify 14s infinite}
+@keyframes done-classify{0%,44%{opacity:0}45.5%,97%{opacity:1}100%{opacity:0}}
+.ring-concept{opacity:0;animation:ring-concept 14s infinite}
+@keyframes ring-concept{0%,46.5%{opacity:0}48%,60%{opacity:1}61.5%,100%{opacity:0}}
+.done-concept{animation:done-concept 14s infinite}
+@keyframes done-concept{0%,60%{opacity:0}61.5%,97%{opacity:1}100%{opacity:0}}
+.ring-connect{animation:ring-connect 14s infinite}
+@keyframes ring-connect{0%,62.5%{opacity:0}64%,97%{opacity:1}100%{opacity:0}}
+.untaken{opacity:.38;animation:untaken 14s infinite}
+@keyframes untaken{0%,44%{opacity:1}48%,97%{opacity:.38}100%{opacity:1}}
+.lit0{stroke-dasharray:80;animation:lit0 14s infinite}
+@keyframes lit0{0%,22%{stroke-dashoffset:80}26%,97%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.lit1{stroke-dasharray:80;animation:lit1 14s infinite}
+@keyframes lit1{0%,44%{stroke-dashoffset:80}48%,97%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.lit2{stroke-dasharray:80;animation:lit2 14s infinite}
+@keyframes lit2{0%,60%{stroke-dashoffset:80}64%,97%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.chip-capture{opacity:0;animation:chip-capture 14s infinite}
+@keyframes chip-capture{0%,1.5%{opacity:0}3%,22%{opacity:1}23.5%,100%{opacity:0}}
+.chip-classify{opacity:0;animation:chip-classify 14s infinite}
+@keyframes chip-classify{0%,24.5%{opacity:0}26%,44%{opacity:1}45.5%,100%{opacity:0}}
+.chip-concept{opacity:0;animation:chip-concept 14s infinite}
+@keyframes chip-concept{0%,46.5%{opacity:0}48%,60%{opacity:1}61.5%,100%{opacity:0}}
+.chip-connect{animation:chip-connect 14s infinite}
+@keyframes chip-connect{0%,62.5%{opacity:0}64%,97%{opacity:1}100%{opacity:0}}
+.no-capture{opacity:0;animation:no-capture 14s infinite}
+@keyframes no-capture{0%,1.5%{opacity:0}3%,22%{opacity:1}23.5%,100%{opacity:0}}
+.no-classify{opacity:0;animation:no-classify 14s infinite}
+@keyframes no-classify{0%,24.5%{opacity:0}26%,44%{opacity:1}45.5%,100%{opacity:0}}
+.no-concept{opacity:0;animation:no-concept 14s infinite}
+@keyframes no-concept{0%,46.5%{opacity:0}48%,60%{opacity:1}61.5%,100%{opacity:0}}
+.no-connect{animation:no-connect 14s infinite}
+@keyframes no-connect{0%,62.5%{opacity:0}64%,97%{opacity:1}100%{opacity:0}}
+.g-capture{opacity:0;animation:g-capture 14s infinite}
+@keyframes g-capture{0%,1.5%{opacity:0}3%,22%{opacity:1}23.5%,100%{opacity:0}}
+.typing{transform-box:fill-box;transform-origin:right;transform:scaleX(0);animation:typing 14s infinite}
+@keyframes typing{0%,6%{transform:scaleX(1);animation-timing-function:steps(13,end)}16%,100%{transform:scaleX(0)}}
+.caret{transform:translateX(112px);animation:caret 14s infinite}
+@keyframes caret{0%,6%{transform:translateX(0);animation-timing-function:steps(13,end)}16%,100%{transform:translateX(112px)}}
+.g-classify{opacity:0;animation:g-classify 14s infinite}
+@keyframes g-classify{0%,24.5%{opacity:0}26%,44%{opacity:1}45.5%,100%{opacity:0}}
+.picked{animation:picked 14s infinite}
+@keyframes picked{0%,32.5%{opacity:0}33%,100%{opacity:1}}
+.g-concept{opacity:0;animation:g-concept 14s infinite}
+@keyframes g-concept{0%,46.5%{opacity:0}48%,60%{opacity:1}61.5%,100%{opacity:0}}
+.tag1{transform-box:fill-box;transform-origin:center;animation:tag1 14s infinite}
+@keyframes tag1{0%,50%{opacity:0;transform:scale(.6)}51%{opacity:1;transform:scale(1.08)}52%,100%{opacity:1;transform:none}}
+.tag2{transform-box:fill-box;transform-origin:center;animation:tag2 14s infinite}
+@keyframes tag2{0%,53%{opacity:0;transform:scale(.6)}54%{opacity:1;transform:scale(1.08)}55%,100%{opacity:1;transform:none}}
+.g-connect{animation:g-connect 14s infinite}
+@keyframes g-connect{0%,62.5%{opacity:0}64%,97%{opacity:1}100%{opacity:0}}
+.sug1{animation:sug1 14s infinite}
+@keyframes sug1{0%,64.5%{opacity:0;transform:translateX(-6px)}66%,97%{opacity:1;transform:none}100%{opacity:0}}
+.sug2{animation:sug2 14s infinite}
+@keyframes sug2{0%,66.5%{opacity:0;transform:translateX(-6px)}68%,97%{opacity:1;transform:none}100%{opacity:0}}
+.pl1{animation:pl1 14s infinite}
+@keyframes pl1{0%,36.5%{opacity:0;transform:translateX(-6px)}38%,97%{opacity:1;transform:none}100%{opacity:0}}
+.pl2{animation:pl2 14s infinite}
+@keyframes pl2{0%,54.5%{opacity:0;transform:translateX(-6px)}56%,97%{opacity:1;transform:none}100%{opacity:0}}
+.pl3{animation:pl3 14s infinite}
+@keyframes pl3{0%,69.5%{opacity:0;transform:translateX(-6px)}71%,97%{opacity:1;transform:none}100%{opacity:0}}
+.pl5{animation:pl5 14s infinite}
+@keyframes pl5{0%,14.5%{opacity:0;transform:translateX(-6px)}16%,97%{opacity:1;transform:none}100%{opacity:0}}
+.press{opacity:0;animation:press 14s infinite}
+@keyframes press{0%,76%{opacity:0}77%{opacity:1}79%,100%{opacity:0}}
+.pointer{opacity:0;animation:pointer 14s infinite}
+@keyframes pointer{0%,27%{opacity:0;transform:translate(630px,292px)}30%{opacity:1;transform:translate(570px,222px)}32.5%{transform:translate(570px,222px) scale(1)}33%{transform:translate(570px,222px) scale(.82)}33.8%{transform:translate(570px,222px) scale(1)}38%{opacity:1;transform:translate(570px,222px)}40%{opacity:0;transform:translate(570px,222px)}71%{opacity:0;transform:translate(592px,448px)}74%{opacity:1;transform:translate(712px,538px)}76.5%{transform:translate(712px,538px) scale(1)}77%{transform:translate(712px,538px) scale(.82)}77.8%{opacity:1;transform:translate(712px,538px) scale(1)}80%,100%{opacity:0;transform:translate(712px,538px)}}
+.link1{stroke-dasharray:91;animation:link1 14s infinite}
+@keyframes link1{0%,86%{stroke-dashoffset:91}89%,97%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.link2{stroke-dasharray:88;animation:link2 14s infinite}
+@keyframes link2{0%,89%{stroke-dashoffset:88}92%,97%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+.target1{opacity:0;transform-box:fill-box;transform-origin:center;animation:target1 14s infinite}
+@keyframes target1{0%,88.5%{opacity:0;transform:scale(.6)}89%{opacity:1}94%,100%{opacity:0;transform:scale(2.2)}}
+.target2{opacity:0;transform-box:fill-box;transform-origin:center;animation:target2 14s infinite}
+@keyframes target2{0%,91.5%{opacity:0;transform:scale(.6)}92%{opacity:1}97%,100%{opacity:0;transform:scale(2.2)}}
+.star{transform-box:fill-box;transform-origin:center;animation:star 14s infinite}
+@keyframes star{0%,84.5%{opacity:0;transform:scale(.2)}87%{opacity:1;transform:scale(1.3)}89%,97%{opacity:1;transform:none}100%{opacity:0}}
+.burst{opacity:0;transform-box:fill-box;transform-origin:center;animation:burst 14s infinite}
+@keyframes burst{0%,84.5%{opacity:0;transform:scale(.5)}86%{opacity:.9}93%,100%{opacity:0;transform:scale(4.5)}}
+.starlabel{animation:starlabel 14s infinite}
+@keyframes starlabel{0%,86.5%{opacity:0;transform:translateX(-6px)}88%,97%{opacity:1;transform:none}100%{opacity:0}}
+.caption{animation:caption 14s infinite}
+@keyframes caption{0%,89.5%{opacity:0;transform:translateY(8px)}91%,97%{opacity:1;transform:none}100%{opacity:0}}
+.cam{transform-origin:984px 318px;animation:cam 14s infinite}
+@keyframes cam{0%,78%{transform:scale(1)}91%,97%{transform:scale(1.06)}100%{transform:scale(1)}}
+.count0{opacity:0;animation:count0 14s infinite}
+@keyframes count0{0%,85%{opacity:1}85.5%,97%{opacity:0}100%{opacity:1}}
+.count1{animation:count1 14s infinite}
+@keyframes count1{0%,85%{opacity:0}85.5%,97%{opacity:1}100%{opacity:0}}
+.fly{opacity:0;transform-box:fill-box;transform-origin:center;animation:fly 14s infinite}
+@keyframes fly{0%,77.5%{opacity:0;transform:translate(-272px,220px) scale(1)}78%{opacity:1;transform:translate(-272px,220px) scale(1);animation-timing-function:cubic-bezier(.5,0,.2,1)}85%{opacity:1;transform:translate(0,0) scale(.3)}86.5%,100%{opacity:0;transform:translate(0,0) scale(.2)}}
+.beat0{opacity:0;animation:beat0 14s infinite}
+@keyframes beat0{0%{opacity:1}0%,23%{opacity:1}24%,100%{opacity:0}}
+.beat1{opacity:0;animation:beat1 14s infinite}
+@keyframes beat1{0%{opacity:0}25%,77%{opacity:1}78%,100%{opacity:0}}
+.beat2{animation:beat2 14s infinite}
+@keyframes beat2{0%,77%{opacity:0}78%,97%{opacity:1}100%{opacity:0}}
+.progress{transform-box:fill-box;transform-origin:left;animation:progress 14s infinite}
+@keyframes progress{0%{transform:scaleX(0)}97%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:0}}
+.caret-blink{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.march{stroke-dasharray:5 5;animation:march 1.2s linear infinite}
+@keyframes march{to{stroke-dashoffset:-20}}
+.neb{animation:breathe 7s ease-in-out infinite alternate}
+.neb1{animation-delay:-2s}.neb2{animation-delay:-4s}.neb3{animation-delay:-5.5s}
+@keyframes breathe{from{opacity:.75}to{opacity:1}}
+.tw{animation:tw 3.2s ease-in-out infinite}.tw1{animation-delay:-1.1s}.tw2{animation-delay:-2.2s}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+*{animation:none!important}
+.pulse{display:none}
+}
+</style>
+<rect width="1200" height="640" rx="16" fill="#141319"/>
+<rect x="16" y="16" width="1168" height="608" rx="12" fill="#1c1b22" stroke="#34323f" stroke-width="1.5"/>
+<path d="M16 28 a12 12 0 0 1 12 -12 h1144 a12 12 0 0 1 12 12 v22 h-1168 z" fill="#24232c"/>
+<circle cx="38" cy="33" r="5" fill="#fb464c"/><circle cx="56" cy="33" r="5" fill="#e0de71"/><circle cx="74" cy="33" r="5" fill="#44cf6e"/>
+<text x="600" y="38" fill="#8b8a98" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="16" y1="50" x2="1184" y2="50" stroke="#34323f"/>
+
+<!-- The Canvas -->
+<rect x="32" y="66" width="304" height="490" rx="10" fill="#211f29" stroke="#2f2d3a"/>
+<rect x="33" y="100" width="302" height="455" fill="url(#dots)"/>
+<text x="52" y="92" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.2">CANVAS</text>
+<text x="316" y="92" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="end">Zettel flow.canvas</text>
+<path d="M182 166 V208 M160 260 L114 314 M204 260 L250 314 M112 366 L158 418 M252 366 L206 418" fill="none" stroke="#6c6a80" stroke-width="1.8" marker-end="url(#arr)"/>
+<path class="lit0" d="M182 166 V208" fill="none" stroke="#8f7ff5" stroke-width="2.2"/>
+<path class="lit1" d="M160 260 L114 314" fill="none" stroke="#8f7ff5" stroke-width="2.2"/>
+<path class="lit2" d="M112 366 L158 418" fill="none" stroke="#8f7ff5" stroke-width="2.2"/>
+<text x="128" y="294" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" text-anchor="end">if concept</text>
+<text x="236" y="294" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11">if source</text>
+<g class="">
+<rect x="102" y="116" width="160" height="50" rx="9" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="102" y="116" width="5" height="50" rx="2.5" fill="#f06a6f"/>
+<text x="120" y="138" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Capture</text>
+<text x="120" y="155" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Prompt · the idea</text>
+<rect x="216" y="125" width="36" height="17" rx="8.5" fill="#8f7ff5"/><text x="234" y="137.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" text-anchor="middle">Root</text><rect class="done-capture" x="102" y="116" width="160" height="50" rx="9" fill="none" stroke="#8f7ff5" stroke-opacity="0.45" stroke-width="1.5"/><rect class="ring-capture" x="98" y="112" width="168" height="58" rx="12" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<g class="">
+<rect x="102" y="210" width="160" height="50" rx="9" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="102" y="210" width="5" height="50" rx="2.5" fill="#e0a351"/>
+<text x="120" y="232" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Classify</text>
+<text x="120" y="249" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Selector · its kind</text>
+<rect class="done-classify" x="102" y="210" width="160" height="50" rx="9" fill="none" stroke="#8f7ff5" stroke-opacity="0.45" stroke-width="1.5"/><rect class="ring-classify" x="98" y="206" width="168" height="58" rx="12" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<g class="">
+<rect x="48" y="316" width="128" height="50" rx="9" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="48" y="316" width="5" height="50" rx="2.5" fill="#5cc98a"/>
+<text x="66" y="338" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Concept</text>
+<text x="66" y="355" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Tags</text>
+<rect class="done-concept" x="48" y="316" width="128" height="50" rx="9" fill="none" stroke="#8f7ff5" stroke-opacity="0.45" stroke-width="1.5"/><rect class="ring-concept" x="44" y="312" width="136" height="58" rx="12" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<g class="untaken">
+<rect x="188" y="316" width="128" height="50" rx="9" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="188" y="316" width="5" height="50" rx="2.5" fill="#e0de71"/>
+<text x="206" y="338" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Source</text>
+<text x="206" y="355" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Backlink</text>
+
+</g>
+<g class="">
+<rect x="102" y="420" width="160" height="50" rx="9" fill="#2a2936" stroke="#3d3b54" stroke-width="1.5"/>
+<rect x="102" y="420" width="5" height="50" rx="2.5" fill="#5aa9f0"/>
+<text x="120" y="442" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="650">Connect</text>
+<text x="120" y="459" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Suggest link</text>
+<rect class="ring-connect" x="98" y="416" width="168" height="58" rx="12" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<circle class="pulse" r="4.5" fill="#8f7ff5" opacity="0"><animateMotion dur="14s" repeatCount="indefinite" path="M182 166 V208" keyPoints="0;0;1;1" keyTimes="0;0.22;0.26;1" calcMode="linear"/><animate attributeName="opacity" dur="14s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.216;0.22;0.26;0.264;1"/></circle>
+<circle class="pulse" r="4.5" fill="#8f7ff5" opacity="0"><animateMotion dur="14s" repeatCount="indefinite" path="M160 260 L114 314" keyPoints="0;0;1;1" keyTimes="0;0.44;0.48;1" calcMode="linear"/><animate attributeName="opacity" dur="14s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.436;0.44;0.48;0.484;1"/></circle>
+<circle class="pulse" r="4.5" fill="#8f7ff5" opacity="0"><animateMotion dur="14s" repeatCount="indefinite" path="M112 366 L158 418" keyPoints="0;0;1;1" keyTimes="0;0.6;0.64;1" calcMode="linear"/><animate attributeName="opacity" dur="14s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.596;0.6;0.64;0.644;1"/></circle>
+<text x="184" y="508" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle">a card is a step · an arrow, the order</text>
+<text x="184" y="526" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="middle">a branch is a choice</text>
+
+<path class="march" d="M340 312 H354" fill="none" stroke="#8f7ff5" stroke-width="2" marker-end="url(#arrA)"/>
+
+<!-- The wizard -->
+<rect x="360" y="66" width="416" height="490" rx="10" fill="#26252f" stroke="#3a3847"/>
+<text x="380" y="96" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="700">Create note</text>
+<text class="no-capture" x="756" y="96" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end">Step 1 of 4</text><text class="no-classify" x="756" y="96" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end">Step 2 of 4</text><text class="no-concept" x="756" y="96" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end">Step 3 of 4</text><text class="no-connect" x="756" y="96" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="end">Step 4 of 4</text>
+<text x="380" y="113" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">Will be created at Zettel/</text>
+<rect x="380" y="122" width="69.75" height="26" rx="13" fill="#1c1b22" stroke="#3d3b54"/>
+<rect class="chip-capture" x="380" y="122" width="69.75" height="26" rx="13" fill="#8f7ff5"/>
+<text x="414.875" y="139.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="550" text-anchor="middle">Capture</text>
+<text x="458.75" y="140" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" text-anchor="middle">›</text>
+<rect x="467.75" y="122" width="76" height="26" rx="13" fill="#1c1b22" stroke="#3d3b54"/>
+<rect class="chip-classify" x="467.75" y="122" width="76" height="26" rx="13" fill="#8f7ff5"/>
+<text x="505.75" y="139.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="550" text-anchor="middle">Classify</text>
+<text x="552.75" y="140" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" text-anchor="middle">›</text>
+<rect x="561.75" y="122" width="69.75" height="26" rx="13" fill="#1c1b22" stroke="#3d3b54"/>
+<rect class="chip-concept" x="561.75" y="122" width="69.75" height="26" rx="13" fill="#8f7ff5"/>
+<text x="596.625" y="139.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="550" text-anchor="middle">Concept</text>
+<text x="640.5" y="140" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" text-anchor="middle">›</text>
+<rect x="649.5" y="122" width="69.75" height="26" rx="13" fill="#1c1b22" stroke="#3d3b54"/>
+<rect class="chip-connect" x="649.5" y="122" width="69.75" height="26" rx="13" fill="#8f7ff5"/>
+<text x="684.375" y="139.5" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="550" text-anchor="middle">Connect</text>
+
+<line x1="360" y1="162" x2="776" y2="162" stroke="#3a3847"/>
+<g class="g-capture">
+<text x="380" y="190" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="650">What’s the idea?</text>
+<rect x="380" y="206" width="376" height="40" rx="8" fill="#1c1b22" stroke="#8f7ff5" stroke-width="1.5"/>
+<text x="394" y="232" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16">Ideas as debt</text>
+<rect class="typing" x="392" y="212" width="112" height="28" fill="#1c1b22"/>
+<g class="caret"><rect class="caret-blink" x="393" y="215" width="2" height="22" fill="#8f7ff5"/></g>
+<text x="380" y="270" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">Prompt · it becomes the title and the file name</text>
+</g>
+<g class="g-classify">
+<text x="380" y="190" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="650">What kind of note is it?</text>
+<rect x="380" y="204" width="376" height="34" rx="8" fill="#1c1b22" stroke="#3d3b54" stroke-width="1.5"/>
+<rect class="picked" x="380" y="204" width="376" height="34" rx="8" fill="#8f7ff5"/>
+<text x="394" y="226" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="600">Concept — an idea in my own words</text>
+<rect x="380" y="246" width="376" height="34" rx="8" fill="#1c1b22" stroke="#3d3b54" stroke-width="1.5"/>
+
+<text x="394" y="268" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="400">Source — something I read</text>
+<rect x="380" y="288" width="376" height="34" rx="8" fill="#1c1b22" stroke="#3d3b54" stroke-width="1.5"/>
+
+<text x="394" y="310" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="400">Question — something I want to know</text>
+</g>
+<g class="g-concept">
+<text x="380" y="190" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="650">Tags</text>
+<rect x="380" y="206" width="376" height="40" rx="8" fill="#1c1b22" stroke="#8f7ff5" stroke-width="1.5"/>
+<g class="tag1"><rect x="390" y="215" width="54.5" height="22" rx="11" fill="#2d2945" stroke="#8f7ff5"/><text x="401" y="230.5" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="550">#debt</text></g>
+<g class="tag2"><rect x="456" y="215" width="74" height="22" rx="11" fill="#2d2945" stroke="#8f7ff5"/><text x="467" y="230.5" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="550">#writing</text></g>
+<text x="380" y="270" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">Suggested from your vault:</text>
+<text x="540" y="270" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">#finance   #zettelkasten</text>
+</g>
+<g class="g-connect">
+<text x="380" y="190" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="650">Links you might want to add</text>
+<text x="380" y="210" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12">Suggest link · ranked from your own graph · offline, no AI</text>
+<g class="sug1">
+<rect x="380" y="224" width="376" height="38" rx="8" fill="#2a2936" stroke="#3d3b54"/>
+<circle cx="396" cy="243" r="4.5" fill="#5aa9f0"/>
+<text x="410" y="248" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="600">Atomic notes</text>
+<text x="742" y="248" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" text-anchor="end">co-cited by 3 of your notes</text>
+</g>
+<g class="sug2">
+<rect x="380" y="270" width="376" height="38" rx="8" fill="#2a2936" stroke="#3d3b54"/>
+<circle cx="396" cy="289" r="4.5" fill="#5cc98a"/>
+<text x="410" y="294" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="600">Compound interest</text>
+<text x="742" y="294" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" text-anchor="end">shares 2 sources</text>
+</g>
+</g>
+<rect x="380" y="364" width="376" height="152" rx="8" fill="#1c1b22" stroke="#3d3b54"/>
+<text x="394" y="386" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.2">LIVE PREVIEW</text>
+<text x="742" y="386" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="end">Ideas as debt.md</text>
+<text class="" x="394" y="410" fill="#6c6a80" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5">---</text>
+<text class="pl1" x="394" y="429" fill="#b3a8ff" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5">type: concept</text>
+<text class="pl2" x="394" y="448" fill="#a3a1b8" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5">tags: [debt, writing]</text>
+<text class="pl3" x="394" y="467" fill="#a3a1b8" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5">links: [[Atomic notes]] [[Compound interest]]</text>
+<text class="" x="394" y="486" fill="#6c6a80" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5">---</text>
+<text class="pl5" x="394" y="507" fill="#efeefa" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="12.5" font-weight="700"># Ideas as debt</text>
+<rect x="380" y="525" width="64" height="26" rx="6" fill="none" stroke="#3d3b54"/>
+<text x="412" y="542.5" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" text-anchor="middle">Back</text>
+<rect x="668" y="525" width="88" height="26" rx="6" fill="#8f7ff5"/>
+<rect class="press" x="664" y="521" width="96" height="34" rx="9" fill="none" stroke="#cfc8ff" stroke-width="2"/>
+<text x="712" y="542.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="650" text-anchor="middle">Create</text>
+
+<path class="march" d="M780 312 H794" fill="none" stroke="#8f7ff5" stroke-width="2" marker-end="url(#arrA)"/>
+
+<!-- The graph -->
+<rect x="800" y="66" width="368" height="490" rx="10" fill="#18171e" stroke="#2f2d3a"/>
+<g clip-path="url(#graphclip)">
+<rect class="tw tw0" x="992" y="378" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.30"/><rect x="1092" y="426" width="1" height="1" fill="#dadada" fill-opacity="0.21"/><rect x="833" y="291" width="1" height="1" fill="#dadada" fill-opacity="0.25"/><rect x="1130" y="421" width="1" height="1" fill="#dadada" fill-opacity="0.27"/><rect x="858" y="261" width="1" height="1" fill="#dadada" fill-opacity="0.12"/><rect x="1071" y="182" width="1" height="1" fill="#dadada" fill-opacity="0.34"/><rect x="1057" y="284" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="988" y="413" width="1" height="1" fill="#dadada" fill-opacity="0.37"/><rect x="1132" y="490" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.42"/><rect class="tw tw0" x="825" y="334" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.13"/><rect x="866" y="532" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.32"/><rect x="964" y="178" width="1" height="1" fill="#dadada" fill-opacity="0.16"/><rect x="1062" y="459" width="1" height="1" fill="#dadada" fill-opacity="0.40"/><rect x="848" y="221" width="1" height="1" fill="#dadada" fill-opacity="0.37"/><rect x="1102" y="385" width="1" height="1" fill="#dadada" fill-opacity="0.40"/><rect x="1013" y="409" width="1" height="1" fill="#dadada" fill-opacity="0.38"/><rect x="997" y="295" width="1" height="1" fill="#dadada" fill-opacity="0.35"/><rect x="1048" y="120" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.34"/><rect class="tw tw0" x="1133" y="445" width="1" height="1" fill="#dadada" fill-opacity="0.15"/><rect x="958" y="326" width="1" height="1" fill="#dadada" fill-opacity="0.27"/><rect x="1159" y="550" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.30"/><rect x="948" y="485" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="841" y="461" width="1" height="1" fill="#dadada" fill-opacity="0.38"/><rect x="1049" y="528" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="1134" y="539" width="1" height="1" fill="#dadada" fill-opacity="0.32"/><rect x="951" y="289" width="1" height="1" fill="#dadada" fill-opacity="0.22"/><rect x="814" y="364" width="1" height="1" fill="#dadada" fill-opacity="0.24"/><rect class="tw tw0" x="1094" y="423" width="1" height="1" fill="#dadada" fill-opacity="0.34"/><rect x="1142" y="285" width="1" height="1" fill="#dadada" fill-opacity="0.13"/><rect x="1120" y="314" width="1" height="1" fill="#dadada" fill-opacity="0.34"/><rect x="1127" y="413" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="1014" y="176" width="1" height="1" fill="#dadada" fill-opacity="0.19"/><rect x="807" y="204" width="1" height="1" fill="#dadada" fill-opacity="0.29"/><rect x="1020" y="143" width="1" height="1" fill="#dadada" fill-opacity="0.19"/><rect x="828" y="432" width="1" height="1" fill="#dadada" fill-opacity="0.37"/><rect x="1047" y="398" width="1" height="1" fill="#dadada" fill-opacity="0.40"/><rect class="tw tw0" x="1144" y="351" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.28"/><rect x="986" y="548" width="1" height="1" fill="#dadada" fill-opacity="0.36"/><rect x="991" y="402" width="1" height="1" fill="#dadada" fill-opacity="0.36"/><rect x="876" y="483" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="840" y="106" width="1" height="1" fill="#dadada" fill-opacity="0.31"/><rect x="902" y="482" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.20"/><rect x="991" y="152" width="1" height="1" fill="#dadada" fill-opacity="0.22"/><rect x="899" y="104" width="1" height="1" fill="#dadada" fill-opacity="0.15"/><rect x="1081" y="119" width="1" height="1" fill="#dadada" fill-opacity="0.29"/><rect class="tw tw0" x="1109" y="372" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="851" y="399" width="1" height="1" fill="#dadada" fill-opacity="0.19"/><rect x="1007" y="250" width="1" height="1" fill="#dadada" fill-opacity="0.24"/><rect x="1128" y="198" width="1" height="1" fill="#dadada" fill-opacity="0.16"/><rect x="828" y="455" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.34"/><rect x="1078" y="189" width="1" height="1" fill="#dadada" fill-opacity="0.31"/><rect x="1138" y="217" width="1" height="1" fill="#dadada" fill-opacity="0.19"/><rect x="1007" y="348" width="1" height="1" fill="#dadada" fill-opacity="0.36"/><rect x="852" y="471" width="1" height="1" fill="#dadada" fill-opacity="0.20"/><rect class="tw tw0" x="1087" y="186" width="1" height="1" fill="#dadada" fill-opacity="0.37"/><rect x="1122" y="450" width="1" height="1" fill="#dadada" fill-opacity="0.12"/><rect x="996" y="466" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.32"/><rect x="899" y="256" width="1" height="1" fill="#dadada" fill-opacity="0.24"/><rect x="824" y="116" width="1" height="1" fill="#dadada" fill-opacity="0.15"/><rect x="879" y="433" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="1115" y="479" width="1" height="1" fill="#dadada" fill-opacity="0.16"/><rect x="878" y="327" width="1" height="1" fill="#dadada" fill-opacity="0.33"/><rect x="969" y="254" width="1" height="1" fill="#dadada" fill-opacity="0.28"/><rect class="tw tw0" x="980" y="180" width="1" height="1" fill="#dadada" fill-opacity="0.18"/><rect x="972" y="483" width="1" height="1" fill="#dadada" fill-opacity="0.39"/><rect x="1091" y="228" width="1" height="1" fill="#dadada" fill-opacity="0.27"/><rect x="995" y="218" width="1" height="1" fill="#dadada" fill-opacity="0.37"/><rect x="1064" y="375" width="1" height="1" fill="#dadada" fill-opacity="0.41"/><rect x="1027" y="438" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.31"/><rect x="1009" y="468" width="1.6" height="1.6" fill="#dadada" fill-opacity="0.33"/><rect x="1154" y="456" width="1" height="1" fill="#dadada" fill-opacity="0.14"/><rect x="1106" y="261" width="1" height="1" fill="#dadada" fill-opacity="0.14"/><rect class="tw tw0" x="1016" y="306" width="1" height="1" fill="#dadada" fill-opacity="0.36"/><rect x="895" y="413" width="1" height="1" fill="#dadada" fill-opacity="0.31"/><rect x="893" y="139" width="1" height="1" fill="#dadada" fill-opacity="0.31"/><rect x="907" y="484" width="1" height="1" fill="#dadada" fill-opacity="0.22"/><rect x="859" y="190" width="1" height="1" fill="#dadada" fill-opacity="0.29"/><rect x="938" y="223" width="1" height="1" fill="#dadada" fill-opacity="0.38"/><rect x="837" y="452" width="1" height="1" fill="#dadada" fill-opacity="0.38"/><rect x="1006" y="533" width="1" height="1" fill="#dadada" fill-opacity="0.33"/>
+<g class="cam">
+<circle class="neb neb0" cx="884" cy="222" r="140" fill="url(#neb0)"/>
+<circle class="neb neb1" cx="1084" cy="196" r="140" fill="url(#neb1)"/>
+<circle class="neb neb2" cx="1078" cy="408" r="140" fill="url(#neb2)"/>
+<circle class="neb neb3" cx="872" cy="420" r="140" fill="url(#neb3)"/>
+<g stroke="#8b8e94" stroke-opacity="0.3" stroke-width="1">
+<line x1="918.0" y1="256.0" x2="884.0" y2="222.0"/>
+<line x1="843.3" y1="234.5" x2="884.0" y2="222.0"/>
+<line x1="889.1" y1="269.5" x2="918.0" y2="256.0"/>
+<line x1="889.1" y1="269.5" x2="884" y2="222"/>
+<line x1="872.9" y1="266.4" x2="889.1" y2="269.5"/>
+<line x1="851.7" y1="257.6" x2="872.9" y2="266.4"/>
+<line x1="851.7" y1="257.6" x2="884" y2="222"/>
+<line x1="922.2" y1="232.7" x2="918.0" y2="256.0"/>
+<line x1="872.5" y1="211.3" x2="884.0" y2="222.0"/>
+<line x1="835.3" y1="213.7" x2="843.3" y2="234.5"/>
+<line x1="903.0" y1="260.2" x2="918.0" y2="256.0"/>
+<line x1="903.0" y1="260.2" x2="884" y2="222"/>
+<line x1="872.2" y1="209.1" x2="872.5" y2="211.3"/>
+<line x1="885.2" y1="251.5" x2="889.1" y2="269.5"/>
+<line x1="880.3" y1="242.0" x2="885.2" y2="251.5"/>
+<line x1="880.3" y1="242.0" x2="884" y2="222"/>
+<line x1="880.5" y1="257.1" x2="885.2" y2="251.5"/>
+<line x1="868.1" y1="264.1" x2="872.9" y2="266.4"/>
+<line x1="885.7" y1="219.8" x2="884.0" y2="222.0"/>
+<line x1="893.6" y1="242.5" x2="885.2" y2="251.5"/>
+<line x1="893.6" y1="242.5" x2="884" y2="222"/>
+<line x1="941.3" y1="243.0" x2="922.2" y2="232.7"/>
+<line x1="941.3" y1="243.0" x2="884" y2="222"/>
+<line x1="895.2" y1="265.9" x2="889.1" y2="269.5"/>
+<line x1="895.2" y1="265.9" x2="884" y2="222"/>
+<line x1="862.5" y1="230.8" x2="843.3" y2="234.5"/>
+<line x1="882.8" y1="205.8" x2="872.2" y2="209.1"/>
+<line x1="882.8" y1="205.8" x2="884" y2="222"/>
+<line x1="889.4" y1="221.1" x2="885.7" y2="219.8"/>
+<line x1="854.5" y1="207.8" x2="872.2" y2="209.1"/>
+<line x1="875.3" y1="202.6" x2="872.2" y2="209.1"/>
+<line x1="1121.9" y1="178.6" x2="1084.0" y2="196.0"/>
+<line x1="1072.2" y1="240.2" x2="1084.0" y2="196.0"/>
+<line x1="1105.5" y1="192.8" x2="1121.9" y2="178.6"/>
+<line x1="1105.5" y1="192.8" x2="1084" y2="196"/>
+<line x1="1093.3" y1="156.0" x2="1121.9" y2="178.6"/>
+<line x1="1062.4" y1="176.9" x2="1084.0" y2="196.0"/>
+<line x1="1052.8" y1="157.8" x2="1062.4" y2="176.9"/>
+<line x1="1139.1" y1="206.4" x2="1121.9" y2="178.6"/>
+<line x1="1139.1" y1="206.4" x2="1084" y2="196"/>
+<line x1="1082.7" y1="199.8" x2="1084.0" y2="196.0"/>
+<line x1="1085.1" y1="175.4" x2="1084.0" y2="196.0"/>
+<line x1="1043.6" y1="209.7" x2="1062.4" y2="176.9"/>
+<line x1="1043.6" y1="209.7" x2="1084" y2="196"/>
+<line x1="1061.5" y1="162.4" x2="1052.8" y2="157.8"/>
+<line x1="1061.5" y1="162.4" x2="1084" y2="196"/>
+<line x1="1088.1" y1="186.5" x2="1084.0" y2="196.0"/>
+<line x1="1079.2" y1="211.3" x2="1082.7" y2="199.8"/>
+<line x1="1079.2" y1="211.3" x2="1084" y2="196"/>
+<line x1="1080.4" y1="215.9" x2="1079.2" y2="211.3"/>
+<line x1="1080.6" y1="209.9" x2="1079.2" y2="211.3"/>
+<line x1="1080.6" y1="209.9" x2="1084" y2="196"/>
+<line x1="1104.9" y1="155.6" x2="1093.3" y2="156.0"/>
+<line x1="1071.4" y1="195.5" x2="1082.7" y2="199.8"/>
+<line x1="1048.0" y1="378.0" x2="1078.0" y2="408.0"/>
+<line x1="1040.2" y1="415.8" x2="1048.0" y2="378.0"/>
+<line x1="1072.9" y1="381.8" x2="1048.0" y2="378.0"/>
+<line x1="1072.9" y1="381.8" x2="1078" y2="408"/>
+<line x1="1117.1" y1="387.6" x2="1078.0" y2="408.0"/>
+<line x1="1078.8" y1="413.1" x2="1078.0" y2="408.0"/>
+<line x1="1117.5" y1="428.6" x2="1117.1" y2="387.6"/>
+<line x1="1117.5" y1="428.6" x2="1078" y2="408"/>
+<line x1="1033.0" y1="425.4" x2="1040.2" y2="415.8"/>
+<line x1="1033.0" y1="425.4" x2="1078" y2="408"/>
+<line x1="1068.5" y1="418.0" x2="1078.8" y2="413.1"/>
+<line x1="1046.1" y1="391.6" x2="1048.0" y2="378.0"/>
+<line x1="1026.9" y1="406.1" x2="1040.2" y2="415.8"/>
+<line x1="1056.7" y1="392.0" x2="1046.1" y2="391.6"/>
+<line x1="1049.8" y1="387.2" x2="1046.1" y2="391.6"/>
+<line x1="1054.8" y1="419.3" x2="1068.5" y2="418.0"/>
+<line x1="1071.5" y1="395.0" x2="1072.9" y2="381.8"/>
+<line x1="1043.3" y1="374.6" x2="1048.0" y2="378.0"/>
+<line x1="1043.3" y1="374.6" x2="1078" y2="408"/>
+<line x1="1059.8" y1="394.9" x2="1056.7" y2="392.0"/>
+<line x1="1059.8" y1="394.9" x2="1078" y2="408"/>
+<line x1="1080.3" y1="386.2" x2="1072.9" y2="381.8"/>
+<line x1="1080.3" y1="386.2" x2="1078" y2="408"/>
+<line x1="1082.4" y1="398.7" x2="1078.0" y2="408.0"/>
+<line x1="1111.5" y1="406.6" x2="1117.1" y2="387.6"/>
+<line x1="1111.5" y1="406.6" x2="1078" y2="408"/>
+<line x1="1100.3" y1="401.8" x2="1111.5" y2="406.6"/>
+<line x1="1100.3" y1="401.8" x2="1078" y2="408"/>
+<line x1="1104.1" y1="381.6" x2="1117.1" y2="387.6"/>
+<line x1="1119.3" y1="412.7" x2="1111.5" y2="406.6"/>
+<line x1="1077.1" y1="407.7" x2="1078.0" y2="408.0"/>
+<line x1="925.8" y1="395.1" x2="872.0" y2="420.0"/>
+<line x1="833.4" y1="422.3" x2="872.0" y2="420.0"/>
+<line x1="875.4" y1="461.0" x2="872.0" y2="420.0"/>
+<line x1="884.2" y1="413.9" x2="872.0" y2="420.0"/>
+<line x1="867.3" y1="393.8" x2="884.2" y2="413.9"/>
+<line x1="884.7" y1="416.8" x2="884.2" y2="413.9"/>
+<line x1="884.7" y1="416.8" x2="872" y2="420"/>
+<line x1="862.6" y1="419.0" x2="872.0" y2="420.0"/>
+<line x1="914.6" y1="384.7" x2="925.8" y2="395.1"/>
+<line x1="914.6" y1="384.7" x2="872" y2="420"/>
+<line x1="900.1" y1="436.2" x2="884.7" y2="416.8"/>
+<line x1="926.8" y1="423.7" x2="925.8" y2="395.1"/>
+<line x1="926.8" y1="423.7" x2="872" y2="420"/>
+<line x1="892.0" y1="435.1" x2="900.1" y2="436.2"/>
+<line x1="892.0" y1="435.1" x2="872" y2="420"/>
+<line x1="871.8" y1="426.4" x2="872.0" y2="420.0"/>
+<line x1="872.0" y1="419.6" x2="872.0" y2="420.0"/>
+<line x1="925.1" y1="419.4" x2="926.8" y2="423.7"/>
+<line x1="925.1" y1="419.4" x2="872" y2="420"/>
+<line x1="876.9" y1="389.9" x2="867.3" y2="393.8"/>
+<line x1="876.9" y1="389.9" x2="872" y2="420"/>
+<line x1="884" y1="222" x2="1084" y2="196" stroke-dasharray="3 4"/>
+<line x1="1078" y1="408" x2="872" y2="420" stroke-dasharray="3 4"/>
+</g>
+<circle cx="884.0" cy="222.0" r="5.5" fill="#5aa9f0"/>
+<circle cx="918.0" cy="256.0" r="4.5" fill="#5aa9f0"/>
+<circle class="target1" cx="918" cy="256" r="9" fill="none" stroke="#5aa9f0" stroke-width="1.5"/>
+<circle cx="843.3" cy="234.5" r="2.9" fill="#5aa9f0" opacity="0.96"/>
+<circle cx="889.1" cy="269.5" r="3.6" fill="#5aa9f0" opacity="0.83"/>
+<circle cx="872.9" cy="266.4" r="2.8" fill="#5aa9f0" opacity="0.99"/>
+<circle cx="851.7" cy="257.6" r="2.4" fill="#5aa9f0" opacity="0.99"/>
+<circle cx="922.2" cy="232.7" r="3.3" fill="#5aa9f0" opacity="0.66"/>
+<circle cx="872.5" cy="211.3" r="3.0" fill="#5aa9f0" opacity="0.94"/>
+<circle cx="835.3" cy="213.7" r="2.6" fill="#5aa9f0" opacity="0.91"/>
+<circle cx="903.0" cy="260.2" r="3.2" fill="#5aa9f0" opacity="0.57"/>
+<circle cx="872.2" cy="209.1" r="2.1" fill="#5aa9f0" opacity="0.86"/>
+<circle cx="885.2" cy="251.5" r="3.3" fill="#5aa9f0" opacity="0.59"/>
+<circle cx="880.3" cy="242.0" r="3.3" fill="#5aa9f0" opacity="0.77"/>
+<circle cx="880.5" cy="257.1" r="3.7" fill="#5aa9f0" opacity="0.62"/>
+<circle cx="868.1" cy="264.1" r="2.1" fill="#5aa9f0" opacity="0.94"/>
+<circle cx="885.7" cy="219.8" r="2.7" fill="#5aa9f0" opacity="0.88"/>
+<circle cx="893.6" cy="242.5" r="3.6" fill="#5aa9f0" opacity="0.79"/>
+<circle cx="941.3" cy="243.0" r="3.5" fill="#5aa9f0" opacity="0.60"/>
+<circle cx="895.2" cy="265.9" r="2.1" fill="#5aa9f0" opacity="0.65"/>
+<circle cx="862.5" cy="230.8" r="2.5" fill="#5aa9f0" opacity="0.88"/>
+<circle cx="882.8" cy="205.8" r="2.5" fill="#5aa9f0" opacity="0.58"/>
+<circle cx="889.4" cy="221.1" r="3.3" fill="#5aa9f0" opacity="0.99"/>
+<circle cx="854.5" cy="207.8" r="3.5" fill="#5aa9f0" opacity="0.66"/>
+<circle cx="875.3" cy="202.6" r="3.3" fill="#5aa9f0" opacity="0.77"/>
+<circle cx="1084.0" cy="196.0" r="5.5" fill="#e0a351"/>
+<circle cx="1121.9" cy="178.6" r="2.4" fill="#e0a351" opacity="0.72"/>
+<circle cx="1072.2" cy="240.2" r="2.0" fill="#e0a351" opacity="0.95"/>
+<circle cx="1105.5" cy="192.8" r="2.3" fill="#e0a351" opacity="0.75"/>
+<circle cx="1093.3" cy="156.0" r="3.3" fill="#e0a351" opacity="0.81"/>
+<circle cx="1062.4" cy="176.9" r="3.7" fill="#e0a351" opacity="0.63"/>
+<circle cx="1052.8" cy="157.8" r="3.4" fill="#e0a351" opacity="0.75"/>
+<circle cx="1139.1" cy="206.4" r="3.5" fill="#e0a351" opacity="0.63"/>
+<circle cx="1082.7" cy="199.8" r="2.1" fill="#e0a351" opacity="0.91"/>
+<circle cx="1085.1" cy="175.4" r="2.2" fill="#e0a351" opacity="0.88"/>
+<circle cx="1043.6" cy="209.7" r="2.7" fill="#e0a351" opacity="0.59"/>
+<circle cx="1061.5" cy="162.4" r="2.3" fill="#e0a351" opacity="0.91"/>
+<circle cx="1088.1" cy="186.5" r="3.7" fill="#e0a351" opacity="0.59"/>
+<circle cx="1079.2" cy="211.3" r="2.8" fill="#e0a351" opacity="0.67"/>
+<circle cx="1080.4" cy="215.9" r="3.7" fill="#e0a351" opacity="0.90"/>
+<circle cx="1080.6" cy="209.9" r="3.3" fill="#e0a351" opacity="0.84"/>
+<circle cx="1104.9" cy="155.6" r="2.8" fill="#e0a351" opacity="0.60"/>
+<circle cx="1071.4" cy="195.5" r="3.1" fill="#e0a351" opacity="0.76"/>
+<circle cx="1078.0" cy="408.0" r="5.5" fill="#5cc98a"/>
+<circle cx="1048.0" cy="378.0" r="4.5" fill="#5cc98a"/>
+<circle class="target2" cx="1048" cy="378" r="9" fill="none" stroke="#5cc98a" stroke-width="1.5"/>
+<circle cx="1040.2" cy="415.8" r="3.6" fill="#5cc98a" opacity="1.00"/>
+<circle cx="1072.9" cy="381.8" r="3.3" fill="#5cc98a" opacity="0.70"/>
+<circle cx="1117.1" cy="387.6" r="3.5" fill="#5cc98a" opacity="0.82"/>
+<circle cx="1078.8" cy="413.1" r="3.6" fill="#5cc98a" opacity="0.61"/>
+<circle cx="1117.5" cy="428.6" r="3.7" fill="#5cc98a" opacity="0.82"/>
+<circle cx="1033.0" cy="425.4" r="1.9" fill="#5cc98a" opacity="0.72"/>
+<circle cx="1068.5" cy="418.0" r="2.0" fill="#5cc98a" opacity="0.93"/>
+<circle cx="1046.1" cy="391.6" r="2.2" fill="#5cc98a" opacity="0.73"/>
+<circle cx="1026.9" cy="406.1" r="2.3" fill="#5cc98a" opacity="0.71"/>
+<circle cx="1056.7" cy="392.0" r="3.5" fill="#5cc98a" opacity="0.86"/>
+<circle cx="1049.8" cy="387.2" r="3.1" fill="#5cc98a" opacity="0.74"/>
+<circle cx="1054.8" cy="419.3" r="2.9" fill="#5cc98a" opacity="0.61"/>
+<circle cx="1071.5" cy="395.0" r="2.0" fill="#5cc98a" opacity="0.87"/>
+<circle cx="1043.3" cy="374.6" r="2.7" fill="#5cc98a" opacity="0.60"/>
+<circle cx="1059.8" cy="394.9" r="3.1" fill="#5cc98a" opacity="0.91"/>
+<circle cx="1080.3" cy="386.2" r="2.7" fill="#5cc98a" opacity="0.68"/>
+<circle cx="1082.4" cy="398.7" r="3.1" fill="#5cc98a" opacity="0.68"/>
+<circle cx="1111.5" cy="406.6" r="1.9" fill="#5cc98a" opacity="0.98"/>
+<circle cx="1100.3" cy="401.8" r="3.3" fill="#5cc98a" opacity="0.77"/>
+<circle cx="1104.1" cy="381.6" r="1.9" fill="#5cc98a" opacity="0.74"/>
+<circle cx="1119.3" cy="412.7" r="3.1" fill="#5cc98a" opacity="0.67"/>
+<circle cx="1077.1" cy="407.7" r="2.0" fill="#5cc98a" opacity="0.55"/>
+<circle cx="872.0" cy="420.0" r="5.5" fill="#e87fc0"/>
+<circle cx="925.8" cy="395.1" r="2.1" fill="#e87fc0" opacity="0.59"/>
+<circle cx="833.4" cy="422.3" r="3.5" fill="#e87fc0" opacity="0.94"/>
+<circle cx="875.4" cy="461.0" r="2.1" fill="#e87fc0" opacity="0.55"/>
+<circle cx="884.2" cy="413.9" r="3.5" fill="#e87fc0" opacity="1.00"/>
+<circle cx="867.3" cy="393.8" r="2.2" fill="#e87fc0" opacity="0.83"/>
+<circle cx="884.7" cy="416.8" r="1.8" fill="#e87fc0" opacity="0.97"/>
+<circle cx="862.6" cy="419.0" r="2.9" fill="#e87fc0" opacity="0.77"/>
+<circle cx="914.6" cy="384.7" r="3.2" fill="#e87fc0" opacity="0.69"/>
+<circle cx="900.1" cy="436.2" r="2.1" fill="#e87fc0" opacity="0.98"/>
+<circle cx="926.8" cy="423.7" r="3.1" fill="#e87fc0" opacity="0.72"/>
+<circle cx="892.0" cy="435.1" r="2.9" fill="#e87fc0" opacity="0.72"/>
+<circle cx="871.8" cy="426.4" r="2.2" fill="#e87fc0" opacity="0.97"/>
+<circle cx="872.0" cy="419.6" r="3.8" fill="#e87fc0" opacity="0.64"/>
+<circle cx="925.1" cy="419.4" r="3.5" fill="#e87fc0" opacity="0.61"/>
+<circle cx="876.9" cy="389.9" r="2.8" fill="#e87fc0" opacity="0.89"/>
+<line x1="984" y1="318" x2="918" y2="256" stroke="#d9d6ea" stroke-opacity="0.12" stroke-width="5" class="link1"/>
+<line class="link1" x1="984" y1="318" x2="918" y2="256" stroke="#d9d6ea" stroke-opacity="0.85" stroke-width="1.6"/>
+<line x1="984" y1="318" x2="1048" y2="378" stroke="#8f7ff5" stroke-opacity="0.3" stroke-width="7" class="link2"/>
+<line class="link2" x1="984" y1="318" x2="1048" y2="378" stroke="#8f7ff5" stroke-width="2"/>
+<text x="908" y="248" fill="#d9d6ea" stroke="#18171e" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" text-anchor="end">Atomic notes</text>
+<text x="884" y="156" fill="#5aa9f0" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" letter-spacing="1.4" text-anchor="middle" opacity="0.85">WRITING</text>
+<text x="1084" y="130" fill="#e0a351" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" letter-spacing="1.4" text-anchor="middle" opacity="0.85">SYSTEMS</text>
+<text x="1038" y="398" fill="#d9d6ea" stroke="#18171e" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" text-anchor="end">Compound interest</text>
+<text x="1078" y="342" fill="#5cc98a" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" letter-spacing="1.4" text-anchor="middle" opacity="0.85">LEARNING</text>
+<text x="872" y="354" fill="#e87fc0" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" letter-spacing="1.4" text-anchor="middle" opacity="0.85">ATTENTION</text>
+<circle class="burst" cx="984" cy="318" r="8" fill="none" stroke="#8f7ff5" stroke-width="1.5"/>
+<g class="star"><circle cx="984" cy="318" r="20" fill="url(#starglow)"/><circle cx="984" cy="318" r="5.5" fill="#fff"/></g>
+<g class="starlabel">
+<rect x="998" y="288" width="128" height="24" rx="12" fill="#2d2945" stroke="#8f7ff5"/>
+<text x="1010" y="304.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="650">Ideas as debt</text>
+<text x="1114" y="304.5" fill="#cfc8ff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10" font-weight="700" text-anchor="end">NEW</text>
+</g>
+</g>
+</g>
+<text x="820" y="92" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.2">EXPLORE · YOUR GRAPH</text>
+<text class="count0" x="1148" y="92" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="end">4 regions · 82 notes</text>
+<text class="count1" x="1148" y="92" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" text-anchor="end">4 regions · 83 notes</text>
+<g class="caption">
+<rect x="814" y="498" width="340" height="44" rx="9" fill="#26233a" stroke="#8f7ff5" stroke-opacity="0.7"/>
+<circle cx="832" cy="520" r="5" fill="#fff"/>
+<text x="846" y="516" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="650">Ideas as debt · linked to 2 notes</text>
+<text x="846" y="533" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5">a new bridge between Writing and Learning</text>
+</g>
+
+<!-- The fly: the note leaves the wizard for the graph -->
+<g class="fly">
+<rect x="922" y="302" width="124" height="32" rx="9" fill="#2d2945" stroke="#8f7ff5" stroke-width="1.5"/>
+<text x="984" y="323" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="650" text-anchor="middle">Ideas as debt</text>
+</g>
+
+<!-- The pointer -->
+<g class="pointer"><path d="M0 0 L0 17 L4.5 13 L7.5 20 L10.5 18.6 L7.6 12 L13 12 Z" fill="#fff" stroke="#141319" stroke-width="1.2" stroke-linejoin="round"/></g>
+
+<!-- Three beats of one shot -->
+<rect x="200" y="566" width="800" height="48" rx="12" fill="#26252f" stroke="#3a3847"/>
+<circle cx="274.83333333333337" cy="583" r="9" fill="#2d2b3a" stroke="#3d3b54"/>
+<text x="274.83333333333337" y="587" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">1</text>
+<text x="333.33333333333337" y="588" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Draw it once</text>
+<g class="beat0"><circle cx="274.83333333333337" cy="583" r="9" fill="#8f7ff5"/>
+<text x="274.83333333333337" y="587" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">1</text>
+<text x="333.33333333333337" y="588" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Draw it once</text></g>
+<text x="333.33333333333337" y="603" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle">a Canvas is the workflow</text>
+<circle cx="507.75" cy="583" r="9" fill="#2d2b3a" stroke="#3d3b54"/>
+<text x="507.75" y="587" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">2</text>
+<text x="600" y="588" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Walk it for every note</text>
+<g class="beat1"><circle cx="507.75" cy="583" r="9" fill="#8f7ff5"/>
+<text x="507.75" y="587" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">2</text>
+<text x="600" y="588" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Walk it for every note</text></g>
+<text x="600" y="603" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle">a wizard, step by step</text>
+<circle cx="774.4166666666667" cy="583" r="9" fill="#2d2b3a" stroke="#3d3b54"/>
+<text x="774.4166666666667" y="587" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">3</text>
+<text x="866.6666666666667" y="588" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">It lands in your graph</text>
+<g class="beat2"><circle cx="774.4166666666667" cy="583" r="9" fill="#8f7ff5"/>
+<text x="774.4166666666667" y="587" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">3</text>
+<text x="866.6666666666667" y="588" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">It lands in your graph</text></g>
+<text x="866.6666666666667" y="603" fill="#6c6a80" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" text-anchor="middle">linked, in its region</text>
+<rect x="212" y="611" width="776" height="2" rx="1" fill="#3a3847"/>
+<rect class="progress" x="212" y="611" width="776" height="2" rx="1" fill="#8f7ff5"/>
 </svg>

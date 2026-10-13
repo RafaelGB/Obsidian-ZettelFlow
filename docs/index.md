@@ -19,7 +19,7 @@ hide:
 [Why ZettelFlow?](why.md) · [FAQ](faq.md)
 {: .zf-hero__links }
 
-![ZettelFlow at a glance: a Canvas flow, the wizard it drives for every new note, and the This note companion that helps you think with the result.](resources/readme/hero.svg){ .zf-hero__image }
+![How ZettelFlow works, in one continuous shot: a Canvas flow is walked step by step while the wizard it drives builds the note, and the note lands in your graph, already linked.](resources/readme/hero.svg){ .zf-hero__image }
 
 </div>
 

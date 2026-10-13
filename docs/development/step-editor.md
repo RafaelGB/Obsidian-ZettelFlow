@@ -42,6 +42,10 @@ card still says what it holds on its heading: *2 actions*, *starts the flow*, *Z
 
 A question with nothing to configure for this kind of step is left out rather than shown empty.
 
+The step an empty canvas creates with **Create the first step** already **starts the flow**, so a
+one-step flow runs as soon as it asks something. Turn it off, or on for another step, under **When
+does it appear?**
+
 ## The actions
 
 Each action is a **card**:

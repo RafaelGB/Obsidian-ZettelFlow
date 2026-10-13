@@ -200,39 +200,42 @@ nav:
   # 4 · Reference — look something up: every action, every automation, the scripting API.
   - Reference:
       - Actions:
-          - Form actions:
-              - Prompt: actions/Prompt.md
-              - Number: actions/Number.md
-              - Checkbox: actions/Checkbox.md
-              - Calendar: actions/Calendar.md
-              - Selector: actions/Selector.md
-              - Dynamic Selector: actions/DynamicSelector.md
-              - Tags: actions/Tags.md
-              - Backlink: actions/Backlink.md
-              - CSS classes: actions/CssClasses.md
-              - Task management: actions/TaskManagement.md
-              - Script: actions/Script.md
-              - Zettel ID: actions/ZettelId.md
-          - Knowledge actions:
+          - Manipulation:
+              - Ask for text: actions/Prompt.md
+              - Ask for a number: actions/Number.md
+              - Yes or no: actions/Checkbox.md
+              - Choose an option: actions/Selector.md
+              - Choose from a script: actions/DynamicSelector.md
+              - Pick a date: actions/Calendar.md
+              - Add tags: actions/Tags.md
+              - Add CSS classes: actions/CssClasses.md
+              - Run a script: actions/Script.md
+              - Carry over tasks: actions/TaskManagement.md
+              - Note ID: actions/ZettelId.md
+          - Relations:
+              - Link a note: actions/Backlink.md
+              - Find related: actions/FindRelated.md
+              - Suggest link: actions/SuggestLink.md
+              - Create semantic relation: actions/CreateSemanticRelation.md
+          - Knowledge:
               - Detect orphan: actions/DetectOrphan.md
               - Calculate maturity: actions/CalculateMaturity.md
-              - Find related: actions/FindRelated.md
-              - Find contradiction: actions/FindContradiction.md
-              - Find unanswered question: actions/FindUnansweredQuestion.md
-              - Suggest link: actions/SuggestLink.md
-              - Suggest connections: actions/SuggestConnections.md
+              - Find contradictions: actions/FindContradiction.md
+              - Find unanswered questions: actions/FindUnansweredQuestion.md
               - Suggest next move: actions/SuggestNextMove.md
-              - Create semantic relation: actions/CreateSemanticRelation.md
+              - Thinking simulator: actions/ThinkingSimulator.md
+          - Research:
               - Extract claims: actions/ExtractClaims.md
               - Compare claims: actions/CompareClaims.md
               - Find sources: actions/FindSources.md
               - Attach source: actions/AttachSource.md
+          - AI:
               - Summarize: actions/Summarize.md
               - Classify: actions/Classify.md
               - Generate questions: actions/GenerateQuestions.md
-              - Thinking simulator: actions/ThinkingSimulator.md
               - Challenge idea: actions/ChallengeIdea.md
               - Synthesize: actions/Synthesize.md
+              - Suggest connections: actions/SuggestConnections.md
       - Automation:
           - Property hooks:
               - Overview: vault-hooks/property-hooks/overview.md

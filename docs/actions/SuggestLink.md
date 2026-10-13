@@ -1,23 +1,34 @@
-# Suggest link action
+# Suggest link
 
-🔗 A **Relations** action (#154). Surfaces the **top link suggestions** for a note from shared graph
-context, using the same structural ranking as [Find related](FindRelated.md) with a tighter default
-cap — framed as *links you might want to add*. Reads only the
-[knowledge model](../architecture/knowledge-model.md) (#145). Deterministic and offline.
+Surface the top link suggestions for the note from shared graph context.
 
-## Options
+*Called `suggest-link` in the step's YAML.*
 
-- **Result property** — where the suggested `[[wikilinks]]` are written (default `suggestedLinks`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Source note (optional)** — the note to rank against; empty ⇒ the note being built.
-- **Max results** — how many suggestions to keep (default 5).
+A **Relations** action. It asks nothing in the wizard. Same structural ranking as
+[Find related](FindRelated.md), with a smaller default — framed as *links you might want to add*.
+Deterministic and offline.
 
-## Result
+## Settings
 
-A short array of `[[link]]`s to the strongest suggestions (co-citation weighted above bibliographic
-coupling; already-linked and zero-context notes excluded), plus a `Notice` reporting the count. As
-with Find related, the freshly-built note is not yet indexed — point **Source note** at an existing
-note to get suggestions. If the index isn't ready, the action safely no-ops.
+- **Result property** — where the suggested links are written. Default: `suggestedLinks`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{suggestedLinks}}`.
+- **Source note (optional)** — the note to rank against. Empty uses the note being built.
+- **Max results** — how many suggestions to keep, strongest first. Default: `5`.
+
+## What it writes
+
+```yaml
+---
+suggestedLinks:
+  - "[[Spaced repetition]]"
+---
+```
+
+A notice reports the count. As with Find related, the note being built is not indexed yet — point
+**Source note (optional)** at an existing note to get suggestions. If the index isn't ready, the
+action does nothing.
 
 ## Capabilities
 

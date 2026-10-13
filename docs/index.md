@@ -97,37 +97,46 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
 ---
 
-## Three ways in
+## Ways in
+
+Install ZettelFlow from **Settings → Community plugins**. The ZettelFlow ribbon button opens a menu;
+every way in starts there.
+
+=== "See it work in one click"
+
+    1. Ribbon menu → **Create note**.
+    2. While no canvas creates notes, press **Create the example flow**.
+    3. **Create note** again, and walk the flow it made.
+
+    → [Get started](get-started.md)
+
+=== "Install a ready-made system"
+
+    1. Ribbon menu → **Community**.
+    2. Pick a system — each shows its flow and difficulty — and **Try it** before installing.
+    3. **Install system**, and create your first note.
+
+    → [Systems gallery](how-to-contribute/systems-gallery.md)
+
+=== "Draw your own Canvas flow"
+
+    1. Right-click a canvas → **Use this canvas to create notes** → **Give it the role**.
+    2. Open it → **Create the first step**. The first step starts the flow on its own.
+    3. Select it → **Edit step** → **Add an action** → *Ask for text*.
+    4. Ribbon menu → **Create note**.
+
+    ![Your first flow, from an empty canvas to a note](resources/readme/first-flow.svg)
+
+    → [Get started](get-started.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md)
 
 === "Start from your own idea"
 
     No setup, no Canvas, no AI.
 
-    1. Install ZettelFlow from **Settings → Community plugins**.
-    2. Click the ZettelFlow ribbon icon and choose **Start with my own idea**.
-    3. State your question, look at what your vault already says, and write a provisional response.
+    1. Ribbon menu → **Cultivate — start a thinking session** → **From a question of mine…**
+    2. State your question, look at what your vault already says, and write a provisional response.
 
     → [Cultivate and purpose-led work](development/cultivate.md)
-
-=== "Install a ready-made system"
-
-    A complete workflow in one click.
-
-    1. Run **Browse systems** from the ribbon menu.
-    2. Pick a system — each shows its flow and difficulty — and **rehearse** it before installing.
-    3. Install it into a role (*create*, *edit*, *event*) and create your first note.
-
-    → [Systems gallery](how-to-contribute/systems-gallery.md)
-
-=== "Build your own Canvas flow"
-
-    Full control over every step.
-
-    1. Create a `.canvas` file and give it the *Creates notes* role in **Settings → ZettelFlow → Flows**.
-    2. On the canvas, press **Create a step** (the Z in the bottom bar), and turn on **Starts the flow**.
-    3. Add steps, connect them with arrows, and run the wizard from the ribbon.
-
-    → [Get started](get-started.md) · [Actions](actions/Prompt.md) · [Conditional edges](architecture/conditional-edges.md)
 
 ---
 

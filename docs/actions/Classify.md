@@ -1,19 +1,42 @@
-# Classify action
+# Classify
 
-🤖 An **AI** action (#156). Suggests topic tags for the note being built via your configured AI
-provider. **Optional and off by default** — see
+Suggest topic tags for the note with AI.
+
+*Called `classify` in the step's YAML.*
+
+An **AI** action. It asks nothing in the wizard except your verdict. **Optional and off by default** — see
 [AI provider setup](../development/ai-provider-setup.md).
 
-## Options
+## Settings
 
-- **Result property** — where the tags are written (default `classification`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
+- **Result property** — where the result is written. Default: `classification`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{classification}}`.
 
-## Result
+## What it writes
 
-An array of short tag labels (parsed from the provider's response — trimmed, de-duplicated), plus a
-`Notice` with the count. If AI is disabled or not configured, the action no-ops with a clear notice
-and makes no network request; a provider/network failure degrades to a notice with nothing written.
+A list of short topic labels (trimmed, de-duplicated):
+
+```yaml
+---
+classification:
+  - learning
+  - memory
+---
+```
+
+A notice reports the count. If AI is turned off or not set up, the action does nothing, shows a
+notice and makes no network request; a provider or network failure shows a notice and writes
+nothing.
+
+## Nothing is written until you decide
+
+The AI's answer is a proposal. A window shows it as **Proposed text**: change it if it is not right,
+then **Accept** (it reads **Save my edit** once you have changed it) or **Reject**. You can add
+**Why (optional)** and **How sure are you?**; both are recorded with your verdict and never written
+to the note. Closing the window writes nothing. AI actions never run in automations — only in a
+build you drive yourself.
 
 ## Capabilities
 

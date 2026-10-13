@@ -10,6 +10,7 @@ import { Notice } from "obsidian";
 import { t } from "architecture/lang";
 import { log } from "architecture";
 import { FileService } from "architecture/plugin";
+import { asFirstStep } from "./utils/firstStep";
 
 const GROUP_NODE_SIZE = { width: 300, height: 300 };
 const TEXT_NODE_SIZE = { width: 300, height: 100 };
@@ -79,7 +80,8 @@ export default class AddManagedStepExtension extends CanvasExtension {
     /** The empty state's door: the same creation, placed where you are looking. */
     createAtCentre(canvas: Canvas): void {
         try {
-            this.handleManagedStepCreation(canvas, CanvasHelper.getCenterCoordinates(canvas, GROUP_NODE_SIZE));
+            // The empty state is the only caller: this is the flow's first step, so it starts the flow.
+            this.handleManagedStepCreation(canvas, CanvasHelper.getCenterCoordinates(canvas, GROUP_NODE_SIZE), true);
         } catch (error) {
             log.warn("ZettelFlow: could not place a step on this canvas", error);
         }
@@ -96,10 +98,10 @@ export default class AddManagedStepExtension extends CanvasExtension {
      * @param {Canvas} canvas - The canvas where the node will be created.
      * @param {Position} pos - The position at which to create the node.
      */
-    private handleManagedStepCreation(canvas: Canvas, pos: Position): void {
+    private handleManagedStepCreation(canvas: Canvas, pos: Position, first = false): void {
         const installedSteps = this.plugin.settings.installedTemplates.steps;
         const openNodeTypeModal = (step: StepSettings) => {
-            const options: Option[] = this.getCreationOptions(canvas, pos, step);
+            const options: Option[] = this.getCreationOptions(canvas, pos, asFirstStep(step, first));
             new OptionsModal(this.plugin.app, t("managed_step_type_title"), options).open();
         };
 

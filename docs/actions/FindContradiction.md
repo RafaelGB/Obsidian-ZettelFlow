@@ -1,20 +1,32 @@
-# Find contradiction action
+# Find contradictions
 
-🧠 A **Knowledge** action (#153). Lists the notes that **contradict** the target — the deduped union
-of its outgoing and incoming [`contradicts` semantic relations](../architecture/knowledge-model.md)
-(#147). **Relation-only, no text or AI inference.** Deterministic and offline.
+List notes linked to this one by a contradicts relation.
 
-## Options
+*Called `find-contradiction` in the step's YAML.*
 
-- **Result property** — where the list of `[[wikilinks]]` is written (default `contradictions`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Target note (optional)** — the note to analyze; empty ⇒ the note being built.
+A **Knowledge** action. It asks nothing in the wizard. It reads the note's
+[`contradicts` relations](../architecture/knowledge-model.md), in both directions — no text or AI
+inference. Deterministic and offline.
 
-## Result
+## Settings
 
-An array of `[[link]]`s to the contradicting notes, plus a `Notice` reporting the count. An empty
-list is a valid (and common) result. If the index isn't ready or the note isn't indexed, the action
-safely no-ops.
+- **Result property** — where the list of links is written. Default: `contradictions`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{contradictions}}`.
+- **Target note (optional)** — the note to analyze. Empty uses the note being built.
+
+## What it writes
+
+```yaml
+---
+contradictions:
+  - "[[Coffee is not healthy]]"
+---
+```
+
+A notice reports the count. An empty list is a valid (and common) result. If the index isn't ready
+or the note isn't indexed, the action does nothing.
 
 ## Capabilities
 

@@ -90,8 +90,10 @@ they say so in place instead of leaving an empty box.
 - **A step cannot be shown.** The wizard stays open and says which step failed. It offers what can
   still be done: **Try again**, **Go back a step**, **Skip this step** or **Create the note with
   what you have**.
-- **There is no flow yet.** The first time, the wizard opens on a welcome screen with three ways in:
-  install a ready system, try the example flow, or build your own.
+- **There is no flow yet.** While no canvas creates notes, the wizard opens on a welcome screen
+  with three ways in: **Browse systems**, **Create the example flow** (a one-step canvas in
+  `_ZettelFlow/examples`, given the *Creates notes* role and opened), or build your own — right-click
+  a canvas → **Use this canvas to create notes**.
 
 ## Density
 

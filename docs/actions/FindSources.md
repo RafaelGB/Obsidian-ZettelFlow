@@ -1,24 +1,35 @@
-# Find sources action
+# Find sources
 
-🔍 A **Research** action (#155). For an **under-sourced** note, suggests candidate **sources already
-present in the vault** — drawn from the note's graph neighbours' sources and the vault's
-most-referenced sources ([`sourcesByReferenceCount`](../architecture/knowledge-model.md), #145).
-**Vault-local and offline — not a web search** (external/AI source discovery is the 🤖 AI category).
+Suggest existing vault sources for an under-sourced note.
 
-## Options
+*Called `find-sources` in the step's YAML.*
 
-- **Result property** — where the candidate sources are written (default `candidateSources`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Source note (optional)** — the note to suggest sources for; empty ⇒ the note being built.
-- **Max results** — how many candidates to keep (default 5).
+A **Research** action. It asks nothing in the wizard. For a note with no source, it suggests
+**sources already in your vault** — first those cited by the note's graph neighbours, then the most
+cited ones ([knowledge model](../architecture/knowledge-model.md)). **Vault-only and offline — not a
+web search.**
 
-## Result
+## Settings
 
-A ranked list of candidate sources (link sources as extensionless `[[wikilinks]]`, free text
-verbatim): sources cited by the note's **graph neighbours** come first (topically relevant), then by
-how widely each is already cited in the vault — plus a `Notice` with the count. **The note must be
-unsourced** — an already-sourced / unknown target, or an empty model, yields an empty result. If the
-index isn't ready, the action safely no-ops.
+- **Result property** — where the candidate sources are written. Default: `candidateSources`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{candidateSources}}`.
+- **Source note (optional)** — the note to suggest sources for. Empty uses the note being built.
+- **Max results** — how many candidate sources to keep, most-referenced first. Default: `5`.
+
+## What it writes
+
+```yaml
+---
+candidateSources:
+  - "[[Make it stick]]"
+  - https://doi.org/10.1037/a0021797
+---
+```
+
+A notice reports the count. **The note must have no source yet** — an already-sourced or unknown note,
+or an empty vault index, gives an empty result. If the index isn't ready, the action does nothing.
 
 ## Capabilities
 

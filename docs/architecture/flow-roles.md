@@ -13,7 +13,10 @@ its steps can be configured with, and where the gallery puts a system when it in
 | **Runs from a hook** | a canvas under the hooks folder | a property hook |
 | **No role** | anywhere else | only the *run a flow* command |
 
-Settings → **Your flows** lists every canvas that has one, and is where you change them.
+Settings → **Your flows** lists every canvas that has one, and is where you change them. A canvas
+that does not create notes yet also offers it from its own menu: right-click it in the file explorer
+(or its tab's ⋯) → **Use this canvas to create notes**. It opens the same dialog, and an open canvas
+grows its step tools straight away.
 
 ## The role is derived, never stored
 

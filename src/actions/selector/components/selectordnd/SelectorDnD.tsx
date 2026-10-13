@@ -48,7 +48,7 @@ const OptionList = (): JSX.Element => {
 
   return (
     <div>
-      <div className="clickable-icon" onClick={add} aria-label="Add option">
+      <div className="clickable-icon" onClick={add} aria-label={t("selector_option_add")}>
         <Icon name="lucide-plus" />
       </div>
       {options.map(([key], index) => (

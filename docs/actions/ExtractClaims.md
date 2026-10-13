@@ -1,22 +1,38 @@
-# Extract claims action
+# Extract claims
 
-🔍 A **Research** action (#155). Surfaces the **claims** (and their sources) a note declares, read
-from the [knowledge model](../architecture/knowledge-model.md)'s `ClaimSourceSchema` parse (#148).
-Read-only, deterministic, offline.
+Surface the claims and sources a note declares.
 
-## Options
+*Called `extract-claims` in the step's YAML.*
 
-- **Result property** — where the extracted claims are written (default `claims`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Source note (optional)** — the note to read; empty ⇒ the note being built.
+A **Research** action. It asks nothing in the wizard. It reads the claims and sources the
+[knowledge model](../architecture/knowledge-model.md) parsed from the note. Read-only,
+deterministic, offline.
 
-## Result
+## Settings
 
-A `{ claim: [...], source: [...] }` object — the claim texts and the note-level sources (a link
-source as an extensionless `[[wikilink]]`, free text verbatim), plus a `Notice` with the claim
-count. The shape round-trips: feeding it back through `ClaimSourceSchema` reproduces the same
-claims. A claim-less note yields an empty result. If the index isn't ready, the action safely
-no-ops.
+- **Result property** — where the extracted claims are written. Default: `claims`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{claims}}`.
+- **Source note (optional)** — the note to read. Empty uses the note being built.
+
+## What it writes
+
+An object with the claim texts and the note's sources (a note source as a `[[wikilink]]`, free text
+as written):
+
+```yaml
+---
+claims:
+  claim:
+    - Spaced review beats rereading
+  source:
+    - "[[Make it stick]]"
+---
+```
+
+A notice reports the claim count. A note with no claims gives an empty result. If the index isn't
+ready, the action does nothing.
 
 ## Capabilities
 

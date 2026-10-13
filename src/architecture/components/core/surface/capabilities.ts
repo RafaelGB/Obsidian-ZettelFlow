@@ -182,7 +182,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "canvas-editing": {
         nameKey: "command_settings_open_canvas",
         owner: "workflow",
-        doors: [RIBBON("open-canvas"), { kind: "settings", at: "settings_section_flows" }, CMD("open-canvas")],
+        doors: [
+            RIBBON("open-canvas"),
+            NOTE_MENU("starters/zcomponents/CanvasRoleDoorComponent.ts"),
+            { kind: "settings", at: "settings_section_flows" },
+            CMD("open-canvas"),
+        ],
     },
     "quick-capture": {
         nameKey: "command_quick_capture",

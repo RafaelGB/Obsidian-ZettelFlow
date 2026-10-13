@@ -73,7 +73,8 @@ export class TaskManagementAction extends CustomZettelAction {
       if (isContent && key !== undefined) {
         content.modify(key, normalizedTodos);
       } else {
-        content.add(`${rolloverHeader}\n${normalizedTodos}`);
+        // No heading set: the tasks alone, never a literal `undefined` line above them (#793).
+        content.add(rolloverHeader ? `${rolloverHeader}\n${normalizedTodos}` : normalizedTodos);
       }
     }
   }

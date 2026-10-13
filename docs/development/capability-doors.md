@@ -88,7 +88,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 |---|---|---|---|
 | `note-creation` | workflow | 1 | ribbon → `open-workflow` · `open-workflow` |
 | `run-a-flow` | workflow | 1 | ribbon → `run-canvas-flow` · `run-canvas-flow` · `editor-menu-flow` |
-| `canvas-editing` | workflow | 1 | ribbon → `open-canvas` · settings → `settings_section_flows` · `open-canvas` |
+| `canvas-editing` | workflow | 1 | ribbon → `open-canvas` · note menu (`CanvasRoleDoorComponent.ts`) · settings → `settings_section_flows` · `open-canvas` |
 | `quick-capture` | zettelflow-home | 1 | control in zettelflow-home (`HomeModeRenderer.ts`) · `quick-capture` |
 | `home` | zettelflow-home | 1 | ribbon → `show-home` · surface `zettelflow-home:home` · `show-home` |
 | `moc-builder` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) · `build-map-of-content` |

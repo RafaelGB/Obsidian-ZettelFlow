@@ -16,6 +16,7 @@ import { GenerateWeeklyReviewComponent } from "../zcomponents/GenerateWeeklyRevi
 import { HomeComponent } from "../zcomponents/HomeComponent";
 import { SurfaceCommandsComponent } from "../zcomponents/SurfaceCommandsComponent";
 import { DeriveProjectComponent } from "../zcomponents/DeriveProjectComponent";
+import { CanvasRoleDoorComponent } from "../zcomponents/CanvasRoleDoorComponent";
 import { MocBuilderComponent } from "../zcomponents/MocBuilderComponent";
 import { AtomicitySplitComponent } from "../zcomponents/AtomicitySplitComponent";
 import { KnowledgeIndexComponent } from "../zcomponents/KnowledgeIndexComponent";
@@ -47,6 +48,7 @@ export function loadPluginComponents(plugin: ZettelFlow): void {
     // The retired per-view opener commands, consolidated into one component (#303 S3).
     ZComponentsManager.registerComponent(new SurfaceCommandsComponent(plugin));
     ZComponentsManager.registerComponent(new DeriveProjectComponent(plugin));
+    ZComponentsManager.registerComponent(new CanvasRoleDoorComponent(plugin));
     ZComponentsManager.registerComponent(new MocBuilderComponent(plugin));
     ZComponentsManager.registerComponent(new AtomicitySplitComponent(plugin));
     ZComponentsManager.registerComponent(new WorkbenchComponent(plugin));

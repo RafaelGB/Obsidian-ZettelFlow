@@ -43,9 +43,14 @@ and removed before every redraw and on unload. The patches above are untouched b
 | **IF** — a conditional arrow's label: dashed purple, with a filter icon | a class and an icon on the label's wrapper | the icon takes no pointer events, so editing the label is unchanged |
 | **Edit step · Copy flow · Edit this exit** | the selection toolbar, as `clickable-icon` buttons | stable ids, removed before re-adding; *Edit step* shows its name |
 | **One dock: Legend · Review · Rehearse** | one element on `canvas.wrapperEl`, bottom right | clear of the card menu and the canvas controls; the container takes no pointer events, only its tabs and panels; it folds to a row of tabs |
-| **An empty canvas** — *Create the first step* and *Browse systems* | one card on `canvas.wrapperEl` | only its buttons take pointer events |
+| **An empty canvas** — *Create the first step* and *Browse systems* | one card on `canvas.wrapperEl` | only its buttons take pointer events; the step it creates **starts the flow** (#793) |
 
 ![An empty flow canvas: Create the first step, or Browse systems](../resources/wizard/canvas-empty.svg)
+
+All of this appears only on a canvas that **has a role**. A canvas without one is left exactly as
+Obsidian draws it, and its file menu (right-click it in the file explorer, or its tab's ⋯) offers
+**Use this canvas to create notes** — the role dialog, then the step tools on the open canvas at
+once (#793).
 
 Colours are Obsidian's: `--color-green/orange/purple` for the blocks and `--canvas-color-1…6` for
 the phases, so a theme recolours all of it.

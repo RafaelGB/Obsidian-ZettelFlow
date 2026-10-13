@@ -92,7 +92,7 @@ export function calendarDetails(contentEl: HTMLElement, action: Action, readonly
         .setName(t("step_builder_element_type_calendar_format_title"))
         .setDesc(t("step_builder_element_type_calendar_format_description"))
         .addText(text => {
-            const placeholder = enableTime ? 'YYYY-MM-DDTHH:MM' : 'YYYY-MM-DD';
+            const placeholder = enableTime ? 'YYYY-MM-DDTHH:mm:ss' : 'YYYY-MM-DD';
             text
                 .setDisabled(readonly)
                 .setValue(format || ``)

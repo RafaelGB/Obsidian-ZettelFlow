@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import { Icon } from "architecture/components/icon";
 import { OptionItemProps } from "./model/OptionItemModel";
 import { useOptionsContext } from "./contexts/OptionsContext";
@@ -42,7 +43,7 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
       <div className={c("settings-item-content")}>
         <div className={c("input_group")}>
           <div>
-            <div className={c("input_item")}>Frontmatter value</div>
+            <div className={c("input_item")}>{t("selector_option_value")}</div>
             <input
               type="text"
               value={frontmatterValue}
@@ -51,7 +52,7 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
             />
           </div>
           <div>
-            <div className={c("input_item")}>Label value</div>
+            <div className={c("input_item")}>{t("selector_option_label")}</div>
             <input
               type="text"
               value={labelValue}
@@ -66,9 +67,9 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
                   isDefault ? " is-enabled" : ""
                 }`}
                 onClick={() => modifyDefault(options[index][0])}
-                aria-label="Set as default"
+                aria-label={t("selector_option_default")}
               />
-              <div className={c("setting-item-label")}>Set as default</div>
+              <div className={c("setting-item-label")}>{t("selector_option_default")}</div>
             </div>
           </div>
         </div>
@@ -77,7 +78,7 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
         <div
           className="clickable-icon"
           onClick={() => deleteOption(index)}
-          aria-label="Delete"
+          aria-label={t("selector_option_delete")}
         >
           <Icon name="lucide-trash-2" />
         </div>
@@ -86,7 +87,7 @@ export function OptionItem({ index, id }: OptionItemExtendedProps) {
           className="clickable-icon"
           {...attributes}
           {...listeners}
-          aria-label="Drag to rearrange"
+          aria-label={t("selector_option_drag")}
         >
           <Icon name="lucide-grip-horizontal" />
         </div>

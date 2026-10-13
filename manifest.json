@@ -3,7 +3,7 @@
 	"name": "ZettelFlow",
 	"version": "3.7.0",
 	"minAppVersion": "1.14.4",
-	"description": "Turn a Canvas into a guided note-creation workflow, then grow your notes into a connected, self-checking knowledge system.",
+	"description": "Build guided Canvas workflows, read PDFs and EPUBs, and turn highlights into cited notes connected to your local Zettelkasten and knowledge graph.",
 	"author": "RafaelGB",
 	"fundingUrl": "https://www.buymeacoffee.com/5tsytn22v9Z",
 	"isDesktopOnly": false

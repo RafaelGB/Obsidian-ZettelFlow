@@ -1,18 +1,39 @@
-# Summarize action
+# Summarize
 
-🤖 An **AI** action (#156). Summarizes the note being built via your configured AI provider.
-**Optional and off by default** — see [AI provider setup](../development/ai-provider-setup.md).
+Summarize the note being built with AI.
 
-## Options
+*Called `summarize` in the step's YAML.*
 
-- **Result property** — where the summary is written (default `summary`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
+An **AI** action. It asks nothing in the wizard except your verdict. **Optional and off by default** — see
+[AI provider setup](../development/ai-provider-setup.md).
 
-## Result
+## Settings
 
-A short summary string written to the result property, plus a `Notice`. If AI is disabled or not
-configured, the action no-ops with a clear notice and makes no network request; a provider/network
-failure degrades to a notice with nothing written.
+- **Result property** — where the result is written. Default: `summary`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{summary}}`.
+
+## What it writes
+
+A short summary:
+
+```yaml
+---
+summary: Spaced review beats rereading because recall strengthens memory.
+---
+```
+
+A notice confirms it. If AI is turned off or not set up, the action does nothing, shows a notice and
+makes no network request; a provider or network failure shows a notice and writes nothing.
+
+## Nothing is written until you decide
+
+The AI's answer is a proposal. A window shows it as **Proposed text**: change it if it is not right,
+then **Accept** (it reads **Save my edit** once you have changed it) or **Reject**. You can add
+**Why (optional)** and **How sure are you?**; both are recorded with your verdict and never written
+to the note. Closing the window writes nothing. AI actions never run in automations — only in a
+build you drive yourself.
 
 ## Capabilities
 

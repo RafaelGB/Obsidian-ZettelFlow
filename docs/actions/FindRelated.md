@@ -1,35 +1,46 @@
-# Find related action
+# Find related
 
-🔗 A **Relations** action (#154). Ranks the notes most worth linking to the target by **shared graph
-context** — reading only the [knowledge model](../architecture/knowledge-model.md) (#145). No text
-or AI inference: relatedness is purely structural. Deterministic and offline.
+Rank notes worth linking by shared graph context (co-citation and coupling).
+
+*Called `find-related` in the step's YAML.*
+
+A **Relations** action. It asks nothing in the wizard. It reads only the
+[knowledge model](../architecture/knowledge-model.md): relatedness is purely structural, with no
+text or AI inference. Deterministic and offline.
+
+## Settings
+
+- **Result property** — where the ranked list of links is written. Default: `related`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{related}}`.
+- **Source note (optional)** — the note to rank against. Empty uses the note being built.
+- **Max results** — how many suggestions to keep, strongest first. Default: `10`.
+
+## What it writes
+
+```yaml
+---
+related:
+  - "[[Spaced repetition]]"
+  - "[[Writing to think]]"
+---
+```
+
+A notice reports the count. An empty list is a valid result — in particular, **the note being built
+is not indexed yet**, so ranking it before it exists finds nothing; point **Source note (optional)**
+at an existing note to get suggestions. If the index isn't ready, the action does nothing.
 
 ## How the ranking works
 
 For each candidate note the score combines two graph signals:
 
-- **Co-citation** (weight 2) — how many notes link to **both** the source and the candidate
-  (`|inN(source) ∩ inN(candidate)|`).
-- **Bibliographic coupling** (weight 1) — how many notes the source and candidate **both** link to
-  (`|outN(source) ∩ outN(candidate)|`).
+- **Co-citation** (weight 2) — how many notes link to **both** the source and the candidate.
+- **Bibliographic coupling** (weight 1) — how many notes the source and the candidate **both** link
+  to.
 
-`score = 2·co-citation + 1·coupling`. The source itself, notes already directly connected to it
-(a link in either direction), and candidates with no shared context (score 0) are excluded. Results
-are ordered by score descending, ties broken by path ascending, and capped to **Max results**.
-
-## Options
-
-- **Result property** — where the ranked list of `[[wikilinks]]` is written (default `related`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Source note (optional)** — the note to rank against; empty ⇒ the note being built.
-- **Max results** — how many suggestions to keep (default 10).
-
-## Result
-
-An array of `[[link]]`s to the most related notes, plus a `Notice` reporting the count. An empty
-list is a valid result — in particular, the **note being built is not yet indexed**, so ranking it
-before it exists yields nothing; point **Source note** at an existing note to get suggestions. If
-the index isn't ready, the action safely no-ops.
+`score = 2·co-citation + 1·coupling`. The source itself, notes already linked to it (either
+direction) and candidates with a score of 0 are left out. Ties are broken by path.
 
 ## Capabilities
 

@@ -1,36 +1,47 @@
-# Suggest next move action
+# Suggest next move
 
-🧠 A **Knowledge** action (#158). Proposes the most useful **next moves** to develop the target note,
-from its position in the [knowledge model](../architecture/knowledge-model.md) — turning the maturity
-signals (#153) into a concrete to-do. **Relation- and signal-based, no text or AI inference.**
+Suggest the most useful next action to develop this note.
+
+*Called `suggest-next-move` in the step's YAML.*
+
+A **Knowledge** action. It asks nothing in the wizard. It turns the note's place in the
+[knowledge model](../architecture/knowledge-model.md) into a concrete to-do — no text or AI inference.
 Deterministic and offline.
+
+## Settings
+
+- **Result property** — where the suggested moves are written. Default: `nextMoves`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{nextMoves}}`.
+- **Target note (optional)** — the note to assess. Empty uses the note being built.
 
 ## The moves
 
-Returned in a fixed priority order, only those whose precondition holds:
+In this order, only those that apply:
 
-| Move | When it fires |
+| Move | When |
 |---|---|
 | **Add a source** | the note makes a claim but cites no source |
 | **Connect it to a related note** | the note has no outgoing links |
-| **Add an example** | the note is connected but declares no `example` relation (#147) |
-| **Develop it toward the next state** | the note is in an early lifecycle state (not yet permanent/evergreen) |
+| **Add an example** | the note is connected but declares no `example` relation |
+| **Develop it toward the next state** | the note is in an early lifecycle state (not yet permanent or evergreen) |
 
-A note that triggers none of these is **well developed** — the action writes an affirming message
-instead of a to-do.
+A note that needs none of these gets *"Well developed — no action needed."* instead.
 
-## Options
+## What it writes
 
-- **Result property** — where the suggested moves are written (default `nextMoves`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Target note (optional)** — the note to assess; empty ⇒ the note being built.
+```yaml
+---
+nextMoves:
+  - Add a source
+  - Add an example
+---
+```
 
-## Result
-
-An array of short, sentence-case suggestions (or the "well developed" affirmation), plus a `Notice`.
-It composes naturally after the maturity score: [calculate maturity](CalculateMaturity.md) says *how*
-mature, this says *what to do next*. If the index isn't ready or the note isn't indexed, the action
-safely no-ops.
+A notice reports the count. It pairs with [Calculate maturity](CalculateMaturity.md): that one says
+*how* mature, this one says *what to do next*. If the index isn't ready or the note isn't indexed, the
+action does nothing.
 
 ## Finish it in place
 

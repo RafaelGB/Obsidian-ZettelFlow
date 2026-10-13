@@ -1,20 +1,32 @@
-# Find unanswered question action
+# Find unanswered questions
 
-🧠 A **Knowledge** action (#153). Lists the **open questions** a note raises that nothing answers
-yet — its outgoing [`question` relations](../architecture/knowledge-model.md) (#147) whose
-destination has **no incoming `supports`** edge. Relation-only, deterministic, offline.
+List questions this note raises that nothing answers yet.
 
-## Options
+*Called `find-unanswered-question` in the step's YAML.*
 
-- **Result property** — where the list of `[[wikilinks]]` is written (default `unanswered-questions`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Target note (optional)** — the note to analyze; empty ⇒ the note being built.
+A **Knowledge** action. It asks nothing in the wizard. It reads the note's outgoing
+[`question` relations](../architecture/knowledge-model.md) whose question has no incoming `supports`
+relation yet. Deterministic and offline.
 
-## Result
+## Settings
 
-An array of `[[link]]`s to the unanswered questions, plus a `Notice` with the count. As soon as a
-`supports` edge points into a question, it drops off the list. If the index isn't ready or the note
-isn't indexed, the action safely no-ops.
+- **Result property** — where the list of links is written. Default: `unanswered-questions`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{unanswered-questions}}`.
+- **Target note (optional)** — the note to analyze. Empty uses the note being built.
+
+## What it writes
+
+```yaml
+---
+unanswered-questions:
+  - "[[Why do people stop reviewing notes]]"
+---
+```
+
+A notice reports the count. As soon as a `supports` relation points into a question, it drops off the
+list. If the index isn't ready or the note isn't indexed, the action does nothing.
 
 ## Capabilities
 

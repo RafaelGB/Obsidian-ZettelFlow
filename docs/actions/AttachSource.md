@@ -1,37 +1,40 @@
 # Attach source
 
-> Since #582 this action is no longer the only way to write a source: the
-> [claim door](../development/claim-returns.md) offers it as an optional second line, and
-> Cultivate's *add a source* move writes it too. All three build the field through this action's
-> `sourceField`, so there is **one** writer — and the Cultivate path no longer clobbers a note that
-> already declares several sources. action
+Attach a source (wikilink or free text) to the note being built.
 
-🔍 A **Research** action (#155). Attaches a **source** — a `[[wikilink]]` to a note or free text
-(URL / DOI / citation) — to the **note being built**, written under the `source` frontmatter key so
-the [knowledge model](../architecture/knowledge-model.md) (#148) indexes it and the note's
-`hasSources` signal flips on re-index. Deterministic and offline.
+*Called `attach-source` in the step's YAML.*
 
-## Options
+A **Research** action. It asks nothing in the wizard. The source is written under the `source`
+property, so the [knowledge model](../architecture/knowledge-model.md) counts the note as sourced on
+its next re-index. Deterministic and offline.
 
-- **Source** — the wikilink or free text to attach. An empty value is a **safe no-op** (nothing is
-  written).
-- **Write to** — `Frontmatter` (recommended — indexed promptly) or `Context`.
+## Settings
 
-## Result
+- **Source** — a `[[wikilink]]` to a note, or free text (URL, DOI, citation). Empty writes nothing.
+- **Write to** — **Frontmatter** (recommended — the vault picks it up promptly) or **Context** (only
+  for the next steps). Default: **Frontmatter**.
 
-A `source: <value>` field on the note being built (also exposed as `{{source}}`), plus a `Notice`.
-After re-index the model derives a claim carrying the source and reports the note as sourced.
+## What it writes
 
-Writing to an **existing foreign note** is out of scope for this action (it only writes the note
-being built).
+```yaml
+---
+source: "[[Make it stick]]"
+---
+```
 
-## Interactive-only (#231 Phase 4)
+A notice confirms it. The next steps can use it as `{{source}}`. It only writes the note being built,
+never another note.
 
-This action reads a **fixed `source`** from its own configuration, so it is meant for **interactive**
-use (you set the source while building the note). It is a **no-op when authored into a shipped
-`.zftemplate` system's `onCreation`** — a template can't know the per-note source, so an empty value
-writes nothing. In a system, capture the source with a normal **prompt** (or use the deterministic
-[`find-sources`](FindSources.md) to suggest candidates). See the
+This action is not the only way to write a source: the [claim door](../development/claim-returns.md)
+offers it as an optional second line, and Cultivate's *add a source* move writes it too. All three
+write the field the same way, so a note that already has several sources keeps them.
+
+## Interactive only
+
+The source is fixed in the action's own settings, so it is meant for flows you run by hand. In a
+shared `.zftemplate` system's `onCreation` it does nothing — a template can't know each note's
+source. In a system, ask for it with [Ask for text](Prompt.md), or suggest candidates with
+[Find sources](FindSources.md). See the
 [Systems Gallery authoring guide](../how-to-contribute/systems-gallery.md).
 
 ## Capabilities

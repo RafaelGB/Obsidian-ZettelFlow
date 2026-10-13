@@ -1,108 +1,64 @@
-# Zettel ID action
+# Note ID
 
-Assigns a **unique identifier** to the note being created by a flow. Supports two strategies:
-**Timestamp** (a sortable date-time string) and **Folgezettel** (a branching address that
-expresses the note's position in a sequence relative to a parent, following Luhmann's
-numbering scheme).
+Assigns a unique Zettel ID at note-creation time.
 
-## Settings overview
+*Called `zettel-id` in the step's YAML; older docs call it the Zettel ID action.*
 
-| Setting | Default | Description |
+It runs without asking anything in the wizard. Two ways to build the ID: **Timestamp** (a sortable
+date-time string) and **Folgezettel** (a branching address that places the note in a sequence
+relative to a parent, following Luhmann's numbering).
+
+## Settings
+
+| Setting | Default | What it does |
 |---|---|---|
-| Strategy | `Timestamp` | How the ID is computed. |
-| Frontmatter key | `id` | Property name written to the note's frontmatter. |
-| Write to frontmatter | On | Save the ID under the frontmatter key. |
-| Prefix filename with ID | Off | Prepend the ID to the note filename (`<id> <title>`). |
-| Timestamp format | `YYYYMMDDHHmm` | Format string (Moment.js). Timestamp strategy only. |
-| Parent ID | *(blank)* | The existing Zettel ID to branch from. Folgezettel only. |
-| Relationship | `Child` | Branch as a child or sibling. Folgezettel only. |
+| **ID strategy** | `Timestamp` | How the ID is computed: **Timestamp** or **Folgezettel**. |
+| **Frontmatter key** | `id` | The property the ID is stored under. |
+| **Write to frontmatter** | On | Save the ID under the frontmatter key. |
+| **Prefix filename with ID** | Off | Put the ID in front of the note's file name (`<id> <title>`). |
+| **Timestamp format** | `YYYYMMDDHHmm` | Moment.js format. Shown only with **Timestamp**. |
+| **Parent ID** | *(empty)* | The existing ID to branch from. Shown only with **Folgezettel**. |
+| **Relationship** | `Child` | **Child** or **Sibling** of the parent. Shown only with **Folgezettel**. |
 
-At least one write target (frontmatter or filename) should be active.
+Keep at least one of **Write to frontmatter** or **Prefix filename with ID** on, or the ID is only
+available as `{{id}}` to the next steps.
 
+## What it writes
+
+```yaml
 ---
-
-## Timestamp strategy
-
-Generates a sortable timestamp ID at note-creation time using the configured format string.
-
-**Default format:** `YYYYMMDDHHmm`  
-**Example output:** `202608051430`
-
-The format follows Moment.js tokens: `YYYY` (year), `MM` (month), `DD` (day), `HH` (24-hour),
-`mm` (minutes), `ss` (seconds).
-
+id: 202610131430
 ---
-
-## Folgezettel strategy
-
-Computes a branching identifier relative to a **parent ID**.
-
-### ID grammar
-
-- IDs consist of **alternating segments**: numeric segments are followed by alpha segments and
-  vice-versa.  
-  Example chain: `21` → `21a` → `21a1` → `21a1a`
-- **Child** relationship — appends a new segment of the alternate type, starting at its first
-  value (`a` after a numeric segment, `1` after an alpha segment).
-- **Sibling** relationship — increments the last segment of the parent ID.  
-  `21` → `22`, `21a` → `21b`, `21a1` → `21a2`
-
-### Alpha segment rollover
-
-When incrementing an alphabetic segment beyond `z`, the action uses a simple carry scheme:
-
-| Input | Output |
-|---|---|
-| `z` | `aa` |
-| `az` | `ba` |
-| `zz` | `aaa` |
-
-### Collision detection
-
-Before returning the computed ID, the action gathers a **single snapshot** of all existing
-values for the configured frontmatter key from the vault's metadata cache. If the first
-candidate is already taken, it advances to the next free candidate of the same relationship
-and emits a notice.
-
-### No parent selected (fallback)
-
-If the parent field is left blank, the action falls back to the **next free top-level numeric
-ID** (`1`, `2`, `3`, …) and shows a notice:
-> "No Folgezettel parent selected — using next free top-level ID."
-
----
-
-## Token substitution
-
-The generated ID is available as `{{<key>}}` (default `{{id}}`) in the note's body and
-frontmatter templates, consistent with how other action results are substituted.
-
-**Example template body:**
-
-```markdown
----
-id: {{id}}
----
-
-# {{title}}
-
-Parent: {{id}}
 ```
 
----
+The ID is also available as `{{<frontmatter key>}}` — `{{id}}` by default — in the step's note body:
 
-## Observability
+```markdown
+# {{title}}
 
-- On every successful execution a `log.debug` entry records the strategy and the generated ID.
-- A `Notice` fires when:
-  - No parent was selected (Folgezettel fallback to top-level).
-  - A collision forced the candidate past the first free value.
+ID: {{id}}
+```
 
----
+## Timestamp
 
-## Out of scope
+Builds the ID from the time the note is created, with the **Timestamp format**. The default
+`YYYYMMDDHHmm` gives `202610131430`. Tokens: `YYYY` (year), `MM` (month), `DD` (day), `HH` (24-hour),
+`mm` (minutes), `ss` (seconds).
 
-- Re-numbering or back-filling existing notes.
-- Migrating IDs when notes are renamed or moved.
-- Custom ID grammars beyond Timestamp and Folgezettel.
-- Cross-vault uniqueness.
+## Folgezettel
+
+Builds the ID from the **Parent ID**.
+
+- IDs alternate number and letter segments: `21` → `21a` → `21a1` → `21a1a`.
+- **Child** adds a new segment: `a` after a number, `1` after a letter.
+- **Sibling** increments the last segment: `21` → `22`, `21a` → `21b`, `21a1` → `21a2`.
+- A letter segment past `z` carries over: `z` → `aa`, `az` → `ba`, `zz` → `aaa`.
+
+If the ID is already taken by another note (same **Frontmatter key**), the next free one is used and
+a notice says so. With **Parent ID** empty, the next free top-level number (`1`, `2`, `3`, …) is used,
+with the notice *"No Folgezettel parent selected — using next free top-level ID."*
+
+## Not covered
+
+Re-numbering existing notes, changing IDs when notes are renamed or moved, other ID grammars, and
+uniqueness across vaults.

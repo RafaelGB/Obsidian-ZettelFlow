@@ -1,8 +1,29 @@
-# Calculate maturity action
+# Calculate maturity
 
-🧠 A **Knowledge** action (#153). Scores how developed a note is on a deterministic **0–100** scale
-from four graph-local signals. Offline; reads the in-memory
+Score how developed the note is (0–100) from its state, links, sources and age.
+
+*Called `calculate-maturity` in the step's YAML.*
+
+A **Knowledge** action. It asks nothing in the wizard. Offline; it reads the in-memory
 [knowledge model](../architecture/knowledge-model.md).
+
+## Settings
+
+- **Result property** — where the 0–100 number is written. Default: `maturity`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use it as `{{<result property>}}`, e.g.
+  `{{maturity}}`.
+- **Target note (optional)** — the note to score. Empty uses the note being built.
+
+## What it writes
+
+```yaml
+---
+maturity: 62
+---
+```
+
+If the index isn't ready or the note isn't indexed, the action does nothing.
 
 ## The formula
 
@@ -14,24 +35,13 @@ Each factor is 0..1:
 
 | Factor | How it's computed |
 |---|---|
-| **state** | the note's lifecycle state (#146): fleeting 0.0 · literature 0.3 · developing 0.5 · permanent 0.8 · evergreen 1.0 · **archived 0.6** (deliberately mid, not top) |
-| **connectivity** | `min(degree, 10) / 10` — in+out links (#145) |
-| **sources** | `1` if the note cites any source (#148), else `0` |
+| **state** | the note's lifecycle state: fleeting 0.0 · literature 0.3 · developing 0.5 · permanent 0.8 · evergreen 1.0 · **archived 0.6** (deliberately mid, not top) |
+| **connectivity** | `min(degree, 10) / 10` — links in and out |
+| **sources** | `1` if the note cites any source, else `0` |
 | **recency** | `min(ageDays, 180) / 180` — an older, seasoned note scores higher |
 
-The result is rounded and clamped to `[0, 100]`. The weights (`MATURITY_WEIGHTS`) live in one
-documented constant and are unit-tested at the boundaries.
-
-This action is the **feed** for the Knowledge State maturity score (#158), which owns the
-aggregate/persistence/dashboard — #153 only computes and (optionally) writes the per-note number.
-
-## Options
-
-- **Result property** — where the 0–100 number is written (default `maturity`).
-- **Write to** — `Frontmatter` or `Context` (also always exposed as `{{property}}`).
-- **Target note (optional)** — the note to score; empty ⇒ the note being built.
-
-If the index isn't ready or the note isn't indexed, the action safely no-ops.
+The result is rounded and clamped to `[0, 100]`. This action computes the per-note number; the
+Knowledge State maturity score aggregates it.
 
 ## Capabilities
 

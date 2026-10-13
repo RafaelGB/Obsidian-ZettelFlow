@@ -1,72 +1,71 @@
-# Dynamic Selector Action
+# Choose from a script
 
-The Dynamic Selector Component allows users to define selection elements whose options are generated on-the-fly based on user-provided JavaScript code. This means that instead of having static dropdown options, the options can change dynamically depending on various factors such as dataview queries, or other custom logic.
+A list of options a script builds when the step opens.
 
-## Key Features
+*Called `dynamic-selector` in the step's YAML.*
 
-- **Dynamic Option Generation**: Create selection options dynamically using JavaScript.
-- **Contextual Configuration**: Define different zones (frontmatter, body, context) where the selector interacts within your notes.
-- **Real-Time Debugging**: Test and debug your scripts directly within the Obsidian settings interface.
+Like [Choose an option](Selector.md), but the options come from your JavaScript instead of a fixed
+list — every folder in the vault, the notes a query finds, anything you can compute.
 
-# Configuration
+## Settings
 
-Configuring the Dynamic Selector Component involves defining scripts that generate the selection options and setting up the contextual zones where these selectors will operate.
+All of these are in the action's form in the step editor.
 
-## Writing the Script
-To generate dynamic options, you'll need to write a JavaScript script that returns an array of string tuples. Each tuple represents a key-value pair for the selector options.
+- **Where it writes** — **Properties** (a property on the note), **Body** (replaces `{{key}}` in the
+  step's note body) or **Context only** (not written to the note; the next steps can use it as
+  `{{key}}`). Default: **Properties**.
+- **Property key** — the property the choice is saved under, e.g. `folder`.
+- The **script editor** — the code that builds the options (see below). Under it, **Examples**
+  inserts a working starting point.
+- **Debug script** — **Run** runs the script with the same variables as the real run and shows the
+  result under it; **Clear output** empties it.
+- **Allow several answers** — let the wizard pick more than one option; they are written as a list.
+  Off by default.
+
+![Configuring Choose from a script: where it writes, property key, the script and a debug run](../resources/actions/dynamic-selector/dynamic-selector-settings.svg)
+
+## Writing the script
+
+The script must return a list of pairs, `[string, string][]`: the first string is **written to the
+note**, the second is **shown in the wizard**.
+
+```javascript
+return [
+  ["home", "Home"],
+  ["about", "About us"],
+  ["contact", "Contact"],
+];
+```
+
+A script that builds the list from the vault:
+
+```javascript
+const folders = app.vault.getAllFolders();
+return folders.map((folder) => [folder.path, folder.name]);
+```
 
 ### Available variables
-
-An options script receives two variables:
 
 | Variable | What it is |
 |---|---|
 | `zf` | The [ZettelFlow script API](../api/ZettelFlowAPI.md). |
 | `app` | Obsidian's own API. |
 
-Unlike the [Script action](Script.md), an options script gets no `note` or `content`: it runs *before*
-you pick anything, so there is nothing to write to yet. Both selector modes — single and multiple —
-share this contract, so a script written for one runs unchanged in the other, and the **Run** button in
-settings executes it with exactly the same bindings as the real run.
+Unlike [Run a script](Script.md), an options script gets no `note` or `content`: it runs *before*
+you pick anything, so there is nothing to write to yet. With or without **Allow several answers**
+the script is the same, and **Run** executes it with exactly the variables of the real run.
 
-The editor completes `zf.` and `app.` from the live objects, hovers show signatures, syntax errors are
-flagged in the gutter, and the **Examples** list under the editor inserts a working starting point.
+The editor completes `zf.` and `app.` from the live objects, hovers show signatures, and syntax
+errors are flagged in the gutter.
 
-### Script Example:
-```javascript
-const testFolders = app.vault.getAllFolders();
-// Add your filtering logic here
-// ...
-return testFolders.map(folder => [folder.path,folder.name]);
+## What it writes
+
+With **Property key** `folder` and **Properties**, picking *Essay*:
+
+```yaml
+---
+folder: Projects/Essay
+---
 ```
 
-![Configuring the Dynamic selector: the options script and a debug run](../resources/actions/dynamic-selector/dynamic-selector-settings.svg)
-
-### Requirements:
-
-- **Return Type**: The script must return an array of arrays, where each inner array contains exactly two strings: the key and the display label.
-- **Format**: `[string, string][]` — an array of string tuples.
-Example Script:
-
-```javascript
-return [
-  ["home", "Home"],
-  ["about", "About Us"],
-  ["contact", "Contact"],
-];
-```
-
-## Setting the Zone
-The Dynamic Selector Component operates within specific zones of your notes. These zones determine where and how the selector interacts with your content.
-
-### Available Zones
-
-- **Frontmatter**: Interacts with the YAML frontmatter section of your notes.
-- **Body**: Interacts with the main body content of your notes.
-- **Context**: Utilizes a contextual key-value pair for more advanced interactions.
-
-### Configuring the Zone
-
-- Navigate to the Dynamic Selector Settings within your Obsidian plugin settings.
-- Locate the Zone Selection dropdown.
-- Choose one of the available zones (frontmatter, body, context) based on where you want the selector to operate.
+With **Allow several answers** on, the property is a list.

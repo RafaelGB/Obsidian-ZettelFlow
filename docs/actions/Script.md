@@ -1,92 +1,86 @@
-# Script action
-Executes a JavaScript script when the workflow is run. Configure the script with the code editor displayed in the settings of the action. 
+# Run a script
+
+Runs your JavaScript while the note is built.
+
+*Called `script` in the step's YAML.*
+
+It asks nothing in the wizard. It runs in the background, and can read and change the note being
+built, or pass values to the next steps through `context`.
+
+## Settings
+
+- The **script editor** — your code. Under it, **Your script is handed:** lists the variables you can
+  insert, and **Examples** inserts a working starting point.
+- **If it fails** — what a failure here should do to the work around it. The run is recorded either
+  way. Default: **Tell me and carry on**.
+    - **Tell me and carry on** — a notice with the error; the note is still built.
+    - **Carry on quietly** — no notice. Still recorded in the run log.
+    - **Skip the rest of this step** — the note is still created, without what this step had left
+      to do.
+    - **Stop building the note** — nothing is written. Use it when the note makes no sense without
+      this script.
+
+  When the script has failed before, the line under it says how often and when.
+- **Try it in the workbench** — opens the [script workbench](../architecture/script-workbench.md),
+  where you try the script against a real note. Nothing is written: what it would write is shown as
+  a difference.
+- **Debug script** — **Run** runs the script with mock data and shows the result under it; **Clear
+  output** empties it.
 
 ## Available variables
 
-A Script action receives exactly these six variables, in this order:
+A script receives exactly these six variables:
 
 | Variable | What it is |
 |---|---|
-| `element` | The action's own configuration. |
-| `content` | The note body and frontmatter under construction. |
+| `element` | The action's own configuration — `element.code` is the script itself. |
+| `content` | The note body and properties under construction. |
 | `note` | The note's title and target folder. |
 | `context` | A scratch object shared between the steps of one run. |
 | `zf` | The [ZettelFlow script API](../api/ZettelFlowAPI.md). |
-| `app` | Obsidian's own API. |
+| `app` | Obsidian's own API ([reference](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts)). |
 
-They come from a single binding contract (`SCRIPT_ACTION_BINDINGS`), which is also what the editor's
-*Available variables* list and the **Debug script** run read — so what you see while authoring is what
-you get at runtime.
-
-!!! tip "A failing script is never silent"
-    If your script throws, ZettelFlow shows a notice with the error and records it in the plugin log.
-    It used to fail quietly and let the note be created as if the step had worked.
-
-## Help while you write
-
-The editor is aware of this exact surface:
-
-- **Completions** come from the live objects above, so `zf.knowledge.`, `content.` and your own
-  `zf.internal.user.` scripts all list what is really there.
-- **Hover** a member for its signature, and for the documented `zf` surface, what it answers.
-- **Syntax errors** appear in the gutter as you type, rather than as a notice halfway through a run.
-- **Examples** under the editor insert a working starting point — including one that reads the
-  [knowledge model](../api/ZettelFlowAPI.md) and one that asks a model for a proposal you rule on.
-- **Debug script** runs your code with mock data and the *same* bindings the real run uses.
+What the editor offers, **Debug script** and the real run all use this same list, so what you see
+while writing is what you get when the note is built. The editor completes `zf.`, `content.` and your
+own `zf.internal.user.` scripts from the live objects, hovers show signatures, and syntax errors show
+in the gutter as you type.
 
 ### `note`
-Functionalities related with the file of the note.
 
-#### Functions
-- `setTitle(title: string)`: void => Sets the title of the note.
-- `getTitle()`: string => Returns the title of the note.
-- `setTargetFolder(folder: string)`: void => Sets the target folder of the note.
-- `getTargetFolder()`: string => Returns the target folder of the note.
-
+- `setTitle(title: string)` — set the note's title.
+- `getTitle(): string` — the note's title.
+- `setTargetFolder(folder: string)` — set the folder the note is created in.
+- `getTargetFolder(): string` — that folder.
 
 ### `content`
-Functionalities related with the content of the note.
 
-Example:
-```javascript
-content.add("Hello world!");
-```
-
-#### Functions
-- `add(content: string)`: void => Add new content to the note.
-- `get()`: string => get the content of the note.
-- `modify(key: string, result: string)`: void => Substitute a substring of the content with the result.
-- `addTag(tag: string)`: void => add a tag to the note (frontmatter).
-- `addTags(tags: string[])`: void => add tags to the note (frontmatter).
-- `getTags()`: string[] => get the tags of the note (frontmatter).
-- `addFrontMatter(frontmatter: Record<string, Literal>)`: void => add properties to the frontmatter.
-- `getFrontMatter()`: Record<string, Literal> => get the frontmatter of the note.
-
-### `zf`
-Functionalities offered by the plugin itself.
-
-For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../api/ZettelFlowAPI.md).
+- `add(content: string)` — add text to the note.
+- `get(): string` — the note's text.
+- `modify(key: string, result: string)` — replace `{{key}}` in the note with `result`.
+- `addTag(tag: string)` / `addTags(tags: string[])` — add tags to the note's properties.
+- `getTags(): string[]` — the note's tags.
+- `addFrontMatter(frontmatter: Record<string, Literal>)` — add properties.
+- `getFrontMatter(): Record<string, Literal>` — the note's properties.
 
 ### `context`
-An empty object that can be used to store data between script execution steps.
 
-Example:
+An empty object to pass data between steps. A value an earlier step put there with **Where it
+writes** → **Context only** is readable here, and what you set here is readable by the next steps as
+`{{key}}`.
+
+## Example
+
 ```javascript
-context.myVariable = "Hello world!";
+content.addFrontMatter({ created: new Date().toISOString() });
+context.reviewer = "Ana";
 ```
 
-### `element`
-The action's own configuration — for a Script action, `element.code` is the script you are reading.
+## What it writes
 
-### `app`
-Obsidian API functionalities. [See the official documentation](https://github.com/obsidianmd/obsidian-api/blob/master/obsidian.d.ts).
+Only what your script writes, e.g.:
 
-Example:
-```javascript
-app.vault.getMarkdownFiles();
+```yaml
+---
+created: 2026-10-13T09:30:00.000Z
+---
 ```
-
-## Component
-The scripts does not have a component. It is executed in the background but it can interact with the UI of another step components using the `context` variable.
-
-The `context` variable is an empty object that can be used to store data between script execution steps. It can be used to include the result of other UI like the `Prompt` step.

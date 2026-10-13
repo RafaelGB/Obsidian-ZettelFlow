@@ -1,55 +1,60 @@
-# Thinking simulator action
+# Thinking simulator
 
-🧠 A **Knowledge** action · 🔭 **Discovery** (#165). Challenges the target note with **structured
-critical-thinking prompts** — questions that push you to stress-test an idea instead of letting it
-ossify. The prompts **adapt to the note's actual gaps** in the
-[knowledge model](../architecture/knowledge-model.md) (#153). **Relation- and signal-based, no text
-or AI inference.** Deterministic, offline, and **fully usable with AI disabled** — AI can enrich the
-answers later, but is never required.
+Challenge this note with critical-thinking prompts adapted to its gaps.
+
+*Called `thinking-simulator` in the step's YAML.*
+
+A **Knowledge** action. It asks nothing in the wizard. It writes questions that push you to
+stress-test the idea, adapted to the note's actual gaps in the
+[knowledge model](../architecture/knowledge-model.md) — no text or AI inference. Deterministic,
+offline, and fully usable with AI turned off.
+
+## Settings
+
+- **Result property** — where the prompts are written. Default: `thinkingPrompts`.
+- **Write to** — **Frontmatter** (a property on the note) or **Context** (only for the next steps).
+  Default: **Frontmatter**. Either way the next steps can use them as `{{<result property>}}`, e.g.
+  `{{thinkingPrompts}}`.
+- **Target note (optional)** — the note to challenge. Empty uses the note being built.
 
 ## The prompts
 
-Two kinds, always returned in a fixed order.
+### Always asked
 
-### Universal prompts (always shown)
+These four apply to any idea, so the list is never empty — even for a brand-new note:
 
-The four idea-agnostic challenges apply to any claim, so the simulator is **never empty** — even a
-brand-new or unindexed note gets these:
+- **What if this is false?**
+- **Who would disagree, and why?**
+- **What happens in the extreme case?**
+- **What hidden assumption does this rest on?**
 
-| Prompt | Purpose |
+### Asked when the note has the gap
+
+| Prompt | When |
 |---|---|
-| **What if this is false?** | force the falsification frame |
-| **Who would disagree, and why?** | surface the opposing view |
-| **What happens in the extreme case?** | probe the boundaries |
-| **What hidden assumption does this rest on?** | expose the unstated premise |
+| **What evidence is missing to support this?** | the note makes a claim but cites no source |
+| **What contradicts this?** | no `contradicts` relation in or out |
+| **What is a concrete example?** | no outgoing `example` relation |
+| **How does this connect to what you already know?** | nothing links to it |
+| **What open question does this raise?** | no `question` relation |
 
-### Gap-adaptive prompts (fired by the model)
+[Suggest next move](SuggestNextMove.md) reads the same gaps and gives a **to-do** ("add a source");
+this one gives a **challenge** ("what evidence is missing — and what if it's false?").
 
-Appended after the universals, only when the note actually shows that weakness:
+## What it writes
 
-| Prompt | When it fires |
-|---|---|
-| **What evidence is missing to support this?** | the note makes a claim but cites no source (#148) |
-| **What contradicts this?** | nothing contradicts it — no `contradicts` relation in or out (#147) |
-| **What is a concrete example?** | the note declares no outgoing `example` relation (#147) |
-| **How does this connect to what you already know?** | nobody builds on it — it has no incoming edge |
-| **What open question does this raise?** | the note raises no `question` relation (#147) |
+```yaml
+---
+thinkingPrompts:
+  - What if this is false?
+  - Who would disagree, and why?
+  - What happens in the extreme case?
+  - What hidden assumption does this rest on?
+  - What evidence is missing to support this?
+---
+```
 
-The gap-adaptive set is the deliberate reframing of the [suggest next move](SuggestNextMove.md)
-signals: that action gives a **to-do** ("add a source"); this one gives a **challenge** ("what
-evidence is missing — and what if it's false?").
-
-## Options
-
-- **Result property** — where the prompts are written (default `thinkingPrompts`).
-- **Write to** — `Frontmatter` or `Context` (also exposed as `{{property}}`).
-- **Target note (optional)** — the note to challenge; empty ⇒ the note being built.
-
-## Result
-
-An array of short, sentence-case questions (always ≥ 4), plus a `Notice` with the count. An
-unknown/unindexed target still yields the four universal prompts — the simulator never returns an
-empty list. If the index isn't ready, the action safely no-ops.
+A notice reports the count. If the index isn't ready, the action does nothing.
 
 ## Capabilities
 

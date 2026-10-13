@@ -1,46 +1,59 @@
-# Create semantic relation action
+# Create semantic relation
 
-🔗 A **Relations** action (#154). Writes a **typed** relation from the note being built to a target
-note, using the [#147 semantic vocabulary](../architecture/knowledge-model.md). The relation is
-stored as a **frontmatter field whose key is the relation type** — e.g. `supports: "[[Target]]"` —
-which the [knowledge model](../architecture/knowledge-model.md) (#145) then indexes as a directed,
-typed edge on its next re-index. Deterministic and offline.
+Write a typed relation (supports, contradicts, …) from this note to a target note.
 
-## Relation types
+*Called `create-semantic-relation` in the step's YAML.*
 
-The fixed semantic vocabulary: **supports · contradicts · expands · inspired by · question ·
-example · implements**. (Plain `[[links]]` remain the untyped `link` fallback — this action is for
-the *typed* ones.)
+A **Relations** action. It asks nothing in the wizard. The relation is stored as a property whose
+**key is the relation type** — e.g. `supports: "[[Target]]"` — which the
+[knowledge model](../architecture/knowledge-model.md) reads as a typed link on its next re-index.
+Deterministic and offline.
 
-## Options
+## Settings
 
-- **Relation type** — the semantic relation to write (the key of the frontmatter field).
-- **Target note** — the note this relation points to; written as an extensionless `[[wikilink]]`.
-  An empty target, or a type outside the vocabulary, is a **safe no-op** (nothing is written).
-- **Write to** — `Frontmatter` (recommended — indexed promptly by the metadata cache) or `Context`.
+- **Relation type** — the relation written to the note's frontmatter: **Supports**, **Contradicts**,
+  **Expands**, **Inspired by**, **Question**, **Example** or **Implements**. Default: **Supports**.
+- **Target note** — the note this relation points to, written as a `[[wikilink]]` (without `.md`).
+  Empty writes nothing.
+- **Write to** — **Frontmatter** (recommended — the vault picks it up promptly) or **Context** (only
+  for the next steps). Default: **Frontmatter**.
 
-## Result
+## What it writes
 
-One typed frontmatter field, e.g. `supports: "[[Target]]"`, also exposed as `{{supports}}`. Feeding
-that field through the relation schema yields exactly one `Relation { type, from: note, to: target }`.
+One property; its key is the relation type in lower case, with a hyphen for *Inspired by*:
 
-## Interactive-only (#231 Phase 4)
+| Relation type | Property key |
+|---|---|
+| Supports | `supports` |
+| Contradicts | `contradicts` |
+| Expands | `expands` |
+| Inspired by | `inspired-by` |
+| Question | `question` |
+| Example | `example` |
+| Implements | `implements` |
 
-This action writes to a **fixed `target`** set in its own configuration, so it is meant for
-**interactive** use. It is a **no-op when authored into a shipped `.zftemplate` system's `onCreation`**
-— a template can't know the per-note target. In a system, capture the relation with a normal
-**prompt** (a `[[wikilink]]` field) or use the deterministic
-[`find-related`](FindRelated.md)/[`suggest-link`](SuggestLink.md) instead.
+```yaml
+---
+supports: "[[Target]]"
+---
+```
 
-## Removing a relation (#181)
+The next steps can use it as `{{<property key>}}`, e.g. `{{supports}}`. Plain `[[links]]` in the
+body stay untyped links — this action is for the *typed* ones.
 
-To delete a relation you created, run the **Remove a relation** command (command palette) with the
-note active. It lists the note's typed relations, and after a **confirmation naming the exact edge**
-(`type → [[target]]`) removes the one you pick from the note's frontmatter — deleting the key when its
-last value goes. A missing edge is a safe no-op. It is a command (not a wizard action) because it is
-the only *destructive* relation operation and mutates a pre-existing note; the confirmation is its
-safety guard. Offline, no AI. v1 handles typed frontmatter relations (inline body `[[links]]` are out
-of scope).
+## Interactive only
+
+The target is fixed in the action's own settings, so it is meant for flows you run by hand. In a
+shared `.zftemplate` system's `onCreation` it does nothing — a template can't know each note's
+target. In a system, ask for the link with [Ask for text](Prompt.md) (a `[[wikilink]]` answer) or
+use [Find related](FindRelated.md) / [Suggest link](SuggestLink.md).
+
+## Removing a relation
+
+Run the **Remove a relation** command with the note open. It lists the note's typed relations and,
+after a confirmation naming the exact link (`type → [[target]]`), removes the one you pick from the
+note's properties — deleting the key when its last value goes. Offline, no AI. Links written in the
+body are not covered.
 
 ## Capabilities
 

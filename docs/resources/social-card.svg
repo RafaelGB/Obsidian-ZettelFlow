@@ -48,7 +48,7 @@
 </g>
 <text x="72" y="560" fill="#7d7a92" font-family="Inter, 'Segoe UI', sans-serif" font-size="20">github.com/RafaelGB/Obsidian-ZettelFlow</text>
 
-<!-- A slice of the product: the wizard and the This note companion -->
+<!-- A slice of the product: the wizard and the graph it lands in -->
 <rect x="636" y="60" width="608" height="520" rx="16" fill="#0f0f14" opacity="0.6"/>
 <g clip-path="url(#scene)">
   <image href="readme/hero.svg" xlink:href="readme/hero.svg" x="72" y="-2" width="1200" height="640"/>

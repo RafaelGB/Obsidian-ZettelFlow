@@ -18,7 +18,11 @@
  * silently disagree about a name — and so adding a measurement is a decision, not a typo.
  */
 export type Measurable =
+    /** The plugin's own `onload`, from its first line to its last (#795). */
+    | "plugin.load"
     | "index.build"
+    /** The one build at layout-ready, kept apart from the rebuilds after it (#795). */
+    | "index.startup"
     | "index.cache.read"
     | "derive.one"
     | "enrich.full"

@@ -17,6 +17,9 @@ import { lastSample, type Measurable, type Sample } from "architecture/monitorin
 
 /** The timings worth showing, and the key each is labelled with. */
 export const SPEED_ROWS: { name: Measurable; labelKey: string }[] = [
+    // What starting cost (#795): the plugin's own load, and the one build at layout-ready.
+    { name: "plugin.load", labelKey: "speed_row_plugin_load" },
+    { name: "index.startup", labelKey: "speed_row_index_startup" },
     { name: "index.build", labelKey: "speed_row_index" },
     { name: "enrich.full", labelKey: "speed_row_enrich" },
     { name: "enrich.incremental", labelKey: "speed_row_enrich_incremental" },

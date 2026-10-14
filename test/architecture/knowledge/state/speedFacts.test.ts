@@ -37,6 +37,9 @@ describe("how fast it is here (#462)", () => {
 
     it("keeps the rows in a stated order", () => {
         expect(SPEED_ROWS.map((row) => row.name)).toEqual([
+            // What starting cost, first (#795): the plugin's load, then its one build at layout-ready.
+            "plugin.load",
+            "index.startup",
             "index.build",
             "enrich.full",
             "enrich.incremental",

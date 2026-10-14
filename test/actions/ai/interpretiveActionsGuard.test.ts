@@ -97,11 +97,11 @@ describe("the verdict path is the only door to the AI write (#337)", () => {
 
 describe("the retired automations setting is gone everywhere (#337, T3)", () => {
     /**
-     * One site is allowed and required: `loadSettings` deletes the key so it does not sit in a user's
+     * One site is allowed and required: the load normalization (#795) deletes the key so it does not sit in a user's
      * `data.json` forever, implying a switch that no longer exists (#320). Everywhere else, a mention
      * would mean something still reads, writes or offers it.
      */
-    const MIGRATION = join("src", "main.ts");
+    const MIGRATION = join("src", "config", "normalizeLoadedSettings.ts");
 
     it("is referenced nowhere but the migration that deletes it", () => {
         const offenders: string[] = [];
@@ -112,15 +112,16 @@ describe("the retired automations setting is gone everywhere (#337, T3)", () => 
         expect(offenders).toEqual([]);
     });
 
-    it("only ever deletes it there — never reads or writes it", () => {
+    it("only ever looks for it and deletes it there — never reads or writes its value", () => {
         const main = readFileSync(join(ROOT, MIGRATION), "utf8");
         const mentions = main
             .split("\n")
             .map((line) => line.trim())
             .filter((line) => line.includes("allowInAutomations") && !line.startsWith("//"));
 
-        expect(mentions).toHaveLength(1);
-        expect(mentions[0].startsWith("delete ")).toBe(true);
+        expect(mentions).toHaveLength(2);
+        expect(mentions[0]).toMatch(/^if \(ai && "allowInAutomations" in ai\)/);
+        expect(mentions[1].startsWith("delete ")).toBe(true);
     });
 
     it("keeps its locale keys retired", () => {

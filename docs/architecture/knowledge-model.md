@@ -82,9 +82,16 @@ sequenceDiagram
     Note over M: single-entry update<br/>adjacency + edges-by-type kept fresh
 ```
 
-Events are registered through `plugin.registerEvent` (auto-removed on unload); the initial build
-runs on `onLayoutReady` and re-runs on the first metadata-cache `"resolved"` so `resolvedLinks` are
-complete.
+Events are registered through `plugin.registerEvent` (auto-removed on unload), and **only once the
+layout is ready** (#795): the initial build runs on `onLayoutReady` (timed as `index.startup`) and
+the listeners are armed right after it. Obsidian announces every existing file with a `create` while
+it loads the vault; heard, that flood derived each note from an empty cache and stamped a fresh
+conceptual-timeline snapshot — so merely starting Obsidian rewrote the timeline, and the build
+threw the work away. A build that throws leaves the index short of `ready`, and the next
+metadata-cache `"resolved"` tries again.
+
+Views restored at startup (Home, the Library, the Reader's alongside panel) open before the vault has
+loaded too, so their `create` listeners go through `afterVaultLoad`, which lets that flood pass by.
 
 ## Design decisions
 

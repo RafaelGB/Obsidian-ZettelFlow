@@ -44,7 +44,7 @@ export function normalizeLoadedSettings(
     // on, and an automation has nobody to ask — so the toggle could only authorise paying for a
     // call that could never be written. Drop the dead key rather than let it sit in data.json
     // forever, quietly implying a switch that no longer exists.
-    const ai = settings.ai as Partial<Record<"allowInAutomations", unknown>> | undefined;
+    const ai = settings.ai as unknown as Record<string, unknown> | undefined;
     if (ai && "allowInAutomations" in ai) {
         delete ai.allowInAutomations;
         dirty = true;

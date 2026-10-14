@@ -31,7 +31,8 @@ const OFF_GRID = /[^-\w.](\d+)px/g;
  */
 const CEILING: Record<string, number> = {
     "codeEditor.scss": 15,
-    "community.scss": 29,
+    // 29 → 27: the hub's tab bar went with the modal when Community became a view (#798).
+    "community.scss": 27,
     "conceptNav.scss": 2,
     // 15 → 13 (#620) → 3 when Cultivate became one conversation (#706): what is left is the
     // inquiry's focus ring and its reference box.

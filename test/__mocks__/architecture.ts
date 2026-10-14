@@ -33,13 +33,26 @@ let _ownPlugin: Record<string, unknown> = {
   register: () => undefined,
 };
 
+// Obsidian's per-vault local storage (#798), as an in-memory map a test can read and reset.
+const _local = new Map<string, unknown>();
+
 export const ObsidianApi = {
   vault: () => _vault,
   metadataCache: () => _metadataCache,
   fileManager: () => _fileManager,
   getOwnPlugin: () => _ownPlugin,
   workspace: (): never => undefined as never,
+  loadLocal: (key: string): unknown => (_local.has(key) ? _local.get(key) : null),
+  saveLocal: (key: string, value: unknown): void => {
+    _local.set(key, value);
+  },
+  executeCommandById: (_id: string): void => undefined,
 };
+
+/** Forget everything the local storage held — a fresh vault on this device. */
+export function __resetLocal(): void {
+  _local.clear();
+}
 
 /** Call this in wireApp / beforeEach to configure ObsidianApi for the current test. */
 export function __setMockObsidianApi(opts: {

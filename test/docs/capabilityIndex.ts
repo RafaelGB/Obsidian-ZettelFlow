@@ -141,10 +141,11 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "note-state": { summary: "move a note through its lifecycle state (fleeting → … → evergreen).", page: "../architecture/knowledge-lifecycle.md" },
     "remove-relation": { summary: "delete a typed relation from the active note, after a confirmation.", page: "../architecture/knowledge-model.md" },
     "script-workbench": { summary: "try a script before it touches anything, and read every run in a log.", page: "../architecture/script-workbench.md" },
-    "systems-gallery": { summary: "install a complete knowledge system from the community, in one click.", page: "../how-to-contribute/systems-gallery.md" },
+    community: { summary: "one view, four rooms — learn ZettelFlow, find a system, give one back and look after what you installed.", page: "../architecture/community.md" },
+    "systems-gallery": { summary: "install a complete knowledge system from the community, in one click — Community's Systems room.", page: "../how-to-contribute/systems-gallery.md" },
     "template-export": { summary: "bundle a canvas and its steps into one portable .zftemplate file.", page: "../architecture/zftemplate-schema.md" },
     "template-import": { summary: "install a .zftemplate bundle into your vault.", page: "../architecture/zftemplate-schema.md" },
-    "manage-templates": { summary: "manage the systems and templates you have installed.", page: "../how-to-contribute/systems-gallery.md" },
+    "manage-templates": { summary: "manage the systems and templates you have installed — Community's Installed room.", page: "../how-to-contribute/systems-gallery.md" },
     "base-dashboard": { summary: "compose chart panels over an Obsidian Base — a local Grafana for your vault.", page: "../development/base-dashboards.md" },
 };
 

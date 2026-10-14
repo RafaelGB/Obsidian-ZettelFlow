@@ -140,10 +140,11 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `note-state` | lifecycle | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) · `change-note-state` |
 | `remove-relation` | relations | 1 | note menu (`RemoveRelationComponent.ts`) · `remove-relation` |
 | `script-workbench` | scripting | 1 | control in editor (`CodeView.ts`) · `open-script-workbench` |
-| `systems-gallery` | community | 1 | ribbon → `browse-systems` · `browse-systems` · `open-community-templates` |
+| `community` | community | 1 | ribbon → `open-community` · `open-community` |
+| `systems-gallery` | community | 1 | control in zettelflow-community (`CommunityView.ts`) · `browse-systems` · `open-community-templates` |
 | `template-export` | community | 1 | ribbon → `export-canvas-template` · `export-canvas-template` |
 | `template-import` | community | 1 | ribbon → `import-canvas-template` · `import-canvas-template` |
-| `manage-templates` | community | 1 | ribbon → `open-manage-templates` · settings → `settings_section_flows` · `open-manage-templates` |
+| `manage-templates` | community | 1 | control in zettelflow-community (`CommunityView.ts`) · settings → `settings_section_flows` · `open-manage-templates` |
 | `base-dashboard` | dashboards | 1 | control in bases (`register.ts`) |
 
 <!-- generated: capabilityAudit -->

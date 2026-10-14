@@ -19,8 +19,7 @@ import { planRoleRemoval } from "config/roles/assignRole";
 import { renderFlowRows, type FlowWithRole } from "./flowRows";
 export { FLOW_ROLE_ICON, renderFlowRows, type FlowRowActions, type FlowWithRole } from "./flowRows";
 import { AssignRoleModal } from "config/modals/AssignRoleModal";
-import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
-import { ManageInstalledTemplatesModal } from "application/community/ManageInstalledTemplatesModal";
+import { openCommunityFromSettings } from "application/community/view/openCommunity";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -156,7 +155,7 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                             button
                                 .setButtonText(t("settings_gallery_browse"))
                                 .setCta()
-                                .onClick(() => new CommunityTemplatesModal(plugin).open())
+                                .onClick(() => openCommunityFromSettings(plugin.app, "systems"))
                         );
                     },
                 },
@@ -167,7 +166,7 @@ export function flowsSettingsGroup(plugin: ZettelFlow, refresh: () => void): Set
                         setting.addButton((button) =>
                             button
                                 .setButtonText(t("settings_gallery_manage"))
-                                .onClick(() => new ManageInstalledTemplatesModal(plugin).open())
+                                .onClick(() => openCommunityFromSettings(plugin.app, "installed"))
                         );
                     },
                 },

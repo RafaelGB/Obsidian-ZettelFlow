@@ -5,7 +5,7 @@ import CanvasHelper from "./utils/CanvasHelper";
 import { createStepAtCentre } from "./AddManagedStepExtension";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
+import { openCommunity } from "application/community/view/openCommunity";
 import { YamlService } from "architecture/plugin";
 
 /**
@@ -63,7 +63,7 @@ export default class EmptyStateExtension extends CanvasExtension {
             attr: { type: "button" },
         });
         browseBtn.addEventListener("click", () => {
-            new CommunityTemplatesModal(this.plugin).open();
+            void openCommunity(this.plugin.app, "systems");
         });
     }
 

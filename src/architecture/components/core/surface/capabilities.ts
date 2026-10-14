@@ -140,6 +140,7 @@ export const CAPABILITIES = [
     "note-state",
     "remove-relation",
     "script-workbench",
+    "community",
     "systems-gallery",
     "template-export",
     "template-import",
@@ -155,6 +156,9 @@ const EXPLORE = "zettelflow-explore";
 /** This note — a standalone view in the right sidebar, not a surface (#640). */
 const NOTE = "zettelflow-note";
 const COMPANION = "architecture/components/core/noteCompanion";
+/** Community — a view of four rooms (#798); the gallery and the installed list are two of them. */
+const COMMUNITY = "zettelflow-community";
+const COMMUNITY_FILE = "application/community/view/CommunityView.ts";
 
 const RIBBON = (command: string): Door => ({ kind: "object", at: command, via: "ribbon" });
 const NOTE_MENU = (file: string): Door => ({ kind: "object", at: file, via: "menu" });
@@ -564,10 +568,18 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         owner: "scripting",
         doors: [CONTROL("architecture/components/core/codeView/CodeView.ts", "editor"), CMD("open-script-workbench")],
     },
+    community: {
+        // Learn, find a system, give one back, look after what you installed (#798, epic #797):
+        // one view, four rooms. The ribbon menu is the door that is always visible.
+        nameKey: "community_view_title",
+        owner: "community",
+        doors: [RIBBON("open-community"), CMD("open-community")],
+    },
     "systems-gallery": {
+        // Community's Systems room (#798): reached from the room nav, the welcome and both empty states.
         nameKey: "command_browse_systems",
         owner: "community",
-        doors: [RIBBON("browse-systems"), CMD("browse-systems"), CMD("open-community-templates")],
+        doors: [CONTROL(COMMUNITY_FILE, COMMUNITY), CMD("browse-systems"), CMD("open-community-templates")],
     },
     "template-export": {
         nameKey: "command_export_canvas_template",
@@ -582,8 +594,9 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "manage-templates": {
         nameKey: "command_open_manage_templates",
         owner: "community",
+        // Community's Installed room (#798): its ribbon row became the room.
         doors: [
-            RIBBON("open-manage-templates"),
+            CONTROL(COMMUNITY_FILE, COMMUNITY),
             { kind: "settings", at: "settings_section_flows" },
             CMD("open-manage-templates"),
         ],

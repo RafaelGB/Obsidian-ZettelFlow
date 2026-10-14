@@ -34,6 +34,18 @@ export class ObsidianAPIService {
         this.app.commands.executeCommandById(id);
     }
 
+    /**
+     * Obsidian's per-vault local storage (#798): what this device remembers about this vault and
+     * nowhere else — never `data.json`, never the Adapter.
+     */
+    public loadLocal(key: string): unknown {
+        return this.app?.loadLocalStorage?.(key) ?? null;
+    }
+
+    public saveLocal(key: string, value: unknown): void {
+        this.app?.saveLocalStorage?.(key, value);
+    }
+
     public globalApp(): App {
         return this.app;
     }

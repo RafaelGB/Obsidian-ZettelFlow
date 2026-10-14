@@ -3,7 +3,7 @@ import { PluginSettingTab, Setting, SettingDefinitionItem, type ToggleComponent 
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { log } from "architecture/monitoring/Logger";
-import { CommunityTemplatesModal } from "application/community";
+import { openCommunityFromSettings } from "application/community/view/openCommunity";
 import { createRoot } from "react-dom/client";
 import React from "react";
 import { PropertyHooksManager } from "./handlers/hooks/components/PropertyHooksManager";
@@ -228,7 +228,7 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                     render: (setting) => {
                         setting.settingEl.addClass(c("settings-shell-row"), c("settings-start-row"));
                         renderStart(rowContainer(setting, "settings-start"), {
-                            browseSystems: () => new CommunityTemplatesModal(plugin).open(),
+                            browseSystems: () => openCommunityFromSettings(plugin.app, "systems"),
                             chooseCanvas: () => this.chooseCanvas(),
                             openCultivate: () => openCultivateFromSettings(plugin.app),
                         });

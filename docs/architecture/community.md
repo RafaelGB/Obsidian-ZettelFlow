@@ -41,12 +41,46 @@ path:
 
 ## 2. Frontend module — `src/application/community/`
 
-### Modals
+### Community is a view (#798)
 
-- **`CommunityTemplatesModal`** — the Hub shell (#294): tabs the static gallery (Browse), the
-  Contribute and Learn panels, and Installed management. Browse (`StaticTemplatesGallery`) leads with
-  systems, searches title/description/**author**, filters by type **and difficulty** (easy/medium/hard),
-  and each card links to the author's GitHub profile and to the source file in the repo.
+Community is an `ItemView` in the main area (`view/CommunityView.ts`, type `zettelflow-community`),
+not a modal. It holds four **rooms**, side by side in this order: **Learn · Systems · Contribute ·
+Installed**. A tablist (`view/roomNav.ts`) switches between them, and switching is a camera **pan**
+(`view/communityPan.ts`): the room strip moves by one Web Animations `transform` on the shared motion
+tokens, and the nav indicator slides in the same gesture. Only the rooms the camera passes are
+painted. Any key or click jumps the pan to its end, a timeout settles it even if the animation never
+reports that it finished, and under reduced motion the pan is a cut. Rooms out of view are `inert`.
+
+- **The room is view state.** `getState()` returns `{ room }`, so the room survives a workspace
+  reload and an opener can deep-link to a room. An unknown room falls back to Learn.
+- **One leaf.** Every entry point calls `openCommunity(app, room?)` (`view/openCommunity.ts`). It
+  reveals the Community leaf if one is open and pans it to the room. Otherwise it opens one new tab.
+
+  | Entry point | Room |
+  |---|---|
+  | Ribbon menu → *Community* (command `open-community`) | the last room used in this vault; Learn the first time |
+  | Settings → Flows → *Community systems* · the settings start card · welcome · wizard and canvas empty states | Systems |
+  | Settings → Flows → *Manage installed templates* | Installed |
+  | Commands `browse-systems` and `open-community-templates` (kept as aliases, §XI) | Systems |
+  | Command `open-manage-templates` | Installed |
+
+- **A navigation view.** The view sets `navigation = true`, because later slices open a canvas in
+  this same leaf and Obsidian's *Back* has to return to Community. The consequence, checked in
+  Obsidian 1.14.4: a file opened while the Community tab is active opens in that tab, as it would
+  over a note, and *Back* brings Community back at the room it was on.
+- **The last room** is kept per vault in Obsidian's local storage (`ObsidianApi.loadLocal` /
+  `saveLocal`, key `zettelflow-community-room`), never in `data.json`. Choosing a room writes nothing
+  else.
+- **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). For now every
+  room re-hosts the panel the old modal had (`view/legacyRooms.tsx`): Learn (`LearnTab`), Systems
+  (`StaticTemplatesGallery`), Contribute (`ContributeTab`) and Installed
+  (`InstalledTemplatesManagement`, with the *Add the template from the clipboard* button the
+  manage-installed modal used to carry). Later slices of epic #797 replace them one room at a time.
+- **Systems** (`StaticTemplatesGallery`) leads with systems, searches title/description/**author**,
+  filters by type **and difficulty** (easy/medium/hard), and each card links to the author's GitHub
+  profile and to the source file in the repo.
+
+### Modals
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown
   description + `settingsReader`). Install toggles `settings.installedTemplates.actions[id]`.
 - **`CommunityStepModal`** — preview of a step (metadata + each action via `settingsReader`);
@@ -61,8 +95,6 @@ path:
   and every step note in one click (no clipboard, no manual paste) and open the canvas. The pure
   planner/validator lives in `systemInstall.ts` (Obsidian-free, so it is unit-testable and every
   shipped system is checked against the registered action ids).
-- **`ManageInstalledTemplatesModal`** — manages installed templates; "Add template from clipboard"
-  imports `clipboardTemplate` into `installedTemplates`.
 - **`UsedInstalledStepsModal`** — a picker (`StepTemplatesSelector`) used to drop an installed step
   onto a canvas node.
 
@@ -92,7 +124,7 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
 ## 3. Contributing to the gallery
 
 Because the catalog is just files in the repo, **all contribution flows through GitHub** — there is
-nothing to POST to. The Hub's **Contribute** tab (#294) opens the right prefilled GitHub flow from
+nothing to POST to. Community's **Contribute** room (#294, #798) opens the right prefilled GitHub flow from
 inside Obsidian:
 
 - **Share your system** — exports the active canvas to a `.zftemplate` and opens the

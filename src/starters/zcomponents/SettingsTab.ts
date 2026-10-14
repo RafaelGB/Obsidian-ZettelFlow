@@ -1,4 +1,4 @@
-import { CommunityTemplatesModal, ManageInstalledTemplatesModal } from "application/community";
+import { openCommunity } from "application/community/view/openCommunity";
 import { ObsidianApi, PluginComponent } from "architecture";
 import { log } from "architecture";
 import { t } from "architecture/lang";
@@ -24,21 +24,16 @@ export class SettingsTab extends PluginComponent {
                 }
             }
         });
-        // Open community templates
+        // Aliases kept so a bound hotkey survives (§XI): Community's Systems and Installed rooms (#798).
         this.plugin.addCommand({
             id: 'open-community-templates',
             name: t('command_open_community_templates'),
-            callback: () => {
-                new CommunityTemplatesModal(this.plugin).open();
-            }
+            callback: () => void openCommunity(this.plugin.app, "systems")
         });
-        // Open local manage templates
         this.plugin.addCommand({
             id: 'open-manage-templates',
             name: t('command_open_manage_templates'),
-            callback: () => {
-                new ManageInstalledTemplatesModal(this.plugin).open();
-            }
+            callback: () => void openCommunity(this.plugin.app, "installed")
         });
         log.info('SettingsTab loaded');
 

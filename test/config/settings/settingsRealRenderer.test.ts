@@ -15,9 +15,7 @@ jest.mock("react-dom/client", () => ({
 }));
 jest.mock("config/modals/handlers/hooks/components/PropertyHooksManager", () => ({ PropertyHooksManager: () => null }));
 jest.mock("config/modals/handlers/hooks/components/HookErrorBoundary", () => ({ HookErrorBoundary: () => null }));
-jest.mock("application/community", () => ({ CommunityTemplatesModal: class {} }));
-jest.mock("application/community/CommunityTemplatesModal", () => ({ CommunityTemplatesModal: class {} }));
-jest.mock("application/community/ManageInstalledTemplatesModal", () => ({ ManageInstalledTemplatesModal: class {} }));
+jest.mock("application/community/view/openCommunity", () => ({ openCommunity: async () => undefined, openCommunityFromSettings: () => undefined }));
 jest.mock("config/modals/AssignRoleModal", () => ({ AssignRoleModal: class {} }));
 // Suggesters are chainable (`new FileSuggest(input).setExtensions(...)`): any method returns itself.
 jest.mock("architecture/settings", () => {

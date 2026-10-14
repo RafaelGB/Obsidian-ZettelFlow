@@ -76,8 +76,9 @@ reports that it finished, and under reduced motion the pan is a cut. Rooms out o
   `saveLocal`, key `zettelflow-community-room`), never in `data.json`. Choosing a room writes nothing
   else.
 - **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). Systems is
-  native (#799, below). The others still re-host the panel the old modal had
-  (`view/legacyRooms.tsx`): Learn (`LearnTab`), Contribute (`ContributeTab`) and Installed
+  native (#799, below), and so is Learn (#801, below: `view/learnRoom.ts`, which fetches only when
+  shown). The other two still re-host the panel the old modal had (`view/legacyRooms.tsx`):
+  Contribute (`ContributeTab`) and Installed
   (`InstalledTemplatesManagement`, with the *Add the template from the clipboard* button the
   manage-installed modal used to carry). Later slices of epic #797 replace them one room at a time.
   A room's handle may add to the view's state (`viewState` / `applyState`) and take Esc
@@ -139,6 +140,82 @@ previous value back while it still points at this canvas; the record entry is dr
 showing that canvas goes back to Community on Systems. The result is one notice
 (`changes_undo_done` / `changes_undo_partial_done`).
 
+### The Learn catalog (#801)
+
+Learn's tutorials are **data on `main`**, not code: `docs/learn/catalog.json`, read over GitHub raw
+like the gallery's catalog. A tutorial merged to `main` reaches every user on their next visit to
+Learn, with no plugin release, and `main.js` does not grow with it (`learnNotBundled.test.ts`).
+
+**The file.** Every user-visible string is `{ "en": "…", "es": "…" }`.
+
+```jsonc
+{
+  "schema": { "major": 1, "minor": 0 },   // a newer major is not read by this plugin
+  "tracks": [{ "id": "first-ten-minutes", "title": {…}, "blurb": {…}, "tutorials": ["get-started", …] }],
+  "tutorials": { "<id>": {
+      "title": {…}, "summary": {…}, "minutes": 5, "level": "easy | medium | hard",
+      "door": {…},                                          // where it is, in UI words
+      "tryIt": { "capability": "<CapabilityId>", "label": {…} },   // optional: Do it now
+      "hero": "docs/resources/…/x.svg",
+      "steps": [{ "title": {…}, "body": {…}, "image": "docs/resources/…" }],   // 3–6
+      "tip": {…}, "doc": "development/reader.md", "related": ["<id>"],
+      "since": "3.7.0" } },                                  // the oldest plugin it describes
+  "reference": [{ "name": {…}, "line": {…}, "door": {…}, "group": {…},
+                  "doc": "…", "tutorial": "<id>", "capability": "<CapabilityId>" }],
+  "faq": [{ "q": {…}, "a": {…} }]
+}
+```
+
+**One schema, two tempers** (`learn/learnCatalog.ts`, pure and Obsidian-free):
+
+- `validateLearnCatalog` is **CI's**, and strict (`test/docs/learnCatalog.test.ts`). It checks the
+  shape, unique ids, that every track's ids resolve and every tutorial is in exactly one track, that
+  related ids resolve, 3–6 steps, non-empty en **and** es everywhere, that every `image` exists under
+  `docs/resources/` and every `doc` under `docs/`, that every `capability` is in `CAPABILITIES`, and
+  that `since` is a version no newer than `manifest.json`'s. Each problem names its entry
+  (`tutorials.undo.steps: 2 steps (needs 3–6)`). The same test runs the settings-path parser over
+  every en string, and checks that the es strings name es groups, *Pensar* and *Biblioteca*.
+- `parseLearnCatalog` is **the plugin's**, and lenient: an entry that is wrong is dropped and the rest
+  is kept, a tutorial whose `since` is newer than the running plugin is left out of the tracks (and so
+  of search and the progress count), and a newer **major** schema is not read at all.
+- **Coverage** (`test/docs/learnCoverage.test.ts`, decision 6 on #797): every id in `CAPABILITIES` is
+  named by a tutorial's `tryIt` or a reference row's `capability`. An exception goes in its
+  `UNCOVERED` register with an issue number, and the register can only shrink. A new capability
+  without a line in Learn fails the build.
+
+**Untrusted data.** Every string is drawn as text (`createEl({ text })`), never as markup. A `doc` must
+be a relative page (`[A-Za-z0-9/_-]+.md`, no `..`, no scheme), and *Read the full page* opens only the
+docs site URL `docUrl()` builds from it. An image must be under `docs/resources/`; anything else is
+never requested. A `tryIt` names a capability id that resolves locally to that capability's door, and
+an unknown id drops the button. Nothing in the catalog can name a command id, a URL or code.
+
+**Fetch and cache** (`learn/learnSource.ts`):
+
+- The catalog is fetched (`fetchLearnCatalog()`) only when the Learn room is **shown** — opened there
+  or panned to — and **at most once a session**. Plugin load, and a Community view opened on another
+  room, ask for nothing.
+- The last valid copy is kept in Obsidian's per-vault local storage (`app.saveLocalStorage` through
+  `ObsidianApi.saveLocal`, key `zettelflow-learn`) as `{ catalog, fetchedAt, seen }`: the JSON as
+  fetched, when, and the tutorial ids already shown. Never `data.json`, which every start reads
+  (#795), and never the Adapter. A save that fails (storage full) is logged at debug, and what is in
+  memory still renders.
+- The saved copy renders at once, and the fetch replaces it in place. On a failure — offline, an HTTP
+  error, a file that is not a catalog — the saved copy stays and the room says inline *Offline: you
+  are seeing the copy saved on &lt;date&gt;.* A newer major schema reads *Update ZettelFlow to see the
+  latest tutorials.* With no copy at all, the room says *Learn needs a connection the first time.*
+  and links to the docs site. There is never a toast; the failure goes to the log at debug.
+- **New since your last visit.** On the first visit ever every id is marked seen, so nothing is
+  *New*. Later, a tutorial whose id is not in `seen` carries *New* until it is opened or done
+  (`markSeen`).
+
+**Illustrations** (`learn/learnImages.ts`). GitHub raw serves `.svg` as `text/plain`, which an
+`<img src>` does not draw (#651), so each image is fetched with `requestUrl`, typed by
+`previewBlobType` and drawn from a `blob:` URL — one per path per view, all revoked when the view
+closes. One that cannot load leaves a quiet empty frame; images are not cached offline.
+
+The room itself (`view/learnRoom.ts`) is, for now, a plain list of the tracks and their tutorials,
+each opening onto its steps; #802 draws the room in full.
+
 ### Modals
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown
   description + `settingsReader`). Install toggles `settings.installedTemplates.actions[id]`.
@@ -164,6 +241,7 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
 | `fetchStepTemplate(ref)` | `${BASE}${ref}` | `CommunityStepSettings` |
 | `fetchSystemTemplate(ref)` | `${BASE}${ref}` | `ZfTemplate` (parsed `.zftemplate`) |
 | `fetchMarkdownTemplate(ref)` | `${BASE}${ref}` | raw markdown |
+| `fetchLearnCatalog()` | `${BASE}/docs/learn/catalog.json` | the Learn catalog as JSON, untrusted until `parseLearnCatalog` reads it |
 
 ### How templates are imported
 

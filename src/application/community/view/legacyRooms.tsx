@@ -6,15 +6,14 @@ import { t } from "architecture/lang";
 import type { CommunityAction, CommunityStepSettings } from "config";
 import type ZettelFlow from "main";
 import { ContributeTab } from "../components/ContributeTab";
-import { LearnTab } from "../components/LearnTab";
 import { InstalledTemplatesManagement } from "../components/InstalledTemplatesManagement";
 import type { RoomHandle, RoomRenderer, RoomRenderers } from "./communityRoomHost";
 
 /**
  * **Interim** (#798 FR-8): until S5 and S6 replace them one room at a time, each room hosts the
  * panel it hosted in the modal, so no capability is lost while the shell changes. Systems is native
- * since #799 (`systemsRoom.ts`). S6 deletes this file, and with it the last React root the
- * Community view mounts.
+ * since #799 (`systemsRoom.ts`), Learn since #801 (`learnRoom.ts`). S6 deletes this file, and with
+ * it the last React root the Community view mounts.
  */
 function reactRoom(draw: (plugin: ZettelFlow) => React.ReactElement): RoomRenderer {
     return {
@@ -67,8 +66,7 @@ const installedRoom: RoomRenderer = {
     },
 };
 
-export const LEGACY_ROOMS: Omit<RoomRenderers, "systems"> = {
-    learn: reactRoom((plugin) => <LearnTab plugin={plugin} />),
+export const LEGACY_ROOMS: Omit<RoomRenderers, "systems" | "learn"> = {
     contribute: reactRoom((plugin) => <ContributeTab plugin={plugin} />),
     installed: installedRoom,
 };

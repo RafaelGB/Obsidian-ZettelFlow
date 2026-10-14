@@ -39,8 +39,8 @@ There are four ways in. None of them needs the others, and you can switch betwee
     anything is written to your vault.
 
     1. Ribbon menu → **Community**.
-    2. Pick a system (you can filter by difficulty) and open it to see its steps.
-    3. **Try it** to walk the system without creating anything, then **Install system**.
+    2. In the **Systems** room, click a card: its drawing opens in place, with its level and steps.
+    3. **Try it: walk the flow** on the drawing without creating anything, then **Install**.
 
     → [Install a ready-made system](how-to-contribute/systems-gallery.md)
 

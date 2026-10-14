@@ -5,6 +5,8 @@ jest.mock("application/community/view/legacyRooms", () => {
     const room = { mount: () => ({ dispose: () => undefined }) };
     return { LEGACY_ROOMS: { learn: room, contribute: room, installed: room } };
 });
+// Learn is native since #801, and fetches when shown: here it is a stand-in, the shell is what is tested.
+jest.mock("application/community/view/learnRoom", () => ({ LEARN_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("config", () => ({ ZettelFlowSettingsTab: class {} }));
 // What the doors' modules reach beyond the door: the canvas patcher, the event engine.

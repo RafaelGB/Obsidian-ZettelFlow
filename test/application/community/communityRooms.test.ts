@@ -15,6 +15,17 @@ jest.mock("application/community/view/legacyRooms", () => {
     });
     return { LEGACY_ROOMS: { learn: room("learn"), contribute: room("contribute"), installed: room("installed") } };
 });
+// Learn is native since #801; a recorder like the others.
+jest.mock("application/community/view/learnRoom", () => ({
+    LEARN_ROOM: {
+        mount: (el: any) => {
+            const record = { room: "learn", el, disposed: false };
+            mounted.push(record);
+            el.createDiv({ cls: "legacy-learn", text: "learn" });
+            return { count: () => counts.learn ?? null, dispose: () => (record.disposed = true) };
+        },
+    },
+}));
 // Systems is native since #799; here it is a stand-in like the others — the shell is what is tested.
 jest.mock("application/community/view/systemsRoom", () => ({
     SYSTEMS_ROOM: {

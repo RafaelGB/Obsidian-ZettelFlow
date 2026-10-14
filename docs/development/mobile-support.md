@@ -23,10 +23,12 @@ API and the `ObsidianApi` facade, so it loads on mobile without a shim.
 
 These degrade gracefully on mobile (hidden or skipped), never crash:
 
-- **Companion pane** (live preview + connection suggestions while the wizard runs) — hidden on mobile.
+- **Companion pane** (live preview + connection suggestions while the wizard runs) — folds into a
+  section you open on a phone, instead of sitting beside the questions.
 - **Live body preview** in the step editor.
-- **`.zftemplate` export** (`ZettelFlow: Export current canvas as .zftemplate`) — uses a browser
-  download, desktop only. Import + the community Systems Gallery still work on mobile.
+- **`.zftemplate` export and import** (`Export current canvas as .zftemplate`, `Import .zftemplate`)
+  — they use a browser download and a file picker, so both register on desktop only. The Systems
+  room of Community installs systems on mobile too.
 - Inline `key:: [[X]]` relation parsing defaults **off** on mobile (a deferred whole-vault pass);
   frontmatter relations are always parsed.
 

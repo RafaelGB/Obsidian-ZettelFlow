@@ -9,6 +9,8 @@ jest.mock("application/community/view/legacyRooms", () => {
     const room = { mount: () => ({ dispose: () => undefined }) };
     return { LEGACY_ROOMS: { learn: room, contribute: room, installed: room } };
 });
+// Learn is native since #801, and fetches when shown: here it is a stand-in, the shell is what is tested.
+jest.mock("application/community/view/learnRoom", () => ({ LEARN_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";

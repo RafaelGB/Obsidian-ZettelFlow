@@ -27,7 +27,7 @@ Everything is **offline** (no network, no AI) and additive (nothing in your vaul
 
 Each system is a **drawn workflow** on one canvas: a single entry that branches — with real edges and
 phase colours — to each note type it makes. Pick the flow, answer its questions, and it lands the note.
-Every system carries a **difficulty badge** in the browser — *easy* (a light workflow, few actions), *medium*
+Every system carries a **difficulty level** on its card in the Systems room — *easy* (a light workflow, few actions), *medium*
 (more steps and the relation/research actions), *hard* (the full pipeline). Start easy and grow into the richer
 systems; the on-creation cognitive work scales with the difficulty.
 

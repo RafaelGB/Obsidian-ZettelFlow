@@ -8,6 +8,7 @@ import { RoomNav } from "./roomNav";
 import type { CommunityRoomHost, RoomHandle, RoomRenderers } from "./communityRoomHost";
 import { LEGACY_ROOMS } from "./legacyRooms";
 import { SYSTEMS_ROOM } from "./systemsRoom";
+import { LEARN_ROOM } from "./learnRoom";
 
 export { COMMUNITY_VIEW };
 
@@ -45,7 +46,7 @@ export class CommunityView extends ItemView {
         leaf: WorkspaceLeaf,
         private readonly plugin: ZettelFlow,
         /** A seam for tests and for the slices that replace a room's contents one at a time. */
-        private readonly renderers: RoomRenderers = { ...LEGACY_ROOMS, systems: SYSTEMS_ROOM }
+        private readonly renderers: RoomRenderers = { ...LEGACY_ROOMS, learn: LEARN_ROOM, systems: SYSTEMS_ROOM }
     ) {
         super(leaf);
         // The view's own keys, registered here as the rooms gain them (S5's `/` next): Esc first asks

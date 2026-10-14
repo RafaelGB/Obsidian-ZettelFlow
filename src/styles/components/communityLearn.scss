@@ -1,0 +1,106 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+/*
+ * The Learn room, interim (#801): the catalog as a plain list of tracks and tutorials. S5 (#802)
+ * draws the room the mockup shows. The user's theme throughout (§XV), every space on the 4-grid.
+ */
+
+.zettelkasten-flow__learn .is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__learn-line {
+    @include hint;
+
+    &:empty {
+        display: none;
+    }
+
+    &.is-empty-state {
+        @include empty-state;
+    }
+
+    p {
+        margin: 0 0 $space-1;
+    }
+}
+
+.zettelkasten-flow__learn-tracks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-6);
+}
+
+.zettelkasten-flow__learn-track-title {
+    margin: 0 0 $space-1;
+}
+
+.zettelkasten-flow__learn-track-blurb {
+    @include hint;
+    margin: 0 0 $space-2;
+}
+
+.zettelkasten-flow__learn-tutorials {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__learn-tutorial {
+    @include card;
+}
+
+.zettelkasten-flow__learn-tutorial-head {
+    @include text-link-button;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-tutorial-title {
+    flex: 1;
+}
+
+.zettelkasten-flow__learn-new {
+    @include chip;
+    @include chip-active;
+}
+
+.zettelkasten-flow__learn-tutorial-minutes,
+.zettelkasten-flow__learn-tutorial-summary,
+.zettelkasten-flow__learn-tutorial-door,
+.zettelkasten-flow__learn-tip {
+    @include hint;
+    margin: 0;
+}
+
+.zettelkasten-flow__learn-steps {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    margin: $space-2 0;
+    padding-inline-start: var(--size-4-5);
+}
+
+.zettelkasten-flow__learn-step-body {
+    margin: $space-1 0;
+}
+
+.zettelkasten-flow__learn-figure {
+    min-height: var(--size-4-12);
+    border-radius: $radius-small;
+    // What stays when an image cannot load: this quiet frame, never a broken-image icon.
+    background-color: $surface-quiet;
+}
+
+.zettelkasten-flow__learn-figure-img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}

@@ -2805,8 +2805,8 @@
       "minutes": 6,
       "level": "medium",
       "door": {
-        "en": "Open the canvas, then Community › Contribute › Share your system.",
-        "es": "Abre el canvas y luego Comunidad › Contribuir › Comparte tu sistema."
+        "en": "Open the canvas, then Community › Contribute › Share this canvas as a system.",
+        "es": "Abre el canvas y luego Comunidad › Contribuir › Comparte este canvas como sistema."
       },
       "tryIt": {
         "capability": "template-export",
@@ -2855,8 +2855,8 @@
             "es": "Compártelo desde Contribuir"
           },
           "body": {
-            "en": "With the canvas open, go to Community › Contribute › Share your system. It exports the canvas as a .zftemplate and opens a prefilled submission on GitHub. A system too large to prefill is downloaded instead, and you paste it into the form.",
-            "es": "Con el canvas abierto, ve a Comunidad › Contribuir › Comparte tu sistema. Exporta el canvas como .zftemplate y abre un envío precargado en GitHub. Si el sistema es demasiado grande para precargarlo, se descarga y lo pegas en el formulario."
+            "en": "With the canvas open, go to Community › Contribute › Share this canvas as a system. It exports the canvas as a .zftemplate and opens a prefilled submission on GitHub. A system too large to prefill is downloaded instead, and you paste it into the form.",
+            "es": "Con el canvas abierto, ve a Comunidad › Contribuir › Comparte este canvas como sistema. Exporta el canvas como .zftemplate y abre un envío precargado en GitHub. Si el sistema es demasiado grande para precargarlo, se descarga y lo pegas en el formulario."
           }
         },
         {
@@ -4925,8 +4925,8 @@
         "es": "¿Cómo comparto un sistema que he creado?"
       },
       "a": {
-        "en": "Open the canvas, then Community › Contribute › Share your system: it exports a .zftemplate and opens a prefilled submission on GitHub. The gallery is fully static, so there is no account or upload: once a maintainer adds it, it appears in everyone’s Systems room.",
-        "es": "Abre el canvas y luego Comunidad › Contribuir › Comparte tu sistema: exporta un .zftemplate y abre un envío precargado en GitHub. La galería es totalmente estática, así que no hay cuentas ni subidas: cuando un mantenedor lo añade, aparece en la sala Sistemas de todo el mundo."
+        "en": "Open the canvas, then Community › Contribute › Share this canvas as a system: it exports a .zftemplate and opens a prefilled submission on GitHub. The gallery is fully static, so there is no account or upload: once a maintainer adds it, it appears in everyone’s Systems room.",
+        "es": "Abre el canvas y luego Comunidad › Contribuir › Comparte este canvas como sistema: exporta un .zftemplate y abre un envío precargado en GitHub. La galería es totalmente estática, así que no hay cuentas ni subidas: cuando un mantenedor lo añade, aparece en la sala Sistemas de todo el mundo."
       }
     },
     {

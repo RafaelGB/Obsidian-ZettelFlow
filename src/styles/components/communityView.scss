@@ -133,29 +133,20 @@
     &.is-away {
         visibility: hidden;
     }
+
+    // A room out of view is not painted, but its CSS animations would still tick — Obsidian's own
+    // `is-loading` bar under a Systems card that has not been drawn yet, for one (#802): held still.
+    &.is-away *,
+    &.is-away *::before,
+    &.is-away *::after {
+        animation-play-state: paused;
+    }
 }
 
 .zettelkasten-flow__community-room-body {
     max-width: 70rem;
     margin: 0 auto;
     padding: var(--size-4-4) var(--size-4-6) var(--size-4-12);
-}
-
-/* Installed's clipboard import (#798): today's manage-installed button, in its room. */
-.zettelkasten-flow__community-installed-bar {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: var(--size-4-3);
-
-    button {
-        display: inline-flex;
-        align-items: center;
-        gap: $space-2;
-    }
-}
-
-.zettelkasten-flow__community-installed-bar-icon {
-    display: inline-flex;
 }
 
 /* ── narrow (phone, iPad portrait): icons with their names, one column per room ── */
@@ -173,8 +164,7 @@
         padding: var(--size-4-3) var(--size-4-3) var(--size-4-12);
     }
 
-    .zettelkasten-flow__community-templates-list,
-    .zettelkasten-flow__community-contribute-list {
+    .zettelkasten-flow__community-templates-list {
         grid-template-columns: 1fr;
     }
 }

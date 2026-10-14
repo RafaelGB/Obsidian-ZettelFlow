@@ -1,10 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 
-// Today's React panels are not what these tests are about: each room is an empty stand-in.
-jest.mock("application/community/view/legacyRooms", () => {
-    const room = { mount: () => ({ dispose: () => undefined }) };
-    return { LEGACY_ROOMS: { learn: room, contribute: room, installed: room } };
-});
+// The other rooms are not what these tests are about: each is an empty stand-in.
+jest.mock("application/community/view/contributeRoom", () => ({ CONTRIBUTE_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
+jest.mock("application/community/view/installedRoom", () => ({ INSTALLED_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 // Learn is native since #801, and fetches when shown: here it is a stand-in, the shell is what is tested.
 jest.mock("application/community/view/learnRoom", () => ({ LEARN_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
@@ -207,5 +206,90 @@ describe("every door opens Community at the room that answers it (#798 AC-1, FR-
             const source = readFileSync(join(__dirname, "..", "..", "..", "src", file), "utf8");
             expect({ file, opens: /openCommunity\([^,]+, "systems"\)/.test(source) }).toEqual({ file, opens: true });
         }
+    });
+});
+
+describe("what the rooms are told (#803)", () => {
+    /** A view over recording rooms, in a workspace whose `active-leaf-change` a test can fire. */
+    async function recordingView(workspace: Record<string, unknown> = {}, gone: string[] = []) {
+        const content = new DomNode();
+        const handlers: ((leaf: unknown) => void)[] = [];
+        const app = {
+            vault: { getFileByPath: (path: string) => (gone.includes(path) ? null : { path }) },
+            workspace: {
+                requestSaveLayout: () => undefined,
+                on: (name: string, fn: (leaf: unknown) => void) => {
+                    if (name === "active-leaf-change") handlers.push(fn);
+                    return {};
+                },
+                ...workspace,
+            },
+        };
+        const told: { room: string; state?: Record<string, unknown>; canvas?: number }[] = [];
+        let host: any = null;
+        const recorder = (room: string) => ({
+            mount: (_el: unknown, given: unknown) => {
+                host = given;
+                return {
+                    applyState: (state: Record<string, unknown>) => told.push({ room, state }),
+                    canvasChanged: () => told.push({ room, canvas: 1 }),
+                    dispose: () => undefined,
+                };
+            },
+        });
+        const renderers = { learn: recorder("learn"), systems: recorder("systems"), contribute: recorder("contribute"), installed: recorder("installed") };
+        const view = new CommunityView(new WorkspaceLeaf(app, content) as never, {} as never, renderers as never);
+        await view.setState({ room: "contribute" }, {} as never);
+        await view.onOpen();
+        told.length = 0;
+        const canvasLeaf = (path: string, type = "canvas") => ({ view: { getViewType: () => type, file: { path } } });
+        return { view, told, host, fire: (leaf: unknown) => handlers.forEach((fn) => fn(leaf)), canvasLeaf };
+    }
+
+    it("hands a deep link's state to the rooms once the pan has arrived, then runs `then`", async () => {
+        const { view, told, host } = await recordingView();
+        const order: string[] = [];
+        host.openRoom("learn", () => order.push("then"), { tutorial: "contribute-a-system" });
+        await flush();
+        await view.whenSettled();
+        await flush();
+        expect(view.getState()).toMatchObject({ room: "learn" });
+        expect(told.filter((one) => one.state).map((one) => one.state)).toEqual([{ tutorial: "contribute-a-system" }, { tutorial: "contribute-a-system" }, { tutorial: "contribute-a-system" }, { tutorial: "contribute-a-system" }]);
+        expect(order).toEqual(["then"]);
+    });
+
+    it("knows the canvas you last focused in this window, seeded from the files last opened", async () => {
+        const { host, fire, canvasLeaf, told } = await recordingView({ getLastOpenFiles: () => ["Notes/a.md", "Flows/Seed.canvas"] });
+        expect(host.lastCanvas()).toBe("Flows/Seed.canvas");
+        fire(canvasLeaf("Notes/b.md", "markdown"));
+        expect(host.lastCanvas()).toBe("Flows/Seed.canvas");
+        expect(told).toEqual([]);
+        fire(canvasLeaf("Flows/Other.canvas"));
+        expect(host.lastCanvas()).toBe("Flows/Other.canvas");
+        expect(told.map((one) => one.room)).toEqual(["learn", "systems", "contribute", "installed"]);
+    });
+
+    it("never offers a canvas deleted since: the next one Obsidian last opened stands in", async () => {
+        const gone = ["Flows/Taken back.canvas"];
+        const { host, fire, canvasLeaf } = await recordingView({ getLastOpenFiles: () => ["Flows/Taken back.canvas", "Flows/Still here.canvas"] }, gone);
+        expect(host.lastCanvas()).toBe("Flows/Still here.canvas");
+        fire(canvasLeaf("Flows/Focused.canvas"));
+        expect(host.lastCanvas()).toBe("Flows/Focused.canvas");
+        gone.push("Flows/Focused.canvas");
+        expect(host.lastCanvas()).toBe("Flows/Still here.canvas");
+    });
+
+    it("prefers the most recent leaf when it is a canvas", async () => {
+        const { host } = await recordingView({
+            getLastOpenFiles: () => ["Flows/Old.canvas"],
+            getMostRecentLeaf: () => ({ view: { getViewType: () => "canvas", file: { path: "Flows/Recent.canvas" } } }),
+        });
+        expect(host.lastCanvas()).toBe("Flows/Recent.canvas");
+    });
+
+    it("passes a deep link through the opener, the room still its own", async () => {
+        const ws = communityWorkspace();
+        await openCommunity(ws.app, "learn", { tutorial: "contribute-a-system", room: "systems" });
+        expect(ws.leaves[0].state).toEqual({ tutorial: "contribute-a-system", room: "learn" });
     });
 });

@@ -4,17 +4,26 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 // Today's React panels stand in for themselves: each room records being mounted and let go.
 const mounted: { room: string; el: unknown; disposed: boolean }[] = [];
 const counts: Record<string, unknown> = {};
-jest.mock("application/community/view/legacyRooms", () => {
-    const room = (id: string) => ({
+jest.mock("application/community/view/contributeRoom", () => ({
+    CONTRIBUTE_ROOM: {
         mount: (el: any) => {
-            const record = { room: id, el, disposed: false };
+            const record = { room: "contribute", el, disposed: false };
             mounted.push(record);
-            el.createDiv({ cls: `legacy-${id}`, text: id });
-            return { count: () => counts[id] ?? null, dispose: () => (record.disposed = true) };
+            el.createDiv({ cls: "legacy-contribute", text: "contribute" });
+            return { count: () => counts.contribute ?? null, dispose: () => (record.disposed = true) };
         },
-    });
-    return { LEGACY_ROOMS: { learn: room("learn"), contribute: room("contribute"), installed: room("installed") } };
-});
+    },
+}));
+jest.mock("application/community/view/installedRoom", () => ({
+    INSTALLED_ROOM: {
+        mount: (el: any) => {
+            const record = { room: "installed", el, disposed: false };
+            mounted.push(record);
+            el.createDiv({ cls: "legacy-installed", text: "installed" });
+            return { count: () => counts.installed ?? null, dispose: () => (record.disposed = true) };
+        },
+    },
+}));
 // Learn is native since #801; a recorder like the others.
 jest.mock("application/community/view/learnRoom", () => ({
     LEARN_ROOM: {

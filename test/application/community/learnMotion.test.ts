@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterEach, beforeEach, describe, it, expect, jest } from "@jest/globals";
 
-jest.mock("application/community/view/legacyRooms", () => ({ LEGACY_ROOMS: {} }));
+jest.mock("application/community/view/contributeRoom", () => ({ CONTRIBUTE_ROOM: {} }));
+jest.mock("application/community/view/installedRoom", () => ({ INSTALLED_ROOM: {} }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: {} }));
 
 import { __resetLocal } from "architecture";

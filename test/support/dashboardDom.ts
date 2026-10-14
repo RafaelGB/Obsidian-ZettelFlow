@@ -269,6 +269,10 @@ export class DomNode {
         const siblings = this.parent?.children ?? [];
         return siblings[siblings.indexOf(this) + 1] ?? null;
     }
+    /** Elements only, here the same thing (#803: the rows below a removed one). */
+    get nextElementSibling(): DomNode | null {
+        return this.nextSibling;
+    }
     /** The DOM's `insertBefore(node, ref)`: before `ref`, or last when there is none (#686). */
     insertBefore(node: DomNode, ref: DomNode | null | undefined): DomNode {
         if (node.parent) node.parent.children = node.parent.children.filter((other) => other !== node);

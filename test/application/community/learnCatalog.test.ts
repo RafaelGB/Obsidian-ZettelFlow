@@ -2,10 +2,8 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 
 // The other rooms are not what these tests are about: each is an empty stand-in. Learn is real.
-jest.mock("application/community/view/legacyRooms", () => {
-    const room = { mount: () => ({ dispose: () => undefined }) };
-    return { LEGACY_ROOMS: { contribute: room, installed: room } };
-});
+jest.mock("application/community/view/contributeRoom", () => ({ CONTRIBUTE_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
+jest.mock("application/community/view/installedRoom", () => ({ INSTALLED_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 
 import { readFileSync } from "fs";

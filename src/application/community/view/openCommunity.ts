@@ -10,12 +10,13 @@ import { COMMUNITY_VIEW, LAST_ROOM_KEY, roomToOpen, type Room } from "./communit
  * Every door goes through here: the ribbon, the settings rows, the welcome, the two empty states and
  * the commands kept as aliases. It deliberately imports nothing heavier than the room vocabulary.
  */
-export async function openCommunity(app: App, room?: Room): Promise<void> {
+export async function openCommunity(app: App, room?: Room, state: Record<string, unknown> = {}): Promise<void> {
     const target = roomToOpen(room, ObsidianApi.loadLocal(LAST_ROOM_KEY));
     ObsidianApi.saveLocal(LAST_ROOM_KEY, target);
     const { workspace } = app;
     const leaf = workspace.getLeavesOfType(COMMUNITY_VIEW)[0] ?? workspace.getLeaf("tab");
-    await leaf.setViewState({ type: COMMUNITY_VIEW, state: { room: target }, active: true });
+    // A deep link may say more than the room (#803): `{ tutorial }` opens that lesson in Learn.
+    await leaf.setViewState({ type: COMMUNITY_VIEW, state: { ...state, room: target }, active: true });
     await workspace.revealLeaf(leaf);
 }
 

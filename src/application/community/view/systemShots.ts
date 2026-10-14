@@ -1,5 +1,5 @@
 import { c } from "architecture";
-import { fly, motionWelcome } from "architecture/components/core/reader/readerMotion";
+import { MOTION, flightTransform, fly, motionWelcome } from "architecture/components/core/reader/readerMotion";
 import type { SystemDrawing } from "../systemDrawing";
 import { armSkip, ownWindow, settledWithin } from "./communityPan";
 import { drawSystem } from "./systemDrawingView";
@@ -27,6 +27,9 @@ export const SHOT = {
     /** The dot along an edge, and the camera onto the next step. */
     walk: 650,
     frame: 700,
+    /** Installed's *Remove* (#803): the row leaving, then the rows below closing the gap. */
+    collapse: 320,
+    gap: 280,
 } as const;
 
 export interface Box {
@@ -86,4 +89,37 @@ export async function flyDrawing(host: HTMLElement, drawing: SystemDrawing, from
     const flight = fly(host, ghost, from, to, { duration, grown, land: "become", onLanded: land });
     await play(host, [flight], duration);
     land();
+}
+
+/**
+ * A row leaves its list (#803, Installed's *Remove*): it slides aside and fades, `replacement` — the
+ * line that says what was done — takes its place, and the rows below close the gap by FLIP, each
+ * flown from the box it had onto the one it has now. Transform and opacity only; a cut under
+ * reduced motion; never longer than its length and a beat.
+ */
+export async function collapseRow(row: HTMLElement, replacement: HTMLElement): Promise<void> {
+    if (!motionWelcome(row)) {
+        row.replaceWith(replacement);
+        return;
+    }
+    const leave = row.animate(
+        [
+            { opacity: 1, transform: "translateX(0)" },
+            { opacity: 0, transform: "translateX(2rem)" },
+        ],
+        { duration: SHOT.collapse, easing: MOTION.ease, fill: "forwards" }
+    );
+    await play(row, [leave], SHOT.collapse);
+    const below: HTMLElement[] = [];
+    for (let next = row.nextElementSibling; next; next = next.nextElementSibling) below.push(next as HTMLElement);
+    const before = below.map(boxOf);
+    row.replaceWith(replacement);
+    const moves = below.map((el, i) =>
+        el.animate([{ transform: flightTransform(boxOf(el), before[i]) }, { transform: "translate(0px, 0px) scale(1, 1)" }], {
+            duration: SHOT.gap,
+            easing: MOTION.ease,
+        })
+    );
+    const shown = replacement.animate([{ opacity: 0 }, { opacity: 1 }], { duration: SHOT.gap, easing: MOTION.ease });
+    await play(replacement, [...moves, shown], SHOT.gap);
 }

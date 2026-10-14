@@ -2,7 +2,8 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 
 // The harness can open a whole view; only the Learn room is drawn here.
-jest.mock("application/community/view/legacyRooms", () => ({ LEGACY_ROOMS: {} }));
+jest.mock("application/community/view/contributeRoom", () => ({ CONTRIBUTE_ROOM: {} }));
+jest.mock("application/community/view/installedRoom", () => ({ INSTALLED_ROOM: {} }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: {} }));
 import { __resetLocal } from "architecture";
 import { forgetLearnSession } from "application/community/learn/learnSource";

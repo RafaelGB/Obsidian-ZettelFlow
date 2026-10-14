@@ -4,10 +4,8 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 jest.mock("architecture/components/core/surface/runCommand", () => ({ runCommand: jest.fn() }));
 jest.mock("architecture/plugin/services/ViewActivation", () => ({ activateSurface: jest.fn(async () => undefined) }));
 jest.mock("architecture/components/core/surface/openSettings", () => ({ openZettelFlowSettings: jest.fn() }));
-jest.mock("application/community/view/legacyRooms", () => {
-    const room = { mount: () => ({ dispose: () => undefined }) };
-    return { LEGACY_ROOMS: { contribute: room, installed: room } };
-});
+jest.mock("application/community/view/contributeRoom", () => ({ CONTRIBUTE_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
+jest.mock("application/community/view/installedRoom", () => ({ INSTALLED_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 
 import { __resetLocal } from "architecture";

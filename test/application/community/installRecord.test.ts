@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, expect } from "@jest/globals";
 import { replaceBufferedWrites } from "architecture/plugin/writes/recordVaultWrite";
 import { installSystem } from "application/community/installSystem";
-import { undoInstall } from "application/community/undoInstall";
+import { takeBackInstall } from "application/community/removeInstall";
 import { COMMUNITY_VIEW } from "application/community/view/communityRooms";
 import { wireHarness } from "../../support/harness";
 import { FakeLeaf } from "../../support/communityWorkspace";
@@ -79,12 +79,12 @@ describe("Undo takes the install back exactly (#799 AC-10, FR-15)", () => {
     it("trashes the files, restores the creation flow, drops the record and goes back to Systems", async () => {
         const { plugin, vault, settings, outcome, leaf } = await installed();
         expect(settings.ribbonCanvas).toBe(outcome.canvasPath);
-        const result = await undoInstall(plugin as never, outcome.record, leaf as never);
+        const result = await takeBackInstall(plugin as never, outcome.record, leaf as never);
         expect(vault.entries.size).toBe(0);
         expect(settings.ribbonCanvas).toBe("Old/flow.canvas");
         expect(settings.installedSystems).toEqual([]);
         expect(leaf.calls.at(-1)).toMatchObject({ type: COMMUNITY_VIEW, state: { room: "systems" } });
-        expect(result).toEqual({ removed: [outcome.canvasPath], kept: [], failed: [], settingRestored: true });
+        expect(result).toEqual({ mode: "exact", removed: [outcome.canvasPath], kept: [], failed: [], settingRestored: true });
     });
 
     it("gives the displaced flow its role back even when trashing the canvas clears the role (#712)", async () => {
@@ -96,7 +96,7 @@ describe("Undo takes the install back exactly (#799 AC-10, FR-15)", () => {
             if (settings.ribbonCanvas === file.path) settings.ribbonCanvas = "";
             await trash(file);
         };
-        const result = await undoInstall(plugin as never, outcome.record);
+        const result = await takeBackInstall(plugin as never, outcome.record);
         expect(settings.ribbonCanvas).toBe("Old/flow.canvas");
         expect(result.settingRestored).toBe(true);
     });
@@ -105,7 +105,7 @@ describe("Undo takes the install back exactly (#799 AC-10, FR-15)", () => {
         const { plugin, vault, outcome } = await installed(scripted(), "none");
         // Obsidian re-saving the canvas on open moves its mtime past the undo's grace (#455).
         for (const entry of vault.entries.values()) (entry.file as unknown as { stat: { mtime: number } }).stat.mtime = Date.now() + 60_000;
-        const result = await undoInstall(plugin as never, outcome.record);
+        const result = await takeBackInstall(plugin as never, outcome.record);
         expect(vault.entries.size).toBe(0);
         expect(result.removed.sort()).toEqual(outcome.record.files.map((file) => file.path).sort());
     });
@@ -116,7 +116,7 @@ describe("Undo takes the install back exactly (#799 AC-10, FR-15)", () => {
         const entry = vault.entries.get(note)!;
         entry.content = `${entry.content}\nMy own line`;
         (entry.file as unknown as { stat: { mtime: number } }).stat.mtime = Date.now() + 60_000;
-        const result = await undoInstall(plugin as never, outcome.record);
+        const result = await takeBackInstall(plugin as never, outcome.record);
         expect(vault.entries.has(note)).toBe(true);
         expect(result.kept).toEqual([note]);
         expect(result.removed).toEqual(["Flows/X/Weekly focus.canvas"]);
@@ -126,7 +126,7 @@ describe("Undo takes the install back exactly (#799 AC-10, FR-15)", () => {
         const { plugin, settings, outcome, leaf } = await installed();
         leaf.view = { file: { path: "Somewhere/else.md" } } as never;
         settings.ribbonCanvas = "Mine/now.canvas";
-        const result = await undoInstall(plugin as never, outcome.record, leaf as never);
+        const result = await takeBackInstall(plugin as never, outcome.record, leaf as never);
         expect(leaf.calls).toEqual([]);
         expect(settings.ribbonCanvas).toBe("Mine/now.canvas");
         expect(result.settingRestored).toBe(false);

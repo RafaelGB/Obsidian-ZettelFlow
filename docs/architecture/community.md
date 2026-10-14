@@ -75,14 +75,15 @@ reports that it finished, and under reduced motion the pan is a cut. Rooms out o
 - **The last room** is kept per vault in Obsidian's local storage (`ObsidianApi.loadLocal` /
   `saveLocal`, key `zettelflow-community-room`), never in `data.json`. Choosing a room writes nothing
   else.
-- **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). Systems is
-  native (#799, below), and so is Learn (#801 and #802, below: `view/learnRoom.ts`, which fetches
-  only when shown). The other two still re-host the panel the old modal had (`view/legacyRooms.tsx`):
-  Contribute (`ContributeTab`) and Installed
-  (`InstalledTemplatesManagement`, with the *Add the template from the clipboard* button the
-  manage-installed modal used to carry). Later slices of epic #797 replace them one room at a time.
-  A room's handle may add to the view's state (`viewState` / `applyState`) and take Esc
-  (`onEscape`).
+- **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`), and all four
+  are native DOM: Systems (#799), Learn (#801, #802), Contribute and Installed (#803), all below.
+  **The view mounts no React** (`communityShellGone.test.ts`). A room's handle may add to the view's
+  state (`viewState` / `applyState`), take Esc (`onEscape`) and hear that the focused canvas changed
+  (`canvasChanged`). `host.openRoom(room, then?, state?)` pans to a room, hands `state` to the rooms
+  once it has arrived, then runs `then`; `openCommunity(app, room, state)` does the same from outside.
+- **A room out of view holds still.** Besides being `inert` and hidden, every CSS animation inside an
+  away room is paused (`animation-play-state`), so a Systems card still waiting for its drawing does
+  not keep Obsidian's `is-loading` bar ticking behind another room.
 
 ### The Systems room (#799)
 
@@ -130,15 +131,12 @@ setting it changed with its **previous value**, the folders it created, the writ
 with a **content hash** (`fnv1a8` of the canonical content; a canvas is hashed with sorted keys, so
 Obsidian re-formatting it is not a change). It is optional, so loading never marks `data.json` dirty
 for it, and it has no form: nobody authors it (§XIII), and it states no judgement (§XII). It is what
-*In your vault* reads, and what Installed (S6) will list.
+*In your vault* reads, and what Installed lists (#803, below).
 
-*Undo* in the notice (`undoInstall.ts`) takes the install back exactly: `undoBatch` through the write
-record (#453); a file the record could not take back (its mtime moved, as when Obsidian re-saves the
-canvas on open) is trashed anyway when its hash is unchanged, and **kept and named** when you changed
-it; the folders it made go when empty (`FileService.trashEmptyFolder`); the role setting gets its
-previous value back while it still points at this canvas; the record entry is dropped; and a tab still
-showing that canvas goes back to Community on Systems. The result is one notice
-(`changes_undo_done` / `changes_undo_partial_done`).
+*Undo* in the notice and Installed's *Remove* are **one function**, `takeBackInstall`
+(`removeInstall.ts`, #803), described with Installed below. From the notice it takes the install back
+exactly while the batch is in memory; a tab still showing that canvas goes back to Community on
+Systems, and the result is one notice (`changes_undo_done` / `changes_undo_partial_done`).
 
 ### The Learn catalog (#801)
 
@@ -286,6 +284,75 @@ shot, transform and opacity only, any key or press jumps it to its end (an Esc o
 mid-shot closes the lesson the moment it lands), a timeout settles it, a shot never waits for a
 picture longer than 400 ms, and under reduced motion each one is a cut.
 
+### The Contribute room (#803)
+
+`view/contributeRoom.ts`, native DOM. The lede says it: *Everything goes through GitHub. Nothing leaves
+your vault until you publish it yourself.*
+
+- **Share this canvas as a system** leads, across the row. Its preview is the **share candidate**
+  (`shareCandidate`, pure, in `shareSystem.ts`): the canvas most recently focused **in this window**,
+  else the creation flow (`ribbonCanvas`), else none. The view tracks the focused canvas itself
+  (`active-leaf-change`, seeded from `getMostRecentLeaf()`; until a canvas is focused, the newest
+  `getLastOpenFiles()` canvas that still exists stands in, so a deleted one is never offered), because while
+  Community is the active tab `getActiveFile()` is `null`. The preview is the canvas drawn from the
+  vault (`systemDrawing` over its JSON, `cachedRead`, no network), its file name and *n steps · m branch
+  points*. With no candidate, the card says *Open a canvas to share it.* and the button is disabled:
+  no toast after the click.
+- **Prepare the system** runs today's flow, now data (`shareFlow(built)`): the `ADD_TEMPLATE.yaml` form
+  prefilled when it fits in the URL, else a download of the `.zftemplate` and the form with a paste
+  hint. The download is said inline in the card. `shareSystem.test.ts` pins both outputs.
+- **Report a bug** shows the environment the form will receive (`bugReportFields`: plugin version,
+  Obsidian version, platform) before you press it, and opens the form with exactly those fields.
+  **Suggest an idea** opens the feature-request form; **Talk to other users** opens Discussions.
+- **How to contribute well** pans to Learn and then opens the tutorial `contribute-a-system`, in
+  sequence: `host.openRoom("learn", undefined, { tutorial })` hands the state over once the pan has
+  arrived, and the Learn room opens the lesson. When the catalog (the session's one fetch, or the saved
+  copy) has no such tutorial, it opens the contributing docs page instead.
+- Every card's icon is Lucide (`share-2`, `lightbulb`, `bug`, `messages-square`, `graduation-cap`);
+  no emoji.
+
+### The Installed room (#803)
+
+`view/installedRoom.ts`, native DOM: what you brought from the gallery, and how to take it back.
+
+- **Systems you installed** come from the install record, newest first. Installs made before the
+  record existed are not detected (decision 2 on #797). Each row draws **its canvas as it is in your
+  vault now** (`cachedRead`, no network), its name and *Installed \<date\> · \<folder\> · \<role\>*.
+- **Open canvas** grows the row's drawing to fill the tab, and the tab becomes the canvas. The history
+  entry carries `{ room: "installed", installedHome: id }`, so Obsidian's *Back* flies it home onto its
+  row.
+- **Remove** asks once: *Remove*, then *Remove n files*. Panning away or the room redrawing disarms
+  it, and one press writes nothing. Confirmed, it calls `takeBackInstall`, which plans with
+  `planRemove(record, facts)` (pure):
+
+  | Fact | What happens |
+  |---|---|
+  | The batch is on the write record, not undone, inside `WRITE_WINDOW_MS`, and no file changed | **exact**: `undoBatch`, then the hash for any file it refused |
+  | Otherwise | **safe**: by content hash only |
+  | A file still as installed | to Obsidian's trash (`FileService.deleteFile`, which is `fileManager.trashFile`) |
+  | A file you changed | **kept**, and named |
+  | A file already gone | skipped |
+  | The role's setting still points at this canvas | its previous value comes back, **before** anything is trashed (#712) |
+  | A folder the install made, now empty | to the trash |
+  | Always | the record entry is dropped |
+
+  A file you changed is never handed to the write record, which decides by mtime alone. The result is
+  one line where the row was, from two counted phrases (`tCount`): *Removed 4 files. Kept 1 you
+  changed: Permanent.md.* The row slides out and the rows below close the gap by FLIP
+  (`collapseRow` in `view/systemShots.ts`): transform and opacity only, a timeout settles it, a cut
+  under reduced motion.
+- **A canvas you deleted or moved** leaves its row with *Canvas not found* and **Forget it**, which
+  drops the record entry and touches nothing in the vault (`forgetInstall`).
+- **Loose pieces**: the installed steps and actions, each with *Edit* (its own editor modal,
+  unchanged, loaded when asked for) and *Remove* (asks once, then deletes the entry and saves). The
+  clipboard import sits in this section's header. The old search box and type chips are gone.
+- **Empty**: *Nothing installed yet.* with *Browse systems* (pans to Systems), and *No loose pieces
+  installed.* The nav's count is systems plus pieces, and a zero is not drawn.
+
+**What #803 subtracted:** the React panels `ContributeTab`, `InstalledTemplatesManagement` and the
+interim host `legacyRooms.tsx`; `undoInstall.ts` (folded into `removeInstall.ts`); the no-canvas
+toast; the loose-piece search and filter chips; emoji in both rooms; and their dead styles.
+
 ### Modals
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown
   description + `settingsReader`). Install toggles `settings.installedTemplates.actions[id]`.
@@ -330,13 +397,15 @@ Because the catalog is just files in the repo, **all contribution flows through 
 nothing to POST to. Community's **Contribute** room (#294, #798) opens the right prefilled GitHub flow from
 inside Obsidian:
 
-- **Share your system** — exports the active canvas to a `.zftemplate` and opens the
+- **Share this canvas as a system** — exports the canvas you last had open (else the creation flow)
+  to a `.zftemplate` and opens the
   [Add a template](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml)
   issue form with the bundle prefilled (or, if the bundle is too large for the URL, downloads the
   `.zftemplate` and opens the form with a paste hint).
 - **Suggest an idea** / **Report a bug** — open the feature-request / bug-report forms (the bug form
   arrives with your plugin version, Obsidian version and platform filled in).
-- **Ask or discuss** — opens GitHub Discussions.
+- **Talk to other users** — opens GitHub Discussions.
+- **How to contribute well** — opens the contributing tutorial in Learn.
 
 A maintainer then adds the `.zftemplate` under `docs/systems/` and a row in `docs/main_template.json`
 on `main`. See the [Systems Gallery guide](../how-to-contribute/systems-gallery.md) for authoring

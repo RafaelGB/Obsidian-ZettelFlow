@@ -6,13 +6,19 @@ import type { RoomCount } from "./roomNav";
 /**
  * What a room is handed (#798): the app, the plugin it reads and saves through (injected, never looked
  * up while the plugin loads — #374), the leaf it lives in, and a way to send the camera to another
- * room — `then` runs once that room has arrived.
+ * room — `state` is handed to the rooms once it has arrived (a deep link: Contribute names the
+ * contributing tutorial, #803), and `then` runs after that.
  */
 export interface CommunityRoomHost {
     app: App;
     plugin: ZettelFlow;
     leaf: WorkspaceLeaf;
-    openRoom(room: Room, then?: () => void): void;
+    openRoom(room: Room, then?: () => void, state?: Record<string, unknown>): void;
+    /**
+     * The canvas most recently focused in this window (#803 FR-2). While Community is the active tab
+     * Obsidian's active file is `null`, so the view keeps track of it.
+     */
+    lastCanvas?(): string | null;
     /** A room's count changed (its catalog arrived, something was installed): redraw the nav's. */
     refreshCounts?(): void;
     /**
@@ -37,12 +43,14 @@ export interface RoomHandle {
     viewState?(): Record<string, unknown>;
     /** The view's state, as a restore or a *Back* hands it over. */
     applyState?(state: Record<string, unknown>): void;
+    /** The canvas last focused in this window changed (#803): Contribute's preview follows it. */
+    canvasChanged?(): void;
     /** Esc, while this room is in view. True when it was the room's to take. */
     onEscape?(): boolean;
     dispose(): void;
 }
 
-/** One room's contents. S2, S5 and S6 each replace one. */
+/** One room's contents: each is native DOM since #803. */
 export interface RoomRenderer {
     mount(el: HTMLElement, host: CommunityRoomHost): RoomHandle;
 }

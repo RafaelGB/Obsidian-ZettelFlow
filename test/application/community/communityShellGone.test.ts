@@ -18,6 +18,11 @@ const GONE = [
     "StaticTemplatesGallery",
     "SystemRehearsalPanel",
     "systemPreviewUrls",
+    // #803: Contribute and Installed are native; the interim host and the take-back's first draft are gone.
+    "ContributeTab",
+    "InstalledTemplatesManagement",
+    "LEGACY_ROOMS",
+    "undoInstall",
 ];
 const FILES = [
     "application/community/CommunityTemplatesModal.tsx",
@@ -26,6 +31,10 @@ const FILES = [
     "application/community/CommunitySystemModal.tsx",
     "application/community/components/StaticTemplatesGallery.tsx",
     "application/community/SystemRehearsalPanel.ts",
+    "application/community/components/ContributeTab.tsx",
+    "application/community/components/InstalledTemplatesManagement.tsx",
+    "application/community/view/legacyRooms.tsx",
+    "application/community/undoInstall.ts",
 ];
 
 /** What the Systems room mounts: native DOM, every file of it (#799 AC-11). */
@@ -58,7 +67,7 @@ describe("the Community modal shells are gone (#798)", () => {
 
     it("installs a system without a confirmation dialog (#799 AC-11)", () => {
         // The loose pieces' own dialogs keep theirs (FR-5: unchanged); the system install has none.
-        const install = ["application/community/installSystem.ts", "application/community/undoInstall.ts", ...SYSTEMS_ROOM];
+        const install = ["application/community/installSystem.ts", "application/community/removeInstall.ts", ...SYSTEMS_ROOM];
         const offenders = install.filter((file) => /ConfirmModal/.test(readFileSync(join(SRC, file), "utf8")));
         expect(offenders).toEqual([]);
     });
@@ -78,5 +87,19 @@ describe("the Community modal shells are gone (#798)", () => {
             const source = readFileSync(join(SRC, file), "utf8");
             expect({ file, react: /from\s+["']react(-dom)?(\/client)?["']/.test(source) }).toEqual({ file, react: false });
         }
+    });
+
+    it("mounts no React anywhere in the view, and draws no emoji (#803 AC-11, epic #797 AC-2)", () => {
+        const view = join(SRC, "application", "community", "view");
+        for (const name of readdirSync(view)) {
+            const source = readFileSync(join(view, name), "utf8");
+            expect({ name, tsx: name.endsWith(".tsx"), react: /from\s+["']react(-dom)?(\/client)?["']/.test(source), emoji: /\p{Extended_Pictographic}/u.test(source) }).toEqual({
+                name,
+                tsx: false,
+                react: false,
+                emoji: false,
+            });
+        }
+        expect(readFileSync(join(view, "CommunityView.ts"), "utf8")).not.toMatch(/createRoot/);
     });
 });

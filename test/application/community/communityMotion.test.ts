@@ -5,10 +5,6 @@ jest.mock("architecture/settings/suggesters/FolderSuggest", () => ({ FolderSugge
 jest.mock("application/community/CommunityStepModal", () => ({ CommunityStepModal: class { } }));
 jest.mock("application/community/CommunityActionModal", () => ({ CommunityActionModal: class { } }));
 jest.mock("application/community/CommunityMarkdownModal", () => ({ CommunityMarkdownModal: class { } }));
-jest.mock("application/community/view/legacyRooms", () => {
-    const room = { mount: () => ({ dispose: () => undefined }) };
-    return { LEGACY_ROOMS: { learn: room, contribute: room, installed: room } };
-});
 // Learn is native since #801, and fetches when shown: here it is a stand-in, the shell is what is tested.
 jest.mock("application/community/view/learnRoom", () => ({ LEARN_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 
@@ -19,7 +15,11 @@ import { __resetLocal } from "architecture";
 import { replaceBufferedWrites } from "architecture/plugin/writes/recordVaultWrite";
 import { CommunityView } from "application/community/view/CommunityView";
 import { systemsRoom } from "application/community/view/systemsRoom";
-import { SHOT } from "application/community/view/systemShots";
+import { SHOT, collapseRow } from "application/community/view/systemShots";
+import { INSTALLED_ROOM, type InstalledRoom } from "application/community/view/installedRoom";
+import { installSystem } from "application/community/installSystem";
+import type { InstalledSystem } from "application/community/installRecord";
+import { branching } from "../../support/systemsFixtures";
 import { DomNode, flush, settle } from "../../support/dashboardDom";
 import { recordAnimations, reducedMotion, type AnimationRecord, type FakeAnimation } from "../../support/motionDom";
 import { wireHarness } from "../../support/harness";
@@ -29,7 +29,8 @@ import { parseYamlForTests } from "../../support/systemsFixtures";
 const ROOT = join(__dirname, "..", "..", "..");
 const VIEW = join(ROOT, "src", "application", "community", "view");
 // #802: the Learn room's sheet too — its shots are scripted, so it may not transition or keyframe anything else.
-const SHEETS = ["communitySystems.scss", "communityView.scss", "communityLearn.scss"].map((name) => join(ROOT, "src", "styles", "components", name));
+// #803: the Contribute and Installed rooms' sheet too.
+const SHEETS = ["communitySystems.scss", "communityView.scss", "communityLearn.scss", "communityRooms.scss"].map((name) => join(ROOT, "src", "styles", "components", name));
 const COMPOSITOR = new Set(["transform", "opacity", "offset", "easing", "composite", "visibility"]);
 
 function fakeWindow(reduce: boolean): any {
@@ -216,4 +217,112 @@ describe("the shots, played (#799 AC-12, FR-7, FR-13)", () => {
         expect(view.getState()).toMatchObject({ room: "systems" });
         await view.onClose();
     });
+});
+
+describe("a room out of view holds its animations still (#803, found in #802)", () => {
+    it("pauses every CSS animation inside a room that is away — Obsidian's loading bar included", () => {
+        const css = readFileSync(join(ROOT, "src", "styles", "components", "communityView.scss"), "utf8");
+        // On the room's own rule — the nav indicator is `is-away` too, and pausing inside it holds nothing.
+        const room = /\n\.zettelkasten-flow__community-room \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? "";
+        const block = /&\.is-away \*,\s*&\.is-away \*::before,\s*&\.is-away \*::after \{([^}]*)\}/.exec(room);
+        expect(block?.[1]).toMatch(/animation-play-state:\s*paused/);
+    });
+});
+
+describe("the Installed room's shots (#803 AC-10)", () => {
+    let record: AnimationRecord;
+    let restore: () => void = () => undefined;
+
+    beforeEach(() => {
+        record = recordAnimations();
+        (globalThis as any).activeWindow = fakeWindow(false);
+        (globalThis as any).createDiv = (options: unknown) => new DomNode().createDiv(options);
+        replaceBufferedWrites([]);
+        __resetLocal();
+    });
+
+    afterEach(() => {
+        record.stop();
+        restore();
+        restore = () => undefined;
+        delete (globalThis as any).activeWindow;
+    });
+
+    async function installedRoom(harness = wireHarness({ settings: { installedTemplates: { steps: {}, actions: {} }, communitySettings: {} } })) {
+        const outcome = await installSystem(harness.plugin as never, branching("Zettelkasten v2"), "/docs/systems/zk.zftemplate", { role: "none", targetFolder: "Flows/ZK" });
+        if (outcome.kind !== "installed") throw new Error(outcome.kind);
+        (harness.plugin as any).saveSettings = async () => undefined;
+        const leaf = { openFile: jest.fn(async (_file: unknown) => undefined) };
+        const community = new DomNode("div");
+        community.addClass("zettelkasten-flow__community");
+        const roomEl = community.createEl("section", { cls: "zettelkasten-flow__community-room" }) as DomNode;
+        const room = INSTALLED_ROOM.mount(roomEl as never, { app: harness.app, plugin: harness.plugin, leaf, openRoom: () => undefined } as never) as InstalledRoom;
+        await settle(() => roomEl.byClass("system-drawing").length > 0);
+        return { room, roomEl, leaf, harness, id: (harness.settings.installedSystems as InstalledSystem[])[0].id };
+    }
+
+    it("grows the row's drawing to fill the tab, whole to the end, before the tab becomes the canvas", async () => {
+        const { roomEl, leaf } = await installedRoom();
+        roomEl.find((el) => el.tag === "button" && el.text === "Open canvas")!.click();
+        await settle(() => ghostsOf(record).length > 0);
+        const [ghost] = ghostsOf(record);
+        expect(ghost.options.duration).toBe(SHOT.land);
+        expect(ghost.keyframes.at(-1)!.opacity).toBe(ghost.keyframes[0].opacity);
+        expect(roomEl.oneByClass("installed-thumb").hasClass("is-travelling")).toBe(true);
+        expect(leaf.openFile).not.toHaveBeenCalled();
+        record.finishAll();
+        await settle(() => leaf.openFile.mock.calls.length > 0);
+        expect(leaf.openFile).toHaveBeenCalledTimes(1);
+    });
+
+    it("flies the drawing home onto its row when Back restores Installed", async () => {
+        const { room, roomEl, id } = await installedRoom();
+        room.applyState({ installedHome: id });
+        await settle(() => ghostsOf(record).length > 0);
+        expect(ghostsOf(record)[0].options.duration).toBe(SHOT.home);
+        expect(roomEl.oneByClass("installed-row").scrolls.length).toBeGreaterThan(0);
+        record.finishAll();
+        await settle(() => !roomEl.oneByClass("installed-thumb").hasClass("is-travelling"));
+    });
+
+    it("lets a removed row go and closes the gap by transform and opacity alone", async () => {
+        const list = new DomNode("div");
+        const gone = list.createDiv({ cls: "row" }) as DomNode;
+        const below = list.createDiv({ cls: "row" }) as DomNode;
+        const line = new DomNode("div");
+        const leaving = collapseRow(gone as never, line as never);
+        await flush();
+        expect(record.animations.map((animation) => animation.target)).toEqual([gone]);
+        record.finishAll();
+        await settle(() => record.animations.length > 1);
+        expect(list.children).toEqual([line, below]);
+        expect(record.animations.map((animation) => animation.target)).toEqual([gone, below, line]);
+        for (const animation of record.animations) for (const frame of animation.keyframes) for (const key of Object.keys(frame)) expect(COMPOSITOR.has(key)).toBe(true);
+        record.finishAll();
+        await leaving;
+    });
+
+    it("cuts under reduced motion: no animation, the row simply replaced", async () => {
+        restore = reducedMotion(true);
+        (globalThis as any).activeWindow = fakeWindow(true);
+        const { roomEl, leaf } = await installedRoom();
+        roomEl.find((el) => el.tag === "button" && el.text === "Open canvas")!.click();
+        await settle(() => leaf.openFile.mock.calls.length > 0);
+        const list = new DomNode("div");
+        const gone = list.createDiv() as DomNode;
+        const line = new DomNode("div");
+        await collapseRow(gone as never, line as never);
+        expect(list.children).toEqual([line]);
+        expect(record.animations).toHaveLength(0);
+    });
+
+    it("never waits on a collapse that never ends for longer than its length and a beat", async () => {
+        const list = new DomNode("div");
+        const gone = list.createDiv() as DomNode;
+        const started = Date.now();
+        await collapseRow(gone as never, new DomNode("div") as never);
+        const took = Date.now() - started;
+        expect(took).toBeLessThan(SHOT.collapse + SHOT.gap + 1500);
+        expect(list.children).toHaveLength(1);
+    }, 10_000);
 });

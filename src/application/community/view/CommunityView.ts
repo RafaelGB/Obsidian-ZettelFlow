@@ -6,9 +6,10 @@ import { COMMUNITY_VIEW, FIRST_ROOM, LAST_ROOM_KEY, ROOMS, isRoom, type Room } f
 import { CommunityPan, ownWindow, placeIndicator } from "./communityPan";
 import { RoomNav } from "./roomNav";
 import type { CommunityRoomHost, RoomHandle, RoomRenderers } from "./communityRoomHost";
-import { LEGACY_ROOMS } from "./legacyRooms";
 import { SYSTEMS_ROOM } from "./systemsRoom";
 import { LEARN_ROOM } from "./learnRoom";
+import { CONTRIBUTE_ROOM } from "./contributeRoom";
+import { INSTALLED_ROOM } from "./installedRoom";
 
 export { COMMUNITY_VIEW };
 
@@ -26,7 +27,7 @@ let views = 0;
  * and Obsidian's *Back* has to come home to the room it left.
  *
  * Choosing a room writes nothing but which room was last open, in this device's storage for the
- * vault.
+ * vault. Every room is native DOM: since #803 the view mounts no React at all.
  */
 export class CommunityView extends ItemView {
     navigation = true;
@@ -41,12 +42,14 @@ export class CommunityView extends ItemView {
     private moving: Promise<void> = Promise.resolve();
     /** State handed over before the rooms were mounted. */
     private pending: Record<string, unknown> | null = null;
+    /** The canvas last focused in this window (#803): what Contribute would share. */
+    private focusedCanvas: string | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
         private readonly plugin: ZettelFlow,
         /** A seam for tests and for the slices that replace a room's contents one at a time. */
-        private readonly renderers: RoomRenderers = { ...LEGACY_ROOMS, learn: LEARN_ROOM, systems: SYSTEMS_ROOM }
+        private readonly renderers: RoomRenderers = { learn: LEARN_ROOM, systems: SYSTEMS_ROOM, contribute: CONTRIBUTE_ROOM, installed: INSTALLED_ROOM }
     ) {
         super(leaf);
         // The view's own keys. Esc first asks the room in view — Systems closes the system you have
@@ -125,12 +128,17 @@ export class CommunityView extends ItemView {
             app: this.app,
             plugin: this.plugin,
             leaf: this.leaf,
-            openRoom: (room, then) => {
-                void this.go(room, false).then(() => then?.());
+            openRoom: (room, then, state) => {
+                void this.go(room, false).then(() => {
+                    if (state && this.room === room) this.handOver(state);
+                    then?.();
+                });
             },
             refreshCounts: () => this.refreshCounts(),
+            lastCanvas: () => this.lastCanvas(),
             scope: this.scope ?? undefined,
         };
+        this.trackCanvases();
         for (const room of ROOMS) {
             const el = this.roomEls.get(room);
             if (el) this.handles.set(room, this.renderers[room].mount(el, host));
@@ -200,6 +208,44 @@ export class CommunityView extends ItemView {
         };
         this.moving = run();
         return this.moving;
+    }
+
+    /**
+     * The canvas you last had in front of you in this window (#803 FR-2): the most recent leaf when
+     * it is one, then kept by every tab change — a canvas tab in another window is not this
+     * window's, so it does not count. Until then, the files Obsidian last opened stand in.
+     */
+    private trackCanvases(): void {
+        const workspace = this.app?.workspace;
+        if (!workspace) return;
+        this.focusedCanvas = this.canvasOf(workspace.getMostRecentLeaf?.() ?? null);
+        this.registerEvent(
+            workspace.on("active-leaf-change", (leaf) => {
+                const path = this.canvasOf(leaf);
+                if (!path || path === this.focusedCanvas) return;
+                const el = leaf?.view?.containerEl;
+                if (el && ownWindow(el) !== ownWindow(this.contentEl)) return;
+                this.focusedCanvas = path;
+                for (const handle of this.handles.values()) handle.canvasChanged?.();
+            })
+        );
+    }
+
+    /**
+     * The canvas tracked, while it still exists; else the most recent canvas Obsidian opened that
+     * still does — a canvas deleted since (an install taken back) is never offered.
+     */
+    private lastCanvas(): string | null {
+        const vault = this.app?.vault;
+        const exists = (path: string | null | undefined): path is string => !!path && !!vault?.getFileByPath?.(path);
+        if (exists(this.focusedCanvas)) return this.focusedCanvas;
+        return this.app?.workspace?.getLastOpenFiles?.().find((path) => path.endsWith(".canvas") && exists(path)) ?? null;
+    }
+
+    private canvasOf(leaf: WorkspaceLeaf | null): string | null {
+        const view = leaf?.view as { getViewType?: () => string; file?: { path?: string } | null } | undefined;
+        if (view?.getViewType?.() !== "canvas") return null;
+        return view.file?.path ?? null;
     }
 
     /** The indicator under the room in view, with no motion: a resize is not a gesture. */

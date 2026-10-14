@@ -15,7 +15,7 @@ import { drawingOf, type SystemDrawing } from "../systemDrawing";
 import type { ParseYaml } from "../templateGraph";
 import { groupSystems, matchesQuery, summaryOf } from "../systemsCatalog";
 import { installsOf, type InstalledSystem } from "../installRecord";
-import { undoInstall } from "../undoInstall";
+import { takeBackInstall } from "../removeInstall";
 import type { InstallRole } from "../installDestination";
 import { RUNS_KEY } from "../installConsequence";
 import type { CommunityRoomHost, RoomHandle, RoomRenderer } from "./communityRoomHost";
@@ -477,7 +477,7 @@ export function announceInstalled(host: CommunityRoomHost, record: InstalledSyst
     undo.addEventListener("click", () => {
         notice.hide();
         if (offerState(offeredAt, Date.now()) === "expired") return;
-        void undoInstall(host.plugin, record, host.leaf).then((result) => {
+        void takeBackInstall(host.plugin, record, host.leaf).then((result) => {
             const done = result.removed.length + (result.settingRestored ? 1 : 0);
             const left = [...result.kept, ...result.failed];
             new Notice(

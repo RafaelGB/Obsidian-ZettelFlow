@@ -40,6 +40,15 @@ export interface LongPassResult<T> {
 }
 
 /**
+ * Give the event loop a turn (#795). `await Promise.resolve()` only queues a microtask, which runs
+ * before any paint, timer or keystroke — so the pass "yielded" while the window stayed frozen and its
+ * own progress could not be drawn. A zero-delay timer is a real task boundary.
+ */
+function nextTask(): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, 0));
+}
+
+/**
  * Run `step` over every item, yielding as it goes.
  *
  * An item that throws is counted and skipped: one unreadable note must not lose the other
@@ -69,7 +78,7 @@ export async function runLongPass<T>(
         }
         if (seen % yieldEvery === 0) {
             options.onProgress?.({ done: seen, total: items.length });
-            await Promise.resolve();
+            await nextTask();
         }
     }
 

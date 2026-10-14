@@ -18,7 +18,7 @@ Obsidian-facing write service and a command.
 
 ## Frontmatter convention (configurable, no lock-in)
 
-Three property names are standardized, each configurable in **Settings → Knowledge lifecycle** and
+Three property names are standardized, each configurable in **Settings → Your knowledge** (the *Lifecycle properties* card) and
 defaulting to a plain name:
 
 | Purpose | Default property | Written by #146? |

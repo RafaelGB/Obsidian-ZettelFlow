@@ -14,9 +14,8 @@ knowledge, with **no invented content**.
 
 ## Opening it
 
-Run **"Show evidence map"** from the command palette, or click **Open** next to *Evidence map* in
-**Settings → ZettelFlow → Zettelkasten toolkit**. It follows the **active note** and updates
-(debounced) as you switch notes or edit.
+Run **"Show evidence map"** from the command palette: it opens **This note**, where the evidence map
+now lives. It follows the **active note** and updates (debounced) as you switch notes or edit.
 
 ## The four buckets
 

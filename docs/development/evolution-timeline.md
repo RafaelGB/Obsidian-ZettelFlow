@@ -157,7 +157,7 @@ The store is bounded so it can't grow without limit:
 Fully **offline** — no network, no AI. Unlike the thinking journal's path-free day→count tally, the
 timeline necessarily stores **per-note lifecycle state, claim texts and timestamps**. Because it copies
 note *content* into your vault's local plugin data (`data.json`, which people often sync or commit), it
-is **off by default — opt in** under *Settings → ZettelFlow → Evolution timeline* (constitution §VII).
+is **off by default — opt in** under *Settings → Thinking → What ZettelFlow remembers → Record conceptual snapshots* (constitution §VII).
 Once enabled the store lives **only** locally, is **bounded** (per-note 20, total 200), is **pruned on
 delete** and **re-keyed on rename** (housekeeping runs even when the toggle is off), and turning the
 toggle **off clears everything already captured**.

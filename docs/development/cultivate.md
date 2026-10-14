@@ -185,7 +185,7 @@ advance control never runs out of something to offer.
 
 > [#338](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/338), epic
 > [#335](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/335). On by default; one toggle in
-> **Settings → Cultivate** turns it off.
+> **Settings → Thinking** (*Ask before revealing*, in the *Pauses* card) turns it off.
 
 Three of the five moves used to hand you their answer first — connect listed related notes, challenge
 listed contradictions, source announced the gap. A session could *organise* an idea without ever

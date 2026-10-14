@@ -1,41 +1,42 @@
 # Quick capture
 
-## Safe file creation
+The lowest-friction path from a thought into your vault (#285, #475). A single command opens one
+prompt and keeps what you type as a **thought in your thinking space** (see
+[Think](../architecture/thought-lab.md)) — no canvas, no wizard, no folder decision, no title to
+invent. The point is speed: get the idea out of your head before it's gone, and develop it later.
 
-Capture now uses the shared create-only writer. It still produces a fleeting note in Inbox; invalid
-empty filenames are rejected. A name collision chooses a unique operation suffix once. Retries retain
-that operation and path: exact content is recognized, different content is never overwritten. The
-hidden operation marker lets a failed response after successful creation be reconciled safely.
-
-The modal remains open with its title until acknowledgement; repeated submits are coalesced while
-busy. Purpose-led capture uses the same service and selects the exact created note. Its pending
-operation is retained in the inquiry checkpoint, so a retry can survive restart.
-
-The lowest-friction path from a thought to a note (#285). A single command opens one title prompt and
-writes a **fleeting note** straight to your `Inbox` — no canvas, no wizard, no folder decision. The
-point is speed: get the idea out of your head before it's gone, and develop it later.
+A capture is not a note. It has no title, no lifecycle state and no Inbox to empty: it is not in the
+knowledge model, it cannot be an orphan, and Health does not count it. A captured thought is the same
+as one typed in Think.
 
 ## Using it
 
-1. Run **`ZettelFlow: Quick-capture a fleeting idea`** from the command palette (bind your own hotkey —
-   there is no default, to avoid clashing with your setup).
-2. Type a title and press **Enter** (or click **Capture**).
-3. ZettelFlow creates `Inbox/<title>.md` with `state: fleeting` frontmatter and an `# <title>` heading,
-   then shows a notice.
+1. Run **`ZettelFlow: Capture a thought`** from the command palette (bind your own hotkey — there is
+   no default, to avoid clashing with your setup).
+2. Type the thought and press **Enter** (or click **Capture**).
+3. ZettelFlow keeps it in the thinking space and says *Captured. It is in your thinking space.*
+
+If no thinking-space folder is set, nothing is written: the notice sends you to **Settings → Thinking**
+(*Thinking space folder*). Capture never falls back to creating a note.
 
 It works on **mobile** (a plain modal, Enter to submit) as well as desktop.
 
 ## The capture → develop loop
 
-A quick capture is deliberately raw. [ZettelFlow Home](zettelflow-home.md) closes the loop: whenever
-fleeting notes are waiting it shows a **growth nudge** — "N fleeting notes ready to develop" — with a
-one-click jump to the latest capture, so nothing you dumped into the Inbox is forgotten. Promote a note
-by advancing its [lifecycle state](../architecture/knowledge-lifecycle.md) as you flesh it out and
-connect it.
+A quick capture is deliberately raw. Open **Think** to find it among your other thoughts and develop
+it there: connect it, question it, and when it has earned it, crystallize it into a note. Nothing becomes
+knowledge until you decide it is an idea.
+
+## Safe writing
+
+Capture goes through the thinking space's own writer. The modal stays open with your text until the
+write is confirmed; repeated submits are coalesced while busy, and a failed write keeps your text so
+you can retry.
 
 ## Details
 
-- **Folder** — notes land in a top-level `Inbox/` folder, created on first use.
-- **Filename** — the title, with characters unsafe for a filename replaced by spaces; an operation ID is
-  appended if a note of that name already exists (captures never overwrite).
-- **Offline** — writes a single Markdown file through the Vault API; no network, no AI.
+- **Where** — the thinking-space folder (*Settings → Thinking → Thinking space folder*, default
+  `_ZettelFlow/lab`).
+- **Recorded** — each capture is logged as the move *externalize · capture* in the
+  [move record](../architecture/thought-lab.md#the-move-record-491).
+- **Offline** — writes through the Vault API; no network, no AI.

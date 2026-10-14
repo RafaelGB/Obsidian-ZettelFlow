@@ -31,7 +31,7 @@ no network request**. It is pruned to the last ~year, and persisted with a debou
 of edits collapses to one write.
 
 It is **on by default** (it only records benign aggregate counts); turn it off any time under
-**Settings → ZettelFlow → Thinking journal**. See [Capabilities & privacy](capabilities-and-privacy.md).
+**Settings → Thinking → What ZettelFlow remembers** (*Record development events*). See [Capabilities & privacy](capabilities-and-privacy.md).
 
 ## Architecture
 

@@ -90,7 +90,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "note-creation": { summary: "draw a workflow on a Canvas and the wizard walks it to build a note.", page: "../architecture/overview.md" },
     "run-a-flow": { summary: "run the open canvas as a flow — create notes, edit the open one, or react to an event.", page: "../architecture/flow-roles.md" },
     "canvas-editing": { summary: "open and edit the canvas that drives a flow.", page: "../architecture/overview.md" },
-    "quick-capture": { summary: "one keystroke from a thought to a fleeting note in your Inbox.", page: "../development/quick-capture.md" },
+    "quick-capture": { summary: "one keystroke from a thought to your thinking space.", page: "../development/quick-capture.md" },
     home: { summary: "the front door — what to do next on your knowledge, at a glance, read-only and offline.", page: "../development/zettelflow-home.md" },
     "moc-builder": { summary: "gather notes by tag or folder into a map of content, refreshed safely.", page: "../development/moc-builder.md" },
     "derive-project": { summary: "turn a folder of notes into a book, course, or article outline from the graph.", page: "../development/derived-projects.md" },

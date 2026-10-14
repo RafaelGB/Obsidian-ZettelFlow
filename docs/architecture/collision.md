@@ -11,6 +11,8 @@ not a catalogue**.
 The operator is the one your vault can stage without inventing anything: put two notes in front of
 you that have **nothing to do with each other**, and ask what they could possibly share.
 
+![Two things far apart: two notes from different regions under one question, an empty composer, and three ways out — Another pair, Nothing here, Close](../resources/collision/collision.svg)
+
 ## The opposite of a gap
 
 Everything else in the product looks for pairs that are **close**. `findDiscoveries` finds notes

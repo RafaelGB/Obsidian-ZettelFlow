@@ -16,7 +16,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Open workflow** — draw a workflow on a Canvas and the wizard walks it to build a note. [docs →](../architecture/overview.md)
 - **Run the current canvas as a flow** — run the open canvas as a flow — create notes, edit the open one, or react to an event. [docs →](../architecture/flow-roles.md)
 - **Open canvas** — open and edit the canvas that drives a flow. [docs →](../architecture/overview.md)
-- **Capture a thought** — one keystroke from a thought to a fleeting note in your Inbox. [docs →](../development/quick-capture.md)
+- **Capture a thought** — one keystroke from a thought to your thinking space. [docs →](../development/quick-capture.md)
 - **Home** — the front door — what to do next on your knowledge, at a glance, read-only and offline. [docs →](../development/zettelflow-home.md)
 - **Build a map of content** — gather notes by tag or folder into a map of content, refreshed safely. [docs →](../development/moc-builder.md)
 - **Derive project outline** — turn a folder of notes into a book, course, or article outline from the graph. [docs →](../development/derived-projects.md)

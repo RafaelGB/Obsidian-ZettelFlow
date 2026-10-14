@@ -1,13 +1,13 @@
 # Configuring Property Hooks
 
-Property hooks can be configured through the ZettelFlow settings panel. You can add, edit, and remove hooks for different frontmatter properties.
+Property hooks are configured in the ZettelFlow settings tab, under **Automation**. You can add,
+edit, reorder and remove hooks for different frontmatter properties.
 
 ## Accessing Property Hooks Settings
 
-1. Open Obsidian Settings
-2. Navigate to the ZettelFlow plugin settings
-3. Scroll down to the "Hooks" section
-4. Find the "Property Hooks" subsection
+1. Open **Settings → ZettelFlow**.
+2. Click **Automation** in the section bar (or scroll to it).
+3. The **Property hooks** row lists your hooks, with **Add hook** and *See worked examples*.
 
 ## Adding a New Property Hook
 
@@ -63,7 +63,7 @@ When writing your hook script, you have access to these variables:
   - `response`: Object where you can set new frontmatter values
     - `frontmatter`: Record of property/value pairs to update/add to the frontmatter
     - `removeProperties`: Array of properties to delete from the frontmatter
-    - `flowToTrigger`: Canvas name to trigger (if applicable). It must be avaliable in the vault inside the path defined in the ZettelFlow settings panel - hooks section. It can only be initialized once and will be triggered when the all hooks are finished.
+    - `flowToTrigger`: Canvas name to trigger (if applicable). It must be available in the vault inside the hook-flows folder (**Settings → Advanced → Folders ZettelFlow uses → Hook flows**). It can only be initialized once and will be triggered when the all hooks are finished.
 
 - `zf`: Access to ZettelFlow functions and utilities. For detailed documentation on all ZettelFlow API functionality, please refer to the [ZettelFlow API Reference](../../api/ZettelFlowAPI.md).
 

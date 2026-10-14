@@ -80,14 +80,15 @@ To close that gap, ZettelFlow **re-runs the pattern once, automatically, after t
   capability.
 
 It is **on by default**. To disable it — for example if you object to a second automatic write to a
-just-created note — turn off *Settings → ZettelFlow → Knowledge patterns → Re-run a pattern after the
-note is indexed*; behaviour is then identical to the build-time-only pass.
+just-created note — turn off *Settings → Thinking → Returns and the thinking space → Re-run a pattern after
+the note is indexed*; behaviour is then identical to the build-time-only pass.
 
 ## Try it
 
-Install the starter flows (Settings → ZettelFlow → Zettelkasten toolkit → *Starter flows*), then build
-a note from the **Permanent note** flow: its frontmatter will carry the pattern's result properties
-(`related`, `contradictions`, `suggestedLinks`, `maturity`), computed against your existing graph.
+Install the **Zettelkasten** system from the Community gallery (Settings → Flows → *Systems gallery*),
+then build a note through its **Permanent note** step: its frontmatter will carry the step's result
+properties (`related`, `contradictions`, `maturity`, `openQuestions`), computed against your
+existing graph.
 
 ## A sibling mechanism: the satellite note (#419)
 

@@ -94,7 +94,7 @@ its **body**, or the raw exception message. A private inquiry note cannot leak i
 The [thinking heatmap](thinking-heatmap.md) is fed by a **development-event journal** stored in the
 plugin's own `data.json` as a **per-day count map** (`day → count`) — **no note names, no content**.
 It is pruned to the last ~year and makes **no network request**. It is on by default (it only records
-benign aggregate counts) and can be disabled under **Settings → ZettelFlow → Thinking journal**.
+benign aggregate counts) and can be disabled under **Settings → Thinking → What ZettelFlow remembers** (*Record development events*).
 
 ## The community gallery is static
 

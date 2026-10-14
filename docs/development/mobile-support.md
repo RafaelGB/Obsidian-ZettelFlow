@@ -13,9 +13,10 @@ API and the `ObsidianApi` facade, so it loads on mobile without a shim.
 
 - Creating notes through a flow (the ribbon **Create a new Zettel Note**, and **Run the current canvas
   as a flow**).
-- **Browse systems** and one-click **install → Run now** from the community browser.
-- The knowledge views — Home, Discovery, knowledge dashboard, slip-box health, open questions, concept
-  navigation, timeline, heatmap — all render in the mobile sidebar.
+- **Community** — browse the systems and install one in one click, then *Create a note* from the
+  notice.
+- The surfaces and their modes — **Home** (Home · Cultivate · Think), **Health** (Tend · Practice),
+  **Explore** — and the **This note** companion all render on mobile.
 - Lifecycle state changes, semantic relations, the offline cognitive actions, and property hooks.
 
 ## Desktop-only, by design (guarded with `Platform`)

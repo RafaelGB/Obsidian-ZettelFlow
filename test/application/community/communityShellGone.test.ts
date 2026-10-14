@@ -9,11 +9,31 @@ import { join } from "path";
  */
 const SRC = join(__dirname, "..", "..", "..", "src");
 
-const GONE = ["CommunityTemplatesModal", "ManageInstalledTemplatesModal", "CommunityHub"];
+const GONE = [
+    "CommunityTemplatesModal",
+    "ManageInstalledTemplatesModal",
+    "CommunityHub",
+    // #799: the Systems room installs in place — no system modal, no React gallery, no preview fetch.
+    "CommunitySystemModal",
+    "StaticTemplatesGallery",
+    "SystemRehearsalPanel",
+    "systemPreviewUrls",
+];
 const FILES = [
     "application/community/CommunityTemplatesModal.tsx",
     "application/community/ManageInstalledTemplatesModal.tsx",
     "application/community/components/CommunityHub.tsx",
+    "application/community/CommunitySystemModal.tsx",
+    "application/community/components/StaticTemplatesGallery.tsx",
+    "application/community/SystemRehearsalPanel.ts",
+];
+
+/** What the Systems room mounts: native DOM, every file of it (#799 AC-11). */
+const SYSTEMS_ROOM = [
+    "application/community/view/systemsRoom.ts",
+    "application/community/view/systemPanel.ts",
+    "application/community/view/systemDrawingView.ts",
+    "application/community/view/systemShots.ts",
 ];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -34,5 +54,19 @@ describe("the Community modal shells are gone (#798)", () => {
         const pattern = new RegExp(`\\b(${GONE.join("|")})\\b`);
         const offenders = walk(SRC).filter((file) => pattern.test(readFileSync(file, "utf8")));
         expect(offenders).toEqual([]);
+    });
+
+    it("installs a system without a confirmation dialog (#799 AC-11)", () => {
+        // The loose pieces' own dialogs keep theirs (FR-5: unchanged); the system install has none.
+        const install = ["application/community/installSystem.ts", "application/community/undoInstall.ts", ...SYSTEMS_ROOM];
+        const offenders = install.filter((file) => /ConfirmModal/.test(readFileSync(join(SRC, file), "utf8")));
+        expect(offenders).toEqual([]);
+    });
+
+    it("mounts the Systems room without React (#799 AC-11)", () => {
+        for (const file of SYSTEMS_ROOM) {
+            const source = readFileSync(join(SRC, file), "utf8");
+            expect({ file, react: /from\s+["']react(-dom)?(\/client)?["']/.test(source) }).toEqual({ file, react: false });
+        }
     });
 });

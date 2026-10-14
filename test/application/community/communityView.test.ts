@@ -3,8 +3,9 @@ import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 // Today's React panels are not what these tests are about: each room is an empty stand-in.
 jest.mock("application/community/view/legacyRooms", () => {
     const room = { mount: () => ({ dispose: () => undefined }) };
-    return { LEGACY_ROOMS: { learn: room, systems: room, contribute: room, installed: room } };
+    return { LEGACY_ROOMS: { learn: room, contribute: room, installed: room } };
 });
+jest.mock("application/community/view/systemsRoom", () => ({ SYSTEMS_ROOM: { mount: () => ({ dispose: () => undefined }) } }));
 jest.mock("config", () => ({ ZettelFlowSettingsTab: class {} }));
 // What the doors' modules reach beyond the door: the canvas patcher, the event engine.
 jest.mock("monkey-around", () => ({ around: () => () => undefined }));

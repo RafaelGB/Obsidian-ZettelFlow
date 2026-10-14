@@ -1,0 +1,817 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+@use '../utils/motion' as *;
+
+/*
+ * The Systems room (#799, epic #797): systems drawn as they are, tried on the drawing, installed in
+ * one click. Every colour is the user's theme (§XV) — the drawing's boxes wear Obsidian's own canvas
+ * colours — and every space is on the 4-grid. Motion is transform and opacity only, and a shot the
+ * script does not play under reduced motion needs no rule of its own here; the panel's contents fade
+ * in, and under reduced motion they are simply there.
+ */
+
+// A card a search leaves out, a group with none left, the list while a system is open. The grid's
+// own selector is named, so a card's `display` never outranks it.
+.zettelkasten-flow__systems .is-hidden,
+.zettelkasten-flow__systems .zettelkasten-flow__systems-grid > .is-hidden {
+    display: none;
+}
+
+// ── the room: what a system is, and the one control ────────────────────────
+.zettelkasten-flow__systems-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-3 var(--size-4-6);
+    margin-bottom: var(--size-4-5);
+}
+
+.zettelkasten-flow__systems-lede {
+    flex: 1 1 20rem;
+    margin: 0;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__systems-search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex: 0 1 18rem;
+    padding: $space-1 $space-2;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-quiet;
+    color: $text-faint;
+
+    &:focus-within {
+        border-color: var(--interactive-accent);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        height: auto;
+        padding: 0;
+        border: none;
+        background: none;
+        box-shadow: none;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__systems-search-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__systems-group {
+    margin-bottom: var(--size-4-6);
+}
+
+.zettelkasten-flow__systems-group-title {
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__systems-group-why {
+    margin: $space-1 0 $space-3;
+    @include hint;
+}
+
+.zettelkasten-flow__systems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+// ── a card: the drawing, the name, one line, the level ─────────────────────
+.zettelkasten-flow__systems-grid .zettelkasten-flow__system-card {
+    @include card;
+    position: relative;
+    // A button centres its contents; a card is read from its top-left, edge to edge.
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    height: auto;
+    padding: 0;
+    border-radius: $radius-medium;
+    overflow: hidden;
+    color: $text-plain;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+    transition: transform $motion-fast $ease-out;
+
+    &:hover {
+        border-color: var(--interactive-accent);
+        transform: translateY(calc(var(--size-2-1) * -1));
+    }
+
+    &.is-skeleton {
+        min-height: 12rem;
+        background-color: $surface-quiet;
+        cursor: default;
+    }
+}
+
+.zettelkasten-flow__system-card-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-bottom: $line-quiet;
+    background-color: $surface-quiet;
+    background-image: radial-gradient(var(--canvas-dot-pattern) 0.06rem, transparent 0.07rem);
+    background-size: var(--size-4-3) var(--size-4-3);
+
+    &.is-travelling .zettelkasten-flow__system-drawing {
+        visibility: hidden;
+    }
+}
+
+.zettelkasten-flow__system-card-installed {
+    @include chip;
+    position: absolute;
+    top: $space-2;
+    right: $space-2;
+    // Over the drawing, which is drawn after it.
+    z-index: 1;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__system-card-installed-icon {
+    display: inline-flex;
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__system-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2 $space-3 $space-3;
+}
+
+.zettelkasten-flow__system-card-title {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__system-card-summary {
+    margin: 0;
+    min-height: 2.8em;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__system-card-meta {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-dots {
+    display: inline-flex;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__system-dot-level {
+    width: var(--size-2-3);
+    height: var(--size-2-3);
+    border-radius: 50%;
+    background-color: var(--background-modifier-border);
+
+    &.is-on {
+        background-color: $text-quiet;
+    }
+}
+
+.zettelkasten-flow__systems-no-match,
+.zettelkasten-flow__systems-state {
+    @include empty-state;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-3;
+
+    p {
+        margin: 0;
+    }
+}
+
+// ── the loose pieces, folded ───────────────────────────────────────────────
+.zettelkasten-flow__systems-loose {
+    margin-top: var(--size-4-6);
+    padding-top: $space-3;
+    border-top: $line-quiet;
+
+    &[open] .zettelkasten-flow__systems-loose-icon {
+        transform: rotate(90deg);
+    }
+}
+
+.zettelkasten-flow__systems-loose-summary {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__systems-loose-icon {
+    display: inline-flex;
+    transition: transform $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__systems-loose-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-1 $space-4;
+    margin: $space-3 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__systems-loose .zettelkasten-flow__systems-piece {
+    @include row;
+    width: 100%;
+    height: auto;
+    padding: $space-1 $space-2;
+    border: none;
+    border-radius: $radius-small;
+    background: none;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__systems-piece-kind {
+    min-width: 4rem;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__systems-piece-desc {
+    overflow: hidden;
+    color: $text-quiet;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.zettelkasten-flow__systems-loose-status {
+    @include hint;
+}
+
+// ── the drawing ────────────────────────────────────────────────────────────
+// It fills the box it is drawn in — the card's thumb, the stage, a ghost — and never sizes it: an SVG
+// left in the flow grows its box to its own aspect, and a card would be as tall as its canvas.
+.zettelkasten-flow__system-drawing {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__system-drawing-camera {
+    width: 100%;
+    height: 100%;
+    transform: var(--zf-system-cam, none);
+    transform-origin: 0 0;
+}
+
+.zettelkasten-flow__system-drawing-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.zettelkasten-flow__system-edge {
+    fill: none;
+    stroke: var(--text-faint);
+    stroke-width: 3;
+
+    .is-thumb & {
+        stroke-width: 7;
+    }
+
+    &.is-taken {
+        stroke: var(--interactive-accent);
+        stroke-width: 6;
+    }
+}
+
+.zettelkasten-flow__system-edge-label {
+    fill: $text-quiet;
+}
+
+.zettelkasten-flow__system-node {
+    transition: opacity $motion-base $ease-out;
+
+    .is-walking & {
+        opacity: 0.5;
+    }
+
+    .is-walking &.is-visited {
+        opacity: 0.85;
+    }
+
+    .is-walking &.is-current {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__system-node-box {
+    fill: $surface-plain;
+    stroke: var(--background-modifier-border);
+    stroke-width: 3;
+
+    .is-thumb & {
+        stroke-width: 6;
+    }
+
+    .is-current > & {
+        stroke: var(--interactive-accent);
+        stroke-width: 7;
+    }
+}
+
+// Obsidian's own canvas colours, so a red box on your canvas is a red box here, in any theme. They
+// are whole colours in 1.14 (not RGB triplets), so the tint is mixed over the page, never `rgba()`.
+@for $i from 1 through 6 {
+    .zettelkasten-flow__system-node--c#{$i} > .zettelkasten-flow__system-node-box {
+        fill: color-mix(in srgb, var(--canvas-color-#{$i}) 12%, var(--background-primary));
+        stroke: var(--canvas-color-#{$i});
+    }
+}
+
+.zettelkasten-flow__system-node-label {
+    fill: $text-plain;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__system-node-phase {
+    fill: $text-faint;
+    letter-spacing: 0.08em;
+}
+
+.zettelkasten-flow__system-node-ask {
+    fill: $text-quiet;
+}
+
+.is-thumb .zettelkasten-flow__system-node-phase,
+.is-thumb .zettelkasten-flow__system-node-ask {
+    display: none;
+}
+
+.zettelkasten-flow__system-dot {
+    fill: var(--interactive-accent);
+}
+
+// ── a system, open in place: the stage, and the panel beside it ────────────
+.zettelkasten-flow__system-crumb {
+    margin-bottom: $space-3;
+}
+
+.zettelkasten-flow__system-crumb .zettelkasten-flow__system-crumb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    height: auto;
+    padding: $space-1 $space-2 $space-1 $space-1;
+    border: none;
+    border-radius: $radius-small;
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__system-crumb-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__system-open-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 1fr);
+    align-items: start;
+    gap: var(--size-4-6);
+}
+
+.zettelkasten-flow__system-stage {
+    position: sticky;
+    top: 0;
+    aspect-ratio: 16 / 10;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    overflow: hidden;
+    background-color: $surface-quiet;
+    background-image: radial-gradient(var(--canvas-dot-pattern) 0.07rem, transparent 0.08rem);
+    background-size: var(--size-4-5) var(--size-4-5);
+
+    &.is-waiting .zettelkasten-flow__system-drawing {
+        visibility: hidden;
+    }
+}
+
+.zettelkasten-flow__system-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    min-width: 0;
+}
+
+.zettelkasten-flow__system-open.is-arrived .zettelkasten-flow__system-side > * {
+    animation: zf-system-appear $motion-base $ease-out both;
+}
+
+@keyframes zf-system-appear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__system-open.is-arrived .zettelkasten-flow__system-side > *,
+    .zettelkasten-flow__system-walk > * {
+        animation: none;
+    }
+
+    .zettelkasten-flow__system-node,
+    .zettelkasten-flow__systems-grid .zettelkasten-flow__system-card,
+    .zettelkasten-flow__systems-loose-icon {
+        transition: none;
+    }
+}
+
+.zettelkasten-flow__system-name {
+    margin: 0;
+    font-size: var(--h2-size);
+    line-height: 1.25;
+}
+
+.zettelkasten-flow__system-lede {
+    margin: 0;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__system-facts {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-3;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-block {
+    padding: $space-3;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+}
+
+.zettelkasten-flow__system-block-title {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    margin: 0 0 $space-2;
+    color: $text-quiet;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__system-block-icon {
+    display: inline-flex;
+}
+
+// The walk
+.zettelkasten-flow__system-walk {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    font-size: var(--font-ui-small);
+
+    > * {
+        animation: zf-system-appear $motion-base $ease-out both;
+    }
+}
+
+.zettelkasten-flow__system-walk-at {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__system-ask {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__system-ask-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2-2);
+}
+
+.zettelkasten-flow__system-ask-option {
+    @include chip;
+}
+
+.zettelkasten-flow__system-exits {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__system-exits .zettelkasten-flow__system-exit {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    height: auto;
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-radius: $radius-small;
+    background-color: $surface-quiet;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__system-exit-icon {
+    display: inline-flex;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__system-exit-to {
+    margin-left: auto;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-walk-end {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-2;
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__system-walk-subtitle {
+    margin: $space-1 0 0;
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-note,
+.zettelkasten-flow__system-walk-footer {
+    margin: 0;
+    @include hint;
+}
+
+.zettelkasten-flow__system-review summary {
+    @include hint;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__system-context-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-1;
+    margin-top: $space-1;
+
+    input {
+        flex: 1 1 6rem;
+        min-width: 0;
+    }
+}
+
+// How will you use it?
+.zettelkasten-flow__system-use {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__system-use .zettelkasten-flow__system-use-current {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    width: 100%;
+    height: auto;
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-color: var(--interactive-accent);
+    border-radius: $radius-small;
+    background-color: $surface-plain;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+}
+
+.zettelkasten-flow__system-use-text {
+    display: flex;
+    flex-direction: column;
+
+    small {
+        color: $text-quiet;
+        font-size: $text-small;
+    }
+}
+
+.zettelkasten-flow__system-use-change {
+    margin-left: auto;
+    color: var(--text-accent);
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-use-roles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+}
+
+.zettelkasten-flow__system-use-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+    padding: $space-2;
+    border: $line-quiet;
+    border-color: transparent;
+    border-radius: $radius-small;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+
+    input {
+        margin-top: var(--size-2-1);
+    }
+}
+
+.zettelkasten-flow__system-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+
+    input {
+        width: 100%;
+    }
+}
+
+.zettelkasten-flow__system-field-label {
+    color: $text-quiet;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__system-field-problem {
+    color: var(--text-error);
+    font-size: $text-small;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__system-consequence {
+    margin: 0;
+    font-size: var(--font-ui-small);
+    line-height: 1.5;
+}
+
+// The code it brings
+.zettelkasten-flow__system-code {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border-left: var(--size-2-1) solid var(--text-warning);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__system-code-title {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    margin: 0;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__system-code-icon {
+    display: inline-flex;
+    color: var(--text-warning);
+}
+
+.zettelkasten-flow__system-code-sites {
+    margin: 0;
+    padding-left: var(--size-4-5);
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__system-code-ack {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-2;
+    cursor: pointer;
+}
+
+// Install
+.zettelkasten-flow__system-install-row {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-3 0;
+    border-top: $line-quiet;
+    background-color: $surface-plain;
+
+    .zettelkasten-flow__system-install {
+        width: 100%;
+    }
+}
+
+.zettelkasten-flow__system-install-status {
+    @include hint;
+
+    &:empty {
+        display: none;
+    }
+}
+
+// ── the ghost that flies between the card, the stage and the tab ───────────
+.zettelkasten-flow__community {
+    position: relative;
+}
+
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__system-ghost {
+    z-index: var(--layer-popover);
+    border-radius: $radius-medium;
+    overflow: hidden;
+    background-color: $surface-quiet;
+    background-image: radial-gradient(var(--canvas-dot-pattern) 0.07rem, transparent 0.08rem);
+    background-size: var(--size-4-5) var(--size-4-5);
+}
+
+// The notice after an install
+.zettelkasten-flow__system-notice {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__system-notice-row {
+    display: flex;
+    gap: $space-2;
+    margin-top: $space-1;
+}
+
+// ── narrow (phone, iPad portrait): the panel stacks under the stage ────────
+@container zf-community (max-width: 40rem) {
+    .zettelkasten-flow__system-open-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zettelkasten-flow__system-stage {
+        position: relative;
+    }
+
+    .zettelkasten-flow__systems-grid {
+        grid-template-columns: 1fr;
+    }
+}

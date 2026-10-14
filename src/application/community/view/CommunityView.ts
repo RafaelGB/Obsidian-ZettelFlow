@@ -7,6 +7,7 @@ import { CommunityPan, ownWindow, placeIndicator } from "./communityPan";
 import { RoomNav } from "./roomNav";
 import type { CommunityRoomHost, RoomHandle, RoomRenderers } from "./communityRoomHost";
 import { LEGACY_ROOMS } from "./legacyRooms";
+import { SYSTEMS_ROOM } from "./systemsRoom";
 
 export { COMMUNITY_VIEW };
 
@@ -37,16 +38,20 @@ export class CommunityView extends ItemView {
     private readonly idPrefix = `zf-community-${++views}`;
     /** The pan in flight, so a caller can wait for the room it asked for. */
     private moving: Promise<void> = Promise.resolve();
+    /** State handed over before the rooms were mounted. */
+    private pending: Record<string, unknown> | null = null;
 
     constructor(
         leaf: WorkspaceLeaf,
         private readonly plugin: ZettelFlow,
         /** A seam for tests and for the slices that replace a room's contents one at a time. */
-        private readonly renderers: RoomRenderers = LEGACY_ROOMS
+        private readonly renderers: RoomRenderers = { ...LEGACY_ROOMS, systems: SYSTEMS_ROOM }
     ) {
         super(leaf);
-        // The view's own keys (S2's Esc, S5's `/`) are registered here as the rooms gain them.
+        // The view's own keys, registered here as the rooms gain them (S5's `/` next): Esc first asks
+        // the room in view — Systems closes the system you have open — and is otherwise Obsidian's.
         this.scope = new Scope(this.app?.scope);
+        this.scope.register([], "Escape", () => (this.handles.get(this.room)?.onEscape?.() ? false : true));
     }
 
     /** A literal: `ItemView` calls this from its own constructor, before any field exists (#278). */
@@ -63,15 +68,27 @@ export class CommunityView extends ItemView {
     }
 
     getState(): Record<string, unknown> {
-        return { ...super.getState(), room: this.room };
+        // A room may add to it (#799): the canvas a *Back* returns from names its card.
+        const rooms = [...this.handles.values()].reduce<Record<string, unknown>>((all, handle) => ({ ...all, ...handle.viewState?.() }), {});
+        return { ...super.getState(), ...rooms, room: this.room };
     }
 
     async setState(state: unknown, result: ViewStateResult): Promise<void> {
         await super.setState(state, result);
         const value = (state ?? {}) as Record<string, unknown>;
         const room = isRoom(value.room) ? value.room : FIRST_ROOM;
-        if (this.strip) await this.go(room, false);
-        else this.room = room;
+        if (this.strip) {
+            await this.go(room, false);
+            this.handOver(value);
+        } else {
+            this.room = room;
+            this.pending = value;
+        }
+    }
+
+    /** The state, to every room that reads it — once the rooms exist. */
+    private handOver(state: Record<string, unknown>): void {
+        for (const handle of this.handles.values()) handle.applyState?.(state);
     }
 
     /** The room in view, then the one asked for once it has arrived (a room's `openRoom`). */
@@ -109,6 +126,7 @@ export class CommunityView extends ItemView {
             openRoom: (room, then) => {
                 void this.go(room, false).then(() => then?.());
             },
+            refreshCounts: () => this.refreshCounts(),
         };
         for (const room of ROOMS) {
             const el = this.roomEls.get(room);
@@ -123,6 +141,11 @@ export class CommunityView extends ItemView {
             this.register(() => observer.disconnect());
         }
         await this.go(this.room, false, true);
+        if (this.pending) {
+            const state = this.pending;
+            this.pending = null;
+            this.handOver(state);
+        }
     }
 
     async onClose(): Promise<void> {

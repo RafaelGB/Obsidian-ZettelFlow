@@ -13,8 +13,19 @@ jest.mock("application/community/view/legacyRooms", () => {
             return { count: () => counts[id] ?? null, dispose: () => (record.disposed = true) };
         },
     });
-    return { LEGACY_ROOMS: { learn: room("learn"), systems: room("systems"), contribute: room("contribute"), installed: room("installed") } };
+    return { LEGACY_ROOMS: { learn: room("learn"), contribute: room("contribute"), installed: room("installed") } };
 });
+// Systems is native since #799; here it is a stand-in like the others — the shell is what is tested.
+jest.mock("application/community/view/systemsRoom", () => ({
+    SYSTEMS_ROOM: {
+        mount: (el: any) => {
+            const record = { room: "systems", el, disposed: false };
+            mounted.push(record);
+            el.createDiv({ cls: "legacy-systems", text: "systems" });
+            return { count: () => counts.systems ?? null, dispose: () => (record.disposed = true) };
+        },
+    },
+}));
 
 import { WorkspaceLeaf } from "obsidian";
 import { __resetLocal } from "architecture";

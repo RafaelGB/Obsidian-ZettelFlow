@@ -35,9 +35,10 @@ function writes(method: Method): boolean {
  *
  * `deleteFile` is the one deliberate exception, named here rather than quietly skipped: taking a
  * deletion back would mean keeping the note's body, which the record refuses to do. Obsidian's own
- * trash already holds the file.
+ * trash already holds the file. `trashEmptyFolder` (#799) is its folder twin: an install's take-back
+ * removing a folder it made, only when nothing is left in it.
  */
-const NOT_RECORDED = ["deleteFile"];
+const NOT_RECORDED = ["deleteFile", "trashEmptyFolder"];
 
 describe("every write leaves a fact (#453)", () => {
     const fileService = methodsOf(read(SERVICES, "FileService.ts"));
@@ -99,7 +100,7 @@ describe("every write leaves a fact (#453)", () => {
         const batched: [string[], string][] = [
             [["application", "notes", "NoteBuilder.ts"], 'kind: "flow"'],
             [["hooks", "VaultHooks.ts"], 'kind: "hook"'],
-            [["application", "community", "CommunitySystemModal.tsx"], "kind: 'install'"],
+            [["application", "community", "installSystem.ts"], 'kind: "install"'],
             [["config", "modals", "AssignRoleModal.ts"], 'kind: "manual"'],
         ];
         for (const [parts, origin] of batched) {

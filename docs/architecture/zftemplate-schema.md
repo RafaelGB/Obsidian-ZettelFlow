@@ -56,9 +56,9 @@ On conflict (files already exist), the user is prompted to overwrite or skip —
 ## Community systems (#214)
 
 The same format powers the community **systems** gallery. A shipped system is a `.zftemplate` file
-listed in `docs/main_template.json` with `template_type: "system"`; the community browser's
-`CommunitySystemModal` fetches it, lets the user pick a folder, and writes the canvas + steps in one
-click (no clipboard). See [Community gallery](community.md). Authoring guide:
+listed in `docs/main_template.json` with `template_type: "system"`; Community's **Systems** room
+(#799) fetches it, draws its canvas on the card, walks it in place, and `installSystem()` writes the
+canvas + steps in one click, in one write batch, with no confirmation dialog (no clipboard). See [Community gallery](community.md). Authoring guide:
 [Contribute a community system](../how-to-contribute/community-examples.md).
 
 _README vocabulary for this page: **zftemplate export/import**._

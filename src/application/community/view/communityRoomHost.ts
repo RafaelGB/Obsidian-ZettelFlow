@@ -13,6 +13,8 @@ export interface CommunityRoomHost {
     plugin: ZettelFlow;
     leaf: WorkspaceLeaf;
     openRoom(room: Room, then?: () => void): void;
+    /** A room's count changed (its catalog arrived, something was installed): redraw the nav's. */
+    refreshCounts?(): void;
 }
 
 /** A mounted room. Every hook is optional except letting go. */
@@ -23,6 +25,15 @@ export interface RoomHandle {
     hidden?(): void;
     /** What the nav shows beside its name, read whenever the nav redraws its counts. */
     count?(): RoomCount;
+    /**
+     * What the room adds to the view's state (#799): the history entry Obsidian's *Back* returns to
+     * carries it — Systems says which card the canvas flies home to.
+     */
+    viewState?(): Record<string, unknown>;
+    /** The view's state, as a restore or a *Back* hands it over. */
+    applyState?(state: Record<string, unknown>): void;
+    /** Esc, while this room is in view. True when it was the room's to take. */
+    onEscape?(): boolean;
     dispose(): void;
 }
 

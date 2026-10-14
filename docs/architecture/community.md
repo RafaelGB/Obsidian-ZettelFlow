@@ -26,16 +26,20 @@ with the repo.
 
 ```ts
 COMMUNITY_BASE_URL = "https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main";
-// StaticTemplatesGallery → fetchCommunityTemplates() → GET ${BASE}/docs/main_template.json
+// the Systems room → fetchCommunityTemplates() → GET ${BASE}/docs/main_template.json
 ```
 
 Each catalog row is a `StaticTemplateOptions`: `{ id, template_type, ref, title, description, author,
-difficulty? }`, where `template_type ∈ step | action | markdown | system`. `ref` is a repo-relative
-path:
+difficulty?, summary?, steps?, branches? }`, where `template_type ∈ step | action | markdown | system`.
+The three last fields are for systems (#799): `summary` is one line per language (`{ en, es }`; a
+system without one shows its description's first sentence), and `steps` / `branches` are what its
+canvas draws, so the room can group systems before it fetches a single template. `catalog.test.ts`
+checks both counts against each shipped canvas. Older releases ignore all three. `ref` is a
+repo-relative path:
 
 | `template_type` | `ref` resolves to | Fetched as |
 |---|---|---|
-| **system** | `/docs/systems/<name>.zftemplate` (+ sibling preview `<name>.svg`, and `<name>.png` rendered from it for older releases) | parsed `.zftemplate` |
+| **system** | `/docs/systems/<name>.zftemplate` (+ sibling preview `<name>.svg` and `<name>.png`, kept for older releases: the room draws the canvas itself) | parsed `.zftemplate` |
 | **step / action** | `/docs/steps/community/*.json` | JSON |
 | **markdown** | `/docs/steps/markdown/*.md` | text/plain |
 
@@ -71,14 +75,69 @@ reports that it finished, and under reduced motion the pan is a cut. Rooms out o
 - **The last room** is kept per vault in Obsidian's local storage (`ObsidianApi.loadLocal` /
   `saveLocal`, key `zettelflow-community-room`), never in `data.json`. Choosing a room writes nothing
   else.
-- **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). For now every
-  room re-hosts the panel the old modal had (`view/legacyRooms.tsx`): Learn (`LearnTab`), Systems
-  (`StaticTemplatesGallery`), Contribute (`ContributeTab`) and Installed
+- **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). Systems is
+  native (#799, below). The others still re-host the panel the old modal had
+  (`view/legacyRooms.tsx`): Learn (`LearnTab`), Contribute (`ContributeTab`) and Installed
   (`InstalledTemplatesManagement`, with the *Add the template from the clipboard* button the
   manage-installed modal used to carry). Later slices of epic #797 replace them one room at a time.
-- **Systems** (`StaticTemplatesGallery`) leads with systems, searches title/description/**author**,
-  filters by type **and difficulty** (easy/medium/hard), and each card links to the author's GitHub
-  profile and to the source file in the repo.
+  A room's handle may add to the view's state (`viewState` / `applyState`) and take Esc
+  (`onEscape`).
+
+### The Systems room (#799)
+
+The whole adoption path, in one shot, in `view/systemsRoom.ts` (native DOM; no React):
+
+- **The room.** Systems in two groups, in catalog order: **A whole method** (more than one step)
+  and **One note, done well** (`systemsCatalog.groupSystems`). Each card is a **mini drawing of the
+  system's own canvas** (`systemDrawing.ts` reads the canvas into boxes and curves;
+  `view/systemDrawingView.ts` draws them with `createSvg`, coloured by Obsidian's `--canvas-color-N`),
+  its name, its one-line summary, its level as three dots, *n steps · m branch points* (`tCount`),
+  and *In your vault* when the install record has it. Search (name, summary, description; case and
+  accents folded) is the only control: the type and difficulty chips are gone. Steps and markdown
+  templates are folded at the bottom as *Loose pieces*, each opening its existing install dialog.
+  Templates are fetched as their cards scroll into view, once per session
+  (`fetchSystemTemplate` is memoised). Loading shows skeleton cards; an unreachable gallery, or an
+  unreachable system, is said inline with *Try again* — never a toast.
+- **In place.** A card opens the system inside the room: a crumb back to *Systems*, the stage with the
+  full drawing, and a panel (`view/systemPanel.ts`) with what it is, **Try it: walk the flow**, **How
+  will you use it?**, the consequence and Install. The walk is #438's rehearsal **on the drawing**:
+  the current step is lit, the visited ones and the edges taken stay marked, and an exit sends a dot
+  along its edge while the camera (`frameStep`, a Reader `Cam`) frames where it leads. The review's
+  findings and *pretend a property* stay under the walk. Nothing is read from the vault.
+- **Install, without a dialog.** One role is recommended (*Create notes* only when no creation flow is
+  set) with *Change* for the five. One sentence under it (`installConsequence.ts`) is rewritten on
+  every change: what is created and where, how it runs, what it displaces by name, and that the notice
+  can undo it. Code a system brings is named, and Install stays disabled until it is acknowledged.
+  `installSystem()` validates, plans the role (a problem is said next to its field, nothing written),
+  writes every file in **one** `withWriteBatch({ kind: "install" })` through
+  `FileService.createFilesOnce`, then the role's setting, then the install record. Conflict and
+  partial are said inline, and the button becomes *Try again*.
+- **Land in the canvas.** The stage's drawing grows to fill the tab, and the Community leaf **opens the
+  canvas** (`leaf.openFile`). Its history entry carries `{ room: "systems", flyHome: ref }`, so
+  Obsidian's *Back* returns to Systems and the drawing flies home onto its card. The notice says
+  *\<system\> is in your vault* and how it runs, with *Create a note* (for *Create notes* and *Just the
+  files*) and *Undo*.
+- **The shots** (`view/systemShots.ts`) reuse the Reader's `fly()` with `land: "become"`: one ghost of
+  the drawing per shot, transform and opacity only, any key or press jumps it to its end, a timeout
+  settles it, and under reduced motion every shot is a cut.
+
+### The install record and Undo (#799)
+
+Each successful install is one mechanical fact in `data.json`, `installedSystems?: InstalledSystem[]`
+(`installRecord.ts`): the gallery ref and name, when, the folder, the canvas path, the role, the
+setting it changed with its **previous value**, the folders it created, the write batch, and every file
+with a **content hash** (`fnv1a8` of the canonical content; a canvas is hashed with sorted keys, so
+Obsidian re-formatting it is not a change). It is optional, so loading never marks `data.json` dirty
+for it, and it has no form: nobody authors it (§XIII), and it states no judgement (§XII). It is what
+*In your vault* reads, and what Installed (S6) will list.
+
+*Undo* in the notice (`undoInstall.ts`) takes the install back exactly: `undoBatch` through the write
+record (#453); a file the record could not take back (its mtime moved, as when Obsidian re-saves the
+canvas on open) is trashed anyway when its hash is unchanged, and **kept and named** when you changed
+it; the folders it made go when empty (`FileService.trashEmptyFolder`); the role setting gets its
+previous value back while it still points at this canvas; the record entry is dropped; and a tab still
+showing that canvas goes back to Community on Systems. The result is one notice
+(`changes_undo_done` / `changes_undo_partial_done`).
 
 ### Modals
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown
@@ -88,13 +147,9 @@ reports that it finished, and under reduced motion the pan is a cut. Rooms out o
   `InstalledStepEditorModal`.
 - **`CommunityMarkdownModal`** — preview of a markdown template; Download writes the note into
   `communitySettings.markdownTemplateFolder` (Remove deletes it).
-- **`CommunitySystemModal`** (#214) — previews a whole **system** shipped as the unified
-  [`.zftemplate`](zftemplate-schema.md) bundle: name, author, description, an optional sibling
-  preview image, and the list of files that will be written. "Install system" picks a target folder
-  (default `foldersFlowsPath`), then `planSystemInstall` + `FileService.writeFile` create the canvas
-  and every step note in one click (no clipboard, no manual paste) and open the canvas. The pure
-  planner/validator lives in `systemInstall.ts` (Obsidian-free, so it is unit-testable and every
-  shipped system is checked against the registered action ids).
+- A whole **system** has no modal since #799: it opens in place in the Systems room (above). The
+  pure planner/validator still lives in `systemInstall.ts` (Obsidian-free, so it is unit-testable
+  and every shipped system is checked against the registered action ids).
 - **`UsedInstalledStepsModal`** — a picker (`StepTemplatesSelector`) used to drop an installed step
   onto a canvas node.
 
@@ -118,8 +173,8 @@ GET-only, against the GitHub-raw base (uses Obsidian's `request()`):
   `InstalledStepEditorModal`.
 - **Markdown** — written as a real note into `markdownTemplateFolder`.
 - **Systems** (#214) — the modern one-click path. `planSystemInstall` turns a `.zftemplate` into a
-  deterministic file list (canvas + steps under the chosen folder); the modal writes each with
-  `FileService.writeFile` and opens the canvas.
+  deterministic file list (canvas + steps under the chosen folder); `installSystem()` creates them
+  in one write batch with `FileService.createFilesOnce`, and the Community tab opens the canvas.
 
 ## 3. Contributing to the gallery
 
@@ -146,7 +201,8 @@ Installing used to write the files, open the canvas and offer a *run now* comman
 in your vault and connected to nothing: the ribbon did not open it, no folder ran it, and you had
 to know — from nowhere — that it needed wiring by hand in settings.
 
-The last question of the install dialog is now **how will you use this?**
+The last question before Install is now **how will you use it?** (since #799 it is asked in the
+Systems room's panel, not in a dialog).
 
 | Answer | What it writes | How it runs afterwards |
 |---|---|---|
@@ -158,11 +214,13 @@ The last question of the install dialog is now **how will you use this?**
 
 Three rules keep it honest:
 
-- **Nothing is written before you agree.** The confirmation names the folder the files go to, the
-  canvas that would stop holding an exclusive role (it keeps existing as a file), and how the
-  system will run. Cancelling writes nothing — not even the files.
-- **No destructive default.** *Creates notes* is pre-selected only when no canvas holds that role
-  yet, which is the common first install and displaces nobody. Otherwise the dialog starts at
+- **Nothing is written before you agree — and Install is the agreement.** The sentence under the
+  choice (rewritten live, #799) names the folder the files go to, the canvas that would stop holding
+  an exclusive role (it keeps existing as a file), and how the system will run. There is no
+  confirmation dialog any more; walking away writes nothing, and the notice's *Undo* takes an install
+  back exactly.
+- **No destructive default.** *Create notes* is pre-selected only when no canvas holds that role
+  yet, which is the common first install and displaces nobody. Otherwise the panel starts at
   *just the files*.
 - **The success notice says how it runs**, in those words, instead of naming a command.
 

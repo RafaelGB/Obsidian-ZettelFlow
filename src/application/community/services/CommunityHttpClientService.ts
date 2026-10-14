@@ -36,14 +36,29 @@ export async function fetchStepTemplate(ref: string) {
     return JSON.parse(rawList) as CommunityStepSettings;
 }
 
-export async function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {
+/**
+ * One GET per system per session (#799): the card draws it and the panel walks it, so both share the
+ * same fetch. A failure is forgotten at once, so *Try again* asks again.
+ */
+const systemTemplates = new Map<string, Promise<ZfTemplate>>();
+
+export function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {
+    const known = systemTemplates.get(ref);
+    if (known) return known;
     log.debug("Fetching system template", ref);
-    const raw = await request({
+    const fetching = request({
         url: `${COMMUNITY_BASE_URL}${ref}`,
         method: "GET",
         contentType: "application/json",
-    });
-    return parseTemplate(raw);
+    }).then(parseTemplate);
+    systemTemplates.set(ref, fetching);
+    fetching.catch(() => systemTemplates.delete(ref));
+    return fetching;
+}
+
+/** Forget every fetched system — a test's fresh session. */
+export function forgetSystemTemplates(): void {
+    systemTemplates.clear();
 }
 
 export async function fetchMarkdownTemplate(ref: string) {

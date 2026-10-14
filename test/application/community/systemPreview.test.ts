@@ -1,14 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
-import { previewBlobType, systemPreviewUrls } from "application/community/systemPreview";
+import { previewBlobType } from "application/community/systemPreview";
 
-describe("a system's preview image (#651)", () => {
-    it("asks for the SVG drawing first and the PNG second", () => {
-        expect(systemPreviewUrls("https://raw.example/main", "/docs/systems/gtd.zftemplate")).toEqual([
-            "https://raw.example/main/docs/systems/gtd.svg",
-            "https://raw.example/main/docs/systems/gtd.png",
-        ]);
-    });
-
+describe("a fetched gallery image is typed so it draws (#651)", () => {
     it("types an SVG as an image even when the server calls it text", () => {
         // GitHub raw serves .svg as text/plain; an <img> of a text/plain blob draws nothing.
         expect(previewBlobType("https://raw.example/x.svg", "text/plain; charset=utf-8")).toBe("image/svg+xml");

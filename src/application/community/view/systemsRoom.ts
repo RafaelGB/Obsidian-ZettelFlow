@@ -183,11 +183,7 @@ export class SystemsRoom implements RoomHandle {
     private drawCard(grid: HTMLElement, entry: StaticTemplateOptions): void {
         const el = grid.createEl("button", { cls: c("system-card"), attr: { type: "button", "data-ref": entry.ref } });
         const thumb = el.createDiv({ cls: [c("system-card-thumb"), "is-loading"].join(" ") });
-        if (installsOf(this.host.plugin.settings.installedSystems, entry.ref).length > 0) {
-            const badge = thumb.createSpan({ cls: c("system-card-installed") });
-            setIcon(badge.createSpan({ cls: c("system-card-installed-icon") }), "check");
-            badge.createSpan({ text: t("community_systems_in_vault") });
-        }
+        this.markInVault(thumb, entry.ref);
         const text = el.createDiv({ cls: c("system-card-body") });
         text.createDiv({ cls: c("system-card-title"), text: entry.title });
         text.createEl("p", { cls: c("system-card-summary"), text: summaryOf(entry, this.deps.lang()) });
@@ -199,6 +195,24 @@ export class SystemsRoom implements RoomHandle {
         el.addEventListener("click", () => void this.open(entry.ref));
         if (this.observer) this.observer.observe(thumb);
         else void this.loadTemplate(card);
+    }
+
+    /**
+     * *In your vault*, as the install record says now: added or taken off without touching the
+     * drawing. Installed's *Remove* changes the record while this room is out of view (#804).
+     */
+    private markInVault(thumb: HTMLElement, ref: string): void {
+        const inVault = installsOf(this.host.plugin.settings.installedSystems, ref).length > 0;
+        const badge = thumb.querySelector(`.${c("system-card-installed")}`);
+        if (!inVault) {
+            badge?.remove();
+            return;
+        }
+        if (badge) return;
+        const made = thumb.createSpan({ cls: c("system-card-installed") });
+        setIcon(made.createSpan({ cls: c("system-card-installed-icon") }), "check");
+        made.createSpan({ text: t("community_systems_in_vault") });
+        thumb.prepend(made);
     }
 
     /** Templates are fetched as their cards come into view (the Library's covers), each once. */
@@ -419,6 +433,11 @@ export class SystemsRoom implements RoomHandle {
     }
 
     // ── the room's handle ───────────────────────────────────────────────────────
+
+    /** The camera has arrived: the badges follow the record, which another room may have changed. */
+    shown(): void {
+        for (const card of this.cards.values()) this.markInVault(card.thumb, card.entry.ref);
+    }
 
     count(): number | null {
         if (!this.catalog) return null;

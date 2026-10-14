@@ -18,8 +18,8 @@ description: ZettelFlow FAQ — installing, mobile, offline use, AI, privacy, wh
 ??? question "Does it work offline? Does it send anything anywhere?"
 
     Everything works offline, with no account, no server and no telemetry. The only network calls are
-    the ones you opt into: the AI provider you configure, and read-only fetches when you open the
-    community gallery. → [Capabilities & privacy](development/capabilities-and-privacy.md)
+    the ones you opt into: the AI provider you configure, and read-only fetches when you open
+    Community — the gallery's catalog, and Learn's tutorials while Learn is shown. → [Capabilities & privacy](development/capabilities-and-privacy.md)
 
 ??? question "Do I need AI? Which provider?"
 
@@ -64,9 +64,10 @@ description: ZettelFlow FAQ — installing, mobile, offline use, AI, privacy, wh
 
 ??? question "How do I share a system I built?"
 
-    Export it as a `.zftemplate` from your canvas and open a pull request. The gallery is fully static,
-    so there is no account or upload: once merged it appears in everyone's in-app browser.
-    → [Share a system](how-to-contribute/systems-gallery.md)
+    Open the canvas, then **Community → Contribute → Share this canvas as a system**: *Prepare the
+    system* opens a GitHub form already filled in. The gallery is fully static, so there is no account
+    or upload: once merged it appears in everyone's Systems room.
+    → [Community](community/index.md#contribute) · [Share a system](how-to-contribute/systems-gallery.md)
 
 ??? question "I found a bug, or I have an idea."
 

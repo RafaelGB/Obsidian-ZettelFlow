@@ -5,6 +5,10 @@ ZettelFlow lets users **browse, preview, install and reuse** shareable building 
 static**: it reads a catalog and its payloads straight from the repo over GitHub raw. There is **no
 backend** to run — no server, no database, no accounts, no network writes from the plugin.
 
+Since #797 all of it lives in one view, **Community**, with four rooms (no modal, no tabs). This page
+is how it is built; the reader's page is [Community](../community/index.md), and adding a tutorial is
+[Adding a tutorial](../how-to-contribute/adding-a-tutorial.md).
+
 ## 1. One data source — the static catalog
 
 ### Installation without overwriting customizations (#401)
@@ -94,7 +98,8 @@ The whole adoption path, in one shot, in `view/systemsRoom.ts` (native DOM; no R
   system's own canvas** (`systemDrawing.ts` reads the canvas into boxes and curves;
   `view/systemDrawingView.ts` draws them with `createSvg`, coloured by Obsidian's `--canvas-color-N`),
   its name, its one-line summary, its level as three dots, *n steps · m branch points* (`tCount`),
-  and *In your vault* when the install record has it. Search (name, summary, description; case and
+  and *In your vault* when the install record has it — re-read each time the camera arrives
+  (`shown()`), so a *Remove* in Installed takes the badge off without reopening the view (#804). Search (name, summary, description; case and
   accents folded) is the only control: the type and difficulty chips are gone. Steps and markdown
   templates are folded at the bottom as *Loose pieces*, each opening its existing install dialog.
   Templates are fetched as their cards scroll into view, once per session
@@ -443,3 +448,25 @@ Three rules keep it honest:
 
 Everything else is unchanged: still create-only and idempotent (`createFilesOnce`), still validated
 before install, still one static fetch from GitHub raw — no backend (#294).
+
+## The subtraction ledger (#797)
+
+What the Community view replaced, so that nothing comes back by accident. Each row went in the slice
+named; the docs guardrail `test/docs/communityDocs.test.ts` allows these names here and nowhere else.
+
+| Removed | Slice | What does the job now |
+|---|---|---|
+| `CommunityTemplatesModal` and its tabbed `CommunityHub` (the *Community Hub* modal) | #798 | the Community view and its four rooms |
+| `ManageInstalledTemplatesModal`, and the ribbon's *Manage installed* row | #798 | the Installed room (one *Community* entry in the ribbon menu) |
+| `CommunitySystemModal`, `StaticTemplatesGallery`, `SystemRehearsalPanel` | #799 | the Systems room: cards, the walk on the drawing, the panel |
+| The confirmation dialog on install | #799 | the consequence sentence; *Undo* in the notice |
+| The type and difficulty filter chips; `systemPreviewUrls` | #799 | search only; the room draws each canvas itself |
+| `LearnTab` and its emoji guide cards; 16 `community_learn_*` keys | #801, #802 | the Learn catalog on GitHub raw and the Learn room |
+| `ContributeTab`, `InstalledTemplatesManagement`, the interim `legacyRooms.tsx` | #803 | the Contribute and Installed rooms, native DOM — no React left in the view |
+| `undoInstall.ts` | #803 | `takeBackInstall` in `removeInstall.ts`, one take-back for *Undo* and *Remove* |
+| The no-canvas toast, the loose-piece search box and its type chips; 8 locale keys | #803 | an inline line; the loose pieces as one short list |
+| `docs/resources/community/community-browser.svg`, the drawing of the old modal | #804 | `rooms.svg` and `install-shot.svg` |
+
+Kept on purpose: the #438 rehearsal's findings and *pretend a property* (under the walk), the clipboard
+import (in Installed's *Loose pieces*), and the commands `open-community-templates`,
+`open-manage-templates` and `browse-systems` as aliases, so a bound hotkey survives (§XI).

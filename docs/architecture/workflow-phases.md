@@ -89,7 +89,7 @@ grid on panels ≥ 500 px wide and a 2-column grid on narrower panels. Hovering 
 on mobile) reveals a tooltip with the action's full description and, when available, a link to
 its documentation page. Clicking the chip adds the action to the step and closes the selector.
 
-Template actions (installed from the community browser) are visually differentiated with a dashed
+Template actions (installed from Community's Systems room) are visually differentiated with a dashed
 border.
 
 ### Smart suggest row (#256 FR-14–FR-17)

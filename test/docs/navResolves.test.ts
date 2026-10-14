@@ -30,4 +30,12 @@ describe("every page the nav offers exists (#565)", () => {
     it("offers the page this epic added", () => {
         expect(referenced).toContain("development/claim-returns.md");
     });
+
+    it("puts the Community page first in its section, and Adding a tutorial beside it (#804)", () => {
+        // The top-level section runs from `  - Community:` to the next top-level entry.
+        const section = /^  - Community:\s*$([\s\S]*?)(?=^  - |^\S)/m.exec(MKDOCS)?.[1] ?? "";
+        const pages = [...section.matchAll(/:\s*([A-Za-z0-9_\-/.]+\.md)\s*$/gm)].map((match) => match[1]);
+        expect(pages[0]).toBe("community/index.md");
+        expect(pages).toContain("how-to-contribute/adding-a-tutorial.md");
+    });
 });

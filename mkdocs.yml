@@ -250,7 +250,9 @@ nav:
           - Generated reference: api/reference.md
   # 5 · Community — share what you built, see what others built.
   - Community:
+      - Community: community/index.md
       - Community examples: how-to-contribute/community-examples.md
+      - Adding a tutorial: how-to-contribute/adding-a-tutorial.md
       - Share a system (.zftemplate schema): architecture/zftemplate-schema.md
       - Wiki: how-to-contribute/Wiki.md
   # 6 · For developers — how it is built, how we work, and the internal policies (#653).

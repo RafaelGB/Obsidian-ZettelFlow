@@ -115,7 +115,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 Install **ZettelFlow** from Obsidian's community plugins — or [open it in Obsidian](https://obsidian.md/plugins?id=zettelflow). Everything starts at the **ZettelFlow ribbon button**, which opens a menu.
 
 - **See it work in one click** — ribbon → **Create note**. While no canvas creates notes, it offers **Create the example flow**: a small canvas with one step, ready to run. Press *Create note* again and walk it.
-- **Install a ready-made system** — ribbon → **Community**: Zettelkasten, PARA, GTD, research… **Try it** before it writes anything, then **Install system**.
+- **Learn it, or install a ready-made system** — ribbon → **[Community](docs/community/index.md)**, one view with four rooms. **Learn** has a short tutorial for every feature. **Systems** has Zettelkasten, PARA, GTD, research…: walk one on its own drawing before it writes anything, then **Install**, with *Undo* right in the notice. **Contribute** shares your canvas as a system; **Installed** takes one back.
 - **No canvas at all** — ribbon → **Think** to write down a thought, or **Cultivate** to grow one idea.
 
 **Draw your own flow:**
@@ -142,7 +142,7 @@ Stuck? Read the [getting started guide](https://rafaelgb.github.io/Obsidian-Zett
 
 ## 🔒 Capabilities & privacy
 
-ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. No account, no backend: the network is touched only by the two opt-in paths below.
+ZettelFlow collects **no telemetry** and sends **no personal data or vault contents** anywhere. No account, no backend: the network is touched only by the opt-in paths below.
 
 <details>
 <summary><b>Everything the plugin can touch, and when</b></summary>
@@ -154,6 +154,7 @@ ZettelFlow collects **no telemetry** and sends **no personal data or vault conte
 - **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard. **Cite**'s *Copy* puts the citation you see there, on that click only.
 - **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.
 - **The Reader's AI moves — opt-in, per click.** Six moves on a passage you selected (*Why?*, *Challenge*, *Question*, *What's the claim*, *Reflect*, *Explain*) send that passage, its paragraph and the one before, and the book and chapter titles to your AI provider, only when you click one. Nothing from your vault is sent, and nothing runs by itself. On desktop and Android, **Translate** sends one selected passage and the target language, on a click; **Look up** reads your own dictionaries on the device and makes no request at all. **Listen** uses only your device's own voices: no text leaves the device.
+- **Network — the tutorial catalog, while Learn is open.** Community's **Learn** room does a read-only `GET` of the tutorial catalog and its illustrations from GitHub — the same kind of request as the gallery, made only when Learn is shown, never at startup. No account, no upload, no telemetry.
 
 </details>
 

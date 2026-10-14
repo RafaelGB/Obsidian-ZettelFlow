@@ -85,13 +85,13 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     [:octicons-arrow-right-24: Base dashboards](development/base-dashboards.md)
 
--   ![The community systems browser](resources/community/community-browser.svg)
+-   ![A system's card opens in place, is walked on its own drawing, and becomes the canvas](resources/community/install-shot.svg)
 
-    **Ready-made systems**
+    **Community: learn it, install a system**
 
-    Zettelkasten, PARA, GTD, research, writing — installed in one click, rehearsed first.
+    A tutorial for every feature, and Zettelkasten, PARA, GTD, research, writing — tried first, installed in one click.
 
-    [:octicons-arrow-right-24: Systems gallery](how-to-contribute/systems-gallery.md)
+    [:octicons-arrow-right-24: Community](community/index.md)
 
 </div>
 
@@ -113,10 +113,10 @@ every way in starts there.
 === "Install a ready-made system"
 
     1. Ribbon menu → **Community**.
-    2. Pick a system — each shows its flow and difficulty — and **Try it** before installing.
-    3. **Install system**, and create your first note.
+    2. Open **Systems** and pick one — each card draws its flow — then *Try it: walk the flow*.
+    3. **Install**: the tab becomes the canvas, and the notice offers *Create a note* and *Undo*.
 
-    → [Systems gallery](how-to-contribute/systems-gallery.md)
+    → [Community](community/index.md#systems)
 
 === "Draw your own Canvas flow"
 

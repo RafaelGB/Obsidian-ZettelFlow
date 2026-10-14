@@ -63,7 +63,7 @@ src/
 ├── application/            # Product logic
 │   ├── notes/              #   NoteBuilder + NoteDTO + ContentDTO (the note-generation pipeline)
 │   ├── components/         #   noteBuilder wizard (Zustand state machine), shared React components
-│   └── community/          #   Community browser modals, galleries, HTTP client
+│   └── community/          #   Community view (four rooms), install, Learn catalog, HTTP client
 ├── zettelkasten/           # Step/flow editor modals (StepBuilderModal, SelectorMenuModal, installed editors)
 ├── hooks/                  # Vault hooks: folder automation + property hooks + context-menu integrations
 └── styles/                 # SCSS (BEM-ish, prefixed .zettelkasten-flow__*)

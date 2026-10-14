@@ -1,7 +1,7 @@
 /**
  * The Capabilities & privacy bullets: five frozen at 2f6198f5 (#588, disclosure guardrail), and a
- * sixth added by #748 — reading handwriting, new in kind (an image) — and a seventh by #759, the
- * Reader's AI moves. Additions, never a re-wording.
+ * sixth added by #748 — reading handwriting, new in kind (an image) — a seventh by #759, the
+ * Reader's AI moves, and an eighth by #804, Learn's tutorial catalog. Additions, never a re-wording.
  *
  * The disclosure may MOVE in the README but never be re-worded (constitution VII). frontDoor.test.ts
  * whitespace-collapses the README and asserts each bullet below still occurs verbatim -- collapsed on
@@ -16,4 +16,5 @@ export const FROZEN_PRIVACY_BULLETS: readonly string[] = [
     "- **Clipboard — write only.** The “copy” buttons put a step or action configuration on your clipboard as JSON. ZettelFlow never *reads* your clipboard.",
     "- **Handwriting — opt-in, per press.** Reading ink sends an image of that one ink note's strokes and its passage to your AI provider, only when you press **Read as text**. Nothing reads ink by itself.",
     "- **The Reader's AI moves — opt-in, per click.** Six moves on a passage you selected (*Why?*, *Challenge*, *Question*, *What's the claim*, *Reflect*, *Explain*) send that passage, its paragraph and the one before, and the book and chapter titles to your AI provider, only when you click one. Nothing from your vault is sent, and nothing runs by itself.",
+    "- **Network — the tutorial catalog, while Learn is open.** Community's **Learn** room does a read-only `GET` of the tutorial catalog and its illustrations from GitHub — the same kind of request as the gallery, made only when Learn is shown, never at startup. No account, no upload, no telemetry.",
 ];

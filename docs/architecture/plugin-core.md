@@ -90,7 +90,7 @@ Substitutes `{{key}}` with the active file's frontmatter, three ways:
 
 | Section | Handler | Contents |
 |---|---|---|
-| **General** | `handlers/GeneralSectionSettings.ts` | community browser, ribbon/editor canvas selectors, folders-flow + markdown-templates + scripts folders, unique-prefix toggle/pattern |
+| **General** | `handlers/GeneralSectionSettings.ts` | Community (Systems room), ribbon/editor canvas selectors, folders-flow + markdown-templates + scripts folders, unique-prefix toggle/pattern |
 | **Hooks** | `handlers/HooksSectionSettings.ts` | property→script hooks (React `PropertyHooksManager`), folder-flow path |
 | **Developer** | `handlers/DeveloperSectionSettings.ts` | logger toggle + level |
 

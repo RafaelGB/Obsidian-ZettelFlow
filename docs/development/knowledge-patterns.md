@@ -85,7 +85,8 @@ the note is indexed*; behaviour is then identical to the build-time-only pass.
 
 ## Try it
 
-Install the **Zettelkasten** system from the Community gallery (Settings → Flows → *Systems gallery*),
+Install the **Zettelkasten** system from [Community](../community/index.md#systems) → **Systems**
+(ribbon → *Community*, or Settings → Flows → *Systems gallery* → *Browse*),
 then build a note through its **Permanent note** step: its frontmatter will carry the step's result
 properties (`related`, `contradictions`, `maturity`, `openQuestions`), computed against your
 existing graph.

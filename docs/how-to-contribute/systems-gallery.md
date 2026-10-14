@@ -7,7 +7,8 @@ composes the cognitive actions, so a note you create through a system lands **al
 cross-checked, link-suggested and maturity-scored** against your own graph.
 
 Systems ship in the unified [`.zftemplate`](../architecture/zftemplate-schema.md) format and install
-from the **Systems** room of Community — see [Community resources](community-examples.md#5-systems-one-click).
+from the **Systems** room of [Community](../community/index.md#systems) — see also
+[Community resources](community-examples.md#5-systems-one-click).
 Everything is **offline** (no network, no AI) and additive (nothing in your vault is removed).
 
 ## Install a system
@@ -172,7 +173,7 @@ the steps live *on the canvas nodes*, not in external `.md` files, and `steps` i
    on-creation, no AI, the phase colours, and that each branch rehearses to exactly one outcome.
 8. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
    current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
-   the community browser's **Add template** link. That closes the loop — your system in the gallery for
+   Community's **Contribute** room: **Share this canvas as a system** → **Prepare the system**. That closes the loop — your system in the gallery for
    everyone.
 
 _README vocabulary for this page: **Community Hub**, **Try a system before installing**._

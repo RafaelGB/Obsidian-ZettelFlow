@@ -61,11 +61,11 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Change note state** — move a note through its lifecycle state (fleeting → … → evergreen). [docs →](../architecture/knowledge-lifecycle.md)
 - **Remove a relation** — delete a typed relation from the active note, after a confirmation. [docs →](../architecture/knowledge-model.md)
 - **Script workbench** — try a script before it touches anything, and read every run in a log. [docs →](../architecture/script-workbench.md)
-- **Community** — one view, four rooms — learn ZettelFlow, find a system, give one back and look after what you installed. [docs →](../architecture/community.md)
+- **Community** — one view, four rooms — learn ZettelFlow, find a system, give one back and look after what you installed. [docs →](../community/index.md)
 - **Browse systems** — install a complete knowledge system from the community, in one click — Community's Systems room. [docs →](../how-to-contribute/systems-gallery.md)
 - **Export current canvas as .zftemplate** — bundle a canvas and its steps into one portable .zftemplate file. [docs →](../architecture/zftemplate-schema.md)
 - **Import .zftemplate** — install a .zftemplate bundle into your vault. [docs →](../architecture/zftemplate-schema.md)
-- **Open manage templates** — manage the systems and templates you have installed — Community's Installed room. [docs →](../how-to-contribute/systems-gallery.md)
+- **Open manage templates** — manage the systems and templates you have installed — Community's Installed room. [docs →](../community/index.md)
 - **Base dashboards** — compose chart panels over an Obsidian Base — a local Grafana for your vault. [docs →](../development/base-dashboards.md)
 
 ## On a ZettelFlow surface

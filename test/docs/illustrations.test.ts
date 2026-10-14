@@ -20,8 +20,8 @@ const PALETTE = new Set(
 );
 
 /**
- * The four drawings #800 adds (D12, FR-4, AC-6), each with the page that shows it. S7 adds its two
- * here. They are official, hand-drawn SVG — never a screenshot — and the Learn catalog (S4) points
+ * The four drawings #800 adds (D12, FR-4, AC-6) and the two #804 adds, each with the page that
+ * shows it. They are official, hand-drawn SVG — never a screenshot — and the Learn catalog (S4) points
  * at them, so each must exist, stay in the house style and be used by its page.
  */
 const ILLUSTRATIONS: [svg: string, page: string][] = [
@@ -29,6 +29,9 @@ const ILLUSTRATIONS: [svg: string, page: string][] = [
     ["undo/undo.svg", "architecture/reversibility.md"],
     ["hooks/property-hooks.svg", "vault-hooks/property-hooks/overview.md"],
     ["workbench/script-workbench.svg", "architecture/script-workbench.md"],
+    // #804: the Community view — its four rooms on one strip, and the install shot.
+    ["community/rooms.svg", "community/index.md"],
+    ["community/install-shot.svg", "community/index.md"],
 ];
 
 describe("the docs illustrations (#800 D12)", () => {

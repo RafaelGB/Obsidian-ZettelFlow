@@ -338,7 +338,7 @@
           "es": "Ver sistemas"
         }
       },
-      "hero": "docs/resources/community/community-browser.svg",
+      "hero": "docs/resources/community/install-shot.svg",
       "steps": [
         {
           "title": {
@@ -2355,7 +2355,7 @@
           "es": "Crear nota"
         }
       },
-      "hero": "docs/resources/this-note/next-step.svg",
+      "hero": "docs/resources/undo/undo.svg",
       "steps": [
         {
           "title": {
@@ -2815,7 +2815,7 @@
           "es": "Exportar canvas actual como .zftemplate"
         }
       },
-      "hero": "docs/resources/community/community-browser.svg",
+      "hero": "docs/resources/community/rooms.svg",
       "steps": [
         {
           "title": {

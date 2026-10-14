@@ -108,6 +108,24 @@ describe("the Systems room, drawn (#799 AC-1 – AC-4, FR-5, FR-6)", () => {
         expect(cardOf(roomEl, "Zettelkasten v2").byClass("system-card-installed")).toHaveLength(0);
     });
 
+    it("redraws *In your vault* when the camera comes back, after a Remove or an install elsewhere (#804)", async () => {
+        const record = { id: "i", ref: REFS.para, name: "PARA v2", at: 1, folder: "F", canvas: "F/x.canvas", role: "none", files: [], folders: [] };
+        const mounted = await mountRoom({ settings: { installedSystems: [record] } });
+        const settings = mounted.harness.plugin.settings as unknown as { installedSystems: unknown[] };
+        const drawn = cardOf(mounted.roomEl, "PARA v2").byClass("system-drawing").length;
+        // Installed's Remove drops the record while Systems is out of view…
+        settings.installedSystems = [];
+        mounted.room.shown();
+        expect(cardOf(mounted.roomEl, "PARA v2").byClass("system-card-installed")).toHaveLength(0);
+        // …and the drawing is left as it was.
+        expect(cardOf(mounted.roomEl, "PARA v2").byClass("system-drawing")).toHaveLength(drawn);
+        settings.installedSystems = [{ ...record, ref: REFS.zettelkasten }];
+        mounted.room.shown();
+        mounted.room.shown();
+        expect(cardOf(mounted.roomEl, "Zettelkasten v2").byClass("system-card-installed")).toHaveLength(1);
+        expect(cardOf(mounted.roomEl, "Zettelkasten v2").byClass("system-card-installed")[0].textContent).toBe("In your vault");
+    });
+
     it("keeps only the cards that answer a search, and says so when none does", async () => {
         const { roomEl } = await mountRoom();
         const search = roomEl.oneByClass("systems-search").children.find((el) => el.tag === "input") as DomNode;

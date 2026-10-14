@@ -44,6 +44,7 @@ import { CitePanel } from "architecture/components/core/reader/readerCite";
 import { citeFormOf } from "application/library/citation";
 import { citeSourceOf } from "./libraryCite";
 import type { KnowledgeIndex } from "architecture/knowledge";
+import { afterVaultLoad } from "architecture/plugin/afterVaultLoad";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -265,7 +266,8 @@ export class LibraryView extends ItemView {
         const onVault = (file: unknown) => {
             if (file instanceof TFile && (sourceFormat(file.path) || this.inArticles(file.path))) this.scheduleRefresh();
         };
-        this.registerEvent(this.app.vault.on("create", onVault));
+        // Not the vault load's own flood, which announces every file (#795).
+        this.registerEvent(this.app.vault.on("create", afterVaultLoad(this.app, onVault)));
         this.registerEvent(this.app.vault.on("delete", onVault));
         this.registerEvent(
             this.app.vault.on("rename", (file, oldPath) => {

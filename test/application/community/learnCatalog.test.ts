@@ -274,8 +274,9 @@ describe("the Learn room fetches only when shown (#801 AC-4, FR-6, FR-7)", () =>
         const { content } = await openView({ room: "learn" });
         const badges = () => learnEl(content).byClass("learn-new");
         expect(badges()).toHaveLength(1);
-        expect(badges()[0].parent?.getAttribute("data-tutorial")).toBe("collision");
-        badges()[0].parent?.click();
+        const card = () => badges()[0]?.closest(".zettelkasten-flow__learn-card");
+        expect(card()?.getAttribute("data-tutorial")).toBe("collision");
+        card()?.click();
         expect(badges()).toHaveLength(0);
         expect(seenIds()).toContain("collision");
     });

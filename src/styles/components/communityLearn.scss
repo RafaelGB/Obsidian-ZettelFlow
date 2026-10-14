@@ -1,17 +1,105 @@
 @use '../utils/variables' as *;
 @use '../utils/mixins' as *;
+@use '../utils/motion' as *;
 
 /*
- * The Learn room, interim (#801): the catalog as a plain list of tracks and tutorials. S5 (#802)
- * draws the room the mockup shows. The user's theme throughout (§XV), every space on the 4-grid.
+ * The Learn room (#802, epic #797): a question you can type, how far you have come, tracks of
+ * tutorial cards, the reference and the questions people ask — and a lesson that opens in place,
+ * where the camera travels down a film strip of the step pictures.
+ *
+ * The user's theme throughout (§XV), every space on the 4-grid. Geometry the script owns — the ring,
+ * a track's bar, the film's frame — is a custom property it sets and a transform here. Nothing here
+ * transitions: every shot is a Web Animations transform the script does not play under reduced
+ * motion, so it needs no rule of its own. Nothing depends on hover (FR-14).
  */
 
 .zettelkasten-flow__learn .is-hidden {
     display: none;
 }
 
+/* ── the hero: the question, and where you are ───────────────────────────── */
+.zettelkasten-flow__learn-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+    gap: var(--size-4-6);
+    padding: var(--size-4-6);
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-quiet;
+}
+
+.zettelkasten-flow__learn-title {
+    margin: 0 0 $space-1;
+    font-size: var(--h2-size);
+    line-height: 1.2;
+}
+
+.zettelkasten-flow__learn-lede {
+    @include hint;
+    margin: 0 0 var(--size-4-4);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__learn-search {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-plain;
+    color: $text-faint;
+    box-shadow: var(--shadow-s);
+
+    &:focus-within {
+        border-color: var(--interactive-accent);
+    }
+
+    input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        color: $text-plain;
+        font-size: var(--font-ui-medium);
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: none;
+        }
+    }
+}
+
+.zettelkasten-flow__learn-search-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__learn-search-key {
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__learn-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-top: $space-3;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
 .zettelkasten-flow__learn-line {
     @include hint;
+    margin-top: $space-3;
 
     &:empty {
         display: none;
@@ -26,76 +114,727 @@
     }
 }
 
-.zettelkasten-flow__learn-tracks {
+/* The progress card: the ring, *n of N*, and the next thing to do. */
+.zettelkasten-flow__learn-progress {
+    @include card;
+    align-self: start;
+    gap: $space-3;
+    padding: var(--size-4-4);
+    border-radius: $radius-medium;
+}
+
+.zettelkasten-flow__learn-ring-row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+}
+
+.zettelkasten-flow__learn-ring {
+    flex: none;
+    width: var(--size-4-12);
+    height: var(--size-4-12);
+
+    circle {
+        fill: none;
+        stroke-width: 4;
+    }
+}
+
+.zettelkasten-flow__learn-ring-track {
+    stroke: var(--background-modifier-border);
+}
+
+// `pathLength="100"`: the dash is the percentage the script sets, with no geometry of its own.
+.zettelkasten-flow__learn-ring-fill {
+    stroke: var(--interactive-accent);
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: calc(100 - var(--zf-learn-ring, 0));
+
+    .is-empty > .zettelkasten-flow__learn-ring > & {
+        visibility: hidden;
+    }
+}
+
+.zettelkasten-flow__learn-progress-text {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-progress-note {
+    @include hint;
+}
+
+.zettelkasten-flow__learn-next {
     display: flex;
     flex-direction: column;
-    gap: var(--size-4-6);
+    gap: $space-2;
+    padding-top: $space-3;
+    border-top: $line-quiet;
+}
+
+.zettelkasten-flow__learn-next-label {
+    @include hint;
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-next-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    height: auto;
+    padding: $space-2 $space-3;
+    text-align: left;
+    white-space: normal;
+}
+
+.zettelkasten-flow__learn-button-icon {
+    display: inline-flex;
+    flex: none;
+
+    svg {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+/* ── tracks: a bar, d/n, a blurb and a row of cards ─────────────────────── */
+.zettelkasten-flow__learn-body {
+    margin-top: var(--size-4-8);
+}
+
+.zettelkasten-flow__learn-track {
+    margin-bottom: var(--size-4-8);
+}
+
+.zettelkasten-flow__learn-track-head {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
 }
 
 .zettelkasten-flow__learn-track-title {
-    margin: 0 0 $space-1;
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-track-bar {
+    flex: none;
+    width: 6rem;
+    height: var(--size-4-1);
+    border-radius: $radius-small;
+    overflow: hidden;
+    background-color: var(--background-modifier-border);
+}
+
+.zettelkasten-flow__learn-track-fill {
+    height: 100%;
+    background-color: var(--interactive-accent);
+    color: $accent-text;
+    transform: scaleX(var(--zf-learn-track, 0));
+    transform-origin: left center;
+}
+
+.zettelkasten-flow__learn-track-count {
+    color: $text-faint;
+    font-size: $text-small;
+    font-variant-numeric: tabular-nums;
 }
 
 .zettelkasten-flow__learn-track-blurb {
     @include hint;
-    margin: 0 0 $space-2;
+    margin: $space-1 0 $space-3;
 }
 
-.zettelkasten-flow__learn-tutorials {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+/* A row scrolls sideways, a card at a time — the same on a phone, with a finger. */
+.zettelkasten-flow__learn-row {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(15rem, 1fr);
+    gap: var(--size-4-3);
+    padding-bottom: $space-2;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
 }
 
-.zettelkasten-flow__learn-tutorial {
+.zettelkasten-flow__learn-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-card {
     @include card;
-}
-
-.zettelkasten-flow__learn-tutorial-head {
-    @include text-link-button;
-    display: flex;
-    align-items: center;
-    gap: $space-2;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    height: auto;
+    padding: 0;
+    border-radius: $radius-medium;
+    overflow: hidden;
     color: $text-plain;
-    font-weight: var(--font-semibold);
+    text-align: left;
+    white-space: normal;
+    scroll-snap-align: start;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--interactive-accent);
+    }
+
+    &.is-skeleton {
+        min-height: 12rem;
+        background-color: $surface-quiet;
+        cursor: default;
+    }
+
+    &.is-done .zettelkasten-flow__learn-card-thumb {
+        opacity: 0.75;
+    }
 }
 
-.zettelkasten-flow__learn-tutorial-title {
-    flex: 1;
+.zettelkasten-flow__learn-card-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-bottom: $line-quiet;
+    background-color: $surface-quiet;
+
+    .zettelkasten-flow__learn-figure {
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .zettelkasten-flow__learn-figure-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+    }
+
+    &.is-travelling .zettelkasten-flow__learn-figure {
+        visibility: hidden;
+    }
 }
 
 .zettelkasten-flow__learn-new {
     @include chip;
     @include chip-active;
+    position: absolute;
+    top: $space-2;
+    left: $space-2;
+    z-index: 1;
 }
 
-.zettelkasten-flow__learn-tutorial-minutes,
-.zettelkasten-flow__learn-tutorial-summary,
-.zettelkasten-flow__learn-tutorial-door,
-.zettelkasten-flow__learn-tip {
+.zettelkasten-flow__learn-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: $space-1;
+    padding: $space-2 $space-3 $space-3;
+}
+
+.zettelkasten-flow__learn-tutorial-title {
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-card-summary {
+    flex: 1;
+    margin: 0;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    line-height: 1.4;
+}
+
+.zettelkasten-flow__learn-card-meta {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-top: $space-2;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__learn-card-done {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    margin-left: auto;
+    color: var(--color-green);
+}
+
+/* ── search results ──────────────────────────────────────────────────────── */
+.zettelkasten-flow__learn-results-group {
+    margin-bottom: var(--size-4-6);
+}
+
+.zettelkasten-flow__learn-results-title {
+    margin: 0 0 $space-2;
+    color: $text-faint;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-hit {
+    border-radius: $radius-small;
+    background-color: var(--highlight-background, var(--text-highlight-bg));
+    color: inherit;
+}
+
+.zettelkasten-flow__learn-no-match {
+    @include empty-state;
+    text-align: center;
+
+    p {
+        margin: 0 0 $space-2;
+    }
+}
+
+/* ── look anything up, and the questions ─────────────────────────────────── */
+.zettelkasten-flow__learn-lookup,
+.zettelkasten-flow__learn-faq {
+    margin-bottom: var(--size-4-8);
+}
+
+.zettelkasten-flow__learn-section-title {
+    margin: 0 0 $space-3;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__learn-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    margin-bottom: $space-3;
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-group {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+
+    &.is-active {
+        @include chip-active;
+    }
+}
+
+.zettelkasten-flow__learn-ref {
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 13rem) minmax(0, 1fr) minmax(8rem, 15rem) var(--size-4-5);
+    align-items: baseline;
+    gap: var(--size-4-3);
+    width: 100%;
+    height: auto;
+    padding: $space-2 $space-3;
+    border: 0;
+    border-top: $line-quiet;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: $text-plain;
+    font-size: var(--font-ui-small);
+    text-align: left;
+    white-space: normal;
+
+    &:first-child {
+        border-top: 0;
+    }
+}
+
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-ref-row {
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+    }
+}
+
+.zettelkasten-flow__learn-ref-name {
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__learn-ref-line {
+    color: $text-quiet;
+}
+
+.zettelkasten-flow__learn-ref-door {
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__learn-ref-go {
+    display: inline-flex;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-show-all {
+    @include text-link-button;
+    margin-top: $space-2;
+}
+
+.zettelkasten-flow__learn-faq-item {
+    padding: $space-2 0;
+    border-top: $line-quiet;
+
+    &:last-child {
+        border-bottom: $line-quiet;
+    }
+
+    &[open] .zettelkasten-flow__learn-faq-icon {
+        transform: rotate(90deg);
+    }
+}
+
+.zettelkasten-flow__learn-faq-q {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-weight: var(--font-medium);
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__learn-faq-icon {
+    display: inline-flex;
+    color: $text-faint;
+}
+
+.zettelkasten-flow__learn-faq-a {
+    max-width: 80ch;
+    margin: $space-1 0 0 var(--size-4-6);
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+/* ── the lesson, in place ────────────────────────────────────────────────── */
+// The next lesson slides in beside the one leaving: clipped sideways, never a scroll container,
+// so the stage stays sticky to the room as it scrolls.
+.zettelkasten-flow__learn-lesson-host {
+    position: relative;
+    overflow-x: clip;
+}
+
+.zettelkasten-flow__learn-lesson {
+    background-color: $surface-plain;
+
+    &.is-leaving {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        pointer-events: none;
+    }
+}
+
+.zettelkasten-flow__learn-crumb {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    margin-bottom: $space-3;
+    color: $text-faint;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-crumb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    height: auto;
+    padding: $space-1 $space-2;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $surface-hover;
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__learn-crumb-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__learn-lesson-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 1fr);
+    align-items: start;
+    gap: var(--size-4-6);
+}
+
+.zettelkasten-flow__learn-stage {
+    position: sticky;
+    top: 0;
+    aspect-ratio: 16 / 10;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    overflow: hidden;
+    background-color: $surface-quiet;
+
+    &.is-waiting .zettelkasten-flow__learn-film {
+        visibility: hidden;
+    }
+}
+
+/* The film: one frame per picture, stacked; the camera is the track's translation. */
+.zettelkasten-flow__learn-film {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__learn-film-track {
+    position: absolute;
+    inset: 0;
+    transform: translateY(calc(var(--zf-learn-frame, 0) * -100%));
+}
+
+.zettelkasten-flow__learn-film-frame {
+    position: absolute;
+    top: calc(var(--zf-learn-i, 0) * 100%);
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--size-4-4);
+
+    .zettelkasten-flow__learn-figure {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        background: none;
+    }
+
+    .zettelkasten-flow__learn-figure-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: $radius-small;
+    }
+}
+
+.zettelkasten-flow__learn-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-3);
+    min-width: 0;
+}
+
+.zettelkasten-flow__learn-lesson-title {
+    margin: 0;
+    font-size: var(--h3-size);
+    line-height: 1.25;
+}
+
+.zettelkasten-flow__learn-lesson-summary {
     @include hint;
     margin: 0;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__learn-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-3;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__learn-door {
+    display: flex;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__learn-door-icon {
+    display: inline-flex;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__learn-door-label {
+    color: $text-quiet;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
 }
 
 .zettelkasten-flow__learn-steps {
     display: flex;
     flex-direction: column;
-    gap: $space-3;
-    margin: $space-2 0;
-    padding-inline-start: var(--size-4-5);
+    gap: $space-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-step {
+    display: grid;
+    grid-template-columns: var(--size-4-6) minmax(0, 1fr);
+    align-items: start;
+    gap: $space-2;
+    width: 100%;
+    height: auto;
+    padding: $space-2;
+    // The hairline is kept, unseen, so the active step does not shift when it shows.
+    border: $line-quiet;
+    border-color: transparent;
+    border-radius: $radius-medium;
+    background: none;
+    box-shadow: none;
+    color: $text-plain;
+    text-align: left;
+    white-space: normal;
+    cursor: pointer;
+
+    &.is-active {
+        border-color: var(--background-modifier-border);
+        background-color: $surface-quiet;
+    }
+}
+
+.zettelkasten-flow__learn-step-num {
+    display: grid;
+    place-items: center;
+    width: var(--size-4-6);
+    height: var(--size-4-6);
+    border: $line-quiet;
+    border-radius: 50%;
+    background-color: $surface-quiet;
+    color: $text-quiet;
+    font-size: $text-small;
+    font-weight: var(--font-semibold);
+
+    .is-active > & {
+        border-color: $accent-surface;
+        background-color: $accent-surface;
+        color: $accent-text;
+    }
+
+    .is-past > & {
+        color: var(--color-green);
+    }
+}
+
+.zettelkasten-flow__learn-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+}
+
+.zettelkasten-flow__learn-step-title {
+    font-weight: var(--font-medium);
 }
 
 .zettelkasten-flow__learn-step-body {
-    margin: $space-1 0;
+    display: none;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+
+    .is-active & {
+        display: block;
+    }
 }
 
+.zettelkasten-flow__learn-tip {
+    display: flex;
+    gap: $space-2;
+    padding-left: $space-3;
+    border-left: var(--size-2-1) solid var(--interactive-accent);
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__learn-tip-icon {
+    display: inline-flex;
+    color: var(--text-accent);
+}
+
+.zettelkasten-flow__learn-lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__learn-end {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-3;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+}
+
+.zettelkasten-flow__learn-end-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+    }
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-up-next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    height: auto;
+    padding: $space-2 $space-3;
+    text-align: left;
+    white-space: normal;
+}
+
+.zettelkasten-flow__learn-up-next-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.zettelkasten-flow__learn-up-next-label,
+.zettelkasten-flow__learn-related-label {
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__learn-related {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__learn .zettelkasten-flow__learn-related-chip {
+    @include chip;
+    @include chip-clickable;
+    height: auto;
+    box-shadow: none;
+}
+
+/* What stays when an image cannot load: a quiet frame, never a broken-image icon. */
 .zettelkasten-flow__learn-figure {
     min-height: var(--size-4-12);
     border-radius: $radius-small;
-    // What stays when an image cannot load: this quiet frame, never a broken-image icon.
     background-color: $surface-quiet;
 }
 
@@ -103,4 +842,44 @@
     display: block;
     max-width: 100%;
     height: auto;
+}
+
+/* The picture that flies between a card and the stage. */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__learn-ghost {
+    z-index: var(--layer-popover);
+    border-radius: $radius-medium;
+    overflow: hidden;
+    background-color: $surface-quiet;
+}
+
+.zettelkasten-flow__learn-ghost-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ── narrow (phone, iPad portrait): everything stacks, the film above the steps ── */
+@container zf-community (max-width: 40rem) {
+    .zettelkasten-flow__learn-hero {
+        grid-template-columns: minmax(0, 1fr);
+        padding: var(--size-4-4);
+    }
+
+    .zettelkasten-flow__learn-lesson-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zettelkasten-flow__learn-stage {
+        position: relative;
+    }
+
+    .zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: $space-1;
+    }
+
+    .zettelkasten-flow__learn-ref-go {
+        display: none;
+    }
 }

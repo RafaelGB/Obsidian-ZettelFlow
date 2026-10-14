@@ -399,8 +399,14 @@ export const BUDGETS = {
         // A WebGL library coming back is still a megabyte over.
         // Listen (#765) brings it to 2,935 KB; Cite (#768) adds 14 KB — the five forms, the one panel the
         // Reader and the Library share, built on #751's link and #743's note: 2,949 KB, under the ceiling.
-        limit: 3_000,
-        measured: "2,949 KB",
+        // 3,000 → 3,100 (#802): epic #797's view, Systems and Learn's catalog brought main to 3,000 KB
+        // (2,999.9 at #801); the Learn room — search, progress, tracks, the lesson and its shots — adds
+        // 24 KB: 3,024 KB. Looked for something to subtract first: it reuses the Reader's fly() and
+        // MOTION, the Systems room's play() and boxOf(), S4's catalog, images and source, and the
+        // capability doors' own runCommand/activateSurface, and the interim room it replaces is gone.
+        // A WebGL library coming back is still a megabyte over.
+        limit: 3_100,
+        measured: "3,024 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

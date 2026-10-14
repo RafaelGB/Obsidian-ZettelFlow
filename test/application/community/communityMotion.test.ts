@@ -28,7 +28,8 @@ import { parseYamlForTests } from "../../support/systemsFixtures";
 
 const ROOT = join(__dirname, "..", "..", "..");
 const VIEW = join(ROOT, "src", "application", "community", "view");
-const SHEETS = ["communitySystems.scss", "communityView.scss"].map((name) => join(ROOT, "src", "styles", "components", name));
+// #802: the Learn room's sheet too — its shots are scripted, so it may not transition or keyframe anything else.
+const SHEETS = ["communitySystems.scss", "communityView.scss", "communityLearn.scss"].map((name) => join(ROOT, "src", "styles", "components", name));
 const COMPOSITOR = new Set(["transform", "opacity", "offset", "easing", "composite", "visibility"]);
 
 function fakeWindow(reduce: boolean): any {

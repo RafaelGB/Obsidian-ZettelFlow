@@ -65,6 +65,11 @@ export class DomNode {
         this.tag = tag;
     }
 
+    /** The DOM's `tagName`: upper case, as a focus check reads it (#802). */
+    get tagName(): string {
+        return this.tag.toUpperCase();
+    }
+
     get className(): string {
         return [...this.classes].join(" ");
     }

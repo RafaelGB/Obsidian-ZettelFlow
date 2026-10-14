@@ -63,6 +63,16 @@ describe("the Community modal shells are gone (#798)", () => {
         expect(offenders).toEqual([]);
     });
 
+    it("deletes today's Learn tab, and draws the Learn room natively, with no emoji (#802 AC-11, FR-15)", () => {
+        expect(existsSync(join(SRC, "application/community/components/LearnTab.tsx"))).toBe(false);
+        const learn = readdirSync(join(SRC, "application/community/view")).filter((name) => /^learn.*\.ts$/.test(name));
+        expect(learn.sort()).toEqual(["learnLesson.ts", "learnRoom.ts", "learnShots.ts"]);
+        for (const name of learn) {
+            const source = readFileSync(join(SRC, "application/community/view", name), "utf8");
+            expect({ name, react: /from\s+["']react(-dom)?(\/client)?["']/.test(source), emoji: /\p{Extended_Pictographic}/u.test(source) }).toEqual({ name, react: false, emoji: false });
+        }
+    });
+
     it("mounts the Systems room without React (#799 AC-11)", () => {
         for (const file of SYSTEMS_ROOM) {
             const source = readFileSync(join(SRC, file), "utf8");

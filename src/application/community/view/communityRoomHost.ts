@@ -1,4 +1,4 @@
-import type { App, WorkspaceLeaf } from "obsidian";
+import type { App, Scope, WorkspaceLeaf } from "obsidian";
 import type ZettelFlow from "main";
 import type { Room } from "./communityRooms";
 import type { RoomCount } from "./roomNav";
@@ -15,6 +15,11 @@ export interface CommunityRoomHost {
     openRoom(room: Room, then?: () => void): void;
     /** A room's count changed (its catalog arrived, something was installed): redraw the nav's. */
     refreshCounts?(): void;
+    /**
+     * The view's keymap scope (#802): a room registers its own keys here while it is in view — Learn's
+     * `/` and a lesson's arrows — and unregisters them when it leaves, so they never reach the editor.
+     */
+    scope?: Scope;
 }
 
 /** A mounted room. Every hook is optional except letting go. */

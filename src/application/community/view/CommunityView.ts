@@ -49,8 +49,9 @@ export class CommunityView extends ItemView {
         private readonly renderers: RoomRenderers = { ...LEGACY_ROOMS, learn: LEARN_ROOM, systems: SYSTEMS_ROOM }
     ) {
         super(leaf);
-        // The view's own keys, registered here as the rooms gain them (S5's `/` next): Esc first asks
-        // the room in view — Systems closes the system you have open — and is otherwise Obsidian's.
+        // The view's own keys. Esc first asks the room in view — Systems closes the system you have
+        // open, Learn the lesson — and is otherwise Obsidian's. A room adds its own keys to this scope
+        // while it is in view (Learn's `/` and a lesson's arrows, #802) and takes them away as it goes.
         this.scope = new Scope(this.app?.scope);
         this.scope.register([], "Escape", () => (this.handles.get(this.room)?.onEscape?.() ? false : true));
     }
@@ -128,6 +129,7 @@ export class CommunityView extends ItemView {
                 void this.go(room, false).then(() => then?.());
             },
             refreshCounts: () => this.refreshCounts(),
+            scope: this.scope ?? undefined,
         };
         for (const room of ROOMS) {
             const el = this.roomEls.get(room);

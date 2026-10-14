@@ -52,13 +52,22 @@ async function mountRoom(raw: unknown, images: LearnImageDeps) {
     const roomEl = new DomNode();
     const load: LearnLoad = { catalog: parsed(raw), freshness: { state: "fresh" } };
     const host = { plugin: { manifest: { version: VERSION } } } as any;
-    const room = new LearnRoom(roomEl as any, host, { lang: () => "en", refresh: async () => load, images: () => new LearnImages(images) });
+    const openUrl = jest.fn();
+    const room = new LearnRoom(roomEl as any, host, {
+        lang: () => "en",
+        refresh: async () => load,
+        images: () => new LearnImages(images),
+        runDoor: jest.fn(),
+        openUrl,
+    });
     room.shown();
     await flush();
-    return { room, roomEl };
+    return { room, roomEl, openUrl };
 }
 
-const head = (roomEl: DomNode, id: string) => roomEl.find((el) => el.getAttribute("data-tutorial") === id) as DomNode;
+/** A tutorial's card in the room (#802: the room draws cards; pressing one opens its lesson). */
+const head = (roomEl: DomNode, id: string) => roomEl.find((el) => el.hasClass("zettelkasten-flow__learn-card") && el.getAttribute("data-tutorial") === id) as DomNode;
+const lesson = (roomEl: DomNode) => roomEl.oneByClass("learn-lesson");
 
 beforeEach(() => {
     __resetLocal();
@@ -82,19 +91,27 @@ describe("the catalog is read as untrusted (#801 AC-6)", () => {
     it("shows markup as literal text, never as elements", async () => {
         const { deps } = imageDeps();
         const { roomEl } = await mountRoom(hostile(), deps);
-        head(roomEl, "undo").click();
-        expect(roomEl.byClass("learn-step-body")[0].textContent).toBe(HOSTILE);
         expect(head(roomEl, "undo").byClass("learn-tutorial-title")[0].textContent).toBe(`<b>${HOSTILE}</b>`);
-        expect(roomEl.find((el) => el.tag === "img" || el.tag === "b")).toBeUndefined();
+        head(roomEl, "undo").click();
+        await flush();
+        expect(lesson(roomEl).byClass("learn-step-body")[0].textContent).toBe(HOSTILE);
+        expect(lesson(roomEl).byClass("learn-lesson-title")[0].textContent).toBe(`<b>${HOSTILE}</b>`);
+        // Nothing the catalog said became an element: no bold, no image of its own.
+        expect(roomEl.find((el) => el.tag === "b")).toBeUndefined();
+        expect(roomEl.find((el) => el.tag === "img" && el.getAttribute("src") === "x")).toBeUndefined();
     });
 
-    it("draws no Read the full page link for a doc off the docs site", async () => {
+    it("offers no Read the full page for a doc off the docs site", async () => {
         const { deps } = imageDeps();
-        const { roomEl } = await mountRoom(hostile(), deps);
+        const { room, roomEl, openUrl } = await mountRoom(hostile(), deps);
         head(roomEl, "undo").click();
+        await flush();
+        expect(lesson(roomEl).byClass("learn-read-doc")).toEqual([]);
+        await room.close();
         head(roomEl, "get-started").click();
-        const links = roomEl.byClass("learn-docs-link").map((el: any) => el.href);
-        expect(links).toEqual(["https://rafaelgb.github.io/Obsidian-ZettelFlow/architecture/reversibility/"]);
+        await flush();
+        lesson(roomEl).oneByClass("learn-read-doc").click();
+        expect(openUrl.mock.calls).toEqual([["https://rafaelgb.github.io/Obsidian-ZettelFlow/architecture/reversibility/"]]);
     });
 
     it("never requests an image off docs/resources/, and draws one that is on it from a blob", async () => {
@@ -102,9 +119,7 @@ describe("the catalog is read as untrusted (#801 AC-6)", () => {
         const { room, roomEl } = await mountRoom(hostile(), deps);
         head(roomEl, "undo").click();
         await flush();
-        expect(fetched).toEqual([]);
-        head(roomEl, "think").click();
-        await flush();
+        // The heroes are on the path, the step images off it: one request, for the one on it.
         expect(fetched).toEqual(["https://raw.githubusercontent.com/RafaelGB/Obsidian-ZettelFlow/refs/heads/main/docs/resources/undo/undo.svg"]);
         const img = roomEl.find((el) => el.tag === "img") as DomNode;
         expect(img.getAttribute("src")).toBe("blob:1");

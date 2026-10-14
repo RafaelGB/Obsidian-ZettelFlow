@@ -15,6 +15,7 @@ import type { Judgement } from "architecture/knowledge/judgement";
 import type { ScopeRules } from "architecture/knowledge/scope/scopeRules";
 import type { Move } from "application/thinking/move";
 import type { InstalledSystem } from "application/community/installRecord";
+import type { LearnProgress } from "application/community/learn/learnProgress";
 
 /**
  * A saved "ask your graph" query (#323 G4). `query` is the identity (the predicate text); `name`
@@ -221,6 +222,13 @@ export interface ZettelFlowSettings {
      * untouched file from one you changed. Optional, so loading never marks `data.json` dirty for it.
      */
     installedSystems?: InstalledSystem[];
+
+    /**
+     * What you have learned in Community's Learn room (#802 FR-12): the tutorials marked done and the
+     * one opened last. Mechanical, per vault, so it follows the vault to your other devices. Optional,
+     * so loading never marks `data.json` dirty for it.
+     */
+    learnProgress?: LearnProgress;
 
     /** Community-specific settings. The gallery is fully static (GitHub-backed) — no backend. */
     communitySettings: {

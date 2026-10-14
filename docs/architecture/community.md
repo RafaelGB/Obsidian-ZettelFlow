@@ -76,8 +76,8 @@ reports that it finished, and under reduced motion the pan is a cut. Rooms out o
   `saveLocal`, key `zettelflow-community-room`), never in `data.json`. Choosing a room writes nothing
   else.
 - **The rooms' contents.** Each room is a `RoomRenderer` (`view/communityRoomHost.ts`). Systems is
-  native (#799, below), and so is Learn (#801, below: `view/learnRoom.ts`, which fetches only when
-  shown). The other two still re-host the panel the old modal had (`view/legacyRooms.tsx`):
+  native (#799, below), and so is Learn (#801 and #802, below: `view/learnRoom.ts`, which fetches
+  only when shown). The other two still re-host the panel the old modal had (`view/legacyRooms.tsx`):
   Contribute (`ContributeTab`) and Installed
   (`InstalledTemplatesManagement`, with the *Add the template from the clipboard* button the
   manage-installed modal used to carry). Later slices of epic #797 replace them one room at a time.
@@ -213,8 +213,78 @@ an unknown id drops the button. Nothing in the catalog can name a command id, a 
 `previewBlobType` and drawn from a `blob:` URL — one per path per view, all revoked when the view
 closes. One that cannot load leaves a quiet empty frame; images are not cached offline.
 
-The room itself (`view/learnRoom.ts`) is, for now, a plain list of the tracks and their tutorials,
-each opening onto its steps; #802 draws the room in full.
+### The Learn room (#802)
+
+The room people come back to, in `view/learnRoom.ts` (native DOM; no React, no emoji):
+
+- **The hero.** *Everything ZettelFlow does, step by step*, one lede line, a large search *What do
+  you want to do?*, up to five starter chips (the first tutorial of each of the first five tracks) and
+  the catalog's one freshness line (above).
+- **The progress card.** A ring (an SVG circle with `pathLength="100"`, its dash set from the
+  `--zf-learn-ring` custom property, unanimated) and *n of N tutorials* (`tCount`), *Your progress
+  stays in this vault.*, and the next thing to do: *Start here* (nothing done or opened), *Pick up
+  where you left off* (the last opened if it is not done, else the first not done in track order) or
+  *You have done them all.* (`learn/learnProgress.ts`, pure).
+- **Tracks**, in catalog order: title, a bar (`transform: scaleX(var(--zf-learn-track))`), `d/n`, the
+  blurb and a row of cards that scrolls sideways. A card is its hero picture (loaded as it scrolls
+  into view), title, summary, minutes, level, *Done* when done and *New* (S4); done wins over new.
+- **Look anything up.** The reference rows (name, line, door), group chips (*All* and each group), the
+  first ten and *Show all n*. A row with a tutorial opens its lesson; one without opens its docs page
+  in the browser. **Questions people ask** are `<details>` rows.
+- **Search** (`learn/learnSearch.ts`, pure). Typing replaces the tracks, the reference and the
+  questions with three groups: *Tutorials · n* (title, summary, step text), *Reference · n* (name,
+  line, door) and *Questions · n* (question and answer, opened). Case and accents are folded
+  (`biblioteca` finds *Biblioteca*, `canvás` finds *canvas*), in Obsidian's language, over the parsed
+  catalog — so a tutorial about a newer plugin is not found. A match is a `mark` around a text node,
+  built from `matchRanges` (ranges in the original text). No hits: *Nothing matches «q».* and *Clear
+  the search*.
+- **Loading.** On a first visit with no saved copy, four skeleton cards hold the room's shape until
+  the catalog arrives; with no copy and no network, the empty state only.
+
+**The lesson** (`view/learnLesson.ts`) opens **in place**: the room steps aside (its nodes stay; Back
+puts it back as it was, at the same scroll) and the lesson shows a crumb *Learn / \<track\>*, a stage
+and a side panel — title, summary, minutes, level, *Step i of n*, **Where it is** (the door), the
+numbered steps (each one a place to jump to), the tip, *Previous* / *Next step*, and the end:
+*Mark as done* (toggles *Done*), *Do it now*, *Read the full page* (the docs site, `docUrl`), *Up next*
+(the next tutorial in its track, else the first of the next) and *Related*.
+
+- **The film.** The stage is a film strip of the step pictures (`filmOf`): one frame per **picture**,
+  not per step, so a step without its own image keeps the one before and the camera holds still. The
+  frame in view is the `--zf-learn-frame` custom property; the move is one Web Animations `transform`.
+- **Do it now** (`learn/doItNow.ts`). `resolveDoor(capability)` takes the first door in
+  `CAPABILITY_DOORS` that Learn can **run**: a ribbon entry or a command runs the command
+  (`runCommand`), a surface or Home's line opens the surface at its mode (`activateSurface`), a
+  settings door opens ZettelFlow's settings on its section. A control inside another view and a file's
+  context menu need an object Learn does not have, so they are skipped — and a capability with no
+  runnable door gets no button (today: *collision*, *claim-door*, *reader-ink*, *base-dashboard*). The
+  button is labelled by the tutorial's own `tryIt.label`, and Community stays where it was.
+- **Keys.** While Learn is in view, `/` (and Shift+/, for keyboards where `/` needs Shift) focuses the
+  search unless focus is in a text field. While a lesson is open, Down or Right goes to the next step
+  and Up or Left to the previous one, unless focus is in a text field or on the room nav; Esc closes
+  the lesson (the view's Esc asks the room first, `onEscape`). The keys are registered on the view's
+  `Scope` (`CommunityRoomHost.scope`) and unregistered when the lesson closes or Learn leaves the
+  shot, so they never reach the editor and Esc never closes the leaf.
+- **A deep link** names a tutorial: `{ room: "learn", tutorial: "<id>" }` opens its lesson once the
+  catalog is there (for Contribute's *How to contribute*, #803).
+
+**Progress** is the vault's: `learnProgress?: { done: string[]; last?: string }` in `data.json`
+(`config/typing.ts`), so it follows the vault to your other devices, while the *seen* set stays per
+device in local storage (above). It is mechanical (§XII) and not configuration, so it has no form
+(§XIII); it is optional, so loading never marks `data.json` dirty, and only looking at Learn writes
+nothing. Opening a lesson records it as the last opened; *Mark as done* records it done. Writes are
+debounced (400 ms) and flushed when the view closes. The nav's Learn count is `done/total` over the
+tutorials the tracks show.
+
+**The shots** (`view/learnShots.ts`; §XVI one continuous shot) reuse the Reader's `fly()` and
+`MOTION`: the pressed card's picture (or the chip, row or result pressed) grows onto the stage with
+`land: "become"`; the camera goes down the film; *Up next* and *Related* slide the next lesson in from
+the right as the one you were on leaves to the left and fades (`MOTION.turn`), and Back still returns
+to the room; Back or Esc flies the picture home onto the card of the lesson open (scrolled into view
+first), or to the element pressed. Marking a tutorial done redraws the ring, the bars and the cards
+behind the lesson at once, so the card you return to already says *Done*. One moving element per
+shot, transform and opacity only, any key or press jumps it to its end (an Esc or Back pressed
+mid-shot closes the lesson the moment it lands), a timeout settles it, a shot never waits for a
+picture longer than 400 ms, and under reduced motion each one is a cut.
 
 ### Modals
 - **`CommunityActionModal`** — preview of a single action (icon/label + rendered markdown

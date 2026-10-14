@@ -31,6 +31,7 @@ import { isHighlight, thoughtPath, type Thought } from "application/thinking/tho
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
 import { reconcile, type Reconciled } from "./readerFlip";
 import { panelClose } from "./readerPanelHead";
+import { afterVaultLoad } from "architecture/plugin/afterVaultLoad";
 
 /**
  * **Alongside — your vault beside the page** (#754, epic #741).
@@ -675,7 +676,8 @@ export class ReaderAlongside {
             this.named = null;
             if (this.els) this.schedule();
         };
-        for (const ref of [vault.on("create", changed), vault.on("modify", changed), vault.on("delete", changed)]) {
+        // `create` skips the vault load's own flood, which announces every file (#795).
+        for (const ref of [vault.on("create", afterVaultLoad(this.view.app, changed)),vault.on("modify", changed), vault.on("delete", changed)]) {
             if (ref) this.view.owner.registerEvent(ref);
         }
     }

@@ -26,6 +26,18 @@ describe("a pass that yields, reports and can be stopped (#462)", () => {
         expect(progress[0].total).toBe(120);
     });
 
+    it("yields to the event loop, so the window can paint and take input (#795)", async () => {
+        // A microtask "yield" never let a timer, a paint or a keystroke in: the pass froze the
+        // window it was reporting progress to. A task queued before the pass must run at the first
+        // yield boundary, before the pass goes on.
+        const order: string[] = [];
+        window.setTimeout(() => order.push("task"), 0);
+        await runLongPass(items.slice(0, 60), (n) => {
+            if (n === 0 || n === 50) order.push(`item ${n}`);
+        }, { yieldEvery: 50 });
+        expect(order).toEqual(["item 0", "task", "item 50"]);
+    });
+
     it("reports once even when there was nothing to do", async () => {
         const progress: LongPassProgress[] = [];
         await runLongPass([], () => undefined, { onProgress: (p) => progress.push(p) });

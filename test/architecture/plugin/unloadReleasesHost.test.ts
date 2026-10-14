@@ -77,10 +77,12 @@ describe("a retired setting does not linger in data.json (#320, #337)", () => {
      * switch that no longer exists to anyone reading their own `data.json`.
      */
     it("is deleted on load, next to the existing clipboard-template cleanup", () => {
+        // The load normalization (#795) deletes it, and marks the file to be written back.
+        const normalize = readFileSync(join(ROOT, "src", "config", "normalizeLoadedSettings.ts"), "utf8");
         const main = readFileSync(join(ROOT, "src", "main.ts"), "utf8");
-        const loadSettings = main.slice(main.indexOf("async loadSettings()"));
 
-        expect(loadSettings).toContain("allowInAutomations");
-        expect(loadSettings.indexOf("allowInAutomations")).toBeLessThan(loadSettings.indexOf("saveSettings()"));
+        expect(normalize).toMatch(/delete ai\.allowInAutomations;\s*dirty = true;/);
+        expect(normalize.indexOf("allowInAutomations")).toBeGreaterThan(normalize.indexOf("clipboardTemplate"));
+        expect(main.slice(main.indexOf("async loadSettings()"))).toContain("normalizeLoadedSettings(");
     });
 });

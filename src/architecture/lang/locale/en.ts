@@ -346,6 +346,8 @@ export default {
     speed_never_measured: 'Nothing measured yet this session.',
     speed_measured_at: 'measured {0}',
     speed_over_notes: 'over {0} notes',
+    speed_row_plugin_load: 'Loading the plugin',
+    speed_row_index_startup: 'Building the index at startup',
     speed_row_index: 'Building the index',
     speed_row_enrich: 'Reading every note for inline fields',
     speed_row_enrich_incremental: 'Reading the notes that changed',

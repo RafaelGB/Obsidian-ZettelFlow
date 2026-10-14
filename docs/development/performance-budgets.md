@@ -75,6 +75,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `scope.census.50k` | 220 ms (364 on CI) | 900 |
 | `scope.draft.50k` | 22 ms (49 on CI) | 150 |
 | `index.build.50k` | **103 ms** | 600 |
+| `index.startup.10k` | 26 ms (3.5–4.4 s before #795) | 300 |
 | `derive.one` | 0.003 ms | 0.05 |
 | `enrich.parse.50k` | 37.8 ms | 250 |
 | `analysis.map.10k` | 13.9 ms | 120 |
@@ -198,7 +199,9 @@ notes:
 
 | Row | What it timed |
 |---|---|
-| Building the index | deriving every in-scope note |
+| Loading the plugin | ZettelFlow's own `onload`, first line to last (#795) |
+| Building the index at startup | the one build at layout-ready (#795) |
+| Building the index | a later rebuild — after a scope or schema change |
 | Reading every note for inline fields | the first, full enrichment pass |
 | Reading the notes that changed | an incremental pass (#459) |
 | The heaviest analysis | the last expensive projection that ran |
@@ -211,6 +214,13 @@ guardrail test scans the section's strings for comparative and prescriptive word
 the first title this section was given (*"How fast it is here"*) for containing *fast*, which is
 the rule working as intended.
 
-A long pass now also **says it is running and can be stopped**. Cancelling is safe because every
+`index.startup.10k` (#795) times the plugin's share of a start: bootstrap, the creation flood
+Obsidian announces while it loads the vault, and the layout-ready build, with the conceptual timeline
+on and past its 200-note cap. Before #795 the index listened to that flood, and the same case took
+3.5–4.4 s; now nothing listens until the layout is ready.
+
+A long pass now also **says it is running and can be stopped**. Its yields are real task
+boundaries — a zero-delay timer, not `await Promise.resolve()`, which runs before any paint or
+keystroke and so froze the window the progress was being drawn in (#795). Cancelling is safe because every
 note is applied whole or not at all: what finished is finished, what was not started stays marked
 as changed, and the next pass picks it up.

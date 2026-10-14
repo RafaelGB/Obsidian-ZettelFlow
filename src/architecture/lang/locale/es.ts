@@ -346,6 +346,8 @@ export default {
     speed_never_measured: 'Todavía no se ha medido nada en esta sesión.',
     speed_measured_at: 'medido {0}',
     speed_over_notes: 'sobre {0} notas',
+    speed_row_plugin_load: 'Cargar el plugin',
+    speed_row_index_startup: 'Construir el índice al arrancar',
     speed_row_index: 'Construir el índice',
     speed_row_enrich: 'Leer todas las notas en busca de campos inline',
     speed_row_enrich_incremental: 'Leer las notas que cambiaron',

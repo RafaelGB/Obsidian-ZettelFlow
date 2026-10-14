@@ -7,7 +7,7 @@ import { gatherSnapshot } from "./snapshot";
 import { parseInlineFields } from "./parse/inlineFields";
 import { extractWikilinks, isSemanticRelationType } from "./relations";
 import { isClaimOrSourceKey, isSourceKey } from "./claims";
-import { measure, measureAsync } from "architecture/monitoring/measure";
+import { measure, measureAsync, type Measurable } from "architecture/monitoring/measure";
 import { runLongPass } from "architecture/monitoring/longPass";
 import {
     fingerprint,
@@ -237,8 +237,11 @@ export class KnowledgeIndex {
         else if (inNow && !present) this.model.upsert(deriveIdea(gatherSnapshot(file), this.schemas));
     }
 
-    /** Rebuild the whole index from the vault. Synchronous, read-only (decisions #1 & #4). */
-    public build(): void {
+    /**
+     * Rebuild the whole index from the vault. Synchronous, read-only (decisions #1 & #4). The
+     * startup build is timed under its own name (#795), so it is not hidden by a later rebuild.
+     */
+    public build(timing: Extract<Measurable, "index.build" | "index.startup"> = "index.build"): void {
         this.currentStatus = "building";
         const start = Date.now();
         const all = ObsidianApi.vault().getMarkdownFiles();
@@ -250,7 +253,7 @@ export class KnowledgeIndex {
         // Timed through the shared instrument (#462), so Health can report what it actually
         // cost on this machine, with this vault — the same numbers the budgets assert in CI.
         const ideas: Idea[] = measure(
-            "index.build",
+            timing,
             () => inScope.map((file) => deriveIdea(gatherSnapshot(file), this.schemas)),
             { scale: inScope.length }
         );
@@ -296,34 +299,39 @@ export class KnowledgeIndex {
     }
 
     /**
-     * Wire the four vault events (single-entry updates) and the initial build. Events are
-     * registered through `plugin.registerEvent`, so they are removed automatically on unload.
+     * The initial build, then the vault events (single-entry updates). Events are registered
+     * through `plugin.registerEvent`, so they are removed automatically on unload.
+     *
+     * Nothing listens before the layout is ready (#795). Obsidian announces every existing file
+     * with a `create` while it loads the vault; heard here, each one derived a note from a cache
+     * that was not filled yet and stamped a fresh conceptual-timeline snapshot — so merely starting
+     * Obsidian rewrote the timeline, and the build right after threw the work away.
      */
     public bootstrap(plugin: Plugin, opts: KnowledgeIndexBootstrapOptions = {}): void {
         // Read scope from the plugin we are handed, not a global registry lookup that isn't ready yet (#374).
         this.useSettingsHost(plugin as unknown as { settings: ScopeSettings });
-        const vault = ObsidianApi.vault();
-        plugin.registerEvent(vault.on("create", (file) => this.onCreate(file)));
-        plugin.registerEvent(vault.on("modify", (file) => this.onModify(file)));
-        plugin.registerEvent(vault.on("delete", (file) => this.onDelete(file)));
-        plugin.registerEvent(vault.on("rename", (file, oldPath) => this.onRename(file, oldPath)));
         this.enrichmentEnabled = opts.parseInlineRelations === true;
         plugin.register(() => this.cancelScheduledEnrichment());
         plugin.app.workspace.onLayoutReady(() => {
-            this.build();
+            this.build("index.startup");
+            const vault = ObsidianApi.vault();
+            plugin.registerEvent(vault.on("create", (file) => this.onCreate(file)));
+            plugin.registerEvent(vault.on("modify", (file) => this.onModify(file)));
+            plugin.registerEvent(vault.on("delete", (file) => this.onDelete(file)));
+            plugin.registerEvent(vault.on("rename", (file, oldPath) => this.onRename(file, oldPath)));
+            // A tag or property just written is only in the cache once Obsidian has re-parsed the note:
+            // scope follows it then (#713, FR-17).
+            plugin.registerEvent(ObsidianApi.metadataCache().on("changed", (file) => this.onMetadataChanged(file)));
+            // A build that threw leaves the index short of ready; the next "resolved" tries again.
+            plugin.registerEvent(
+                ObsidianApi.metadataCache().on("resolved", () => {
+                    if (this.currentStatus !== "ready") this.build();
+                })
+            );
             // Inline `key::` relations need note bodies; enrich after the fast cache-only build so
             // load is never blocked (#147, hybrid). Off by default on mobile (set by the caller).
             if (this.enrichmentEnabled) void this.enrichInlineRelations();
         });
-        // A tag or property just written is only in the cache once Obsidian has re-parsed the note:
-        // scope follows it then (#713, FR-17).
-        plugin.registerEvent(ObsidianApi.metadataCache().on("changed", (file) => this.onMetadataChanged(file)));
-        // resolvedLinks may be incomplete before "resolved"; rebuild once when it fires.
-        plugin.registerEvent(
-            ObsidianApi.metadataCache().on("resolved", () => {
-                if (this.currentStatus !== "ready") this.build();
-            })
-        );
     }
 
     /**

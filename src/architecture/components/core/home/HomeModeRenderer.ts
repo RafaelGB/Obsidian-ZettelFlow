@@ -28,6 +28,7 @@ import { readingInProgress, type ReadingInProgress } from "./homeResume";
 import { CameBackStack } from "./CameBackStack";
 import { HomeGlimpse } from "./HomeGlimpse";
 import type { Thought } from "application/thinking/thought";
+import { afterVaultLoad } from "architecture/plugin/afterVaultLoad";
 
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
@@ -108,9 +109,10 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         };
         // Continuous (#365, D5): every vault change re-reads what Home says — it updates itself,
         // which is why the Refresh button left (#703). `create` is explicit so a brand-new note
-        // triggers a pass without waiting on metadata resolution.
+        // triggers a pass without waiting on metadata resolution — though not the vault load's own
+        // flood, which announces every file and reset this timer once per note (#795).
         this.registerEvent(this.app.metadataCache.on("resolved", debounced));
-        this.registerEvent(this.app.vault.on("create", debounced));
+        this.registerEvent(this.app.vault.on("create", afterVaultLoad(this.app, debounced)));
         this.registerEvent(this.app.vault.on("rename", debounced));
         this.registerEvent(this.app.vault.on("delete", debounced));
     }

@@ -96,6 +96,12 @@ export const BUDGETS = {
         measured: "49 ms",
         because: "it runs as you pick a value, so it has to fit within a few frames (#713). Measured on the CI runner; a desktop does it in 22 ms",
     },
+    "index.startup.10k": {
+        name: "start the index over 10,000 notes: the vault-load creation flood, then the layout-ready build",
+        limit: 300,
+        measured: "26 ms",
+        because: "the flood once derived every note and copied-and-sorted the timeline per note before a build threw it away: 3.5-4.4 s on the same machine (#795). This catches it coming back",
+    },
     "index.build.50k": {
         name: "build the index from 50,000 notes",
         limit: 600,

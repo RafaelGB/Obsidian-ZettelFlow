@@ -10,9 +10,11 @@ Obsidian's Canvas. Read [Overview](overview.md) first.
 
 `onload()` runs a fixed, ordered bootstrap:
 
-1. `loadSettings()` — merge `DEFAULT_SETTINGS` + persisted `loadData()`, strip the transient
-   `communitySettings.clipboardTemplate`, re-save, then `loadServicesThatRequireSettings()`
-   (configures the logger from settings).
+1. `loadSettings()` — `normalizeLoadedSettings` merges `DEFAULT_SETTINGS` + persisted `loadData()`,
+   strips the transient `communitySettings.clipboardTemplate` and retired keys, and runs the
+   migrations; `data.json` is written back **only when that changed something** (#795), then
+   `loadServicesThatRequireSettings()` (configures the logger from settings). The whole `onload` is
+   timed as `plugin.load` and shown in *Settings › Advanced › Timings from this vault*.
 2. `loadVariableTextProcessors(this)` — the `{{frontmatter}}` rendering pipeline.
 3. `loadPluginComponents(this)` — registers and loads the three `ZComponent`s.
 4. `registerViews()` — the `CodeView` for `.js` files.

@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { WorkbenchView } from "architecture/components/core/workbench/WorkbenchView";
-import { migrateSettings, type MigratableSettings } from "config/settingsMigration";
+import { normalizeLoadedSettings } from "config/normalizeLoadedSettings";
+import { measureAsync } from "architecture/monitoring/measure";
 import { loadVariableTextProcessors, loadPluginComponents, loadServicesThatRequireSettings, unloadPluginComponents } from 'starters';
 import { Notice, Plugin, TFile } from 'obsidian';
 import { actionsStore } from 'architecture/api/store/ActionsStore';
@@ -51,6 +52,11 @@ export default class ZettelFlow extends Plugin {
 	private canvasExtensions: CanvasExtension[] = [];
 	public settings: ZettelFlowSettings;
 	async onload() {
+		// Timed whole (#795), so Settings › Advanced can say what starting ZettelFlow cost here.
+		await measureAsync("plugin.load", () => this.start());
+	}
+
+	private async start() {
 		await this.loadSettings();
 		// The one scope gate (#713), and Obsidian's own config folder, which is never a note.
 		const inScope = (path: string) => !isPathExcluded(path, [this.app.vault.configDir]) && inScopeFor(this.settings, path);
@@ -142,35 +148,15 @@ export default class ZettelFlow extends Plugin {
 			new Notice(t('notice_settings_load_failed'));
 			throw new Error('Settings load failed');
 		}
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {}) as ZettelFlowSettings;
-
-		// Object.assign is shallow — patch nested objects so older saved data that
-		// predates a new sub-field still gets the correct default value.
-		this.settings.installedTemplates = {
-			steps: loaded?.installedTemplates?.steps ?? {},
-			actions: loaded?.installedTemplates?.actions ?? {},
-		};
-
-		// Remove clipboard template. This is not a setting that should be saved.
-		delete this.settings.communitySettings?.clipboardTemplate;
-
-		// `ai.allowInAutomations` was retired in #337: §XII forbids writing a completion nobody ruled
-		// on, and an automation has nobody to ask — so the toggle could only authorise paying for a
-		// call that could never be written. Drop the dead key rather than let it sit in data.json
-		// forever, quietly implying a switch that no longer exists.
-		delete (this.settings.ai as Partial<Record<"allowInAutomations", unknown>>).allowInAutomations;
-
-		// Two rows that were one decision (#439): the prefix pattern and the log level now say it
-		// alone. Migrated here, once, so an install that prefixed keeps prefixing and one logging
-		// at debug keeps logging at debug.
-		const migrated = migrateSettings(this.settings as unknown as MigratableSettings);
-		if (migrated.changed) {
-			this.settings = migrated.settings as unknown as ZettelFlowSettings;
+		const normalized = normalizeLoadedSettings(loaded, DEFAULT_SETTINGS);
+		this.settings = normalized.settings;
+		// Written only when the normalization changed what is on disk (#795) — not on every launch.
+		if (normalized.dirty) {
+			void this.saveSettings().catch(() => {
+				log.error('[Settings] normalization save failed');
+				new Notice(t('notice_settings_save_failed'));
+			});
 		}
-		void this.saveSettings().catch(() => {
-			log.error('[Settings] normalization save failed');
-			new Notice(t('notice_settings_save_failed'));
-		});
 		loadServicesThatRequireSettings(this.settings);
 	}
 

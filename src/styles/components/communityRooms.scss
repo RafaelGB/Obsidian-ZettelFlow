@@ -1,0 +1,302 @@
+@use '../utils/variables' as *;
+@use '../utils/mixins' as *;
+
+/*
+ * The Contribute and Installed rooms (#803, epic #797). Plain DOM like the other two rooms, every
+ * colour the user's theme (§XV), every space on the 4-grid. Nothing here moves: the one shot of
+ * these rooms (a removed row leaving, the rows below closing the gap) is scripted on transform and
+ * opacity, and under reduced motion the script simply does not play it.
+ */
+
+.zettelkasten-flow__contribute .is-hidden,
+.zettelkasten-flow__installed .is-hidden {
+    display: none;
+}
+
+.zettelkasten-flow__contribute-lede,
+.zettelkasten-flow__installed-lede {
+    margin: 0 0 var(--size-4-5);
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+// ── Contribute: one lead card, four beside it ──────────────────────────────
+.zettelkasten-flow__contribute-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-4;
+}
+
+.zettelkasten-flow__contribute-card {
+    @include card;
+    gap: $space-2;
+    padding: $space-4;
+    border-radius: $radius-medium;
+
+    &.is-lead {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+        gap: var(--size-4-5);
+        background-color: $surface-quiet;
+    }
+}
+
+.zettelkasten-flow__contribute-lead-text {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__contribute-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin: 0;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__contribute-icon {
+    display: inline-flex;
+    color: var(--interactive-accent);
+}
+
+.zettelkasten-flow__contribute-desc {
+    margin: 0;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__contribute-fine {
+    margin: 0;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__contribute-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+    margin-top: auto;
+}
+
+.zettelkasten-flow__contribute-status {
+    margin: 0;
+    @include hint;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__contribute-preview {
+    align-self: start;
+    overflow: hidden;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+    background-color: $surface-plain;
+}
+
+.zettelkasten-flow__contribute-preview-thumb,
+.zettelkasten-flow__installed-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background-color: $surface-quiet;
+    background-image: radial-gradient(var(--canvas-dot-pattern) 0.06rem, transparent 0.07rem);
+    background-size: var(--size-4-3) var(--size-4-3);
+}
+
+.zettelkasten-flow__contribute-preview-thumb {
+    border-bottom: $line-quiet;
+}
+
+.zettelkasten-flow__contribute-preview-meta {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+    padding: $space-2 $space-3;
+    @include hint;
+
+    b {
+        color: $text-plain;
+        font-size: var(--font-ui-small);
+    }
+}
+
+// What the bug report will carry, shown before you press it.
+.zettelkasten-flow__contribute-env {
+    padding: $space-2 $space-3;
+    border-radius: $radius-small;
+    background-color: $surface-quiet;
+    color: $text-quiet;
+    font-family: var(--font-monospace);
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__contribute-env-title {
+    font-family: var(--font-interface);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__contribute-env-list {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: $space-hair $space-3;
+    margin: $space-1 0 0;
+
+    dd {
+        margin: 0;
+        color: $text-plain;
+    }
+}
+
+// ── Installed: the systems you brought, then the loose pieces ──────────────
+.zettelkasten-flow__installed-section {
+    margin-bottom: var(--size-4-6);
+}
+
+.zettelkasten-flow__installed-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    margin-bottom: $space-3;
+
+    .zettelkasten-flow__installed-title {
+        margin: 0;
+    }
+}
+
+.zettelkasten-flow__installed-title {
+    margin: 0 0 $space-3;
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__installed-list {
+    overflow: hidden;
+    border: $line-quiet;
+    border-radius: $radius-medium;
+}
+
+.zettelkasten-flow__installed-row,
+.zettelkasten-flow__installed-result,
+.zettelkasten-flow__installed-piece {
+    border-top: $line-quiet;
+
+    &:first-child {
+        border-top: 0;
+    }
+}
+
+.zettelkasten-flow__installed-row {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: $space-4;
+    padding: $space-3 $space-4;
+}
+
+.zettelkasten-flow__installed-thumb {
+    border: $line-quiet;
+    border-radius: $radius-small;
+
+    &.is-travelling .zettelkasten-flow__system-drawing {
+        visibility: hidden;
+    }
+}
+
+.zettelkasten-flow__installed-row.is-missing .zettelkasten-flow__installed-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: none;
+}
+
+.zettelkasten-flow__installed-thumb-missing {
+    padding: $space-1;
+    text-align: center;
+    @include hint;
+}
+
+.zettelkasten-flow__installed-text {
+    display: flex;
+    flex-direction: column;
+    gap: $space-hair;
+    min-width: 0;
+}
+
+.zettelkasten-flow__installed-meta {
+    @include hint;
+}
+
+.zettelkasten-flow__installed-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__installed-result {
+    padding: $space-3 $space-4;
+    color: $text-plain;
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__installed-piece {
+    @include row;
+    padding: $space-2 $space-4;
+    font-size: var(--font-ui-small);
+
+    .zettelkasten-flow__installed-actions {
+        margin-left: auto;
+    }
+}
+
+.zettelkasten-flow__installed-piece-kind {
+    min-width: 4rem;
+    color: $text-faint;
+    font-size: $text-small;
+}
+
+.zettelkasten-flow__installed-empty {
+    @include empty-state;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+    margin: 0;
+
+    p {
+        margin: 0;
+    }
+}
+
+.zettelkasten-flow__installed-clipboard {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+}
+
+.zettelkasten-flow__installed-clipboard-icon {
+    display: inline-flex;
+}
+
+// ── narrow (phone, iPad portrait): the preview under its text, actions under the row ──
+@container zf-community (max-width: 40rem) {
+    .zettelkasten-flow__contribute-grid,
+    .zettelkasten-flow__contribute-card.is-lead {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zettelkasten-flow__installed-row {
+        grid-template-columns: 6rem minmax(0, 1fr);
+
+        .zettelkasten-flow__installed-actions {
+            grid-column: 1 / -1;
+        }
+    }
+}

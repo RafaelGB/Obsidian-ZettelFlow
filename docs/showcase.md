@@ -192,15 +192,17 @@ ZettelFlow is built to keep working — and keep your notes yours — with no se
   enable AI, only length-bounded note content goes to the single **https** endpoint *you* configure —
   and nothing the model writes reaches a note until you **accept** it (every completion is a proposal
   you accept, edit or reject).
-- **The only network paths are opt-in:** the AI provider above, and the read-only **community browser**
-  (GitHub-raw `GET`s when you open it). Both are off until you choose them.
+- **The only network paths are opt-in:** the AI provider above, and the read-only `GET`s of
+  **[Community](community/index.md)** — the systems gallery and Learn's tutorials, from GitHub raw when
+  you open them. Both are off until you choose them.
 
 Full detail: [Capabilities & privacy](development/capabilities-and-privacy.md) and the
 [manifesto](manifesto.md).
 
-## Share your system
+## Share this canvas as a system
 
-Built a workflow you love? The community gallery is **fully static** — no backend, no account. Share your
-`.zftemplate` system through GitHub and it appears in everyone's in-app browser.
+Built a workflow you love? The community gallery is **fully static** — no backend, no account. Open the
+canvas, then **Community → Contribute → Share this canvas as a system**: *Prepare the system* opens a
+GitHub form already filled in, and once it is merged your system is in everyone's Systems room.
 
-→ [Systems gallery](how-to-contribute/systems-gallery.md).
+→ [Community](community/index.md#contribute) · [Systems gallery](how-to-contribute/systems-gallery.md).

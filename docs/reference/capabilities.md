@@ -16,7 +16,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Open workflow** — draw a workflow on a Canvas and the wizard walks it to build a note. [docs →](../architecture/overview.md)
 - **Run the current canvas as a flow** — run the open canvas as a flow — create notes, edit the open one, or react to an event. [docs →](../architecture/flow-roles.md)
 - **Open canvas** — open and edit the canvas that drives a flow. [docs →](../architecture/overview.md)
-- **Capture a thought** — one keystroke from a thought to a fleeting note in your Inbox. [docs →](../development/quick-capture.md)
+- **Capture a thought** — one keystroke from a thought to your thinking space. [docs →](../development/quick-capture.md)
 - **Home** — the front door — what to do next on your knowledge, at a glance, read-only and offline. [docs →](../development/zettelflow-home.md)
 - **Build a map of content** — gather notes by tag or folder into a map of content, refreshed safely. [docs →](../development/moc-builder.md)
 - **Derive project outline** — turn a folder of notes into a book, course, or article outline from the graph. [docs →](../development/derived-projects.md)
@@ -61,10 +61,11 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **Change note state** — move a note through its lifecycle state (fleeting → … → evergreen). [docs →](../architecture/knowledge-lifecycle.md)
 - **Remove a relation** — delete a typed relation from the active note, after a confirmation. [docs →](../architecture/knowledge-model.md)
 - **Script workbench** — try a script before it touches anything, and read every run in a log. [docs →](../architecture/script-workbench.md)
-- **Community** — install a complete knowledge system from the community, in one click. [docs →](../how-to-contribute/systems-gallery.md)
+- **Community** — one view, four rooms — learn ZettelFlow, find a system, give one back and look after what you installed. [docs →](../community/index.md)
+- **Browse systems** — install a complete knowledge system from the community, in one click — Community's Systems room. [docs →](../how-to-contribute/systems-gallery.md)
 - **Export current canvas as .zftemplate** — bundle a canvas and its steps into one portable .zftemplate file. [docs →](../architecture/zftemplate-schema.md)
 - **Import .zftemplate** — install a .zftemplate bundle into your vault. [docs →](../architecture/zftemplate-schema.md)
-- **Open manage templates** — manage the systems and templates you have installed. [docs →](../how-to-contribute/systems-gallery.md)
+- **Open manage templates** — manage the systems and templates you have installed — Community's Installed room. [docs →](../community/index.md)
 - **Base dashboards** — compose chart panels over an Obsidian Base — a local Grafana for your vault. [docs →](../development/base-dashboards.md)
 
 ## On a ZettelFlow surface

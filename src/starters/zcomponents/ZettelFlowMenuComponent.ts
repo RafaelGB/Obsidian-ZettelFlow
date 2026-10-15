@@ -4,7 +4,7 @@ import { t } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
 import { requestGraph3DFocus } from "architecture/components/core/graph/graphFocus";
 import { ReasoningPathsModal } from "zettelkasten/modals/ReasoningPathsModal";
-import { CommunityTemplatesModal } from "application/community";
+import { openCommunity } from "application/community/view/openCommunity";
 import { openNoteCompanion } from "architecture/components/core/noteCompanion/openNoteCompanion";
 import ZettelFlow from "main";
 import { RibbonIcon } from "./RibbonIcon";
@@ -46,15 +46,14 @@ export class ZettelFlowMenuComponent extends PluginComponent {
             { command: "open-workflow", labelKey: "menu_create_note", icon: "file-plus" },
         ],
         [
-            { command: "browse-systems", labelKey: "command_browse_systems", icon: "layout-grid" },
+            // Community (#798): one entry, a view of four rooms — it opens where you were last.
+            { command: "open-community", labelKey: "community_view_title", icon: "users" },
             { command: "run-canvas-flow", labelKey: "command_run_canvas_flow", icon: "play" },
             { command: "open-canvas", labelKey: "command_settings_open_canvas", icon: "layout-dashboard" },
-            // The three that were in the palette and nowhere else (#578). Editing the canvas,
-            // importing a system and managing what is installed belong beside exporting one: the
-            // group is *systems*, and half of what you do with a system was missing from it.
+            // Two that were in the palette and nowhere else (#578): importing a system belongs
+            // beside exporting one. Managing what is installed is Community's Installed room (#798).
             { command: "import-canvas-template", labelKey: "command_import_canvas_template", icon: "package-open" },
             { command: "export-canvas-template", labelKey: "command_export_canvas_template", icon: "package-plus" },
-            { command: "open-manage-templates", labelKey: "command_open_manage_templates", icon: "settings-2" },
         ],
         [
             { command: "show-home", labelKey: "command_show_home", icon: "house" },
@@ -69,11 +68,18 @@ export class ZettelFlowMenuComponent extends PluginComponent {
     ];
 
     onLoad(): void {
-        // The community systems browser as a first-class, funnel-able command (#246 A1).
+        // The community systems browser as a first-class, funnel-able command (#246 A1): since
+        // #798 it opens Community's Systems room. The id stays, so a bound hotkey survives (§XI).
         this.plugin.addCommand({
             id: "browse-systems",
             name: t("command_browse_systems"),
-            callback: () => new CommunityTemplatesModal(this.plugin).open(),
+            callback: () => void openCommunity(this.plugin.app, "systems"),
+        });
+        // The ribbon's Community entry (#798): the room you were last in, Learn the first time.
+        this.plugin.addCommand({
+            id: "open-community",
+            name: t("command_open_community"),
+            callback: () => void openCommunity(this.plugin.app),
         });
         // The three surface-opening commands (#272); `show-home` lives in HomeComponent.
         this.plugin.addCommand({

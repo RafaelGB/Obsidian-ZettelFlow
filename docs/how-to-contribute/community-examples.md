@@ -1,9 +1,9 @@
 # ZettelFlow Community Resources Guide
 
-![The Community browser: browse systems by type and difficulty, then open one to try or install it](../resources/community/community-browser.svg)
+![Community's four rooms side by side — Learn, Systems, Contribute, Installed — with the nav that pans between them](../resources/community/rooms.svg)
 
 ## Introduction to Community Resources
-ZettelFlow allows the community to share templates, flows, and actions to help users enhance their note-taking experience. The Community section provides pre-built resources that you can easily import and use in your own Obsidian vault.
+ZettelFlow allows the community to share templates, flows, and actions to help users enhance their note-taking experience. They are reached from **[Community](../community/index.md)**, one view with four rooms: you find them in its **Systems** room and look after what you installed in its **Installed** room.
 
 ## Types of Community Resources
 ZettelFlow offers five main types of community resources:
@@ -11,9 +11,9 @@ ZettelFlow offers five main types of community resources:
 ### 1. Flows *(legacy — superseded by Systems)*
 Flows were complete workflows installed by copying to the clipboard and pasting onto a canvas. As of
 the **Systems Gallery**, this is superseded by one-click **[Systems](#5-systems-one-click)** (a canvas
-plus its steps, written in one click — no clipboard). The community browser now **leads with Systems**
-and hides the legacy *flow* tab; the flow install path still works for back-compat but is no longer the
-recommended way to adopt a workflow.
+plus its steps, written in one click — no clipboard). Community's Systems room shows **systems** and
+no flows; a flow you already have still pastes onto a canvas, but it is no longer the recommended way
+to adopt a workflow.
 
 ### 2. Steps
 Steps are individual components that can be added to your existing workflows. They represent a single action or decision point in a note creation process.
@@ -25,7 +25,7 @@ Actions are specific functions that can be performed within a step, such as addi
 Markdown templates provide reusable text content that can be incorporated into your notes.
 
 ### 5. Systems (one-click)
-Systems are whole **knowledge methodologies** shipped as a single [`.zftemplate`](../architecture/zftemplate-schema.md) bundle — a canvas plus its step notes. Unlike a flow (which you copy to the clipboard and paste onto a canvas), a system installs in **one click**: pick a folder and ZettelFlow writes the canvas and every step, then opens the canvas ready to run. Systems compose the cognitive capabilities — on creation a note is related, cross-checked, link-suggested and maturity-scored against your own graph — so you start from a real workflow, not a blank canvas.
+Systems are whole **knowledge methodologies** shipped as a single [`.zftemplate`](../architecture/zftemplate-schema.md) bundle — a canvas plus its step notes. Unlike a flow (which you copy to the clipboard and paste onto a canvas), a system installs in **one click**: say how you will use it and ZettelFlow writes the canvas and every step, then the tab becomes the canvas, ready to run. Systems compose the cognitive capabilities — on creation a note is related, cross-checked, link-suggested and maturity-scored against your own graph — so you start from a real workflow, not a blank canvas.
 
 Shipped systems:
 
@@ -37,28 +37,15 @@ Shipped systems:
 - **Writing** — from idea to finished draft: Draft (thesis + related source notes), Section (one point + suggested connections) and Review (surfaces contradictions to resolve) entry points.
 - **Software architecture KB** — a decision log: an ADR entry point records context/decision/consequences and checks new decisions against existing ones for contradictions; a Component entry point captures a component and its dependencies.
 
-To install a system: open the Community Templates browser, select the **Systems** tab, click a system to preview it, choose an install folder and press **Install system**. See the full [Systems Gallery](systems-gallery.md) for the catalog of shipped systems and a guide to authoring your own.
+To install a system: open **Community → Systems**, click a card to open it in place, walk it under *Try it: walk the flow*, answer *How will you use it?* and press **Install**. See [Community](../community/index.md#systems) for the whole path, and the [Systems Gallery](systems-gallery.md) for the catalog of shipped systems and a guide to authoring your own.
 
 ## How to Access Community Resources
-1. Open Obsidian and make sure ZettelFlow is installed
-2. Click on the ZettelFlow section in Community plugin
-3. Select "Community Templates" Browser from the menu
-4. Browse the available resources by type
+1. Open Obsidian and make sure ZettelFlow is installed.
+2. Press the ZettelFlow ribbon button and choose **Community** (or run *Browse systems* from the command palette).
+3. Open the **Systems** room. Steps and markdown templates are folded at the bottom, under *Loose pieces*.
+4. Click a piece to open its own install dialog.
 
-## Using Community Flows
-Flows are the most valuable community resource for beginners. Here's how to use them:
-
-1. **Browse**: In the Community Templates section, select the "Flows" tab to see available workflows
-2. **Preview**: Click on a flow to see its preview, description, and structure
-3. **Install**: Click the "Copy to Clipboard" button to add it to your clipboard
-4. **Use**: There is and icon in the bottom of your zettelFlow canvas to paste the flow into your current workflow at the position that you select.
-
-When you open the flow preview, you'll see:
-- A visual representation of the workflow
-- Description and purpose of the flow
-- Author information
-- List of nodes (steps) in the flow
-- Connections between nodes
-
-
-Remember that flows are the easiest way to get started with ZettelFlow! They provide complete, ready-to-use workflows that require minimal setup and technical knowledge.
+## Keeping a step you copied
+The step and action editors can copy what they hold for reuse. While one is copied, **Community →
+Installed** shows *Add the template from the clipboard* above its *Loose pieces*: press it and the
+step or action becomes an installed piece, with *Edit* and *Remove* like any other.

@@ -49,7 +49,7 @@ emulator) and with the keyboard only:
 
 | Check | Pass when |
 |---|---|
-| Quick capture | The title prompt opens, is comfortable to type in, writes to the Inbox. |
+| Quick capture | The prompt opens, is comfortable to type in, keeps the thought in the thinking space. |
 | Home | Greeting, nudge, teasers and lists render; every note name opens on tap and on Enter. |
 | Cultivate | Target + moves render; connect/question/source inputs are usable; buttons are tappable. |
 | Advance state | The lifecycle command runs and writes the new state. |

@@ -7,9 +7,9 @@ dead end.
 
 ## Opening it
 
-Run **"Show open questions"** from the command palette, or click **Open** next to *Open questions* in
-**Settings → ZettelFlow → Zettelkasten toolkit**. The pane updates automatically (debounced) whenever
-notes or links change.
+Run **"Show open questions"** from the command palette: it opens **Explore**, which asks it as a
+suggested question (#703). The settings tab has no button for it any more. The answer updates
+automatically (debounced) whenever notes or links change.
 
 ## What counts as an open question
 

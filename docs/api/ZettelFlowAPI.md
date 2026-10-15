@@ -24,7 +24,7 @@ newer namespaces sit at the top level. Nothing moved — every existing script k
 > errors are flagged inline in the gutter as you type, and the Script action and Dynamic Selector ship
 > **insertable examples** so you never face an empty editor.
 
-> **Editing library scripts outside Obsidian?** Settings → Developer → *Script type declarations*
+> **Editing library scripts outside Obsidian?** Settings → Advanced → *Script type declarations*
 > writes a `zettelflow.d.ts` into your scripts folder, so VS Code (or any editor) knows `zf` —
 > including the functions **you** wrote and the integrations **you** installed. Regenerate it after
 > adding a script or updating the plugin.

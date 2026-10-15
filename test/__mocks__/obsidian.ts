@@ -205,8 +205,13 @@ export function normalizePath(path: string): string {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 
+// Settable `getLanguage` (#801): Learn picks es or en from it.
+let _language = "en";
+export function __setLanguage(lang: string): void {
+  _language = lang;
+}
 export function getLanguage(): string {
-  return "en";
+  return _language;
 }
 
 // --- Bases API stubs (epic #622) ---------------------------------------------------------------
@@ -546,8 +551,14 @@ export function __setRequestUrl(fn: (opts: unknown) => Promise<RequestUrlRespons
 export function requestUrl(opts: unknown): Promise<RequestUrlResponse> {
   return _requestUrl(opts);
 }
-export function request(_opts: unknown): Promise<string> {
-  return Promise.resolve("");
+// Settable `request` (#801): a test sees every GET, and answers it or fails it.
+const _defaultRequest = (_opts: unknown): Promise<string> => Promise.resolve("");
+let _request: (opts: unknown) => Promise<string> = _defaultRequest;
+export function __setRequest(fn: ((opts: unknown) => Promise<string>) | null): void {
+  _request = fn ?? _defaultRequest;
+}
+export function request(opts: unknown): Promise<string> {
+  return _request(opts);
 }
 
 /**

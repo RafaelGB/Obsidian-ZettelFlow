@@ -87,7 +87,8 @@ When adding a feature, write tests first (TDD). See the [`tdd` skill](https://gi
 Nothing to run — the community gallery is [fully static](../architecture/community.md): it reads the
 catalog `docs/main_template.json` and its payloads from GitHub raw. Contributions go through GitHub
 (the [Add a template](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/new?template=ADD_TEMPLATE.yaml)
-issue form + a PR under `docs/`).
+issue form + a PR under `docs/`). Learn's tutorials are the same kind of data,
+`docs/learn/catalog.json` — see [Adding a tutorial](../how-to-contribute/adding-a-tutorial.md).
 
 ## Docs site
 

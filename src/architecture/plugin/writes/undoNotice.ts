@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import { c } from "architecture/styles/helper";
-import { t } from "architecture/lang";
+import { t, tCount } from "architecture/lang";
 import { filterWrites, touchedProperties } from "application/writes/vaultWriteLog";
 import { offerState, UNDO_OFFER_MS, worthOffering } from "application/writes/undoOffer";
 import { hasWork, planUndo } from "application/writes/undoPlan";
@@ -76,6 +76,6 @@ async function takeItBack(batch: string): Promise<void> {
     new Notice(
         outcome.failed.length > 0
             ? t("changes_undo_partial_done", String(outcome.done), outcome.failed.join(", "))
-            : t("changes_undo_done", String(outcome.done))
+            : tCount(outcome.done, "changes_undo_done", String(outcome.done))
     );
 }

@@ -4,6 +4,8 @@
 
 Property Hooks are a powerful feature in ZettelFlow that allow you to execute custom JavaScript code when the value of a specific property changes in your frontmatter. This enables dynamic, automated responses to changes in your notes' metadata.
 
+![A property hook: status changes to done, the hook's condition holds, its script sets completed, and the notice offers Undo](../../resources/hooks/property-hooks.svg)
+
 ## How Property Hooks Work
 
 When you edit a note's frontmatter in Obsidian and change a property value that has a hook configured, ZettelFlow detects this change and executes the associated script. The script has access to:

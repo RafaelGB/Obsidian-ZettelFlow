@@ -10,9 +10,9 @@ It's the first tool of the 🕸️ **Graph** pillar, and it ships with a second,
 
 ## Opening it
 
-Run **"Show concept navigation"** from the command palette, or click **Open** next to *Concept
-navigation* in **Settings → ZettelFlow → Zettelkasten toolkit**. The pane updates automatically
-(debounced) whenever notes or links change.
+Run **"Show concept navigation"** from the command palette: it opens **Explore** on its graph lens
+(#484). The settings tab has no button for it any more. The pane
+updates automatically (debounced) whenever notes or links change.
 
 ## Navigating
 

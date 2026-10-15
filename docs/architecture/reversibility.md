@@ -144,13 +144,20 @@ unexplained write is still a fact.
 
 ## Taking it back
 
-The record is read by the **Recent** mode of the Home surface, which is now *What ZettelFlow
-changed*: batches newest first, each one naming what ran, what it touched and when.
+The record has exactly two readers, and both are an **offer in the moment**:
 
-That mode used to list the notes the wizard built, from a second list kept only for it. It never
-mentioned the satellite beside the note, the frontmatter a hook set while you were elsewhere, or
-the canvas that moved when you gave it a role. The narrow list is gone; the complete one replaced
-it, and the `history` setting is dropped on load.
+- the **thirty-second notice** a flow or a hook leaves when it writes (#511), whose *Undo* takes
+  back that one batch;
+- the notice a **gallery install** leaves (#799), whose *Undo* takes the whole install back — the
+  flow it displaced included, keeping any file you changed since.
+
+There is no panel and no mode that lists the record. Home's modes are Home, Cultivate and Think
+(see [surfaces](surfaces.md)). Before 3.3 a Home mode, *What ZettelFlow changed*, listed the
+batches; before that, the wizard kept a second list of the notes it built, which never mentioned
+the satellite beside the note, the frontmatter a hook set while you were elsewhere, or the canvas
+that moved when you gave it a role. Both are gone, and the `history` setting is dropped on load.
+
+![Undo, in the moment: a flow writes a batch, the notice offers Undo for thirty seconds, and the batch goes back](../resources/undo/undo.svg)
 
 ### Undo takes a batch, not a file
 

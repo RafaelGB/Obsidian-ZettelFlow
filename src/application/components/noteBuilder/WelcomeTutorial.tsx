@@ -6,7 +6,7 @@ import { Icon } from "architecture/components/icon";
 import { ZETTELFLOW_ICON } from "config/brand";
 import { TutorialType } from "./typing";
 import { createExampleFlow } from "application/notes/onboardingService";
-import { CommunityTemplatesModal } from "application/community/CommunityTemplatesModal";
+import { openCommunity } from "application/community/view/openCommunity";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -65,7 +65,7 @@ export function WelcomeTutorial({ plugin, modal }: TutorialType) {
                     className="mod-cta"
                     onClick={() => {
                         modal.close();
-                        new CommunityTemplatesModal(plugin).open();
+                        void openCommunity(plugin.app, "systems");
                     }}
                 >
                     {t("onboarding_browse_systems")}

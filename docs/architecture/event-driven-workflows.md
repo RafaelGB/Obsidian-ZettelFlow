@@ -13,11 +13,13 @@ Because a flow that runs on its own is powerful (and potentially surprising), th
 
 ## Turning it on
 
-**Settings → ZettelFlow → Event-driven workflows → Enable event-driven workflows.**
+There is no global switch (it was removed in 3.4, see [below](#where-an-event-flow-lives-and-where-a-trigger-can-be-written-436)).
+A flow reacts to vault events because it **lives in the events folder**: give a canvas the role
+*runs on an event* in **Settings → Flows → Your flows** (or from the canvas's right-click menu), and
+ZettelFlow moves it there. Move it out, and it stops.
 
-With the toggle **off** (the default) no listeners are registered and no flow can fire — behaviour
-is byte-for-byte identical to a ZettelFlow without this feature. Toggling arms/disarms the
-listeners immediately; no reload is needed. Everything is torn down on plugin unload (no leaks).
+With no flow in the events folder no flow can fire — behaviour is identical to a ZettelFlow without
+this feature. Everything is torn down on plugin unload (no leaks).
 
 ## The trigger vocabulary
 
@@ -64,7 +66,7 @@ zettelFlowSettings:
   vault.
 - **`enabled`** *(optional)* — set `false` to keep the trigger but switch it off.
 
-The **Settings → Event-driven workflows** panel lists every configured trigger. For a trigger on a
+The **Triggers** card in **Settings → Flows** (*Configured triggers*) lists every configured trigger. For a trigger on a
 file-node root you can toggle it on/off or remove it there; for a trigger embedded in a canvas
 node, use the *open flow* action and edit it in the canvas.
 
@@ -142,7 +144,7 @@ malformed condition **safe-opens** the branch rather than silently dropping it.
 
 ## Where an event flow lives, and where a trigger can be written (#436)
 
-An event flow is a canvas in the **events folder** (Settings → Your flows → *Events folder*). That
+An event flow is a canvas in the **events folder** (**Settings → Advanced → Folders ZettelFlow uses → Event flows**, default `_ZettelFlow/events`). That
 is the switch: a flow reacts to vault events because it lives there, and stops when it moves out.
 The old global *enable event-driven workflows* toggle is gone — it gated everything at once, which
 told you nothing about which flow would run.

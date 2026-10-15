@@ -157,6 +157,17 @@ export class FileService {
         await ObsidianApi.fileManager().trashFile(file);
     }
 
+    /**
+     * A folder ZettelFlow made, to Obsidian's trash — **only when nothing is left in it** (#799): an
+     * install's take-back removes the folders it created, never one you have since put a note in.
+     * Not recorded, like `deleteFile`: there is nothing in an empty folder to take back.
+     */
+    public static async trashEmptyFolder(folder: TFolder): Promise<boolean> {
+        if (folder.children.length > 0) return false;
+        await ObsidianApi.fileManager().trashFile(folder);
+        return true;
+    }
+
     public static async getFile(file_str: string, restrict = true): Promise<TFile | null> {
         file_str = normalizePath(file_str);
 

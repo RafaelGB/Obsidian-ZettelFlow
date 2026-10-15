@@ -52,7 +52,8 @@ iterates `onLoad()`. `loadPluginComponents()` registers three components and loa
 - **`RibbonIcon`** — adds the ribbon button + `open-workflow` command; registers three SVG
   icons; opens `SelectorMenuModal` with the `ribbonCanvas` flow.
 - **`SettingsTab`** — `addSettingTab(new ZettelFlowSettingsTab(...))`; registers commands
-  `open-canvas`, `open-community-templates`, `open-manage-templates`; runs
+  `open-canvas`, `open-community-templates` and `open-manage-templates` (these two open the
+  Community view's Systems and Installed rooms, #798); runs
   `legacyMigrateSettings()` (migrates old `propertyHooks` → `hooks.properties`).
 - **`PluginApi`** — initializes the global service singletons:
   `ObsidianAPIService.init(app)`, `ZfVaultImpl.instanceInit(app)`, `VaultStateManager.init(plugin)`.
@@ -89,7 +90,7 @@ Substitutes `{{key}}` with the active file's frontmatter, three ways:
 
 | Section | Handler | Contents |
 |---|---|---|
-| **General** | `handlers/GeneralSectionSettings.ts` | community browser, ribbon/editor canvas selectors, folders-flow + markdown-templates + scripts folders, unique-prefix toggle/pattern |
+| **General** | `handlers/GeneralSectionSettings.ts` | Community (Systems room), ribbon/editor canvas selectors, folders-flow + markdown-templates + scripts folders, unique-prefix toggle/pattern |
 | **Hooks** | `handlers/HooksSectionSettings.ts` | property→script hooks (React `PropertyHooksManager`), folder-flow path |
 | **Developer** | `handlers/DeveloperSectionSettings.ts` | logger toggle + level |
 
@@ -175,7 +176,8 @@ still runs.
   save, writes `if: <expr>` to `edge.label` and calls `canvas.requestSave()`.
 - **`EmptyStateExtension`** (#258) — listens to `zettelflow-canvas-render`; injects a guide panel
   into `canvas.wrapperEl` when the canvas has zero ZettelFlow step nodes. Panel offers two CTAs:
-  "Browse systems" → `CommunityTemplatesModal`. Auto-dismisses once a step node is detected.
+  "Browse systems" → the Community view's Systems room (`openCommunity`, #798). Auto-dismisses
+  once a step node is detected.
   Torn down cleanly via `plugin.register(() => removePanel())`.
 
 ### Flow model — `Canvas.ts` / `Flows.ts`

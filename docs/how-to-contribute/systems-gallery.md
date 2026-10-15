@@ -7,21 +7,28 @@ composes the cognitive actions, so a note you create through a system lands **al
 cross-checked, link-suggested and maturity-scored** against your own graph.
 
 Systems ship in the unified [`.zftemplate`](../architecture/zftemplate-schema.md) format and install
-from the **Community Templates** browser — see [Community resources](community-examples.md#5-systems-one-click).
+from the **Systems** room of [Community](../community/index.md#systems) — see also
+[Community resources](community-examples.md#5-systems-one-click).
 Everything is **offline** (no network, no AI) and additive (nothing in your vault is removed).
 
 ## Install a system
 
-1. Open the **Community Templates** browser (ZettelFlow ribbon → *Community templates*).
-2. Select the **Systems** tab and click a system to preview it.
-3. Choose an install folder (a per-system subfolder is suggested) and press **Install system**.
-4. ZettelFlow writes the canvas and every step note, then opens the canvas — pick an entry point and go.
+1. Open **Community → Systems** (ZettelFlow ribbon → *Community*, or the *Browse systems* command).
+   Each card is a small drawing of the system's own canvas, with its level and its steps.
+2. Click a card: its drawing grows into the stage, in place. Under **Try it: walk the flow** you walk
+   it on the drawing — nothing is created and nothing is read from your vault.
+3. Say **how you will use it** (*Create notes* is suggested only when no creation flow is set yet),
+   read the sentence below it — exactly what is created, where, how it runs and what it replaces —
+   and press **Install**. There is no confirmation dialog: the sentence was the confirmation.
+4. The drawing fills the tab and the tab **becomes the canvas**. The notice offers *Create a note*
+   and *Undo*, which takes the whole install back; Obsidian's *Back* returns to Systems, where the
+   card now says *In your vault*.
 
 ## Shipped systems
 
 Each system is a **drawn workflow** on one canvas: a single entry that branches — with real edges and
 phase colours — to each note type it makes. Pick the flow, answer its questions, and it lands the note.
-Every system carries a **difficulty badge** in the browser — *easy* (a light workflow, few actions), *medium*
+Every system carries a **difficulty level** on its card in the Systems room — *easy* (a light workflow, few actions), *medium*
 (more steps and the relation/research actions), *hard* (the full pipeline). Start easy and grow into the richer
 systems; the on-creation cognitive work scales with the difficulty.
 
@@ -45,8 +52,8 @@ systems; the on-creation cognitive work scales with the difficulty.
 ### See the flows
 
 Each drawing is the system's own canvas, read from its `.zftemplate`: the steps, their phase
-colours, the questions each one asks and what runs on creation. The same drawing is the preview
-in the in-app browser.
+colours, the questions each one asks and what runs on creation. In the app the Systems room draws
+the same canvas itself, live from the template (#799); these pictures stay for older releases.
 
 === "Zettelkasten v2"
 
@@ -105,8 +112,8 @@ in the in-app browser.
 
 A system may ship a **Script** or **Dynamic selector** action, and those carry JavaScript that
 ZettelFlow runs with access to your vault. Because systems install in one click from a remote catalog,
-the install modal **says so before writing anything**: it names the steps that carry code and asks you
-to acknowledge it. A system built from stock actions gains no extra step — there is nothing to disclose.
+the install panel **says so before writing anything**: it names the steps that carry code, and
+*Install* stays disabled until you tick *I have looked at it and I want it*. A system built from stock actions gains no extra step — there is nothing to disclose.
 
 Conditional canvas edges (`if: …`) are *not* in that category: they are read by a pure parser with no
 `eval`, so they are never reported as executable code.
@@ -154,7 +161,10 @@ the steps live *on the canvas nodes*, not in external `.md` files, and `steps` i
    actions, *hard* for the full on-creation pipeline. Optional; omit it and the badge is simply hidden.
 6. **Catalog it.** Add the `.zftemplate` under `docs/systems/`, a sibling `<id>.svg` drawing of its
    canvas flow (plus the `<id>.png` rendered from it, which releases before #651 read), and a
-   `template_type: "system"` row to `docs/main_template.json` (`ref` = the `.zftemplate` path).
+   `template_type: "system"` row to `docs/main_template.json` (`ref` = the `.zftemplate` path). Since
+   #799 the row also carries a one-line `summary` in both languages (`{ "en": "…", "es": "…" }`), and
+   the `steps` and `branches` its canvas draws: the room groups systems by them before it fetches any
+   template, and `catalog.test.ts` fails when they do not match the canvas.
 7. **Validate.** `npm test` runs the validity harness. `shippedSystems.test.ts` + `catalog.test.ts`:
    every shipped system parses, references only registered **non-AI** actions, uses YAML-safe
    frontmatter, and resolves its canvas file-nodes to real steps — and now **lints the inline nodes too**
@@ -163,7 +173,7 @@ the steps live *on the canvas nodes*, not in external `.md` files, and `steps` i
    on-creation, no AI, the phase colours, and that each branch rehearses to exactly one outcome.
 8. **Publish.** The fastest in-app route: build the workflow on a canvas, run **ZettelFlow → Export
    current canvas as .zftemplate** (also in the *Open ZettelFlow* ribbon menu), then submit it through
-   the community browser's **Add template** link. That closes the loop — your system in the gallery for
+   Community's **Contribute** room: **Share this canvas as a system** → **Prepare the system**. That closes the loop — your system in the gallery for
    everyone.
 
 _README vocabulary for this page: **Community Hub**, **Try a system before installing**._

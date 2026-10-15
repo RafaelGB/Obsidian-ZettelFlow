@@ -72,6 +72,8 @@ const ADDED: Record<string, string> = {
     "reader-exit": "#667 — leave the reader and get the workspace back",
     // The ribbon menu runs commands by id; the Library's rank-1 door needs one to run (#680).
     "open-library": "#680 — backs the ribbon menu's Library entry",
+    // The ribbon menu runs commands by id; Community's entry opens the last room, which no older id does.
+    "open-community": "#798 — backs the ribbon menu's Community entry",
 };
 
 describe("the frozen palette (#575)", () => {
@@ -97,11 +99,11 @@ describe("the frozen palette (#575)", () => {
     });
 
     it("keeps every id a literal, so the scan cannot be evaded", () => {
-        // 35 call sites: 34 with a literal id (28 frozen, open-note-companion #640, open-reader
-        // #668, the reader's next/previous/exit #667, open-library #680), plus the one loop over
-        // `SURFACE_COMMANDS` whose eleven ids the scan reads from the table instead. A 36th site
-        // means a registration neither list above knows about.
-        expect(addCommandCallSites()).toBe(35);
+        // 36 call sites: 35 with a literal id (28 frozen, open-note-companion #640, open-reader
+        // #668, the reader's next/previous/exit #667, open-library #680, open-community #798), plus
+        // the one loop over `SURFACE_COMMANDS` whose eleven ids the scan reads from the table
+        // instead. A 37th site means a registration neither list above knows about.
+        expect(addCommandCallSites()).toBe(36);
     });
 
     it("reports a command that vanished rather than trusting anyone to notice", () => {

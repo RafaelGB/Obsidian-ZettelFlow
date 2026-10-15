@@ -1,7 +1,7 @@
 import { Modal, Setting } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import { CommunityTemplatesModal } from "application/community";
+import { openCommunity } from "application/community/view/openCommunity";
 import ZettelFlow from "main";
 import { activateSurface } from 'architecture/plugin/services/ViewActivation';
 
@@ -33,7 +33,7 @@ export class WelcomeModal extends Modal {
                     .setButtonText(t("welcome_cta_browse"))
                     .onClick(() => {
                         this.close();
-                        new CommunityTemplatesModal(this.plugin).open();
+                        void openCommunity(this.plugin.app, "systems");
                     })
             )
             .addButton((btn) => btn.setButtonText(t("welcome_later")).onClick(() => this.close()));

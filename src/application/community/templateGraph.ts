@@ -28,6 +28,8 @@ export interface TemplateGraph {
     rehearsal: RehearsalFlow;
     /** What the review (#428) reads. */
     findings: FlowShape;
+    /** Each step's own settings, by node id: what the Systems room draws and asks (#799). */
+    settings: ReadonlyMap<string, StepSettings>;
 }
 
 /** A markdown file split into its frontmatter block and the rest. */
@@ -145,5 +147,6 @@ export function templateGraph(template: ZfTemplate, parseYaml: ParseYaml): Templ
     return {
         rehearsal: { steps: rehearsalSteps, edges },
         findings: { steps: findingSteps, edges: findingEdges, adjacency: flowAdjacency(data) },
+        settings: new Map([...settingsOf].filter((pair): pair is [string, StepSettings] => Boolean(pair[1]))),
     };
 }

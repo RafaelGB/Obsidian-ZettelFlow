@@ -3,6 +3,9 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { parseTemplate } from "application/template/zfTemplate";
 import { validateSystemTemplate, REGISTERED_ACTION_IDS } from "application/community/systemInstall";
+import { drawingOf } from "application/community/systemDrawing";
+import { matchesQuery } from "application/community/systemsCatalog";
+import { parseYamlForTests } from "../../support/systemsFixtures";
 
 const REPO_ROOT = join(__dirname, "..", "..", "..");
 const CATALOG = join(REPO_ROOT, "docs", "main_template.json");
@@ -14,6 +17,9 @@ interface CatalogEntry {
     title: string;
     description: string;
     author: string;
+    summary?: { en?: string; es?: string };
+    steps?: number;
+    branches?: number;
 }
 
 /** Resolve a catalog `ref` (a repo-absolute path like `/docs/systems/x.zftemplate`) to a real path. */
@@ -71,6 +77,36 @@ describe("community catalog systems (#215, AC-3/AC-6, FR-9)", () => {
                 expect({ ref: entry.ref, ext, image: existsSync(imagePath) }).toEqual({ ref: entry.ref, ext, image: true });
             }
         }
+    });
+
+    it("each system carries a one-line summary in English and Spanish (#799 FR-3)", () => {
+        for (const entry of systems) {
+            const summary = entry.summary ?? {};
+            expect({ ref: entry.ref, en: typeof summary.en, es: typeof summary.es }).toEqual({ ref: entry.ref, en: "string", es: "string" });
+            expect((summary.en ?? "").length).toBeGreaterThan(0);
+            expect((summary.es ?? "").length).toBeGreaterThan(0);
+        }
+    });
+
+    it("each system's step and branch counts are what its own canvas draws (#799, AC-13)", () => {
+        // The room groups by these before any template is fetched, so they must never drift.
+        for (const entry of systems) {
+            const template = parseTemplate(readFileSync(resolveRef(entry.ref), "utf8"));
+            const drawing = drawingOf(template, parseYamlForTests);
+            expect({ ref: entry.ref, steps: entry.steps, branches: entry.branches }).toEqual({
+                ref: entry.ref,
+                steps: drawing.steps,
+                branches: drawing.branches,
+            });
+        }
+    });
+
+    it("finds only PARA for «para», as the hand script says (#799)", () => {
+        const hits = (query: string) => systems.filter((entry) => matchesQuery(entry as never, query, "en")).map((entry) => entry.title);
+        expect(hits("para")).toEqual(["PARA v2"]);
+        // The description counts too: the concept note stamps a Zettel id.
+        expect(hits("zettel")).toEqual(["Zettelkasten v2", "Concept note"]);
+        expect(hits("zzz")).toEqual([]);
     });
 
     it("each system entry has non-empty metadata", () => {

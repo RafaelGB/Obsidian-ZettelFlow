@@ -1,88 +1,49 @@
-# ZettelFlow OnCreate Hooks
+# Folder flows
 
-## Folder-Level Automated Flows
+A **folder flow** is a flow with the role *runs on a folder* ([flow roles](../architecture/flow-roles.md),
+#437). Create a note in that folder — by any means: a new file in Obsidian, a sync, another plugin —
+and the wizard opens on the folder's flow, so every note there goes through the same steps.
 
-### Overview
+## The door: the folder's own menu
 
-The ZettelFlow plugin supports a powerful feature: **Folder-Level Automated Flows**. This feature allows you to assign specific workflows to individual folders. Whenever a file is created in one of these configured folders, an automatic modal will trigger, guiding you through the workflow you have set up for that folder.
+Right-click a folder in the file explorer and choose **Edit folder workflow**. ZettelFlow opens the
+folder's flow canvas in a new tab, creating an empty one the first time. Build the flow on it like
+any other: steps, actions, exits.
 
-### Key Benefits
+The canvas lives in the **folder-flows folder** (default `_ZettelFlow/folders`) and is **named after
+the folder**: its path with each `/` replaced by `_`. The folder `Profiles` gets
+`_ZettelFlow/folders/Profiles.canvas`; `Work/Clients` gets `Work_Clients.canvas`. That name is the
+whole link — nothing is written into the folder or the note.
 
-- **Automation**: Streamline your note-taking process by automating repetitive tasks.
-- **Consistency**: Ensure that all files created in a specific folder follow the same process, enhancing organization and standardization.
-- **Ease of Use**: Activate workflows without needing to manually trigger them, improving efficiency and user experience.
+## Where it is in settings
 
-### How It Works
+- **Settings → Flows → Your flows** lists every canvas with a role, the folder flows included, and
+  is where you change a role. *Give a role to another canvas* turns an existing canvas into a folder
+  flow: choose *runs on a folder* and it asks **which folder**, shows the move it is about to make,
+  and applies it on a second click.
+- **Settings → Advanced → Folders ZettelFlow uses → Folder flows** (behind *Show advanced
+  settings*) is the folder-flows folder itself.
 
-1. **Assigning a Workflow to a Folder**:
-   - Right-click on the folder you want to assign a workflow to.
-   - Select the option to configure the workflow for that folder.
-   - This action will create a canvas file in a configurable path (default: `_ZettelFlow`).
-   - The filename will be the path of the folder with slashes (`/`) replaced by underscores (`_`).
+## What happens, exactly
 
-2. **Configuration File**:
-   - The created canvas file will store the workflow configuration for the folder.
-   - You can adjust the configuration by editing this canvas file as needed.
+- The flow fires for a note created **directly** in the folder. A sub-folder is a folder of its
+  own, with its own flow or none.
+- Renaming a folder renames its flow canvas with it, so the link survives.
+- A note created through the ZettelFlow **wizard** (the ribbon, a command) does not trigger the
+  folder flow a second time: the wizard is already running.
 
-3. **Automatic Modal Activation**:
-   - Whenever a new file is created in a folder that has an assigned configuration, the associated workflow modal will automatically appear.
-   - This ensures that every file created in this folder follows the specified workflow, regardless of the creation method (e.g., directly in Obsidian, through a synced service, etc.).
+## Example
 
-### Example Use Case
+You keep people in `Profiles` and want an email, a team and a name on each of them.
 
-Consider you have a folder named `Profiles`. You can configure a workflow for this folder to collect essential information such as email, team, and name whenever a new profile document is created. 
+1. Right-click `Profiles` → **Edit folder workflow**. `_ZettelFlow/folders/Profiles.canvas` opens.
+2. Add a step with three prompt actions — email, team, name — writing to the frontmatter.
+3. Create a new note in `Profiles`. **Expect** the wizard to open on that step.
 
-#### Steps to Configure:
+## Troubleshooting
 
-1. **Open ZettelFlow Settings**:
-   - Go to the ZettelFlow plugin settings in Obsidian.
-
-2. **Assign Workflow**:
-   - Select the `Profiles` folder.
-   - Assign the desired workflow (e.g., Profile Creation Workflow).
-
-3. **Create a File**:
-   - Create a new file in the `Profiles` folder.
-   - Watch as the Profile Creation Workflow modal appears, prompting you to fill out the necessary details like email, team, and name.
-
-### Example Use Case
-
-Consider you have a folder named `Profiles`. You can configure a workflow for this folder to collect essential information such as email, team, and name whenever a new profile document is created.
-
-#### Steps to Configure:
-
-1. **Open ZettelFlow Settings**:
-   - Go to the ZettelFlow plugin settings in Obsidian.
-
-2. **Assign Workflow**:
-   - Right-click on the `Profiles` folder.
-   - Select the configuration option to assign the Profile Creation Workflow.
-   - This will create a file named `_ZettelFlow/Profiles.canvas`.
-
-3. **Create a File**:
-   - Create a new file in the `Profiles` folder.
-   - Watch as the Profile Creation Workflow modal appears, prompting you to fill out the necessary details like email, team, and name.
-
-### Configuration Details
-
-To set up Folder-Level Automated Flows, follow these detailed steps:
-
-1. **Access Plugin Settings**:
-   - Go to `Settings` > `Community Plugins` > `ZettelFlow`.
-
-2. **Select Folder**:
-   - Right-click on the folder you want to configure and choose the option to configure the workflow.
-
-3. **Assign Workflow**:
-   - The system will create a configuration file in the default path (`_ZettelFlow`) with the folder's path name.
-   - Adjust the workflow configuration in this file as needed.
-
-4. **Save Settings**:
-   - Ensure you save your settings to apply the changes.
-
-### Troubleshooting
-
-- **Modal Not Appearing**: Ensure that the folder is correctly configured in the ZettelFlow settings and the configuration file exists in the `_ZettelFlow` directory (or the custom path you have set).
-- **Workflow Not Triggering**: Check if the workflow is active and correctly assigned to the folder by reviewing the canvas file.
-
-> If the note was create with the Ribbon button inside one of the folders with a workflow, the modal will not appear. This is a expected behavior to avoid the modal to appear twice for the same note.
+- **The wizard does not open.** Check that the canvas sits in the folder-flows folder under the
+  folder's exact name (**Settings → Flows → Your flows** shows it as *runs on a folder*), and that
+  the note was created directly in that folder.
+- **It did not open for a note made from the ribbon.** Intended: a note the wizard creates never
+  re-triggers its folder's flow.

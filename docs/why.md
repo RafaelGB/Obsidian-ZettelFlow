@@ -94,7 +94,7 @@ live in the same vault. This is where each one is strongest, and where ZettelFlo
 ## What it promises
 
 - **Offline.** No account, no server, no telemetry. The only network calls are the ones you opt
-  into: an AI provider you configure, and the read-only community gallery.
+  into: an AI provider you configure, and the read-only community gallery and Learn tutorials.
   → [Capabilities & privacy](development/capabilities-and-privacy.md)
 - **AI optional, and off by default.** Everything above works with AI switched off. When you turn it
   on, every AI output is a proposal you accept, edit or reject.

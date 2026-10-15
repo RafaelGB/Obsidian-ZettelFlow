@@ -13,19 +13,22 @@ API and the `ObsidianApi` facade, so it loads on mobile without a shim.
 
 - Creating notes through a flow (the ribbon **Create a new Zettel Note**, and **Run the current canvas
   as a flow**).
-- **Browse systems** and one-click **install → Run now** from the community browser.
-- The knowledge views — Home, Discovery, knowledge dashboard, slip-box health, open questions, concept
-  navigation, timeline, heatmap — all render in the mobile sidebar.
+- **Community** — browse the systems and install one in one click, then *Create a note* from the
+  notice.
+- The surfaces and their modes — **Home** (Home · Cultivate · Think), **Health** (Tend · Practice),
+  **Explore** — and the **This note** companion all render on mobile.
 - Lifecycle state changes, semantic relations, the offline cognitive actions, and property hooks.
 
 ## Desktop-only, by design (guarded with `Platform`)
 
 These degrade gracefully on mobile (hidden or skipped), never crash:
 
-- **Companion pane** (live preview + connection suggestions while the wizard runs) — hidden on mobile.
+- **Companion pane** (live preview + connection suggestions while the wizard runs) — folds into a
+  section you open on a phone, instead of sitting beside the questions.
 - **Live body preview** in the step editor.
-- **`.zftemplate` export** (`ZettelFlow: Export current canvas as .zftemplate`) — uses a browser
-  download, desktop only. Import + the community Systems Gallery still work on mobile.
+- **`.zftemplate` export and import** (`Export current canvas as .zftemplate`, `Import .zftemplate`)
+  — they use a browser download and a file picker, so both register on desktop only. The Systems
+  room of Community installs systems on mobile too.
 - Inline `key:: [[X]]` relation parsing defaults **off** on mobile (a deferred whole-vault pass);
   frontmatter relations are always parsed.
 

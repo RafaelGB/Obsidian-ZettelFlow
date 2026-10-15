@@ -90,7 +90,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "note-creation": { summary: "draw a workflow on a Canvas and the wizard walks it to build a note.", page: "../architecture/overview.md" },
     "run-a-flow": { summary: "run the open canvas as a flow — create notes, edit the open one, or react to an event.", page: "../architecture/flow-roles.md" },
     "canvas-editing": { summary: "open and edit the canvas that drives a flow.", page: "../architecture/overview.md" },
-    "quick-capture": { summary: "one keystroke from a thought to a fleeting note in your Inbox.", page: "../development/quick-capture.md" },
+    "quick-capture": { summary: "one keystroke from a thought to your thinking space.", page: "../development/quick-capture.md" },
     home: { summary: "the front door — what to do next on your knowledge, at a glance, read-only and offline.", page: "../development/zettelflow-home.md" },
     "moc-builder": { summary: "gather notes by tag or folder into a map of content, refreshed safely.", page: "../development/moc-builder.md" },
     "derive-project": { summary: "turn a folder of notes into a book, course, or article outline from the graph.", page: "../development/derived-projects.md" },
@@ -141,10 +141,11 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "note-state": { summary: "move a note through its lifecycle state (fleeting → … → evergreen).", page: "../architecture/knowledge-lifecycle.md" },
     "remove-relation": { summary: "delete a typed relation from the active note, after a confirmation.", page: "../architecture/knowledge-model.md" },
     "script-workbench": { summary: "try a script before it touches anything, and read every run in a log.", page: "../architecture/script-workbench.md" },
-    "systems-gallery": { summary: "install a complete knowledge system from the community, in one click.", page: "../how-to-contribute/systems-gallery.md" },
+    community: { summary: "one view, four rooms — learn ZettelFlow, find a system, give one back and look after what you installed.", page: "../community/index.md" },
+    "systems-gallery": { summary: "install a complete knowledge system from the community, in one click — Community's Systems room.", page: "../how-to-contribute/systems-gallery.md" },
     "template-export": { summary: "bundle a canvas and its steps into one portable .zftemplate file.", page: "../architecture/zftemplate-schema.md" },
     "template-import": { summary: "install a .zftemplate bundle into your vault.", page: "../architecture/zftemplate-schema.md" },
-    "manage-templates": { summary: "manage the systems and templates you have installed.", page: "../how-to-contribute/systems-gallery.md" },
+    "manage-templates": { summary: "manage the systems and templates you have installed — Community's Installed room.", page: "../community/index.md" },
     "base-dashboard": { summary: "compose chart panels over an Obsidian Base — a local Grafana for your vault.", page: "../development/base-dashboards.md" },
 };
 

@@ -1,0 +1,100 @@
+{
+  "schema": {
+    "major": 1,
+    "minor": 0
+  },
+  "tracks": [
+    {
+      "id": "basics",
+      "title": {
+        "en": "Basics",
+        "es": "Basics (es)"
+      },
+      "blurb": {
+        "en": "Blurb",
+        "es": "Blurb (es)"
+      },
+      "tutorials": [
+        "undo"
+      ]
+    }
+  ],
+  "tutorials": {
+    "undo": {
+      "title": {
+        "en": "Undo what a flow wrote",
+        "es": "Undo what a flow wrote (es)"
+      },
+      "summary": {
+        "en": "Summary",
+        "es": "Summary (es)"
+      },
+      "minutes": 3,
+      "level": "easy",
+      "door": {
+        "en": "Ribbon menu",
+        "es": "Ribbon menu (es)"
+      },
+      "hero": "docs/resources/undo/undo.svg",
+      "steps": [
+        {
+          "title": {
+            "en": "Step 1",
+            "es": "Step 1 (es)"
+          },
+          "body": {
+            "en": "Body 1",
+            "es": "Body 1 (es)"
+          }
+        },
+        {
+          "title": {
+            "en": "Step 2",
+            "es": "Step 2 (es)"
+          },
+          "body": {
+            "en": "Body 2",
+            "es": "Body 2 (es)"
+          }
+        },
+        {
+          "title": {
+            "en": "Step 3",
+            "es": "Step 3 (es)"
+          },
+          "body": {
+            "en": "Body 3",
+            "es": "Body 3 (es)"
+          }
+        }
+      ],
+      "tip": {
+        "en": "Tip",
+        "es": "Tip (es)"
+      },
+      "doc": "architecture/reversibility.md",
+      "related": [],
+      "since": "3.7.0",
+      "tryIt": {
+        "capability": "launch-rockets",
+        "label": {
+          "en": "Launch",
+          "es": "Launch (es)"
+        }
+      }
+    }
+  },
+  "reference": [],
+  "faq": [
+    {
+      "q": {
+        "en": "Q",
+        "es": "Q (es)"
+      },
+      "a": {
+        "en": "A",
+        "es": "A (es)"
+      }
+    }
+  ]
+}

@@ -14,6 +14,8 @@ import type { Snapshot } from "architecture/knowledge/timeline/recordSnapshot";
 import type { Judgement } from "architecture/knowledge/judgement";
 import type { ScopeRules } from "architecture/knowledge/scope/scopeRules";
 import type { Move } from "application/thinking/move";
+import type { InstalledSystem } from "application/community/installRecord";
+import type { LearnProgress } from "application/community/learn/learnProgress";
 
 /**
  * A saved "ask your graph" query (#323 G4). `query` is the identity (the predicate text); `name`
@@ -214,6 +216,19 @@ export interface ZettelFlowSettings {
     graphRegionNames?: Record<string, string>;
     /** Installed templates divided into steps and actions */
     installedTemplates: InstalledTemplates;
+    /**
+     * The systems installed from the gallery (#799 FR-14): a mechanical fact per install — what was
+     * written, where, with which role, and a content hash per file so a later take-back can tell an
+     * untouched file from one you changed. Optional, so loading never marks `data.json` dirty for it.
+     */
+    installedSystems?: InstalledSystem[];
+
+    /**
+     * What you have learned in Community's Learn room (#802 FR-12): the tutorials marked done and the
+     * one opened last. Mechanical, per vault, so it follows the vault to your other devices. Optional,
+     * so loading never marks `data.json` dirty for it.
+     */
+    learnProgress?: LearnProgress;
 
     /** Community-specific settings. The gallery is fully static (GitHub-backed) — no backend. */
     communitySettings: {
@@ -395,6 +410,11 @@ export type StaticTemplateOptions = {
     template_type: "step" | "action" | "markdown" | "system";
     /** For systems: how much a newcomer takes on — shown as a badge in the gallery. */
     difficulty?: SystemDifficulty;
+    /** For systems (#799 FR-3): one line, per language. Absent → the description's first sentence. */
+    summary?: { en?: string; es?: string };
+    /** For systems (#799): the steps its canvas draws, and how many of them branch. CI checks both. */
+    steps?: number;
+    branches?: number;
 };
 
 /** A system's onboarding difficulty (shown as a gallery badge). */

@@ -16,6 +16,23 @@ export async function fetchCommunityTemplates(): Promise<StaticTemplateOptions[]
     return JSON.parse(rawList) as StaticTemplateOptions[];
 }
 
+/**
+ * Where Learn's tutorial catalog lives (#801): data on `main`, so a tutorial merged there reaches
+ * every user on their next visit, with no release. The one place the plugin names it.
+ */
+export const LEARN_CATALOG_PATH = "docs/learn/catalog.json";
+
+/** The tutorial catalog, as JSON — untrusted until `parseLearnCatalog` has read it. */
+export async function fetchLearnCatalog(): Promise<unknown> {
+    log.debug("Fetching the Learn catalog");
+    const raw = await request({
+        url: `${COMMUNITY_BASE_URL}/${LEARN_CATALOG_PATH}`,
+        method: "GET",
+        contentType: "application/json",
+    });
+    return JSON.parse(raw) as unknown;
+}
+
 export async function fetchActionTemplate(ref: string) {
     log.debug("Fetching action template", ref);
     const rawList = await request({
@@ -36,14 +53,29 @@ export async function fetchStepTemplate(ref: string) {
     return JSON.parse(rawList) as CommunityStepSettings;
 }
 
-export async function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {
+/**
+ * One GET per system per session (#799): the card draws it and the panel walks it, so both share the
+ * same fetch. A failure is forgotten at once, so *Try again* asks again.
+ */
+const systemTemplates = new Map<string, Promise<ZfTemplate>>();
+
+export function fetchSystemTemplate(ref: string): Promise<ZfTemplate> {
+    const known = systemTemplates.get(ref);
+    if (known) return known;
     log.debug("Fetching system template", ref);
-    const raw = await request({
+    const fetching = request({
         url: `${COMMUNITY_BASE_URL}${ref}`,
         method: "GET",
         contentType: "application/json",
-    });
-    return parseTemplate(raw);
+    }).then(parseTemplate);
+    systemTemplates.set(ref, fetching);
+    fetching.catch(() => systemTemplates.delete(ref));
+    return fetching;
+}
+
+/** Forget every fetched system — a test's fresh session. */
+export function forgetSystemTemplates(): void {
+    systemTemplates.clear();
 }
 
 export async function fetchMarkdownTemplate(ref: string) {

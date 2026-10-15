@@ -1,0 +1,170 @@
+@use '../utils/variables' as *;
+
+/*
+ * Community (#798, epic #797) — one view, four rooms side by side, and a camera that pans between them.
+ *
+ * The strip is a row of four rooms, each as wide as the view; the room in view is a custom property
+ * the script sets (`--zf-community-room`), turned into a translation here. The pan itself is a Web
+ * Animations `transform` on the strip — nothing here transitions, so reduced motion needs no rule of
+ * its own: the script simply does not play it. A room out of view is hidden, so it is never painted,
+ * tabbed into or read out. Every colour and space is the user's theme (§XV).
+ */
+
+.workspace-leaf-content[data-type="zettelflow-community"] .view-content.zettelkasten-flow__community-host {
+    padding: 0;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__community {
+    container: zf-community / inline-size;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ── head: what this is, and the rooms ──────────────────────────────────── */
+.zettelkasten-flow__community-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-4);
+    padding: var(--size-4-2) var(--size-4-6);
+    border-bottom: $line-quiet;
+}
+
+.zettelkasten-flow__community-title {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-weight: var(--font-semibold);
+    color: $text-plain;
+}
+
+.zettelkasten-flow__community-title-icon {
+    display: inline-flex;
+    color: $text-quiet;
+}
+
+/* The nav: a segmented control, the room in view on the plain surface that slides under it. */
+.zettelkasten-flow__community-nav {
+    position: relative;
+    display: flex;
+    gap: $space-hair;
+    margin: 0 auto;
+    padding: $space-hair;
+    border-radius: $radius-medium;
+    background-color: $surface-quiet;
+}
+
+.zettelkasten-flow__community-nav-indicator {
+    position: absolute;
+    top: $space-hair;
+    bottom: $space-hair;
+    left: 0;
+    width: var(--zf-community-ind-w, 0);
+    border-radius: $radius-small;
+    background-color: $surface-plain;
+    box-shadow: var(--shadow-s);
+    transform: translateX(var(--zf-community-ind-x, 0));
+    transform-origin: 0 50%;
+    pointer-events: none;
+
+    &.is-away {
+        visibility: hidden;
+    }
+}
+
+/* Under the nav's class too: Obsidian's own `button:not(.clickable-icon)` would otherwise paint each
+   tab as a raised button and hide the indicator sliding beneath. */
+.zettelkasten-flow__community-nav .zettelkasten-flow__community-nav-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: $space-tight;
+    height: auto;
+    padding: $space-1 var(--size-4-3);
+    border: none;
+    border-radius: $radius-small;
+    background: none;
+    box-shadow: none;
+    color: $text-quiet;
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+
+    &:hover {
+        color: $text-plain;
+    }
+
+    &.is-active {
+        color: $text-plain;
+    }
+}
+
+.zettelkasten-flow__community-nav-icon {
+    display: inline-flex;
+}
+
+.zettelkasten-flow__community-nav-count {
+    font-size: $text-small;
+    color: $text-faint;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── the rooms: one strip, the camera's track ───────────────────────────── */
+.zettelkasten-flow__community-rooms {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.zettelkasten-flow__community-strip {
+    display: flex;
+    height: 100%;
+    transform: translateX(calc(var(--zf-community-room, 0) * -100%));
+}
+
+.zettelkasten-flow__community-room {
+    flex: 0 0 100%;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
+    outline: none;
+
+    &.is-away {
+        visibility: hidden;
+    }
+
+    // A room out of view is not painted, but its CSS animations would still tick — Obsidian's own
+    // `is-loading` bar under a Systems card that has not been drawn yet, for one (#802): held still.
+    &.is-away *,
+    &.is-away *::before,
+    &.is-away *::after {
+        animation-play-state: paused;
+    }
+}
+
+.zettelkasten-flow__community-room-body {
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: var(--size-4-4) var(--size-4-6) var(--size-4-12);
+}
+
+/* ── narrow (phone, iPad portrait): icons with their names, one column per room ── */
+@container zf-community (max-width: 40rem) {
+    .zettelkasten-flow__community-head {
+        padding: var(--size-4-2) var(--size-4-3);
+    }
+
+    .zettelkasten-flow__community-title-text,
+    .zettelkasten-flow__community-nav-label {
+        display: none;
+    }
+
+    .zettelkasten-flow__community-room-body {
+        padding: var(--size-4-3) var(--size-4-3) var(--size-4-12);
+    }
+
+    .zettelkasten-flow__community-templates-list {
+        grid-template-columns: 1fr;
+    }
+}

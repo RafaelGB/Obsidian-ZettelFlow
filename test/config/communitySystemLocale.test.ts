@@ -2,25 +2,28 @@ import { describe, it, expect } from "@jest/globals";
 import en from "architecture/lang/locale/en";
 import es from "architecture/lang/locale/es";
 
+/**
+ * The words of installing a system (#214, AC-6), since #799 said in the Systems room's panel rather
+ * than a modal: the location, the button, another copy, the code it brings, and every outcome.
+ */
 const KEYS = [
-    "community_system_preview",
-    "community_system_contents",
     "community_system_install_location",
-    "community_system_install_location_desc",
-    "community_system_install_button",
-    "community_system_installed",
+    "community_install",
+    "community_install_another",
+    "community_installed_notice",
+    "community_code_brings",
+    "community_code_ack",
     "community_system_install_error",
 ];
 
-describe("community system modal i18n parity (#214, AC-6)", () => {
-    it("defines all 7 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(7);
+describe("installing a system speaks both languages (#214, #799)", () => {
+    it("defines every key in both en and es, non-empty", () => {
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {
-            expect(typeof enMap[key]).toBe("string");
+            expect({ key, en: typeof enMap[key] }).toEqual({ key, en: "string" });
             expect(enMap[key].length).toBeGreaterThan(0);
-            expect(typeof esMap[key]).toBe("string");
+            expect({ key, es: typeof esMap[key] }).toEqual({ key, es: "string" });
             expect(esMap[key].length).toBeGreaterThan(0);
         }
     });

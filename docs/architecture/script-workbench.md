@@ -15,6 +15,8 @@ beside a script). You pick:
   empty frontmatter*), and a surface that **is** handed one asks for it rather than running
   against a blank and calling that a test.
 
+![The script workbench: the kind of script, the note it runs against, and what it returned and would write, with nothing written](../resources/workbench/script-workbench.svg)
+
 Running shows what it returned, **what it would have written** as a difference, and how long it
 took. The run is recorded in the log like any other, marked as a bench run.
 

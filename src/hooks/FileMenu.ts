@@ -26,7 +26,7 @@ export class FileMenu {
             if (file instanceof TFolder) {
                 menu.addItem((item) => {
                     item
-                        .setTitle("Edit folder workflow")
+                        .setTitle(t("file_menu_edit_folder_workflow"))
                         .setIcon(RibbonIcon.ID)
                         .onClick(async () => {
                             await ObsidianConfig.openCanvasFile(file, foldersFlowsPath);
@@ -54,7 +54,7 @@ export class FileMenu {
                             .setIcon(RibbonIcon.ID)
                             .onClick(async () => {
                                 await fileService.removeStepSettings();
-                                new Notice("Step configuration removed!");
+                                new Notice(t("file_menu_step_removed"));
                             });
                     }).addItem((item) => {
                         // Copy step configuration to canvas clipboard.
@@ -63,7 +63,7 @@ export class FileMenu {
                             .setIcon(RibbonIcon.ID)
                             .onClick(async () => {
                                 canvas.clipboard.save(zettelFlowSettings);
-                                new Notice("Step configuration copied!");
+                                new Notice(t("file_menu_step_copied"));
                             });
                     });
                     menu.addItem((item) => {
@@ -91,7 +91,7 @@ export class FileMenu {
                                 .setIcon(RibbonIcon.ID)
                                 .onClick(async () => {
                                     await fileService.setZettelFlowSettings(clipboardSettings);
-                                    new Notice("Step configuration pasted!");
+                                    new Notice(t("file_menu_step_pasted"));
                                 });
                             // Clear the canvas clipboard cache.
                             canvas.flows.delete(this.plugin.settings.ribbonCanvas);

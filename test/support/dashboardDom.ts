@@ -65,6 +65,11 @@ export class DomNode {
         this.tag = tag;
     }
 
+    /** The DOM's `tagName`: upper case, as a focus check reads it (#802). */
+    get tagName(): string {
+        return this.tag.toUpperCase();
+    }
+
     get className(): string {
         return [...this.classes].join(" ");
     }
@@ -263,6 +268,10 @@ export class DomNode {
     get nextSibling(): DomNode | null {
         const siblings = this.parent?.children ?? [];
         return siblings[siblings.indexOf(this) + 1] ?? null;
+    }
+    /** Elements only, here the same thing (#803: the rows below a removed one). */
+    get nextElementSibling(): DomNode | null {
+        return this.nextSibling;
     }
     /** The DOM's `insertBefore(node, ref)`: before `ref`, or last when there is none (#686). */
     insertBefore(node: DomNode, ref: DomNode | null | undefined): DomNode {

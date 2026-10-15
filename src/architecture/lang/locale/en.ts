@@ -2507,6 +2507,7 @@ export default {
     reader_margins_large: 'Large',
     reader_justify: 'Justify',
     reader_hyphenated_as: 'Hyphenated as {0}',
+    reader_hyphenation_missing: "Justified text needs hyphenation, which this device doesn't have for {0} — reading ragged here",
     reader_type_page_view_note: 'Page view draws the page as printed; these shape the reading view.',
     reader_missing: 'This note is no longer in your vault.',
     reader_dot_label: 'Chapter {0}: {1}',

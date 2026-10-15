@@ -2506,6 +2506,7 @@ export default {
     reader_margins_large: 'Grandes',
     reader_justify: 'Justificar',
     reader_hyphenated_as: 'Separación silábica en {0}',
+    reader_hyphenation_missing: 'El texto justificado necesita separación silábica, y este dispositivo no la tiene para {0}: aquí se lee sin justificar',
     reader_type_page_view_note: 'La vista de página dibuja la página tal como se imprimió; esto da forma a la vista de lectura.',
     reader_missing: 'Esta nota ya no está en tu bóveda.',
     reader_dot_label: 'Capítulo {0}: {1}',

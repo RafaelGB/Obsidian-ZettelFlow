@@ -89,6 +89,7 @@ import { ReaderPager, stageScale, type Landing, type PageAnchor } from "./reader
 import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent } from "./readerPages";
 import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
+import { HyphenationSupport, justifyDecision } from "./readerHyphenation";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
 import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
@@ -1356,10 +1357,30 @@ export class ReaderView extends ItemView {
     private applyPrefs(): void {
         if (!this.root) return;
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
-        const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() });
+        const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() }, this.justifyHere().justified);
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
         const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet", "reader--snapshot", "reader--listening"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
+    }
+
+    /**
+     * Whether the column can be justified here (#809): only where this runtime hyphenates the column's
+     * language — the chapter's own, else the book's, else Obsidian's. Asked once per language.
+     */
+    private justifyHere(): ReturnType<typeof justifyDecision> {
+        const ui = getLanguage();
+        const lang = this.pageLanguage ?? ui;
+        // The reader's own window's document: a pop-out has its own (#809 FR-1).
+        const hyphenates = this.prefs.justify ? HyphenationSupport.getInstance().hyphenates(lang, this.root?.doc) : null;
+        return justifyDecision(this.prefs.justify, hyphenates, languageName(lang, ui));
+    }
+
+    /** A chapter in another language may justify where the last did not, or the other way (#809 FR-6). */
+    private rejustify(): void {
+        const root = this.root;
+        if (!root || !this.prefs.justify) return;
+        if (root.hasClass(c("reader--justify")) === this.justifyHere().justified) return;
+        this.holdReadingLine(() => this.applyPrefs());
     }
 
     private savePrefs(next: ReaderPrefs): void {
@@ -2911,6 +2932,7 @@ export class ReaderView extends ItemView {
             // The column says what it is written in, so it hyphenates by the book's rules (#757 FR-6).
             this.pageLanguage = readingLanguage({ format: doc.format, bookLanguage: doc.language, chapterLanguage: drawn.language });
             if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
+            this.rejustify();
             this.chapterWords = drawn.words;
             this.seenWords.set(index, drawn.words);
             const named = doc.chapters[index];
@@ -4222,7 +4244,8 @@ export class ReaderView extends ItemView {
         // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); Alongside lies beside
         // the column (#754 FR-14); the other panels are a card over the page.
         const asSheet = this.panel !== null && this.panelIsSheet();
-        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" || this.panel === "recall" ? "side" : "card";
+        // Type lies beside the column too (#809 FR-11): the page reflows next to it, never under it.
+        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" || this.panel === "recall" || this.panel === "type" ? "side" : "card";
         // Alongside, still open in the same shape, moves in place: its cards follow the reading, never
         // a redraw (#754 FR-19).
         if (this.panel === "context" && shape === this.panelShape && this.alongside?.isMounted(host)) {
@@ -4244,6 +4267,8 @@ export class ReaderView extends ItemView {
         this.recall?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
+        // Type drawn again after a pick keeps where you had scrolled it to (#809 FR-14).
+        const typeScroll = this.panel === "type" && this.panelShape === shape ? host.scrollTop : 0;
         host.empty();
         this.panelScope?.unload();
         const scope = new Component();
@@ -4271,6 +4296,7 @@ export class ReaderView extends ItemView {
             // only a layout you pick is kept as your choice.
             const shown = this.runMode() ? { ...this.prefs, layout: this.runLayout() } : this.prefs;
             renderTypePanel(host, shown, scope, (next) => this.savePrefs(next.layout === shown.layout ? { ...next, layout: this.prefs.layout } : next), markers, { ...this.typeContext(), close: { label: "reader_close_type", onClose: () => this.closeFromPanel(), scope } });
+            if (typeScroll) host.scrollTop = typeScroll;
         }
         else if (this.panel === "layers") this.renderLayers(host, scope, markers);
         else if (this.panel === "recall") this.recall?.mount(host, scope, { label: "reader_close_recall", onClose: () => this.closeFromPanel(), scope });
@@ -4653,10 +4679,12 @@ export class ReaderView extends ItemView {
 
     /** What the Type panel says besides its rows (#757): the language of the hyphens, Page view's note. */
     private typeContext() {
-        const ui = getLanguage();
         const run = this.runMode() ? this.pageRun : null;
+        const { hint } = this.justifyHere();
         return {
-            hyphenatedAs: languageName(this.pageLanguage ?? ui, ui),
+            // What the hyphens do here (#809 FR-8): said only when the probe answered.
+            ...(hint?.kind === "hyphenated" ? { hyphenatedAs: hint.language } : {}),
+            ...(hint?.kind === "missing" ? { hyphenationMissing: hint.language } : {}),
             pageView: Boolean(this.sourcePath && this.sourceView === "page" && this.source?.hasPageView),
             // Page view's own rows (#767 FR-13): shown in Page view only.
             ...(run

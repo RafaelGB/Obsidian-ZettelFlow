@@ -1581,7 +1581,12 @@ theme), **Font** (your theme's own, or a serif), **Size**, then the finer type �
 name, and the marker under your choice slides to the next one you pick. Every change applies at
 once, so you choose by looking, and the choices are kept for every book, next time too.
 
-![Type you can tune: the Type panel with its rows, Line spacing, Width, Margins and Justify with "Hyphenated as Spanish" under it; beside it the same paragraph tight and airy, narrow and wide, ragged and justified with its Spanish words broken at Spanish syllables](../resources/reader/typography.svg)
+**The panel lies beside the page, never over it.** On a wide pane it docks on the right, where
+Alongside sits, and the column makes room with the line you were reading kept where it was — so you
+see what *Size*, *Spacing* or *Width* do to the very page you are reading. On a narrow desktop pane
+it lies over the page's edge, as Alongside does; on an iPad in portrait it is the bottom sheet.
+
+![Type you can tune: the Type panel docked beside the page with its rows, Line spacing, Width, Margins and Justify; on the iPad, Justify says "Hyphenated as Spanish" and the column is justified with its words broken at Spanish syllables; on the desktop, where no word can break, it says the text reads ragged here, and the column is set ragged instead of opening rivers](../resources/reader/typography.svg)
 
 | Row | The three steps | The default |
 |---|---|---|
@@ -1599,14 +1604,19 @@ once, so you choose by looking, and the choices are kept for every book, next ti
   without a thumb on a word. In *Page* and *Spread* they are also the air between the pages, and
   Width is the pages' line.
 - **Justify** evens the right edge and breaks long words with hyphens — in **the book's own
-  language**. The column declares what you are reading: an EPUB's language (its package, or a
+  language**, and **only where words can break**. The column declares what you are reading: an EPUB's language (its package, or a
   chapter's or a passage's own `lang` / `xml:lang`), a PDF's when it declares one. A PDF that
   declares none, and a note reading, keep Obsidian's language, as before. Under the switch the panel
   says, quietly, which language the words are hyphenated in (*Hyphenated as Spanish*), so a wrong
-  guess can be seen. The hyphenation itself is the platform's: a language it has no dictionary for
-  is justified without hyphens. The iPad and macOS app hyphenate. The Windows desktop app ships
-  without hyphenation dictionaries (measured in Obsidian 1.14.4), so there the text is justified
-  but no word is broken.
+  guess can be seen. The hyphenation itself is the platform's, and a justified column with no word
+  broken opens wide gaps between its words — so the Reader asks this device, once per language, and
+  where it cannot hyphenate the language it **sets the text ragged** and says so: *Justified text
+  needs hyphenation, which this device doesn't have for Spanish — reading ragged here*. Your choice
+  is not changed: the same setting justifies on a device that can. The iPad and macOS app hyphenate;
+  the Windows desktop app ships without hyphenation dictionaries (measured in Obsidian 1.14.4), so
+  there it reads ragged. A device that cannot be asked justifies as before and says nothing.
+- **No line alone.** In *Page* and *Spread* a paragraph never leaves a single line at the foot of a
+  page or the head of the next.
 - **Your line stays.** A change lays the page out once, puts the line you were reading back where
   your eyes are, and the lines around it settle in (a 120 ms fade from 0.85). Width, margins and
   spacing are never animated as such. Under reduced motion it is all instant, and the line is still

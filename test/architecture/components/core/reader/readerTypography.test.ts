@@ -12,6 +12,7 @@ import { MOTION } from "architecture/components/core/reader/readerMotion";
 import { scrollTopFor } from "architecture/components/core/reader/readerPages";
 import * as settleModule from "architecture/components/core/reader/readerSettle";
 import type { HighlightStore } from "architecture/components/core/reader/readerHighlights";
+import { HyphenationSupport } from "architecture/components/core/reader/readerHyphenation";
 
 /**
  * **Typography you can tune** (#757, epic #739): the rows of the Type panel, the language the column
@@ -192,6 +193,7 @@ describe("typography you can tune (#757)", () => {
         });
 
         it("names the language the words are hyphenated in, only while Justify is on (FR-7)", async () => {
+            HyphenationSupport.reset(() => true);
             const book = await openSource("Books/niebla.epub", { "Books/niebla.epub": NIEBLA });
             typeButton(book.content).click();
             expect(hint(book.content)).toEqual([]);
@@ -203,6 +205,32 @@ describe("typography you can tune (#757)", () => {
             const notes = await openNotes({ justify: true });
             typeButton(notes.content).click();
             expect(hint(notes.content)).toEqual(["Hyphenated as English"]);
+            HyphenationSupport.reset();
+        });
+
+        it("reads ragged where this device cannot hyphenate, and says so — the preference kept (#809 FR-4, FR-5, FR-8)", async () => {
+            HyphenationSupport.reset((_doc, lang) => lang !== "es");
+            const book = await openSource("Books/niebla.epub", { "Books/niebla.epub": NIEBLA });
+            const root = book.content.oneByClass("reader");
+            typeButton(book.content).click();
+            option(book.content, "Justify").click();
+            expect(book.plugin.settings.readerPrefs.justify).toBe(true);
+            expect(root.hasClass("zettelkasten-flow__reader--justify")).toBe(false);
+            expect(hint(book.content)).toEqual(["Justified text needs hyphenation, which this device doesn't have for Spanish — reading ragged here"]);
+            // A note reading in English, which this device does hyphenate, is justified.
+            const notes = await openNotes({ justify: true });
+            expect(notes.content.oneByClass("reader").hasClass("zettelkasten-flow__reader--justify")).toBe(true);
+            HyphenationSupport.reset();
+        });
+
+        it("claims nothing and justifies as before when the device cannot be asked (#809 FR-7)", async () => {
+            HyphenationSupport.reset(() => null);
+            const book = await openSource("Books/niebla.epub", { "Books/niebla.epub": NIEBLA });
+            typeButton(book.content).click();
+            option(book.content, "Justify").click();
+            expect(book.content.oneByClass("reader").hasClass("zettelkasten-flow__reader--justify")).toBe(true);
+            expect(hint(book.content)).toEqual([]);
+            HyphenationSupport.reset();
         });
 
         it("says, in a PDF's Page view, that these rows shape the reading view (the empty state)", async () => {

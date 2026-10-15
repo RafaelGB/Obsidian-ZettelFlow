@@ -2919,6 +2919,14 @@ body.zettelkasten-flow__reader-covers-app {
         h4 {
             break-after: avoid;
         }
+
+        /* No line alone at the foot or the head of a page (#809 D1). */
+        p,
+        li,
+        blockquote {
+            widows: 2;
+            orphans: 2;
+        }
     }
 
     .zettelkasten-flow__reader-fit {
@@ -3612,4 +3620,22 @@ button.zettelkasten-flow__reader-hl-layer {
     max-height: 8rem;
     object-fit: contain;
     border-radius: var(--radius-s);
+}
+
+/* Whether this runtime hyphenates a language (#809 FR-1): one long word in a narrow box, measured with
+   `hyphens: auto` and with `manual`, off-screen and unseen, gone in the same task. */
+.zettelkasten-flow__reader-hyphen-probe {
+    position: absolute;
+    top: 0;
+    left: calc(var(--size-4-16) * -100);
+    width: var(--size-4-16);
+    visibility: hidden;
+    hyphens: auto;
+    overflow-wrap: normal;
+    word-break: normal;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-hyphen-probe--manual {
+    hyphens: manual;
 }

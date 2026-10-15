@@ -388,6 +388,31 @@ describe("Alongside: your vault beside the page (#754)", () => {
         expect(Math.abs(box.top + share * box.height - line)).toBeLessThan(1);
     });
 
+    it("docks Type beside the column too, never a card over it, the reading line kept (#809 FR-11, FR-13)", async () => {
+        const { content, stage, root } = await open();
+        stage.scrollTop = 120;
+        const paragraphs = layOut(content, stage, root);
+        const line = 800 / 3;
+        const at = paragraphs.findIndex((p) => p.getBoundingClientRect().top + p.getBoundingClientRect().height > line);
+        const share = (line - paragraphs[at].getBoundingClientRect().top) / paragraphs[at].getBoundingClientRect().height;
+        content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Type")!.click();
+        await flush();
+        expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(true);
+        expect(root.hasClass("zettelkasten-flow__reader--alongside")).toBe(true);
+        const box = paragraphs[at].getBoundingClientRect();
+        expect(Math.abs(box.top + share * box.height - line)).toBeLessThan(1);
+    });
+
+    it("Type rises as the sheet in portrait on an iPad (#809 FR-12)", async () => {
+        await withPlatform(IPAD, async () => {
+            const { content } = await open({}, { width: 820, height: 1180 });
+            content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Type")!.click();
+            await flush();
+            expect(panel(content).hasClass("zettelkasten-flow__reader-panel--sheet")).toBe(true);
+            expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(false);
+        });
+    });
+
     it("rises as the sheet in portrait on an iPad (FR-14)", async () => {
         await withPlatform(IPAD, async () => {
             const { content } = await open({}, { width: 820, height: 1180 });

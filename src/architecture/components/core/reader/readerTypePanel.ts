@@ -99,6 +99,8 @@ export interface PageViewControls {
 export interface TypePanelContext {
     /** The name of the language the words are hyphenated in, said while *Justify* is on (FR-7). */
     hyphenatedAs?: string;
+    /** The language this device cannot hyphenate, said while *Justify* is on (#809 FR-8): read ragged. */
+    hyphenationMissing?: string;
     /** A PDF in Page view: drawn as printed, so the rows shape only the reading view (the empty state). */
     pageView?: boolean;
     /** Page view's group, shown in Page view only — in Reading view none of it is (#767 FR-13). */
@@ -271,7 +273,9 @@ export function renderTypePanel(
     segmentedRow(host, { id: "margins", label: "reader_margins", options: READER_MARGINS, current: prefs.margins, key: (o) => MARGINS_KEY[o], onPick: (margins) => onPick({ ...prefs, margins }) }, scope, before);
     toggleRow(host, "align-justify", "reader_justify", prefs.justify, scope, () => onPick({ ...prefs, justify: !prefs.justify }));
     // Quietly, which language the words break by, so a wrong guess can be seen (FR-7).
-    if (prefs.justify && context.hyphenatedAs) host.createDiv({ cls: c("reader-type-hint"), text: t("reader_hyphenated_as", context.hyphenatedAs) });
+    // What the hyphens do here (#809 FR-8): the language they follow, or why the column reads ragged.
+    if (prefs.justify && context.hyphenationMissing) host.createDiv({ cls: c("reader-type-hint"), text: t("reader_hyphenation_missing", context.hyphenationMissing) });
+    else if (prefs.justify && context.hyphenatedAs) host.createDiv({ cls: c("reader-type-hint"), text: t("reader_hyphenated_as", context.hyphenatedAs) });
     toggleRow(host, "focus", "reader_focus", prefs.focus, scope, () => onPick({ ...prefs, focus: !prefs.focus }));
     toggleRow(host, "hourglass", "reader_time_left_toggle", prefs.timeLeft, scope, () => onPick({ ...prefs, timeLeft: !prefs.timeLeft }));
     // What survived? (#755 FR-8): the same switch as Settings → Reading and the leaf's own.

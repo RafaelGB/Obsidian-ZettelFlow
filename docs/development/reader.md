@@ -168,6 +168,25 @@ a longer one — a book of thirty chapters, a paper of sixty pages — has the b
 sits over the column: while Alongside lies beside the page, the top line ends where the column ends,
 so the × above the panel is the panel's, never the Reader's.
 
+### The book at a glance
+
+![The book at a glance: the bar's line over the whole of a book — faint ticks where each chapter begins, where you marked something shaded in its meaning's colour, a dot for each bookmark and where you are; a finger dragging along it with the chapter's name above, and the page under it not moving until it lets go](../resources/reader/scrubber.svg)
+
+In a book, a paper or an article the bar's line is the **whole book**, not the chapter. It shows,
+quietly and never as a number:
+
+- **where each chapter begins** — a faint tick, and none in a paper, which is counted in pages;
+- **where you marked something**, shaded in the colour of the meaning you used most there, and
+  stronger where you marked more — only the [layers](#layers-and-read-it-clean) you are showing;
+- **your bookmarks**, a small dot each, and **where you are**.
+
+**Hover** it and it says which chapter is under the pointer, and whether you marked something there
+(*Your marks are here*). **Drag** along it and the name follows your finger while the page stays put;
+**let go** — or **click** — and the camera travels there, the way a Contents jump does, with its way
+back in *Where you've been*. Let go in the chapter you are in, or press **Esc**, and nothing moves.
+With the line focused, **←** **→** step a chapter and **Home** **End** go to the ends; they never turn
+the page. A reading of notes keeps its progress line.
+
 A **hairline** across the very top fills as you scroll through the chapter. At the end of it, the
 way on lights up: **Next · *its name* · *how long it is***.
 

@@ -898,7 +898,8 @@ button.zettelkasten-flow__reader-next-button {
         display: none;
     }
 
-    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-progress {
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-progress,
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-scrubber {
         width: var(--size-4-16);
     }
 }
@@ -2195,6 +2196,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--idea,
 .zettelkasten-flow__reader-hl-item--idea,
 .zettelkasten-flow__reader-hl-swatch--idea,
+.zettelkasten-flow__reader-scrubber-band--idea,
 .zettelkasten-flow__reader-ink--hl-idea {
     --zf-ink: color-mix(in srgb, var(--color-yellow) 38%, transparent);
     --zf-ink-solid: var(--color-yellow);
@@ -2203,6 +2205,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--question,
 .zettelkasten-flow__reader-hl-item--question,
 .zettelkasten-flow__reader-hl-swatch--question,
+.zettelkasten-flow__reader-scrubber-band--question,
 .zettelkasten-flow__reader-ink--hl-question {
     --zf-ink: color-mix(in srgb, var(--color-blue) 32%, transparent);
     --zf-ink-solid: var(--color-blue);
@@ -2211,6 +2214,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--quote,
 .zettelkasten-flow__reader-hl-item--quote,
 .zettelkasten-flow__reader-hl-swatch--quote,
+.zettelkasten-flow__reader-scrubber-band--quote,
 .zettelkasten-flow__reader-ink--hl-quote {
     --zf-ink: color-mix(in srgb, var(--color-green) 32%, transparent);
     --zf-ink-solid: var(--color-green);
@@ -2219,6 +2223,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--discuss,
 .zettelkasten-flow__reader-hl-item--discuss,
 .zettelkasten-flow__reader-hl-swatch--discuss,
+.zettelkasten-flow__reader-scrubber-band--discuss,
 .zettelkasten-flow__reader-ink--hl-discuss {
     --zf-ink: color-mix(in srgb, var(--color-purple) 32%, transparent);
     --zf-ink-solid: var(--color-purple);
@@ -3857,4 +3862,145 @@ button.zettelkasten-flow__reader-hl-layer {
 .zettelkasten-flow__reader-panel .zettelkasten-flow__reader-search-input {
     flex: 1;
     min-width: 0;
+}
+
+/*
+ * ── The book at a glance (#813) ─────────────────────────────────────────────────────────────────
+ * The bar's line over the whole book: where each chapter begins, where you marked something (in its
+ * meaning's colour, quieter where you marked less), your bookmarks, where you are. Positions are
+ * custom properties set by the slider; nothing here counts anything at you.
+ */
+.zettelkasten-flow__reader-scrubber {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 10rem;
+    height: var(--size-4-8);
+    cursor: pointer;
+    touch-action: none;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-scrubber:focus-visible {
+    outline: var(--size-2-1) solid var(--interactive-accent);
+    outline-offset: var(--size-2-1);
+}
+
+.zettelkasten-flow__reader-scrubber-track {
+    position: relative;
+    width: 100%;
+    height: var(--size-4-1);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--reader-fg) 12%, transparent);
+}
+
+.zettelkasten-flow__reader-scrubber-layers {
+    position: absolute;
+    inset: 0;
+}
+
+.zettelkasten-flow__reader-scrubber-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--zf-at, 0) * 100%);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+}
+
+.zettelkasten-flow__reader-scrubber-tick {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--border-width);
+    height: var(--size-4-2);
+    translate: -50% -50%;
+    background-color: var(--reader-muted);
+    opacity: 0.3;
+}
+
+.zettelkasten-flow__reader-scrubber-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: calc(var(--zf-span, 0) * 100%);
+    background-color: var(--zf-ink-solid, var(--interactive-accent));
+    opacity: calc(0.25 + var(--zf-density, 0) * 0.55);
+}
+
+.zettelkasten-flow__reader-scrubber-bookmark {
+    position: absolute;
+    top: calc(-1 * var(--size-4-2));
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--size-4-1);
+    height: var(--size-4-1);
+    translate: -50% 0;
+    border-radius: 50%;
+    background-color: var(--text-accent);
+}
+
+.zettelkasten-flow__reader-scrubber-thumb,
+.zettelkasten-flow__reader-scrubber-ghost {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    translate: -50% -50%;
+    border-radius: 50%;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* Where a drag would take you: the page does not move until you let go (FR-10). */
+.zettelkasten-flow__reader-scrubber-ghost {
+    width: var(--size-4-1);
+    height: var(--size-4-4);
+    border-radius: var(--radius-s);
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__reader-scrubber--dragging .zettelkasten-flow__reader-scrubber-thumb {
+    opacity: 0.4;
+}
+
+/* The chapter under the pointer, in words: its name, and whether you marked something there. */
+.zettelkasten-flow__reader-scrubber-tip {
+    position: absolute;
+    bottom: calc(100% + var(--size-4-2));
+    left: calc(var(--zf-at, 0) * 100%);
+    translate: -50% 0;
+    max-width: 18rem;
+    padding: var(--size-4-1) var(--size-4-2);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    animation: zf-reader-scrub-tip $motion-fast $ease-out backwards;
+}
+
+.zettelkasten-flow__reader-scrubber-tip-marks {
+    color: var(--reader-muted);
+}
+
+@keyframes zf-reader-scrub-tip {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* The chapter's name is simply there. */
+    .zettelkasten-flow__reader-scrubber-tip {
+        animation: none;
+    }
 }

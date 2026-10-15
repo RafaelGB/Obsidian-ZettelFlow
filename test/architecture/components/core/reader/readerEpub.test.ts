@@ -422,6 +422,34 @@ describe("a book opens on its text, and a cover is one page (#808)", () => {
         expect(marked[2].getAttribute("aria-label")).toContain("You marked something here");
     });
 
+    it("draws the bar's line as a slider over the whole book, said in words (#813 FR-1, FR-3, FR-17)", async () => {
+        const m = await read(BOOK, { chapter: 1 });
+        const slider = m.content.oneByClass("reader-scrubber");
+        expect(slider.hasClass("zettelkasten-flow__reader-hidden")).toBe(false);
+        expect(m.content.oneByClass("reader-progress").hasClass("zettelkasten-flow__reader-hidden")).toBe(true);
+        expect(slider.getAttribute("role")).toBe("slider");
+        expect(slider.getAttribute("aria-valuenow")).toBe("2");
+        expect(slider.getAttribute("aria-valuemax")).toBe("3");
+        expect(slider.getAttribute("aria-valuetext")).toBe("2 · Attention and effort");
+        // Named by a label of its own: no aria-label for Obsidian to draw a second tooltip from.
+        expect(slider.getAttribute("aria-label")).toBeNull();
+        expect(slider.byClass("reader-scrubber-tick")).toHaveLength(2);
+        expect(/\d/.test(slider.byClass("reader-scrubber-tip").map((el) => el.textContent).join(""))).toBe(false);
+    });
+
+    it("steps a chapter with the arrows on the slider, and never turns the page (#813 FR-18)", async () => {
+        const m = await read(BOOK, { chapter: 0 });
+        const slider = m.content.oneByClass("reader-scrubber");
+        const evt = press({ view: m.view } as any, "ArrowRight", { target: slider });
+        expect(evt.defaultPrevented).toBe(true);
+        await settle(() => (m.view as any).index === 1);
+        expect((m.view as any).index).toBe(1);
+        expect((m.view as any).trail.list().map((e: any) => e.reason)).toEqual(["scrubber"]);
+        press({ view: m.view } as any, "End", { target: slider });
+        await settle(() => (m.view as any).index === 2);
+        expect((m.view as any).index).toBe(2);
+    });
+
     it("a book that names no start opens on chapter 0, as before", async () => {
         expect(at(await read(BOOK))).toBe(0);
     });

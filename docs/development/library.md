@@ -310,6 +310,14 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
 an iPad (#767):
 
+- **The view it opens in.** A paper you have never turned Page view on or off for opens in the view
+  it reads best in: a form, a poster or a page of figures — where most of what its first pages hold
+  are short fragments, or there is little text at all — opens **as printed**; prose opens reflowed.
+  The Reader decides from the text of the first three pages, once per copy of the file (a new copy is
+  sampled again), and keeps it beside the paper's place — the PDF itself is never written. **The view
+  you choose wins from then on**: turn Page view on or off (**V**, or its button) and the paper opens
+  that way next time. A tab you left open opens as you left it.
+
 - **Zoom.** It opens at **Fit width**. **Ctrl/⌘ + wheel**, a trackpad pinch, a two-finger pinch on
   touch, **Ctrl/⌘ +** and **Ctrl/⌘ −** zoom from 50 % to 400 %; **Ctrl/⌘ 0**, the level in the bar
   and a double tap go back to **Fit width** (a double tap at Fit width goes to twice it). The page grows

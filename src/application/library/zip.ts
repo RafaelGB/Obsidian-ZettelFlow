@@ -113,6 +113,15 @@ export class ZipArchive {
         return this.byName.has(name);
     }
 
+    /**
+     * How large `name` is once unpacked, from the archive's own directory — nothing is inflated
+     * (#813 decision 1). `null` when the archive has no such entry.
+     */
+    size(name: string): number | null {
+        const entry = this.byName.get(name) ?? this.byName.get(decodeName(name));
+        return entry ? entry.size : null;
+    }
+
     /** The bytes of `name`, or `null` when the archive has no such entry. */
     async bytes(name: string): Promise<Uint8Array | null> {
         const entry = this.byName.get(name) ?? this.byName.get(decodeName(name));

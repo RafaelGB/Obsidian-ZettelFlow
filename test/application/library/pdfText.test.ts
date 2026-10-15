@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { pageText, reflowPage, runOf, type TextRun } from "application/library/pdfText";
+import { FORM_FRAGMENT_SHARE, FRAGMENT_WORDS, MIN_SAMPLE_BLOCKS, SPARSE_PAGE_WORDS, pageText, reflowPage, runOf, suggestPdfView, type TextRun } from "application/library/pdfText";
 
 const run = (str: string, x: number, y: number, size = 10, width = str.length * size * 0.5): TextRun => ({ str, x, y, size, width });
 
@@ -62,5 +62,36 @@ describe("a PDF page read back as paragraphs (#681)", () => {
 
     it("reads nothing off an empty page", () => {
         expect(reflowPage([])).toEqual([]);
+    });
+});
+
+describe("the view a PDF reads best in (#813 FR-20, FR-21)", () => {
+    const para = (n: number) => ({ kind: "paragraph" as const, text: Array.from({ length: n }, (_, i) => `word${i}`).join(" ") });
+
+    it("keeps a form as printed: most of its blocks are fragments", () => {
+        const form = [para(3), para(2), para(4), para(1), para(40), para(2), para(5), para(3)];
+        expect(suggestPdfView([form, form])).toBe("page");
+    });
+
+    it("keeps a page of figures as printed: little text on it", () => {
+        const figures = [para(12), para(8), para(10), para(9)];
+        expect(suggestPdfView([figures, figures])).toBe("page");
+    });
+
+    it("reflows a sample too small to tell, as before", () => {
+        expect(suggestPdfView([[para(3), para(2)], [para(1)]])).toBe("reading");
+    });
+
+    it("reflows prose", () => {
+        const prose = [para(80), para(95), para(60), para(4)];
+        expect(suggestPdfView([prose, prose, prose])).toBe("reading");
+    });
+
+    it("reflows what it could not sample, as before, and always answers the same", () => {
+        expect(suggestPdfView([])).toBe("reading");
+        expect(suggestPdfView([[]])).toBe("reading");
+        const pages = [[para(3), para(50)], [para(70)]];
+        expect(suggestPdfView(pages)).toBe(suggestPdfView(pages));
+        expect([FRAGMENT_WORDS, FORM_FRAGMENT_SHARE, SPARSE_PAGE_WORDS, MIN_SAMPLE_BLOCKS]).toEqual([6, 0.5, 60, 8]);
     });
 });

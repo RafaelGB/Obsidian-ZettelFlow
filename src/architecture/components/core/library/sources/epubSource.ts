@@ -82,6 +82,8 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
         label: titles[i] ?? t(wholly ? "reader_source_page" : "reader_source_chapter", String(i + 1)),
         key: item.href,
         ...(titles[i] ? {} : { untitled: true as const }),
+        // Its length beside the others, from the archive's own directory (#813 FR-2): nothing inflated.
+        ...(book.archive.size(item.href) ? { weight: book.archive.size(item.href)! } : {}),
         ...(designed[i] ? { designed: true as const } : {}),
     }));
     const pagesOf = designed.some(Boolean) ? designedPages(file, book, spine.map((item) => item.href)) : null;

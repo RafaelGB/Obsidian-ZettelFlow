@@ -66,7 +66,7 @@ export function noteExcerpt(target: NoteNode, max = 1200): string | null {
  * What took you away from a place (#761 FR-6): a link in the book, a Contents entry, a search hit,
  * *Go to note* in a footnote, a bookmark, or a passage opened from Think or *This note*.
  */
-export const TRAIL_REASONS = ["link", "contents", "search", "note", "bookmark", "passage"] as const;
+export const TRAIL_REASONS = ["link", "contents", "search", "note", "bookmark", "passage", "scrubber"] as const;
 export type TrailReason = (typeof TRAIL_REASONS)[number];
 
 /** How many places the trail keeps; the oldest is forgotten first (FR-9). */

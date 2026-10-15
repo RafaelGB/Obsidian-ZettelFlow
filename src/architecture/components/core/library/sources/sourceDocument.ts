@@ -38,6 +38,11 @@ export interface SourceChapter {
     key?: string;
     /** A PDF page's print label, when the paper gives its pages labels (#751 FR-3). */
     page?: string;
+    /**
+     * How long the chapter is, beside the others (#813 FR-2): an EPUB spine item's unpacked size, an
+     * article section's length. Absent: as long as the average.
+     */
+    weight?: number;
     /** The book's contents never name it (#808 FR-11): its label is only *Chapter n*. */
     untitled?: true;
     /**
@@ -155,6 +160,8 @@ export interface SourceDocument {
     imageOnly: boolean;
     /** Whether the source has a page layout worth keeping: PDFs do, EPUBs reflow by nature. */
     hasPageView: boolean;
+    /** The view a PDF reads best in, read off its first pages (#813 FR-20, FR-21). */
+    suggestedView?: SourceView;
     /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
     direction?: "ltr" | "rtl";
     /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */

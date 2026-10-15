@@ -71,7 +71,9 @@ import {
     keptScroll,
     rememberPageView,
     rememberSourceBookmarks,
+    firstSourceView,
     rememberSourceFacts,
+    rememberSourceView,
     rememberSourcePlace,
     rememberSourceScroll,
     sourceBookmarks,
@@ -80,7 +82,7 @@ import {
 } from "./readerSource";
 import { resumeScroll } from "application/library/sourceMeta";
 import { openSourceDocument, type SourceChapter, type SourceDocument, type SourceView } from "architecture/components/core/library/sources/sourceDocument";
-import { isInk, type Thought, type ThoughtLocator } from "application/thinking/thought";
+import { isHighlight, isInk, type Thought, type ThoughtLocator } from "application/thinking/thought";
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
@@ -91,6 +93,7 @@ import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
 import { HyphenationSupport, justifyDecision } from "./readerHyphenation";
 import { chapterState, kickerTitle, screenPart, showDots, type ChapterState } from "./readerProgress";
+import { ReaderScrubber, scrubberModel } from "./readerScrubber";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
 import { panelAction, panelClose, panelHead, type PanelClose } from "./readerPanelHead";
@@ -300,6 +303,7 @@ const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
     note: "reader_trail_note",
     bookmark: "reader_trail_bookmark",
     passage: "reader_trail_passage",
+    scrubber: "reader_trail_scrubber",
 };
 
 /** How long the *not found in this edition* line stays before it leaves (#751 FR-14). */
@@ -465,6 +469,11 @@ export class ReaderView extends ItemView {
     private panelShape: "sheet" | "side" | "card" | null = null;
     /** Which panel the drawer holds now (#812 FR-5): a different one asked for is a swap, not an arrival. */
     private panelShown: Panel = null;
+    /** The bar's line over the whole book (#813): a book's, a paper's, an article's — not a path's. */
+    private scrubber: ReaderScrubber | null = null;
+    /** The highlights the slider shows, read once per book and again when one changes (#813 FR-4). */
+    private scrubMarks: Thought[] = [];
+    private scrubSignature = "";
     /** Where you marked something in the book open in Contents (#812 FR-14), read as Contents opened. */
     private contentsMarks: { path: string; at: Set<number> } | null = null;
     /** Alongside's leaving slide, when it is playing. */
@@ -770,7 +779,8 @@ export class ReaderView extends ItemView {
                 ...base,
                 source: this.sourcePath,
                 chapter: this.index,
-                ...(this.sourceView === "page" ? { layout: "page" } : {}),
+                // The view is the tab's, either way (#813 FR-23): a restored tab opens as it was left.
+                ...(this.source?.hasPageView ? { layout: this.sourceView } : {}),
                 ...(sides ? { restore: sides } : {}),
                 ...(this.back ? { back: this.back } : {}),
             };
@@ -806,7 +816,8 @@ export class ReaderView extends ItemView {
             const passage = (Boolean(parsed.highlight) || Boolean(place)) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
             const before = this.index;
             // No chapter asked for (#808 FR-2a): a first reading, which opens where the text begins.
-            await this.readSource(parsed.source, parsed.chapter, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
+            // The view the tab or the link says (#813 FR-23); none: the paper's own first view.
+            await this.readSource(parsed.source, parsed.chapter, parsed.layout, parsed.highlight, place);
             if (!this.els) return;
             // Think's *Claim* (#762 FR-1): the sheet, once the passage is read — never a second sheet in Think.
             if (parsed.claimFrom) void this.claimFromId(parsed.claimFrom);
@@ -870,7 +881,7 @@ export class ReaderView extends ItemView {
      * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
      * Library. A highlight a deep link names is landed on, whichever page it is on.
      */
-    private async readSource(path: string, chapter: number | undefined, view: SourceView, highlight?: string, place: PassagePlace | null = null): Promise<void> {
+    private async readSource(path: string, chapter: number | undefined, view: SourceView | undefined, highlight?: string, place: PassagePlace | null = null): Promise<void> {
         const fresh = path !== this.sourcePath;
         if (fresh) {
             this.leaveSource();
@@ -907,7 +918,9 @@ export class ReaderView extends ItemView {
         this.name = undefined;
         this.kind = "around";
         this.paths = undefined;
-        this.sourceView = view;
+        // A view asked for is taken; none keeps the open paper's, and a new one decides below (#813).
+        if (view) this.sourceView = view;
+        else if (fresh) this.sourceView = "reading";
         this.index = Math.max(0, chapter ?? 0);
         this.startFragment = null;
         if (!this.source) {
@@ -933,6 +946,8 @@ export class ReaderView extends ItemView {
                 this.source = doc;
                 this.sourceFailed = false;
                 this.path = sourceReading(doc);
+                // The first view (#813 FR-20 – FR-25): asked for, else yours, else what its pages suggest.
+                if (!view) this.sourceView = firstSourceView(doc, sourceMetaOf(this.plugin, path));
                 rememberSourceFacts(this.app, this.plugin, doc);
             } catch (error) {
                 log.error(`[Reader] could not open ${path}: ${error instanceof Error ? error.message : String(error)}`);
@@ -956,6 +971,51 @@ export class ReaderView extends ItemView {
         // Opened somewhere — a resume, a deep link, a passage — never on a leaf (#755 FR-2.1).
         this.pause = null;
         if (fresh) void this.readSurvivedMarks();
+        if (fresh) {
+            this.scrubMarks = [];
+            this.scrubSignature = "";
+            void this.readScrubMarks();
+        }
+    }
+
+    /** The book's highlights for its line (#813 FR-4): read once per book, again when one changes. */
+    private async readScrubMarks(): Promise<void> {
+        const path = this.sourcePath;
+        if (!path) return;
+        try {
+            const thoughts = await (this.highlightDeps.store ?? ThoughtStore.getInstance()).highlightsAbout(path);
+            if (this.sourcePath !== path) return;
+            this.scrubMarks = thoughts.filter((thought) => thought.locator && isHighlight(thought));
+        } catch (error) {
+            log.debug(`[Reader] no marks for the book's line: ${String(error)}`);
+            this.scrubMarks = [];
+        }
+        this.scrubSignature = "";
+        this.buildScrubber();
+    }
+
+    /**
+     * The book's line (#813 FR-2 – FR-8), drawn again only when what it shows changed: its chapters,
+     * the marks in the layers shown, its bookmarks. Never per frame.
+     */
+    private buildScrubber(): void {
+        const doc = this.source;
+        const path = this.sourcePath;
+        if (!doc || !path || !this.scrubber) return;
+        const marks = this.scrubMarks.filter((thought) => this.layerView.shows(thought)).map((thought) => ({ at: thought.locator!.at, ...(thought.meaning ? { meaning: thought.meaning } : {}) }));
+        const bookmarks = sourceBookmarks(this.plugin, path).map((mark) => ({ chapter: mark.chapter }));
+        const signature = `${path}|${doc.chapters.length}|${marks.map((mark) => `${mark.at}${mark.meaning ?? ""}`).join(",")}|${bookmarks.map((mark) => mark.chapter).join(",")}`;
+        if (signature === this.scrubSignature) return;
+        this.scrubSignature = signature;
+        this.scrubber.setModel(
+            scrubberModel({
+                weights: doc.chapters.map((chapter) => chapter.weight),
+                // A paper and a designed book are counted in pages: no chapter ticks (FR-3).
+                pages: doc.format === "pdf" || Boolean(doc.designed),
+                marks,
+                bookmarks,
+            })
+        );
     }
 
     /**
@@ -995,6 +1055,8 @@ export class ReaderView extends ItemView {
     private toggleView(): void {
         if (!this.source?.hasPageView) return;
         this.sourceView = this.sourceView === "page" ? "reading" : "page";
+        // Your choice for this paper, from now on (#813 FR-22): the suggestion never overrules it.
+        if (this.sourcePath) rememberSourceView(this.app, this.plugin, this.sourcePath, this.sourceView);
         this.app.workspace.requestSaveLayout();
         this.render();
     }
@@ -1279,6 +1341,21 @@ export class ReaderView extends ItemView {
         this.iconButton(bar, "chevron-left", "reader_previous", () => this.go(-1));
         const label = bar.createSpan({ cls: c("reader-bar-label") });
         const progress = bar.createEl("progress", { cls: c("reader-progress") });
+        // The book at a glance (#813 FR-1): a source's line is a slider over the whole of it.
+        this.scrubber = new ReaderScrubber(
+            bar,
+            {
+                current: () => ({ index: this.index, share: this.ended ? 1 : this.currentShare() }),
+                label: (index) => this.sourceLabel(index),
+                marks: (index) => this.scrubMarks.filter((thought) => thought.locator?.at === index && this.layerView.shows(thought)).length,
+                go: (index) => this.jumpTo(index, undefined, "scrubber"),
+                wake: () => this.wake(),
+            },
+            { name: t("reader_scrub_name"), one: t("reader_scrub_mark_single"), some: t("reader_scrub_mark_several") },
+            (el, type, handler) => this.registerDomEvent(el, type, handler)
+        );
+        bar.insertBefore(this.scrubber.el, progress);
+        this.scrubber.el.addClass(c("reader-hidden"));
         const minutes = bar.createSpan({ cls: [c("reader-bar-minutes"), c("reader-hidden")].join(" ") });
         this.iconButton(bar, "chevron-right", "reader_next", () => this.go(1));
         bar.createSpan({ cls: c("reader-bar-sep") });
@@ -1343,6 +1420,8 @@ export class ReaderView extends ItemView {
                     if (this.panel === "context") this.alongside?.update();
                     // A mark made or taken away: what a chapter end reads is read again (#755 FR-2.4).
                     void this.readSurvivedMarks();
+                    // …and the book's line shades it (#813 FR-4).
+                    void this.readScrubMarks();
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
@@ -1637,6 +1716,11 @@ export class ReaderView extends ItemView {
         els.label.setText(this.ended ? t("reader_finished") : part ? `${place} · ${t("reader_bar_screen", String(part.at), String(part.of))}` : place);
         els.progress.max = Math.max(1, total);
         els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
+        // A source's line is the slider over the whole of it (#813 FR-1); a path keeps its progress.
+        const scrubbed = Boolean(this.sourcePath && this.source && this.scrubber);
+        els.progress.toggleClass(c("reader-hidden"), scrubbed);
+        this.scrubber?.el.toggleClass(c("reader-hidden"), !scrubbed);
+        if (scrubbed) this.scrubber?.update();
         Array.from(els.dots.children).forEach((dot, i) => {
             dot.toggleClass(c("reader-dot--done"), i < this.index || this.ended);
             dot.toggleClass(c("reader-dot--current"), i === this.index && !this.ended);
@@ -1831,6 +1915,7 @@ export class ReaderView extends ItemView {
         const pager = this.pagedNow() ? this.pager : null;
         const fraction = this.ended ? 1 : pager ? pager.fraction() : readFraction(stage.scrollTop, stage.scrollHeight, stage.clientHeight);
         els.hairline.setCssProps?.({ "--zf-reader-read": String(Math.round(fraction * 1000) / 1000) });
+        if (this.sourcePath) this.scrubber?.update();
         if (fraction >= END_OF_CHAPTER) this.reachedEnd = true;
         this.keepScroll(fraction);
         const wpm = paceWpm(this.pace);
@@ -4974,6 +5059,8 @@ export class ReaderView extends ItemView {
      * (#784 FR-3). No count, ever (FR-12).
      */
     private refreshRibbon(): void {
+        // A bookmark made or taken away shows on the book's line too (#813 FR-6).
+        this.buildScrubber();
         const ribbon = this.ribbon;
         if (!ribbon) return;
         const path = this.sourcePath;
@@ -5143,6 +5230,8 @@ export class ReaderView extends ItemView {
             this.showCleanPill(false, false);
         } else this.layerView.apply();
         this.syncLayerBar();
+        // The line shows the layers shown, as the page does (#813 FR-5).
+        this.buildScrubber();
     }
 
     /** The bar: the target's name beside the button when it is not reading; active while a layer is hidden. */
@@ -6095,6 +6184,8 @@ export class ReaderView extends ItemView {
         const bind = (modifiers: Modifier[] | null, key: string, run: () => boolean) =>
             scope.register(modifiers, key, (event: KeyboardEvent) => {
                 if (isTyping(event.target)) return true;
+                // On the book's line, the arrows, Home and End are the slider's (#813 FR-18): never a turn.
+                if (modifiers?.length === 0 && this.scrubber?.contains(event.target) && this.scrubber.key(key)) return false;
                 // On the overview's cards the arrows, Home, End and Space move between cards (#776 FR-16).
                 if (modifiers?.length === 0 && OVERVIEW_KEYS.has(key) && (event.target as HTMLElement | null)?.closest?.(`.${c("reader-overview")}`)) return true;
                 // On the selection popover's buttons the arrows walk them, Space presses one (#811 FR-12).

@@ -1,7 +1,7 @@
 import { TFile, type App } from "obsidian";
 import { log } from "architecture";
 import type { ReadingPath } from "architecture/knowledge/state";
-import { freshPageView, isFresh, normalizeLibrary, withBookmarks, withFacts, withPageView, withPlace, withRead, type SourceMeta, withScroll } from "application/library/sourceMeta";
+import { freshPageView, isFresh, normalizeLibrary, withBookmarks, withChosenView, withFacts, withPageView, withPlace, withRead, type SourceMeta, withScroll } from "application/library/sourceMeta";
 import { isHighlight } from "application/thinking/thought";
 import type { PageViewState } from "architecture/components/core/library/sources/pdfPageView";
 import type { Bookmark } from "./readerBookmarks";
@@ -104,14 +104,44 @@ export function rememberSourceFacts(app: App, host: ReaderHost | undefined, doc:
     const file = app.vault.getAbstractFileByPath(doc.path);
     if (!settings || !(file instanceof TFile)) return;
     const map = normalizeLibrary(settings.library);
-    if (isFresh(map[doc.path], file.stat.size, file.stat.mtime)) return;
+    // A copy read before the first-view suggestion existed (#813) is given it once, too.
+    const missing = doc.suggestedView !== undefined && map[doc.path]?.suggestedView === undefined;
+    if (isFresh(map[doc.path], file.stat.size, file.stat.mtime) && !missing) return;
     settings.library = withFacts(
         map,
         doc.path,
-        { title: doc.title, ...(doc.author ? { author: doc.author } : {}), chapters: doc.chapters.length, ...(doc.imageOnly ? { imageOnly: true } : {}) },
+        {
+            title: doc.title,
+            ...(doc.author ? { author: doc.author } : {}),
+            chapters: doc.chapters.length,
+            ...(doc.imageOnly ? { imageOnly: true } : {}),
+            ...(doc.suggestedView ? { suggestedView: doc.suggestedView } : {}),
+        },
         file.stat.size,
         file.stat.mtime
     );
+}
+
+/**
+ * **The view a source opens in** (#813 FR-20 – FR-25): what the tab or the link says, else the view
+ * you chose for it, else the one its first pages suggest, else reflowed. A scan and a source with no
+ * page layout read as they always have.
+ */
+export function firstSourceView(doc: Pick<SourceDocument, "hasPageView" | "suggestedView">, meta: Pick<SourceMeta, "chosenView" | "suggestedView"> | undefined, explicit?: "page" | "reading"): "page" | "reading" {
+    if (!doc.hasPageView) return "reading";
+    return explicit ?? meta?.chosenView ?? doc.suggestedView ?? meta?.suggestedView ?? "reading";
+}
+
+/** The view you chose for a source by turning Page view on or off (#813 FR-22): only that is written. */
+export function rememberSourceView(app: App, host: ReaderHost | undefined, path: string, view: "page" | "reading"): void {
+    const settings = host?.settings;
+    if (!settings) return;
+    const file = app.vault.getAbstractFileByPath(path);
+    const stat = file instanceof TFile ? file.stat : undefined;
+    const map = normalizeLibrary(settings.library);
+    if (map[path]?.chosenView === view) return;
+    settings.library = withChosenView(map, path, view, stat?.size ?? 0, stat?.mtime ?? 0);
+    void host?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not keep the view: ${String(error)}`));
 }
 
 /** The chapter a highlight of a source was made in, when a deep link names one (#681). */

@@ -182,3 +182,42 @@ export function reflowPage(runs: readonly TextRun[]): PageBlock[] {
 export function pageText(blocks: readonly PageBlock[]): string {
     return blocks.map((block) => block.text).join("\n");
 }
+
+/** A block of this many words or fewer is a fragment: a form's label, a caption, a cell (#813 FR-21). */
+export const FRAGMENT_WORDS = 6;
+
+/** Sampled pages whose blocks are at least this share fragments read best as printed (#813 FR-21). */
+export const FORM_FRAGMENT_SHARE = 0.5;
+
+/** Fewer words than this on an average sampled page: a layout of figures, not prose (#813 FR-21). */
+export const SPARSE_PAGE_WORDS = 60;
+
+/** Fewer blocks than this across the sample is too little to tell: it reads reflowed, as before. */
+export const MIN_SAMPLE_BLOCKS = 8;
+
+/** What a reflowed page is made of (#813 FR-21): its words, its blocks, and how many are fragments. */
+export function pageShape(blocks: readonly PageBlock[]): { words: number; blocks: number; fragments: number } {
+    let words = 0;
+    let fragments = 0;
+    for (const block of blocks) {
+        const count = block.text.split(/\s+/).filter(Boolean).length;
+        words += count;
+        if (count <= FRAGMENT_WORDS) fragments++;
+    }
+    return { words, blocks: blocks.length, fragments };
+}
+
+/**
+ * **The view a PDF reads best in** (#813 FR-20, FR-21): as printed (`page`) when its sampled pages
+ * are mostly fragments — a form — or carry little text — figures and layout; reflowed (`reading`)
+ * when they are prose. Pure and deterministic; nothing sampled is prose, as before.
+ */
+export function suggestPdfView(pages: readonly (readonly PageBlock[])[]): "page" | "reading" {
+    const shapes = pages.map(pageShape).filter((shape) => shape.blocks > 0);
+    if (shapes.length === 0) return "reading";
+    const words = shapes.reduce((sum, shape) => sum + shape.words, 0) / shapes.length;
+    const blocks = shapes.reduce((sum, shape) => sum + shape.blocks, 0);
+    if (blocks < MIN_SAMPLE_BLOCKS) return "reading";
+    const fragments = shapes.reduce((sum, shape) => sum + shape.fragments, 0);
+    return fragments / blocks >= FORM_FRAGMENT_SHARE || words < SPARSE_PAGE_WORDS ? "page" : "reading";
+}

@@ -519,6 +519,13 @@ export const BUDGETS = {
         because:
             "every look-up after the first answers at once (#766 FR-13): a table lookup and one 32 KB chunk inflated, never the whole dictionary — a regression that inflated it whole would cost tens of milliseconds",
     },
+    "reader.scrubber.model.120ch": {
+        name: "the book's line: 120 chapters, 2,000 highlights and 200 bookmarks laid out (ms)",
+        limit: 2,
+        measured: "0.41 ms (best of five, one run, 2026-10-16)",
+        because:
+            "the line is drawn when a book opens and again when a mark, a layer or a bookmark changes (#813 FR-2, decision 3): one pass over the marks and the bookmarks — a regression to a per-chapter scan of every mark, or to recomputing it per frame, would cost many times this",
+    },
     "reader.renameFollow.500": {
         name: "a renamed book's follow: 500 thoughts rewritten, its keys moved in a 2,000-book Library (ms)",
         limit: 5,

@@ -47,6 +47,13 @@ export interface SourceMeta {
      * pages you turned. Kept here, beside its place — the PDF itself is never written.
      */
     view?: PageViewState;
+    /**
+     * The view a PDF reads best in, read off its first pages (#813 FR-20): a fact of this copy of the
+     * file — sampled again when the file changes, as its other facts are.
+     */
+    suggestedView?: "page" | "reading";
+    /** The view you chose for it by turning Page view on or off (#813 FR-22): always wins. */
+    chosenView?: "page" | "reading";
 }
 
 export type LibraryMeta = Record<string, SourceMeta>;
@@ -108,6 +115,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         if (bookmarks.length > 0) meta.bookmarks = bookmarks;
         const view = normalizePageView(v.view);
         if (Object.keys(view).length > 0) meta.view = view;
+        if (v.suggestedView === "page" || v.suggestedView === "reading") meta.suggestedView = v.suggestedView;
+        if (v.chosenView === "page" || v.chosenView === "reading") meta.chosenView = v.chosenView;
         out[path] = meta;
     }
     return out;
@@ -124,6 +133,8 @@ export interface SourceFacts {
     author?: string;
     chapters: number;
     imageOnly?: boolean;
+    /** A PDF's suggested first view (#813 FR-20), from its sampled pages. */
+    suggestedView?: "page" | "reading";
 }
 
 /** Keep what was read from a file, with its fingerprint. Your place in it is kept. */
@@ -143,7 +154,16 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.bookmarks?.length) next.bookmarks = previous.bookmarks;
     // And how you read it in Page view (#767).
     if (previous?.view) next.view = previous.view;
+    // The suggestion is this copy's; your own choice of view is yours and outlives a new copy (#813).
+    if (facts.suggestedView) next.suggestedView = facts.suggestedView;
+    if (previous?.chosenView) next.chosenView = previous.chosenView;
     return prune({ ...map, [path]: next });
+}
+
+/** The view you chose for a source (#813 FR-22): only that field changes. */
+export function withChosenView(map: LibraryMeta, path: string, view: "page" | "reading", size = 0, mtime = 0): LibraryMeta {
+    const previous: SourceMeta = { ...(map[path] ?? { size, mtime }) };
+    return prune({ ...map, [path]: { ...previous, chosenView: view } });
 }
 
 /** How the paper is read in Page view, replaced by `view` (#767). The default leaves no field behind. */

@@ -126,11 +126,20 @@ describe("the Library (#680)", () => {
         expect(view.getState()).toMatchObject({ detail: "Papers/cap.pdf", filter: "papers" });
     });
 
-    it("keeps what it knows about a source through a rename", async () => {
-        const { view, host, handlers } = mount(["Papers/cap.pdf"], { library: { "Papers/cap.pdf": library["Papers/cap.pdf"] } });
-        await view.onOpen();
-        handlers.rename[0](file("Archive/cap.pdf"), "Papers/cap.pdf");
-        expect(Object.keys(host.settings.library as object)).toEqual(["Archive/cap.pdf"]);
+    it("leaves a rename's plugin data to the plugin's own follow, and only redraws (#810)", async () => {
+        jest.useFakeTimers();
+        try {
+            const { view, host, handlers } = mount(["Papers/cap.pdf"], { library: { "Papers/cap.pdf": library["Papers/cap.pdf"] } });
+            await view.onOpen();
+            const refresh = jest.spyOn(view, "refresh");
+            handlers.rename[0](file("Archive/cap.pdf"), "Papers/cap.pdf");
+            // SourceRenameFollow moves the key, with the shelf open or closed: not this view.
+            expect(Object.keys(host.settings.library as object)).toEqual(["Papers/cap.pdf"]);
+            jest.advanceTimersByTime(200);
+            expect(refresh).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it("ignores a state it does not know, and starts a path from the note you last read", async () => {
@@ -216,7 +225,8 @@ describe("the Library (#680)", () => {
     it("saves what it learnt before it closes", async () => {
         const { view, host, handlers } = mount(["Papers/cap.pdf"], { library: { "Papers/cap.pdf": library["Papers/cap.pdf"] } });
         await view.onOpen();
-        handlers.rename[0](file("Archive/cap.pdf"), "Papers/cap.pdf");
+        // Something learnt and not yet saved (a source's facts read): closing saves it at once.
+        (view as any).updateMeta((map: Record<string, unknown>) => ({ ...map }));
         await view.onClose();
         expect(host.saveSettings).toHaveBeenCalled();
     });

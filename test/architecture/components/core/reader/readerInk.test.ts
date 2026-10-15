@@ -424,10 +424,11 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(store.writeInk).not.toHaveBeenCalled();
     });
 
-    it("undoes with Ctrl/Cmd+Z while the palette is open, and leaves the key to Obsidian otherwise", async () => {
+    it("undoes with Ctrl/Cmd+Z while the palette is open; closed, the key is the reading's own undo (#810 FR-20)", async () => {
         const { content, stage, view } = await open();
         const mod = () => (view as any).scope.handleKey({ key: "z", preventDefault: () => undefined }, { modifiers: "Mod", key: "z" });
-        expect(mod()).toBe(true);
+        // Closed: the Reader takes it — nothing to undo yet, said quietly, never another view's (#810).
+        expect(mod()).toBe(false);
         openPalette(content);
         penStroke(stage, word, { pointerId: PEN });
         expect(mod()).toBe(false);

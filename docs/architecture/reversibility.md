@@ -151,6 +151,15 @@ The record has exactly two readers, and both are an **offer in the moment**:
 - the notice a **gallery install** leaves (#799), whose *Undo* takes the whole install back — the
   flow it displaced included, keeping any file you changed since.
 
+- the **Reader's Ctrl/⌘+Z** (#810), which takes back, one press at a time, the writes *this reading*
+  offered an Undo for — the same run as the Undo button, guarded once, so nothing is taken back
+  twice. A write backed by a batch is limited by the record's two-minute window like any other; a
+  highlight's own Undo saves the thought back and has no such limit. It never reads a batch another
+  surface wrote.
+
+A **renamed book's follow** (#810) is a recorded batch with no Undo of its own: it is the mechanical
+consequence of your rename, and renaming the book back makes everything follow back.
+
 There is no panel and no mode that lists the record. Home's modes are Home, Cultivate and Think
 (see [surfaces](surfaces.md)). Before 3.3 a Home mode, *What ZettelFlow changed*, listed the
 batches; before that, the wizard kept a second list of the notes it built, which never mentioned

@@ -21,6 +21,7 @@ import {
     type ThoughtMadeBy,
 } from "application/thinking/thought";
 import { dueHighlights, isDueInFrontmatter } from "application/thinking/highlightReview";
+import { reaboutText } from "application/library/renameFollow";
 
 /**
  * Where thoughts live (#466, epic #465).
@@ -299,6 +300,46 @@ export class ThoughtStore {
             }
         }
         return out.sort((a, b) => a.at - b.at);
+    }
+
+    /**
+     * The thought files about a path (#810 FR-1) — its own subject or its second one — chosen from
+     * the metadata cache, so a book with none is answered without opening a file.
+     */
+    public aboutFiles(path: string): TFile[] {
+        if (!path || !this.folder()) return [];
+        return this.files().filter((file) => {
+            const front = this.frontOf(file);
+            return front?.["about"] === path || front?.["alsoAbout"] === path;
+        });
+    }
+
+    /**
+     * Every thought about `from` is about `to` now (#810 FR-1, FR-7): a source renamed. Only the
+     * reference changes — each file rewritten through the seam, read and written as one step.
+     * Returns how many were written.
+     */
+    public async reabout(from: string, to: string): Promise<number> {
+        let written = 0;
+        for (const file of this.aboutFiles(from)) {
+            if (await FileService.rewriteFile(file.path, (content) => reaboutText(content, from, to))) written++;
+        }
+        return written;
+    }
+
+    /**
+     * Whether a thought is on disk exactly as this build wrote it (#810 FR-18): an undo of it is
+     * refused once it was changed since — in Think, by hand, by another device.
+     */
+    public async isAsWritten(thought: Thought): Promise<boolean> {
+        const path = this.pathOf(thought);
+        const file = path ? ObsidianApi.vault().getFileByPath(path) : null;
+        if (!(file instanceof TFile)) return false;
+        try {
+            return (await ObsidianApi.vault().read(file)) === renderThought(thought);
+        } catch {
+            return false;
+        }
     }
 
     /**

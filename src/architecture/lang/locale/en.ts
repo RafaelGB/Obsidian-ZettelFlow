@@ -2654,6 +2654,17 @@ export default {
     reader_hl_edit_note: 'Edit note',
     reader_hl_delete: 'Delete',
     reader_hl_open_think: 'Open in Think',
+    // Trust (#810): re-anchor a detached highlight, Ctrl/⌘+Z, and a renamed book.
+    reader_hl_reanchor: 'Re-anchor',
+    reader_hl_reanchor_state: 'Select the passage this belongs to: {0}',
+    reader_hl_anchor_here: 'Anchor here',
+    reader_hl_reanchor_words: 'Select some words to anchor it to',
+    reader_hl_reanchored: 'Highlight re-anchored.',
+    reader_undo_nothing: 'Nothing to undo in this reading',
+    reader_undo_refused: 'Left alone: it was changed since',
+    reader_undo_done: 'Taken back.',
+    reader_key_undo: 'Undo the last change in this reading',
+    reader_follow_failed: 'Some of what you made in {0} could not follow its rename',
     reader_hl_no_lab: 'Set a thinking space folder in Settings › Thinking to keep highlights.',
     // Ink in the margin (#745)
     reader_ink: 'Write in the margin',

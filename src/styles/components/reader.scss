@@ -2718,6 +2718,40 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     opacity: 0.85;
 }
 
+/* The detached highlight being re-anchored (#810 MF-1): its row stays lit as the subject. */
+.zettelkasten-flow__reader-hl-item--reanchoring {
+    border-left-style: solid;
+    opacity: 1;
+    box-shadow: 0 0 0 var(--border-width) var(--interactive-accent);
+}
+
+/* *Select the passage this belongs to* (#810 FR-9, MF-1): a calm line above the page, with Cancel.
+   It arrives with the status line's own motion; the page under it never moves. */
+.zettelkasten-flow__reader-reanchor {
+    position: absolute;
+    top: var(--size-4-12);
+    left: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-3);
+    max-width: min(36rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    transform: translateX(-50%);
+    animation: zf-reader-arrive $motion-base $ease-out both;
+}
+
+.zettelkasten-flow__reader-reanchor-text {
+    font-style: italic;
+    color: var(--reader-muted);
+}
+
 .zettelkasten-flow__reader-hl-quote {
     font-family: var(--reader-font);
     font-style: italic;
@@ -3135,6 +3169,11 @@ body.zettelkasten-flow__reader-deep-covers-app {
 
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
+    /* Re-anchoring (#810 MF-5): the state line is simply there. */
+    .zettelkasten-flow__reader-reanchor {
+        animation: none;
+    }
+
     /* The overview (#776 FR-28): its tall sheet is there at once, its cards without a fade. */
     .zettelkasten-flow__reader-panel--tall,
     .zettelkasten-flow__reader-overview,

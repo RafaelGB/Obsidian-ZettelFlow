@@ -21,7 +21,7 @@ import {
     type StatusFilter,
 } from "application/library/shelf";
 import { BOOK_LINK_KEY, TEXT_FIELDS, collectionsInUse, effectiveStatus, type BookDetails, type TextField } from "application/library/bookNote";
-import { isFresh, normalizeLibrary, renameSource, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
+import { isFresh, normalizeLibrary, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
@@ -272,15 +272,10 @@ export class LibraryView extends ItemView {
         this.registerEvent(
             this.app.vault.on("rename", (file, oldPath) => {
                 if (!(file instanceof TFile)) return;
-                // An article moved into, or out of, the articles folder comes, or goes (#744).
-                if (this.inArticles(file.path) || this.inArticles(oldPath)) {
-                    this.updateMeta((map) => renameSource(map, oldPath, file.path));
-                    this.scheduleRefresh();
-                    return;
-                }
-                if (!sourceFormat(file.path)) return;
-                this.updateMeta((map) => renameSource(map, oldPath, file.path));
-                this.scheduleRefresh();
+                // What the Library knew of it follows it from the plugin's own listener (#810), with
+                // the shelf closed too; here the shelf only shows it. An article moved into, or out
+                // of, the articles folder comes, or goes (#744).
+                if (this.inArticles(file.path) || this.inArticles(oldPath) || sourceFormat(file.path)) this.scheduleRefresh();
             })
         );
         // A book's note changed — here, in its editor, in a Base (#743): the shelf follows it, and a

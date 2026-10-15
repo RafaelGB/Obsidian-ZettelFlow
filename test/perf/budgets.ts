@@ -519,6 +519,13 @@ export const BUDGETS = {
         because:
             "every look-up after the first answers at once (#766 FR-13): a table lookup and one 32 KB chunk inflated, never the whole dictionary — a regression that inflated it whole would cost tens of milliseconds",
     },
+    "reader.renameFollow.500": {
+        name: "a renamed book's follow: 500 thoughts rewritten, its keys moved in a 2,000-book Library (ms)",
+        limit: 5,
+        measured: "0.86 ms (best of five, one run, 2026-10-15)",
+        because:
+            "a rename in the file explorer must not stall the app (#810): a line-level rewrite per thought and one pass over the plugin data — a regression to parse-and-render, or to a per-thought scan of the Library, would cost many times this",
+    },
 } satisfies Record<string, Budget>;
 
 export type BudgetKey = keyof typeof BUDGETS;

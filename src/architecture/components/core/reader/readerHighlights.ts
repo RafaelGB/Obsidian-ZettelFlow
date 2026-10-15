@@ -26,6 +26,8 @@ export interface HighlightStore {
     /** An ink note's drawing goes with it, and comes back as the answer (#745 E7). */
     discard(thought: Thought): Promise<string | undefined | void>;
     restore(thought: Thought, drawing?: string): Promise<void>;
+    /** Whether a thought is on disk as it was written (#810 FR-18): an undo is refused otherwise. */
+    isAsWritten?(thought: Thought): Promise<boolean>;
 }
 
 /** What the current selection covers, in chapter-text offsets, and where it is on screen. */
@@ -87,6 +89,11 @@ export interface HighlightView {
      * cited from where the popover was. Absent where there is no source to cite.
      */
     cite?(): ((passage: ThinkPassage, from: ScreenBox) => void) | null;
+    /**
+     * Offer a write's way back to the reading's undo ledger (#810 FR-15–FR-17): the run its Undo
+     * button and Ctrl/⌘+Z share, guarded once. `check` refuses one changed since (FR-18).
+     */
+    undoable?(run: () => unknown, check?: () => Promise<boolean> | boolean): () => Promise<"undone" | "refused" | "spent">;
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -162,6 +169,8 @@ export type HighlightOrigin = "selection" | "stroke";
 export interface StatusAction {
     key: LocaleKey;
     run: () => void;
+    /** The thought an Undo takes back, as it was written: refused once it changed since (#810 FR-18). */
+    thought?: Thought;
 }
 
 /** How a span is kept — the one engine's options (#746 FR-3). */
@@ -332,6 +341,10 @@ export class ReaderHighlights {
     private readonly extensions = new Map<Thought, { marks: HTMLElement[]; tint: string }>();
     /** Numbers the tint keys of strokes and extensions in flight (#770): `stroke#3`, `<id>#4`. */
     private tintSeq = 0;
+    /** The detached highlight being re-anchored (#810 FR-9): its passage is the next one you select. */
+    private reanchoring: Thought | null = null;
+    /** The state's line, above the page: what is being re-anchored, and *Cancel*. */
+    private reanchorLine: HTMLElement | null = null;
     /** The meaning you chose last (#720): what H keeps and what *Highlight and note* uses. */
     private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
     /** The margin shows one meaning only, when you asked it to (#720). */
@@ -493,6 +506,7 @@ export class ReaderHighlights {
 
     /** The reader is closing. */
     dispose(): void {
+        this.cancelReanchor();
         this.hidePopover();
         this.marginScope?.unload();
         this.marginScope = null;
@@ -662,7 +676,123 @@ export class ReaderHighlights {
                 attr: { type: "button" },
             });
             scope.registerDomEvent(open, "click", () => this.openThink(this.view.app, thought.about ?? ""));
+            // Put it back on the page (#810 FR-8): the passage you select next is its passage.
+            const reanchor = row.createEl("button", { cls: c("reader-hl-link"), text: t("reader_hl_reanchor"), attr: { type: "button", "data-zf-reanchor": "" } });
+            scope.registerDomEvent(reanchor, "click", () => this.startReanchor(thought));
+            if (this.reanchoring?.id === thought.id) row.addClass(c("reader-hl-item--reanchoring"));
         }
+    }
+
+    // ── re-anchor a detached highlight (#810 FR-8–FR-14) ─────────────────────
+
+    /** Whether the Reader is waiting for the passage a detached highlight belongs to. */
+    isReanchoring(): boolean {
+        return this.reanchoring !== null;
+    }
+
+    /**
+     * *Re-anchor* (FR-9): a calm mode. A line names the highlight and offers *Cancel*; the page does
+     * not move, and the whole book stays reachable to find the passage. Nothing is written yet.
+     */
+    startReanchor(thought: Thought): void {
+        this.cancelReanchor();
+        this.reanchoring = thought;
+        const line = this.view.host.createDiv({ cls: c("reader-reanchor"), attr: { role: "status", "aria-live": "polite" } });
+        line.createSpan({ cls: c("reader-reanchor-text"), text: t("reader_hl_reanchor_state", snippet(thought.quote?.exact ?? "", 60)) });
+        const cancel = line.createEl("button", { cls: c("reader-hl-action"), text: t("reader_hl_cancel"), attr: { type: "button" } });
+        this.view.owner.registerDomEvent(cancel, "click", () => this.cancelReanchor());
+        this.reanchorLine = line;
+        this.hidePopover();
+        this.renderMargin();
+    }
+
+    /** Leave the state (FR-12): Esc, *Cancel*, another book, the Reader closed. Nothing is written. */
+    cancelReanchor(): void {
+        if (!this.reanchoring && !this.reanchorLine) return;
+        this.reanchoring = null;
+        this.reanchorLine?.remove();
+        this.reanchorLine = null;
+        if (this.popover?.hasClass(c("reader-hl-pop--anchor"))) this.hidePopover();
+        this.renderMargin();
+    }
+
+    /** The one offer a selection gets while re-anchoring (FR-10): *Anchor here*. */
+    private offerAnchor(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }, touch: boolean): void {
+        if (!found.quote.exact.trim()) {
+            this.say("reader_hl_reanchor_words");
+            return;
+        }
+        const pop = this.openPopover(found.selection.rect, "select", touch);
+        pop.addClass(c("reader-hl-pop--anchor"));
+        this.button(pop, "reader_hl_anchor_here", true, () => void this.anchorHere(found));
+    }
+
+    /**
+     * *Anchor here* (FR-10, FR-11): the same thought (its id, note, meaning, layer, claims and review)
+     * given the new passage and place, in one recorded write. The wash settles into the passage, the
+     * row leaves *Detached*, and the line offers Undo.
+     */
+    private async anchorHere(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }): Promise<void> {
+        const before = this.reanchoring;
+        const body = this.body;
+        if (!before || !body) return;
+        const locator = this.placedAt(found.span.start);
+        const quote = locator && !found.quote.heading && locator.label ? { ...found.quote, heading: locator.label } : found.quote;
+        const next: Thought = { ...before, quote };
+        if (locator) next.locator = locator;
+        else delete next.locator;
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not re-anchor a highlight: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        found.selection.clear();
+        this.reanchoring = null;
+        this.reanchorLine?.remove();
+        this.reanchorLine = null;
+        this.detached = this.detached.filter((candidate) => candidate.id !== before.id);
+        if (this.body === body) {
+            const marks = this.draw(next, found.span);
+            marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
+            this.insert(next, marks, found.span.start);
+            this.settleIntoMargin(marks[0], next);
+        }
+        this.renderMargin();
+        this.view.onChange();
+        this.status("reader_hl_reanchored", [{ key: "reader_hl_undo", run: () => void this.unanchor(before, next), thought: next }]);
+    }
+
+    /** Undo of a re-anchor (FR-11, MF-3): the old passage and place again, detached where it was. */
+    private async unanchor(before: Thought, after: Thought): Promise<void> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(before));
+        } catch (error) {
+            log.error(`[Reader] could not take a re-anchor back: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === after.id);
+        this.fadeMarks(entry?.marks ?? []);
+        this.untint(after.id);
+        this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== after.id);
+        // Listed where it was: under *Detached* of its own chapter, when that is the one on screen.
+        const here = this.locator ? before.locator?.at === this.locator.at : !before.locator;
+        if (here && !this.detached.some((candidate) => candidate.id === before.id)) this.detached.push(before);
+        this.renderMargin();
+        this.view.onChange();
+        this.hideStatus();
+    }
+
+    /** The book was renamed (#810): the chapter on screen is about its new path from now. */
+    repath(from: string, to: string): void {
+        if (this.notePath === from) this.notePath = to;
+        const swap = (thought: Thought): Thought => (thought.about === from ? { ...thought, about: to } : thought);
+        this.anchored = this.anchored.map((entry) => ({ ...entry, thought: swap(entry.thought) }));
+        this.detached = this.detached.map(swap);
+        this.pageNotes = this.pageNotes.map(swap);
+        if (this.reanchoring) this.reanchoring = swap(this.reanchoring);
     }
 
     // ── one engine (#746 FR-3): a selection and a stroke keep words the same way ─
@@ -703,6 +833,9 @@ export class ReaderHighlights {
         const found = this.currentQuote();
         if (!found) {
             if (this.popover?.hasClass(c("reader-hl-pop--select"))) this.hidePopover();
+            // Re-anchoring, words that cannot be a highlight (#810 FR-13): a quiet line asks for words.
+            const body = this.body;
+            if (this.reanchoring && body && this.select(body)) this.say("reader_hl_reanchor_words");
             return;
         }
         // A touch selection: below the words, beside the system's callout above them (FR-5).
@@ -728,6 +861,11 @@ export class ReaderHighlights {
 
     /** The selection popover over `found`: its meanings and its actions (#720, #750). */
     private offerSelection(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }, touch: boolean, systemCopy = touch): void {
+        // Re-anchoring (#810 FR-10): the words are offered one thing only, never the popover.
+        if (this.reanchoring) {
+            this.offerAnchor(found, touch);
+            return;
+        }
         const pop = this.openPopover(found.selection.rect, "select", touch);
         // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
         const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
@@ -979,7 +1117,7 @@ export class ReaderHighlights {
         }
         this.insert(thought, marks, span.start);
         this.settleIntoMargin(marks[0], thought);
-        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
+        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false), thought }], stroke);
         return thought;
     }
 
@@ -1013,7 +1151,7 @@ export class ReaderHighlights {
         }
         this.counted(options.note ?? "", meaning);
         const thought = made;
-        this.status(HIGHLIGHTED[meaning], options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], true);
+        this.status(HIGHLIGHTED[meaning], options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false), thought }], true);
         return thought;
     }
 
@@ -1236,7 +1374,7 @@ export class ReaderHighlights {
         this.renderMargin();
         this.view.onChange();
         const thought = made;
-        this.status("reader_hl_page_saved", [{ key: "reader_hl_undo", run: () => void this.forgetPageNote(thought) }]);
+        this.status("reader_hl_page_saved", [{ key: "reader_hl_undo", run: () => void this.forgetPageNote(thought), thought }]);
     }
 
     private async forgetPageNote(thought: Thought): Promise<void> {
@@ -1266,6 +1404,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) entry.thought = next;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1568,6 +1707,7 @@ export class ReaderHighlights {
             }
         }
         this.lastMeaning = meaning;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1593,6 +1733,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) entry.thought = next;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1650,16 +1791,63 @@ export class ReaderHighlights {
         pop.createSpan({ cls: c("reader-hl-status"), text: t(key) });
         const buttons: HTMLElement[] = [];
         for (const action of actions) {
+            // An Undo is the reading's too (#810 FR-17): the button and Ctrl/⌘+Z share one guard.
+            const run = action.key === "reader_hl_undo" ? this.offerUndo(action.run, action.thought) : action.run;
             const button = this.button(pop, action.key, false, () => {
                 // One way back, once: the others go with it.
                 buttons.forEach((b) => b.setAttribute("disabled", "true"));
-                action.run();
+                run();
             });
             buttons.push(button);
         }
         this.statusTimer = ownWindow(this.view.host)?.setTimeout(() => {
             if (this.popover === pop) this.hidePopover();
         }, STATUS_MS);
+    }
+
+    /**
+     * A write's way back, offered to the reading's ledger (#810 FR-15–FR-18) — guarded once, refused
+     * when its thought changed since. Without a ledger (a test, a view that has none), the run itself.
+     */
+    private offerUndo(run: () => void, thought?: Thought): () => void {
+        const store = this.store;
+        const check = thought && store.isAsWritten ? () => store.isAsWritten?.(thought) ?? true : undefined;
+        const guarded = this.view.undoable?.(run, check);
+        if (!guarded) return run;
+        return () =>
+            void guarded().then((outcome) => {
+                if (outcome === "refused") this.say("reader_undo_refused");
+            });
+    }
+
+    /**
+     * A write with no Undo button (a meaning changed, a note edited): its way back is the ledger's only
+     * (#810 FR-16), taking the thought back to what it was — refused once it changed since.
+     */
+    private ledgerOnly(before: Thought, after: Thought): void {
+        this.offerUndo(() => void this.putBack(before, after), after);
+    }
+
+    /** A thought back as it was (#810): saved, its marks recoloured, its row redrawn. */
+    private async putBack(before: Thought, after: Thought): Promise<void> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(before));
+        } catch (error) {
+            log.error(`[Reader] could not take a change back: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === after.id);
+        if (entry) {
+            entry.thought = before;
+            const meaning = meaningOf(before);
+            for (const mark of [...entry.marks, ...this.tintsOf(before.id)]) {
+                for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
+                mark.addClass(c(`reader-highlight--${meaning}`));
+            }
+        }
+        this.renderMargin();
+        this.view.onChange();
     }
 
     private button(parent: HTMLElement, key: LocaleKey, primary: boolean, run: () => void): HTMLElement {

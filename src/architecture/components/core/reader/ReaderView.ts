@@ -120,6 +120,8 @@ import { ListenBar, openListenMenu } from "./readerListenBar";
 import { bookNoteOf } from "architecture/components/core/library/bookNoteIndex";
 import { languageTag } from "application/library/sourceMeta";
 import type { TextSpan } from "application/thinking/quoteAnchor";
+import { UndoLedger } from "./readerUndoLedger";
+import { SourceRenameFollow } from "architecture/plugin/library/SourceRenameFollow";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -185,7 +187,7 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["B"], label: "reader_key_bookmark" },
     // Ink (#745): the pencil in the bar is the door; P is the way back to it, Ctrl/⌘+Z undoes.
     { keys: ["P"], label: "reader_key_ink" },
-    { keys: ["reader_kbd_ctrl", "Z"], label: "reader_key_ink_undo" },
+    { keys: ["reader_kbd_ctrl", "Z"], label: "reader_key_undo" },
     { keys: ["F"], label: "reader_key_deep" },
     { keys: ["V"], label: "reader_key_layout" },
     { keys: ["reader_kbd_ctrl", "F"], label: "reader_key_search" },
@@ -507,6 +509,8 @@ export class ReaderView extends ItemView {
     private pendingLanding: Spot | null = null;
     /** Where a first reading's text begins inside its chapter (#808 FR-4), landed on once it is drawn. */
     private startFragment: string | null = null;
+    /** What this reading wrote and can take back by Ctrl/⌘+Z (#810 FR-15), newest first. */
+    private readonly undoLedger = new UndoLedger();
     /**
      * A passage just landed on (#751): held at the reading line through a reshape — the sidebars
      * folding as the Reader opens, a window resized — until you move the page yourself.
@@ -820,6 +824,8 @@ export class ReaderView extends ItemView {
             if (parsed.seed !== this.path?.seed || (parsed.kind ?? "around") !== this.kind) {
                 this.startedAt = Date.now();
                 this.detourCount = 0;
+                this.undoLedger.reset();
+                this.highlights?.cancelReanchor();
                 this.visited.clear();
             this.seenWords.clear();
             this.chapterOpenedAt = Date.now();
@@ -862,6 +868,9 @@ export class ReaderView extends ItemView {
             this.savedId = undefined;
             this.endStatus = undefined;
             this.sourcePath = path;
+            // A new reading: Ctrl/⌘+Z never reaches into the last one (#810 FR-15).
+            this.undoLedger.reset();
+            this.highlights?.cancelReanchor();
             // A new reading: its own trail (FR-9), and Contents opens on its contents.
             this.trail.clear();
             this.jumpPillShown = false;
@@ -1007,6 +1016,8 @@ export class ReaderView extends ItemView {
             window.setTimeout(() => root.removeClass(c("reader--in-shot")), MOTION.shotPatience + MOTION.shotLand);
         }
         this.contentEl.setAttribute("tabindex", "-1");
+        // A book renamed while it is open (#810): the reading goes with it.
+        this.register(SourceRenameFollow.getInstance().onFollowed((from, to) => this.followRename(from, to)));
         // A mouse moving shows the bar. A finger's taps do not: iOS follows every tap with emulated
         // mouse events, which would wake the bar on each page turn (#750).
         this.registerDomEvent(this.contentEl, "pointermove", (event: PointerEvent) => {
@@ -1077,6 +1088,8 @@ export class ReaderView extends ItemView {
     async onClose(): Promise<void> {
         // Closing the tab in deep reading still gives the window back as it was.
         this.leaveDeep(true);
+        // Nothing of this reading can be reached by Ctrl/⌘+Z once it is closed (#810 FR-15).
+        this.undoLedger.reset();
         // Leaving the Reader stops listening (#765 FR-5).
         this.stopListening();
         window.clearTimeout(this.idleTimer);
@@ -1326,6 +1339,8 @@ export class ReaderView extends ItemView {
                 snapshotImage: (el, from) => void this.snapshotImage(el, from),
                 // *Read aloud* (#765 FR-1): the selected words, where Listen is offered.
                 readAloud: () => (this.listenAvailable() ? (span: TextSpan) => this.startListening("selection", span) : null),
+                // The reading's undo ledger (#810): every Undo offered is Ctrl/⌘+Z's too.
+                undoable: (run, check) => this.undoLedger.offer(run, check),
             },
             this.highlightDeps
         );
@@ -2779,13 +2794,15 @@ export class ReaderView extends ItemView {
                 open: () => void this.app.workspace.openLinkText(written, "", "tab"),
                 ...(batch
                     ? {
-                          undo: () =>
-                              void undoBatch(batch).then((outcome) => {
+                          // Export's Undo is the reading's too (#810 FR-16): one guard with Ctrl/⌘+Z.
+                          undo: this.ledgerRun(() =>
+                              undoBatch(batch).then((outcome) => {
                                   this.endStatus = {
                                       text: t(outcome.hadWork && outcome.failed.length === 0 ? "reader_export_removed" : "reader_export_undo_failed"),
                                   };
                                   if (this.ended) this.render();
-                              }),
+                              })
+                          ),
                       }
                     : {}),
             };
@@ -4171,7 +4188,8 @@ export class ReaderView extends ItemView {
                 return {
                     title: noteName(written),
                     open: () => void this.app.workspace.openLinkText(written, "", "tab"),
-                    ...(batch ? { undo: () => undoRecall(batch) } : {}),
+                    // Recall's Undo is the reading's too (#810 FR-16).
+                    ...(batch ? { undo: this.ledgerUndo(() => undoRecall(batch)) } : {}),
                 };
             },
             done: () => this.closePanel(),
@@ -4463,7 +4481,7 @@ export class ReaderView extends ItemView {
             },
             nearFor: (text) => vault.nearFor(text),
             fromReadingBox: () => vault.fromReadingBox(),
-            addFromReading: (entry) => vault.addFromReading(entry),
+            addFromReading: (entry) => vault.addFromReading(this.ledgered(entry)),
             claimed: (id, path) => void this.highlights?.markClaimed(id, path),
             unclaimed: (id, path) => void this.highlights?.markClaimed(id, path, false),
             peek: (anchor, path, name) => this.openPeek(anchor, path, name),
@@ -4481,6 +4499,7 @@ export class ReaderView extends ItemView {
     private snapshotView(root: HTMLElement): SnapshotView {
         return {
             app: this.app,
+            undoable: (run) => this.undoLedger.offer(run),
             root,
             owner: this,
             stage: () => this.els?.stage ?? null,
@@ -4603,7 +4622,7 @@ export class ReaderView extends ItemView {
             },
             nearFor: (text) => this.alongside?.nearFor(text) ?? null,
             fromReadingBox: () => this.alongside?.fromReadingBox() ?? null,
-            addFromReading: (entry) => this.alongside?.addFromReading(entry),
+            addFromReading: (entry) => this.alongside?.addFromReading(this.ledgered(entry)),
             ruleOut: (book, chapterKey, path) => this.alongside?.ruleOut(book, chapterKey, path),
             tension: (id) => this.highlights?.markTension(id),
         };
@@ -5932,6 +5951,60 @@ export class ReaderView extends ItemView {
         return true;
     }
 
+    // ── undo by key (#810) ───────────────────────────────────────────────────
+
+    /**
+     * Ctrl/⌘+Z (#810 FR-15–FR-19): the reading's last write not yet taken back, exactly as its Undo
+     * does it — refused, and said, when it was changed since; a quiet line when there is nothing left.
+     * Always takes the key while the Reader is up: it is the Reader's, never another view's.
+     */
+    private undoLast(): boolean {
+        const take = this.undoLedger.takeLast();
+        if (!take) {
+            this.highlights?.say("reader_undo_nothing");
+            return true;
+        }
+        void take().then((outcome) => {
+            if (outcome === "refused") this.highlights?.say("reader_undo_refused");
+            else if (outcome === "undone") this.highlights?.say("reader_undo_done");
+        });
+        return true;
+    }
+
+    /**
+     * A line in *From this reading* whose Undo is the reading's too (#810 FR-16, FR-17): a claim, a
+     * link to an idea, an accepted move. The button and Ctrl/⌘+Z share one guard.
+     */
+    private ledgered<T extends { undo?: () => Promise<boolean> }>(entry: T): T {
+        return entry.undo ? { ...entry, undo: this.ledgerUndo(entry.undo) } : entry;
+    }
+
+    /** An Undo that answers whether it worked, offered to the ledger: true only when it ran and worked. */
+    private ledgerUndo(undo: () => Promise<boolean>): () => Promise<boolean> {
+        let done = false;
+        const guarded = this.undoLedger.offer(async () => {
+            done = await undo();
+        });
+        return async () => (await guarded()) === "undone" && done;
+    }
+
+    /** A fire-and-forget Undo, offered to the ledger: the button and the key share one guard. */
+    private ledgerRun(run: () => unknown): () => void {
+        const guarded = this.undoLedger.offer(run);
+        return () => void guarded();
+    }
+
+    /**
+     * The book being read was renamed (#810): what it made has followed it, and so does the reading —
+     * its next writes are about the new path, never the old one.
+     */
+    private followRename(from: string, to: string): void {
+        if (this.sourcePath !== from) return;
+        this.sourcePath = to;
+        this.highlights?.repath(from, to);
+        this.app.workspace.requestSaveLayout();
+    }
+
     // ── keys, idle bar ───────────────────────────────────────────────────────
 
     /**
@@ -5990,7 +6063,9 @@ export class ReaderView extends ItemView {
         bind(none, "B", () => this.toggleBookmark());
         // P opens and closes the ink palette (#745); Ctrl/⌘+Z undoes the last ink while it is open.
         bind(none, "P", taken(() => this.ink?.togglePalette()));
-        bind(["Mod"], "Z", () => this.ink?.undoKey() ?? false);
+        // Ctrl/⌘+Z (#810 FR-15, FR-20, FR-21): the ink palette's own undo first, while it is open; then
+        // the reading's last write. A text field keeps its own (the `isTyping` pass-through above).
+        bind(["Mod"], "Z", () => (this.ink?.undoKey() ?? false) || this.undoLast());
         // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
         for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
@@ -6031,6 +6106,7 @@ export class ReaderView extends ItemView {
             palette: Boolean(this.ink?.isOpen()),
             detour: this.detours.length > 0,
             panel: Boolean(this.panel),
+            reanchor: Boolean(this.highlights?.isReanchoring()),
             deep: this.deep,
         });
         switch (step) {
@@ -6061,6 +6137,8 @@ export class ReaderView extends ItemView {
                 return void this.backFromDetour();
             case "panel":
                 return this.closePanel();
+            case "reanchor":
+                return this.highlights?.cancelReanchor();
             case "deep":
                 return this.leaveDeep();
             case "exit":

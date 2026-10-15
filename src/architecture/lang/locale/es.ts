@@ -2653,6 +2653,17 @@ export default {
     reader_hl_edit_note: 'Editar la nota',
     reader_hl_delete: 'Borrar',
     reader_hl_open_think: 'Abrir en Pensar',
+    // Confianza (#810): reanclar un subrayado suelto, Ctrl/⌘+Z y un libro renombrado.
+    reader_hl_reanchor: 'Reanclar',
+    reader_hl_reanchor_state: 'Selecciona el pasaje al que pertenece: {0}',
+    reader_hl_anchor_here: 'Anclar aquí',
+    reader_hl_reanchor_words: 'Selecciona unas palabras para anclarlo',
+    reader_hl_reanchored: 'Subrayado reanclado.',
+    reader_undo_nothing: 'Nada que deshacer en esta lectura',
+    reader_undo_refused: 'No se ha tocado: cambió desde entonces',
+    reader_undo_done: 'Deshecho.',
+    reader_key_undo: 'Deshacer el último cambio de esta lectura',
+    reader_follow_failed: 'Parte de lo que hiciste en {0} no ha podido seguir su cambio de nombre',
     reader_hl_no_lab: 'Elige una carpeta para el espacio de pensamiento en Ajustes › Pensar para guardar subrayados.',
     // Ink in the margin (#745)
     reader_ink: 'Escribir en el margen',

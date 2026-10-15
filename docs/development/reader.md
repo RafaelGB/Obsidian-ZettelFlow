@@ -99,13 +99,16 @@ relations:
 | **B** | bookmark the place you are reading, or take away the bookmark on this screen (a book or a paper) |
 | **Alt+←** | back to where your last jump left from (a book or a paper) |
 | **Ctrl/⌘ +** / **−** / **0** | in a PDF's Page view: zoom in, zoom out, back to Fit width ([Page view](library.md#page-view)); elsewhere they stay Obsidian's |
+| **Ctrl/⌘+Z** | take back the last change this reading made (see [Everything can be undone](#highlights-and-notes-in-the-margin)); with the ink palette open, the last ink first |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
-| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, leave deep reading, then leave the Reader |
+| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, stop re-anchoring, leave deep reading, then leave the Reader |
 
 The keys work whenever the Reader is the active tab, wherever the focus is: they are registered the
 way Obsidian's own views register theirs, so they never fight a hotkey of yours. **Ctrl**, **Cmd**
-and **Alt** combinations are always Obsidian's, and a key typed into a margin note or a name is
-never taken.
+and **Alt** combinations are Obsidian's, with three deliberate exceptions scoped to the Reader:
+**Ctrl/⌘+F** searches the book, **Ctrl/⌘ +/−/0** zoom a paper's page, and **Ctrl/⌘+Z** takes back
+the reading's last change. A key typed into a margin note or a name is never taken: there Ctrl/⌘+Z is
+the field's own undo.
 
 Three **commands** do the same from the palette, and you can bind them to hotkeys of your own. They
 appear only while a reading is the active tab, and none has a default hotkey:
@@ -1063,6 +1066,14 @@ you write the note, the passage stays marked; cancel and the mark goes.
   them, so it survives edits elsewhere in the note.
 - **Detached, never lost.** If the passage was edited away, the highlight is listed under
   **Detached** with its note and a way to open it in Think.
+- **Re-anchor it.** A detached row also offers **Re-anchor**. A line above the page names the
+  highlight and offers *Cancel*; turn pages, change chapters, search as you like, then select the
+  passage it belongs to. The selection offers one thing, **Anchor here**: the same highlight, with its
+  id, note, meaning, layer and claims, takes the new passage and place in one recorded write, and its
+  wash settles there. The line offers **Undo**, which makes it detached again. **Esc** or *Cancel*
+  writes nothing.
+
+  ![Re-anchor: a detached row with Re-anchor beside Open in Think; the line above the page, Select the passage this belongs to, with Cancel; a selection offering only Anchor here; and the highlight settled into the new passage with Highlight re-anchored and Undo](../resources/reader/re-anchor.svg)
 - **Click a highlight** to see its note, add or edit one, delete it, or open it in Think. A
   highlight with a note has a dotted underline.
 - **In the margin.** On a wide pane your highlights are listed beside the page, in reading order;
@@ -1070,7 +1081,14 @@ you write the note, the passage stays marked; cancel and the mark goes.
   thing in **Alongside**.
 - **Everything can be undone.** Highlighting, editing and deleting are recorded writes of a thought,
   in the [write record](../architecture/reversibility.md), and each answer offers **Undo** in place. A
-  deleted highlight goes to the trash, not away.
+  deleted highlight goes to the trash, not away. When the line has gone, **Ctrl/⌘+Z** still reaches
+  it: each press takes back the reading's newest change not yet taken back (a highlight, its meaning,
+  its note, its layer, a re-anchor, a page note, an ink note, a claim or a link, a snapshot, Recall's
+  or Export's note), exactly as its Undo would, and one press never takes back what a button already
+  did. A thought changed since (in Think, on another device) is left alone, and the line says so.
+  It never reaches further than the reading on screen, nor what a flow, a hook or another view wrote;
+  bookmarks, layers shown and type choices are not vault writes and keep their own way back. With
+  nothing left, a quiet line says *Nothing to undo in this reading*.
 - **It comes back.** A few days later, what you marked returns as a card, with one question: do you
   still think so? See [A few things you marked](highlights-review.md).
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
@@ -1298,8 +1316,14 @@ never written.
 - **When the words change.** Page ink whose words are gone stays in the file and is simply not drawn.
   A file from a newer version of the plugin is left as it is, never written over, and the palette
   says *This book's ink file could not be read, so new ink here is not kept*.
-- **A book renamed or moved.** Its ink file is named after where the book was, so its ink stops
-  showing at the new place. Nothing is lost: the file still says which book it is about.
+- **A book renamed or moved.** What you made in it follows it, with the Reader and the Library open
+  or closed, and a moved folder takes every book in it: its ink file is renamed for the new path (or,
+  when the new path already has one, the two are merged, an erase winning, and the old file goes to
+  the trash), every thought about it is about the new path, and its place, bookmarks, layers and
+  resume entries go with it. Only the reference changes, never a thought's words, and never the book.
+  The follow is one recorded batch with no Undo of its own: renaming the book back brings everything
+  back. It is silent, unless some part could not follow; then one notice says so, and that part stays
+  where it was.
 - **Taking it back.** The eraser and **Undo** take strokes off the page; the file follows at the next
   pause. The file's first save is in the [write record](../architecture/reversibility.md) as a file
   created; later saves are recorded as replacements.
@@ -1668,7 +1692,11 @@ nothing while you drag or look at its card; a choice writes the image, as an att
 thing that refers to it — a new note, a fleeting note, or the lines added at the end of the note you
 picked — through the Reader's third named writer (`readerSnapshotSave.ts`, over `FileService` and the
 thought store), as one recorded batch you can undo. **Cite** writes nothing at all: its only act is
-*Copy*, which puts the citation you see on your clipboard.
+*Copy*, which puts the citation you see on your clipboard. **Re-anchor** writes one thing, on *Anchor
+here*: the same thought, with its new passage and place. A **rename** of a book you read moves what
+is keyed by its path (its ink file, the `about` of its thoughts, its place, bookmarks, layers and
+resume entries) as one recorded batch, from the plugin's own rename listener
+(`SourceRenameFollow.ts`); a book with nothing of yours writes nothing.
 
 ## For contributors
 

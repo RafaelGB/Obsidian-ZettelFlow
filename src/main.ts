@@ -42,6 +42,7 @@ import { repairBrokenExampleFlow, EXAMPLE_CANVAS_PATH } from 'application/notes/
 import { SerializedSettingsWriter } from 'architecture/plugin/services/SerializedSettingsWriter';
 import { draftStore } from 'architecture/plugin/noteBuilder/DraftStore';
 import { InquiryRuntime } from 'architecture/plugin/inquiry/InquiryRuntime';
+import { SourceRenameFollow } from 'architecture/plugin/library/SourceRenameFollow';
 import { v4 as uuid } from 'uuid';
 import { isPathExcluded } from 'architecture/knowledge/scope/knowledgeScope';
 import { inScopeFor } from 'architecture/knowledge/scopeGate';
@@ -81,8 +82,12 @@ export default class ZettelFlow extends Plugin {
 			planCapture: (title, id) => capture.plan(title, id),
 			writeOperation: operation => operation.kind === 'capture' ? capture.write(operation) : CultivationService.getInstance().saveInquiryOutcome(this.app, operation, path => inScope(path) && operation.references.every(ref => inScope(ref) && this.app.vault.getFileByPath(ref) instanceof TFile)),
 		});
+		// #810: what you made in a book follows its rename, with the Reader and the Library closed too.
+		SourceRenameFollow.getInstance().init(this);
 		this.registerEvent(this.app.vault.on('rename', (file, oldPath) => {
-			if (file instanceof TFile) InquiryRuntime.getInstance().rename(oldPath, file.path, !this.app.vault.getAbstractFileByPath(oldPath) && this.app.vault.getFileByPath(file.path) === file);
+			if (!(file instanceof TFile)) return;
+			InquiryRuntime.getInstance().rename(oldPath, file.path, !this.app.vault.getAbstractFileByPath(oldPath) && this.app.vault.getFileByPath(file.path) === file);
+			void SourceRenameFollow.getInstance().follow(oldPath, file.path).catch(error => log.error(`[Reader] a rename could not be followed: ${String(error)}`));
 		}));
 		this.registerEvent(this.app.vault.on('delete', file => InquiryRuntime.getInstance().markMissing(file.path)));
 		DevelopmentJournal.getInstance().init(this); // #162: wire the development-event journal to settings.

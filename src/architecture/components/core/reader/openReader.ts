@@ -179,7 +179,7 @@ export function flyOrigin(from: HTMLElement): void {
 }
 
 export async function openReader(app: App, request: string | ReaderRequest): Promise<void> {
-    const { seed, kind, paths, chapter = 0, highlight, name, source, leaf: given, back, at, from, claimFrom } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
+    const { seed, kind, paths, chapter, highlight, name, source, leaf: given, back, at, from, claimFrom } = typeof request === "string" ? { seed: request } as ReaderRequest : request;
     const { workspace } = app;
     // One continuous shot (#751 FR-12): what you clicked lifts and travels to where the passage will
     // be read — only when the Reader is not open yet; an open one moves its own camera (a glide, or a
@@ -199,7 +199,8 @@ export async function openReader(app: App, request: string | ReaderRequest): Pro
     const leaf = given ?? workspace.getLeavesOfType(READER_VIEW)[0] ?? workspace.getLeaf("tab");
     // A source opened by its path — from the Library, its own menu, or Think's "Open in the Reader".
     const book = source ?? (/\.(pdf|epub)$/i.test(seed) ? seed : undefined);
-    const state: Record<string, unknown> = book ? { source: book, chapter } : { seed, chapter };
+    // A source with no chapter asked for opens where its text begins (#808 FR-2a): absent stays absent.
+    const state: Record<string, unknown> = book ? { source: book, ...(chapter !== undefined ? { chapter } : {}) } : { seed, chapter: chapter ?? 0 };
     if (!book && kind && kind !== "around") state.kind = kind;
     if (!book && paths && paths.length > 0) state.paths = paths;
     if (highlight) state.highlight = highlight;

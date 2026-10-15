@@ -46,8 +46,9 @@ export class LibraryComponent extends PluginComponent {
                             .setTitle(t("shelf_menu_read"))
                             .setIcon("book-open")
                             .onClick(() => {
-                                const place = normalizeLibrary(this.plugin.settings.library)[file.path]?.chapter ?? 0;
-                                void openReader(app, { seed: file.path, source: file.path, chapter: place });
+                                // Never read (#808 FR-2a): no chapter, so it opens where its text begins.
+                                const place = normalizeLibrary(this.plugin.settings.library)[file.path]?.chapter;
+                                void openReader(app, { seed: file.path, source: file.path, ...(place !== undefined ? { chapter: place } : {}) });
                             })
                     );
                 }

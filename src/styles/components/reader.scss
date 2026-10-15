@@ -2925,6 +2925,21 @@ body.zettelkasten-flow__reader-covers-app {
         zoom: var(--zf-fit, 1);
     }
 
+    /* A cover is one page (#808 FR-7): exactly the page's height, so nothing of it starts a second —
+       and its way on is the next turn, not a page of its own. */
+    .zettelkasten-flow__reader-page:has(> .zettelkasten-flow__reader-source-body--cover) > .zettelkasten-flow__reader-next {
+        display: none;
+    }
+
+/* A cover is one page (#808 FR-7): exactly the page's height, so nothing of it starts a second. */
+    .zettelkasten-flow__reader-source-body--cover {
+        height: var(--zf-page-h, 100%);
+
+        img {
+            max-height: var(--zf-page-h, 100%);
+        }
+    }
+
     /* The end of the chapter, its ornament and its way on, stays on one page. */
     .zettelkasten-flow__reader-next {
         break-inside: avoid;
@@ -2934,6 +2949,11 @@ body.zettelkasten-flow__reader-covers-app {
         max-height: calc(100% - var(--size-4-16));
         overflow-y: auto;
     }
+}
+
+/* In a spread a cover stands alone, centred across both pages (#808). */
+.zettelkasten-flow__reader--layout-spread .zettelkasten-flow__reader-source-body--cover {
+    column-span: all;
 }
 
 /* A spread has no room for the margin: the highlights are in *Around this chapter* (FR-5). */

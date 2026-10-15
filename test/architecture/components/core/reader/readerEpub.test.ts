@@ -291,3 +291,99 @@ describe("an EPUB in the Reader (#682)", () => {
         });
     });
 });
+
+describe("a book opens on its text, and a cover is one page (#808)", () => {
+    const PENSAR = makeEpub({
+        title: "Pensar en sistemas",
+        chapters: [
+            { id: "cub", href: "Text/cubierta.xhtml", body: '<h1 title="Cubierta"></h1><div><img src="../Images/cover.jpg" alt=""/></div>' },
+            { id: "sin", href: "Text/sinopsis.xhtml", body: "<p>Una sinopsis.</p>" },
+            { id: "ded", href: "Text/dedicatoria.xhtml", body: "<h2>Dedicatoria</h2><p>A Dana.</p>" },
+            { id: "intro", href: "Text/intro.xhtml", title: "Introducción", body: '<h1 id="start">Introducción</h1><p>La lente de los sistemas.</p>' },
+        ],
+        guide: [
+            { type: "cover", href: "Text/cubierta.xhtml" },
+            { type: "text", href: "Text/sinopsis.xhtml" },
+        ],
+        extra: { "OEBPS/Images/cover.jpg": new Uint8Array([255, 216, 255]) },
+    });
+    const LANDMARKED = makeEpub({
+        chapters: [
+            { id: "cub", href: "Text/cubierta.xhtml", body: '<div><img src="../Images/cover.jpg" alt=""/></div>' },
+            { id: "sin", href: "Text/sinopsis.xhtml", body: "<p>Una sinopsis.</p>" },
+            { id: "intro", href: "Text/intro.xhtml", title: "Introducción", body: '<p id="start">La lente de los sistemas.</p>' },
+        ],
+        guide: [{ type: "text", href: "Text/sinopsis.xhtml" }],
+        landmarks: [{ type: "bodymatter", href: "Text/intro.xhtml#start" }],
+        extra: { "OEBPS/Images/cover.jpg": new Uint8Array([255, 216, 255]) },
+    });
+
+    beforeAll(() => {
+        g.DOMParser = class {
+            parseFromString(text: string) {
+                return { ...parseXml(text), getElementsByTagName: () => [] };
+            }
+        };
+        proto.appendText = function (this: DomNode, text: string) {
+            this.createSpan({ text });
+        };
+        g.URL.createObjectURL = () => "blob:cover";
+        g.URL.revokeObjectURL = () => undefined;
+    });
+    afterAll(() => {
+        delete g.DOMParser;
+        delete proto.appendText;
+    });
+    beforeEach(() => resetReaderWorkspace());
+
+    async function read(bytes: Uint8Array, state: Record<string, unknown> = {}) {
+        const m = mount(bytes);
+        await m.view.setState({ source: "Books/tfs.epub", ...state }, {} as never);
+        await m.view.onOpen();
+        await settle(() => m.content.byClass("reader-next").length > 0 || m.content.byClass("reader-missing").length > 0);
+        return m;
+    }
+    const at = (m: { view: ReaderView }) => (m.view as any).index as number;
+
+    it("a first reading opens where the guide says the text begins — past the cover", async () => {
+        const m = await read(PENSAR);
+        expect(at(m)).toBe(1);
+        expect(paragraphs(m.content)[0]).toBe("Una sinopsis.");
+    });
+
+    it("the nav's bodymatter landmark wins over the guide", async () => {
+        expect(at(await read(LANDMARKED))).toBe(2);
+    });
+
+    it("a chapter asked for always wins: chapter 0 is the cover, a resume is its place", async () => {
+        expect(at(await read(PENSAR, { chapter: 0 }))).toBe(0);
+        expect(at(await read(PENSAR, { chapter: 3 }))).toBe(3);
+    });
+
+    it("draws the cover chapter as a cover: no empty heading, one picture, the cover class", async () => {
+        const m = await read(PENSAR, { chapter: 0 });
+        const body = m.content.oneByClass("reader-source-body");
+        expect(body.hasClass("zettelkasten-flow__reader-source-body--cover")).toBe(true);
+        expect(body.findAll((el) => el.tag === "h1")).toHaveLength(0);
+        expect(body.findAll((el) => el.tag === "img")).toHaveLength(1);
+    });
+
+    it("a chapter with words is never a cover", async () => {
+        const m = await read(PENSAR, { chapter: 3 });
+        expect(m.content.oneByClass("reader-source-body").hasClass("zettelkasten-flow__reader-source-body--cover")).toBe(false);
+    });
+
+    it("an untitled chapter goes by its first heading once drawn; its place keeps its label", async () => {
+        const m = await read(PENSAR, { chapter: 2 });
+        const doc = (m.view as any).source;
+        expect(doc.chapters[2].label).toBe("Chapter 3");
+        expect(doc.chapters[2].heading).toBe("Dedicatoria");
+        expect((m.view as any).sourceLabel(2)).toBe("Dedicatoria");
+        expect((m.view as any).locatorOf(2).label).toBe("Chapter 3");
+        expect(doc.chapters[3].heading).toBeUndefined();
+    });
+
+    it("a book that names no start opens on chapter 0, as before", async () => {
+        expect(at(await read(BOOK))).toBe(0);
+    });
+});

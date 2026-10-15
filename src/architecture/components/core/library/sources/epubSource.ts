@@ -81,9 +81,12 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
     const chapters = spine.map((item, i) => ({
         label: titles[i] ?? t(wholly ? "reader_source_page" : "reader_source_chapter", String(i + 1)),
         key: item.href,
+        ...(titles[i] ? {} : { untitled: true as const }),
         ...(designed[i] ? { designed: true as const } : {}),
     }));
     const pagesOf = designed.some(Boolean) ? designedPages(file, book, spine.map((item) => item.href)) : null;
+    // Where the text begins (#808 FR-1): only a chapter the reading order has — never a skipped page.
+    const startAt = book.text ? spineIndexOf(spine, book.text.href) : -1;
     const toc: SourceTocEntry[] = [];
     for (const entry of book.toc) {
         const chapter = spineIndexOf(spine, entry.href);
@@ -103,6 +106,7 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
         ...(wholly && pagesOf ? { designed: true as const, pages: await pagesOf.pages(spine.map(spreadSide)) } : {}),
         ...(book.pkg.direction === "rtl" ? { direction: "rtl" as const } : {}),
         ...(book.pkg.language ? { language: book.pkg.language } : {}),
+        ...(startAt > 0 && !wholly ? { start: { chapter: startAt, ...(book.text?.fragment ? { fragment: book.text.fragment } : {}) } } : {}),
         async draw(index: number, body: HTMLElement, component: Component): Promise<DrawnChapter> {
             const href = spine[index]?.href;
             // A designed page among flowing chapters (#771 FR-1): itself, fitted to the column.
@@ -134,6 +138,11 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
                 }
             }
             const text = body.textContent ?? "";
+            // A chapter of pictures and no words — a cover (#808 FR-7): one page, the picture fitted to it.
+            const cover = images.length > 0 && !text.trim();
+            if (cover) body.addClass(c("reader-source-body--cover"));
+            // What an untitled chapter calls itself (#808 FR-11): its first heading, read as it is drawn.
+            const heading = chapters[index]?.untitled ? firstHeading(body) : "";
             const language = chapterLanguage(root);
             const pageMarks = pageMarksOf(body, book.pages.filter((target) => target.href === href));
             return {
@@ -141,6 +150,8 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
                 picture: false,
                 ...(language ? { language } : {}),
                 ...(pageMarks.length > 0 ? { pageMarks } : {}),
+                ...(heading ? { heading } : {}),
+                ...(cover ? { cover } : {}),
             };
         },
         async imageBytes(archivePath: string): Promise<Blob | null> {
@@ -159,6 +170,12 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             pagesOf?.close();
         },
     };
+}
+
+/** The first heading's words (#808 FR-11), on one line and at most 80 characters; empty when none. */
+function firstHeading(body: HTMLElement): string {
+    const text = (body.querySelector("h1, h2, h3, h4, h5, h6")?.textContent ?? "").replace(/\s+/g, " ").trim();
+    return text.length > 80 ? `${text.slice(0, 79).trimEnd()}…` : text;
 }
 
 /** A short, stable key for a book's font names: the same file always names its fonts the same. */

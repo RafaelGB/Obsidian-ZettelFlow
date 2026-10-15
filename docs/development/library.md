@@ -404,6 +404,17 @@ contents, nested as the book nests them.
 
 ![An EPUB in the Reader: a chapter rebuilt in your reading font, with a figure from the book and a highlight, and the book's own contents](../resources/library/epub-chapter.svg)
 
+- **It opens on its text.** A book you have never opened starts where the book says its text begins —
+  the EPUB 3 nav's `bodymatter` landmark, or the `text` entry of an older book's `<guide>` — not on
+  its cover, title page or credits. A book that says neither opens on its first chapter, as before.
+  The cover and the front matter are still there: **Contents** and **Home** reach them, and a book
+  you have read before always opens where you left it.
+- **A cover is one page.** A chapter that is only a picture — the cover — is shown as one page, the
+  picture fitted to it and centred (alone across both pages in *Spread*). A heading with no words in
+  it, which many covers carry, never takes a page of its own.
+- **An untitled chapter is named by its heading.** A chapter the contents never name reads as
+  *Chapter n* until it is drawn; from then on it goes by its first heading (*Dedicatoria*) wherever the
+  Reader names it. A highlight's place keeps the chapter's own label, so it is always found again.
 - **In your type and your theme.** Each chapter is rebuilt in the Reader's own column: the book's
   headings, paragraphs, lists, tables, quotes and figures — not its fonts, colours or layout.
 - **Safe by construction.** A chapter is never inserted as HTML. It is parsed as data and rebuilt one
@@ -632,7 +643,9 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    and the highlight is there. In Think the thought shows the passage and *› p. n*.
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
    nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
-10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
+10. **A book.** Open the EPUB. A book never opened before opens where its text begins (a book with
+    a cover, a title page and credits opens past them); **Home** goes back to its cover, drawn as one
+    page with nothing on a second. Expect its title and author on the top line;
     **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
     the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
     Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.

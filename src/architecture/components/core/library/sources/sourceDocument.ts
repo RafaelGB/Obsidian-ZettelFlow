@@ -38,6 +38,13 @@ export interface SourceChapter {
     key?: string;
     /** A PDF page's print label, when the paper gives its pages labels (#751 FR-3). */
     page?: string;
+    /** The book's contents never name it (#808 FR-11): its label is only *Chapter n*. */
+    untitled?: true;
+    /**
+     * What an untitled chapter calls itself (#808 FR-11): its first heading, learnt once it is drawn.
+     * Shown where the chapter is named — never stored in a place, which keeps `label` (FR-12).
+     */
+    heading?: string;
 }
 
 export interface SourceTocEntry {
@@ -59,6 +66,10 @@ export interface DrawnChapter {
     designed?: boolean;
     /** Where each print page the book declares begins in the chapter's text (#751 FR-3). */
     pageMarks?: PageMark[];
+    /** An untitled chapter's first heading (#808 FR-11), at most 80 characters. */
+    heading?: string;
+    /** A chapter of pictures and no words — a cover (#808 FR-7): drawn as one page. */
+    cover?: boolean;
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */
@@ -148,6 +159,11 @@ export interface SourceDocument {
     direction?: "ltr" | "rtl";
     /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */
     language?: string;
+    /**
+     * Where its text begins (#808 FR-1): the chapter a first reading opens on — past the cover, the
+     * title page and the credits — and the element in it when the book names one. Absent: chapter 0.
+     */
+    start?: { chapter: number; fragment?: string };
     /** Draw chapter `index` into `body`. Anything it holds is let go with `component`. */
     draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter>;
     /**

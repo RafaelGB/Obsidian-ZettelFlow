@@ -75,6 +75,12 @@ export interface EpubPackage {
     identifiers?: string[];
     /** The series: EPUB 3 `belongs-to-collection`, or Calibre's `calibre:series` (#743). */
     series?: string;
+    /**
+     * Where the text begins (#808 FR-1), from the EPUB 2 `<guide>`'s `text` (or `start`) reference:
+     * the file inside the archive, and the element in it when the reference names one.
+     */
+    textHref?: string;
+    textFragment?: string;
 }
 
 export interface TocEntry {
@@ -226,6 +232,10 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
     const progression = spineNode ? attr(spineNode, "page-progression-direction").toLowerCase() : "";
     const rendition = metadata ? renditionOf(metadata) : undefined;
     const ncx = (tocId ? byId.get(tocId) : undefined) ?? manifest.find((item) => item.mediaType === "application/x-dtbncx+xml");
+    const guide = firstNamed(root, "guide");
+    const textRef = guide ? elementsNamed(guide, "reference").find((node) => /^(text|start)$/i.test(attr(node, "type")) && attr(node, "href")) : undefined;
+    const textHref = textRef && !leavesTheBook(attr(textRef, "href")) ? attr(textRef, "href") : "";
+    const textFragment = textHref ? fragmentOf(textHref) : undefined;
 
     return {
         ...(title ? { title } : {}),
@@ -243,6 +253,8 @@ export function parsePackage(opfXml: string, opfPath: string, parse: XmlParse): 
         ...(date ? { date } : {}),
         ...(identifiers.length > 0 ? { identifiers } : {}),
         ...(series ? { series } : {}),
+        ...(textHref ? { textHref: resolveHref(opfPath, textHref) } : {}),
+        ...(textFragment ? { textFragment } : {}),
     };
 }
 
@@ -291,6 +303,28 @@ export function parseNav(navXhtml: string, navPath: string, parse: XmlParse): To
     const list = children(toc).find((node) => nameOf(node) === "ol" || nameOf(node) === "ul");
     if (list) walkList(list, 0);
     return out;
+}
+
+/**
+ * Where the text begins, from an EPUB 3 `nav`'s landmarks (#808 FR-1): the `bodymatter` entry, as the
+ * file inside the archive, with the element it names. Nothing when the book declares no such landmark.
+ */
+export function parseLandmarks(navXhtml: string, navPath: string, parse: XmlParse): { href: string; fragment?: string } | undefined {
+    const root = parse(navXhtml, "application/xhtml+xml").documentElement;
+    if (!root) return undefined;
+    const kinds = (node: XmlNode) => (attr(node, "epub:type") || attr(node, "type") || attr(node, "role")).toLowerCase().split(/\s+/);
+    const landmarks = elementsNamed(root, "nav").find((node) => kinds(node).includes("landmarks"));
+    if (!landmarks) return undefined;
+    const link = elementsNamed(landmarks, "a").find((node) => kinds(node).some((kind) => kind === "bodymatter" || kind === "doc-bodymatter") && attr(node, "href"));
+    const href = link ? attr(link, "href") : "";
+    if (!href || leavesTheBook(href)) return undefined;
+    const fragment = fragmentOf(href);
+    return { href: resolveHref(navPath, href), ...(fragment ? { fragment } : {}) };
+}
+
+/** The file a `bodymatter` landmark points at, or nothing (#808 FR-1). */
+export function parseLandmarkText(navXhtml: string, navPath: string, parse: XmlParse): string | undefined {
+    return parseLandmarks(navXhtml, navPath, parse)?.href;
 }
 
 /** The book's contents from an EPUB 2 `toc.ncx`. */

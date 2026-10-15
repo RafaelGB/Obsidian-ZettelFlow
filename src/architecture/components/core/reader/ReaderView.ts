@@ -504,6 +504,8 @@ export class ReaderView extends ItemView {
     private jumpPillShown = false;
     /** A place to land on once the chapter it is in is drawn (#761). */
     private pendingLanding: Spot | null = null;
+    /** Where a first reading's text begins inside its chapter (#808 FR-4), landed on once it is drawn. */
+    private startFragment: string | null = null;
     /**
      * A passage just landed on (#751): held at the reading line through a reshape — the sidebars
      * folding as the Reader opens, a window resized — until you move the page yourself.
@@ -786,7 +788,8 @@ export class ReaderView extends ItemView {
             // where you were is kept first, and the camera moves there — never a fresh draw.
             const passage = (Boolean(parsed.highlight) || Boolean(place)) && parsed.source === this.sourcePath && Boolean(this.source) && this.leaveTrail("passage");
             const before = this.index;
-            await this.readSource(parsed.source, parsed.chapter ?? 0, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
+            // No chapter asked for (#808 FR-2a): a first reading, which opens where the text begins.
+            await this.readSource(parsed.source, parsed.chapter, parsed.layout === "page" ? "page" : "reading", parsed.highlight, place);
             if (!this.els) return;
             // Think's *Claim* (#762 FR-1): the sheet, once the passage is read — never a second sheet in Think.
             if (parsed.claimFrom) void this.claimFromId(parsed.claimFrom);
@@ -804,6 +807,10 @@ export class ReaderView extends ItemView {
             // In another chapter: the chapter turns towards it, the way it turns today (#735).
             if (passage && this.index !== before) this.turn = this.index > before ? 1 : -1;
             this.render();
+            // The text begins at an element of its chapter (#808 FR-4): the page lands on it.
+            const startFragment = this.startFragment;
+            this.startFragment = null;
+            if (startFragment) this.scrollToFragment(startFragment, false);
             return;
         }
         if (parsed.seed && this.sourcePath) this.leaveSource();
@@ -844,7 +851,7 @@ export class ReaderView extends ItemView {
      * Read a PDF or an EPUB (#681, #682). The reading is the source; its place is kept by the
      * Library. A highlight a deep link names is landed on, whichever page it is on.
      */
-    private async readSource(path: string, chapter: number, view: SourceView, highlight?: string, place: PassagePlace | null = null): Promise<void> {
+    private async readSource(path: string, chapter: number | undefined, view: SourceView, highlight?: string, place: PassagePlace | null = null): Promise<void> {
         const fresh = path !== this.sourcePath;
         if (fresh) {
             this.leaveSource();
@@ -869,7 +876,7 @@ export class ReaderView extends ItemView {
             this.peeked.clear();
             this.survivedMarks = null;
             // Back where you were inside the chapter, not at its top — unless a highlight was asked for.
-            this.pendingShare = highlight || place ? null : keptScroll(this.plugin, path, chapter);
+            this.pendingShare = highlight || place || chapter === undefined ? null : keptScroll(this.plugin, path, chapter);
         }
         this.ended = false;
         this.detours = [];
@@ -879,7 +886,8 @@ export class ReaderView extends ItemView {
         this.kind = "around";
         this.paths = undefined;
         this.sourceView = view;
-        this.index = Math.max(0, chapter);
+        this.index = Math.max(0, chapter ?? 0);
+        this.startFragment = null;
         if (!this.source) {
             // Something to show at once: the source, opening.
             this.path = { seed: path, kind: "selection", chapters: [{ path, role: "context" }] };
@@ -914,6 +922,14 @@ export class ReaderView extends ItemView {
             if (at !== null) this.index = at;
         }
         if (place && this.source) this.aimAt(place, this.source.chapters);
+        // A first reading (#808 FR-2, FR-3): past the cover and the credits, where the book says its
+        // text begins — never over a place, a passage or a highlight that was asked for.
+        const start = this.source?.start;
+        if (chapter === undefined && !highlight && !place && start) {
+            this.index = start.chapter;
+            this.startFragment = start.fragment ?? null;
+            log.debug(`[Reader] ${path} opens where its text begins: chapter ${start.chapter + 1}`);
+        }
         this.index = Math.max(0, Math.min(this.index, (this.path?.chapters.length ?? 1) - 1));
         // Opened somewhere — a resume, a deep link, a passage — never on a leaf (#755 FR-2.1).
         this.pause = null;
@@ -2785,13 +2801,16 @@ export class ReaderView extends ItemView {
 
     /** How a reader cites the chapter on screen: `p. 42`, or the chapter's name. */
     private sourceLabel(index: number): string {
-        return this.source?.chapters[index]?.label ?? String(index + 1);
+        const chapter = this.source?.chapters[index];
+        // An untitled chapter goes by its first heading once it has been drawn (#808 FR-11).
+        return chapter?.heading ?? chapter?.label ?? String(index + 1);
     }
 
     /** Where a highlight of chapter `index` is (#681, #751 FR-5): its place, its label, its key and page. */
     private locatorOf(index: number): ThoughtLocator {
         const chapter = this.source?.chapters[index];
-        return { at: index, label: this.sourceLabel(index), ...(chapter?.key ? { chapter: chapter.key } : {}), ...(chapter?.page ? { page: chapter.page } : {}) };
+        // The place keeps the chapter's own label, never the heading learnt on the way (#808 FR-12).
+        return { at: index, label: chapter?.label ?? String(index + 1), ...(chapter?.key ? { chapter: chapter.key } : {}), ...(chapter?.page ? { page: chapter.page } : {}) };
     }
 
     private async renderSourceChapter(): Promise<void> {
@@ -2894,6 +2913,8 @@ export class ReaderView extends ItemView {
             if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
             this.chapterWords = drawn.words;
             this.seenWords.set(index, drawn.words);
+            const named = doc.chapters[index];
+            if (drawn.heading && named?.untitled && !named.heading) named.heading = drawn.heading;
         } catch (error) {
             log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
             if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });

@@ -323,7 +323,8 @@ describe("every note made from a book goes back to its paragraph (#751 AC-5, FR-
         o.host.oneByClass("note-companion-origin-source").click();
         const state = await o.state();
         expect(parsePlace(state?.at)).toEqual({ file: "Books/tfs.epub", label: "3 · The lazy controller" });
-        expect(state?.chapter).toBe(0);
+        // The place carries the chapter (#808 FR-3): no chapter is asked for besides it.
+        expect(state?.chapter).toBeUndefined();
     });
 
     it("copies a link to the passage, says Link copied for a moment, and never a Notice", async () => {

@@ -34,6 +34,10 @@ left open across a restart.
 A book opened from the [Library](library.md) is read in the Library's own tab, so leaving it does not
 close anything: the tab becomes the Library again, with its filter, sort and scroll as they were.
 
+A book you open for the first time starts **on its text**, where the book itself says the text begins,
+not on its cover or its credits — the way a Kindle opens a new book. A book you have read before
+opens where you left it. See [Reading an EPUB](library.md#reading-an-epub).
+
 ## Choosing what to read
 
 When there is more than one good way through a note, *Read from here* asks **how do you want to
@@ -1553,7 +1557,8 @@ search hit, a jump and its way back (**Alt+←**), a bookmark and a highlight op
 land on the page that holds them — and the strip **travels** there, never cuts (see
 [Going to a place](#going-to-a-place-is-a-camera-move)). A resumed reading opens on its page, inside
 the opening shot. A selection can run across a page break and be highlighted.
-Pictures and tables are scaled to fit a page, never cut across two. In a spread there is no room
+Pictures and tables are scaled to fit a page, never cut across two. A cover is one page of its own,
+its picture fitted and centred — alone across both pages in a spread. In a spread there is no room
 for the margin: the highlights are in **Alongside**.
 
 A book written **right to left** turns the other way: forward is to the left (**←**, the left edge,

@@ -86,6 +86,10 @@ export function makeEpub(book: {
     pageList?: { label: string; href: string }[];
     /** An EPUB 2 `toc.ncx`'s `pageList` (#751), in a `toc.ncx` the spine points at. */
     ncxPageList?: { label: string; href: string }[];
+    /** The OPF `<guide>`'s references (#808): `{ type: "text", href: "text/ch2.xhtml" }`. */
+    guide?: { type: string; href: string }[];
+    /** The EPUB 3 nav's landmarks (#808): `{ type: "bodymatter", href: "text/ch3.xhtml#start" }`. */
+    landmarks?: { type: string; href: string }[];
 }): Uint8Array {
     const items = book.chapters
         .map((ch) => `<item id="${ch.id}" href="${ch.href}" media-type="${ch.mediaType ?? "application/xhtml+xml"}"/>`)
@@ -98,6 +102,10 @@ export function makeEpub(book: {
     const pageList = book.pageList
         ? `<nav epub:type="page-list"><ol>${book.pageList.map((p) => `<li><a href="${p.href}">${p.label}</a></li>`).join("")}</ol></nav>`
         : "";
+    const landmarks = book.landmarks
+        ? `<nav epub:type="landmarks"><ol>${book.landmarks.map((l) => `<li><a epub:type="${l.type}" href="${l.href}">${l.type}</a></li>`).join("")}</ol></nav>`
+        : "";
+    const guide = book.guide ? `<guide>${book.guide.map((r) => `<reference type="${r.type}" href="${r.href}"/>`).join("")}</guide>` : "";
     const ncx = book.ncxPageList
         ? `<?xml version="1.0"?><ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><navMap></navMap><pageList>${book.ncxPageList
               .map((p, i) => `<pageTarget id="pt${i}" type="normal" value="${p.label}"><navLabel><text>${p.label}</text></navLabel><content src="${p.href}"/></pageTarget>`)
@@ -107,11 +115,11 @@ export function makeEpub(book: {
         mimetype: "application/epub+zip",
         "META-INF/container.xml":
             '<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>',
-        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}${book.metadata ?? ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}${ncx ? '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>' : ""}</manifest><spine${ncx ? ' toc="ncx"' : ""}${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine></package>`,
+        "OEBPS/content.opf": `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/">${book.title ? `<dc:title>${book.title}</dc:title>` : ""}${book.author ? `<dc:creator>${book.author}</dc:creator>` : ""}${book.language ? `<dc:language>${book.language}</dc:language>` : ""}${book.metadata ?? ""}</metadata><manifest>${book.nav === false ? "" : '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>'}${book.cover ? '<item id="cover" href="images/cover.png" media-type="image/png" properties="cover-image"/>' : ""}${items}${ncx ? '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>' : ""}</manifest><spine${ncx ? ' toc="ncx"' : ""}${book.direction ? ` page-progression-direction="${book.direction}"` : ""}>${spine}</spine>${guide}</package>`,
         ...(book.nav === false
             ? {}
             : {
-                  "OEBPS/nav.xhtml": `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc"><ol>${navItems}</ol></nav>${pageList}</body></html>`,
+                  "OEBPS/nav.xhtml": `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc"><ol>${navItems}</ol></nav>${pageList}${landmarks}</body></html>`,
               }),
         ...(book.cover ? { "OEBPS/images/cover.png": book.cover } : {}),
         ...(ncx ? { "OEBPS/toc.ncx": ncx } : {}),

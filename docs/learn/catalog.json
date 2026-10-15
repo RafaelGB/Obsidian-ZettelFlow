@@ -756,8 +756,8 @@
             "es": "Subraya con un significado"
           },
           "body": {
-            "en": "Select words and choose Highlight, Highlight and note or Copy (or press H, Shift+H). Pick a meaning — Idea, Question, Quote or To discuss — with 1–4. The note you read is never touched: the highlight is a thought in Think.",
-            "es": "Selecciona palabras y elige Subrayar, Subrayar y anotar o Copiar (o pulsa H, Mayús+H). Elige un significado —Idea, Pregunta, Cita o Para discutir— con 1–4. La nota que lees nunca se toca: el subrayado es un pensamiento en Pensar."
+            "en": "Select words: the first row of the popover is four coloured dots — Idea, Question, Quote, To discuss — then Note and Copy (or press 1–4, H, Shift+H). The note you read is never touched: the highlight is a thought in Think.",
+            "es": "Selecciona palabras: la primera fila del menú son cuatro puntos de color —Idea, Pregunta, Cita, Para discutir— y después Nota y Copiar (o pulsa 1–4, H, Mayús+H). La nota que lees nunca se toca: el subrayado es un pensamiento en Pensar."
           }
         },
         {
@@ -777,8 +777,8 @@
             "es": "Pregunta a tu bóveda: contradecir o conectar"
           },
           "body": {
-            "en": "In a book or a paper, the popover’s Think row has Contradict (which notes stand against it) and Connect (which ideas it belongs with). Answers arrive in Alongside as proposals: Accept, Modify or Reject.",
-            "es": "En un libro o un artículo, la fila Pensar del menú tiene Contradecir (qué notas se le oponen) y Conectar (con qué ideas encaja). Las respuestas llegan a Al lado como propuestas: Aceptar, Modificar o Rechazar."
+            "en": "In a book or a paper, the popover’s More holds a Think group: Contradict (which notes stand against it) and Connect (which ideas it belongs with). Answers arrive in Alongside as proposals: Accept, Modify or Reject.",
+            "es": "En un libro o un artículo, Más en el menú guarda un grupo Pensar: Contradecir (qué notas se le oponen) y Conectar (con qué ideas encaja). Las respuestas llegan a Al lado como propuestas: Aceptar, Modificar o Rechazar."
           },
           "image": "docs/resources/reader/vault-moves.svg"
         },
@@ -3348,8 +3348,8 @@
         "es": "Pregunta qué notas tuyas se oponen a un pasaje: responde tu bóveda, sin IA."
       },
       "door": {
-        "en": "Select a passage › Think row › Contradict",
-        "es": "Selecciona un pasaje › fila Pensar › Contradecir"
+        "en": "Select a passage › More › Think › Contradict",
+        "es": "Selecciona un pasaje › Más › Pensar › Contradecir"
       },
       "group": {
         "en": "Read",
@@ -3369,8 +3369,8 @@
         "es": "Pregunta con qué ideas tuyas encaja un pasaje; acepta una y la idea lo cita."
       },
       "door": {
-        "en": "Select a passage › Think row › Connect",
-        "es": "Selecciona un pasaje › fila Pensar › Conectar"
+        "en": "Select a passage › More › Think › Connect",
+        "es": "Selecciona un pasaje › Más › Pensar › Conectar"
       },
       "group": {
         "en": "Read",
@@ -3390,8 +3390,8 @@
         "es": "Pregunta a tu proveedor de IA por qué, qué supone, qué afirma o qué se sigue; solo se guarda si lo aceptas."
       },
       "door": {
-        "en": "Select a passage › Think row (AI on)",
-        "es": "Selecciona un pasaje › fila Pensar (con IA activada)"
+        "en": "Select a passage › More › Think (AI on)",
+        "es": "Selecciona un pasaje › Más › Pensar (con IA activada)"
       },
       "group": {
         "en": "Read",

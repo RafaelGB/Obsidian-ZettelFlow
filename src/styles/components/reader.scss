@@ -1452,7 +1452,7 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
-/* The Think row of the popover (FR-1): the moves you can make on this passage, under its meanings. */
+/* The Think group (FR-1, #811 FR-7): the moves you can make on this passage, last inside More. */
 .zettelkasten-flow__reader-hl-think {
     display: flex;
     flex-wrap: wrap;
@@ -2333,10 +2333,105 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     transform-origin: top center;
 }
 
-/* Grown from where you selected (#724): `scale`, beside the transform that places it. */
+/* Opened above, a line clear of the words (#811 D4): `--zf-hl-y` is already its bottom edge. */
+.zettelkasten-flow__reader-hl-pop.zettelkasten-flow__reader-hl-pop--above {
+    transform: translate(-50%, -100%);
+}
+
+/* Grown from where you selected (#724): `scale`, beside the transform that places it — from its
+   edge nearest the words (#811 MF-1). */
 .zettelkasten-flow__reader-hl-pop {
     transform-origin: bottom center;
     animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-hl-pop.zettelkasten-flow__reader-hl-pop--below {
+    transform-origin: top center;
+}
+
+/* ── A popover that fits the selection (#811) ───────────────────────────────────────────────────
+   Row one is always the same: the meanings as dots, Note, Copy, More. Row two is what fits this
+   much text. More grows the popover in place, away from the words; its list scrolls inside it
+   rather than leaving the pane, and the popover never changes side (FR-17). */
+.zettelkasten-flow__reader-hl-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-hl-first .zettelkasten-flow__reader-hl-meanings {
+    flex-wrap: nowrap;
+    gap: 0;
+    margin-right: var(--size-4-1);
+}
+
+/* A meaning as a dot (FR-2): its colour; its name is said on hover and to assistive technology. */
+.zettelkasten-flow__reader-hl-first button.zettelkasten-flow__reader-hl-meaning {
+    justify-content: center;
+    width: var(--size-4-8);
+    height: var(--size-4-8);
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+
+    .zettelkasten-flow__reader-hl-swatch {
+        width: var(--size-4-3);
+        height: var(--size-4-3);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__reader-hl-more {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    max-height: calc(var(--size-4-16) * 4);
+    overflow-y: auto;
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--background-modifier-border);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+/* More unfolds away from the words (MF-2): its content rises in, the Think group a step after. */
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more-list,
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation: zf-reader-hl-more-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation-delay: $motion-fast;
+}
+
+/* First in More, the Think group needs no line of its own: More's own line is above it. */
+.zettelkasten-flow__reader-hl-more > .zettelkasten-flow__reader-hl-think:first-child {
+    padding-top: 0;
+    border-top: none;
+}
+
+@keyframes zf-reader-hl-more-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--size-4-1) * -1));
+    }
+}
+
+.zettelkasten-flow__reader-hl-pop--above .zettelkasten-flow__reader-hl-more-list,
+.zettelkasten-flow__reader-hl-pop--above .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation-name: zf-reader-hl-more-up;
+}
+
+@keyframes zf-reader-hl-more-up {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
+    }
 }
 
 /* ── One continuous shot (#734, epic #729; constitution §XVI) ──────────────────────────────────
@@ -3254,6 +3349,8 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
     .zettelkasten-flow__reader-hl-pop,
+    .zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more-list,
+    .zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-top,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-hairline,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-dots,

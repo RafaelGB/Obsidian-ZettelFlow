@@ -2561,8 +2561,11 @@ export default {
     reader_peek_close: 'Cerrar',
     reader_read_around: 'Leer alrededor de esta nota',
     // Reader highlights (#671)
-    reader_hl_highlight: 'Subrayar',
-    reader_hl_highlight_note: 'Subrayar y anotar',
+    reader_hl_note: 'Nota',
+    reader_hl_more: 'Más',
+    reader_hl_more_label: 'Más acciones',
+    reader_key_popover_walk: 'Con el menú abierto: Tab para entrar y moverse entre sus botones',
+    reader_key_popover_esc: 'Cerrar Más y después el menú',
     reader_hl_copy: 'Copiar',
     reader_hl_meaning_idea: 'Idea',
     reader_hl_meaning_question: 'Pregunta',

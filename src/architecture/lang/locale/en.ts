@@ -2562,8 +2562,11 @@ export default {
     reader_peek_close: 'Close',
     reader_read_around: 'Read around this note',
     // Reader highlights (#671)
-    reader_hl_highlight: 'Highlight',
-    reader_hl_highlight_note: 'Highlight and note',
+    reader_hl_note: 'Note',
+    reader_hl_more: 'More',
+    reader_hl_more_label: 'More actions',
+    reader_key_popover_walk: 'With the popover open: Tab into it, then move between its buttons',
+    reader_key_popover_esc: 'Close More, then the popover',
     reader_hl_copy: 'Copy',
     reader_hl_meaning_idea: 'Idea',
     reader_hl_meaning_question: 'Question',

@@ -408,8 +408,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader")],
     },
     "reader-contradict": {
-        // Moves answered by your vault (#756, epic #741): the *Think* row of the popover that appears
-        // when you select words or click a mark. You are on the passage; the move is under your hand.
+        // Moves answered by your vault (#756, epic #741): the *Think* group under *More* in the popover
+        // that appears when you select words or click a mark (#811). You are on the passage.
         nameKey: "reader_move_contradict",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
@@ -421,15 +421,15 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     },
     "reader-ai-moves": {
         // Moves by your AI provider (#759, epic #741): Why?, Challenge, Question, What's the claim,
-        // Reflect and Explain, after Contradict and Connect in the same Think row — offered only
+        // Reflect and Explain, after Contradict and Connect in the same Think group (More) — offered only
         // while AI is turned on, which is the opt-in. Each answer is a proposal (§XII).
         nameKey: "reader_ai_moves_name",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     "reader-claim": {
-        // Make it a claim (#762, epic #741): the selection's and a mark's popover, after *Highlight and
-        // note* — and on an accepted *What's the claim*, in Alongside and in Think. Your own act.
+        // Make it a claim (#762, epic #741): the selection's popover — the second row for a sentence or
+        // a passage, else More — a mark's More, and an accepted *What's the claim*. Your own act.
         nameKey: "reader_claim_sheet_title",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME)],
@@ -441,7 +441,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     "reader-lookup": {
-        // Look up (#766, epic #741): the selection popover's last row, beside Copy — your own StarDict
+        // Look up (#766, epic #741): first in the popover's second row for 1–3 words (#811) — your StarDict
         // dictionaries, read on the device, no network. Settings › Reading only configures the folder.
         nameKey: "reader_hl_lookup",
         owner: "zettelflow-reader",
@@ -477,7 +477,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader")],
     },
     "reader-cite": {
-        // Cite (#768, epic #742): a passage in the selection popover or a highlight's menu, a whole book
+        // Cite (#768, epic #742): a passage in the selection popover or a highlight's More, a whole book
         // in its Library detail — Markdown with a link back, inline, a Pandoc key, BibTeX, CSL JSON —
         // from the book's note, what is missing left out. Copy is the only thing it does; nothing written.
         nameKey: "reader_cite",

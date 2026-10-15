@@ -641,7 +641,7 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    in on its printed area with your line kept; the running head and the page number are still there,
    and the text is the same size on every page. Off is the same move back. Close and reopen the paper:
    still cropped, at once.
-8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
+8. **Highlight.** Select a sentence → **Note**: the sentence stays marked while you
    type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
    and the highlight is there. In Think the thought shows the passage and *› p. n*.

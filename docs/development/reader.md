@@ -96,12 +96,13 @@ relations:
 | **Home** / **End** | first / last chapter |
 | **F** | deep reading: the page and nothing else, in and out (see [Deep reading](#deep-reading)) |
 | **H** / **Shift+H** | highlight the selected words / highlight them and write a note |
+| **Tab**, then **←** **→** **↑** **↓** | with the selection popover open: move into it, then between its buttons ([the popover](#highlights-and-notes-in-the-margin)) |
 | **B** | bookmark the place you are reading, or take away the bookmark on this screen (a book or a paper) |
 | **Alt+←** | back to where your last jump left from (a book or a paper) |
 | **Ctrl/⌘ +** / **−** / **0** | in a PDF's Page view: zoom in, zoom out, back to Fit width ([Page view](library.md#page-view)); elsewhere they stay Obsidian's |
 | **Ctrl/⌘+Z** | take back the last change this reading made (see [Everything can be undone](#highlights-and-notes-in-the-margin)); with the ink palette open, the last ink first |
 | **?** | the keyboard shortcuts, on the page (also a button in the bar) |
-| **Esc** | one thing at a time, nearest first: close the shortcuts, the highlight popover, a peek, step back from a detour, close a panel, stop re-anchoring, leave deep reading, then leave the Reader |
+| **Esc** | one thing at a time, nearest first: close the shortcuts, fold the popover's *More*, close the highlight popover, a peek, step back from a detour, close a panel, stop re-anchoring, leave deep reading, then leave the Reader |
 
 The keys work whenever the Reader is the active tab, wherever the focus is: they are registered the
 way Obsidian's own views register theirs, so they never fight a hotkey of yours. **Ctrl**, **Cmd**
@@ -439,12 +440,12 @@ selected: **Contradict** asks which of your notes stand against it, **Connect** 
 ideas it belongs with. Both are answered **by your own vault, with no AI**, and both work with AI
 turned off.
 
-![Moves answered by your vault: a selection with the Think row under its meanings; the answer flying out of Contradict into the top of Alongside, under Proposed. Nothing is written until you decide.; a candidate with why it is offered and Accept, Modify and Reject; and From this reading at the bottom of the panel](../resources/reader/vault-moves.svg)
+![Moves answered by your vault: a selection's popover with More open and its Think group, Contradict and Connect, at the end; the answer flying out of Contradict into the top of Alongside, under Proposed. Nothing is written until you decide.; a candidate with why it is offered and Accept, Modify and Reject; and From this reading at the bottom of the panel](../resources/reader/vault-moves.svg)
 
-**The Think row.** Select words in a book or a paper, or click one of your highlights: under the
-meanings, the popover has a second row, *Think*, with **Contradict** and **Connect**. A passage you
-marked yesterday can be worked on today. A reading of notes has no Think row: Cultivate's moves own
-notes.
+**The Think group.** Select words in a book or a paper, or click one of your highlights, and press
+**More** in the popover: the last group, *Think*, holds **Contradict** and **Connect**. A passage
+you marked yesterday can be worked on today. A reading of notes has no Think group: Cultivate's
+moves own notes.
 
 **What each looks for**, decided by your vault, the same way every time:
 
@@ -509,13 +510,13 @@ Some questions about a passage your vault cannot answer, because they are about 
 argument. Six moves put one of them to **your** AI provider, about one passage, when you click —
 and the answer comes back as a proposal beside the page, never as a chat and never as a summary.
 
-![Moves by your AI provider: the Think row with Contradict, Connect and the six AI moves; a card in Alongside showing Why?, Proposed by your AI provider, the passage and three faint breathing lines where the answer will be; the same card with the answer landed and Accept, Modify and Reject; and the thought in Think with its Why? · AI chip](../resources/reader/ai-moves.svg)
+![Moves by your AI provider: the popover's More open, its Think group with Contradict, Connect and the six AI moves; a card in Alongside showing Why?, Proposed by your AI provider, the passage and three faint breathing lines where the answer will be; the same card with the answer landed and Accept, Modify and Reject; and the thought in Think with its Why? · AI chip](../resources/reader/ai-moves.svg)
 
-**Where they are.** In the same *Think* row as [Contradict and Connect](#moves-answered-by-your-vault),
-after them — on a selection or on one of your highlights, in a book or a paper. They are there only
-while AI is turned on in **Settings › AI**:
+**Where they are.** In the same *Think* group as [Contradict and Connect](#moves-answered-by-your-vault),
+after them, at the end of the popover's **More** — on a selection or on one of your highlights, in a
+book or a paper. They are there only while AI is turned on in **Settings › AI**:
 
-| AI in Settings › AI | The Think row |
+| AI in Settings › AI | The Think group |
 |---|---|
 | Turned off (the default) | *Contradict* and *Connect* only — the Reader is exactly as it was |
 | On, not set up | the six are offered; a click shows *Your AI provider isn't set up yet* and **Open AI settings**, and sends nothing |
@@ -613,11 +614,13 @@ own act** — not a proposal, so there is nothing to accept: a **claim**, one se
 defend, sourced to its exact page; and a **link**, so an idea you already hold gains this passage
 as a source.
 
-![Make it a claim, or link it to an idea: the selection's popover with Claim and Link to an idea after Highlight and note; the claim sheet beside the page, in Alongside's place, the selected words travelling into its quote, with the claim, the title, the passage, the source and the folder, and Create; and the picker grown from Link to an idea, with Planning fallacy at the top and Already linked to this passage under a second pick](../resources/reader/claim-link.svg)
+![Make it a claim, or link it to an idea: a sentence selected, its popover's second row reading Claim, Link to an idea and Cite; the claim sheet beside the page, in Alongside's place, the selected words travelling into its quote, with the claim, the title, the passage, the source and the folder, and Create; and the picker grown from Link to an idea, with Planning fallacy at the top and Already linked to this passage under a second pick](../resources/reader/claim-link.svg)
 
-**Where they are.** Select words in a book or a paper, or click one of your highlights: the first
-row of the popover reads *Highlight and note*, **Claim**, **Link to an idea**. A reading of notes
-has neither: a passage of a note has no page to be sourced to. *Claim* is also beside an accepted
+**Where they are.** Select a sentence in a book or a paper: the popover's second row reads
+**Claim**, **Link to an idea**, *Cite*. Select a word or two and *Link to an idea* is in that row,
+*Claim* in **More**; select a paragraph and *Claim* closes the row. On one of your highlights both
+are first in its **More**. A reading of notes has neither: a passage of a note has no page to be
+sourced to. *Claim* is also beside an accepted
 [*What's the claim*](#moves-by-your-ai-provider) — on its row in *From this reading*, and on its card
 in Think, which opens the Reader on the passage with the sheet already open. There is no command.
 
@@ -703,10 +706,10 @@ click during a move ends it; under reduced motion everything is instant.
 
 A word you do not know should not send you out of the book. **Look up** reads it in dictionaries
 **you** keep in your vault — offline, on the device — and **Translate** puts a passage into your
-language, by the system on iPad and by your own AI provider elsewhere. Both are in the selection's
-popover, after *Copy*.
+language, by the system on iPad and by your own AI provider elsewhere. Select one to three words and
+both open the popover's second row; for anything longer, *Translate* is in its **More**.
 
-![Look up: a Spanish book with the word casa selected and its popover's last row reading Copy, Look up and Translate; the card grown from the word, headed casa, From your dictionaries, on this device, then Wiktionary (Spanish) with its definition and FreeDict spa-eng marked Translation with house, home; an offline mark; and Translate's card on a passage, Sent to your AI provider, on your click, with three faint lines breathing where the translation will be](../resources/reader/lookup.svg)
+![Look up: a Spanish book with the word casa selected and its popover's second row reading Look up, Translate and Link to an idea; the card grown from the word, headed casa, From your dictionaries, on this device, then Wiktionary (Spanish) with its definition and FreeDict spa-eng marked Translation with house, home; an offline mark; and Translate's card on a passage, Sent to your AI provider, on your click, with three faint lines breathing where the translation will be](../resources/reader/lookup.svg)
 
 **Look up** is offered for a selection of one to three words. It reads the **StarDict**
 dictionaries — the open format of KOReader and GoldenDict — in the folder chosen in **Settings →
@@ -725,7 +728,7 @@ case, then against the dictionary's synonyms (in many builds, the inflected form
 - **Shown, never kept.** Text and phonetic entries are shown as text; HTML, XDXF and Pango entries keep
   their emphasis and their lists, and lose everything else (scripts, styles, outside links, pictures,
   sounds) — rebuilt element by element, never as HTML. **Copy** puts the answer on your clipboard; you
-  can paste it into *Highlight and note*. Nothing is written: not the book, not the dictionary, not
+  can paste it into a highlight's *Note*. Nothing is written: not the book, not the dictionary, not
   Think.
 - **Honest when it cannot.** *No dictionaries yet: add StarDict dictionaries to your dictionaries
   folder* — with **Open settings** and **Where to find free dictionaries**. *No dictionary for Spanish
@@ -776,7 +779,8 @@ appears and goes at once, and the lines are still.
 
 A quote you cannot trace back is a quote you cannot use. **Cite** turns a passage, a highlight or a
 whole book into the citation you need, ready to paste. It is offered in three places: the selection's
-popover, after *Copy*; a highlight's menu; and **Cite this book** in the book's detail in the
+popover — in its second row for a sentence or a paragraph, in **More** for a word; a highlight's
+**More**; and **Cite this book** in the book's detail in the
 [Library](library.md#cite-this-book).
 
 ![Cite: a highlighted sentence in a book with its menu, and the Cite panel grown from it, headed Cite this passage, with five chips (Markdown, Inline, Citation key, BibTeX, CSL JSON), Inline chosen and reading (Kahneman, 2011, ch. 3); below it, a paper's panel saying No year in this paper's details · Add it, and the Copy button reading Copied with a check](../resources/reader/cite.svg)
@@ -841,7 +845,8 @@ voices, and the page follows the voice.
 
 - **Where it starts.** **Listen** in the Reader's bar offers **From here** — the paragraph at the top
   of the page, or the one you last tapped — and **This chapter**, from its start. The selection's
-  popover offers **Read aloud**, after *Look up*, for just the selected words.
+  popover offers **Read aloud** for just the selected words — in its second row for a paragraph, in
+  **More** otherwise.
 - **Sentence by sentence.** *From here* goes on through the following chapters, turning each one by
   your [chapter motion](#one-continuous-shot), and the voice goes on as the turn lands; *This chapter*
   stops at its end; *Read aloud* stops after the selection. [What survived?](#what-survived) never
@@ -1046,16 +1051,36 @@ button is the door there.
 
 Reading well means stopping at the sentence that matters. Select some words in a chapter, as you
 would on a Kindle — with the mouse, the keyboard, or a long-press on a phone — and a small popover
-offers **Highlight**, **Highlight and note** or **Copy** (or press **H**, or **Shift+H** for the
-note). A drag that ends past the text, in the margin or below the last line, still counts. While
-you write the note, the passage stays marked; cancel and the mark goes.
+opens **below** the words, so the line you just read stays in sight (above them only when the page
+has no room below, and then a line clear of them). A drag that ends past the text, in the margin or
+below the last line, still counts.
 
-![A chapter with highlights, the popover over a selection, a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
+![A chapter with highlights, the popover below a selection — four dots, Note, Copy and More, then Claim, Link to an idea and Cite — a note in the margin, and the thought it made in Think](../resources/reader/highlights.svg)
+
+**The popover has two rows, and More** (#811):
+
+- **The first row is always the same:** the four meanings as coloured dots — their names on hover —
+  then **Note**, **Copy** (with a mouse; a finger has the system's own) and **More**. A dot keeps the
+  passage with that meaning at once; **Note** marks it with the meaning you used last and asks for
+  your words. While you write the note, the passage stays marked; cancel and the mark goes.
+- **The second row is what fits what you selected**, decided only by how much you selected, never by
+  what you pressed before — so things stay where your hand learned them: a word or up to three,
+  **Look up · Translate · Link to an idea**; a sentence (up to forty words), **Claim · Link to an idea
+  · Cite**; anything longer, **Cite · Read aloud · Claim**. One that is not available here is left out
+  and nothing takes its place.
+- **More** grows the popover in place, away from the words, with everything else in one fixed order —
+  *Claim*, *Link to an idea*, *Cite*, *Look up*, *Translate*, *Read aloud* — and last the **Think**
+  group (*Contradict*, *Connect*, and your AI's moves while AI is on). Opening it writes nothing and
+  sends nothing. It is offered only when it has something to show.
+- **Keys.** **1–4**, **H** and **Shift+H** work as always. **Tab** moves into the popover and the
+  arrows walk its buttons; **Esc** folds an open *More* first, then closes the popover.
 
 - **A highlight says what it is.** The popover offers four meanings: **Idea**, **Question**,
   **Quote** and **To discuss**, each in a colour of your theme. Click one (or press **1–4**) and the
   passage takes it; **H** keeps the next one with the meaning you used last. Click a highlight to
-  change its meaning. With more than one meaning in a chapter, the margin can show one meaning at a
+  change its meaning: its popover has the same dots (its own marked), **Edit note** and **More**, then
+  **Open in Think** and **Delete**; its **More** holds *Claim*, *Link to an idea*, *Crystallize into a
+  note*, *Cite*, its layer and the Think group. With more than one meaning in a chapter, the margin can show one meaning at a
   time. A highlight made before meanings existed reads as an idea.
 - **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the
@@ -1074,8 +1099,8 @@ you write the note, the passage stays marked; cancel and the mark goes.
   writes nothing.
 
   ![Re-anchor: a detached row with Re-anchor beside Open in Think; the line above the page, Select the passage this belongs to, with Cancel; a selection offering only Anchor here; and the highlight settled into the new passage with Highlight re-anchored and Undo](../resources/reader/re-anchor.svg)
-- **Click a highlight** to see its note, add or edit one, delete it, or open it in Think. A
-  highlight with a note has a dotted underline.
+- **Click a highlight** to see its note, add or edit one, open it in Think or delete it; the rest is
+  in its **More**. A highlight with a note has a dotted underline.
 - **In the margin.** On a wide pane your highlights are listed beside the page, in reading order;
   click one to go to it. On a narrow pane, and while Alongside is open, the same list is the first
   thing in **Alongside**.
@@ -1228,7 +1253,7 @@ draw a loop: what it caught decides what it offers, in this order.
 - **Ink notes → Read as text, Delete ink.** Loop ink notes and it offers **Read as text** (one request
   per note) and **Delete ink** for them.
 - **Words → the selection popover.** Loop words with no ink and the **same popover a selection
-  opens** comes up for exactly those words — the four meanings, *Highlight and note*, *Copy* — so the
+  opens** comes up for exactly those words — the four meanings, *Note*, *Copy*, *More* — so the
   lasso is selection with the Pencil.
 - **Nothing → it says so.** *The lasso caught nothing*.
 - **Nothing until you choose.** The loop stays, dashed, while its offer is up, and fades when it goes.

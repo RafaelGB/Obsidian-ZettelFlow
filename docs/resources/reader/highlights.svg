@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="920" viewBox="0 0 1200 920" role="img" aria-label="The Reader: highlighted passages in a chapter, the popover over a selection, a note in the margin, and the thought it made in Think with the passage quoted">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="920" viewBox="0 0 1200 920" role="img" aria-label="The Reader: highlighted passages in a chapter, the popover below a selection with its two rows, a note in the margin, and the thought it made in Think with the passage quoted">
 <rect width="1200" height="920" fill="#141416"/>
 <rect x="40" y="30" width="1120" height="740" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
 <circle cx="62" cy="50" r="5.5" fill="#fb464c" stroke="none" stroke-width="0"/>
@@ -15,22 +15,33 @@
 <text x="120" y="246" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="394.8" lengthAdjust="spacing" xml:space="preserve"><tspan>Event sourcing </tspan><tspan>stores changes, not state</tspan><tspan>. Every</tspan></text>
 <text x="120" y="273" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="487.2" lengthAdjust="spacing" xml:space="preserve"><tspan>decision becomes a fact that cannot be taken back, and the</tspan></text>
 <text x="120" y="300" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="403.2" lengthAdjust="spacing" xml:space="preserve"><tspan>current picture is whatever the facts add up to.</tspan></text>
-<rect x="216" y="334" width="330" height="44" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5" />
-<rect x="224" y="341" width="92" height="30" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
-<text x="270.0" y="361" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Highlight</text>
-<rect x="324" y="341" width="150" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
-<text x="399.0" y="361" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Highlight and note</text>
-<rect x="482" y="341" width="64" height="30" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
-<text x="514.0" y="361" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Copy</text>
-<path d="M 375 378 l 8 9 l 8 -9 z" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
-<rect x="372" y="375" width="22" height="4" fill="#202024"/>
-<rect x="177.8" y="392" width="312.8" height="22" rx="2" fill="#4a9dff" stroke="none" stroke-width="1.5" fill-opacity="0.35"/>
-<text x="120" y="408" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="428.4" lengthAdjust="spacing" xml:space="preserve"><tspan>Replay </tspan><tspan>rebuilds any past moment from the log</tspan><tspan>, which</tspan></text>
-<text x="120" y="435" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="310.8" lengthAdjust="spacing" xml:space="preserve"><tspan>is why an audit trail comes for free.</tspan></text>
+<rect x="177.8" y="342" width="312.8" height="22" rx="2" fill="#4a9dff" stroke="none" stroke-width="1.5" fill-opacity="0.35"/>
+<text x="120" y="358" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="428.4" lengthAdjust="spacing" xml:space="preserve"><tspan>Replay </tspan><tspan>rebuilds any past moment from the log</tspan><tspan>, which</tspan></text>
+<text x="120" y="385" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="310.8" lengthAdjust="spacing" xml:space="preserve"><tspan>is why an audit trail comes for free.</tspan></text>
 <text x="120" y="486" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="start">PROJECTIONS</text>
 <rect x="371.0" y="506" width="195.2" height="22" rx="3" fill="#e0a351" stroke="none" stroke-width="1.5" fill-opacity="0.32"/>
 <text x="120" y="522" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="487.2" lengthAdjust="spacing" xml:space="preserve"><tspan>A read model is a projection: </tspan><tspan>disposable, and rebuilt</tspan><tspan> when</tspan></text>
 <text x="120" y="549" fill="#dcddde" font-family="Georgia, serif" font-size="17" textLength="470.4" lengthAdjust="spacing" xml:space="preserve"><tspan>the question changes. Nothing about the log has to move.</tspan></text>
+<rect x="216" y="372" width="322" height="84" rx="10" fill="#202024" stroke="#3a3a3a" stroke-width="1.5" />
+<path d="M 322 373 l 8 -9 l 8 9 z" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="319" y="371" width="22" height="4" fill="#202024"/>
+<circle cx="236" cy="394" r="10" fill="none" stroke="#7f6df2" stroke-width="1.5"/>
+<circle cx="236" cy="394" r="6" fill="#e0a351"/>
+<circle cx="260" cy="394" r="6" fill="#4a9dff"/>
+<circle cx="284" cy="394" r="6" fill="#44cf6e"/>
+<circle cx="308" cy="394" r="6" fill="#a882ff"/>
+<rect x="326" y="380" width="62" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="357.0" y="399" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Note</text>
+<rect x="394" y="380" width="60" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="424.0" y="399" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Copy</text>
+<rect x="460" y="380" width="66" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="493.0" y="399" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">More</text>
+<rect x="228" y="416" width="62" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="259.0" y="435" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Claim</text>
+<rect x="296" y="416" width="122" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="357.0" y="435" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Link to an idea</text>
+<rect x="424" y="416" width="56" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="452.0" y="435" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="middle">Cite</text>
 <text x="120" y="600" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" font-style="italic">The note is never written: each highlight is found again by its words.</text>
 <text x="800" y="150" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="start">YOUR HIGHLIGHTS</text>
 <rect x="800" y="164" width="330" height="70" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.5" />
@@ -60,8 +71,8 @@
 <text x="120" y="738" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Chapter 1 / 4</text>
 <circle cx="98" cy="241" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="98" y="245.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
-<circle cx="202" cy="356" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
-<text x="202" y="360.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<circle cx="202" cy="394" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
+<text x="202" y="398.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
 <circle cx="782" cy="146" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="782" y="150.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
 <circle cx="778" cy="352" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
@@ -73,7 +84,7 @@
 <text x="96" y="811" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">A highlight with a note: drawn over the words, with a dotted underline. The note itself is untouched.</text>
 <circle cx="76" cy="828" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="76" y="832.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
-<text x="96" y="833" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Select words: Highlight, Highlight and note, or Copy (H and Shift+H from the keyboard).</text>
+<text x="96" y="833" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Select words: below them, four dots for the meaning, Note, Copy, More; then what fits a sentence.</text>
 <circle cx="76" cy="850" r="11" fill="#e0a351" stroke="none" stroke-width="0"/>
 <text x="76" y="854.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
 <text x="96" y="855" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">In the margin on a wide pane (under Alongside on a narrow one): click one to go to it.</text>

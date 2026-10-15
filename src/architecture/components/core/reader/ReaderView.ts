@@ -180,6 +180,9 @@ const SHORTCUTS: { keys: string[]; label: LocaleKey }[] = [
     { keys: ["H"], label: "reader_key_highlight" },
     { keys: ["1–4"], label: "reader_key_meaning" },
     { keys: ["reader_kbd_shift", "H"], label: "reader_key_note" },
+    // The selection popover (#811 FR-12, FR-13): walked with the arrows, folded with Esc.
+    { keys: ["←", "→", "↑", "↓"], label: "reader_key_popover_walk" },
+    { keys: ["reader_kbd_esc"], label: "reader_key_popover_esc" },
     // Listen (#765 FR-10): while the voice reads, the listening bar's keys.
     { keys: ["K"], label: "reader_key_listen_toggle" },
     { keys: ["[", "]"], label: "reader_key_listen_step" },
@@ -1341,6 +1344,8 @@ export class ReaderView extends ItemView {
                 readAloud: () => (this.listenAvailable() ? (span: TextSpan) => this.startListening("selection", span) : null),
                 // The reading's undo ledger (#810): every Undo offered is Ctrl/⌘+Z's too.
                 undoable: (run, check) => this.undoLedger.offer(run, check),
+                // Where a popover may open (#811 FR-14): the page, down to where the bar begins.
+                pageRoom: () => this.pageRoom(),
             },
             this.highlightDeps
         );
@@ -6021,6 +6026,8 @@ export class ReaderView extends ItemView {
                 if (isTyping(event.target)) return true;
                 // On the overview's cards the arrows, Home, End and Space move between cards (#776 FR-16).
                 if (modifiers?.length === 0 && OVERVIEW_KEYS.has(key) && (event.target as HTMLElement | null)?.closest?.(`.${c("reader-overview")}`)) return true;
+                // On the selection popover's buttons the arrows walk them, Space presses one (#811 FR-12).
+                if (modifiers?.length === 0 && OVERVIEW_KEYS.has(key) && (event.target as HTMLElement | null)?.closest?.(`.${c("reader-hl-pop")}`)) return true;
                 // In deep reading the keys that read turn quietly; any other brings the chrome back (FR-3, FR-4).
                 const quiet = this.deep && isReadingKey(event.key, { shift: event.shiftKey, ctrl: event.ctrlKey, meta: event.metaKey, alt: event.altKey });
                 if (!quiet) this.wake();
@@ -6068,6 +6075,8 @@ export class ReaderView extends ItemView {
         bind(["Mod"], "Z", () => (this.ink?.undoKey() ?? false) || this.undoLast());
         // 1–4 with words selected: keep them as an idea, a question, a quote, or to discuss (#720).
         for (const n of [1, 2, 3, 4]) bind(none, String(n), () => this.highlights?.chooseMeaning(n - 1) ?? false);
+        // Tab from the page into the selection popover (#811 FR-12, D2); with none open, Tab is the app's.
+        scope.register(none, "Tab", (event: KeyboardEvent) => !(this.highlights?.focusInPopover(event.target) ?? false));
         // `?` is Shift+/ on one layout and its own key on another: any modifiers.
         bind(null, "?", taken(() => this.toggleShortcuts()));
         bind(none, "Escape", taken(() => this.escape()));
@@ -6124,7 +6133,8 @@ export class ReaderView extends ItemView {
             case "search":
                 return this.closeSearch();
             case "popover":
-                return this.highlights?.hidePopover();
+                // An open *More* folds first, then the popover goes (#811 FR-13).
+                return this.highlights?.escapePopover();
             case "peek":
                 return this.closePeek();
             case "listen":
@@ -6238,6 +6248,18 @@ export class ReaderView extends ItemView {
         const win = this.viewWindow();
         if (typeof win?.matchMedia !== "function") return false;
         return !win.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    /**
+     * The visible page a popover may open into (#811 FR-14): the stage, down to where the bar begins
+     * while it shows. Empty (top = bottom) before the page is laid out.
+     */
+    private pageRoom(): { top: number; bottom: number } {
+        const stage = this.els?.stage?.getBoundingClientRect();
+        if (!stage) return { top: 0, bottom: 0 };
+        const bar = this.root?.querySelector<HTMLElement>(`.${c("reader-bar")}`)?.getBoundingClientRect();
+        const barTop = bar && bar.height > 0 && bar.top > stage.top ? bar.top : Infinity;
+        return { top: stage.top, bottom: Math.min(stage.top + stage.height, barTop) };
     }
 
     /**

@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { Component } from "obsidian";
 import { DomNode, flush, installBrowserGlobals } from "../../../../support/dashboardDom";
+import { openMore, rowLabels } from "../../../../support/readerPopover";
 import { FakeEl } from "../../../../support/textDom";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { ReaderHighlights, type HighlightStore, type PassageActions, type SelectionInfo } from "architecture/components/core/reader/readerHighlights";
@@ -143,18 +144,19 @@ describe("two buttons in the popover's first row (#762 FR-1)", () => {
             const start = chapterText(body as never).indexOf(words);
             selection = { start, end: start + words.length, rect: { left: 10, top: 20, width: 30, height: 18 }, clear: jest.fn() };
         };
-        const actions = () => host.byClass("reader-hl-actions")[0];
+        // The whole popover, More opened (#811): every action wherever its row put it.
+        const actions = () => openMore(host.byClass("reader-hl-pop")[0]);
         return { highlights, host, body, margin, attach, select, actions, store, gestures };
     }
 
-    it("puts Claim and Link to an idea right after Highlight and note, for a selection in a book", async () => {
+    it("offers Link to an idea for two words, and Claim in More, for a selection in a book (#811 FR-4, FR-7)", async () => {
         const m = mount();
         await m.attach();
         m.select("planning fallacy");
         m.body.fire("mouseup");
-        const labels = m.actions().findAll((el) => el.tag === "button").map((b) => b.textContent);
-        expect(labels.slice(0, 3)).toEqual(["Highlight and note", "Claim", "Link to an idea"]);
-        m.actions().find((el) => el.textContent === "Claim")!.click();
+        expect(rowLabels(m.host, "reader-hl-second")).toEqual(["Link to an idea"]);
+        expect(rowLabels(m.host, "reader-hl-more-list")).toEqual(["Claim"]);
+        m.actions().find((el) => el.tag === "button" && el.textContent === "Claim")!.click();
         expect(m.highlights.hasPopover()).toBe(false);
         const [given, from] = (m.gestures!.claim as jest.Mock).mock.calls[0] as [any, any];
         expect(given.quote.exact).toBe("planning fallacy");
@@ -167,7 +169,7 @@ describe("two buttons in the popover's first row (#762 FR-1)", () => {
         const m = mount([marked]);
         await m.attach();
         m.body.all("mark")[0].fire("click");
-        m.actions().find((el) => el.textContent === "Claim")!.click();
+        m.actions().find((el) => el.tag === "button" && el.textContent === "Claim")!.click();
         expect(((m.gestures!.claim as jest.Mock).mock.calls[0][0] as any).highlight.id).toBe("h1");
     });
 
@@ -176,7 +178,7 @@ describe("two buttons in the popover's first row (#762 FR-1)", () => {
         await m.attach();
         m.select("planning fallacy");
         m.body.fire("mouseup");
-        m.actions().find((el) => el.textContent === "Link to an idea")!.click();
+        m.actions().find((el) => el.tag === "button" && el.textContent === "Link to an idea")!.click();
         const [given, container, from, close] = (m.gestures!.link as jest.Mock).mock.calls[0] as [any, DomNode, any, () => void];
         expect(given.quote.exact).toBe("planning fallacy");
         expect(container.hasClass("zettelkasten-flow__reader-hl-pop--picker")).toBe(true);

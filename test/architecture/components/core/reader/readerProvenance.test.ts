@@ -3,6 +3,7 @@ import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach 
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { log } from "architecture";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place as barPlace } from "../../../../support/readerPlace";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
 import { withTextNodes } from "../../../../support/domText";
@@ -101,7 +102,7 @@ function layOut(m: ReturnType<typeof mount>) {
 }
 
 const livePage = (content: DomNode) => content.byClass("reader-stage")[0]?.children.find((child) => child.hasClass(cls("reader-page")));
-const count = (content: DomNode) => livePage(content)?.byClass("reader-count")[0]?.textContent ?? "";
+const count = (content: DomNode) => barPlace(content);
 async function drawn(content: DomNode, chapter: number) {
     await settle(() => count(content) === `Chapter ${chapter} / 3` && (livePage(content)?.byClass("reader-next").length ?? 0) > 0);
 }
@@ -233,10 +234,10 @@ describe("the Reader lands on a passage a note goes back to (#751 AC-6, AC-7, AC
         const m = await openAt(place(1, "Chapter 1 paragraph 0 holds"));
         await drawn(m.content, 1);
         const page = livePage(m.content)!;
-        const drawnCount = page.oneByClass("reader-count");
+        const drawnCount = page.oneByClass("reader-body");
         rec.animations.length = 0;
         await m.view.setState({ source: PATH, chapter: 0, at: serializePlace(place(1, "Chapter 1 paragraph 5 holds")) }, {} as never);
-        expect(page.oneByClass("reader-count")).toBe(drawnCount);
+        expect(page.oneByClass("reader-body")).toBe(drawnCount);
         expect(m.stage.scrollTop).toBe(5 * ROW_PX - Math.round(STAGE.height * READING_LINE));
         const glide = rec.animations.filter((a) => a.target === page);
         expect(glide).toHaveLength(1);

@@ -494,6 +494,7 @@ button.zettelkasten-flow__reader-next-button {
 .zettelkasten-flow__reader-bar-label {
     min-width: 7rem;
     text-align: center;
+    white-space: nowrap;
     color: var(--reader-muted);
     font-size: var(--font-ui-small);
     font-variant-numeric: tabular-nums;
@@ -808,14 +809,31 @@ button.zettelkasten-flow__reader-next-button {
     pointer-events: none;
 }
 
-.zettelkasten-flow__reader-toc-tick {
-    display: inline-flex;
-    color: var(--color-green);
+/* How far each entry is read (#812 FR-13): a quiet glyph — hollow, half, whole — never a number. */
+.zettelkasten-flow__reader-toc-state {
+    flex: none;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border: var(--border-width) solid var(--reader-muted);
+    border-radius: 50%;
+}
 
-    svg {
-        width: var(--icon-xs);
-        height: var(--icon-xs);
-    }
+.zettelkasten-flow__reader-toc-state--part {
+    background: linear-gradient(90deg, var(--reader-muted) 50%, transparent 50%);
+}
+
+.zettelkasten-flow__reader-toc-state--read {
+    background-color: var(--reader-muted);
+}
+
+/* Where you marked something (#812 FR-14): one small mark, the same for one highlight or twelve. */
+.zettelkasten-flow__reader-toc-mark {
+    flex: none;
+    width: var(--size-4-1);
+    height: var(--size-4-3);
+    margin-left: auto;
+    border-radius: var(--radius-s);
+    background-color: var(--highlight-background, var(--text-highlight-bg));
 }
 
 /*
@@ -827,7 +845,7 @@ button.zettelkasten-flow__reader-next-button {
  * edge; in portrait on a tablet it is #750's sheet. Closing is the same move backwards.
  */
 .zettelkasten-flow__reader {
-    --zf-alongside-w: min(22rem, 42%);
+    --zf-drawer-w: min(22rem, 42%);
 }
 
 .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side {
@@ -835,7 +853,7 @@ button.zettelkasten-flow__reader-next-button {
     right: calc(#{$safe-right} + var(--size-4-3));
     top: calc(var(--size-4-12) + #{$safe-top});
     bottom: calc(var(--size-4-18) + #{$safe-bottom});
-    width: var(--zf-alongside-w);
+    width: var(--zf-drawer-w);
     max-height: none;
     gap: var(--size-4-3);
     transform: translateX(0);
@@ -859,13 +877,58 @@ button.zettelkasten-flow__reader-next-button {
 
 /* A wide pane: the column narrows beside it. A narrow one: it lies over the page's edge. */
 @container zf-reader (min-width: 52rem) {
-    .zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-stage {
-        right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-stage {
+        right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6));
+    }
+
+    /* The bar and the dots follow the column, not the window (#812 FR-9): half the room the drawer
+       takes, on `translate`, so the bar's own transform (its idle fade) is left alone. */
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-dots {
+        translate: calc(var(--zf-drawer-shift) * -1) 0;
+    }
+
+    /* The bar fits the column it follows: never wider than it, so nothing of it slides off the
+       window. The minutes step back while the drawer is open; the line still says how far you are. */
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar {
+        max-width: calc(100% - #{$safe-left} - #{$safe-right} - var(--zf-drawer-w) - var(--size-4-6) - var(--size-4-4));
+    }
+
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar-minutes {
+        display: none;
+    }
+
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-progress {
+        width: var(--size-4-16);
+    }
+}
+
+/* One drawer (#812 FR-1): half its width and its gap, which is how far the column's centre moves. */
+.zettelkasten-flow__reader {
+    --zf-drawer-shift: calc((var(--zf-drawer-w) + var(--size-4-6)) / 2);
+}
+
+.zettelkasten-flow__reader-bar,
+.zettelkasten-flow__reader-dots {
+    transition-property: opacity, transform, translate;
+    transition-duration: 0.4s, 0.4s, $motion-base;
+    transition-timing-function: ease, ease, $ease-out;
+}
+
+/* Another panel in the same drawer (#812 FR-5): only what is in it changes, the drawer stays. */
+.zettelkasten-flow__reader-drawer-swap {
+    animation: zf-reader-drawer-swap $motion-fast $ease-out backwards;
+}
+
+@keyframes zf-reader-drawer-swap {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
     }
 }
 
 /* Your highlights are in Alongside while it is open: the margin steps back rather than doubling them. */
-.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-margin:not(:empty) {
+.zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-margin:not(:empty) {
     display: none;
 }
 
@@ -880,8 +943,8 @@ button.zettelkasten-flow__reader-next-button {
  * ends where the column ends, so the × above the panel is never the Reader's. It moves in the same
  * layout that narrows the column — no motion of its own.
  */
-.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-top {
-    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+.zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-top {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6));
 }
 
 .zettelkasten-flow__reader-alongside-near {
@@ -1649,8 +1712,8 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* Beside Alongside the ribbon keeps to the column's side of the panel, as the top line and its × do (#777 FR-2). */
-.zettelkasten-flow__reader--alongside button.zettelkasten-flow__reader-ribbon {
-    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6) + var(--size-4-12));
+.zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-ribbon {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12));
 }
 
 /* Idle: an empty ribbon steps back with the bar; a filled one stays, as a ribbon in a book does. */
@@ -1750,20 +1813,16 @@ button.zettelkasten-flow__reader-next-button {
     flex: 1;
 }
 
-/* Contents → Notebook (#721): everything you marked in this book, in the Library. */
-button.zettelkasten-flow__reader-notebook-link {
+/* A panel's head actions (#812 FR-11): Recall and the notebook beside the tabs, before the ×. */
+.zettelkasten-flow__reader-panel-actions {
     display: inline-flex;
     align-items: center;
-    gap: var(--size-4-2);
-    height: auto;
-    margin-bottom: var(--size-4-2);
-    padding: var(--size-4-1) var(--size-4-2);
-    border: var(--border-width) solid var(--reader-line);
-    border-radius: var(--radius-s);
-    background: none;
-    box-shadow: none;
-    color: var(--reader-fg);
-    cursor: pointer;
+    gap: var(--size-4-1);
+    margin-left: auto;
+}
+
+.zettelkasten-flow__reader-panel-actions + .zettelkasten-flow__reader-panel-close {
+    margin-inline-start: 0;
 }
 
 /* Search inside the book (#719): a slim bar under the top, the results under it. */
@@ -3365,9 +3424,16 @@ body.zettelkasten-flow__reader-deep-covers-app {
     /* Alongside is there or gone at once; its lens fill and its cards simply are where they go (#754 FR-22). */
     .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side,
     .zettelkasten-flow__reader-lens-marker,
-    .zettelkasten-flow__reader-flip-leaving {
+    .zettelkasten-flow__reader-flip-leaving,
+    .zettelkasten-flow__reader-drawer-swap {
         transition: none;
         animation: none;
+    }
+
+    /* The bar and the dots are simply where the column is; they still fade as they always did. */
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-dots {
+        transition-duration: 0.4s, 0.4s, 0s;
     }
 
     /* The sheet appears and goes at once — its drag still follows the finger (#750 FR-20). */
@@ -3774,4 +3840,21 @@ button.zettelkasten-flow__reader-hl-layer {
 
 .zettelkasten-flow__reader-hyphen-probe--manual {
     hyphens: manual;
+}
+
+/* Search is the drawer's (#812 FR-6): the same field and results, laid in the panel instead of over
+   the page — no card of its own, the drawer is its card. */
+.zettelkasten-flow__reader-panel .zettelkasten-flow__reader-search {
+    position: static;
+    width: auto;
+    transform: none;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    animation: none;
+}
+
+.zettelkasten-flow__reader-panel .zettelkasten-flow__reader-search-input {
+    flex: 1;
+    min-width: 0;
 }

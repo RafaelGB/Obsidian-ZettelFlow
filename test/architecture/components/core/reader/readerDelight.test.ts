@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { Component, MarkdownRenderer, Platform, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { FakeEl } from "../../../../support/textDom";
 import { press } from "../../../../support/readerKeys";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
@@ -62,7 +63,7 @@ async function open(settings: Record<string, unknown> = {}, extraWorkspace: Reco
     return m;
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const root = (content: DomNode) => content.oneByClass("reader");
 
 describe("the keys, the Obsidian way (#667)", () => {
@@ -76,18 +77,18 @@ describe("the keys, the Obsidian way (#667)", () => {
         // The target is not the reader: focus sits on the page, the bar, anywhere — the scope still has it.
         const evt = press(leaf, "ArrowRight", { target: new DomNode("button") });
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         expect(evt.defaultPrevented).toBe(true);
         press(leaf, "ArrowLeft", { target: new DomNode("button") });
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
     });
 
     it("leaves a key typed into a field alone", async () => {
         const { content, leaf } = await open();
         const evt = press(leaf, "ArrowRight", { target: { tagName: "TEXTAREA" } });
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(evt.defaultPrevented).toBe(false);
     });
 
@@ -105,16 +106,16 @@ describe("the keys, the Obsidian way (#667)", () => {
         stage.clientHeight = 500;
         press(leaf, " ");
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(stage.scrollTop).toBe(425);
         stage.scrollTop = 1500;
         press(leaf, " ");
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         // Shift+Space at the top goes back a chapter.
         press(leaf, " ", { shiftKey: true });
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
     });
 
     it("opens and closes the shortcuts sheet with ?, and Esc closes it before anything else", async () => {
@@ -164,10 +165,10 @@ describe("the reader's commands (#667)", () => {
         const command = component(view);
         command("reader-next-chapter").checkCallback(false);
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         command("reader-previous-chapter").checkCallback(false);
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         command("reader-exit").checkCallback(false);
         expect(leaf.detach).toHaveBeenCalled();
     });

@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach } from "@jest/globals";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
@@ -86,7 +87,7 @@ function clickLink(content: DomNode, text: string) {
     body.fire("click", { target: link });
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const pill = (content: DomNode) => content.oneByClass("reader-detour-pill");
 
 describe("footnotes read in place, and a way back after any jump (#718)", () => {

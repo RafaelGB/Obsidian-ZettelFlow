@@ -424,7 +424,9 @@ contents, nested as the book nests them.
 - **Footnotes are read in place.** Click a footnote mark and the note floats over the page, at the
   mark. That works for a note in the chapter and for an endnote at the back of the book. The page
   does not move; Esc or a click elsewhere puts it away, and **Go to note** goes there.
-- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens a slim bar under the top.
+- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens it in the Reader's drawer,
+  beside the page; its field keeps your words through every jump, and opening another panel there
+  puts the search away, tints and all.
   It searches every chapter or page, ignoring case and accents, and says *N results · in M chapters*,
   each with its snippet and its page or chapter. **Enter** and **Shift+Enter** step through them; the
   matches are tinted in the page and the current one is outlined. A match in another chapter is a
@@ -631,7 +633,7 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    to the Library.
 6. **From the file.** Right-click the EPUB in the file explorer → **Show in the library**: the Library
    opens on its detail.
-7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
+7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n* in the bar, the text in your
    reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
    page as laid out at the width of the screen, *100%* in the bar, *Highlight in the reading view*).
    **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link

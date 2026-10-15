@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 import { TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
 import { DomNode, flush, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { makePdfJs, prose } from "../../../../support/fakePdf";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
@@ -82,7 +83,7 @@ describe("a PDF in the Reader (#681)", () => {
     it("reflows a page into the reader's column: its pages are the chapters", async () => {
         const { content, view } = await open();
         expect(content.oneByClass("reader-path-title").textContent).toBe("Brewer's Conjecture and the Feasibility of Web Services · Gilbert & Lynch");
-        expect(content.oneByClass("reader-count").textContent).toBe("Page 1 / 3");
+        expect(place(content)).toBe("Page 1 / 3");
         const body = content.oneByClass("reader-source-body");
         expect(body.findAll((el) => el.tag === "h2").map((el) => el.textContent)).toEqual(["Brewer's Conjecture"]);
         expect(body.findAll((el) => el.tag === "p")[0].textContent).toBe(
@@ -96,7 +97,7 @@ describe("a PDF in the Reader (#681)", () => {
     it("turns pages with the reader's keys, shows the section from the outline, and keeps the place for the Library", async () => {
         const { content, host } = await open();
         press(content as never, "ArrowRight");
-        await settle(() => content.oneByClass("reader-count").textContent === "Page 2 / 3");
+        await settle(() => place(content) === "Page 2 / 3");
         expect(content.oneByClass("reader-role-tag").textContent).toBe("3. Asynchronous networks");
         // The place and what was read off the file are written a moment later — wait for them, not a tick.
         await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.chapter === 1 && Boolean((host.settings.library as any)?.["Papers/cap.pdf"]?.title));
@@ -131,15 +132,15 @@ describe("a PDF in the Reader (#681)", () => {
         m.thoughts.push({ id: "h1", at: 1, text: "", links: [], about: "Papers/cap.pdf", quote: { exact: "impossible", prefix: "", suffix: "" }, locator: { at: 2, label: "p. 3" } });
         await m.view.setState({ source: "Papers/cap.pdf", chapter: 0, highlight: "h1" }, {} as never);
         await m.view.onOpen();
-        await settle(() => m.content.byClass("reader-count").some((el) => el.textContent === "Page 3 / 3"));
-        expect(m.content.oneByClass("reader-count").textContent).toBe("Page 3 / 3");
+        await settle(() => place(m.content) === "Page 3 / 3");
+        expect(place(m.content)).toBe("Page 3 / 3");
     });
 
     it("ends a paper with what to do with what you marked", async () => {
         const { content } = await open(2);
         content.oneByClass("reader-next-button").click();
         await flush();
-        expect(content.oneByClass("reader-count").textContent).toBe("The end");
+        expect(place(content)).toBe("The end");
         expect(content.byClass("reader-end-action-name").map((el) => el.textContent)).toEqual(["Think on what you marked", "See it in the library", "Read it again"]);
     });
 

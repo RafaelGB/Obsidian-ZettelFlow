@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -102,7 +103,7 @@ async function open(chapter = 0, settings: Record<string, unknown> = {}) {
     return m;
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 
 describe("an article in the Reader (#744)", () => {
     let attach: jest.SpiedFunction<ReaderHighlights["attach"]>;

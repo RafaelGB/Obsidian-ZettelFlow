@@ -2,6 +2,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush, installBrowserGlobals } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
 import { mouseClick, pointerDown, pointerMove, pointerUp, touchSwipe, touchTap } from "../../../../support/pointer";
 import { withPlatform, IPAD } from "../../../../support/platform";
@@ -55,7 +56,7 @@ async function open(size = { width: 1000, height: 800 }) {
     return { ...m, root, stage, page };
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const reduced = (on: boolean) => ((globalThis as any).matchMedia = () => ({ matches: on }));
 
 describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () => {
@@ -123,7 +124,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         expect(stage.scrollBy).not.toHaveBeenCalled();
         expect(root.hasClass("zettelkasten-flow__reader--idle")).toBe(true);
         expect(click.defaultPrevented).toBe(false);
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
     });
 
     it("swallows the click a handled tap leaves behind, and nothing else", async () => {
@@ -147,7 +148,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         touchSwipe(stage, { x: 995, y: 400 }, { x: 400, y: 400 });
         await flush();
         expect(stage.scrollBy).not.toHaveBeenCalled();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(rec.animations).toHaveLength(0);
         // Obsidian's own drawer swipe is told which touches are the page's.
         stage.fire("touchstart", { touches: [{ clientX: 500, clientY: 400 }] });
@@ -160,7 +161,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         const { stage, content } = await open();
         touchSwipe(stage, { x: 800, y: 400 }, { x: 400, y: 410 });
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         // The finger's turn was the chapter's: one sheet, playing out at the release speed.
         expect(content.byClass("turn-sheet")).toHaveLength(1);
         expect(rec.animations.every((a) => a.playState === "running" && a.playbackRate >= 1)).toBe(true);
@@ -178,7 +179,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         expect(sheet.playbackRate).toBeLessThan(0);
         rec.finishAll();
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(content.byClass("turn-sheet")).toHaveLength(0);
         expect(page.hasClass("zettelkasten-flow__reader-page--under-scrub")).toBe(false);
     });
@@ -191,7 +192,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         expect(content.byClass("turn-sheet")).toHaveLength(0);
         pointerUp(stage, { x: 600, y: 400 }, 10);
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(stage.cssProps["--zf-scrub-x"]).toBe("0px");
         expect(stage.hasClass("zettelkasten-flow__reader-stage--rubber")).toBe(false);
         const spring = rec.animations.find((a) => a.target === stage)!;
@@ -206,7 +207,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         expect(rec.animations.every((a) => (a.currentTime ?? 0) > 0)).toBe(true);
         pointerUp(stage, { x: 300, y: 400 }, 10);
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
     });
 
     it("lets a vertical drag scroll, as today — and a diagonal never turns (FR-4)", async () => {
@@ -216,7 +217,7 @@ describe("tap the edges, swipe a chapter (#750 FR-1–FR-4, FR-17–FR-19)", () 
         pointerMove(stage, { x: 800, y: 450 }, 40);
         pointerUp(stage, { x: 900, y: 450 }, 40);
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(rec.animations).toHaveLength(0);
     });
 

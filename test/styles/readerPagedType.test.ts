@@ -2,7 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const SCSS = readFileSync(join(__dirname, "..", "..", "src", "styles", "components", "reader.scss"), "utf8");
+const SCSS = readFileSync(join(__dirname, "..", "..", "src", "styles", "components", "reader.scss"), "utf8").replace(/\r\n/g, "\n");
 
 /** **No line alone at a page's foot or head** (#809 D1): the paged body keeps two lines together. */
 describe("whole paragraphs in pages (#809 D1)", () => {

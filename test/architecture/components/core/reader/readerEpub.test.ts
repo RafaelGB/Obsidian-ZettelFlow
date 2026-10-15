@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { kicker, place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { makeEpub } from "../../../../support/zipFixture";
 import { parseXml } from "../../../../support/miniXml";
@@ -94,7 +95,7 @@ describe("an EPUB in the Reader (#682)", () => {
     it("reads the spine as chapters, named from the book's own contents", async () => {
         const { content } = await open();
         expect(content.oneByClass("reader-path-title").textContent).toBe("Thinking, Fast and Slow · Daniel Kahneman");
-        expect(content.oneByClass("reader-count").textContent).toBe("Chapter 1 / 3");
+        expect(place(content)).toBe("Chapter 1 / 3");
         expect(paragraphs(content)[0]).toBe("System 1 operates automatically.");
         expect(content.oneByClass("reader-next-label").textContent).toBe("Next · 2 · Attention and effort");
     });
@@ -121,8 +122,8 @@ describe("an EPUB in the Reader (#682)", () => {
         expect(inside.getAttribute("data-zf-href")).toBe("OEBPS/text/ch3.xhtml#effort");
         const event = body.fire("click", { target: inside });
         expect(event.defaultPrevented).toBe(true);
-        await settle(() => content.oneByClass("reader-count").textContent === "Chapter 3 / 3");
-        expect(content.oneByClass("reader-count").textContent).toBe("Chapter 3 / 3");
+        await settle(() => place(content) === "Chapter 3 / 3");
+        expect(place(content)).toBe("Chapter 3 / 3");
         expect(app.workspace.openLinkText).not.toHaveBeenCalled();
     });
 
@@ -171,7 +172,7 @@ describe("an EPUB in the Reader (#682)", () => {
         await settle(() => content.oneByClass("reader-source-body").find((el) => el.tag === "img")?.getAttribute("src") !== null);
         const before = revoked.length;
         press(content as never, "ArrowRight");
-        await settle(() => content.oneByClass("reader-count").textContent === "Chapter 3 / 3");
+        await settle(() => place(content) === "Chapter 3 / 3");
         // Once the turn that copies the page has played (#770).
         await settle(() => revoked.length > before, 200, 4000);
         expect(revoked.length).toBeGreaterThan(before);
@@ -186,7 +187,7 @@ describe("an EPUB in the Reader (#682)", () => {
             "3 · The lazy controller",
         ]);
         content.byClass("reader-toc-row")[1].click();
-        await settle(() => content.oneByClass("reader-count").textContent === "Chapter 2 / 3");
+        await settle(() => place(content) === "Chapter 2 / 3");
         expect((host.settings.library as any)["Books/tfs.epub"]).toMatchObject({ chapter: 1, chapters: 3, title: "Thinking, Fast and Slow" });
     });
 
@@ -266,7 +267,7 @@ describe("an EPUB in the Reader (#682)", () => {
             expect(url).toMatch(/^blob:/);
             expect(picture()?.getAttribute("src")).toBeNull();
             press(content as never, "ArrowLeft");
-            await settle(() => content.oneByClass("reader-count").textContent === "Chapter 1 / 2");
+            await settle(() => place(content) === "Chapter 1 / 2");
             await settle(() => revoked.includes(url), 200, 4000);
             expect(revoked).toContain(url);
             // The book is only ever read.
@@ -381,6 +382,44 @@ describe("a book opens on its text, and a cover is one page (#808)", () => {
         expect((m.view as any).sourceLabel(2)).toBe("Dedicatoria");
         expect((m.view as any).locatorOf(2).label).toBe("Chapter 3");
         expect(doc.chapters[3].heading).toBeUndefined();
+    });
+
+    it("says the chapter's title above the text once, never a count (#812 FR-15)", async () => {
+        // The introduction opens with its own heading: the line above says nothing.
+        expect(kicker((await read(PENSAR, { chapter: 3 })).content)).toBe("");
+        // An untitled chapter with no heading of its own: nothing either.
+        expect(kicker((await read(PENSAR, { chapter: 1 })).content)).toBe("");
+        // A titled chapter whose text does not open with it.
+        const book = makeEpub({ chapters: [{ id: "a", href: "a.xhtml", title: "Nota de la autora", body: "<p>Querido lector.</p>" }, { id: "b", href: "b.xhtml", title: "Two", body: "<p>Two.</p>" }] });
+        const m = await read(book);
+        expect(kicker(m.content)).toBe("Nota de la autora");
+        expect(m.content.oneByClass("reader-bar-label").textContent).toBe("Chapter 1 / 2");
+    });
+
+    it("keeps dots for a short book and drops them past twelve chapters (#812 FR-16)", async () => {
+        const many = (n: number) => makeEpub({ chapters: Array.from({ length: n }, (_, i) => ({ id: `c${i}`, href: `c${i}.xhtml`, title: `Chapter ${i + 1}`, body: `<p>Text ${i}.</p>` })) });
+        expect((await read(many(12))).content.oneByClass("reader-dots").hasClass("zettelkasten-flow__reader-hidden")).toBe(false);
+        expect((await read(many(13))).content.oneByClass("reader-dots").hasClass("zettelkasten-flow__reader-hidden")).toBe(true);
+    });
+
+    it("Contents holds places only: read, here, not yet, and a mark where you marked (#812 FR-10 – FR-14)", async () => {
+        const m = mount(BOOK);
+        (m.view as any).highlightDeps.store.highlightsAbout = jest.fn(async () => [{ id: "h", text: "", created: "2026-10-16", about: "Books/tfs.epub", locator: { at: 2, label: "3" }, quote: { exact: "x" } }]);
+        await m.view.setState({ source: "Books/tfs.epub", chapter: 1 }, {} as never);
+        await m.view.onOpen();
+        await settle(() => m.content.byClass("reader-next").length > 0);
+        m.content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Contents")!.click();
+        const rows = m.content.byClass("reader-toc-row");
+        expect(rows.map((r) => ["read", "part", "unread"].find((s) => r.hasClass(`zettelkasten-flow__reader-toc-row--${s}`)))).toEqual(["read", "part", "unread"]);
+        expect(rows[1].getAttribute("aria-current")).toBe("step");
+        // No number in any row, no action among them: Recall and the notebook are in the head.
+        expect(rows.every((r) => !/\d+ ?%/.test(r.textContent))).toBe(true);
+        expect(m.content.byClass("reader-notebook-link")).toHaveLength(0);
+        expect(m.content.oneByClass("reader-panel-actions").byClass("reader-panel-action").length).toBeGreaterThan(0);
+        await settle(() => m.content.byClass("reader-toc-mark").length > 0);
+        const marked = m.content.byClass("reader-toc-row");
+        expect(marked.map((r) => r.byClass("reader-toc-mark").length)).toEqual([0, 0, 1]);
+        expect(marked[2].getAttribute("aria-label")).toContain("You marked something here");
     });
 
     it("a book that names no start opens on chapter 0, as before", async () => {

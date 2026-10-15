@@ -2,6 +2,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush, installBrowserGlobals } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { press } from "../../../../support/readerKeys";
 import { touchSwipe, touchTap } from "../../../../support/pointer";
@@ -62,7 +63,7 @@ async function open(paths = ["a.md", "b.md", "c.md"], pages = 4, prefs?: Record<
     return { view, plugin, content, root, stage, page, pager, stagePages };
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const typeButton = (content: DomNode) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Type")!;
 const layoutOption = (content: DomNode, label: string) => content.byClass("reader-type-option").find((b) => b.text === label)!;
 
@@ -109,12 +110,22 @@ describe("pages or scroll (#753)", () => {
         expect(pager().current).toBe(1);
         press({ view } as any, "ArrowRight");
         expect(pager().current).toBe(2);
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         press({ view } as any, "ArrowRight");
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         expect(turn).toHaveBeenCalled();
         expect(pager().current).toBe(0);
+    });
+
+    it("says which screen of the chapter is on show, so a turn that stays in it is seen (#812 FR-18, AC-16)", async () => {
+        const { content, view } = await open(undefined, 3, { layout: "page" });
+        const bar = () => content.oneByClass("reader-bar-label").textContent;
+        expect(bar()).toBe("Chapter 1 / 3 · 1 of 3");
+        press({ view } as any, " ");
+        expect(bar()).toBe("Chapter 1 / 3 · 2 of 3");
+        press({ view } as any, "ArrowRight");
+        expect(bar()).toBe("Chapter 1 / 3 · 3 of 3");
     });
 
     it("goes back from a chapter's first page to the previous chapter's last page", async () => {
@@ -123,22 +134,22 @@ describe("pages or scroll (#753)", () => {
         press({ view } as any, "ArrowRight");
         press({ view } as any, "ArrowRight");
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         press({ view } as any, "ArrowLeft");
         await flush();
-        expect(count(content)).toBe("01 / 03");
+        expect(count(content)).toBe("Chapter 1 / 3");
         expect(pager().current).toBe(2);
         // On its last page, forward is the next chapter again.
         press({ view } as any, "ArrowRight");
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
     });
 
     it("leaves every key of Scroll as it was: → is the next chapter (FR-4)", async () => {
         const { content, view, pager } = await open();
         press({ view } as any, "ArrowRight");
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         expect(pager().paged).toBe(false);
     });
 
@@ -172,7 +183,7 @@ describe("pages or scroll (#753)", () => {
         touchSwipe(stage, { x: 800, y: 300 }, { x: 300, y: 305 });
         await flush();
         expect(go).toHaveBeenCalledWith(1, "start");
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
     });
 
     it("puts the popovers away on a turn, as a scroll does (FR-5)", async () => {

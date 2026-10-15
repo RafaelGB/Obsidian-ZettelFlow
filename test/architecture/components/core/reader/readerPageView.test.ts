@@ -301,7 +301,7 @@ describe("pages arrive quietly, and scrolling is the platform's (#767 FR-19, FR-
             stage.fire("scroll");
             await wait(40);
             expect(record.animations.filter((a) => a.target === run(content))).toHaveLength(0);
-            expect(barLabel(content)).toBe("Chapter 3 / 8");
+            expect(barLabel(content)).toBe("Page 3 / 8");
             expect(slotPages(content)).toContain(2);
             // Only what is near is drawn: never the whole paper.
             expect(slots(content).length).toBeLessThanOrEqual(7);
@@ -408,7 +408,7 @@ describe("the same Layout control, read for a printed page (#767 FR-6, FR-7, FR-
             await settle(() => slotPages(content).join() === "1");
             expect(slotPages(content)).toEqual([1]);
             expect(content.byClass("turn-sheet").length).toBeGreaterThan(0);
-            expect(barLabel(content)).toBe("Chapter 2 / 8");
+            expect(barLabel(content)).toBe("Page 2 / 8");
         } finally {
             record.stop();
             undo();
@@ -539,7 +539,7 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
             const from = box(sheet);
             const before = record.animations.length;
             card.click();
-            expect(barLabel(content)).toBe("Chapter 6 / 8");
+            expect(barLabel(content)).toBe("Page 6 / 8");
             const ghost = record.animations.slice(before).find((a) => a.target.classes?.has(cls("motion-ghost")));
             expect(ghost).toBeDefined();
             expect(ghost!.options.duration).toBe(MOTION.cover);
@@ -563,7 +563,7 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
             const { content } = await open(0);
             overviewDoor(content).click();
             content.byClass("reader-overview-card")[4].click();
-            expect(barLabel(content)).toBe("Chapter 5 / 8");
+            expect(barLabel(content)).toBe("Page 5 / 8");
             expect(record.animations).toHaveLength(0);
         } finally {
             record.stop();
@@ -584,7 +584,7 @@ describe("the overview, which the Pages tab became (#767 FR-10, FR-22, AC-6; #77
         expect(calls.renders.slice(before).map((r) => r.page)).toEqual([4]);
         expect(content.byClass("reader-pv-run")).toHaveLength(0);
         cards[4].click();
-        await settle(() => barLabel(content) === "Chapter 5 / 8");
+        await settle(() => barLabel(content) === "Page 5 / 8");
         expect((view as any).sourceView).toBe("reading");
         expect(content.byClass("reader-pv-run")).toHaveLength(0);
         const pageView = content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Page view")!;
@@ -604,14 +604,14 @@ describe("links in the paper (#767 FR-11, FR-12, AC-7)", () => {
         // Placed over the link, as shares of its page.
         expect(inside.cssProps["--zf-link-x"]).toBe(`${((72 / 612) * 100).toFixed(3)}%`);
         inside.click();
-        await settle(() => barLabel(content) === "Chapter 8 / 8");
-        expect(barLabel(content)).toBe("Chapter 8 / 8");
+        await settle(() => barLabel(content) === "Page 8 / 8");
+        expect(barLabel(content)).toBe("Page 8 / 8");
         const pill = content.oneByClass("reader-detour-pill");
         expect(pill.hasClass(cls("reader-hidden"))).toBe(false);
         expect(pill.textContent).toContain("p. 1");
         press(content as never, "ArrowLeft", { altKey: true });
-        await settle(() => barLabel(content) === "Chapter 1 / 8");
-        expect(barLabel(content)).toBe("Chapter 1 / 8");
+        await settle(() => barLabel(content) === "Page 1 / 8");
+        expect(barLabel(content)).toBe("Page 1 / 8");
     });
 
     it("keeps a page's links when it comes back on screen, drawn from what was kept (walk)", async () => {

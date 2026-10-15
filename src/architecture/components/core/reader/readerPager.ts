@@ -299,6 +299,11 @@ export class ReaderPager {
         return dir > 0 ? this.view < this.views - 1 : this.view > 0;
     }
 
+    /** The screen on show and how many the chapter has (#812 FR-18): one when not in pages. */
+    screen(): { view: number; views: number } {
+        return this.paged ? { view: this.view, views: this.views } : { view: 0, views: 1 };
+    }
+
     atStart(): boolean {
         return this.view <= 0;
     }

@@ -124,21 +124,45 @@ The **bar** at the bottom appears when you move the mouse and fades after two se
 pointer fades with it. On a touch screen a tap in the middle of the page shows it, and the next one
 hides it. It holds:
 
-- the chapter you are on, your progress through the path, and **about how many minutes are left**
-  in this chapter (at 220 words a minute, counted down as you scroll);
+- **where you are** — *Chapter 11 / 30* in a book, *Page 3 / 12* in a paper, *Section 2 / 5* in an
+  article — and, in *Page* or *Spread*, which screen of the chapter is on show (*Chapter 11 / 30 ·
+  2 of 44*), so a turn that stays in the chapter is seen to happen; your progress through the path;
+  and **about how many minutes are left** in this chapter (at 220 words a minute, counted down as you
+  scroll);
 - **Contents**, the chapters with their roles (in a book or a paper, with its **Bookmarks** and
   **Where you've been** beside them);
+- **Search in the book**;
 - **Type**;
 - **Alongside**, the panel-on-the-right icon: your own notes near the paragraph you are reading,
   through six lenses (see [Alongside](#alongside-your-vault-beside-the-page));
 - **Deep reading**, the page and nothing else (**F**);
 - **Keyboard shortcuts**.
 
-**A panel closes from the panel.** *Contents*, *Type* and *Alongside* each carry their own **×** at
-the end of their head (*Close contents*, *Close type*, *Close Alongside*). It closes the panel in the
-same move as **Esc**, and the Reader stays open. While the [claim sheet](#make-it-a-claim-or-link-it-to-an-idea)
-is open, the first press closes the sheet, as Esc does. The bar's button of an open panel shows as
+**One drawer.** *Contents*, *Type*, *Layers*, *Search* and *Alongside* all open in the same place:
+a drawer beside the column, on the right. The column makes room for it with the line you were
+reading kept where it was, and the bar and the dots move with the column, so they stay under the
+text and never under the drawer. On a narrow desktop pane the drawer lies over the page's edge; on
+an iPad in portrait it is the bottom sheet. Asking for another panel while one is open **swaps what
+the drawer holds** — a short fade in place, the drawer itself never moves — and asking for the open
+one again closes it. While the drawer is open, the margin's list of your highlights steps back: the
+drawer has that side.
+
+**A panel closes from the panel.** Every panel carries its own **×** at the end of its head
+(*Close contents*, *Close type*, *Close Alongside*, …). It closes the drawer in the same move as
+**Esc**, and the Reader stays open. While the [claim sheet](#make-it-a-claim-or-link-it-to-an-idea)
+is open, the first press closes the sheet, as Esc does. The bar's button of the open panel shows as
 pressed, so the way back is always where you opened it.
+
+**Contents is places.** The list holds the chapters and nothing else. Each one says, quietly, how
+far it is read — a filled dot for read, a half one for the chapter you are in or one you opened this
+sitting, a hollow one for not yet — and a small mark where you marked something, the same mark for
+one highlight or twelve. No row counts anything. It opens scrolled to where you are. **Recall this
+chapter** (the pencil) and the book's **Notebook** are the two icons in its head, before the ×.
+
+**One progress signal.** Where you are is said once, in the bar. Above the text there is no count:
+the line there names the chapter, and says nothing when the chapter opens with its own heading or
+has no name. A reading of twelve chapters or fewer has its **dots** under the page, one per chapter;
+a longer one — a book of thirty chapters, a paper of sixty pages — has the bar's line instead.
 
 **The × at the top right is the Reader's own exit** (*Close the reader*, said on hover). It always
 sits over the column: while Alongside lies beside the page, the top line ends where the column ends,
@@ -1508,7 +1532,7 @@ way Think does *think first, then look*. **Read → think → recall → rewrite
 
 ![Recall: on the left the chapter put away — the page has slid down out of the column as a sheet, leaving the paper and the chapter's title, and beside it the card asks Without looking: what was this chapter's argument? above your words, typo and all, with Reveal what I marked and Done; on the right the page is back with your two marks returning in the order you made them, and the card shows What you wrote — your words, where they were — and under it What you marked then, then Keep it as a note and Done](../resources/reader/recall.svg)
 
-- **Where it is.** In **Contents**, at the top, on the chapter you are in — and at the foot of the
+- **Where it is.** In **Contents**, the pencil in its head, on the chapter you are in — and at the foot of the
   [*What survived?*](#what-survived) leaf, for the chapter that just ended: the book goes back onto
   that chapter first, and recall begins once it has landed. It works on an EPUB's chapter, a paper's
   section (its outline's, or the page you are on when it has none) and an article's section. A

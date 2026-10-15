@@ -90,9 +90,10 @@ import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent 
 import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
 import { languageName, readingLanguage } from "./readerLanguage";
 import { HyphenationSupport, justifyDecision } from "./readerHyphenation";
+import { chapterState, kickerTitle, screenPart, showDots, type ChapterState } from "./readerProgress";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
-import { panelClose, panelHead, type PanelClose } from "./readerPanelHead";
+import { panelAction, panelClose, panelHead, type PanelClose } from "./readerPanelHead";
 import { PdfPageRun } from "./readerPageRun";
 import { PREVIEW_BLOCKS, cardMarks, cardPixels, cardProgress, normalizeContentsTab, overviewLimit, overviewUnits, renderOverview, OVERVIEW_LIMITS, type ContentsTab, type MarkSource, type Overview, type OverviewUnit } from "./readerOverview";
 import { fly } from "./readerMotion";
@@ -127,9 +128,6 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /** The bar fades after this long without a pointer move or a key. */
 const IDLE_MS = 2000;
-
-/** A source longer than this reads without the chapter dots: three hundred pages are not dots. */
-const DOTS_LIMIT = 40;
 
 /** The leaving fade (`reader--leaving` in reader.scss); the workspace comes back when it ends. */
 const EXIT_MS = 220;
@@ -272,7 +270,7 @@ export type { ReaderHost };
  * The panels — Recall (#760), which lies beside the page as Alongside does, with no button of its
  * own, and the overview (#784), whose door is the bar's *Overview* and the pinch, never a tab.
  */
-type Panel = "contents" | "type" | "layers" | "context" | "recall" | "overview" | null;
+type Panel = "contents" | "type" | "layers" | "context" | "recall" | "overview" | "search" | null;
 
 /**
  * The Contents panel of a book or a paper (#761 FR-4): its contents, its bookmarks, where you've
@@ -361,6 +359,13 @@ const COUNT_KEY: Record<SourceDocument["format"], Parameters<typeof t>[0]> = {
     pdf: "reader_source_count_page",
     epub: "reader_source_count_chapter",
     article: "reader_source_count_section",
+};
+
+/** How a Contents row's state is said (#812 FR-13). */
+const TOC_STATE_KEY: Record<ChapterState, Parameters<typeof t>[0]> = {
+    read: "reader_toc_read",
+    part: "reader_toc_part",
+    unread: "reader_toc_unread",
 };
 
 function noteName(path: string): string {
@@ -458,6 +463,10 @@ export class ReaderView extends ItemView {
     private alongsideDot: HTMLElement | null = null;
     /** The shape the open panel was drawn in: Alongside moves in place while it keeps it. */
     private panelShape: "sheet" | "side" | "card" | null = null;
+    /** Which panel the drawer holds now (#812 FR-5): a different one asked for is a swap, not an arrival. */
+    private panelShown: Panel = null;
+    /** Where you marked something in the book open in Contents (#812 FR-14), read as Contents opened. */
+    private contentsMarks: { path: string; at: Set<number> } | null = null;
     /** Alongside's leaving slide, when it is playing. */
     private alongsideLeaving: number | undefined;
     /** The listeners of the open peek, gone with it. */
@@ -1249,6 +1258,8 @@ export class ReaderView extends ItemView {
                 this.onStageScroll();
                 // The ribbon says whether the page you turned to holds a bookmark.
                 this.notePlace();
+                // The bar says which screen of the chapter this is (#812 FR-18).
+                this.renderBarPlace();
             },
         });
         this.pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
@@ -1276,7 +1287,8 @@ export class ReaderView extends ItemView {
         const overview = this.iconButton(bar, "layout-grid", "reader_overview", () => this.openOverview());
         overview.addClass(c("reader-hidden"));
         overview.setAttribute("aria-pressed", "false");
-        const search = this.iconButton(bar, "search", "reader_search", () => void this.openSearch());
+        // Search lives in the drawer (#812 FR-6): its button opens it there, and closes it again.
+        const search = this.iconButton(bar, "search", "reader_search", () => (this.panel === "search" ? this.closePanel() : void this.openSearch()));
         search.addClass(c("reader-hidden"));
         // Listen (#765 FR-1): offered once the device's voices are known to include one of its own.
         const listen = this.iconButton(bar, "audio-lines", "reader_listen", (event) => this.openListen(event));
@@ -1292,7 +1304,7 @@ export class ReaderView extends ItemView {
         // The panel on the right (#777 FR-3): the icon says where it opens.
         const context = this.iconButton(bar, "panel-right", "reader_context", () => this.toggle("context"));
         // Each panel's button says whether its panel is open.
-        this.panelButtons = { contents, type, layers, context };
+        this.panelButtons = { contents, type, layers, context, search };
         for (const button of Object.values(this.panelButtons)) button.setAttribute("aria-pressed", "false");
         context.addClass(c("reader-bar-button--dotted"));
         this.alongsideDot = context.createSpan({ cls: c("reader-bar-dot"), attr: { "aria-hidden": "true" } });
@@ -1379,7 +1391,7 @@ export class ReaderView extends ItemView {
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
         const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() }, this.justifyHere().justified);
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
-        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--alongside", "reader--sheet", "reader--snapshot", "reader--listening"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
+        const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--drawer", "reader--sheet", "reader--snapshot", "reader--listening"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
     }
 
@@ -1511,6 +1523,7 @@ export class ReaderView extends ItemView {
         this.pendingShare = null;
         const land: Landing = reveal ? { anchor: reveal } : share !== null ? { share } : landing;
         pager.relayout(land);
+        this.renderBarPlace();
     }
 
     /** What a key asks for (#753): a page in pages, a screen or a chapter in a scroll — as today. */
@@ -1579,20 +1592,21 @@ export class ReaderView extends ItemView {
         this.renderBarPlace();
 
         els.dots.empty();
-        // A book of three hundred pages is not three hundred dots: the bar's count says where you are.
-        els.dots.toggleClass(c("reader-hidden"), Boolean(this.sourcePath) && total > DOTS_LIMIT);
+        // One progress signal (#812 FR-16): dots for a short reading only; a book has the bar's line.
+        const dotted = showDots(total);
+        els.dots.toggleClass(c("reader-hidden"), !dotted);
         this.renderScope?.unload();
         const scope = new Component();
         scope.load();
         this.renderScope = scope;
-        if (!this.sourcePath || total <= DOTS_LIMIT) path?.chapters.forEach((chapter, i) => {
+        if (dotted) path?.chapters.forEach((chapter, i) => {
             const dot = els.dots.createEl("button", {
                 cls: [c("reader-dot"), ...(i < this.index || this.ended ? [c("reader-dot--done")] : []), ...(i === this.index && !this.ended ? [c("reader-dot--current")] : [])].join(" "),
                 attr: {
                     type: "button",
                     role: "tab",
                     "aria-selected": String(i === this.index),
-                    "aria-label": t("reader_dot_label", String(i + 1), this.source?.chapters[i]?.label ?? noteName(chapter.path)),
+                    "aria-label": t("reader_dot_label", String(i + 1), this.source ? this.sourceLabel(i) : noteName(chapter.path)),
                 },
             });
             scope.registerDomEvent(dot, "click", () => this.show(i));
@@ -1614,12 +1628,13 @@ export class ReaderView extends ItemView {
         const total = this.path?.chapters.length ?? 0;
         // A designed book is counted in pages (#771): a comic has no chapters to speak of. An article's
         // chapters are its sections, in the bar as in the corner of the page (#744).
-        const counted = this.source?.designed
-            ? "reader_source_count_page"
-            : this.source?.format === "article"
-              ? "reader_source_count_section"
-              : "reader_chapter_label";
-        els.label.setText(this.ended ? t("reader_finished") : total ? t(counted, String(this.index + 1), String(total)) : "");
+        // A paper by its pages, a book by its chapters, an article by its sections (#812 FR-17).
+        const counted = this.source?.designed ? "reader_source_count_page" : this.source ? COUNT_KEY[this.source.format] : "reader_chapter_label";
+        // In pages, which screen of the chapter (#812 FR-18): a turn that stays in it is seen to.
+        const screen = this.pagedNow() && this.pager && !this.ended && !this.pause ? this.pager.screen() : null;
+        const part = screen ? screenPart(screen.view, screen.views) : null;
+        const place = total ? t(counted, String(this.index + 1), String(total)) : "";
+        els.label.setText(this.ended ? t("reader_finished") : part ? `${place} · ${t("reader_bar_screen", String(part.at), String(part.of))}` : place);
         els.progress.max = Math.max(1, total);
         els.progress.value = this.ended ? total : total ? this.index + 1 : 0;
         Array.from(els.dots.children).forEach((dot, i) => {
@@ -1658,10 +1673,8 @@ export class ReaderView extends ItemView {
         this.nextCard = null;
         const total = this.path.chapters.length;
         page.removeAttribute("dir");
-        page.createDiv({
-            cls: c("reader-count"),
-            text: detour ? t("reader_detour") : `${String(this.index + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`,
-        });
+        // One progress signal (#812 FR-15): the bar says where you are; above the text, only a detour.
+        if (detour) page.createDiv({ cls: c("reader-count"), text: t("reader_detour") });
         page.createDiv({ cls: c("reader-role") }).createSpan({
             cls: [c("reader-role-tag"), c(`reader-role-tag--${detour ? "detour" : chapter.role}`)].join(" "),
             text: detour ? t("reader_detour") : t(ROLE_KEY[chapter.role]),
@@ -2893,12 +2906,8 @@ export class ReaderView extends ItemView {
         // A book written right to left: its pages flow, and turn, to the left (#753 FR-10).
         if (this.bookDirection() === "rtl" && !asRun) page.setAttribute("dir", "rtl");
         else page.removeAttribute("dir");
-        if (!asRun) {
-            page.createDiv({
-                cls: c("reader-count"),
-                text: doc ? t(COUNT_KEY[doc.format], String(index + 1), String(total)) : "",
-            });
-        }
+        // The chapter's title above the text, filled once the body is drawn (#812 FR-15): never a count.
+        const kicker = asRun ? null : page.createDiv({ cls: c("reader-count") });
         if (chapter?.section && !asRun) {
             page.createDiv({ cls: c("reader-role") }).createSpan({ cls: [c("reader-role-tag"), c("reader-role-tag--source")], text: chapter.section });
         }
@@ -2959,6 +2968,12 @@ export class ReaderView extends ItemView {
             this.seenWords.set(index, drawn.words);
             const named = doc.chapters[index];
             if (drawn.heading && named?.untitled && !named.heading) named.heading = drawn.heading;
+            // Said once: nothing when the chapter opens with its own heading, or has no name (decision 5).
+            const title = kickerTitle(named?.untitled ? named.heading : named?.label, body.querySelector("h1, h2, h3, h4, h5, h6")?.textContent ?? "");
+            if (kicker) {
+                kicker.setText(title);
+                kicker.toggleClass(c("reader-hidden"), !title);
+            }
         } catch (error) {
             log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
             if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });
@@ -3728,6 +3743,11 @@ export class ReaderView extends ItemView {
     /** Ctrl/Cmd+F or the bar's search: a slim bar under the top, focused. Books and papers only. */
     private openSearch(): boolean {
         if (!this.sourcePath || !this.root) return false;
+        // Search is one of the drawer's panels (#812 FR-6): opened there, or brought forward in it.
+        if (this.panel !== "search") {
+            this.panel = "search";
+            this.renderPanel();
+        }
         if (this.searchEl) {
             this.searchInput?.focus();
             this.searchInput?.select();
@@ -3738,7 +3758,7 @@ export class ReaderView extends ItemView {
         const scope = new Component();
         scope.load();
         this.searchScope = scope;
-        const bar = this.root.createDiv({ cls: c("reader-search"), attr: { role: "search" } });
+        const bar = this.els?.panel ? this.els.panel.createDiv({ cls: c("reader-search"), attr: { role: "search" } }) : this.root.createDiv({ cls: c("reader-search"), attr: { role: "search" } });
         const row = bar.createDiv({ cls: c("reader-search-row") });
         setIcon(row.createSpan({ cls: c("reader-search-icon") }), "search");
         const input = row.createEl("input", {
@@ -3753,7 +3773,7 @@ export class ReaderView extends ItemView {
         };
         button("chevron-up", "reader_search_previous", () => this.stepSearch(-1));
         button("chevron-down", "reader_search_next", () => this.stepSearch(1));
-        button("x", "reader_search_close", () => this.closeSearch());
+        button("x", "reader_search_close", () => this.closePanel());
         const list = bar.createDiv({ cls: c("reader-search-results") });
         scope.registerDomEvent(input, "input", () => {
             list.removeClass(c("reader-search-results--folded"));
@@ -3772,7 +3792,7 @@ export class ReaderView extends ItemView {
             } else if (event.key === "Escape") {
                 event.preventDefault();
                 event.stopPropagation();
-                this.closeSearch();
+                this.closePanel();
             }
         });
         this.searchEl = bar;
@@ -4009,21 +4029,10 @@ export class ReaderView extends ItemView {
     private renderSourceContents(host: HTMLElement): void {
         const doc = this.source;
         if (!doc) return;
-        // Recall the chapter you are in (#760 FR-1): at the top, where you read.
-        if (this.recallSpan()) {
-            const recall = host.createEl("button", { cls: [c("reader-notebook-link"), c("reader-recall-door")], attr: { type: "button" } });
-            setIcon(recall.createSpan({ cls: c("reader-notebook-icon") }), "pencil-line");
-            recall.createSpan({ text: t("reader_recall") });
-            this.panelScope?.registerDomEvent(recall, "click", () => this.startRecall());
-        }
-        // Everything you marked in this book, in one place (#721).
+        // Contents holds places only (#812 FR-10): Recall and the notebook are in its head.
         const sourcePath = this.sourcePath;
-        if (sourcePath) {
-            const notebook = host.createEl("button", { cls: c("reader-notebook-link"), attr: { type: "button" } });
-            setIcon(notebook.createSpan({ cls: c("reader-notebook-icon") }), "notebook-pen");
-            notebook.createSpan({ text: t("notebook_title") });
-            this.panelScope?.registerDomEvent(notebook, "click", () => void openLibrary(this.app, undefined, sourcePath));
-        }
+        const read = sourcePath ? chaptersRead(this.plugin, sourcePath) : new Set<number>();
+        const seen = new Set(this.seenWords.keys());
         const entries = doc.toc.length > 0 ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
         // The entry you are in: the first one of the chapter on screen — its own heading, not the last
         // heading inside it — or, when the chapter has none, the last one before it.
@@ -4038,16 +4047,56 @@ export class ReaderView extends ItemView {
                 cls: [c("reader-toc-row"), c(`reader-toc-row--depth-${Math.min(entry.depth, 3)}`), ...(i === current ? [c("reader-toc-row--current")] : [])].join(" "),
                 attr: { type: "button" },
             });
+            // How far it is read, quietly, never as a number (#812 FR-13).
+            const state = chapterState(entry.chapter, this.index, seen, this.ended, read);
+            this.tocState(row, state);
             row.createSpan({ cls: c("reader-toc-name"), text: entry.title });
             // Where the entry is, when its own name does not already say it (an article's section is its heading).
             const where = this.sourceLabel(entry.chapter);
             if (doc.toc.length > 0 && where !== entry.title) row.createSpan({ cls: c("reader-toc-role"), text: where });
+            row.setAttribute("data-chapter", String(entry.chapter));
+            row.setAttribute("aria-label", `${entry.title} · ${t(TOC_STATE_KEY[state])}`);
             if (i === current) row.setAttribute("aria-current", "step");
             // A Contents entry is a jump: where you were stays one press away (#718).
             this.panelScope?.registerDomEvent(row, "click", () =>
                 this.jumpTo(entry.chapter, "fragment" in entry && typeof entry.fragment === "string" ? entry.fragment : undefined, "contents")
             );
         });
+        // One mark where you marked something (#812 FR-14): read once each time Contents opens, and
+        // drawn at once on every redraw while it stays open — never a flicker as a chapter turns.
+        if (!sourcePath) return;
+        const opening = this.panelShown !== "contents" || this.contentsMarks?.path !== sourcePath;
+        if (this.contentsMarks && !opening) this.markRows(host, this.contentsMarks.at);
+        if (!opening) return;
+        this.contentsMarks = null;
+        void overviewMarksOf(sourcePath, this.highlightDeps.store).then((marks) => {
+            if (this.sourcePath !== sourcePath) return;
+            this.contentsMarks = { path: sourcePath, at: new Set(marks.map((mark) => mark.at)) };
+            const panel = this.els?.panel;
+            if (panel && this.panel === "contents") this.markRows(panel, this.contentsMarks.at);
+        });
+    }
+
+    /** The rows of chapters you marked something in get their one mark (#812 FR-14). */
+    private markRows(host: HTMLElement, marked: ReadonlySet<number>): void {
+        for (const row of Array.from(host.querySelectorAll<HTMLElement>("[data-chapter]"))) {
+            if (!marked.has(Number(row.getAttribute("data-chapter"))) || row.querySelector(`.${c("reader-toc-mark")}`)) continue;
+            row.createSpan({ cls: c("reader-toc-mark"), attr: { "aria-hidden": "true" } });
+            row.setAttribute("aria-label", `${row.getAttribute("aria-label") ?? ""} · ${t("reader_toc_marked")}`);
+        }
+    }
+
+    /** A Contents row's state (#812 FR-13): a small glyph, and its words for a screen reader. */
+    private tocState(row: HTMLElement, state: ChapterState): void {
+        row.addClass(c(`reader-toc-row--${state}`));
+        row.createSpan({ cls: [c("reader-toc-state"), c(`reader-toc-state--${state}`)], attr: { "aria-hidden": "true" } });
+    }
+
+    /** The open Contents list, scrolled so the place you are is in view before it is seen (#812 MF-6). */
+    private scrollToCurrent(host: HTMLElement): void {
+        const current = host.querySelector<HTMLElement>('[aria-current="step"]');
+        if (!current) return;
+        host.scrollTop = Math.max(0, current.offsetTop - host.clientHeight / 2 + current.offsetHeight / 2);
     }
 
     /** The end of a source: what the reading added up to, and where to take what you marked. */
@@ -4240,13 +4289,13 @@ export class ReaderView extends ItemView {
     // ── panels ───────────────────────────────────────────────────────────────
 
     private toggle(panel: Exclude<Panel, null>): void {
-        // Asked for again while it slides away: it stays (#754).
-        if (panel === "context" && this.panel === "context" && this.alongsideLeaving !== undefined) {
+        // Asked for again while it slides away: it stays (#754, #812 MF-2) — any panel of the drawer.
+        if (this.panel === panel && this.alongsideLeaving !== undefined) {
             (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
             this.alongsideLeaving = undefined;
             this.els?.panel.removeClass(c("reader-panel--leaving"));
-            this.alongside?.remember(true);
-            this.syncPanelButtons("context");
+            if (panel === "context") this.alongside?.remember(true);
+            this.syncPanelButtons(panel);
             return;
         }
         if (this.panel === panel) {
@@ -4267,8 +4316,11 @@ export class ReaderView extends ItemView {
         // In portrait on a tablet or a phone the panel is a bottom sheet (FR-7); Alongside lies beside
         // the column (#754 FR-14); the other panels are a card over the page.
         const asSheet = this.panel !== null && this.panelIsSheet();
-        // Type lies beside the column too (#809 FR-11): the page reflows next to it, never under it.
-        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "context" || this.panel === "recall" || this.panel === "type" ? "side" : "card";
+        // One drawer (#812 FR-1): every panel lies beside the column — the page reflows next to it,
+        // never under it. Only the overview, a page of cards, keeps its own shape.
+        const shape = this.panel === null ? null : asSheet ? "sheet" : this.panel === "overview" ? "card" : "side";
+        // Another panel in the drawer already open (#812 FR-5): its content changes, the drawer stays.
+        const swap = shape !== null && shape !== "card" && shape === this.panelShape && this.panelShown !== null && this.panelShown !== this.panel;
         // Alongside, still open in the same shape, moves in place: its cards follow the reading, never
         // a redraw (#754 FR-19).
         if (this.panel === "context" && shape === this.panelShape && this.alongside?.isMounted(host)) {
@@ -4290,6 +4342,11 @@ export class ReaderView extends ItemView {
         this.recall?.unmount();
         (this.root?.win ?? window).clearTimeout(this.alongsideLeaving);
         this.alongsideLeaving = undefined;
+        // Search keeps its field, its words and its focus through a redraw (#812 FR-6): the same element
+        // goes back into the drawer. Leaving it for another panel takes its marks away (decision 7).
+        const keptSearch = this.panel === "search" ? this.searchEl : null;
+        if (keptSearch) keptSearch.remove();
+        if (this.panelShown === "search" && this.panel !== "search") this.closeSearch();
         // Type drawn again after a pick keeps where you had scrolled it to (#809 FR-14).
         const typeScroll = this.panel === "type" && this.panelShape === shape ? host.scrollTop : 0;
         host.empty();
@@ -4306,7 +4363,7 @@ export class ReaderView extends ItemView {
         host.toggleClass(c("reader-panel--side"), shape === "side");
         host.removeClass(c("reader-panel--leaving"));
         // The column makes room for Alongside, the paragraph you are reading kept where it is (FR-17).
-        this.setAlongsideColumn(shape === "side");
+        this.setDrawerColumn(shape === "side");
         // The overview opens the sheet at its full height: a page of cards (#776 D5, P8).
         if (asSheet) this.openSheet(host, scope, this.panel === "overview");
         else this.dropSheet();
@@ -4322,6 +4379,7 @@ export class ReaderView extends ItemView {
             if (typeScroll) host.scrollTop = typeScroll;
         }
         else if (this.panel === "layers") this.renderLayers(host, scope, markers);
+        else if (this.panel === "search" && keptSearch) host.appendChild(keptSearch);
         else if (this.panel === "recall") this.recall?.mount(host, scope, { label: "reader_close_recall", onClose: () => this.closeFromPanel(), scope });
         else if (this.panel === "context") {
             this.alongside?.mount(host, scope);
@@ -4330,16 +4388,19 @@ export class ReaderView extends ItemView {
             // The margin's list, drawn again in the panel, takes the layers as they are.
             this.layerView.apply();
         }
+        this.panelShown = this.panel;
+        // A swap fades what the drawer holds in, a beat, opacity and a few pixels only (#812 MF-3).
+        if (swap && this.motionAllowed()) for (const child of Array.from(host.children)) child.addClass(c("reader-drawer-swap"));
     }
 
     /**
      * The column narrows for Alongside on a wide pane, or widens back, in one layout — and the
      * paragraph at the reading line stays where your eye is (#754 FR-17, AC-10).
      */
-    private setAlongsideColumn(on: boolean): void {
+    private setDrawerColumn(on: boolean): void {
         const root = this.root;
-        if (!root || root.hasClass(c("reader--alongside")) === on) return;
-        this.holdReadingLine(() => root.toggleClass(c("reader--alongside"), on));
+        if (!root || root.hasClass(c("reader--drawer")) === on) return;
+        this.holdReadingLine(() => root.toggleClass(c("reader--drawer"), on));
     }
 
     /** Keep the block at the reading line, and how far into it the line is, through `change`. */
@@ -4745,16 +4806,16 @@ export class ReaderView extends ItemView {
                 cls: [c("reader-toc-row"), ...(i === this.index ? [c("reader-toc-row--current")] : [])].join(" "),
                 attr: { type: "button" },
             });
-            row.createSpan({ cls: c("reader-toc-number"), text: String(i + 1).padStart(2, "0") });
+            const visited = new Set(this.path?.chapters.flatMap((other, j) => (this.visited.has(other.path) ? [j] : [])) ?? []);
+            const state = chapterState(i, this.index, visited, this.ended);
+            this.tocState(row, state);
             row.createSpan({ cls: c("reader-toc-name"), text: noteName(chapter.path) });
             row.createSpan({ cls: c("reader-toc-role"), text: t(ROLE_KEY[chapter.role]) });
-            if (i !== this.index && this.visited.has(chapter.path)) {
-                const tick = row.createSpan({ cls: c("reader-toc-tick"), attr: { "aria-label": t("reader_visited") } });
-                setIcon(tick, "check");
-            }
+            row.setAttribute("aria-label", `${noteName(chapter.path)} · ${t(TOC_STATE_KEY[state])}`);
             if (i === this.index) row.setAttribute("aria-current", "step");
             this.panelScope?.registerDomEvent(row, "click", () => this.show(i));
         });
+        this.scrollToCurrent(host);
     }
 
     /**
@@ -4775,6 +4836,15 @@ export class ReaderView extends ItemView {
             });
             this.panelScope?.registerDomEvent(button, "click", () => this.chooseTab(tab.id));
         }
+        // What Contents used to list as rows, now its head's own actions (#812 FR-11): recall the
+        // chapter you are in (#760), and everything you marked in this book (#721).
+        const scope = this.panelScope;
+        const sourcePath = this.sourcePath;
+        if (scope) {
+            const actions = tabs.createDiv({ cls: c("reader-panel-actions") });
+            if (this.recallSpan()) panelAction(actions, "pencil-line", "reader_recall", () => this.startRecall(), scope).addClass(c("reader-recall-door"));
+            if (sourcePath) panelAction(actions, "notebook-pen", "notebook_title", () => void openLibrary(this.app, undefined, sourcePath), scope);
+        }
         // Contents' own way out, at the end of its tabs (#777 FR-1).
         const close = this.panelCloseFor("reader_close_contents");
         if (close) panelClose(tabs, close);
@@ -4782,6 +4852,7 @@ export class ReaderView extends ItemView {
         if (this.contentsTab === "bookmarks") this.renderBookmarks(list);
         else if (this.contentsTab === "trail") this.renderTrail(list);
         else this.renderSourceContents(list);
+        if (this.contentsTab === "contents") this.scrollToCurrent(host);
         const dir = this.tabSlide;
         this.tabSlide = 0;
         if (dir !== 0 && motionWelcome(list)) {
@@ -6131,7 +6202,8 @@ export class ReaderView extends ItemView {
             case "note":
                 return this.closeNote();
             case "search":
-                return this.closeSearch();
+                // Search is the drawer's (#812 FR-7): Esc closes the drawer, and its marks with it.
+                return this.panel === "search" ? this.closePanel() : this.closeSearch();
             case "popover":
                 // An open *More* folds first, then the popover goes (#811 FR-13).
                 return this.highlights?.escapePopover();

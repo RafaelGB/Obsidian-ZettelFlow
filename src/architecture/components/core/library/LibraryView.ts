@@ -6,14 +6,14 @@ import {
     SHELF_FILTERS,
     SHELF_SORTS,
     STATUS_FILTERS,
-    continueReading,
-    recentlyAdded,
+    bookViewOf,
+    layShelves,
     shelfCounts,
     statusCounts,
     titleFromName,
-    viewShelf,
-    wantToRead,
+    type BookView,
     type ShelfFilter,
+    type ShelfStatus,
     type ShelfItem,
     type ShelfSort,
     type StatusFilter,
@@ -22,9 +22,9 @@ import { BOOK_LINK_KEY, TEXT_FIELDS, collectionsInUse, effectiveStatus, type Boo
 import { isFresh, normalizeLibrary, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
-import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
+import { bookMarks, drawCover, drawSpine, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
-import { renderDetails, STATUS_KEY, type DetailsParts } from "./libraryDetails";
+import { renderDetails, type DetailsParts } from "./libraryDetails";
 import { arriveIn, flipMove, FLIP_KEY } from "./libraryFlip";
 import { addFolderField } from "config/modals/handlers/folderField";
 import { ARTICLES_DEFAULT, inFolder } from "application/library/article";
@@ -54,13 +54,6 @@ const FILTER_KEY: Record<ShelfFilter, LocaleKey> = {
     articles: "shelf_filter_articles",
     paths: "shelf_filter_paths",
 };
-const SECTION_KEY: Record<ShelfFilter, LocaleKey> = {
-    all: "shelf_shelf",
-    books: "shelf_filter_books",
-    papers: "shelf_filter_papers",
-    articles: "shelf_section_articles",
-    paths: "shelf_section_paths",
-};
 /** The shelf chips (#819): every shelf, and the status shelves by the names they stand under. */
 const SHELF_CHIP_KEY: Record<StatusFilter, LocaleKey> = {
     all: "shelf_every_shelf",
@@ -75,15 +68,13 @@ const SORT_KEY: Record<ShelfSort, LocaleKey> = {
     title: "shelf_sort_title",
     added: "shelf_sort_added",
 };
-const KIND_KEY: Record<ShelfItem["format"], LocaleKey> = {
-    pdf: "shelf_kind_pdf",
-    epub: "shelf_kind_epub",
-    article: "shelf_kind_article",
-    path: "shelf_kind_path",
+/** What each status shelf holds, said under its name on the plank (#820). */
+const SHELF_NOTE_KEY: Record<ShelfStatus, LocaleKey> = {
+    reading: "shelf_note_reading",
+    "to-read": "shelf_note_to_read",
+    none: "shelf_note_none",
+    finished: "shelf_note_finished",
 };
-
-/** A card in *Recently added* is known by this across a redraw — apart from the same item's card on the shelf. */
-const recentKey = (id: string) => `recent:${id}`;
 
 // Obsidian re-exports its moment typed as a namespace; the callable signature is type-only.
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -145,7 +136,13 @@ export class LibraryView extends ItemView {
     private bar: HTMLElement | null = null;
     private shelfHost: HTMLElement | null = null;
     /** What *Recently added* last drew (#744 FR-13): a card new since then settles in. `null` before the first draw. */
-    private drawnRecent: Set<string> | null = null;
+    private drawnBooks: Set<string> | null = null;
+    /** How far along each shelf you had scrolled (#820): a redraw puts every shelf back where it was. */
+    private readonly shelfLeft = new Map<string, number>();
+    /** The book you came back from (#820 AC-19): its shelf is turned to it once drawn. */
+    private pendingFocus: string | null = null;
+    /** The one card that rises over a book (#820 FR-16), outside every scrolling shelf. */
+    private tip: HTMLElement | null = null;
     /** The inline *Change* of the articles folder is open (#744 FR-2). */
     private changingFolder = false;
     /** A refresh waiting to run keeps an open detail as it is (#743). */
@@ -255,6 +252,7 @@ export class LibraryView extends ItemView {
         if (notebook !== this.notebook) this.notebookFilter = { meaning: null, withNotes: false };
         this.notebook = notebook;
         if (typeof value.scroll === "number" && Number.isFinite(value.scroll) && value.scroll >= 0) this.pendingScroll = value.scroll;
+        this.pendingFocus = typeof value.focus === "string" && value.focus ? value.focus : null;
         if (this.root) this.refresh();
     }
 
@@ -358,14 +356,19 @@ export class LibraryView extends ItemView {
         if (this.notebook && this.renderNotebookPage()) return;
         this.notebook = null;
         // Something arrived while the shelf was open (#744 FR-13): the row makes room for it by a translate.
-        const known = this.drawnRecent;
-        const arrived = known !== null && this.sectioned() && recentlyAdded(this.shelf.items, Date.now()).some((item) => !known.has(item.id));
+        const known = this.drawnBooks;
+        const arrived = known !== null && this.shelf.items.some((item) => !known.has(item.id));
         if (arrived) flipMove(this.body, () => this.render());
         else this.render();
         // The kept place first (#779): a detail opened from view state covers the pane you see there.
         if (this.pendingScroll !== null) {
             this.contentEl.scrollTop = this.pendingScroll;
             this.pendingScroll = null;
+        }
+        // And along its shelf, in the same pass (#820 AC-19): the closing shot finds the book still.
+        if (this.pendingFocus !== null) {
+            this.turnShelfTo(this.pendingFocus);
+            this.pendingFocus = null;
         }
         const showing = this.aside?.hasClass(c("shelf-detail--open")) === true;
         if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
@@ -510,11 +513,11 @@ export class LibraryView extends ItemView {
     }
 
     /** Covers or spines: the setting's one value (#819 FR-8), covers until you choose. */
-    private bookView(): "covers" | "spines" {
-        return this.plugin?.settings?.libraryBookView === "spines" ? "spines" : "covers";
+    private bookView(): BookView {
+        return bookViewOf(this.plugin?.settings?.libraryBookView);
     }
 
-    private setBookView(view: "covers" | "spines"): void {
+    private setBookView(view: BookView): void {
         if (view === this.bookView() || !this.plugin?.settings) return;
         this.plugin.settings.libraryBookView = view;
         void this.plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
@@ -592,56 +595,139 @@ export class LibraryView extends ItemView {
         });
     }
 
-    /** Nothing narrowed: the shelf reads in sections. */
-    private sectioned(): boolean {
-        return this.filter === "all" && this.status === "all" && !this.collection && !this.search.trim();
-    }
-
-    /** *Continue reading*, *Recently added*, *Want to read* and the shelf itself — what the search and the sort redraw. */
+    /**
+     * **The desk and the shelves** (#820) — what the search and the order redraw. What you are
+     * reading lies open on the desk; every other book stands on the shelf of its status, on a plank
+     * with its name on the edge, at a real size, one row that scrolls sideways when it is long.
+     */
     private renderShelf(host: HTMLElement, scope: Component): void {
         host.empty();
         this.observer?.disconnect();
-        const items = this.shelf.items;
-        const sectioned = this.sectioned();
-        if (sectioned) {
-            const going = continueReading(items);
-            if (going.length > 0) {
-                host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_continue") });
-                const hero = host.createDiv({ cls: c("shelf-hero") });
-                for (const item of going) this.renderHeroCard(hero, item, scope);
-            }
-            // What came into the vault lately (#744 FR-8): one row, hidden when there is nothing.
-            const recent = recentlyAdded(items, Date.now());
-            const known = this.drawnRecent;
-            if (recent.length > 0) {
-                host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_recent") });
-                const row = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--recent")], attr: { role: "list" } });
-                for (const item of recent) {
-                    const card = this.renderCard(row, item, scope, recentKey(item.id));
-                    // A card new since the last draw settles in; the first draw is still (FR-13).
-                    if (known && !known.has(item.id)) arriveIn(card);
-                }
-            }
-            this.drawnRecent = new Set(recent.map((item) => item.id));
-        }
-        // What you said you want to read, after what you are reading — only when it holds something (FR-9).
-        const want = sectioned ? viewShelf(wantToRead(items), { filter: "all", sort: this.sort, search: "" }) : [];
-        if (want.length > 0) {
-            host.createEl("h3", { cls: c("shelf-section"), text: t("shelf_status_to_read") });
-            const grid = host.createDiv({ cls: [c("shelf-shelf"), c("shelf-shelf--want")], attr: { role: "list" } });
-            for (const item of want) this.renderCard(grid, item, scope);
-        }
-        host.createEl("h3", { cls: c("shelf-section"), text: t(SECTION_KEY[this.filter]) });
         const query = { filter: this.filter, sort: this.sort, search: this.search, status: this.status, collection: this.collection };
-        const wanted = new Set(want.map((item) => item.id));
-        const shown = viewShelf(items, query).filter((item) => !wanted.has(item.id));
-        if (shown.length === 0) {
+        const { desk, shelves } = layShelves(this.shelf.items, query);
+        const known = this.drawnBooks;
+        this.drawnBooks = new Set(this.shelf.items.map((item) => item.id));
+        const tip = host.createDiv({ cls: c("shelf-tip"), attr: { "aria-hidden": "true" } });
+        this.tip = tip;
+        if (desk.length === 0 && shelves.length === 0) {
             // No articles yet: the line under the chip already says where they come from (#744).
             if (this.filter !== "articles" || this.search.trim()) host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
             return;
         }
-        const grid = host.createDiv({ cls: c("shelf-shelf"), attr: { role: "list" } });
-        for (const item of shown) this.renderCard(grid, item, scope);
+        if (desk.length > 0) {
+            const section = host.createEl("section", { cls: c("shelf-desk"), attr: { "aria-label": t("shelf_desk_label") } });
+            for (const item of desk) this.renderDeskCard(section, item, scope);
+        }
+        const spines = this.bookView() === "spines";
+        for (const { status, items } of shelves) {
+            const name = t(SHELF_CHIP_KEY[status]);
+            const bay = host.createEl("section", { cls: [c("shelf-bay"), ...(spines ? [c("shelf-bay--spines")] : [])], attr: { "aria-label": name, "data-zf-shelf": status } });
+            const row = bay.createDiv({ cls: c("shelf-books"), attr: { role: "list", "data-zf-scroll": status } });
+            for (const item of items) {
+                const book = this.renderBook(row, item, scope, spines);
+                // A book new since the last draw settles in; the first draw is still (FR-13).
+                if (known && !known.has(item.id)) arriveIn(book);
+            }
+            const plank = bay.createDiv({ cls: c("shelf-plank") });
+            const label = plank.createSpan({ cls: c("shelf-label"), text: name });
+            label.createEl("small", { text: t(SHELF_NOTE_KEY[status]) });
+            // Where you are along this shelf, kept through every redraw (MF-5).
+            const left = this.shelfLeft.get(status);
+            if (left) row.scrollLeft = left;
+            scope.registerDomEvent(
+                row,
+                "scroll",
+                () => {
+                    this.shelfLeft.set(status, row.scrollLeft);
+                    this.hideTip();
+                },
+                { passive: true }
+            );
+        }
+    }
+
+    /**
+     * A book on a shelf (#820): the cover — or the spine — and nothing under it. Its title, its
+     * author and where it stands are said once, to a screen reader, and shown on the card that rises.
+     */
+    private renderBook(row: HTMLElement, item: ShelfItem, scope: Component, spine: boolean): HTMLElement {
+        const book = row.createDiv({
+            cls: [c("shelf-book"), ...(spine ? [c("shelf-book--spine")] : []), ...(item.imageOnly ? [c("shelf-book--scanned")] : [])],
+            // Known across a redraw, so a book that changes shelf is carried there (#743 FR-16).
+            attr: { role: "listitem", [FLIP_KEY]: item.id },
+        });
+        const words = this.bookWords(item);
+        const open = book.createEl("button", {
+            cls: c("shelf-book-open"),
+            attr: { type: "button", "aria-label": t("shelf_open_named", words.join(", ")) },
+        });
+        let face: HTMLElement;
+        if (spine) face = drawSpine(open, item);
+        else {
+            face = drawCover(open, item);
+            bookMarks(face, item);
+            this.watchCover(face, item);
+        }
+        scope.registerDomEvent(open, "click", () => this.openItem(item, {}, face));
+
+        const more = book.createEl("button", {
+            cls: ["clickable-icon", c("shelf-more")],
+            attr: { type: "button", "aria-label": t("shelf_details") },
+        });
+        setIcon(more, "more-horizontal");
+        scope.registerDomEvent(more, "click", (event: MouseEvent) => {
+            event.stopPropagation();
+            this.openDetail(item.id);
+        });
+        const show = () => this.showTip(book, words);
+        scope.registerDomEvent(book, "pointerenter", show);
+        scope.registerDomEvent(book, "focusin", show);
+        scope.registerDomEvent(book, "pointerleave", () => this.hideTip());
+        scope.registerDomEvent(book, "focusout", () => this.hideTip());
+        return book;
+    }
+
+    /** What a book says of itself: the title, who wrote it, where it stands for you. */
+    private bookWords(item: ShelfItem): string[] {
+        const byline = item.kind === "path" && item.chapters ? tCount(item.chapters, "shelf_path_notes", String(item.chapters)) : item.author;
+        let stands: string;
+        if (item.status === "finished") stands = t("shelf_status_finished");
+        else if (item.status === "to-read") stands = t("shelf_status_to_read");
+        else if (item.lastRead === 0) stands = t("shelf_not_started");
+        else stands = [whereLabel(item), lastReadLabel(item.lastRead)].filter(Boolean).join(" · ");
+        return [item.title, byline ?? "", stands, item.imageOnly ? t("shelf_scanned") : ""].filter(Boolean);
+    }
+
+    /** The card that rises over the book you point at or reach by Tab (#820 FR-16). */
+    private showTip(book: HTMLElement, words: string[]): void {
+        const tip = this.tip;
+        const host = this.shelfHost;
+        if (!tip || !host) return;
+        tip.empty();
+        const [title, ...rest] = words;
+        tip.createDiv({ cls: c("shelf-tip-title"), text: title });
+        for (const line of rest) tip.createDiv({ cls: c("shelf-tip-line"), text: line });
+        // Read once, written as two numbers a transform uses: nothing is laid out again.
+        const at = book.getBoundingClientRect?.();
+        const from = host.getBoundingClientRect?.();
+        if (at && from) tip.setCssProps({ "--zf-tip-x": `${Math.round(at.left - from.left + at.width / 2)}px`, "--zf-tip-y": `${Math.round(at.top - from.top)}px` });
+        tip.addClass(c("shelf-tip--shown"));
+    }
+
+    private hideTip(): void {
+        this.tip?.removeClass(c("shelf-tip--shown"));
+    }
+
+    /** The shelf of the book you came back from turns to it, at once — never a slide (#820 AC-19). */
+    private turnShelfTo(id: string): void {
+        const book = [...(this.body?.querySelectorAll<HTMLElement>(`.${c("shelf-book")}`) ?? [])].find((el) => el.getAttribute(FLIP_KEY) === id);
+        const row = book?.closest<HTMLElement>("[data-zf-scroll]");
+        if (!book || !row) return;
+        const left = book.offsetLeft;
+        const right = left + book.offsetWidth;
+        if (left < row.scrollLeft || right > row.scrollLeft + row.clientWidth) row.scrollLeft = Math.max(0, left - (row.clientWidth - book.offsetWidth) / 2);
+        const status = row.getAttribute("data-zf-scroll");
+        if (status) this.shelfLeft.set(status, row.scrollLeft);
     }
 
     private renderEmpty(body: HTMLElement, scope: Component): void {
@@ -665,48 +751,38 @@ export class LibraryView extends ItemView {
         return recent.find((path) => path.toLowerCase().endsWith(".md")) ?? null;
     }
 
-    private renderCard(grid: HTMLElement, item: ShelfItem, scope: Component, key = item.id): HTMLElement {
-        const card = grid.createDiv({
-            cls: [c("shelf-card"), ...(item.imageOnly ? [c("shelf-card--scanned")] : [])],
-            // Known across a redraw, so a card that changes row is carried there (#743 FR-16).
-            attr: { role: "listitem", [FLIP_KEY]: key },
-        });
-        const open = card.createEl("button", {
-            cls: c("shelf-card-open"),
-            attr: { type: "button", "aria-label": t("shelf_open_named", item.title) },
-        });
-        const cover = drawCover(open, item);
-        open.createSpan({ cls: c("shelf-kind"), text: t(KIND_KEY[item.format]) });
+    /**
+     * A book open on the desk (#820): a small cover, the title and who wrote it, where you are and
+     * when, a thread for how far — never a number — and *Resume reading*.
+     */
+    private renderDeskCard(parent: HTMLElement, item: ShelfItem, scope: Component): void {
+        const card = parent.createDiv({ cls: c("shelf-desk-card"), attr: { [FLIP_KEY]: item.id } });
+        // Back from the Reader, the book you are reading breathes once (#724).
+        if (this.welcomeBack) card.addClass(c("shelf-desk-card--back"));
+        this.welcomeBack = false;
+        const cover = drawCover(card, item, "desk");
+        if (item.kind === "paper") bookMarks(cover, item, true);
         this.watchCover(cover, item);
-        scope.registerDomEvent(open, "click", () => this.openItem(item, {}, cover));
-
-        const more = card.createEl("button", {
-            cls: ["clickable-icon", c("shelf-more")],
-            attr: { type: "button", "aria-label": t("shelf_details") },
-        });
-        setIcon(more, "more-horizontal");
-        scope.registerDomEvent(more, "click", (event: MouseEvent) => {
-            event.stopPropagation();
-            this.openDetail(item.id);
-        });
-
-        card.createDiv({ cls: c("shelf-card-title"), text: item.title });
+        const info = card.createDiv({ cls: c("shelf-desk-info") });
+        info.createDiv({ cls: c("shelf-desk-title"), text: item.title });
         const byline = item.kind === "path" && item.chapters ? tCount(item.chapters, "shelf_path_notes", String(item.chapters)) : item.author;
-        if (byline) card.createDiv({ cls: c("shelf-card-author"), text: byline });
-        this.renderFacts(card, item);
-        const last = card.createDiv({ cls: c("shelf-meta") });
-        // Where it stands for you, where it said *Never opened* (#743 FR-9) — and *Reading* you set on
-        // a book not opened yet, rather than a *Never opened* that contradicts it.
-        if (item.status === "to-read" || item.status === "finished" || (item.status === "reading" && item.lastRead === 0)) {
-            last.createSpan({ cls: c("shelf-card-status"), text: t(STATUS_KEY[item.status]) });
-        } else {
-            last.createSpan({ text: lastReadLabel(item.lastRead) });
-        }
-        if (item.imageOnly) this.scannedBadge(last);
-        return card;
+        if (byline) info.createDiv({ cls: c("shelf-desk-author"), text: byline });
+        const where = [whereLabel(item), lastReadLabel(item.lastRead)].filter(Boolean).join(" · ");
+        info.createDiv({ cls: c("shelf-desk-where"), text: where });
+        const bar = info.createDiv({ cls: c("shelf-progress"), attr: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.round(item.progress * 100)) } });
+        bar.createDiv({ cls: c("shelf-progress-fill") }).setCssProps({ "--zf-shelf-progress": String(item.progress) });
+        const actions = info.createDiv({ cls: c("shelf-desk-actions") });
+        const resume = actions.createEl("button", { cls: ["mod-cta", c("shelf-resume")], attr: { type: "button" } });
+        setIcon(resume.createSpan({ cls: c("shelf-resume-icon") }), "book-open");
+        resume.createSpan({ text: t("shelf_resume") });
+        scope.registerDomEvent(resume, "click", () => this.openItem(item, {}, cover));
+        scope.registerDomEvent(cover, "click", () => this.openItem(item, {}, cover));
+        const more = actions.createEl("button", { cls: ["clickable-icon", c("shelf-desk-more")], attr: { type: "button", "aria-label": t("shelf_details") } });
+        setIcon(more, "more-horizontal");
+        scope.registerDomEvent(more, "click", () => this.openDetail(item.id));
     }
 
-    /** Progress, highlights and notes born: what came of it, in one line. */
+    /** Progress, highlights and notes born: what came of it, in one line — the detail's. */
     private renderFacts(parent: HTMLElement, item: ShelfItem): void {
         const facts = parent.createDiv({ cls: c("shelf-meta") });
         progressRing(facts, item.progress);
@@ -728,30 +804,6 @@ export class LibraryView extends ItemView {
             text: t("shelf_scanned"),
             attr: { "aria-label": t("shelf_scanned_hint"), title: t("shelf_scanned_hint") },
         });
-    }
-
-    private renderHeroCard(parent: HTMLElement, item: ShelfItem, scope: Component): void {
-        const card = parent.createDiv({ cls: c("shelf-hero-card") });
-        // Back from the Reader, the book you are reading breathes once (#724).
-        if (this.welcomeBack) card.addClass(c("shelf-hero-card--back"));
-        this.welcomeBack = false;
-        const cover = drawCover(card, item, "hero");
-        this.watchCover(cover, item);
-        const info = card.createDiv({ cls: c("shelf-hero-info") });
-        const meta = info.createDiv({ cls: c("shelf-meta") });
-        meta.createSpan({ cls: c("shelf-kind-inline"), text: t(KIND_KEY[item.format]) });
-        meta.createSpan({ text: lastReadLabel(item.lastRead) });
-        info.createDiv({ cls: c("shelf-hero-title"), text: item.title });
-        if (item.author) info.createDiv({ cls: c("shelf-card-author"), text: item.author });
-        const bar = info.createDiv({ cls: c("shelf-progress"), attr: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(Math.round(item.progress * 100)) } });
-        bar.createDiv({ cls: c("shelf-progress-fill") }).setCssProps({ "--zf-shelf-progress": String(item.progress) });
-        const where = whereLabel(item);
-        if (where) info.createDiv({ cls: c("shelf-hero-where"), text: where });
-        const resume = info.createEl("button", { cls: ["mod-cta", c("shelf-resume")], attr: { type: "button" } });
-        setIcon(resume.createSpan({ cls: c("shelf-resume-icon") }), "book-open");
-        resume.createSpan({ text: t("shelf_resume") });
-        scope.registerDomEvent(resume, "click", () => this.openItem(item, {}, cover));
-        scope.registerDomEvent(cover, "click", () => this.openItem(item, {}, cover));
     }
 
     // ── covers ───────────────────────────────────────────────────────────────
@@ -815,7 +867,7 @@ export class LibraryView extends ItemView {
         // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
         if (from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") beginOpenShot(this.containerEl, from);
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
-        const back = { filter: this.filter, sort: this.sort, scroll: this.contentEl.scrollTop, focus: item.id };
+        const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
         if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
     }
 

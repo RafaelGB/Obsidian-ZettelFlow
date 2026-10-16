@@ -2,14 +2,14 @@ import { describe, it, expect } from "@jest/globals";
 import {
     BOOK_PAGES,
     buildShelf,
-    continueReading,
-    recentlyAdded,
-    RECENT_LIMIT,
+    bookViewOf,
+    DESK_LIMIT,
+    layShelves,
     shelfCollections,
     shelfCounts,
     statusCounts,
-    wantToRead,
     titleFromName,
+    type ShelfQuery,
     viewShelf,
     type ShelfInputs,
 } from "application/library/shelf";
@@ -99,9 +99,11 @@ describe("the Library shelf (#680)", () => {
         expect(viewShelf(shelf, { filter: "all", sort: "title", search: "" })[0].title).toBe("Distributed systems · Argument");
     });
 
-    it("continues the two you were last in and have not finished", () => {
+    it("lays the two you were last in and have not finished open on the desk (#820 AC-1)", () => {
         const shelf = buildShelf(inputs());
-        expect(continueReading(shelf).map((i) => i.title)).toEqual(["gilbert lynch cap", "Thinking, Fast and Slow"]);
+        const desk = layShelves(shelf, { filter: "all", sort: "title", search: "" }).desk;
+        expect(desk.map((i) => i.title)).toEqual(["gilbert lynch cap", "Thinking, Fast and Slow"]);
+        expect(DESK_LIMIT).toBe(2);
     });
 
     it("names a file it has not read yet by its name, tidied", () => {
@@ -246,18 +248,20 @@ describe("the shelf reads the book notes (#743)", () => {
         expect(shelfCollections(shelf)).toEqual(["Planning", "Software design"]);
     });
 
-    it("offers Want to read only when something is in it", () => {
-        expect(wantToRead(buildShelf(inputs({ notes }))).map((item) => item.id)).toEqual([PAPER]);
-        expect(wantToRead(buildShelf(inputs()))).toEqual([]);
+    it("draws the Want to read shelf only when something stands on it (#820 AC-5)", () => {
+        const shelves = (shelf: ReturnType<typeof buildShelf>) => layShelves(shelf, { filter: "all", sort: "recent", search: "" }).shelves;
+        expect(shelves(buildShelf(inputs({ notes }))).find((row) => row.status === "to-read")?.items.map((item) => item.id)).toEqual([PAPER]);
+        expect(shelves(buildShelf(inputs())).some((row) => row.status === "to-read")).toBe(false);
     });
 
-    it("offers no Continue reading for a book you said you finished, or put back to Want to read", () => {
-        expect(continueReading(buildShelf(inputs())).map((item) => item.id)).toEqual([PAPER, BOOK]);
+    it("puts no book you said you finished, or put back to Want to read, on the desk", () => {
+        const desk = (shelf: ReturnType<typeof buildShelf>) => layShelves(shelf, { filter: "all", sort: "recent", search: "" }).desk.map((item) => item.id);
+        expect(desk(buildShelf(inputs()))).toEqual([PAPER, BOOK]);
         const set = indexBookNotes([
             { path: "Library/T.md", source: BOOK, frontmatter: { status: "finished" } },
             { path: "Library/C.md", source: PAPER, frontmatter: { status: "to-read" } },
         ]);
-        expect(continueReading(buildShelf(inputs({ notes: set }))).map((item) => item.id)).toEqual(["path:r1"]);
+        expect(desk(buildShelf(inputs({ notes: set })))).toEqual(["path:r1"]);
     });
 
     it("finds a book by its series and by its collection (FR-10)", () => {
@@ -326,7 +330,7 @@ describe("articles on the shelf, and what is new (#744)", () => {
         expect(viewShelf(shelf, { filter: "all", sort: "recent", search: "jane" }).map((item) => item.title)).toEqual(["The case for slow software"]);
     });
 
-    it("holds what came in the last 30 days and is not finished, newest first (AC-3)", () => {
+    it("orders by when it came in, newest first; what is not a file goes last (#744 FR-9)", () => {
         const sources = [
             { path: "Books/new.epub", basename: "new.epub", added: NOW - DAY },
             { path: "Books/done.epub", basename: "done.epub", added: NOW - DAY },
@@ -340,17 +344,6 @@ describe("articles on the shelf, and what is new (#744)", () => {
                 meta: { "Books/done.epub": { size: 1, mtime: 1, chapters: 3, chapter: 2, at: NOW, done: true } },
             })
         );
-        expect(recentlyAdded(shelf, NOW).map((item) => item.title)).toEqual(["new", "The case for slow software", "edge"]);
-        // A saved path is not a file: it never arrived.
-        expect(recentlyAdded(shelf, NOW).some((item) => item.kind === "path")).toBe(false);
-        // Set to Finished counts as finished, whatever the reading says.
-        const set = shelf.map((item) => (item.title === "new" ? { ...item, status: "finished" as const } : item));
-        expect(recentlyAdded(set, NOW).map((item) => item.title)).toEqual(["The case for slow software", "edge"]);
-        expect(recentlyAdded(shelf, NOW + 60 * DAY)).toEqual([]);
-        // As many as one row can hold.
-        const many = buildShelf(inputs({ sources: Array.from({ length: 20 }, (_, i) => ({ path: `B/${i}.epub`, basename: `${i}.epub`, added: NOW - i })) }));
-        expect(recentlyAdded(many, NOW)).toHaveLength(RECENT_LIMIT);
-        // The Recently added order sorts by the same date; what is not a file goes last.
         expect(viewShelf(shelf, { filter: "all", sort: "added", search: "" }).map((item) => item.title)).toEqual([
             "done",
             "new",
@@ -359,5 +352,74 @@ describe("articles on the shelf, and what is new (#744)", () => {
             "old",
             "Distributed systems · Argument",
         ]);
+    });
+});
+
+describe("where every book stands: the desk and the status shelves (#820)", () => {
+    const NOW2 = 1_800_000_000_000;
+    const item = (id: string, extra: Partial<ReturnType<typeof buildShelf>[number]> = {}) => ({
+        id,
+        kind: "book" as const,
+        format: "epub" as const,
+        title: id,
+        progress: 0,
+        highlights: 0,
+        born: 0,
+        lastRead: 0,
+        ...extra,
+    });
+    const items = [
+        item("a", { status: "reading", lastRead: NOW2 - 1, progress: 0.3 }),
+        item("b", { status: "reading", lastRead: NOW2 - 2, progress: 0.5 }),
+        item("c", { status: "reading", lastRead: NOW2 - 3, progress: 0.1 }),
+        item("d", { status: "to-read" }),
+        item("e"),
+        item("f", { status: "finished", lastRead: NOW2 - 9, progress: 1 }),
+        // Set to Reading in its note, never opened: on the Reading shelf, never the desk (decision 2).
+        item("g", { status: "reading" }),
+        item("h", { kind: "paper", format: "pdf", collections: ["Planning"] }),
+    ];
+    const lay = (query: Partial<ShelfQuery> = {}) => layShelves(items, { filter: "all", sort: "title", search: "", ...query });
+    const ids = (layout: ReturnType<typeof lay>) => ({ desk: layout.desk.map((i) => i.id), shelves: layout.shelves.map((row) => [row.status, row.items.map((i) => i.id)]) });
+
+    it("lays two on the desk, most recent first, and every other book on the shelf of its status, in order (AC-1, AC-3)", () => {
+        expect(ids(lay())).toEqual({
+            desk: ["a", "b"],
+            shelves: [
+                ["reading", ["c", "g"]],
+                ["to-read", ["d"]],
+                ["none", ["e", "h"]],
+                ["finished", ["f"]],
+            ],
+        });
+    });
+
+    it("has no desk once one status or one collection is chosen (AC-2)", () => {
+        expect(ids(lay({ status: "reading" }))).toEqual({ desk: [], shelves: [["reading", ["a", "b", "c", "g"]]] });
+        expect(ids(lay({ collection: "planning" }))).toEqual({ desk: [], shelves: [["none", ["h"]]] });
+        expect(lay({ search: "e" }).desk).toEqual([]);
+    });
+
+    it("stands every book in at most one place, whatever is asked (AC-4)", () => {
+        for (const filter of ["all", "books", "papers"] as const)
+            for (const status of ["all", "reading", "to-read", "none", "finished"] as const)
+                for (const sort of ["recent", "title", "added", "highlighted"] as const)
+                    for (const search of ["", "a", "zzz"]) {
+                        const layout = lay({ filter, status, sort, search });
+                        const all = [...layout.desk, ...layout.shelves.flatMap((row) => row.items)].map((i) => i.id);
+                        expect(new Set(all).size).toBe(all.length);
+                        expect(layout.shelves.every((row) => row.items.length > 0)).toBe(true);
+                    }
+    });
+
+    it("keeps the bar's order on the shelves, and nothing when the search finds nothing (AC-6, AC-7)", () => {
+        expect(lay({ sort: "recent" }).shelves[0].items.map((i) => i.id)).toEqual(["c", "g"]);
+        expect(lay({ search: "nothing like it" })).toEqual({ desk: [], shelves: [] });
+    });
+
+    it("reads the view as covers unless it says spines", () => {
+        expect(bookViewOf("spines")).toBe("spines");
+        expect(bookViewOf("shelf")).toBe("covers");
+        expect(bookViewOf(undefined)).toBe("covers");
     });
 });

@@ -86,6 +86,10 @@ function mount(settings: Record<string, unknown> = {}, extra: string[] = []) {
 
 const texts = (content: DomNode, cls: string) => content.byClass(cls).map((el) => el.textContent);
 const chips = (content: DomNode) => content.oneByClass("shelf-bar").byClass("shelf-filter--kind");
+/** A book on the shelves (#820), by id. */
+const book = (content: DomNode, id: string) => content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === id)!;
+/** What each book says to a screen reader: *Open title, byline, where it stands*. */
+const labels = (content: DomNode) => content.byClass("shelf-book-open").map((el) => el.attrs["aria-label"]);
 
 afterEach(() => __captureSettings(null));
 
@@ -95,10 +99,9 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
         await view.onOpen();
         expect(chips(content).map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers0", "Articles2", "Paths0"]);
         chips(content)[3].click();
-        expect(texts(content, "shelf-section")).toEqual(["Articles"]);
-        expect(texts(content, "shelf-card-title")).toEqual(["The case for slow software", "Old essay"].sort((a, b) => a.localeCompare(b)));
-        expect(texts(content, "shelf-card-author").sort()).toEqual(["Jane Doe", "blog.example.org"]);
-        expect(texts(content, "shelf-kind")).toEqual(["Article", "Article"]);
+        // Never opened: both stand On the shelf, said once each, with their byline.
+        expect(content.byClass("shelf-bay").map((el) => el.attrs["data-zf-shelf"])).toEqual(["none"]);
+        expect(labels(content).sort()).toEqual(["Open Old essay, blog.example.org, Not started", "Open The case for slow software, Jane Doe, Not started"]);
         expect(content.byClass("shelf-cover--article")).toHaveLength(2);
         // Where they come from, under the chip.
         expect(content.oneByClass("shelf-articles-from").textContent).toBe("Articles come from Clippings·Change");
@@ -144,8 +147,7 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
         const { view, content } = mount();
         await view.onOpen();
         chips(content)[3].click();
-        const card = content.byClass("shelf-card").find((el) => el.attrs["data-shelf-id"] === SLOW)!;
-        card.oneByClass("shelf-card-open").click();
+        book(content, SLOW).oneByClass("shelf-book-open").click();
         const cover = beginOpenShot.mock.calls[0][1] as DomNode;
         expect(cover.getAttribute("data-zf-book")).toBe(SLOW);
         expect(cover.hasClass("zettelkasten-flow__shelf-cover--article")).toBe(true);
@@ -170,42 +172,34 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
     });
 });
 
-describe("Recently added (#744 FR-8, FR-9, FR-13)", () => {
-    it("follows Continue reading with what came in the last 30 days, newest first, and is hidden when nothing did", async () => {
+describe("a book that arrives (#744 FR-9, FR-13, #820)", () => {
+    it("stands a new book on the shelf of its status, with the added order in the bar", async () => {
         const reading = { [BOOK]: { size: 10, mtime: 20, title: "Thinking, Fast and Slow", chapters: 38, chapter: 2, at: Date.now() - DAY } };
         const { view, content } = mount({ library: reading }, [NEW_BOOK]);
         await view.onOpen();
-        expect(texts(content, "shelf-section")).toEqual(["Continue reading", "Recently added", "Your shelf"]);
-        const row = content.oneByClass("shelf-shelf--recent");
-        expect(row.byClass("shelf-card-title").map((el) => el.textContent)).toEqual(["Arrived", "The case for slow software"]);
-        // The sort has a fourth order.
+        // The book you are in lies on the desk; the rest stand On the shelf. No *Recently added* row repeats them.
+        expect(content.byClass("shelf-desk-card").map((el) => el.attrs["data-shelf-id"])).toEqual([BOOK]);
+        expect(content.byClass("shelf-bay").map((el) => el.attrs["data-zf-shelf"])).toEqual(["none"]);
+        expect(content.byClass("shelf-book").map((el) => el.attrs["data-shelf-id"])).not.toContain(BOOK);
         expect(content.oneByClass("shelf-sort").findAll((el) => el.tag === "option").map((el) => el.textContent)).toEqual([
             "Recently read",
             "Most highlighted",
             "Title",
             "Recently added",
         ]);
-        // Narrowed, the shelf has no sections.
-        chips(content)[1].click();
-        expect(content.byClass("shelf-shelf--recent")).toHaveLength(0);
-
-        const { view: quiet, content: none } = mount({ articlesFolder: "" });
-        await quiet.onOpen();
-        expect(none.byClass("shelf-shelf--recent")).toHaveLength(0);
-        expect(texts(none, "shelf-section")).not.toContain("Recently added");
     });
 
-    it("lets a card that arrives while the shelf is open settle in — and moves nothing at the first draw", async () => {
+    it("lets a book that arrives while the shelf is open settle in — and moves nothing at the first draw", async () => {
         const restore = reducedMotion(false);
         const record = recordAnimations();
-        // A layout: every card a slot after the one before it, in the order the shelf draws them.
+        // A layout: every book a slot after the one before it, in the order the shelf draws them.
         const proto = DomNode.prototype as any;
         const rect = proto.getBoundingClientRect;
         proto.getBoundingClientRect = function (this: DomNode) {
             let root: DomNode = this;
             while (root.parent) root = root.parent;
-            const cards = root.findAll((el) => el.attrs["data-shelf-id"] !== undefined);
-            return { left: cards.indexOf(this) * 100, top: 0, width: 100, height: 90 };
+            const books = root.findAll((el) => el.attrs["data-shelf-id"] !== undefined);
+            return { left: books.indexOf(this) * 100, top: 0, width: 100, height: 90 };
         };
         try {
             const m = mount();
@@ -214,8 +208,7 @@ describe("Recently added (#744 FR-8, FR-9, FR-13)", () => {
             // A book dropped into the vault.
             m.sources.push(file(NEW_BOOK, Date.now()));
             m.view.refresh();
-            const row = m.content.oneByClass("shelf-shelf--recent");
-            const arrived = row.byClass("shelf-card").find((card) => card.attrs["data-shelf-id"] === `recent:${NEW_BOOK}`)!;
+            const arrived = book(m.content, NEW_BOOK);
             const settle = record.animations.filter((a) => a.target === arrived);
             expect(settle).toHaveLength(1);
             expect(settle[0].keyframes).toEqual([
@@ -223,11 +216,6 @@ describe("Recently added (#744 FR-8, FR-9, FR-13)", () => {
                 { opacity: 1, transform: "scale(1)" },
             ]);
             expect(settle[0].options.duration).toBe(250);
-            // The card beside it makes room by a translate.
-            const neighbour = row.byClass("shelf-card").find((card) => card.attrs["data-shelf-id"] === `recent:${SLOW}`)!;
-            const room = record.animations.filter((a) => a.target === neighbour);
-            expect(room).toHaveLength(1);
-            expect(room[0].keyframes).toEqual([{ transform: "translate(-100px, 0px)" }, { transform: "translate(0px, 0px)" }]);
             // Only transform and opacity move.
             expect([...record.keys()].every((key) => key === "transform" || key === "opacity")).toBe(true);
             // Drawn again with nothing new: nothing arrives.
@@ -250,7 +238,7 @@ describe("Recently added (#744 FR-8, FR-9, FR-13)", () => {
             await m.view.onOpen();
             m.sources.push(file(NEW_BOOK, Date.now()));
             m.view.refresh();
-            expect(m.content.oneByClass("shelf-shelf--recent").byClass("shelf-card")).toHaveLength(2);
+            expect(book(m.content, NEW_BOOK)).toBeDefined();
             expect(record.animations).toHaveLength(0);
         } finally {
             record.stop();

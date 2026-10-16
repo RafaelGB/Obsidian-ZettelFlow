@@ -46,7 +46,13 @@ function mount(paths: string[], settings: Record<string, unknown> = {}, active: 
     return { view, app, content, host, handlers };
 }
 
-const titles = (content: DomNode, cls = "shelf-card-title") => content.byClass(cls).map((el) => el.textContent);
+/** The titles in the order a reader meets them (#820): the desk, then the books on the shelves. */
+const titles = (content: DomNode, cls?: string) =>
+    cls
+        ? content.byClass(cls).map((el) => el.textContent)
+        : [...content.byClass("shelf-desk-title"), ...content.byClass("shelf-book").map((book) => book.byClass("shelf-cover-title")[0] ?? book.oneByClass("shelf-spine-title"))].map((el) => el.textContent);
+/** What a book on a shelf says to a screen reader. */
+const label = (content: DomNode, id: string) => content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === id)!.oneByClass("shelf-book-open").attrs["aria-label"];
 
 const library = {
     "Books/Thinking, Fast and Slow.epub": { size: 10, mtime: 20, title: "Thinking, Fast and Slow", author: "Daniel Kahneman", chapters: 38, chapter: 2, at: Date.now() - DAY },
@@ -70,13 +76,24 @@ describe("the Library (#680)", () => {
         });
         await view.onOpen();
         expect(titles(content)).toEqual(["Brewer's conjecture", "Thinking, Fast and Slow", "Distributed systems · Argument", "scan"]);
-        expect(content.byClass("shelf-kind").map((el) => el.textContent)).toEqual(["PDF", "EPUB", "Path", "PDF"]);
-        // Continue reading: the two you were last in, the paper first.
-        expect(titles(content, "shelf-hero-title")).toEqual(["Brewer's conjecture", "Thinking, Fast and Slow"]);
-        expect(content.byClass("shelf-hero-where").map((el) => el.textContent)).toEqual(["Page 6 of 12", "Chapter 3 of 38"]);
-        // A scan says so on its card, before you open it.
-        expect(content.byClass("shelf-scanned").map((el) => el.textContent)).toEqual(["Scanned · read only"]);
-        expect(content.byClass("shelf-card-author").map((el) => el.textContent)).toContain("A reading of 2 notes");
+        // A paper says so with a small tag; a book needs none.
+        expect(content.byClass("shelf-tag-pdf").map((el) => el.textContent)).toEqual(["PDF", "PDF"]);
+        // On the desk: the two you were last in, the paper first — where you are, never a percentage.
+        expect(titles(content, "shelf-desk-title")).toEqual(["Brewer's conjecture", "Thinking, Fast and Slow"]);
+        expect(content.byClass("shelf-desk-where").map((el) => el.textContent?.split(" · ")[0])).toEqual(["Page 6 of 12", "Chapter 3 of 38"]);
+        expect(content.oneByClass("shelf-desk").textContent).not.toMatch(/%/);
+        expect(titles(content, "shelf-resume")).toEqual(["Resume reading", "Resume reading"]);
+        // Nothing under a cover on the shelf: no title, no author, no ring, no line of facts.
+        for (const cls of ["shelf-card-title", "shelf-card-author", "shelf-ring", "shelf-meta"]) expect(content.byClass(cls)).toHaveLength(0);
+        // A scan says so before you open it, and a path how many notes it reads.
+        expect(label(content, "Papers/scan.pdf")).toBe("Open scan, Not started, Scanned · read only");
+        expect(label(content, "path:r1")).toMatch(/^Open Distributed systems · Argument, A reading of 2 notes, /);
+        // One card rises over the books, outside every shelf that scrolls.
+        expect(content.byClass("shelf-tip")).toHaveLength(1);
+        expect(content.oneByClass("shelf-tip").closest("[data-zf-scroll]")).toBeNull();
+        // Every book in one place.
+        const ids = content.findAll((el) => el.attrs["data-zf-book"] !== undefined).map((el) => el.attrs["data-zf-book"]);
+        expect(new Set(ids).size).toBe(ids.length);
     });
 
     it("filters with counts, searches titles and authors, and sorts", async () => {
@@ -85,8 +102,8 @@ describe("the Library (#680)", () => {
         const chips = content.oneByClass("shelf-bar").byClass("shelf-filter--kind");
         expect(chips.map((el) => el.textContent)).toEqual(["All3", "Books1", "Papers2", "Articles0", "Paths0"]);
         chips[2].click();
-        expect(content.byClass("shelf-hero")).toHaveLength(0);
-        expect(content.oneByClass("shelf-section").textContent).toBe("Papers");
+        expect(titles(content, "shelf-desk-title")).toEqual(["Brewer's conjecture"]);
+        expect(content.byClass("shelf-bay").map((el) => el.attrs["data-zf-shelf"])).toEqual(["none"]);
         const input = content.oneByClass("shelf-search-input");
         input.value = "kahneman";
         input.fire("input");
@@ -99,14 +116,15 @@ describe("the Library (#680)", () => {
         const sort = content.oneByClass("shelf-sort");
         sort.value = "title";
         sort.fire("change");
-        expect(titles(content)).toEqual(["Brewer's conjecture", "scan", "Thinking, Fast and Slow"]);
+        // The desk keeps the most recent first; the shelves follow the bar's order.
+        expect(titles(content)).toEqual(["Brewer's conjecture", "Thinking, Fast and Slow", "scan"]);
         expect(view.getState()).toMatchObject({ filter: "all", sort: "title" });
     });
 
     it("opens a source's detail from ⋯ and closes it with Esc, leaving Esc alone otherwise", async () => {
         const { view, content } = mount(["Papers/cap.pdf"], { library });
         await view.onOpen();
-        content.oneByClass("shelf-more").click();
+        content.oneByClass("shelf-desk-more").click();
         await flush();
         expect(content.oneByClass("shelf-detail").hasClass("zettelkasten-flow__shelf-detail--open")).toBe(true);
         expect(content.oneByClass("shelf-detail-title").textContent).toBe("Brewer's conjecture");
@@ -167,7 +185,7 @@ describe("the Library (#680)", () => {
         host.scrollTop = 900;
         host.offsetTop = 40;
         host.offsetHeight = 600;
-        content.oneByClass("shelf-more").click();
+        content.oneByClass("shelf-desk-more").click();
         await flush();
         // Placed on the pane's box, not on the scrolled content: the scroll plays no part.
         for (const layer of [content.oneByClass("shelf-scrim"), content.oneByClass("shelf-detail")]) {
@@ -197,7 +215,7 @@ describe("the Library (#680)", () => {
     it("closes the detail from the scrim, and a missing source opens none", async () => {
         const { view, content } = mount(["Papers/cap.pdf"], { library });
         await view.onOpen();
-        content.oneByClass("shelf-more").click();
+        content.oneByClass("shelf-desk-more").click();
         await flush();
         expect(view.getState()).toMatchObject({ detail: "Papers/cap.pdf" });
         content.oneByClass("shelf-scrim").click();
@@ -286,7 +304,7 @@ describe("the book notebook (#721)", () => {
             "Ch. 1 · The characters · Question",
             "Ch. 3 · The lazy controller · Idea",
         ]);
-        expect(content.byClass("shelf-card-title")).toHaveLength(0);
+        expect(content.byClass("shelf-book")).toHaveLength(0);
         expect(view.getState()).toMatchObject({ notebook: BOOK });
     });
 
@@ -306,7 +324,7 @@ describe("the book notebook (#721)", () => {
         const evt = press(content as never, "Escape");
         expect(evt.defaultPrevented).toBe(true);
         expect(content.byClass("notebook")).toHaveLength(0);
-        expect(content.byClass("shelf-card-title").length).toBeGreaterThan(0);
+        expect(content.byClass("shelf-book").length + content.byClass("shelf-desk-card").length).toBeGreaterThan(0);
     });
 
     it("is offered from a source's detail", async () => {

@@ -1,5 +1,5 @@
 import { describe, it } from "@jest/globals";
-import { buildShelf, continueReading, recentlyAdded, statusCounts, viewShelf, wantToRead, type ShelfInputs } from "application/library/shelf";
+import { buildShelf, layShelves, statusCounts, viewShelf, type ShelfInputs } from "application/library/shelf";
 import { articleAdded, articleFields, isArticle } from "application/library/article";
 import { indexBookNotes } from "application/library/bookNote";
 import { reflowPage, type TextRun } from "application/library/pdfText";
@@ -102,13 +102,13 @@ describe("the Library (#675)", () => {
         const ms = best(5, () => {
             // And 200 articles, read off the cache (#744 AC-8).
             const items = buildShelf({ ...inputs, articles: articlesFromCache() });
-            recentlyAdded(items, Date.now());
-            viewShelf(items, { filter: "articles", sort: "added", search: "writer 4" });
-            continueReading(items);
-            viewShelf(items, { filter: "all", sort: "recent", search: "" });
+            // The desk and the status shelves (#820): the default view, a narrowed one, a search, each order.
+            layShelves(items, { filter: "articles", sort: "added", search: "writer 4" });
+            layShelves(items, { filter: "all", sort: "recent", search: "" });
+            layShelves(items, { filter: "all", sort: "title", search: "", status: "to-read" });
+            layShelves(items, { filter: "books", sort: "highlighted", search: "" });
             viewShelf(items, { filter: "all", sort: "highlighted", search: "author 3" });
             viewShelf(items, { filter: "all", sort: "recent", search: "series 4", status: "reading", collection: "Planning" });
-            wantToRead(items);
             statusCounts(items);
         });
         assertBudget("library.shelf.500", ms);

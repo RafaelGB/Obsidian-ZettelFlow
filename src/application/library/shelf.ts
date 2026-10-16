@@ -273,40 +273,57 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
     return shown.sort((a, b) => b.lastRead - a.lastRead || byTitle(a, b));
 }
 
-/** How many sources *Continue reading* offers. */
-export const CONTINUE_LIMIT = 2;
+/** How many books lie open on the desk (#820): what you are reading now, never the whole pile. */
+export const DESK_LIMIT = 2;
 
-/**
- * What you were last in and have not finished — the reason to open the Library. A book you said
- * you finished, or put back to *Want to read*, is not offered again (#743).
- */
-export function continueReading(items: readonly ShelfItem[]): ShelfItem[] {
-    return items
-        .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
-        .sort((a, b) => b.lastRead - a.lastRead)
-        .slice(0, CONTINUE_LIMIT);
+/** A status shelf (#820): Reading, Want to read, On the shelf or Finished. */
+export type ShelfStatus = Exclude<StatusFilter, "all">;
+
+export interface ShelfLayout {
+    /** What you are reading now — open on the desk, and on no shelf. */
+    desk: ShelfItem[];
+    /** The status shelves in the order they stand, each holding something. */
+    shelves: { status: ShelfStatus; items: ShelfItem[] }[];
 }
 
-/** How long something stays new on the shelf (#744 FR-8). */
-export const RECENT_DAYS = 30;
-/** As many as one row can hold at its widest; the row itself shows what fits. */
-export const RECENT_LIMIT = 12;
-
 /**
- * **Recently added** (#744 FR-8): what came into the vault in the last thirty days and is not
- * finished, newest first — so a book dropped in yesterday is found the day it lands.
+ * **Where every book stands** (#820): one pass over the shelf as asked for. What you were last in
+ * and have not finished lies open on the desk — up to two, most recent first, and only while nothing
+ * narrows the shelf to one status or one collection. Everything else stands on the shelf of its
+ * status, in the bar's order; a book nothing is said of stands *On the shelf*. A book is in one place.
  */
-export function recentlyAdded(items: readonly ShelfItem[], now: number): ShelfItem[] {
-    const since = now - RECENT_DAYS * 86_400_000;
-    return items
-        .filter((item) => item.added !== undefined && item.added >= since && item.progress < 1 && item.status !== "finished")
-        .sort((a, b) => (b.added ?? 0) - (a.added ?? 0) || a.title.localeCompare(b.title))
-        .slice(0, RECENT_LIMIT);
+export function layShelves(items: readonly ShelfItem[], query: ShelfQuery): ShelfLayout {
+    const shown = viewShelf(items, query);
+    const narrowed = (query.status ?? "all") !== "all" || Boolean(query.collection);
+    const desk = narrowed
+        ? []
+        : shown
+              .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
+              .sort((a, b) => b.lastRead - a.lastRead)
+              .slice(0, DESK_LIMIT);
+    const onDesk = new Set(desk.map((item) => item.id));
+    const byStatus = new Map<ShelfStatus, ShelfItem[]>();
+    for (const item of shown) {
+        if (onDesk.has(item.id)) continue;
+        const status: ShelfStatus = item.status ?? "none";
+        const row = byStatus.get(status);
+        if (row) row.push(item);
+        else byStatus.set(status, [item]);
+    }
+    const shelves = STATUS_FILTERS.filter((status): status is ShelfStatus => status !== "all" && byStatus.has(status)).map((status) => ({
+        status,
+        items: byStatus.get(status) ?? [],
+    }));
+    return { desk, shelves };
 }
 
-/** What you said you want to read (#743 FR-9): the section that follows *Continue reading*. */
-export function wantToRead(items: readonly ShelfItem[]): ShelfItem[] {
-    return items.filter((item) => item.status === "to-read");
+/** How the Library shows its books (#819, #820): covers, or spines on the shelf. */
+export type BookView = "covers" | "spines";
+export const BOOK_VIEWS: readonly BookView[] = ["covers", "spines"];
+
+/** The saved value, read: anything but *spines* is covers. */
+export function bookViewOf(value: unknown): BookView {
+    return value === "spines" ? "spines" : "covers";
 }
 
 /** How many items each status chip would show (#743). */

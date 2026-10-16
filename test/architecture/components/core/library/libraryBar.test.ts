@@ -36,6 +36,8 @@ const library = {
 };
 const PATHS = ["Books/Thinking.epub", "Papers/cap.pdf"];
 const texts = (nodes: DomNode[]) => nodes.map((el) => el.textContent);
+/** The books standing on the shelves (#820), by id — the desk's are not among them. */
+const shelved = (content: DomNode) => content.byClass("shelf-book").map((el) => el.attrs["data-shelf-id"]);
 
 describe("the bar that stays (#819)", () => {
     it("holds the search, one row of chips, the order and covers or spines — in that order, once", async () => {
@@ -57,7 +59,7 @@ describe("the bar that stays (#819)", () => {
         const { view, content } = mount(PATHS, { library });
         await view.onOpen();
         content.byClass("shelf-filter--status").find((el) => el.textContent === "On the shelf")!.click();
-        expect(texts(content.byClass("shelf-card-title"))).toEqual(["Brewer's conjecture"]);
+        expect(shelved(content)).toEqual(["Papers/cap.pdf"]);
         expect(view.getState()).toMatchObject({ status: "none" });
     });
 
@@ -65,7 +67,7 @@ describe("the bar that stays (#819)", () => {
         const { view, content } = mount(PATHS, { library });
         await view.onOpen();
         await view.setState({ collection: "Planning" }, {} as never);
-        expect(content.byClass("shelf-card-title").length).toBeGreaterThanOrEqual(2);
+        expect(content.byClass("shelf-book").length + content.byClass("shelf-desk-card").length).toBe(2);
         expect(view.getState()).not.toHaveProperty("collection");
     });
 
@@ -106,5 +108,39 @@ describe("the bar that stays (#819)", () => {
         content.byClass("shelf-filter--kind").find((el) => el.textContent?.startsWith("Articles"))!.click();
         expect(content.oneByClass("shelf-bar").byClass("shelf-articles-from")).toHaveLength(0);
         expect(content.byClass("shelf-articles-from")).toHaveLength(1);
+    });
+});
+
+describe("the shelves under the bar (#820)", () => {
+    it("turns every book on a shelf spine-out, and leaves the desk's cards as they are (AC-20)", async () => {
+        const { view, content } = mount(PATHS, { library, libraryBookView: "spines" });
+        await view.onOpen();
+        expect(content.byClass("shelf-desk-card")).toHaveLength(1);
+        const spines = content.byClass("shelf-spine");
+        expect(spines).toHaveLength(content.byClass("shelf-book").length);
+        expect(spines[0].attrs["data-zf-book"]).toBe("Papers/cap.pdf");
+        expect(spines[0].cssProps["--zf-spine-w"]).toMatch(/rem$/);
+        expect(content.byClass("shelf-bay--spines")).toHaveLength(1);
+    });
+
+    it("keeps where you were along a shelf through a redraw (MF-5)", async () => {
+        const { view, content } = mount(PATHS, { library });
+        await view.onOpen();
+        const row = content.oneByClass("shelf-books") as DomNode & { scrollLeft: number };
+        row.scrollLeft = 120;
+        row.fire("scroll");
+        const input = content.oneByClass("shelf-search-input");
+        input.value = "brewer";
+        input.fire("input");
+        expect((content.oneByClass("shelf-books") as DomNode & { scrollLeft: number }).scrollLeft).toBe(120);
+    });
+
+    it("labels each shelf on its plank, with what it holds", async () => {
+        const { view, content } = mount(PATHS, { library });
+        await view.onOpen();
+        const bay = content.oneByClass("shelf-bay");
+        expect(bay.attrs["aria-label"]).toBe("On the shelf");
+        expect(bay.oneByClass("shelf-plank").oneByClass("shelf-label").textContent).toBe("On the shelfnot started yet");
+        expect(bay.oneByClass("shelf-books").attrs.role).toBe("list");
     });
 });

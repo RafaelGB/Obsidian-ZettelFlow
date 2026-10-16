@@ -231,15 +231,6 @@
     }
 }
 
-.zettelkasten-flow__shelf-section {
-    margin: var(--size-4-6) 0 var(--size-4-3);
-    font-size: var(--font-ui-smaller);
-    font-weight: var(--font-semibold);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-}
-
 /* ── covers ─────────────────────────────────────────────────────────────── */
 .zettelkasten-flow__shelf-cover {
     --shelf-tint: var(--color-accent);
@@ -359,10 +350,31 @@
 }
 
 .zettelkasten-flow__shelf-cover-author {
-    font-size: 0.62em;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    opacity: 0.8;
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    font-size: 0.7em;
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Cloth (#820): a fine weave over the tint, and a frame blind-stamped into it. */
+.zettelkasten-flow__shelf-cover:not(.zettelkasten-flow__shelf-cover--pdf):not(.zettelkasten-flow__shelf-cover--image) .zettelkasten-flow__shelf-cover-drawn {
+    background-image:
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-base-00) 5%, transparent) 0 0.0625rem, transparent 0.0625rem 0.1875rem),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-base-100) 6%, transparent) 0 0.0625rem, transparent 0.0625rem 0.1875rem);
+}
+
+.zettelkasten-flow__shelf-cover-frame {
+    position: absolute;
+    inset: 7% 8% 7% 12%;
+    border: var(--border-width) solid color-mix(in srgb, var(--color-base-00) 28%, transparent);
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 var(--size-2-1) color-mix(in srgb, var(--color-base-100) 10%, transparent);
+    pointer-events: none;
+}
+
+.zettelkasten-flow__shelf-cover--pdf .zettelkasten-flow__shelf-cover-frame,
+.zettelkasten-flow__shelf-cover--image .zettelkasten-flow__shelf-cover-frame {
+    display: none;
 }
 
 .zettelkasten-flow__shelf-cover-graph {
@@ -384,48 +396,36 @@
     opacity: 0.88;
 }
 
-/* ── continue reading ──────────────────────────────────────────────────── */
-.zettelkasten-flow__shelf-hero {
+/* ── the desk (#820): what you are reading now, open in front of the shelves ─────────────────── */
+.zettelkasten-flow__shelf-shelf-host {
+    position: relative;
+}
+
+.zettelkasten-flow__shelf-desk {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--size-4-4);
+    margin-bottom: var(--size-4-8);
 }
 
-@container (max-width: 40rem) {
-    .zettelkasten-flow__shelf-hero {
-        grid-template-columns: 1fr;
-    }
-}
-
-.zettelkasten-flow__shelf-hero-card {
+.zettelkasten-flow__shelf-desk-card {
+    isolation: isolate;
     display: flex;
     gap: var(--size-4-4);
     padding: var(--size-4-4);
     border: $line-quiet;
     border-radius: var(--radius-l);
-    background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--interactive-accent) 10%, var(--background-primary)),
-        var(--background-primary)
-    );
-    transition:
-        transform 0.15s ease,
-        border-color 0.15s ease;
-
-    &:hover {
-        transform: translateY(-0.125rem);
-        border-color: color-mix(in srgb, var(--interactive-accent) 50%, var(--background-modifier-border));
-    }
+    background-color: var(--background-secondary);
 
     .zettelkasten-flow__shelf-cover {
         flex: none;
-        width: 5.75rem;
+        width: 4.5rem;
         cursor: pointer;
-        font-size: 0.8rem;
+        font-size: 0.6rem;
     }
 }
 
-.zettelkasten-flow__shelf-hero-info {
+.zettelkasten-flow__shelf-desk-info {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -433,19 +433,33 @@
     gap: var(--size-4-1);
 }
 
-.zettelkasten-flow__shelf-hero-title {
-    font-weight: var(--font-semibold);
+.zettelkasten-flow__shelf-desk-title {
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
     font-size: var(--font-ui-large);
-    line-height: 1.3;
+    font-weight: var(--font-semibold);
+    line-height: 1.25;
 }
 
-.zettelkasten-flow__shelf-hero-where {
-    @include hint;
+.zettelkasten-flow__shelf-desk-author {
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-desk-where {
     margin-top: auto;
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-desk-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-1);
 }
 
 .zettelkasten-flow__shelf-progress {
-    height: var(--size-4-1);
+    height: var(--size-2-1);
     border-radius: $radius-pill;
     background-color: var(--background-modifier-border);
     overflow: hidden;
@@ -460,7 +474,6 @@
 }
 
 .zettelkasten-flow__shelf-resume {
-    align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-2);
@@ -470,53 +483,277 @@
     display: inline-flex;
 }
 
-.zettelkasten-flow__shelf-kind-inline {
-    font-size: var(--font-ui-smaller);
-    font-weight: var(--font-bold);
-    letter-spacing: 0.06em;
-    color: var(--text-accent);
+/* ── the shelves (#820): a wall, a plank, the name on the plank's edge ─────────────────────────── */
+/* Every material is the theme's: the wall a step back from the page, the plank a warm mix of the
+   text colour into the secondary background, its shadow a shadow. */
+.zettelkasten-flow__shelf {
+    --shelf-book-h: 11.25rem;
+    --shelf-wall: color-mix(in srgb, var(--background-secondary) 65%, var(--background-primary));
+    --shelf-plank: color-mix(in srgb, var(--color-orange) 14%, color-mix(in srgb, var(--text-faint) 30%, var(--background-secondary)));
+    --shelf-plank-edge: color-mix(in srgb, var(--text-normal) 12%, var(--shelf-plank));
 }
 
-/* ── the shelf ─────────────────────────────────────────────────────────── */
-.zettelkasten-flow__shelf-shelf {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
-    gap: var(--size-4-6) var(--size-4-4);
+.zettelkasten-flow__shelf-bay {
+    margin-bottom: var(--size-4-8);
+}
+
+.zettelkasten-flow__shelf-books {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    gap: var(--size-4-4);
+    min-height: calc(var(--shelf-book-h) + var(--size-4-6));
+    // Room above for a lifted book and a ribbon's end: a row that scrolls sideways clips them otherwise.
+    padding: var(--size-4-6) var(--size-4-5) 0;
+    border-radius: var(--radius-m) var(--radius-m) 0 0;
+    background: linear-gradient(180deg, transparent, var(--shelf-wall) 40%);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__shelf-bay--spines .zettelkasten-flow__shelf-books {
+    gap: var(--size-2-1);
+}
+
+.zettelkasten-flow__shelf-plank {
+    position: relative;
+    height: var(--size-4-3);
+    border-radius: 0 0 var(--radius-s) var(--radius-s);
+    background: linear-gradient(180deg, var(--shelf-plank), var(--shelf-plank-edge));
+    box-shadow: 0 var(--size-4-2) var(--size-4-3) calc(-1 * var(--size-4-2)) rgba(0, 0, 0, 0.35);
+}
+
+/* The name on the plank's edge, like a label pinned to a library shelf. */
+.zettelkasten-flow__shelf-label {
+    position: absolute;
+    top: 100%;
+    left: var(--size-4-5);
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    color: var(--text-muted);
+
+    small {
+        font-weight: var(--font-normal);
+        font-style: italic;
+        color: var(--text-faint);
+    }
+}
+
+/* ── a book on the shelf: the cover and nothing under it ──────────────────────────────────────── */
+.zettelkasten-flow__shelf-book {
+    position: relative;
+    flex: none;
+
+    &:hover .zettelkasten-flow__shelf-more,
+    &:focus-within .zettelkasten-flow__shelf-more {
+        opacity: 1;
+    }
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-book-open {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+
+    // The book comes off the shelf a little when you point at it or reach it by Tab.
+    &:hover > *,
+    &:focus-visible > * {
+        transform: translateY(calc(-1 * var(--size-4-2)));
+    }
+}
+
+.zettelkasten-flow__shelf-cover--shelf {
+    height: var(--shelf-book-h);
+    width: calc(var(--shelf-book-h) * 2 / 3);
+    transition: transform $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-more {
+    position: absolute;
+    top: var(--size-4-1);
+    right: var(--size-4-1);
+    z-index: 4;
+    opacity: 0;
+    background-color: color-mix(in srgb, var(--color-base-100) 60%, transparent);
+    color: var(--color-base-00);
+    transition: opacity $motion-fast;
+}
+
+@media (hover: none) {
+    .zettelkasten-flow__shelf .zettelkasten-flow__shelf-more {
+        opacity: 1;
+    }
+}
+
+/* A paper says so, small, in the corner. */
+.zettelkasten-flow__shelf-tag-pdf {
+    position: absolute;
+    top: var(--size-4-2);
+    left: var(--size-4-2);
+    z-index: 3;
+    padding: 0 var(--size-4-1);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--color-base-100) 70%, transparent);
+    color: var(--color-base-00);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-bold);
+}
+
+/* The ribbon of a book you are reading: longer the further you are — never a number. */
+.zettelkasten-flow__shelf-ribbon {
+    position: absolute;
+    top: 0;
+    right: 16%;
+    z-index: 3;
+    width: var(--size-4-2);
+    height: calc(var(--size-4-4) + var(--zf-shelf-progress, 0) * 35%);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - var(--size-4-1)), 0 100%);
+    box-shadow: 0 var(--size-2-1) var(--size-2-2) rgba(0, 0, 0, 0.25);
+}
+
+/* A book you finished: the corner folded, so it still says so on a shelf of your own. */
+.zettelkasten-flow__shelf-fold {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    width: var(--size-4-4);
+    height: var(--size-4-4);
+    border-radius: 0 0 var(--radius-m) 0;
+    background: linear-gradient(135deg, transparent 50%, color-mix(in srgb, var(--background-primary) 88%, transparent) 50%);
+}
+
+/* ── spines (#820): the same shelves, books turned spine-out ───────────────────────────────────── */
+.zettelkasten-flow__shelf-spine {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--zf-spine-w, 2.25rem);
+    height: calc(var(--shelf-book-h) * var(--zf-spine-h, 0.94));
+    padding: var(--size-4-3) 0;
+    overflow: hidden;
+    border-radius: var(--radius-s) var(--radius-s) var(--size-2-1) var(--size-2-1);
+    background:
+        linear-gradient(90deg, color-mix(in srgb, var(--color-base-100) 18%, transparent), transparent 30%, transparent 70%, color-mix(in srgb, var(--color-base-100) 22%, transparent)),
+        color-mix(in srgb, var(--shelf-tint, var(--color-accent)) 58%, var(--color-base-100));
+    color: var(--color-base-00);
+    box-shadow: var(--shadow-s);
+    transition: transform $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__shelf-spine--pdf {
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: var(--border-width) solid var(--background-modifier-border);
+}
+
+.zettelkasten-flow__shelf-spine-title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    max-height: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__shelf-spine .zettelkasten-flow__shelf-ribbon {
+    right: auto;
+    left: calc(50% - var(--size-2-2));
+    width: var(--size-2-3);
+}
+
+.zettelkasten-flow__shelf-spine .zettelkasten-flow__shelf-fold {
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf-spine .zettelkasten-flow__shelf-tag-pdf {
+    display: none;
+}
+
+/* ── the card that rises (#820 FR-16): one for the Library, outside every scrolling shelf ──────── */
+.zettelkasten-flow__shelf-tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    max-width: 16rem;
+    padding: var(--size-4-2) var(--size-4-3);
+    border: $line-quiet;
+    border-radius: var(--radius-m);
+    background-color: var(--background-primary);
+    box-shadow: var(--shadow-s);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(calc(var(--zf-tip-x, 0) - 50%), calc(var(--zf-tip-y, 0) - 100% - var(--size-4-3)));
+    transition: opacity $motion-fast;
+}
+
+.zettelkasten-flow__shelf-tip--shown {
+    opacity: 1;
+}
+
+.zettelkasten-flow__shelf-tip-title {
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    font-weight: var(--font-semibold);
+    line-height: 1.25;
+}
+
+.zettelkasten-flow__shelf-tip-line {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-muted);
+}
+
+@container (max-width: 40rem) {
+    .zettelkasten-flow__shelf {
+        --shelf-book-h: 9.375rem;
+    }
+
+    .zettelkasten-flow__shelf-desk {
+        grid-template-columns: 1fr;
+    }
 }
 
 @container (max-width: 26rem) {
     .zettelkasten-flow__shelf {
         padding: var(--size-4-4) var(--size-4-3) var(--size-4-12);
     }
+}
 
-    .zettelkasten-flow__shelf-shelf {
-        grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-        gap: var(--size-4-4) var(--size-4-3);
-    }
-
-    .zettelkasten-flow__shelf-sort {
-        margin-left: 0;
+@media (hover: none) {
+    .zettelkasten-flow__shelf-tip {
+        display: none;
     }
 }
 
-/*
- * Recently added (#744 FR-8): one row of the shelf's own cards, as many as fit — the row is laid out
- * like the shelf, and every row after the first is folded to nothing. No measuring: it is the grid.
- * The breathing room above and beside it keeps a lifted cover and a focus ring from being clipped.
- */
-.zettelkasten-flow__shelf-shelf--recent {
-    grid-template-rows: auto;
-    grid-auto-rows: 0;
-    row-gap: 0;
-    overflow: hidden;
-    // Room above and beside, never below: the folded rows start right under the first and must not show.
-    padding: var(--size-4-2) var(--size-4-2) 0;
-    margin: calc(-1 * var(--size-4-2)) calc(-1 * var(--size-4-2)) 0;
-
-    // A folded row starts a hair below the first, so not even its top edge is drawn.
-    > .zettelkasten-flow__shelf-card {
-    isolation: isolate;
-        margin-top: var(--size-2-1);
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__shelf-cover--shelf,
+    .zettelkasten-flow__shelf-spine,
+    .zettelkasten-flow__shelf-tip,
+    .zettelkasten-flow__shelf .zettelkasten-flow__shelf-more {
+        transition: none;
     }
 }
 
@@ -547,71 +784,7 @@
     color: var(--text-faint);
 }
 
-.zettelkasten-flow__shelf-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-2-3);
-    min-width: 0;
-
-    &:hover .zettelkasten-flow__shelf-cover {
-        transform: translateY(-0.2rem) rotate(-0.4deg);
-        box-shadow: var(--shadow-l);
-    }
-
-    &:hover .zettelkasten-flow__shelf-more,
-    &:focus-within .zettelkasten-flow__shelf-more {
-        opacity: 1;
-    }
-}
-
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-card-open {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.zettelkasten-flow__shelf-kind {
-    position: absolute;
-    top: var(--size-4-2);
-    left: var(--size-4-2);
-    z-index: 1;
-    padding: 0 var(--size-4-1);
-    border-radius: var(--radius-s);
-    background-color: color-mix(in srgb, var(--color-base-100) 70%, transparent);
-    color: var(--color-base-00);
-    font-size: var(--font-ui-smaller);
-    font-weight: var(--font-bold);
-    letter-spacing: 0.06em;
-}
-
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-more {
-    position: absolute;
-    top: var(--size-4-1);
-    right: var(--size-4-1);
-    z-index: 1;
-    opacity: 0;
-    background-color: color-mix(in srgb, var(--color-base-100) 60%, transparent);
-    color: var(--color-base-00);
-    transition: opacity 0.15s ease;
-}
-
-.zettelkasten-flow__shelf-card-title {
-    font-weight: var(--font-semibold);
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
+/* The detail's author line. */
 .zettelkasten-flow__shelf-card-author {
     @include hint;
 }
@@ -953,7 +1126,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__shelf-cover,
-    .zettelkasten-flow__shelf-hero-card,
     .zettelkasten-flow__shelf-detail,
     .zettelkasten-flow__shelf-scrim {
         transition: none;
@@ -965,7 +1137,7 @@
 }
 
 /* Back from the Reader, the book you are reading breathes once (#724). */
-.zettelkasten-flow__shelf-hero-card--back {
+.zettelkasten-flow__shelf-desk-card--back {
     animation: zf-shelf-breathe $motion-cover $ease-out 1;
 }
 
@@ -1149,35 +1321,18 @@ button.zettelkasten-flow__notebook-action {
 
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__notebook,
-    .zettelkasten-flow__shelf-hero-card--back {
+    .zettelkasten-flow__shelf-desk-card--back {
         animation: none;
     }
 }
 
 /* The book is in the closing shot's hands until it is back on the shelf (#734). */
-.zettelkasten-flow__shelf-cover.zettelkasten-flow__shelf-cover--in-shot {
+.zettelkasten-flow__shelf-cover.zettelkasten-flow__shelf-cover--in-shot,
+.zettelkasten-flow__shelf-spine.zettelkasten-flow__shelf-cover--in-shot {
     visibility: hidden;
 }
 
-/* ── a book's note (#743): status and collections over the shelf, Details in the detail ── */
-.zettelkasten-flow__shelf-bar--notes {
-    margin-top: calc(-1 * var(--size-4-2));
-    row-gap: var(--size-4-2);
-    column-gap: var(--size-4-4);
-}
-
-.zettelkasten-flow__shelf-chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--size-4-2);
-}
-
-/* Where a card stands for you, where it said Never opened. */
-.zettelkasten-flow__shelf-card-status {
-    color: var(--text-accent);
-}
-
+/* ── a book's note (#743): Details in the detail ── */
 .zettelkasten-flow__shelf-details {
     margin: var(--size-4-4) 0;
 }

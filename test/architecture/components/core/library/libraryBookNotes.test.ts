@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, jest } from "@jest/globals";
-import { TFile, WorkspaceLeaf } from "obsidian";
+import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { recordAnimations, reducedMotion } from "../../../../support/motionDom";
 import { LibraryView } from "architecture/components/core/library/LibraryView";
@@ -106,10 +106,16 @@ describe("the book's note on the shelf (#743)", () => {
         await view.onOpen();
         expect(texts(content, "shelf-filter--status")).toEqual(["Every shelf", "Want to read", "On the shelf", "Finished"]);
         expect(content.byClass("shelf-filter--collection")).toHaveLength(0);
-        // Each book stands in one place: the paper on Want to read, the book on Finished.
-        expect(stands(content)).toEqual([["desk", []], ["to-read", [PAPER]], ["none", [SCAN]], ["finished", [BOOK]]]);
+        // Each book stands in one place: on its first shelf of yours (#821) — Planning, for both. Decisions
+        // stands too, empty: a shelf a book is on, but never first.
+        expect(stands(content)).toEqual([["desk", []], ["none", [SCAN]], ["own:Decisions", []], ["own:Planning", [BOOK, PAPER]]]);
+        expect(texts(content, "shelf-filter--own")).toEqual(["Decisions", "Planning"]);
         expect(label(content, PAPER)).toBe("Open Brewer's conjecture, proved, Want to read");
         expect(label(content, BOOK)).toBe("Open Thinking, Fast and Slow, Daniel Kahneman, Finished");
+        // Filtered by a shelf of yours: every book on it, first or not.
+        content.byClass("shelf-filter--own").find((el) => el.textContent === "Decisions")!.click();
+        expect(stands(content)).toEqual([["desk", []], ["own:Decisions", [BOOK]]]);
+        expect(view.getState()).toMatchObject({ shelf: "Decisions" });
 
         content.byClass("shelf-filter--status").find((el) => el.textContent === "Want to read")!.click();
         expect(stands(content)).toEqual([["desk", []], ["to-read", [PAPER]]]);
@@ -119,7 +125,7 @@ describe("the book's note on the shelf (#743)", () => {
         const input = content.oneByClass("shelf-search-input");
         input.value = "decisions";
         input.fire("input");
-        expect(stands(content)).toEqual([["desk", []], ["finished", [BOOK]]]);
+        expect(stands(content)).toEqual([["desk", []], ["own:Planning", [BOOK]]]);
     });
 
     it("says Finished on a book you read to the end, before it has any note (FR-3)", async () => {
@@ -156,6 +162,7 @@ describe("the book's note on the shelf (#743)", () => {
         const { view, content, app, writes } = mount({});
         await view.onOpen();
         content.byClass("shelf-more")[0].click();
+        Menu.last!.item("Details").click();
         await flush();
         expect(content.byClass("shelf-details")).toHaveLength(1);
         for (const spy of [app.vault.create, app.vault.modify, app.vault.process, writes.create, writes.edit]) expect(spy).not.toHaveBeenCalled();

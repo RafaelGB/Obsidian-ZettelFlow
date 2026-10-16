@@ -109,7 +109,7 @@ describe("Details: the book's note, edited where you look at the book (#743 FR-8
             "Citation key",
             "Tags",
             "Status",
-            "Collections",
+            "Shelves",
         ]);
         expect(host.oneByClass("shelf-details-where").textContent).toBe(
             "Kept in a note of its own in Library, the first time you change something.Use a note you already have"

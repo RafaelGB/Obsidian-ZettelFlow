@@ -188,6 +188,12 @@ export interface ZettelFlowSettings {
      */
     libraryBookView?: "covers" | "spines";
     /**
+     * The shelves you made in the Library (#821, epic #818), by name — an empty one too. A book is put
+     * on one through its note's `collections`; this only remembers the shelves themselves. Read through
+     * `normalizeShelfNames()`.
+     */
+    libraryShelves?: string[];
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */

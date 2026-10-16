@@ -256,12 +256,6 @@ export function indexBookNotes(entries: Iterable<{ path: string; source: string;
     return out;
 }
 
-/** Every collection in use, once each, in alphabetical order — what *+ Collection* suggests. */
-export function collectionsInUse(notes: Iterable<{ details: BookDetails }>): string[] {
-    const seen = new Map<string, string>();
-    for (const note of notes) for (const name of note.details.collections ?? []) if (!seen.has(name.toLowerCase())) seen.set(name.toLowerCase(), name);
-    return [...seen.values()].sort((a, b) => a.localeCompare(b));
-}
 
 /**
  * What typing in a Details field means (FR-8). An empty field removes the key. An author list and

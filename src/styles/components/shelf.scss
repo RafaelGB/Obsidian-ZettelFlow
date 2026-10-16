@@ -757,6 +757,125 @@
     }
 }
 
+/* ── your shelves (#821): the mark, + New shelf, the name field, the line under the bar ─────────── */
+.zettelkasten-flow__shelf-own-mark {
+    display: inline-flex;
+    color: var(--text-accent);
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__shelf-filter--own {
+    gap: var(--size-4-1);
+
+    &.is-active .zettelkasten-flow__shelf-own-mark {
+        color: inherit;
+    }
+}
+
+.zettelkasten-flow__shelf-filter--new {
+    border-style: dashed;
+    color: var(--text-faint);
+
+    &:hover {
+        color: var(--text-normal);
+    }
+}
+
+.zettelkasten-flow__shelf-name-field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-name-input {
+    width: 12rem;
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__shelf-name-why {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__shelf-message {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-3);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
+.zettelkasten-flow__shelf-message--failed {
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-message-undo {
+    height: auto;
+    padding: var(--size-2-1) var(--size-4-2);
+    font-size: var(--font-ui-small);
+}
+
+/* A shelf of yours: its label carries the mark, and a quiet ⋯ of its own. */
+.zettelkasten-flow__shelf-bay--own .zettelkasten-flow__shelf-label {
+    align-items: center;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-label-more {
+    padding: 0 var(--size-2-2);
+    height: auto;
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-drop-hint {
+    align-self: center;
+    margin: auto 0;
+    padding-bottom: var(--size-4-8);
+    font-family: Georgia, "Iowan Old Style", var(--font-text), serif;
+    font-style: italic;
+    color: var(--text-faint);
+}
+
+/* Picking a book up: it lifts out of its place; the one shelf that takes it lights. */
+.zettelkasten-flow__shelf-book[draggable="true"] {
+    cursor: grab;
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
+.zettelkasten-flow__shelf-book--lifted {
+    opacity: 0.4;
+}
+
+.zettelkasten-flow__shelf-bay--drop .zettelkasten-flow__shelf-books {
+    background: color-mix(in srgb, var(--interactive-accent) 10%, var(--shelf-wall));
+    box-shadow: inset 0 0 0 var(--size-2-1) color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+}
+
+/* The copy of the cover under a finger: moved by a transform, nothing else. */
+.zettelkasten-flow__shelf-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--layer-dragged-item, 5);
+    width: 6rem;
+    pointer-events: none;
+    opacity: 0.9;
+    transform: translate(calc(var(--zf-ghost-x, 0) - 50%), calc(var(--zf-ghost-y, 0) - 70%)) rotate(-3deg);
+    filter: drop-shadow(0 var(--size-4-2) var(--size-4-3) rgba(0, 0, 0, 0.3));
+
+    .zettelkasten-flow__shelf-cover,
+    .zettelkasten-flow__shelf-spine {
+        width: 100%;
+        height: auto;
+    }
+}
+
 /* Where articles come from (#744 FR-2), under the Articles chip: one quiet line, and Change. */
 .zettelkasten-flow__shelf-articles-from {
     display: flex;

@@ -279,41 +279,80 @@ export const DESK_LIMIT = 2;
 /** A status shelf (#820): Reading, Want to read, On the shelf or Finished. */
 export type ShelfStatus = Exclude<StatusFilter, "all">;
 
+/** One shelf of the Library: a status shelf, or one of yours (#821). */
+export interface ShelfRow {
+    /** `status:<status>` or `own:<folded name>` — what the shelf is known by across a redraw. */
+    key: string;
+    status?: ShelfStatus;
+    /** Your shelf's name, as you spelt it. */
+    own?: string;
+    items: ShelfItem[];
+}
+
 export interface ShelfLayout {
     /** What you are reading now — open on the desk, and on no shelf. */
     desk: ShelfItem[];
-    /** The status shelves in the order they stand, each holding something. */
-    shelves: { status: ShelfStatus; items: ShelfItem[] }[];
+    /** The status shelves in the order they stand, each holding something; then yours, A→Z. */
+    shelves: ShelfRow[];
 }
 
+const statusRow = (status: ShelfStatus, items: ShelfItem[]): ShelfRow => ({ key: `status:${status}`, status, items });
+const ownRow = (name: string, items: ShelfItem[]): ShelfRow => ({ key: `own:${fold(name)}`, own: name, items });
+
 /**
- * **Where every book stands** (#820): one pass over the shelf as asked for. What you were last in
- * and have not finished lies open on the desk — up to two, most recent first, and only while nothing
- * narrows the shelf to one status or one collection. Everything else stands on the shelf of its
- * status, in the bar's order; a book nothing is said of stands *On the shelf*. A book is in one place.
+ * **Where every book stands** (#820, #821): one pass over the shelf as asked for. What you were last
+ * in and have not finished lies open on the desk — up to two, most recent first, and only while
+ * nothing narrows the shelf to one status or one shelf. Every other book stands in one place: on its
+ * first shelf of yours, else on the shelf of its status — *On the shelf* when nothing is said of it.
+ *
+ * `own` is every shelf of yours (see `yourShelves`): one you made and left empty still stands, with
+ * room for books, while nothing narrows the view. Narrowed to a status, every book of that status is
+ * on one shelf, wherever it stands otherwise; narrowed to a shelf of yours, every book on it.
  */
-export function layShelves(items: readonly ShelfItem[], query: ShelfQuery): ShelfLayout {
+export function layShelves(items: readonly ShelfItem[], query: ShelfQuery, own: readonly string[] = []): ShelfLayout {
     const shown = viewShelf(items, query);
-    const narrowed = (query.status ?? "all") !== "all" || Boolean(query.collection);
-    const desk = narrowed
-        ? []
-        : shown
-              .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
-              .sort((a, b) => b.lastRead - a.lastRead)
-              .slice(0, DESK_LIMIT);
+    const status = query.status ?? "all";
+    if (query.collection) {
+        const wanted = fold(query.collection);
+        const name = own.find((candidate) => fold(candidate) === wanted) ?? shown.flatMap((item) => item.collections ?? []).find((candidate) => fold(candidate) === wanted) ?? query.collection;
+        return { desk: [], shelves: shown.length > 0 || !query.search.trim() ? [ownRow(name, shown)] : [] };
+    }
+    if (status !== "all") return { desk: [], shelves: shown.length > 0 ? [statusRow(status, shown)] : [] };
+    const desk = shown
+        .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
+        .sort((a, b) => b.lastRead - a.lastRead)
+        .slice(0, DESK_LIMIT);
     const onDesk = new Set(desk.map((item) => item.id));
     const byStatus = new Map<ShelfStatus, ShelfItem[]>();
+    const byOwn = new Map<string, ShelfItem[]>();
     for (const item of shown) {
         if (onDesk.has(item.id)) continue;
-        const status: ShelfStatus = item.status ?? "none";
-        const row = byStatus.get(status);
+        const first = item.collections?.[0];
+        if (first) {
+            const key = fold(first);
+            const row = byOwn.get(key);
+            if (row) row.push(item);
+            else byOwn.set(key, [item]);
+            continue;
+        }
+        const place: ShelfStatus = item.status ?? "none";
+        const row = byStatus.get(place);
         if (row) row.push(item);
-        else byStatus.set(status, [item]);
+        else byStatus.set(place, [item]);
     }
-    const shelves = STATUS_FILTERS.filter((status): status is ShelfStatus => status !== "all" && byStatus.has(status)).map((status) => ({
-        status,
-        items: byStatus.get(status) ?? [],
-    }));
+    const shelves = STATUS_FILTERS.filter((place): place is ShelfStatus => place !== "all" && byStatus.has(place)).map((place) => statusRow(place, byStatus.get(place) ?? []));
+    // Yours, A→Z: every one with a book here — and, while nothing narrows the view, the empty ones too.
+    const quiet = query.filter === "all" && !query.search.trim();
+    const names = new Map<string, string>();
+    for (const name of own) names.set(fold(name), name);
+    for (const item of shown) {
+        const first = item.collections?.[0];
+        if (first && !names.has(fold(first)) && !onDesk.has(item.id)) names.set(fold(first), first);
+    }
+    for (const name of [...names.values()].sort((a, b) => a.localeCompare(b))) {
+        const row = byOwn.get(fold(name)) ?? [];
+        if (row.length > 0 || quiet) shelves.push(ownRow(name, row));
+    }
     return { desk, shelves };
 }
 
@@ -333,9 +372,3 @@ export function statusCounts(items: readonly ShelfItem[]): Record<StatusFilter, 
     return counts;
 }
 
-/** Every collection on the shelf, once each, alphabetically: the collection chips (#743). */
-export function shelfCollections(items: readonly ShelfItem[]): string[] {
-    const seen = new Map<string, string>();
-    for (const item of items) for (const name of item.collections ?? []) if (!seen.has(fold(name))) seen.set(fold(name), name);
-    return [...seen.values()].sort((a, b) => a.localeCompare(b));
-}

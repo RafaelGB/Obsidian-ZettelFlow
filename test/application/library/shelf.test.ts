@@ -5,7 +5,6 @@ import {
     bookViewOf,
     DESK_LIMIT,
     layShelves,
-    shelfCollections,
     shelfCounts,
     statusCounts,
     titleFromName,
@@ -245,11 +244,10 @@ describe("the shelf reads the book notes (#743)", () => {
         expect(statusCounts(shelf)).toEqual({ all: 4, "to-read": 1, reading: 1, finished: 1, none: 1 });
         // On the shelf (#819, #820): what has no status yet — never opened, nothing said about it.
         expect(ids({ status: "none" })).toEqual(shelf.filter((item) => !item.status).map((item) => item.id).sort());
-        expect(shelfCollections(shelf)).toEqual(["Planning", "Software design"]);
     });
 
     it("draws the Want to read shelf only when something stands on it (#820 AC-5)", () => {
-        const shelves = (shelf: ReturnType<typeof buildShelf>) => layShelves(shelf, { filter: "all", sort: "recent", search: "" }).shelves;
+        const shelves = (shelf: ReturnType<typeof buildShelf>) => layShelves(shelf, { filter: "all", sort: "recent", search: "", status: "to-read" }).shelves;
         expect(shelves(buildShelf(inputs({ notes }))).find((row) => row.status === "to-read")?.items.map((item) => item.id)).toEqual([PAPER]);
         expect(shelves(buildShelf(inputs())).some((row) => row.status === "to-read")).toBe(false);
     });
@@ -380,7 +378,7 @@ describe("where every book stands: the desk and the status shelves (#820)", () =
         item("h", { kind: "paper", format: "pdf", collections: ["Planning"] }),
     ];
     const lay = (query: Partial<ShelfQuery> = {}) => layShelves(items, { filter: "all", sort: "title", search: "", ...query });
-    const ids = (layout: ReturnType<typeof lay>) => ({ desk: layout.desk.map((i) => i.id), shelves: layout.shelves.map((row) => [row.status, row.items.map((i) => i.id)]) });
+    const ids = (layout: ReturnType<typeof lay>) => ({ desk: layout.desk.map((i) => i.id), shelves: layout.shelves.map((row) => [row.status ?? row.own, row.items.map((i) => i.id)]) });
 
     it("lays two on the desk, most recent first, and every other book on the shelf of its status, in order (AC-1, AC-3)", () => {
         expect(ids(lay())).toEqual({
@@ -388,15 +386,17 @@ describe("where every book stands: the desk and the status shelves (#820)", () =
             shelves: [
                 ["reading", ["c", "g"]],
                 ["to-read", ["d"]],
-                ["none", ["e", "h"]],
+                ["none", ["e"]],
                 ["finished", ["f"]],
+                // On a shelf of yours, in one place: not again on its status's (#821).
+                ["Planning", ["h"]],
             ],
         });
     });
 
     it("has no desk once one status or one collection is chosen (AC-2)", () => {
         expect(ids(lay({ status: "reading" }))).toEqual({ desk: [], shelves: [["reading", ["a", "b", "c", "g"]]] });
-        expect(ids(lay({ collection: "planning" }))).toEqual({ desk: [], shelves: [["none", ["h"]]] });
+        expect(ids(lay({ collection: "planning" }))).toEqual({ desk: [], shelves: [["Planning", ["h"]]] });
         expect(lay({ search: "e" }).desk).toEqual([]);
     });
 
@@ -415,6 +415,11 @@ describe("where every book stands: the desk and the status shelves (#820)", () =
     it("keeps the bar's order on the shelves, and nothing when the search finds nothing (AC-6, AC-7)", () => {
         expect(lay({ sort: "recent" }).shelves[0].items.map((i) => i.id)).toEqual(["c", "g"]);
         expect(lay({ search: "nothing like it" })).toEqual({ desk: [], shelves: [] });
+        // A shelf of yours you left empty stands, with room for books — until something narrows the view.
+        const own = (query: Partial<ShelfQuery>) => layShelves(items, { filter: "all", sort: "title", search: "", ...query }, ["Para releer"]).shelves.map((row) => row.own).filter(Boolean);
+        expect(own({})).toEqual(["Para releer", "Planning"]);
+        expect(own({ filter: "books" })).toEqual([]);
+        expect(own({ search: "h" })).toEqual(["Planning"]);
     });
 
     it("reads the view as covers unless it says spines", () => {

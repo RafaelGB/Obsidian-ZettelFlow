@@ -133,6 +133,7 @@ export const CAPABILITIES = [
     "chapter-pause",
     "chapter-recall",
     "library",
+    "library-shelves",
     "highlights-review",
     "claim-door",
     "claim-return",
@@ -506,6 +507,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "shelf_title",
         owner: "zettelflow-library",
         doors: [RIBBON("open-library"), NOTE_MENU("starters/zcomponents/LibraryComponent.ts"), CMD("open-library")],
+    },
+    "library-shelves": {
+        // Your shelves (#821, epic #818): the collections you had are shelves you make, fill and filter
+        // by — + New shelf in the bar, a book dragged (or long-pressed) onto one, Move to shelf… in its
+        // menu. One recorded write per change, its Undo on the line under the bar.
+        nameKey: "shelf_move_to",
+        owner: "zettelflow-library",
+        doors: [CONTROL("architecture/components/core/library/libraryShelves.ts", "zettelflow-library"), CONTROL("architecture/components/core/library/LibraryView.ts", "zettelflow-library")],
     },
     "highlights-review": {
         // A few things you marked (#678, epic #674): the Reader's highlights come back on a fixed,

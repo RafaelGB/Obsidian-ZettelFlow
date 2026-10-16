@@ -16,6 +16,8 @@ export interface LibraryHost extends ReaderHost {
         articlesFolder?: string;
         /** Covers or spines (#819): the bar's switch and Settings → Reading are this one value. */
         libraryBookView?: "covers" | "spines";
+        /** The shelves you made (#821), even empty ones; read through `normalizeShelfNames`. */
+        libraryShelves?: unknown;
     };
 }
 

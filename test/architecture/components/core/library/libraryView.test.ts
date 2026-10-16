@@ -1,5 +1,5 @@
 import { describe, it, expect, jest } from "@jest/globals";
-import { TFile, WorkspaceLeaf } from "obsidian";
+import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { press } from "../../../../support/readerKeys";
 import { LibraryView, whereLabel } from "architecture/components/core/library/LibraryView";
@@ -125,6 +125,7 @@ describe("the Library (#680)", () => {
         const { view, content } = mount(["Papers/cap.pdf"], { library });
         await view.onOpen();
         content.oneByClass("shelf-desk-more").click();
+        Menu.last!.item("Details").click();
         await flush();
         expect(content.oneByClass("shelf-detail").hasClass("zettelkasten-flow__shelf-detail--open")).toBe(true);
         expect(content.oneByClass("shelf-detail-title").textContent).toBe("Brewer's conjecture");
@@ -186,6 +187,7 @@ describe("the Library (#680)", () => {
         host.offsetTop = 40;
         host.offsetHeight = 600;
         content.oneByClass("shelf-desk-more").click();
+        Menu.last!.item("Details").click();
         await flush();
         // Placed on the pane's box, not on the scrolled content: the scroll plays no part.
         for (const layer of [content.oneByClass("shelf-scrim"), content.oneByClass("shelf-detail")]) {
@@ -216,6 +218,7 @@ describe("the Library (#680)", () => {
         const { view, content } = mount(["Papers/cap.pdf"], { library });
         await view.onOpen();
         content.oneByClass("shelf-desk-more").click();
+        Menu.last!.item("Details").click();
         await flush();
         expect(view.getState()).toMatchObject({ detail: "Papers/cap.pdf" });
         content.oneByClass("shelf-scrim").click();

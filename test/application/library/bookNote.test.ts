@@ -5,7 +5,6 @@ import {
     bookNoteFields,
     bookNoteFileName,
     bookNoteMarkdown,
-    collectionsInUse,
     declaredFromPackage,
     declaredFromPdf,
     effectiveStatus,
@@ -136,7 +135,6 @@ describe("found by its link, never by its folder (#743 AC-12)", () => {
         ]);
         expect([...index.keys()]).toEqual(["Books/Dune.epub", "Papers/cap.pdf"]);
         expect(index.get("Books/Dune.epub")).toEqual({ path: "Archive/Dune again.md", source: "Books/Dune.epub", details: { status: "to-read" } });
-        expect(collectionsInUse(index.values())).toEqual(["Planning"]);
     });
 
     it("reads a link out of a frontmatter value", () => {

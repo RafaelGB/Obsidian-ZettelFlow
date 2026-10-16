@@ -7,6 +7,7 @@ import {
     SHELF_SORTS,
     STATUS_FILTERS,
     bookViewOf,
+    fold,
     layShelves,
     shelfCounts,
     statusCounts,
@@ -18,7 +19,26 @@ import {
     type ShelfSort,
     type StatusFilter,
 } from "application/library/shelf";
-import { BOOK_LINK_KEY, TEXT_FIELDS, collectionsInUse, effectiveStatus, type BookDetails, type TextField } from "application/library/bookNote";
+import { BOOK_LINK_KEY, TEXT_FIELDS, effectiveStatus, type BookDetails, type TextField } from "application/library/bookNote";
+import {
+    canMoveTo,
+    normalizeShelfNames,
+    placeOf,
+    planDelete,
+    planMove,
+    planRename,
+    rememberCreate,
+    rememberDelete,
+    rememberRename,
+    validateShelfName,
+    yourShelves,
+    type ShelfNote,
+    type ShelfTarget,
+} from "application/library/shelves";
+import { applyShelfWrites, realShelfWritePort, type ShelfStep, type ShelfWritePort } from "./libraryShelfWrites";
+import { bookMenu, nameField, ownMark, reservedShelfNames, shelfMenu, type MoveChoice } from "./libraryShelves";
+import { draggable, dropTarget, type DragHooks } from "./libraryDrag";
+import { motionWelcome } from "architecture/components/core/reader/readerMotion";
 import { isFresh, normalizeLibrary, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
 import { cachedCover, readCover } from "./libraryCovers";
@@ -79,6 +99,9 @@ const SHELF_NOTE_KEY: Record<ShelfStatus, LocaleKey> = {
 // Obsidian re-exports its moment typed as a namespace; the callable signature is type-only.
 const moment = obsidianMoment as unknown as typeof MomentFn;
 
+/** How long the line under the bar offers to take a shelf change back (#821 FR-16). */
+const UNDO_LINE_MS = 30_000;
+
 /** A folder field left unchanged closes after its own commit would have run (see `addFolderField`). */
 const FOLDER_BLUR_MS = 300;
 
@@ -130,8 +153,12 @@ export class LibraryView extends ItemView {
     private collection: string | null = null;
     /** The search field of the bar that stays (#819): `/` finds it. */
     private searchInput: HTMLInputElement | null = null;
-    /** Where your own shelves' chips stand in the bar (#821). */
-    protected ownShelvesSlot: HTMLElement | null = null;
+    /** *+ New shelf* is open, or the shelf (by its name) being renamed (#821). */
+    private naming: { kind: "new" } | { kind: "rename"; name: string } | null = null;
+    /** What each shelf drawn takes, by its element (#821): where a dropped book goes. */
+    private bayTargets = new WeakMap<HTMLElement, ShelfTarget>();
+    /** The line that says what a shelf change did, with its Undo (#821 FR-16) — never a toast. */
+    private shelfMessage: { text: string; until: number; batch?: string; names?: string[]; failed?: boolean } | null = null;
     /** The bar that stays, and the shelves under it (#819): where a result starts. */
     private bar: HTMLElement | null = null;
     private shelfHost: HTMLElement | null = null;
@@ -183,6 +210,8 @@ export class LibraryView extends ItemView {
         private readonly deps: {
             store?: Pick<ThoughtStore, "highlightsAbout">;
             details?: Pick<DetailsParts, "port" | "suggest">;
+            /** Your shelves' writes and the shelf under a finger (#821). */
+            shelves?: { port?: ShelfWritePort; bayAt?: DragHooks["bayAt"] };
             produced?: { store?: Pick<ThoughtStore, "thoughtsAbout">; index?: Pick<KnowledgeIndex, "status" | "getModel"> };
         } = {}
     ) {
@@ -232,6 +261,7 @@ export class LibraryView extends ItemView {
             filter: this.filter,
             sort: this.sort,
             ...(this.status !== "all" ? { status: this.status } : {}),
+            ...(this.collection ? { shelf: this.collection } : {}),
             ...(this.detail ? { detail: this.detail } : {}),
             ...(this.notebook ? { notebook: this.notebook } : {}),
         };
@@ -243,8 +273,9 @@ export class LibraryView extends ItemView {
         if (typeof value.filter === "string" && (SHELF_FILTERS as readonly string[]).includes(value.filter)) this.filter = value.filter as ShelfFilter;
         if (typeof value.sort === "string" && (SHELF_SORTS as readonly string[]).includes(value.sort)) this.sort = value.sort as ShelfSort;
         this.status = typeof value.status === "string" && (STATUS_FILTERS as readonly string[]).includes(value.status) ? (value.status as StatusFilter) : "all";
-        // A collection saved by an earlier Library opens on every shelf (#819 AC-11).
-        this.collection = null;
+        // A collection saved by an earlier Library opens on every shelf (#819 AC-11); a shelf of yours is kept (#821).
+        this.collection = typeof value.shelf === "string" && value.shelf ? value.shelf : null;
+        if (this.collection) this.status = "all";
         this.detail = typeof value.detail === "string" && value.detail ? value.detail : null;
         this.openField =
             this.detail && typeof value.field === "string" && (TEXT_FIELDS as readonly string[]).includes(value.field) ? { field: value.field as TextField, detail: this.detail, until: Date.now() + FIELD_HOLD_MS } : null;
@@ -463,6 +494,8 @@ export class LibraryView extends ItemView {
             this.snapUnderBar();
         });
 
+        // What the last shelf change did, and its Undo (#821): in the bar, so it is there however far you scrolled.
+        this.renderShelfMessage(bar, scope);
         // Where articles come from (#744) is the Articles chip's own line, under the bar (FR-9).
         if (this.filter === "articles") this.renderArticlesFrom(body, scope);
         const shelfHost = body.createDiv({ cls: c("shelf-shelf-host") });
@@ -495,7 +528,7 @@ export class LibraryView extends ItemView {
         const counts = statusCounts(items);
         for (const status of STATUS_FILTERS) {
             if (status !== "all" && counts[status] === 0 && this.status !== status) continue;
-            const on = status === this.status;
+            const on = status === this.status && !this.collection;
             const chip = group.createEl("button", {
                 cls: [c("shelf-filter"), c("shelf-filter--status"), ...(on ? ["is-active"] : [])],
                 attr: { type: "button", "aria-pressed": String(on), "data-zf-control": `shelf:${status}` },
@@ -503,13 +536,252 @@ export class LibraryView extends ItemView {
             });
             scope.registerDomEvent(chip, "click", () => {
                 this.status = status;
+                this.collection = null;
                 this.app.workspace.requestSaveLayout();
                 this.render();
                 this.snapUnderBar();
             });
         }
-        // Your own shelves, and + New shelf (#821), stand here.
-        this.ownShelvesSlot = row.createDiv({ cls: c("shelf-own-slot") });
+        // Your own shelves, A→Z, and + New shelf (#821).
+        const slot = row.createDiv({ cls: c("shelf-own-slot"), attr: { role: "group", "aria-label": t("shelf_yours") } });
+        for (const name of this.ownNames()) {
+            const on = this.collection !== null && fold(this.collection) === fold(name);
+            const chip = slot.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--own"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on), "data-zf-control": `own:${name}` },
+            });
+            ownMark(chip);
+            chip.createSpan({ text: name });
+            scope.registerDomEvent(chip, "click", () => {
+                this.collection = name;
+                this.status = "all";
+                this.app.workspace.requestSaveLayout();
+                this.render();
+                this.snapUnderBar();
+            });
+        }
+        if (this.naming?.kind === "new") {
+            const input = nameField(slot, scope, {
+                check: (raw) => this.whyNotName(raw),
+                commit: (raw) => this.createShelf(raw),
+                cancel: () => {
+                    this.naming = null;
+                    this.render();
+                },
+            });
+            window.setTimeout(() => input.focus(), 0);
+            return;
+        }
+        const add = slot.createEl("button", {
+            cls: [c("shelf-filter"), c("shelf-filter--new")],
+            attr: { type: "button", "data-zf-control": "own:+" },
+            text: t("shelf_new"),
+        });
+        scope.registerDomEvent(add, "click", () => {
+            this.naming = { kind: "new" };
+            this.render();
+        });
+    }
+
+    // ── your shelves (#821) ──────────────────────────────────────────────────
+
+    /** Your shelves, A→Z: the ones you made and every one a book is on. */
+    private ownNames(): string[] {
+        return yourShelves(normalizeShelfNames(this.plugin?.settings?.libraryShelves), this.shelf.items);
+    }
+
+    /** Why a name cannot be a shelf of yours — or null. */
+    private whyNotName(raw: string, keep?: string): string | null {
+        const check = validateShelfName(raw, this.ownNames(), reservedShelfNames(), keep);
+        if (check.ok) return null;
+        if (check.reason === "empty") return t("shelf_name_empty");
+        if (check.reason === "taken") return t("shelf_name_taken", check.name);
+        return t("shelf_name_reserved", check.name);
+    }
+
+    /** Remember the shelves you made, in plugin data — never a vault write. */
+    private rememberShelves(names: string[]): void {
+        const settings = this.plugin?.settings;
+        if (!settings) return;
+        settings.libraryShelves = names;
+        void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+    }
+
+    private shelfPort(): ShelfWritePort {
+        return this.deps.shelves?.port ?? this.deps.details?.port ?? realShelfWritePort;
+    }
+
+    /** *+ New shelf*: an empty shelf of yours stands, with room for books. Nothing is written to the vault. */
+    private createShelf(raw: string): void {
+        const check = validateShelfName(raw, this.ownNames(), reservedShelfNames());
+        if (!check.ok) return;
+        this.naming = null;
+        this.rememberShelves(rememberCreate(normalizeShelfNames(this.plugin?.settings?.libraryShelves), check.name));
+        this.collection = null;
+        this.status = "all";
+        this.render();
+        const bay = [...(this.body?.querySelectorAll<HTMLElement>(`.${c("shelf-bay")}`) ?? [])].find((el) => el.getAttribute("data-zf-shelf") === `own:${check.name}`);
+        if (bay) {
+            arriveIn(bay);
+            bay.scrollIntoView?.({ block: "nearest", behavior: motionWelcome(bay) ? "smooth" : "auto" });
+        }
+    }
+
+    /** Where a book can go, the shelf it stands on checked: the status shelves, then yours. */
+    private moveChoices(item: ShelfItem): MoveChoice[] {
+        const place = placeOf(item);
+        const choices: MoveChoice[] = [];
+        for (const status of STATUS_FILTERS) {
+            if (status === "all") continue;
+            const target: ShelfTarget = { kind: "status", status };
+            const current = place.kind === "status" && place.status === status;
+            if (!current && !canMoveTo(item, target)) continue;
+            choices.push({ target, label: t(SHELF_CHIP_KEY[status]), current });
+        }
+        for (const name of this.ownNames()) {
+            const current = place.kind === "own" && fold(place.name) === fold(name);
+            choices.push({ target: { kind: "own", name }, label: name, current });
+        }
+        return choices;
+    }
+
+    /** Put a book on a shelf: one recorded batch, the book carried there, and an Undo beside the bar. */
+    private async moveBook(item: ShelfItem, target: ShelfTarget): Promise<void> {
+        const change = planMove(item, target);
+        if (!change) return;
+        const names = normalizeShelfNames(this.plugin?.settings?.libraryShelves);
+        const where = target.kind === "own" ? target.name : t(SHELF_CHIP_KEY[target.status]);
+        await this.writeShelves([{ kind: "move", item, change }], t("shelf_moved", where), names, () => {
+            if (target.kind === "own") this.rememberShelves(rememberCreate(names, target.name));
+        });
+    }
+
+    /** The notes your shelves are written in: book notes, and articles. */
+    private shelfNotes(): ShelfNote[] {
+        return this.shelf.items
+            .filter((item) => item.note && (item.collections?.length ?? 0) > 0)
+            .map((item) => ({ path: item.note!, article: item.kind === "article", collections: item.collections ?? [] }));
+    }
+
+    private async renameShelf(from: string, raw: string): Promise<void> {
+        const check = validateShelfName(raw, this.ownNames(), reservedShelfNames(), from);
+        this.naming = null;
+        if (!check.ok || check.name === from) {
+            this.render();
+            return;
+        }
+        const names = normalizeShelfNames(this.plugin?.settings?.libraryShelves);
+        const steps: ShelfStep[] = planRename(this.shelfNotes(), from, check.name).map((edit) => ({ kind: "edit", edit }));
+        if (this.collection && fold(this.collection) === fold(from)) this.collection = check.name;
+        await this.writeShelves(steps, t("shelf_renamed", check.name), names, () => this.rememberShelves(rememberRename(names, from, check.name)));
+    }
+
+    private async deleteShelf(name: string): Promise<void> {
+        const names = normalizeShelfNames(this.plugin?.settings?.libraryShelves);
+        const steps: ShelfStep[] = planDelete(this.shelfNotes(), name).map((edit) => ({ kind: "edit", edit }));
+        if (this.collection && fold(this.collection) === fold(name)) this.collection = null;
+        await this.writeShelves(steps, t("shelf_deleted", name), names, () => this.rememberShelves(rememberDelete(names, name)));
+    }
+
+    /**
+     * Write a shelf change in one batch, show it at once — before the metadata cache catches up — and
+     * offer its Undo on the line under the bar. A failure says so there, and nothing is half-shown.
+     */
+    private async writeShelves(steps: ShelfStep[], said: string, names: string[], remember: () => void): Promise<void> {
+        let result: Awaited<ReturnType<typeof applyShelfWrites>> = { batch: undefined, written: [] };
+        try {
+            if (steps.length > 0) {
+                result = await applyShelfWrites(steps, this.shelfPort(), {
+                    folder: () => this.plugin?.settings?.bookNotesFolder || "Library",
+                    declared: (item) => async () => {
+                        const file = item.file ? this.app.vault.getAbstractFileByPath(item.file) : null;
+                        return file instanceof TFile ? declaredMetadata(this.app, file) : {};
+                    },
+                }, said);
+            }
+        } catch (error) {
+            log.error(`[Library] could not change the shelf: ${String(error)}`);
+            this.shelfMessage = { text: t("shelf_write_failed"), until: Date.now() + UNDO_LINE_MS, failed: true };
+            this.render();
+            return;
+        }
+        remember();
+        for (const written of result.written) this.updateItem(written.id, written.details, written.note);
+        for (const step of steps) {
+            if (step.kind !== "edit") continue;
+            const at = this.shelf.items.findIndex((item) => item.note === step.edit.path);
+            const item = this.shelf.items[at];
+            if (!item) continue;
+            const details: BookDetails = { ...(item.details ?? {}) };
+            const next: ShelfItem = { ...item, details };
+            if (step.edit.collections) {
+                details.collections = [...step.edit.collections];
+                next.collections = [...step.edit.collections];
+            } else {
+                delete details.collections;
+                delete next.collections;
+            }
+            this.shelf.items[at] = next;
+        }
+        this.shelfMessage = { text: said, until: Date.now() + UNDO_LINE_MS, ...(result.batch ? { batch: result.batch } : {}), names };
+        if (this.body) flipMove(this.body, () => this.render());
+    }
+
+    /** Undo the last shelf change: the notes as they were, and the shelves you had. */
+    private async undoShelves(): Promise<void> {
+        const message = this.shelfMessage;
+        if (!message) return;
+        this.shelfMessage = null;
+        if (message.names) this.rememberShelves(message.names);
+        if (message.batch) {
+            try {
+                await this.shelfPort().undo(message.batch);
+            } catch (error) {
+                log.error(`[Library] could not undo the shelf change: ${String(error)}`);
+            }
+        }
+        this.shelfMessage = { text: t("shelf_details_undone"), until: Date.now() + UNDO_LINE_MS };
+        this.refresh();
+    }
+
+    /** The line under the bar: what the last shelf change did, and its Undo. */
+    private renderShelfMessage(body: HTMLElement, scope: Component): void {
+        const message = this.shelfMessage;
+        if (!message || message.until < Date.now()) {
+            this.shelfMessage = null;
+            return;
+        }
+        const line = body.createDiv({ cls: [c("shelf-message"), ...(message.failed ? [c("shelf-message--failed")] : [])], attr: { role: "status" } });
+        line.createSpan({ text: message.text });
+        if (!message.batch && !message.names) return;
+        const undo = line.createEl("button", { cls: c("shelf-message-undo"), attr: { type: "button" }, text: t("changes_undo") });
+        scope.registerDomEvent(undo, "click", () => void this.undoShelves());
+    }
+
+    /** The hands that put books on shelves: which shelf takes which book, and what a drop does. */
+    private dragHooks(): DragHooks {
+        return {
+            canDrop: (item, bay) => {
+                const target = this.bayTargets.get(bay);
+                return Boolean(target && canMoveTo(item, target));
+            },
+            drop: (item, bay) => {
+                const target = this.bayTargets.get(bay);
+                if (target) void this.moveBook(item, target);
+            },
+            ...(this.deps.shelves?.bayAt ? { bayAt: this.deps.shelves.bayAt } : {}),
+            layer: () => this.root,
+        };
+    }
+
+    /** The book's menu, from its ⋯ or a right click: Details, and Move to shelf… for what can move. */
+    private openBookMenu(item: ShelfItem, at: MouseEvent | HTMLElement): void {
+        const movable = item.kind !== "path" && Boolean(item.file);
+        bookMenu(at, {
+            details: () => this.openDetail(item.id),
+            ...(movable ? { move: () => this.moveChoices(item) } : {}),
+            choose: (target) => void this.moveBook(item, target),
+        });
     }
 
     /** Covers or spines: the setting's one value (#819 FR-8), covers until you choose. */
@@ -604,7 +876,9 @@ export class LibraryView extends ItemView {
         host.empty();
         this.observer?.disconnect();
         const query = { filter: this.filter, sort: this.sort, search: this.search, status: this.status, collection: this.collection };
-        const { desk, shelves } = layShelves(this.shelf.items, query);
+        const { desk, shelves } = layShelves(this.shelf.items, query, this.ownNames());
+        // Books are put on shelves where every shelf stands (#821 FR-13); Move to shelf… works everywhere.
+        const hooks = this.status === "all" && !this.collection ? this.dragHooks() : null;
         const known = this.drawnBooks;
         this.drawnBooks = new Set(this.shelf.items.map((item) => item.id));
         const tip = host.createDiv({ cls: c("shelf-tip"), attr: { "aria-hidden": "true" } });
@@ -619,26 +893,62 @@ export class LibraryView extends ItemView {
             for (const item of desk) this.renderDeskCard(section, item, scope);
         }
         const spines = this.bookView() === "spines";
-        for (const { status, items } of shelves) {
-            const name = t(SHELF_CHIP_KEY[status]);
-            const bay = host.createEl("section", { cls: [c("shelf-bay"), ...(spines ? [c("shelf-bay--spines")] : [])], attr: { "aria-label": name, "data-zf-shelf": status } });
-            const row = bay.createDiv({ cls: c("shelf-books"), attr: { role: "list", "data-zf-scroll": status } });
+        for (const { key, status, own, items } of shelves) {
+            const name = own ?? t(SHELF_CHIP_KEY[status ?? "none"]);
+            const bay = host.createEl("section", {
+                cls: [c("shelf-bay"), ...(own ? [c("shelf-bay--own")] : []), ...(spines ? [c("shelf-bay--spines")] : [])],
+                attr: { "aria-label": name, "data-zf-shelf": own ? `own:${own}` : (status ?? "none") },
+            });
+            this.bayTargets.set(bay, own ? { kind: "own", name: own } : { kind: "status", status: status ?? "none" });
+            if (hooks) dropTarget(bay, hooks, scope);
+            const row = bay.createDiv({ cls: c("shelf-books"), attr: { role: "list", "data-zf-scroll": key } });
             for (const item of items) {
-                const book = this.renderBook(row, item, scope, spines);
+                const book = this.renderBook(row, item, scope, spines, hooks);
                 // A book new since the last draw settles in; the first draw is still (FR-13).
                 if (known && !known.has(item.id)) arriveIn(book);
             }
+            // A shelf of yours with nothing on it yet says what it is for.
+            if (items.length === 0) row.createDiv({ cls: c("shelf-drop-hint"), text: t("shelf_empty_hint") });
             const plank = bay.createDiv({ cls: c("shelf-plank") });
-            const label = plank.createSpan({ cls: c("shelf-label"), text: name });
-            label.createEl("small", { text: t(SHELF_NOTE_KEY[status]) });
+            if (own && this.naming?.kind === "rename" && fold(this.naming.name) === fold(own)) {
+                const label = plank.createSpan({ cls: [c("shelf-label"), c("shelf-label--naming")] });
+                const input = nameField(label, scope, {
+                    value: own,
+                    check: (raw) => this.whyNotName(raw, own),
+                    commit: (raw) => void this.renameShelf(own, raw),
+                    cancel: () => {
+                        this.naming = null;
+                        this.render();
+                    },
+                });
+                window.setTimeout(() => input.focus(), 0);
+            } else {
+                const label = plank.createSpan({ cls: c("shelf-label") });
+                if (own) ownMark(label);
+                label.createSpan({ text: name });
+                label.createEl("small", { text: own ? t("shelf_yours") : t(SHELF_NOTE_KEY[status ?? "none"]) });
+                if (own) {
+                    const more = label.createEl("button", { cls: ["clickable-icon", c("shelf-label-more")], attr: { type: "button", "aria-label": t("shelf_label_menu") } });
+                    setIcon(more, "more-horizontal");
+                    scope.registerDomEvent(more, "click", (event: MouseEvent) =>
+                        shelfMenu(event.clientX || event.clientY ? event : more, {
+                            rename: () => {
+                                this.naming = { kind: "rename", name: own };
+                                this.render();
+                            },
+                            remove: () => void this.deleteShelf(own),
+                        })
+                    );
+                }
+            }
             // Where you are along this shelf, kept through every redraw (MF-5).
-            const left = this.shelfLeft.get(status);
+            const left = this.shelfLeft.get(key);
             if (left) row.scrollLeft = left;
             scope.registerDomEvent(
                 row,
                 "scroll",
                 () => {
-                    this.shelfLeft.set(status, row.scrollLeft);
+                    this.shelfLeft.set(key, row.scrollLeft);
                     this.hideTip();
                 },
                 { passive: true }
@@ -650,7 +960,7 @@ export class LibraryView extends ItemView {
      * A book on a shelf (#820): the cover — or the spine — and nothing under it. Its title, its
      * author and where it stands are said once, to a screen reader, and shown on the card that rises.
      */
-    private renderBook(row: HTMLElement, item: ShelfItem, scope: Component, spine: boolean): HTMLElement {
+    private renderBook(row: HTMLElement, item: ShelfItem, scope: Component, spine: boolean, hooks: DragHooks | null = null): HTMLElement {
         const book = row.createDiv({
             cls: [c("shelf-book"), ...(spine ? [c("shelf-book--spine")] : []), ...(item.imageOnly ? [c("shelf-book--scanned")] : [])],
             // Known across a redraw, so a book that changes shelf is carried there (#743 FR-16).
@@ -672,13 +982,19 @@ export class LibraryView extends ItemView {
 
         const more = book.createEl("button", {
             cls: ["clickable-icon", c("shelf-more")],
-            attr: { type: "button", "aria-label": t("shelf_details") },
+            attr: { type: "button", "aria-label": t("shelf_book_menu") },
         });
         setIcon(more, "more-horizontal");
+        // ⋯ is the book's menu (#821 FR-15): Details, and Move to shelf… — a right click opens the same.
         scope.registerDomEvent(more, "click", (event: MouseEvent) => {
             event.stopPropagation();
-            this.openDetail(item.id);
+            this.openBookMenu(item, event.clientX || event.clientY ? event : more);
         });
+        scope.registerDomEvent(book, "contextmenu", (event: MouseEvent) => {
+            event.preventDefault();
+            this.openBookMenu(item, event);
+        });
+        if (hooks && item.kind !== "path" && item.file) draggable(book, face, item, hooks, scope);
         const show = () => this.showTip(book, words);
         scope.registerDomEvent(book, "pointerenter", show);
         scope.registerDomEvent(book, "focusin", show);
@@ -779,7 +1095,7 @@ export class LibraryView extends ItemView {
         scope.registerDomEvent(cover, "click", () => this.openItem(item, {}, cover));
         const more = actions.createEl("button", { cls: ["clickable-icon", c("shelf-desk-more")], attr: { type: "button", "aria-label": t("shelf_details") } });
         setIcon(more, "more-horizontal");
-        scope.registerDomEvent(more, "click", () => this.openDetail(item.id));
+        scope.registerDomEvent(more, "click", (event: MouseEvent) => this.openBookMenu(item, event.clientX || event.clientY ? event : more));
     }
 
     /** Progress, highlights and notes born: what came of it, in one line — the detail's. */
@@ -867,7 +1183,7 @@ export class LibraryView extends ItemView {
         // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
         if (from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") beginOpenShot(this.containerEl, from);
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
-        const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
+        const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), ...(this.collection ? { shelf: this.collection } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
         if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
     }
 
@@ -918,7 +1234,8 @@ export class LibraryView extends ItemView {
                     scope,
                     item,
                     folder: () => this.plugin?.settings?.bookNotesFolder || "Library",
-                    collections: () => collectionsInUse([...this.shelf.notes.values(), ...this.articleNotes()]),
+                    // Your shelves, the empty ones too (#821): a book is put on one from Details as well.
+                    collections: () => this.ownNames(),
                     declared: async () => {
                         const file = item.file ? this.app.vault.getAbstractFileByPath(item.file) : null;
                         return file instanceof TFile ? declaredMetadata(this.app, file) : {};
@@ -957,9 +1274,14 @@ export class LibraryView extends ItemView {
      * metadata cache has caught up — and a card that changes row is carried there by a translate.
      */
     private noteSaved(id: string, details: BookDetails, note: string | null): void {
+        if (this.updateItem(id, details, note) && this.body) flipMove(this.body, () => this.render());
+    }
+
+    /** What a book's note now says, on the shelf at once. Whether the shelf has it. */
+    private updateItem(id: string, details: BookDetails, note: string | null): boolean {
         const at = this.shelf.items.findIndex((candidate) => candidate.id === id);
         const item = this.shelf.items[at];
-        if (!item?.file) return;
+        if (!item?.file) return false;
         const meta = this.shelf.meta[item.file];
         if (item.kind === "article") {
             // Its own frontmatter is its note (#744 FR-4): only the status and the collections changed.
@@ -970,8 +1292,7 @@ export class LibraryView extends ItemView {
             if (status) next.status = status;
             if (details.collections) next.collections = [...details.collections];
             this.shelf.items[at] = next;
-            if (this.body) flipMove(this.body, () => this.render());
-            return;
+            return true;
         }
         const status = effectiveStatus(note ? details : undefined, meta);
         const author = (note ? details.author?.join(", ") : undefined) ?? meta?.author;
@@ -992,13 +1313,7 @@ export class LibraryView extends ItemView {
             this.shelf.notes.delete(item.file);
         }
         this.shelf.items[at] = next;
-        if (!this.body) return;
-        flipMove(this.body, () => this.render());
-    }
-
-    /** The articles' own frontmatter, as notes: their collections are suggested too (#744). */
-    private articleNotes(): { details: BookDetails }[] {
-        return this.shelf.items.filter((item) => item.kind === "article" && item.details).map((item) => ({ details: item.details! }));
+        return true;
     }
 
     // ── the notebook (#721) ──────────────────────────────────────────────────

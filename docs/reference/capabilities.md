@@ -55,6 +55,7 @@ A control on screen where you already are — the ribbon menu, a button in the v
 - **What survived?** — at the end of a chapter you marked, the book turns onto a blank leaf — your marks, what they touched, one question; never a summary. Turned off on the leaf. [docs →](../development/reader.md#what-survived)
 - **Recall this chapter** — put the chapter and your marks away, write what it argued from memory, then see what you marked — nothing compared or scored; keep your words as a note that cites the book. [docs →](../development/reader.md#recall)
 - **Library** — your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page. [docs →](../development/library.md)
+- **Move to shelf…** — shelves of your own in the Library — make one, drag a book onto it (or long-press on an iPad), filter by it; one write per change, with an Undo. [docs →](../development/library.md#your-shelves)
 - **A few things you marked** — what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go. [docs →](../development/highlights-review.md)
 - **Say what this note claims** — say in one sentence what a note claims. [docs →](../development/claim-returns.md)
 - **Something you expected is ready to be looked at** — a claim with an expected observation and a date you expect to know by. [docs →](../development/wagers.md)

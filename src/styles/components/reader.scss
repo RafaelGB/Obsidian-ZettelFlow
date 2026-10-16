@@ -494,6 +494,7 @@ button.zettelkasten-flow__reader-next-button {
 .zettelkasten-flow__reader-bar-label {
     min-width: 7rem;
     text-align: center;
+    white-space: nowrap;
     color: var(--reader-muted);
     font-size: var(--font-ui-small);
     font-variant-numeric: tabular-nums;
@@ -808,14 +809,31 @@ button.zettelkasten-flow__reader-next-button {
     pointer-events: none;
 }
 
-.zettelkasten-flow__reader-toc-tick {
-    display: inline-flex;
-    color: var(--color-green);
+/* How far each entry is read (#812 FR-13): a quiet glyph — hollow, half, whole — never a number. */
+.zettelkasten-flow__reader-toc-state {
+    flex: none;
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    border: var(--border-width) solid var(--reader-muted);
+    border-radius: 50%;
+}
 
-    svg {
-        width: var(--icon-xs);
-        height: var(--icon-xs);
-    }
+.zettelkasten-flow__reader-toc-state--part {
+    background: linear-gradient(90deg, var(--reader-muted) 50%, transparent 50%);
+}
+
+.zettelkasten-flow__reader-toc-state--read {
+    background-color: var(--reader-muted);
+}
+
+/* Where you marked something (#812 FR-14): one small mark, the same for one highlight or twelve. */
+.zettelkasten-flow__reader-toc-mark {
+    flex: none;
+    width: var(--size-4-1);
+    height: var(--size-4-3);
+    margin-left: auto;
+    border-radius: var(--radius-s);
+    background-color: var(--highlight-background, var(--text-highlight-bg));
 }
 
 /*
@@ -827,7 +845,7 @@ button.zettelkasten-flow__reader-next-button {
  * edge; in portrait on a tablet it is #750's sheet. Closing is the same move backwards.
  */
 .zettelkasten-flow__reader {
-    --zf-alongside-w: min(22rem, 42%);
+    --zf-drawer-w: min(22rem, 42%);
 }
 
 .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side {
@@ -835,7 +853,7 @@ button.zettelkasten-flow__reader-next-button {
     right: calc(#{$safe-right} + var(--size-4-3));
     top: calc(var(--size-4-12) + #{$safe-top});
     bottom: calc(var(--size-4-18) + #{$safe-bottom});
-    width: var(--zf-alongside-w);
+    width: var(--zf-drawer-w);
     max-height: none;
     gap: var(--size-4-3);
     transform: translateX(0);
@@ -859,13 +877,59 @@ button.zettelkasten-flow__reader-next-button {
 
 /* A wide pane: the column narrows beside it. A narrow one: it lies over the page's edge. */
 @container zf-reader (min-width: 52rem) {
-    .zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-stage {
-        right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-stage {
+        right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6));
+    }
+
+    /* The bar and the dots follow the column, not the window (#812 FR-9): half the room the drawer
+       takes, on `translate`, so the bar's own transform (its idle fade) is left alone. */
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-dots {
+        translate: calc(var(--zf-drawer-shift) * -1) 0;
+    }
+
+    /* The bar fits the column it follows: never wider than it, so nothing of it slides off the
+       window. The minutes step back while the drawer is open; the line still says how far you are. */
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar {
+        max-width: calc(100% - #{$safe-left} - #{$safe-right} - var(--zf-drawer-w) - var(--size-4-6) - var(--size-4-4));
+    }
+
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-bar-minutes {
+        display: none;
+    }
+
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-progress,
+    .zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-scrubber {
+        width: var(--size-4-16);
+    }
+}
+
+/* One drawer (#812 FR-1): half its width and its gap, which is how far the column's centre moves. */
+.zettelkasten-flow__reader {
+    --zf-drawer-shift: calc((var(--zf-drawer-w) + var(--size-4-6)) / 2);
+}
+
+.zettelkasten-flow__reader-bar,
+.zettelkasten-flow__reader-dots {
+    transition-property: opacity, transform, translate;
+    transition-duration: 0.4s, 0.4s, $motion-base;
+    transition-timing-function: ease, ease, $ease-out;
+}
+
+/* Another panel in the same drawer (#812 FR-5): only what is in it changes, the drawer stays. */
+.zettelkasten-flow__reader-drawer-swap {
+    animation: zf-reader-drawer-swap $motion-fast $ease-out backwards;
+}
+
+@keyframes zf-reader-drawer-swap {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
     }
 }
 
 /* Your highlights are in Alongside while it is open: the margin steps back rather than doubling them. */
-.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-margin:not(:empty) {
+.zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-margin:not(:empty) {
     display: none;
 }
 
@@ -880,8 +944,8 @@ button.zettelkasten-flow__reader-next-button {
  * ends where the column ends, so the × above the panel is never the Reader's. It moves in the same
  * layout that narrows the column — no motion of its own.
  */
-.zettelkasten-flow__reader--alongside .zettelkasten-flow__reader-top {
-    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6));
+.zettelkasten-flow__reader--drawer .zettelkasten-flow__reader-top {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6));
 }
 
 .zettelkasten-flow__reader-alongside-near {
@@ -1452,7 +1516,7 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
-/* The Think row of the popover (FR-1): the moves you can make on this passage, under its meanings. */
+/* The Think group (FR-1, #811 FR-7): the moves you can make on this passage, last inside More. */
 .zettelkasten-flow__reader-hl-think {
     display: flex;
     flex-wrap: wrap;
@@ -1649,8 +1713,8 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* Beside Alongside the ribbon keeps to the column's side of the panel, as the top line and its × do (#777 FR-2). */
-.zettelkasten-flow__reader--alongside button.zettelkasten-flow__reader-ribbon {
-    right: calc(#{$safe-right} + var(--zf-alongside-w) + var(--size-4-6) + var(--size-4-12));
+.zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-ribbon {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12));
 }
 
 /* Idle: an empty ribbon steps back with the bar; a filled one stays, as a ribbon in a book does. */
@@ -1750,20 +1814,16 @@ button.zettelkasten-flow__reader-next-button {
     flex: 1;
 }
 
-/* Contents → Notebook (#721): everything you marked in this book, in the Library. */
-button.zettelkasten-flow__reader-notebook-link {
+/* A panel's head actions (#812 FR-11): Recall and the notebook beside the tabs, before the ×. */
+.zettelkasten-flow__reader-panel-actions {
     display: inline-flex;
     align-items: center;
-    gap: var(--size-4-2);
-    height: auto;
-    margin-bottom: var(--size-4-2);
-    padding: var(--size-4-1) var(--size-4-2);
-    border: var(--border-width) solid var(--reader-line);
-    border-radius: var(--radius-s);
-    background: none;
-    box-shadow: none;
-    color: var(--reader-fg);
-    cursor: pointer;
+    gap: var(--size-4-1);
+    margin-left: auto;
+}
+
+.zettelkasten-flow__reader-panel-actions + .zettelkasten-flow__reader-panel-close {
+    margin-inline-start: 0;
 }
 
 /* Search inside the book (#719): a slim bar under the top, the results under it. */
@@ -2136,6 +2196,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--idea,
 .zettelkasten-flow__reader-hl-item--idea,
 .zettelkasten-flow__reader-hl-swatch--idea,
+.zettelkasten-flow__reader-scrubber-band--idea,
 .zettelkasten-flow__reader-ink--hl-idea {
     --zf-ink: color-mix(in srgb, var(--color-yellow) 38%, transparent);
     --zf-ink-solid: var(--color-yellow);
@@ -2144,6 +2205,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--question,
 .zettelkasten-flow__reader-hl-item--question,
 .zettelkasten-flow__reader-hl-swatch--question,
+.zettelkasten-flow__reader-scrubber-band--question,
 .zettelkasten-flow__reader-ink--hl-question {
     --zf-ink: color-mix(in srgb, var(--color-blue) 32%, transparent);
     --zf-ink-solid: var(--color-blue);
@@ -2152,6 +2214,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--quote,
 .zettelkasten-flow__reader-hl-item--quote,
 .zettelkasten-flow__reader-hl-swatch--quote,
+.zettelkasten-flow__reader-scrubber-band--quote,
 .zettelkasten-flow__reader-ink--hl-quote {
     --zf-ink: color-mix(in srgb, var(--color-green) 32%, transparent);
     --zf-ink-solid: var(--color-green);
@@ -2160,6 +2223,7 @@ button.zettelkasten-flow__reader-note-pop-go {
 .zettelkasten-flow__reader-highlight--discuss,
 .zettelkasten-flow__reader-hl-item--discuss,
 .zettelkasten-flow__reader-hl-swatch--discuss,
+.zettelkasten-flow__reader-scrubber-band--discuss,
 .zettelkasten-flow__reader-ink--hl-discuss {
     --zf-ink: color-mix(in srgb, var(--color-purple) 32%, transparent);
     --zf-ink-solid: var(--color-purple);
@@ -2333,10 +2397,105 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     transform-origin: top center;
 }
 
-/* Grown from where you selected (#724): `scale`, beside the transform that places it. */
+/* Opened above, a line clear of the words (#811 D4): `--zf-hl-y` is already its bottom edge. */
+.zettelkasten-flow__reader-hl-pop.zettelkasten-flow__reader-hl-pop--above {
+    transform: translate(-50%, -100%);
+}
+
+/* Grown from where you selected (#724): `scale`, beside the transform that places it — from its
+   edge nearest the words (#811 MF-1). */
 .zettelkasten-flow__reader-hl-pop {
     transform-origin: bottom center;
     animation: zf-reader-note-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-hl-pop.zettelkasten-flow__reader-hl-pop--below {
+    transform-origin: top center;
+}
+
+/* ── A popover that fits the selection (#811) ───────────────────────────────────────────────────
+   Row one is always the same: the meanings as dots, Note, Copy, More. Row two is what fits this
+   much text. More grows the popover in place, away from the words; its list scrolls inside it
+   rather than leaving the pane, and the popover never changes side (FR-17). */
+.zettelkasten-flow__reader-hl-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.zettelkasten-flow__reader-hl-first .zettelkasten-flow__reader-hl-meanings {
+    flex-wrap: nowrap;
+    gap: 0;
+    margin-right: var(--size-4-1);
+}
+
+/* A meaning as a dot (FR-2): its colour; its name is said on hover and to assistive technology. */
+.zettelkasten-flow__reader-hl-first button.zettelkasten-flow__reader-hl-meaning {
+    justify-content: center;
+    width: var(--size-4-8);
+    height: var(--size-4-8);
+    padding: 0;
+    border-color: transparent;
+    background-color: transparent;
+
+    .zettelkasten-flow__reader-hl-swatch {
+        width: var(--size-4-3);
+        height: var(--size-4-3);
+    }
+
+    &.is-active {
+        border-color: var(--interactive-accent);
+    }
+}
+
+.zettelkasten-flow__reader-hl-more {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    max-height: calc(var(--size-4-16) * 4);
+    overflow-y: auto;
+    padding-top: var(--size-4-2);
+    border-top: var(--border-width) solid var(--background-modifier-border);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+/* More unfolds away from the words (MF-2): its content rises in, the Think group a step after. */
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more-list,
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation: zf-reader-hl-more-in $motion-fast $ease-out both;
+}
+
+.zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation-delay: $motion-fast;
+}
+
+/* First in More, the Think group needs no line of its own: More's own line is above it. */
+.zettelkasten-flow__reader-hl-more > .zettelkasten-flow__reader-hl-think:first-child {
+    padding-top: 0;
+    border-top: none;
+}
+
+@keyframes zf-reader-hl-more-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--size-4-1) * -1));
+    }
+}
+
+.zettelkasten-flow__reader-hl-pop--above .zettelkasten-flow__reader-hl-more-list,
+.zettelkasten-flow__reader-hl-pop--above .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think {
+    animation-name: zf-reader-hl-more-up;
+}
+
+@keyframes zf-reader-hl-more-up {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
+    }
 }
 
 /* ── One continuous shot (#734, epic #729; constitution §XVI) ──────────────────────────────────
@@ -2718,6 +2877,40 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     opacity: 0.85;
 }
 
+/* The detached highlight being re-anchored (#810 MF-1): its row stays lit as the subject. */
+.zettelkasten-flow__reader-hl-item--reanchoring {
+    border-left-style: solid;
+    opacity: 1;
+    box-shadow: 0 0 0 var(--border-width) var(--interactive-accent);
+}
+
+/* *Select the passage this belongs to* (#810 FR-9, MF-1): a calm line above the page, with Cancel.
+   It arrives with the status line's own motion; the page under it never moves. */
+.zettelkasten-flow__reader-reanchor {
+    position: absolute;
+    top: var(--size-4-12);
+    left: 50%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-3);
+    max-width: min(36rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    transform: translateX(-50%);
+    animation: zf-reader-arrive $motion-base $ease-out both;
+}
+
+.zettelkasten-flow__reader-reanchor-text {
+    font-style: italic;
+    color: var(--reader-muted);
+}
+
 .zettelkasten-flow__reader-hl-quote {
     font-family: var(--reader-font);
     font-style: italic;
@@ -2919,10 +3112,33 @@ body.zettelkasten-flow__reader-covers-app {
         h4 {
             break-after: avoid;
         }
+
+        /* No line alone at the foot or the head of a page (#809 D1). */
+        p,
+        li,
+        blockquote {
+            widows: 2;
+            orphans: 2;
+        }
     }
 
     .zettelkasten-flow__reader-fit {
         zoom: var(--zf-fit, 1);
+    }
+
+    /* A cover is one page (#808 FR-7): exactly the page's height, so nothing of it starts a second —
+       and its way on is the next turn, not a page of its own. */
+    .zettelkasten-flow__reader-page:has(> .zettelkasten-flow__reader-source-body--cover) > .zettelkasten-flow__reader-next {
+        display: none;
+    }
+
+/* A cover is one page (#808 FR-7): exactly the page's height, so nothing of it starts a second. */
+    .zettelkasten-flow__reader-source-body--cover {
+        height: var(--zf-page-h, 100%);
+
+        img {
+            max-height: var(--zf-page-h, 100%);
+        }
     }
 
     /* The end of the chapter, its ornament and its way on, stays on one page. */
@@ -2934,6 +3150,11 @@ body.zettelkasten-flow__reader-covers-app {
         max-height: calc(100% - var(--size-4-16));
         overflow-y: auto;
     }
+}
+
+/* In a spread a cover stands alone, centred across both pages (#808). */
+.zettelkasten-flow__reader--layout-spread .zettelkasten-flow__reader-source-body--cover {
+    column-span: all;
 }
 
 /* A spread has no room for the margin: the highlights are in *Around this chapter* (FR-5). */
@@ -3107,6 +3328,11 @@ body.zettelkasten-flow__reader-deep-covers-app {
 
 /* Less motion asked for: every arrival and departure is instant, nothing slides or sweeps. */
 @media (prefers-reduced-motion: reduce) {
+    /* Re-anchoring (#810 MF-5): the state line is simply there. */
+    .zettelkasten-flow__reader-reanchor {
+        animation: none;
+    }
+
     /* The overview (#776 FR-28): its tall sheet is there at once, its cards without a fade. */
     .zettelkasten-flow__reader-panel--tall,
     .zettelkasten-flow__reader-overview,
@@ -3187,6 +3413,8 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
     .zettelkasten-flow__reader-hl-pop,
+    .zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more-list,
+    .zettelkasten-flow__reader-hl-pop.is-expanded .zettelkasten-flow__reader-hl-more .zettelkasten-flow__reader-hl-think,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-top,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-hairline,
     .zettelkasten-flow__reader--arrived .zettelkasten-flow__reader-dots,
@@ -3201,9 +3429,16 @@ body.zettelkasten-flow__reader-deep-covers-app {
     /* Alongside is there or gone at once; its lens fill and its cards simply are where they go (#754 FR-22). */
     .zettelkasten-flow__reader-panel.zettelkasten-flow__reader-panel--side,
     .zettelkasten-flow__reader-lens-marker,
-    .zettelkasten-flow__reader-flip-leaving {
+    .zettelkasten-flow__reader-flip-leaving,
+    .zettelkasten-flow__reader-drawer-swap {
         transition: none;
         animation: none;
+    }
+
+    /* The bar and the dots are simply where the column is; they still fade as they always did. */
+    .zettelkasten-flow__reader-bar,
+    .zettelkasten-flow__reader-dots {
+        transition-duration: 0.4s, 0.4s, 0s;
     }
 
     /* The sheet appears and goes at once — its drag still follows the finger (#750 FR-20). */
@@ -3592,4 +3827,180 @@ button.zettelkasten-flow__reader-hl-layer {
     max-height: 8rem;
     object-fit: contain;
     border-radius: var(--radius-s);
+}
+
+/* Whether this runtime hyphenates a language (#809 FR-1): one long word in a narrow box, measured with
+   `hyphens: auto` and with `manual`, off-screen and unseen, gone in the same task. */
+.zettelkasten-flow__reader-hyphen-probe {
+    position: absolute;
+    top: 0;
+    left: calc(var(--size-4-16) * -100);
+    width: var(--size-4-16);
+    visibility: hidden;
+    hyphens: auto;
+    overflow-wrap: normal;
+    word-break: normal;
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-hyphen-probe--manual {
+    hyphens: manual;
+}
+
+/* Search is the drawer's (#812 FR-6): the same field and results, laid in the panel instead of over
+   the page — no card of its own, the drawer is its card. */
+.zettelkasten-flow__reader-panel .zettelkasten-flow__reader-search {
+    position: static;
+    width: auto;
+    transform: none;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    animation: none;
+}
+
+.zettelkasten-flow__reader-panel .zettelkasten-flow__reader-search-input {
+    flex: 1;
+    min-width: 0;
+}
+
+/*
+ * ── The book at a glance (#813) ─────────────────────────────────────────────────────────────────
+ * The bar's line over the whole book: where each chapter begins, where you marked something (in its
+ * meaning's colour, quieter where you marked less), your bookmarks, where you are. Positions are
+ * custom properties set by the slider; nothing here counts anything at you.
+ */
+.zettelkasten-flow__reader-scrubber {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 10rem;
+    height: var(--size-4-8);
+    cursor: pointer;
+    touch-action: none;
+    border-radius: var(--radius-s);
+}
+
+.zettelkasten-flow__reader-scrubber:focus-visible {
+    outline: var(--size-2-1) solid var(--interactive-accent);
+    outline-offset: var(--size-2-1);
+}
+
+.zettelkasten-flow__reader-scrubber-track {
+    position: relative;
+    width: 100%;
+    height: var(--size-4-1);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--reader-fg) 12%, transparent);
+}
+
+.zettelkasten-flow__reader-scrubber-layers {
+    position: absolute;
+    inset: 0;
+}
+
+.zettelkasten-flow__reader-scrubber-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--zf-at, 0) * 100%);
+    border-radius: var(--radius-s);
+    background-color: color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+}
+
+.zettelkasten-flow__reader-scrubber-tick {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--border-width);
+    height: var(--size-4-2);
+    translate: -50% -50%;
+    background-color: var(--reader-muted);
+    opacity: 0.3;
+}
+
+.zettelkasten-flow__reader-scrubber-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: calc(var(--zf-span, 0) * 100%);
+    background-color: var(--zf-ink-solid, var(--interactive-accent));
+    opacity: calc(0.25 + var(--zf-density, 0) * 0.55);
+}
+
+.zettelkasten-flow__reader-scrubber-bookmark {
+    position: absolute;
+    top: calc(-1 * var(--size-4-2));
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--size-4-1);
+    height: var(--size-4-1);
+    translate: -50% 0;
+    border-radius: 50%;
+    background-color: var(--text-accent);
+}
+
+.zettelkasten-flow__reader-scrubber-thumb,
+.zettelkasten-flow__reader-scrubber-ghost {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--zf-at, 0) * 100%);
+    width: var(--size-4-2);
+    height: var(--size-4-2);
+    translate: -50% -50%;
+    border-radius: 50%;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* Where a drag would take you: the page does not move until you let go (FR-10). */
+.zettelkasten-flow__reader-scrubber-ghost {
+    width: var(--size-4-1);
+    height: var(--size-4-4);
+    border-radius: var(--radius-s);
+    opacity: 0.7;
+}
+
+.zettelkasten-flow__reader-scrubber--dragging .zettelkasten-flow__reader-scrubber-thumb {
+    opacity: 0.4;
+}
+
+/* The chapter under the pointer, in words: its name, and whether you marked something there. */
+.zettelkasten-flow__reader-scrubber-tip {
+    position: absolute;
+    bottom: calc(100% + var(--size-4-2));
+    left: calc(var(--zf-at, 0) * 100%);
+    translate: -50% 0;
+    max-width: 18rem;
+    padding: var(--size-4-1) var(--size-4-2);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-s);
+    background-color: var(--reader-surface);
+    color: var(--reader-fg);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    animation: zf-reader-scrub-tip $motion-fast $ease-out backwards;
+}
+
+.zettelkasten-flow__reader-scrubber-tip-marks {
+    color: var(--reader-muted);
+}
+
+@keyframes zf-reader-scrub-tip {
+    from {
+        opacity: 0;
+        transform: translateY(var(--size-4-1));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* The chapter's name is simply there. */
+    .zettelkasten-flow__reader-scrubber-tip {
+        animation: none;
+    }
 }

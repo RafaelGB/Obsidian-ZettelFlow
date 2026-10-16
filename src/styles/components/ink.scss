@@ -283,11 +283,11 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
 
 /* Alongside beside the page (#754): the column moves over to make room, and its outer margin goes
    with it. The strip lies above the bar, centred under the column — never over the text or the panel. */
-.zettelkasten-flow__reader--alongside {
+.zettelkasten-flow__reader--drawer {
     @include palette-above-bar;
 
     .zettelkasten-flow__reader-ink-palette {
-        left: calc((100% - var(--zf-alongside-w) - var(--size-4-6)) / 2);
+        left: calc((100% - var(--zf-drawer-w) - var(--size-4-6)) / 2);
     }
 }
 

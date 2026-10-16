@@ -136,6 +136,21 @@ function attr(node: SourceNode, name: string): string {
     return (node.getAttribute?.(name) ?? attributesOf(node).find((a) => a.name === name)?.value ?? "").trim();
 }
 
+/** A heading with no words, no picture, no drawing and no equation in it (#808 FR-10). */
+function emptyHeading(node: SourceNode): boolean {
+    if ((node.textContent ?? "").trim()) return false;
+    const holds = (el: SourceNode): boolean => {
+        for (let i = 0; i < el.childNodes.length; i++) {
+            const child = el.childNodes[i];
+            if (child.nodeType !== ELEMENT) continue;
+            const name = nameOf(child);
+            if (name === "img" || name === "svg" || name === "math" || name === "image" || holds(child)) return true;
+        }
+        return false;
+    };
+    return !holds(node);
+}
+
 /** An image inside the book, as its path in the archive — or nothing, for one that would leave it. */
 function imageIn(chapterHref: string, src: string): string | null {
     if (!src || leavesTheBook(src)) return null;
@@ -593,6 +608,16 @@ export function sanitizeNodes<E>(
                 if (page) {
                     result.elements++;
                     builder.element(into, "span", { "data-zf-page": page });
+                }
+                continue;
+            }
+            // A heading with nothing in it (#808 FR-10) — a cover's `<h1 title="Cover"></h1>` — would
+            // take a page of its own: it goes, and only its id stays, so a link to it still lands.
+            if (book && !designed && /^h[1-6]$/.test(name) && emptyHeading(child)) {
+                const id = attr(child, "id") || attr(child, "xml:id");
+                if (/^[\w.:-]{1,120}$/.test(id)) {
+                    result.elements++;
+                    builder.element(into, "span", { "data-zf-id": id });
                 }
                 continue;
             }

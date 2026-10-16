@@ -4,12 +4,12 @@ description: Look a word up in the Reader with your own offline StarDict diction
 
 # Dictionaries for look up
 
-Select one to three words in the [Reader](reader.md) and press **Look up**: the meaning — or, with a
-bilingual dictionary, the translation — appears beside the word, from dictionaries **you** keep in
-your vault. Nothing is fetched, nothing is bundled, nothing is written: the dictionaries are files
-you put there, read on this device.
+Select one to three words in the [Reader](reader.md) and press **Look up**, first in the popover's
+second row: the meaning — or, with a bilingual dictionary, the translation — appears beside the
+word, from dictionaries **you** keep in your vault. Nothing is fetched, nothing is bundled, nothing
+is written: the dictionaries are files you put there, read on this device.
 
-![Look up: the word casa selected in a Spanish book, its popover's last row with Copy, Look up and Translate, and the card grown from the word with Wiktionary (Spanish) and FreeDict spa-eng, marked Translation, each under its name, and an offline mark](../resources/reader/lookup.svg)
+![Look up: the word casa selected in a Spanish book, its popover's second row with Look up, Translate and Link to an idea, and the card grown from the word with Wiktionary (Spanish) and FreeDict spa-eng, marked Translation, each under its name, and an offline mark](../resources/reader/lookup.svg)
 
 ## StarDict
 

@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { Component } from "obsidian";
 import { DomNode, installBrowserGlobals } from "../../../../support/dashboardDom";
+import { openMore, rowLabels } from "../../../../support/readerPopover";
 import { FakeEl } from "../../../../support/textDom";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { CitePanel, COPIED_MS, type CiteHost, type CiteRequest } from "architecture/components/core/reader/readerCite";
@@ -302,20 +303,21 @@ describe("Cite in the selection popover and a highlight's menu (FR-1, AC-5)", ()
             const start = chapterText(body as never).indexOf(words);
             selection = { start, end: start + words.length, rect: { left: 10, top: 20, width: 30, height: 18 }, clear };
         };
-        const row = () => host.byClass("reader-hl-actions")[0];
+        // The whole popover, More opened (#811): Cite wherever its row put it.
+        const row = () => openMore(host.byClass("reader-hl-pop")[0]);
         return { highlights, host, body, select, row, cited, clear, store, thoughts };
     }
     const LOCATOR = { at: 2, label: "3 · The lazy controller", chapter: "OEBPS/ch03.xhtml" };
 
-    it("puts Cite after Copy in the selection popover, and cites the words with their place", async () => {
+    it("puts Cite in the second row for a sentence, and cites the words with their place (#811 FR-4)", async () => {
         jest.useRealTimers();
         const m = mount();
         await m.highlights.attach(m.body as never, BOOK, new Component(), null, LOCATOR);
         m.select(PASSAGE);
         m.body.fire("mouseup");
-        const labels = m.row().findAll((el) => el.tag === "button").map((b) => b.textContent);
-        expect(labels.indexOf("Cite")).toBe(labels.indexOf("Copy") + 1);
-        m.row().find((el) => el.textContent === "Cite")!.click();
+        // One sentence: Claim · Link · Cite — this view offers neither Claim nor Link, and nothing takes their place.
+        expect(rowLabels(m.host, "reader-hl-second")).toEqual(["Cite"]);
+        m.row().find((el) => el.tag === "button" && el.textContent === "Cite")!.click();
         expect(m.highlights.hasPopover()).toBe(false);
         expect(m.cited).toHaveLength(1);
         expect(m.cited[0].passage.quote.exact).toBe(PASSAGE);
@@ -355,7 +357,7 @@ describe("Cite in the selection popover and a highlight's menu (FR-1, AC-5)", ()
         const mark = m.body.all("mark")[0];
         expect(mark).toBeDefined();
         mark.fire("click");
-        const cite = m.host.byClass("reader-hl-actions")[0]?.find((el) => el.textContent === "Cite");
+        const cite = openMore(m.host.byClass("reader-hl-pop")[0]).find((el) => el.tag === "button" && el.textContent === "Cite");
         expect(cite).toBeDefined();
         cite!.click();
         expect(m.cited).toHaveLength(1);

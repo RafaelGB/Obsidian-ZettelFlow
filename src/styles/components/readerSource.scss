@@ -97,6 +97,27 @@
     outline-offset: var(--size-2-1);
 }
 
+/* A chapter that is only a picture — a cover (#808 FR-7, FR-8): the picture fills one page, centred,
+   never broken across two; in Scroll it fits the height you can see. Its count says nothing. */
+.zettelkasten-flow__reader-source-body--cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    break-inside: avoid;
+
+    img {
+        max-height: calc(100vh - var(--size-4-16) * 2);
+        margin: 0 auto;
+        object-fit: contain;
+    }
+}
+
+.zettelkasten-flow__reader-page:has(> .zettelkasten-flow__reader-source-body--cover) > .zettelkasten-flow__reader-count {
+    display: none;
+}
+
 /* A page with no text to select: nothing dims, nothing is a reading line. */
 .zettelkasten-flow__reader-source-body--picture {
     user-select: none;

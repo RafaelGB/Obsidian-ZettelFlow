@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach } from "@jest/globals";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
@@ -65,7 +66,7 @@ async function open() {
     return m;
 }
 
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const searchCount = (content: DomNode) => content.oneByClass("reader-search-count").textContent ?? "";
 
 async function search(content: DomNode, query: string) {
@@ -115,6 +116,31 @@ describe("search inside the book (#719)", () => {
         expect(searchCount(content).startsWith("2 of 3")).toBe(true);
         expect(content.byClass("reader-search-result--current")).toHaveLength(1);
         expect(content.oneByClass("reader-detour-pill").hasClass("zettelkasten-flow__reader-hidden")).toBe(false);
+    });
+
+    it("opens in the drawer, beside the page, and keeps its field through a jump to another chapter (#812 FR-6)", async () => {
+        const { content } = await open();
+        const input = await search(content, "effort");
+        const panel = content.oneByClass("reader-panel");
+        expect(panel.hasClass("zettelkasten-flow__reader-panel--side")).toBe(true);
+        expect(panel.byClass("reader-search-input")[0]).toBe(input);
+        const button = content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Search in the book")!;
+        expect(button.getAttribute("aria-pressed")).toBe("true");
+        input.fire("keydown", { key: "Enter" });
+        input.fire("keydown", { key: "Enter" });
+        await settle(() => count(content) === "Chapter 3 / 3");
+        // The same field, the same words: a redraw of the drawer puts it back, never a new one.
+        expect(content.oneByClass("reader-panel").byClass("reader-search-input")[0]).toBe(input);
+        expect(input.value).toBe("effort");
+    });
+
+    it("gives its place to another panel and takes its tints with it (#812 decision 7)", async () => {
+        const { content } = await open();
+        await search(content, "effort");
+        content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Type")!.click();
+        expect(content.byClass("reader-search")).toHaveLength(0);
+        expect(content.byClass("reader-search-hit")).toHaveLength(0);
+        expect(content.oneByClass("reader-panel").byClass("reader-type-row").length).toBeGreaterThan(0);
     });
 
     it("closes with Esc and takes every tint away; nothing else changes", async () => {

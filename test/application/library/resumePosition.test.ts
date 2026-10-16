@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { forgetMissing, freshPageView, libraryKey, normalizeLibrary, renameSource, withFacts, withPageView, withPlace, withScroll, resumeScroll } from "application/library/sourceMeta";
+import { forgetMissing, freshPageView, libraryKey, normalizeLibrary, renameSource, withChosenView, withFacts, withPageView, withPlace, withScroll, resumeScroll } from "application/library/sourceMeta";
 
 describe("resuming where you were inside a chapter, not at its start", () => {
     it("keeps how far into the chapter you are, as a share of it", () => {
@@ -95,5 +95,25 @@ describe("an article's place (#744 FR-6)", () => {
         const map = withPlace({}, "Clippings/a.md", 1, 3, 5);
         expect(Object.keys(renameSource(map, "Clippings/a.md", "Clippings/2025/a.md"))).toEqual(["Clippings/2025/a.md"]);
         expect(forgetMissing(map, new Set())).toEqual({});
+    });
+});
+
+describe("the view a PDF opens in (#813 FR-20, FR-22, FR-24)", () => {
+    it("keeps the suggestion and your choice through a normalize, and drops anything else", () => {
+        const map = normalizeLibrary({ "P/a.pdf": { size: 1, mtime: 2, chapters: 3, suggestedView: "page", chosenView: "reading" }, "P/b.pdf": { size: 1, mtime: 2, suggestedView: "sideways" } });
+        expect(map["P/a.pdf"]).toMatchObject({ suggestedView: "page", chosenView: "reading" });
+        expect(map["P/b.pdf"].suggestedView).toBeUndefined();
+    });
+
+    it("replaces the suggestion with a new copy's and carries your choice over", () => {
+        const before = withChosenView(withFacts({}, "P/a.pdf", { chapters: 3, suggestedView: "page" }, 1, 2), "P/a.pdf", "reading");
+        const after = withFacts(before, "P/a.pdf", { chapters: 4, suggestedView: "reading" }, 9, 9);
+        expect(after["P/a.pdf"]).toMatchObject({ suggestedView: "reading", chosenView: "reading" });
+    });
+
+    it("writes only your choice when you choose", () => {
+        const before = withFacts({}, "P/a.pdf", { chapters: 3, title: "A", suggestedView: "page" }, 1, 2);
+        const after = withChosenView(before, "P/a.pdf", "reading");
+        expect(after["P/a.pdf"]).toEqual({ ...before["P/a.pdf"], chosenView: "reading" });
     });
 });

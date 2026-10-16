@@ -395,7 +395,7 @@ describe("deep reading in the Reader (#764)", () => {
         expect(m.root.hasClass(IDLE)).toBe(false);
     });
 
-    it("leaves one thing at a time with Esc: popover, search, panel, deep reading, then the Reader (AC-4)", async () => {
+    it("leaves one thing at a time with Esc: popover, the drawer, deep reading, then the Reader (AC-4)", async () => {
         const m = await open();
         key(m, "F");
         button(m.content, "Search in the book")!.click();
@@ -409,7 +409,7 @@ describe("deep reading in the Reader (#764)", () => {
         });
         const panelOpen = () => m.content.byClass("reader-panel--open").length > 0;
         expect(panelOpen()).toBe(true);
-        key(m, "Escape");
+        // Search and Contents are one drawer (#812 FR-1, FR-7): Contents took Search's place.
         expect(m.content.byClass("reader-search")).toHaveLength(0);
         expect(popover).toBe(true);
         key(m, "Escape");

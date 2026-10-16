@@ -90,7 +90,12 @@ export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
  * The classes the reading surface wears. Plugin classes are prefixed by the caller; the two
  * theme classes are Obsidian's own and stay bare on purpose, so the user's theme supplies them.
  */
-export function readerClassNames(prefs: ReaderPrefs): { plugin: string[]; obsidian: string[] } {
+/**
+ * The classes the reader wears for `prefs`. `justified` is whether this runtime can justify the column
+ * now (#809 FR-4): `false` where it cannot hyphenate its language, so the text sets ragged while the
+ * preference stays as it is (FR-5).
+ */
+export function readerClassNames(prefs: ReaderPrefs, justified = true): { plugin: string[]; obsidian: string[] } {
     const plugin = [
         "reader",
         `reader--font-${prefs.font}`,
@@ -102,7 +107,7 @@ export function readerClassNames(prefs: ReaderPrefs): { plugin: string[]; obsidi
         ...((prefs.spacing ?? "normal") !== "normal" ? [`reader--spacing-${prefs.spacing}`] : []),
         ...((prefs.width ?? "medium") !== "medium" ? [`reader--width-${prefs.width}`] : []),
         ...((prefs.margins ?? "medium") !== "medium" ? [`reader--margins-${prefs.margins}`] : []),
-        ...(prefs.justify ? ["reader--justify"] : []),
+        ...(prefs.justify && justified ? ["reader--justify"] : []),
     ];
     const obsidian = prefs.theme === "dark" ? ["theme-dark"] : prefs.theme === "light" || prefs.theme === "sepia" ? ["theme-light"] : [];
     return { plugin, obsidian };

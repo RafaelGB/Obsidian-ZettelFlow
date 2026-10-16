@@ -24,8 +24,8 @@
 }
 
 /* The card lies beside the page: the title stays in the part of the column still in view. */
-.zettelkasten-flow__reader--alongside .zettelkasten-flow__turn-fold {
-    padding-right: calc(var(--zf-alongside-w) + var(--size-4-6));
+.zettelkasten-flow__reader--drawer .zettelkasten-flow__turn-fold {
+    padding-right: calc(var(--zf-drawer-w) + var(--size-4-6));
 }
 
 .zettelkasten-flow__turn-fold-title {

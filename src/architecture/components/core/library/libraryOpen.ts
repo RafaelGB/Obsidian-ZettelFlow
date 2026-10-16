@@ -43,7 +43,8 @@ export function openShelfItem(app: App, item: ShelfItem, host: LibraryHost | nul
         void openReader(app, {
             seed: item.file,
             source: item.file,
-            chapter: at.chapter ?? item.place ?? 0,
+            // Never opened (#808 FR-2a): no chapter at all, so the Reader opens where the text begins.
+            ...(at.chapter !== undefined || item.place !== undefined ? { chapter: at.chapter ?? item.place } : {}),
             ...(at.highlight ? { highlight: at.highlight } : {}),
             ...readIn,
         });

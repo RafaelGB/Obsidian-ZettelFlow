@@ -2,6 +2,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
@@ -110,7 +111,7 @@ async function open(thoughts: Thought[] = []) {
 
 /** The live page: the stage's own — a turning sheet is a copy of the page it leaves. */
 const livePage = (content: DomNode) => content.byClass("reader-stage")[0]?.children.find((child) => child.hasClass(cls("reader-page")));
-const count = (content: DomNode) => livePage(content)?.byClass("reader-count")[0]?.textContent ?? "";
+const count = (content: DomNode) => place(content);
 async function drawn(content: DomNode, chapter: number) {
     await settle(() => count(content) === `Chapter ${chapter} / 3` && (livePage(content)?.byClass("reader-next").length ?? 0) > 0);
 }
@@ -393,11 +394,11 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
             const m = await book(thoughts);
             await settle(() => m.content.byClass("reader-highlight").length > 0);
             const page = livePage(m.content)!;
-            const drawnCount = page.oneByClass("reader-count");
+            const drawnCount = page.oneByClass("reader-body");
             rec.animations.length = 0;
             await m.view.setState({ source: PATH, chapter: 0, highlight: "h2" }, {} as never);
             // The same page, not drawn again: the camera moved.
-            expect(page.oneByClass("reader-count")).toBe(drawnCount);
+            expect(page.oneByClass("reader-body")).toBe(drawnCount);
             expect(m.stage.scrollTop).toBeGreaterThan(0);
             expect(rec.animations.filter((a) => a.target === page && "translate" in a.keyframes[0])).toHaveLength(1);
             expect(m.content.oneByClass("reader-highlight").hasClass(cls("reader-here"))).toBe(true);

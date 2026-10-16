@@ -332,3 +332,21 @@ describe("a print page's mark survives, and says only which page starts there (#
         expect(out).toBe("<p>Text.</p>");
     });
 });
+
+describe("a heading with nothing to say takes no room (#808 FR-10)", () => {
+    it("drops a heading with no text, as the cover chapter's <h1 title=\"Cubierta\"></h1>", () => {
+        const { out } = clean('<h1 title="Cubierta"></h1><div><img src="../Images/cover.jpg" alt=""/></div>');
+        expect(out).not.toContain("<h1");
+        expect(out).toContain('data-zf-src="OEBPS/Images/cover.jpg"');
+    });
+
+    it("drops one that holds only spaces, and keeps its id so a link still lands", () => {
+        const { out } = clean('<h2 id="start">  \n </h2><p>Text.</p>');
+        expect(out).toBe('<span data-zf-id="start"></span><p>Text.</p>');
+    });
+
+    it("keeps a heading with words, and one that is a picture", () => {
+        expect(clean("<h1>Principios básicos</h1>").out).toBe("<h1>Principios básicos</h1>");
+        expect(clean('<h1><img src="../Images/title.png" alt="Title"/></h1>').out).toContain("<h1><img");
+    });
+});

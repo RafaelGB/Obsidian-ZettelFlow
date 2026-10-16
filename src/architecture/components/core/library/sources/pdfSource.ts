@@ -1,7 +1,7 @@
 import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf } from "application/library/pdfText";
+import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf, suggestPdfView, type PageBlock } from "application/library/pdfText";
 import { pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
@@ -207,15 +207,17 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         return { label: t("reader_source_page", labels?.[i] ?? String(i + 1)), key: `page:${i}`, page: labels?.[i] ?? String(i + 1), ...(section ? { section } : {}) };
     });
     let imageOnly = imageOnlyKnown ?? false;
-    if (imageOnlyKnown === undefined) {
-        // The shelf may not have sampled it yet: a scan is known before its first page is drawn.
-        const samples: string[] = [];
-        for (let n = 1; n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
-            const content = await (await doc.getPage(n)).getTextContent();
-            samples.push(content.items.filter(isTextItem).map((item) => item.str).join(""));
-        }
-        imageOnly = isImageOnly(samples);
+    // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in.
+    const samples: string[] = [];
+    const shapes: PageBlock[][] = [];
+    for (let n = 1; n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
+        const items = (await (await doc.getPage(n)).getTextContent()).items.filter(isTextItem);
+        samples.push(items.map((item) => item.str).join(""));
+        shapes.push(reflowPage(items.map(runOf)));
     }
+    // The shelf may have sampled it already: a scan is known before its first page is drawn.
+    if (imageOnlyKnown === undefined) imageOnly = isImageOnly(samples);
+    const suggestedView = imageOnly ? undefined : suggestPdfView(shapes);
 
     const drawPicture = async (index: number, body: HTMLElement, component: Component): Promise<void> => {
         const page = await doc.getPage(index + 1);
@@ -257,6 +259,7 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         toc,
         imageOnly,
         hasPageView: !imageOnly,
+        ...(suggestedView ? { suggestedView } : {}),
         async draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter> {
             if (view === "page" || imageOnly) {
                 await drawPicture(index, body, component);

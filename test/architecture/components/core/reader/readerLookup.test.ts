@@ -4,6 +4,7 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import { Component, TFile, __setRequestUrl } from "obsidian";
 import { DomNode, flush, installBrowserGlobals, settle } from "../../../../support/dashboardDom";
+import { openMore, rowLabels } from "../../../../support/readerPopover";
 import { FakeEl } from "../../../../support/textDom";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { withPlatform, IPAD } from "../../../../support/platform";
@@ -562,18 +563,19 @@ describe("Look up and Translate in the popover's last row (#766 FR-1, FR-10)", (
             const start = chapterText(body as never).indexOf(words);
             selection = { start, end: start + words.length, rect: { left: 10, top: 20, width: 30, height: 18 }, clear };
         };
-        const row = () => host.byClass("reader-hl-actions")[0];
+        // The whole popover, More opened (#811): every action wherever its row put it.
+        const row = () => openMore(host.byClass("reader-hl-pop")[0]);
         return { highlights, host, body, doc, select, row, actions, clear };
     }
 
-    it("puts Look up and Translate after Copy, and opens the card from the words", async () => {
+    it("puts Look up and Translate first in the second row for a word, and opens the card from the words (#811 FR-4)", async () => {
         const m = mount({ lookUp: true, translate: true });
         await m.highlights.attach(m.body as never, "Books/x.epub", new Component(), null);
         m.select("casa");
         m.body.fire("mouseup");
-        const labels = m.row().findAll((el) => el.tag === "button").map((b) => b.textContent);
-        expect(labels.slice(-3)).toEqual(["Copy", "Look up", "Translate"]);
-        m.row().find((el) => el.textContent === "Look up")!.click();
+        expect(rowLabels(m.host, "reader-hl-second")).toEqual(["Look up", "Translate"]);
+        expect(rowLabels(m.host, "reader-hl-first")).toContain("Copy");
+        m.row().find((el) => el.tag === "button" && el.textContent === "Look up")!.click();
         expect(m.highlights.hasPopover()).toBe(false);
         expect(m.actions.lookUp).toHaveBeenCalledWith("casa", { left: 10, top: 20, width: 30, height: 18 });
         expect(m.clear).toHaveBeenCalled();

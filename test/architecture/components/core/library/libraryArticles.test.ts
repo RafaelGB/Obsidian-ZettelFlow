@@ -149,7 +149,7 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
         const cover = beginOpenShot.mock.calls[0][1] as DomNode;
         expect(cover.getAttribute("data-zf-book")).toBe(SLOW);
         expect(cover.hasClass("zettelkasten-flow__shelf-cover--article")).toBe(true);
-        expect(openReader.mock.calls[0][1]).toMatchObject({ seed: SLOW, source: SLOW, chapter: 0, back: { filter: "articles", focus: SLOW } });
+        expect(openReader.mock.calls[0][1]).toMatchObject({ seed: SLOW, source: SLOW, back: { filter: "articles", focus: SLOW } });
     });
 
     it("sets an article's status in its own frontmatter, never making a book's note (FR-4, AC-5)", async () => {

@@ -102,6 +102,7 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `reader.alongside.vocabulary.10k` (Alongside's index of 10,000 titles and aliases, once per revision, #754) | 11.1–13.0 ms | 50 |
 | `reader.lookup.stardict.open.200k` (a 200,000-entry StarDict dictionary and 50,000 synonyms opened for look-up, once per session, #766) | 205–222 ms (555 ms before its words were decoded in one pass; in the app, three real dictionaries — a million synonyms among them — open in ~290 ms) | 750 |
 | `reader.lookup.stardict.find.200k` (a later look-up in it: the word found, its dictzip chunk inflated, its entry split, #766) | 0.26–0.39 ms | 3 |
+| `reader.scrubber.model.120ch` (the book's line: 120 chapters, 2,000 highlights and 200 bookmarks laid out, once per opening and on each change, #813) | 0.41 ms | 2 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:

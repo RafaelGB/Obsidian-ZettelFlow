@@ -26,6 +26,21 @@ export function panelClose(parent: HTMLElement, close: PanelClose): HTMLElement 
     return button;
 }
 
+/**
+ * An action in a panel's head (#812 FR-11): an icon, named by its label as a tooltip and to a screen
+ * reader alike. What used to be a row of a list that should only hold places.
+ */
+export function panelAction(parent: HTMLElement, icon: string, label: LocaleKey, onClick: () => void, scope: Component): HTMLElement {
+    const button = parent.createEl("button", {
+        cls: ["clickable-icon", c("reader-panel-action")].join(" "),
+        attr: { type: "button", "aria-label": t(label) },
+    });
+    setIcon(button, icon);
+    setTooltip(button, t(label), { placement: "bottom" });
+    scope.registerDomEvent(button, "click", onClick);
+    return button;
+}
+
 /** A panel's head row: its title, and its × when it has one. */
 export function panelHead(host: HTMLElement, title: LocaleKey, close?: PanelClose): HTMLElement {
     const head = host.createDiv({ cls: c("reader-panel-head") });

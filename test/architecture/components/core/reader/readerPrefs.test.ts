@@ -21,6 +21,10 @@ describe("the layout is one of your reading preferences (#753 AC-1, FR-1)", () =
         const scroll = readerClassNames({ ...DEFAULT_READER_PREFS, layout: "scroll" });
         expect(scroll.plugin).toEqual(["reader", "reader--font-sans", "reader--size-medium", "reader--theme-auto"]);
         expect(readerClassNames({ ...DEFAULT_READER_PREFS, layout: "page" }).plugin).toContain("reader--layout-page");
+        // Where words cannot break, the column is set ragged and the preference stays (#809 FR-4, FR-5).
+        expect(readerClassNames({ ...DEFAULT_READER_PREFS, justify: true }, false).plugin).not.toContain("reader--justify");
+        expect(readerClassNames({ ...DEFAULT_READER_PREFS, justify: true }, true).plugin).toContain("reader--justify");
+        expect(readerClassNames({ ...DEFAULT_READER_PREFS, justify: true }).plugin).toContain("reader--justify");
         expect(readerClassNames({ ...DEFAULT_READER_PREFS, layout: "spread" }).plugin).toContain("reader--layout-spread");
     });
 });

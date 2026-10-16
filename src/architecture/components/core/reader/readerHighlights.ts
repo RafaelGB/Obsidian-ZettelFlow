@@ -1,4 +1,4 @@
-import { Component, type App } from "obsidian";
+import { Component, setTooltip, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { anchorAll, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
@@ -14,8 +14,24 @@ import { touchPointer } from "./readerDevice";
 import { markHereOn } from "./readerHere";
 import { printPageAt, type PageMark } from "application/library/provenance";
 import { DEFAULT_LAYER, MARK_LAYERS, layerOf, type MarkLayer } from "application/thinking/markLayer";
+import { MORE_ORDER, moreList, nextFocus, placePopover, secondRow, selectionSize, type PopoverAction } from "./readerPopoverLayout";
 
 type LocaleKey = Parameters<typeof t>[0];
+
+/** One action of the popover, as the way to draw its button into a row (#811). */
+type Offer = (parent: HTMLElement) => HTMLElement;
+
+/** The keys that walk the popover once focus is in it (#811 FR-12). */
+const ARROWS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
+
+/** The popover's gap from the words: the stylesheet's `--size-4-2`. */
+const POPOVER_GAP_PX = 8;
+
+/** A chapter line, when its own cannot be read: what the popover keeps clear above the words. */
+const FALLBACK_LINE_PX = 24;
+
+/** Numbers each popover's *More* region, so its toggle can name what it controls. */
+let moreSeq = 0;
 
 /** Where Think keeps highlights — the thought store, as far as the Reader uses it. */
 export interface HighlightStore {
@@ -26,6 +42,8 @@ export interface HighlightStore {
     /** An ink note's drawing goes with it, and comes back as the answer (#745 E7). */
     discard(thought: Thought): Promise<string | undefined | void>;
     restore(thought: Thought, drawing?: string): Promise<void>;
+    /** Whether a thought is on disk as it was written (#810 FR-18): an undo is refused otherwise. */
+    isAsWritten?(thought: Thought): Promise<boolean>;
 }
 
 /** What the current selection covers, in chapter-text offsets, and where it is on screen. */
@@ -58,18 +76,18 @@ export interface HighlightView {
     /** The ink notes' rows, beside the highlights in the margin's list. */
     renderInk?(host: HTMLElement, scope: Component): void;
     /**
-     * The moves of the popover's *Think* row (#756 FR-1) — *Contradict*, *Connect*, and the AI's later
-     * (#759). Offered only in a book or a paper; the view decides, the popover only draws them.
+     * The moves of the popover's *Think* group, last in *More* (#756 FR-1, #811 FR-7) — *Contradict*,
+     * *Connect*, and the AI's later (#759). Offered only in a book or a paper; the view decides.
      */
     thinkMoves?(): readonly ThinkMove[];
     /**
-     * *Claim* and *Link to an idea* (#762 FR-1), after *Highlight and note* in the popover's first
-     * row. Offered only in a book or a paper, where a passage has a page to be sourced to.
+     * *Claim* and *Link to an idea* (#762 FR-1): in the second row when they fit the selection, in
+     * *More* otherwise (#811). Offered only in a book or a paper, where a passage has a page.
      */
     passageActions?(): PassageActions | null;
     /**
-     * *Look up* and *Translate* (#766 FR-1), after *Copy* in the popover's last row: what each
-     * selection is offered, and what each does. The view decides; the popover only draws them.
+     * *Look up* and *Translate* (#766 FR-1): first in the second row for one to three words, in *More*
+     * otherwise (#811). What each selection is offered, and what each does; the view decides.
      */
     lookup?(): LookupActions | null;
     /**
@@ -78,15 +96,25 @@ export interface HighlightView {
      */
     snapshotImage?(el: HTMLElement, from: ScreenBox): void;
     /**
-     * *Read aloud* (#765 FR-1), after *Look up* in the popover's last row: the selected words, read
-     * by the device's own voice. Absent where Listen is not offered (no on-device voice).
+     * *Read aloud* (#765 FR-1), in the second row for a passage, in *More* otherwise (#811): the
+     * selected words, read by the device's own voice. Absent where Listen is not offered.
      */
     readAloud?(): ((span: TextSpan) => void) | null;
     /**
-     * *Cite* (#768 FR-1), after *Copy* in the selection popover and in a highlight's menu: the passage,
-     * cited from where the popover was. Absent where there is no source to cite.
+     * *Cite* (#768 FR-1), in the selection popover — the second row for a sentence or a passage — and
+     * in a highlight's *More*: the passage, cited from where the popover was. Absent with no source.
      */
     cite?(): ((passage: ThinkPassage, from: ScreenBox) => void) | null;
+    /**
+     * Offer a write's way back to the reading's undo ledger (#810 FR-15–FR-17): the run its Undo
+     * button and Ctrl/⌘+Z share, guarded once. `check` refuses one changed since (FR-18).
+     */
+    undoable?(run: () => unknown, check?: () => Promise<boolean> | boolean): () => Promise<"undone" | "refused" | "spent">;
+    /**
+     * The visible page a popover may open into (#811 FR-14): its top, and where the Reader's bar
+     * begins. Absent: the host's own box.
+     */
+    pageRoom?(): { top: number; bottom: number };
 }
 
 /** What the popover's *Look up* and *Translate* do (#766): offered per selection, run from its words. */
@@ -162,6 +190,8 @@ export type HighlightOrigin = "selection" | "stroke";
 export interface StatusAction {
     key: LocaleKey;
     run: () => void;
+    /** The thought an Undo takes back, as it was written: refused once it changed since (#810 FR-18). */
+    thought?: Thought;
 }
 
 /** How a span is kept — the one engine's options (#746 FR-3). */
@@ -275,7 +305,7 @@ function snippet(text: string, max = 140): string {
 /**
  * **Highlights and notes in the margin** (#671, epic #667) — Kindle-style, and they land in Think.
  *
- * Select words in a chapter and a small popover offers *Highlight*, *Highlight and note* or *Copy*.
+ * Select words in a chapter and a small popover offers the four meanings, *Note*, *Copy* and *More*.
  * A highlight is a **thought** about the note, carrying the passage as a text-quote anchor; a note
  * is that thought's text. The note being read is never written: the highlight is found again, on
  * every visit, by looking for the same words (see `quoteAnchor`). One that cannot be found is
@@ -332,7 +362,11 @@ export class ReaderHighlights {
     private readonly extensions = new Map<Thought, { marks: HTMLElement[]; tint: string }>();
     /** Numbers the tint keys of strokes and extensions in flight (#770): `stroke#3`, `<id>#4`. */
     private tintSeq = 0;
-    /** The meaning you chose last (#720): what H keeps and what *Highlight and note* uses. */
+    /** The detached highlight being re-anchored (#810 FR-9): its passage is the next one you select. */
+    private reanchoring: Thought | null = null;
+    /** The state's line, above the page: what is being re-anchored, and *Cancel*. */
+    private reanchorLine: HTMLElement | null = null;
+    /** The meaning you chose last (#720): what H keeps and what *Note* uses. */
     private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
     /** The margin shows one meaning only, when you asked it to (#720). */
     private filter: HighlightMeaning | null = null;
@@ -493,6 +527,7 @@ export class ReaderHighlights {
 
     /** The reader is closing. */
     dispose(): void {
+        this.cancelReanchor();
         this.hidePopover();
         this.marginScope?.unload();
         this.marginScope = null;
@@ -662,7 +697,123 @@ export class ReaderHighlights {
                 attr: { type: "button" },
             });
             scope.registerDomEvent(open, "click", () => this.openThink(this.view.app, thought.about ?? ""));
+            // Put it back on the page (#810 FR-8): the passage you select next is its passage.
+            const reanchor = row.createEl("button", { cls: c("reader-hl-link"), text: t("reader_hl_reanchor"), attr: { type: "button", "data-zf-reanchor": "" } });
+            scope.registerDomEvent(reanchor, "click", () => this.startReanchor(thought));
+            if (this.reanchoring?.id === thought.id) row.addClass(c("reader-hl-item--reanchoring"));
         }
+    }
+
+    // ── re-anchor a detached highlight (#810 FR-8–FR-14) ─────────────────────
+
+    /** Whether the Reader is waiting for the passage a detached highlight belongs to. */
+    isReanchoring(): boolean {
+        return this.reanchoring !== null;
+    }
+
+    /**
+     * *Re-anchor* (FR-9): a calm mode. A line names the highlight and offers *Cancel*; the page does
+     * not move, and the whole book stays reachable to find the passage. Nothing is written yet.
+     */
+    startReanchor(thought: Thought): void {
+        this.cancelReanchor();
+        this.reanchoring = thought;
+        const line = this.view.host.createDiv({ cls: c("reader-reanchor"), attr: { role: "status", "aria-live": "polite" } });
+        line.createSpan({ cls: c("reader-reanchor-text"), text: t("reader_hl_reanchor_state", snippet(thought.quote?.exact ?? "", 60)) });
+        const cancel = line.createEl("button", { cls: c("reader-hl-action"), text: t("reader_hl_cancel"), attr: { type: "button" } });
+        this.view.owner.registerDomEvent(cancel, "click", () => this.cancelReanchor());
+        this.reanchorLine = line;
+        this.hidePopover();
+        this.renderMargin();
+    }
+
+    /** Leave the state (FR-12): Esc, *Cancel*, another book, the Reader closed. Nothing is written. */
+    cancelReanchor(): void {
+        if (!this.reanchoring && !this.reanchorLine) return;
+        this.reanchoring = null;
+        this.reanchorLine?.remove();
+        this.reanchorLine = null;
+        if (this.popover?.hasClass(c("reader-hl-pop--anchor"))) this.hidePopover();
+        this.renderMargin();
+    }
+
+    /** The one offer a selection gets while re-anchoring (FR-10): *Anchor here*. */
+    private offerAnchor(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }, touch: boolean): void {
+        if (!found.quote.exact.trim()) {
+            this.say("reader_hl_reanchor_words");
+            return;
+        }
+        const pop = this.openPopover(found.selection.rect, "select", touch);
+        pop.addClass(c("reader-hl-pop--anchor"));
+        this.button(pop, "reader_hl_anchor_here", true, () => void this.anchorHere(found));
+    }
+
+    /**
+     * *Anchor here* (FR-10, FR-11): the same thought (its id, note, meaning, layer, claims and review)
+     * given the new passage and place, in one recorded write. The wash settles into the passage, the
+     * row leaves *Detached*, and the line offers Undo.
+     */
+    private async anchorHere(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }): Promise<void> {
+        const before = this.reanchoring;
+        const body = this.body;
+        if (!before || !body) return;
+        const locator = this.placedAt(found.span.start);
+        const quote = locator && !found.quote.heading && locator.label ? { ...found.quote, heading: locator.label } : found.quote;
+        const next: Thought = { ...before, quote };
+        if (locator) next.locator = locator;
+        else delete next.locator;
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not re-anchor a highlight: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        found.selection.clear();
+        this.reanchoring = null;
+        this.reanchorLine?.remove();
+        this.reanchorLine = null;
+        this.detached = this.detached.filter((candidate) => candidate.id !== before.id);
+        if (this.body === body) {
+            const marks = this.draw(next, found.span);
+            marks.forEach((mark) => mark.addClass(c("reader-highlight--new")));
+            this.insert(next, marks, found.span.start);
+            this.settleIntoMargin(marks[0], next);
+        }
+        this.renderMargin();
+        this.view.onChange();
+        this.status("reader_hl_reanchored", [{ key: "reader_hl_undo", run: () => void this.unanchor(before, next), thought: next }]);
+    }
+
+    /** Undo of a re-anchor (FR-11, MF-3): the old passage and place again, detached where it was. */
+    private async unanchor(before: Thought, after: Thought): Promise<void> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(before));
+        } catch (error) {
+            log.error(`[Reader] could not take a re-anchor back: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === after.id);
+        this.fadeMarks(entry?.marks ?? []);
+        this.untint(after.id);
+        this.anchored = this.anchored.filter((candidate) => candidate.thought.id !== after.id);
+        // Listed where it was: under *Detached* of its own chapter, when that is the one on screen.
+        const here = this.locator ? before.locator?.at === this.locator.at : !before.locator;
+        if (here && !this.detached.some((candidate) => candidate.id === before.id)) this.detached.push(before);
+        this.renderMargin();
+        this.view.onChange();
+        this.hideStatus();
+    }
+
+    /** The book was renamed (#810): the chapter on screen is about its new path from now. */
+    repath(from: string, to: string): void {
+        if (this.notePath === from) this.notePath = to;
+        const swap = (thought: Thought): Thought => (thought.about === from ? { ...thought, about: to } : thought);
+        this.anchored = this.anchored.map((entry) => ({ ...entry, thought: swap(entry.thought) }));
+        this.detached = this.detached.map(swap);
+        this.pageNotes = this.pageNotes.map(swap);
+        if (this.reanchoring) this.reanchoring = swap(this.reanchoring);
     }
 
     // ── one engine (#746 FR-3): a selection and a stroke keep words the same way ─
@@ -703,6 +854,9 @@ export class ReaderHighlights {
         const found = this.currentQuote();
         if (!found) {
             if (this.popover?.hasClass(c("reader-hl-pop--select"))) this.hidePopover();
+            // Re-anchoring, words that cannot be a highlight (#810 FR-13): a quiet line asks for words.
+            const body = this.body;
+            if (this.reanchoring && body && this.select(body)) this.say("reader_hl_reanchor_words");
             return;
         }
         // A touch selection: below the words, beside the system's callout above them (FR-5).
@@ -711,7 +865,7 @@ export class ReaderHighlights {
 
     /**
      * The lasso's words (#747 FR-7): the **same** popover a selection opens — the four meanings,
-     * *Highlight and note*, *Copy* — for exactly those words. It writes nothing by itself; `onClose` is
+     * *Note*, *Copy*, *More* — for exactly those words. It writes nothing by itself; `onClose` is
      * called when the popover goes, whatever took it (a choice, Esc, a scroll, another popover).
      */
     offerSpan(span: TextSpan, rect: SelectionInfo["rect"], onClose?: () => void): boolean {
@@ -726,103 +880,291 @@ export class ReaderHighlights {
         return true;
     }
 
-    /** The selection popover over `found`: its meanings and its actions (#720, #750). */
+    /**
+     * The selection popover over `found` (#720, #750, #811): a first row that is always the same — the
+     * four meanings as dots, *Note*, *Copy*, *More* — a second row with what fits this much text, and
+     * everything else behind *More*, in one order.
+     */
     private offerSelection(found: { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote }, touch: boolean, systemCopy = touch): void {
-        const pop = this.openPopover(found.selection.rect, "select", touch);
-        // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
-        const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
-        for (const meaning of HIGHLIGHT_MEANINGS) {
-            this.meaningButton(meanings, meaning, meaning === this.lastMeaning, () => void this.keep(found.selection, found.span, found.quote, "", meaning));
+        // Re-anchoring (#810 FR-10): the words are offered one thing only, never the popover.
+        if (this.reanchoring) {
+            this.offerAnchor(found, touch);
+            return;
         }
-        const actions = pop.createDiv({ cls: c("reader-hl-actions") });
-        this.button(actions, "reader_hl_highlight_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
+        const pop = this.openPopover(found.selection.rect, "select", touch);
         const locator = this.placedAt(found.span.start);
-        if (locator) this.claimButtons(actions, { quote: found.quote, locator }, found.selection.rect, () => found.selection.clear());
-        // The system's callout already offers Copy to a finger (FR-6); a mouse — and a lasso — only ours.
-        if (!systemCopy) {
-            this.button(actions, "reader_hl_copy", false, () => {
-                if (this.body) this.copy(this.body, found.quote.exact);
-                this.status("reader_hl_copied");
+        const passage = locator ? { quote: found.quote, locator } : null;
+        const offers = this.passageOffers(passage, found.selection.rect, () => found.selection.clear(), {
+            text: found.quote.exact,
+            selection: found.selection,
+            span: found.span,
+        });
+        const shown = secondRow(selectionSize(found.quote.exact, this.bodyLanguage()), new Set(offers.keys()));
+        this.renderRows(pop, {
+            first: (row) => {
+                // Four meanings, chosen as you mark (#720): the passage takes that colour at once.
+                const dots = row.createDiv({ cls: c("reader-hl-meanings") });
+                for (const meaning of HIGHLIGHT_MEANINGS) {
+                    this.meaningButton(dots, meaning, meaning === this.lastMeaning, () => void this.keep(found.selection, found.span, found.quote, "", meaning));
+                }
+                this.button(row, "reader_hl_note", true, () => this.openNoteEditor(found.selection, found.span, found.quote, this.lastMeaning));
+                // The system's callout already offers Copy to a finger (FR-6); a mouse — and a lasso — only ours.
+                if (!systemCopy) {
+                    this.button(row, "reader_hl_copy", false, () => {
+                        if (this.body) this.copy(this.body, found.quote.exact);
+                        this.status("reader_hl_copied");
+                    });
+                }
+            },
+            second: shown.map((id) => offers.get(id)!),
+            more: moreList(MORE_ORDER, new Set(offers.keys()), shown).map((id) => offers.get(id)!),
+            think: passage,
+        });
+        this.place(pop, found.selection.rect, touch);
+    }
+
+    /**
+     * What a passage is offered besides its meanings (#811 FR-5): each action, by its id, as the way to
+     * draw its button — only those available here, under exactly today's conditions. A click does
+     * exactly what it did from the old rows (FR-10).
+     */
+    private passageOffers(
+        passage: ThinkPassage | null,
+        rect: SelectionInfo["rect"],
+        clear: (() => void) | undefined,
+        words: { text: string; selection: SelectionInfo; span: TextSpan } | null
+    ): Map<PopoverAction, Offer> {
+        const offers = new Map<PopoverAction, Offer>();
+        const from: ScreenBox = { left: rect.left, top: rect.top, width: rect.width, height: rect.height ?? 0 };
+        // *Claim* and *Link to an idea* (#762 FR-1): *Claim* takes the popover away and opens the sheet
+        // from the words; *Link* turns the popover into the picker, growing from the button (FR-14).
+        const gestures = passage ? this.view.passageActions?.() : null;
+        if (passage && gestures) {
+            offers.set("claim", (parent) => {
+                const button = this.button(parent, "reader_hl_claim", false, () => {
+                    this.hidePopover();
+                    gestures.claim(passage, from);
+                    clear?.();
+                });
+                button.setAttribute("data-zf-claim", "");
+                return button;
+            });
+            offers.set("link", (parent) => {
+                const link = this.button(parent, "reader_hl_link_idea", false, () => {
+                    const r = link.getBoundingClientRect();
+                    const pop = this.openPopover(rect, "editing");
+                    pop.addClass(c("reader-hl-pop--picker"));
+                    gestures.link(passage, pop, { left: r.left, top: r.top, width: r.width, height: r.height }, () => {
+                        if (this.popover === pop) this.hidePopover();
+                    });
+                });
+                link.setAttribute("data-zf-link", "");
+                return link;
             });
         }
-        if (locator) this.citeButton(actions, { quote: found.quote, locator }, () => found.selection.clear());
-        this.lookupButtons(actions, found.quote.exact, found.selection);
+        // *Cite* (#768 FR-1, FR-10): the popover goes, and the cite panel grows from where it was — the
+        // page does not move. It writes nothing; the panel copies only when you press its *Copy*.
+        const cite = passage ? this.view.cite?.() : null;
+        if (passage && cite) {
+            offers.set("cite", (parent) => {
+                const button = this.button(parent, "reader_cite", false, () => {
+                    const r = (this.popover ?? parent).getBoundingClientRect();
+                    this.hidePopover();
+                    cite(passage, { left: r.left, top: r.top, width: r.width, height: r.height });
+                    clear?.();
+                });
+                button.setAttribute("data-zf-cite", "");
+                return button;
+            });
+        }
+        if (!words) return offers;
+        // *Look up* for one to three words, *Translate* where an honest path exists (#766 FR-1, FR-9).
+        // The card grows from the words; the words are let go, or a click on the card offers them again.
+        const lookup = this.view.lookup?.();
+        const offer = lookup?.offers(words.text);
+        if (lookup && offer?.lookUp) {
+            offers.set("look-up", (parent) => {
+                const button = this.button(parent, "reader_hl_lookup", false, () => {
+                    this.hidePopover();
+                    void Promise.resolve(lookup.lookUp(words.text, from)).catch((error: unknown) => log.warn(`[Reader] a look-up failed: ${error instanceof Error ? error.name : "error"}`));
+                    words.selection.clear();
+                });
+                button.setAttribute("data-zf-lookup", "");
+                return button;
+            });
+        }
+        if (lookup && offer?.translate) {
+            offers.set("translate", (parent) => {
+                const button = this.button(parent, "reader_hl_translate", false, () => {
+                    this.hidePopover();
+                    lookup.translate(words.text, from);
+                    words.selection.clear();
+                });
+                button.setAttribute("data-zf-translate", "");
+                return button;
+            });
+        }
+        // *Read aloud* (#765 FR-1): the selected words, by the device's own voice.
         const aloud = this.view.readAloud?.();
         if (aloud) {
-            this.button(actions, "reader_listen_selection", false, () => {
-                this.hidePopover();
-                found.selection.clear();
-                aloud(found.span);
-            }).setAttribute("data-zf-listen", "");
-        }
-        if (locator) this.thinkRow(pop, { quote: found.quote, locator });
-    }
-
-    /**
-     * *Cite* (#768 FR-1, FR-10): the popover goes, and the cite panel grows from where it was — the
-     * page does not move. It writes nothing; the panel copies only when you press its *Copy*.
-     */
-    private citeButton(actions: HTMLElement, passage: ThinkPassage, clear?: () => void): void {
-        const cite = this.view.cite?.();
-        if (!cite) return;
-        this.button(actions, "reader_cite", false, () => {
-            const r = (this.popover ?? actions).getBoundingClientRect();
-            this.hidePopover();
-            cite(passage, { left: r.left, top: r.top, width: r.width, height: r.height });
-            clear?.();
-        }).setAttribute("data-zf-cite", "");
-    }
-
-    /**
-     * *Look up* for one to three words, *Translate* where an honest path exists (#766 FR-1, FR-9) —
-     * in the last row, beside *Copy*; on a touch selection, where the system's callout has its own
-     * Copy, Look Up and Translate, ours sit beside them (FR-10). The card grows from the words.
-     */
-    private lookupButtons(actions: HTMLElement, text: string, selection: SelectionInfo): void {
-        const lookup = this.view.lookup?.();
-        if (!lookup) return;
-        const offer = lookup.offers(text);
-        const r = selection.rect;
-        const from: ScreenBox = { left: r.left, top: r.top, width: r.width, height: r.height ?? 0 };
-        if (offer.lookUp) {
-            this.button(actions, "reader_hl_lookup", false, () => {
-                this.hidePopover();
-                void Promise.resolve(lookup.lookUp(text, from)).catch((error: unknown) => log.warn(`[Reader] a look-up failed: ${error instanceof Error ? error.name : "error"}`));
-                // Let go of the words: a click on the card would offer them again.
-                selection.clear();
-            }).setAttribute("data-zf-lookup", "");
-        }
-        if (offer.translate) {
-            this.button(actions, "reader_hl_translate", false, () => {
-                this.hidePopover();
-                lookup.translate(text, from);
-                selection.clear();
-            }).setAttribute("data-zf-translate", "");
-        }
-    }
-
-    /**
-     * *Claim* and *Link to an idea* (#762 FR-1). *Claim* takes the popover away and opens the sheet
-     * from the words; *Link* turns the popover into the picker, growing from the button (FR-14).
-     */
-    private claimButtons(actions: HTMLElement, passage: ThinkPassage, rect: SelectionInfo["rect"], clear?: () => void): void {
-        const gestures = this.view.passageActions?.();
-        if (!gestures) return;
-        const from: ScreenBox = { left: rect.left, top: rect.top, width: rect.width, height: rect.height ?? 0 };
-        this.button(actions, "reader_hl_claim", false, () => {
-            this.hidePopover();
-            gestures.claim(passage, from);
-            clear?.();
-        }).setAttribute("data-zf-claim", "");
-        const link = this.button(actions, "reader_hl_link_idea", false, () => {
-            const r = link.getBoundingClientRect();
-            const pop = this.openPopover(rect, "editing");
-            pop.addClass(c("reader-hl-pop--picker"));
-            gestures.link(passage, pop, { left: r.left, top: r.top, width: r.width, height: r.height }, () => {
-                if (this.popover === pop) this.hidePopover();
+            offers.set("read-aloud", (parent) => {
+                const button = this.button(parent, "reader_listen_selection", false, () => {
+                    this.hidePopover();
+                    words.selection.clear();
+                    aloud(words.span);
+                });
+                button.setAttribute("data-zf-listen", "");
+                return button;
             });
-        });
-        link.setAttribute("data-zf-link", "");
+        }
+        return offers;
+    }
+
+    /**
+     * The popover's rows (#811): the first, always the same; the second, what fits; then *More* — a
+     * region that grows in place, hidden until asked for, holding the rest in one order and, last, the
+     * *Think* moves. *More* is offered only when it has something to show.
+     */
+    private renderRows(pop: HTMLElement, rows: { first: (row: HTMLElement) => void; second: readonly Offer[]; fixedSecond?: (row: HTMLElement) => void; more: readonly Offer[]; think: ThinkPassage | null }): void {
+        const first = pop.createDiv({ cls: [c("reader-hl-row"), c("reader-hl-first")] });
+        rows.first(first);
+        if (rows.second.length > 0 || rows.fixedSecond) {
+            const second = pop.createDiv({ cls: [c("reader-hl-row"), c("reader-hl-actions"), c("reader-hl-second")] });
+            for (const draw of rows.second) draw(second);
+            rows.fixedSecond?.(second);
+        }
+        const moves = rows.think ? (this.view.thinkMoves?.() ?? []) : [];
+        if (rows.more.length === 0 && moves.length === 0) return;
+        const id = `zf-hl-more-${++moreSeq}`;
+        const toggle = this.button(first, "reader_hl_more", false, () => this.setMore(!pop.hasClass("is-expanded")));
+        toggle.addClass(c("reader-hl-more-toggle"));
+        toggle.setAttribute("aria-label", t("reader_hl_more_label"));
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-controls", id);
+        const region = pop.createDiv({ cls: c("reader-hl-more"), attr: { id, hidden: "" } });
+        if (rows.more.length > 0) {
+            const list = region.createDiv({ cls: [c("reader-hl-row"), c("reader-hl-actions"), c("reader-hl-more-list")] });
+            for (const draw of rows.more) draw(list);
+        }
+        if (rows.think && moves.length > 0) this.thinkGroup(region, rows.think, moves);
+    }
+
+    /** *More*, opened or folded (#811 FR-9): in place, nothing written, nothing sent. */
+    private setMore(open: boolean): void {
+        const pop = this.popover;
+        const region = pop?.querySelector<HTMLElement>(`.${c("reader-hl-more")}`);
+        const toggle = pop?.querySelector<HTMLElement>(`.${c("reader-hl-more-toggle")}`);
+        if (!pop || !region || !toggle) return;
+        pop.toggleClass("is-expanded", open);
+        if (open) region.removeAttribute("hidden");
+        else region.setAttribute("hidden", "");
+        toggle.setAttribute("aria-expanded", String(open));
+    }
+
+    /**
+     * Esc on the popover (#811 FR-13): an open *More* folds first, focus back on it; then the popover
+     * goes. The Reader's next step waits for the next Esc.
+     */
+    escapePopover(): void {
+        const pop = this.popover;
+        if (pop?.hasClass("is-expanded")) {
+            this.setMore(false);
+            pop.querySelector<HTMLElement>(`.${c("reader-hl-more-toggle")}`)?.focus();
+            return;
+        }
+        this.hidePopover();
+    }
+
+    /**
+     * Tab from the page (#811 FR-12, D2): focus goes to the popover's first button, and the arrows walk
+     * it from there. The words stay selected — focusing a button does not clear them. False when there
+     * is no popover to enter, or focus is in it already.
+     */
+    focusInPopover(target?: EventTarget | null): boolean {
+        const pop = this.popover;
+        if (!pop || pop.hasClass(c("reader-hl-pop--editing")) || pop.hasClass(c("reader-hl-pop--status"))) return false;
+        if (target && pop.contains(target as Node)) return false;
+        const first = this.focusRows(pop)[0]?.[0];
+        if (!first) return false;
+        first.focus();
+        return true;
+    }
+
+    /** The popover's buttons, row by row, as the arrows walk them: More's only while it is open. */
+    private focusRows(pop: HTMLElement): HTMLElement[][] {
+        const open = pop.hasClass("is-expanded");
+        const rows = [c("reader-hl-first"), c("reader-hl-second"), ...(open ? [c("reader-hl-more-list"), c("reader-hl-think")] : [])];
+        return rows.map((cls) => Array.from(pop.querySelector<HTMLElement>(`.${cls}`)?.querySelectorAll<HTMLElement>("button") ?? []));
+    }
+
+    /** An arrow key on a button of the popover (FR-12): focus moves; nothing else hears it. */
+    private walkPopover(event: KeyboardEvent): void {
+        const pop = this.popover;
+        if (!pop || !ARROWS.has(event.key)) return;
+        const rows = this.focusRows(pop);
+        const target = event.target as HTMLElement | null;
+        const row = rows.findIndex((buttons) => buttons.includes(target as HTMLElement));
+        if (row < 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const next = nextFocus(
+            rows.map((buttons) => buttons.length),
+            { row, col: rows[row].indexOf(target as HTMLElement) },
+            event.key
+        );
+        rows[next.row]?.[next.col]?.focus();
+    }
+
+    /** The chapter's language, as *Look up* counts words by it (#757). */
+    private bodyLanguage(): string | undefined {
+        const el = this.body?.closest?.("[lang]");
+        return el?.getAttribute?.("lang") || undefined;
+    }
+
+    /**
+     * Where the popover opens (#811 FR-14–FR-17, D4): measured once, collapsed, then placed below the
+     * words — or above, a line clear of them, when there is no room below. A finger's is below, as it
+     * always was. It never changes side while open.
+     */
+    private place(pop: HTMLElement, rect: SelectionInfo["rect"], touch: boolean): void {
+        if (touch) return;
+        const host = this.view.host;
+        const box = host.getBoundingClientRect();
+        const room = this.view.pageRoom?.() ?? { top: box.top, bottom: box.top + box.height };
+        const top = rect.top;
+        const bottom = rect.top + (rect.height ?? 0);
+        // No layout to measure against (a pane not laid out yet): below, as the spec prefers.
+        const known = room.bottom > room.top;
+        const style = this.body ? ownWindow(host)?.getComputedStyle?.(this.body) : undefined;
+        const lineHeight = parseFloat(style?.lineHeight ?? "");
+        const fontSize = parseFloat(style?.fontSize ?? "");
+        const line = lineHeight > 0 ? lineHeight : fontSize > 0 ? fontSize * 1.5 : FALLBACK_LINE_PX;
+        const placed = known
+            ? placePopover({ selection: { top, bottom }, room, height: pop.getBoundingClientRect().height, line, gap: POPOVER_GAP_PX, touch })
+            : { side: "below" as const, y: bottom + POPOVER_GAP_PX };
+        pop.addClass(c(placed.side === "below" ? "reader-hl-pop--below" : "reader-hl-pop--above"));
+        // Below, the stylesheet keeps its own gap under the words; above, `y` is already clear of the line.
+        const y = placed.side === "below" ? placed.y - POPOVER_GAP_PX : placed.y;
+        pop.setCssProps?.({ "--zf-hl-y": `${Math.round(y - box.top)}px` });
+    }
+
+    /**
+     * The *Think* group (#756 FR-1, #811 FR-7): the moves you can make on this passage, last in *More*.
+     * A move takes the popover away and asks from where its button was — the answer is born there.
+     */
+    private thinkGroup(region: HTMLElement, passage: ThinkPassage, moves: readonly ThinkMove[]): void {
+        const group = region.createDiv({ cls: c("reader-hl-think"), attr: { role: "group", "aria-label": t("reader_think_row") } });
+        group.createSpan({ cls: c("reader-hl-think-label"), text: t("reader_think_row") });
+        for (const move of moves) {
+            const button = this.button(group, move.label, false, () => {
+                const r = button.getBoundingClientRect();
+                const from = { left: r.left, top: r.top, width: r.width, height: r.height };
+                this.hidePopover();
+                move.run(passage, from);
+            });
+            button.addClass(c("reader-hl-think-move"));
+            button.setAttribute("data-zf-move", move.id);
+        }
     }
 
     /**
@@ -857,27 +1199,6 @@ export class ReaderHighlights {
         if (!this.locator) return null;
         const page = this.locator.page ?? printPageAt(this.pageMarks, offset);
         return { ...this.locator, ...(page ? { page } : {}) };
-    }
-
-    /**
-     * The *Think* row (#756 FR-1): the moves you can make on this passage, under its meanings. A move
-     * takes the popover away and asks from where its button was — the answer is born there.
-     */
-    private thinkRow(pop: HTMLElement, passage: ThinkPassage): void {
-        const moves = this.view.thinkMoves?.() ?? [];
-        if (moves.length === 0) return;
-        const row = pop.createDiv({ cls: c("reader-hl-think"), attr: { role: "group", "aria-label": t("reader_think_row") } });
-        row.createSpan({ cls: c("reader-hl-think-label"), text: t("reader_think_row") });
-        for (const move of moves) {
-            const button = this.button(row, move.label, false, () => {
-                const r = button.getBoundingClientRect();
-                const from = { left: r.left, top: r.top, width: r.width, height: r.height };
-                this.hidePopover();
-                move.run(passage, from);
-            });
-            button.addClass(c("reader-hl-think-move"));
-            button.setAttribute("data-zf-move", move.id);
-        }
     }
 
     /** The paragraph a passage sits in and the one before, from the chapter open now (#759 FR-4). */
@@ -979,7 +1300,7 @@ export class ReaderHighlights {
         }
         this.insert(thought, marks, span.start);
         this.settleIntoMargin(marks[0], thought);
-        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], stroke);
+        this.status(stroke ? HIGHLIGHTED[meaning] : "reader_hl_saved", options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false), thought }], stroke);
         return thought;
     }
 
@@ -1013,7 +1334,7 @@ export class ReaderHighlights {
         }
         this.counted(options.note ?? "", meaning);
         const thought = made;
-        this.status(HIGHLIGHTED[meaning], options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false) }], true);
+        this.status(HIGHLIGHTED[meaning], options.actions?.(thought) ?? [{ key: "reader_hl_undo", run: () => void this.forget(thought, false), thought }], true);
         return thought;
     }
 
@@ -1236,7 +1557,7 @@ export class ReaderHighlights {
         this.renderMargin();
         this.view.onChange();
         const thought = made;
-        this.status("reader_hl_page_saved", [{ key: "reader_hl_undo", run: () => void this.forgetPageNote(thought) }]);
+        this.status("reader_hl_page_saved", [{ key: "reader_hl_undo", run: () => void this.forgetPageNote(thought), thought }]);
     }
 
     private async forgetPageNote(thought: Thought): Promise<void> {
@@ -1266,6 +1587,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) entry.thought = next;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1411,7 +1733,10 @@ export class ReaderHighlights {
         this.view.onChange();
     }
 
-    /** A click on a highlight: its note, and what you can do with it. */
+    /**
+     * A click on a highlight (#811 D1): its note; the dots, its meaning marked, *Edit note* and *More*;
+     * then its own two, *Open in Think* and *Delete*; and in *More*, the rest in one order.
+     */
     private openMark(id: string, mark: HTMLElement): void {
         const entry = this.anchored.find((candidate) => candidate.thought.id === id);
         if (!entry) return;
@@ -1420,44 +1745,65 @@ export class ReaderHighlights {
         const pop = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "mark");
         const note = thought.text.trim();
         pop.createDiv({ cls: c(note ? "reader-hl-pop-note" : "reader-hl-pop-empty"), text: note || t("reader_hl_no_note") });
-        // What it means, changed in place (#720).
-        const meanings = pop.createDiv({ cls: c("reader-hl-meanings") });
-        for (const meaning of HIGHLIGHT_MEANINGS) {
-            this.meaningButton(meanings, meaning, meaning === meaningOf(thought), () => void this.changeMeaning(thought, meaning));
+        const passage = thought.locator && thought.quote ? { quote: thought.quote, locator: thought.locator, highlight: thought } : null;
+        const offers = this.passageOffers(passage, { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, undefined, null);
+        const more: Offer[] = [];
+        for (const action of ["claim", "link"] as const) {
+            const offer = offers.get(action);
+            if (offer) more.push(offer);
         }
-        // Its layer, changed in place where its meaning is (#758 FR-6).
-        const layers = pop.createDiv({ cls: c("reader-hl-layers"), attr: { role: "group", "aria-label": t("reader_hl_layer") } });
-        layers.createSpan({ cls: c("reader-hl-layers-label"), text: t("reader_hl_layer") });
-        for (const layer of MARK_LAYERS) {
-            const on = layer === layerOf(thought);
-            const button = layers.createEl("button", {
-                cls: [c("reader-hl-layer"), ...(on ? ["is-active"] : [])],
-                text: t(LAYER_LABEL[layer]),
-                attr: { type: "button", "aria-pressed": String(on), "data-layer": layer },
-            });
-            (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", () => void this.changeLayer(thought, layer));
-        }
-        const actions = pop.createDiv({ cls: c("reader-hl-actions") });
-        this.button(actions, note ? "reader_hl_edit_note" : "reader_hl_add_note", true, () => {
-            const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
-            this.noteForm(editing, note, (text) => void this.editNote(thought, text));
-        });
-        if (thought.locator && thought.quote) this.claimButtons(actions, { quote: thought.quote, locator: thought.locator, highlight: thought }, { left: rect.left, top: rect.top, width: rect.width, height: rect.height });
         // A passage of a book or a paper becomes a note that cites its page (#683).
         if (thought.locator) {
-            this.button(actions, "reader_hl_crystallize", false, () => {
-                this.hidePopover();
-                this.toNote(this.view.app, thought);
-            });
+            more.push((parent) =>
+                this.button(parent, "reader_hl_crystallize", false, () => {
+                    this.hidePopover();
+                    this.toNote(this.view.app, thought);
+                })
+            );
         }
-        if (thought.locator && thought.quote) this.citeButton(actions, { quote: thought.quote, locator: thought.locator, highlight: thought });
-        this.button(actions, "reader_hl_delete", false, () => void this.forget(thought));
-        this.button(actions, "reader_hl_open_think", false, () => {
-            this.hidePopover();
-            this.openThink(this.view.app, thought.about ?? this.notePath ?? "");
+        const cite = offers.get("cite");
+        if (cite) more.push(cite);
+        // Its layer, changed in place (#758 FR-6).
+        more.push((parent) => {
+            const layers = parent.createDiv({ cls: c("reader-hl-layers"), attr: { role: "group", "aria-label": t("reader_hl_layer") } });
+            layers.createSpan({ cls: c("reader-hl-layers-label"), text: t("reader_hl_layer") });
+            for (const layer of MARK_LAYERS) {
+                const on = layer === layerOf(thought);
+                const button = layers.createEl("button", {
+                    cls: [c("reader-hl-layer"), ...(on ? ["is-active"] : [])],
+                    text: t(LAYER_LABEL[layer]),
+                    attr: { type: "button", "aria-pressed": String(on), "data-layer": layer },
+                });
+                (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", () => void this.changeLayer(thought, layer));
+            }
+            return layers;
         });
-        // A passage you marked yesterday can be worked on today (#756 FR-1).
-        if (thought.locator && thought.quote) this.thinkRow(pop, { quote: thought.quote, locator: thought.locator, highlight: thought });
+        this.renderRows(pop, {
+            first: (row) => {
+                // What it means, changed in place (#720).
+                const dots = row.createDiv({ cls: c("reader-hl-meanings") });
+                for (const meaning of HIGHLIGHT_MEANINGS) {
+                    this.meaningButton(dots, meaning, meaning === meaningOf(thought), () => void this.changeMeaning(thought, meaning));
+                }
+                this.button(row, note ? "reader_hl_edit_note" : "reader_hl_add_note", true, () => {
+                    const editing = this.openPopover({ left: rect.left, top: rect.top, width: rect.width }, "editing");
+                    this.noteForm(editing, note, (text) => void this.editNote(thought, text));
+                });
+            },
+            second: [],
+            // An existing highlight's own two (D1): fixed, never chosen by its length.
+            fixedSecond: (row) => {
+                this.button(row, "reader_hl_open_think", false, () => {
+                    this.hidePopover();
+                    this.openThink(this.view.app, thought.about ?? this.notePath ?? "");
+                });
+                this.button(row, "reader_hl_delete", false, () => void this.forget(thought));
+            },
+            more,
+            // A passage you marked yesterday can be worked on today (#756 FR-1).
+            think: passage,
+        });
+        this.place(pop, { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, touchPointer({ pointerType: this.pointer }));
     }
 
     /**
@@ -1533,14 +1879,19 @@ export class ReaderHighlights {
         }
     }
 
-    /** One meaning as a swatch and its name; the one in use is marked. */
+    /**
+     * One meaning as a dot (#811 FR-2): its colour, its name said on hover and to assistive technology
+     * (kept as text, hidden from sight); the one in use is marked.
+     */
     private meaningButton(parent: HTMLElement, meaning: HighlightMeaning, on: boolean, run: () => void): HTMLElement {
+        const name = t(MEANING_LABEL[meaning]);
         const button = parent.createEl("button", {
             cls: [c("reader-hl-meaning"), c(`reader-hl-meaning--${meaning}`), ...(on ? ["is-active"] : [])],
-            attr: { type: "button", "aria-pressed": String(on), "data-meaning": meaning },
+            attr: { type: "button", "aria-pressed": String(on), "aria-label": name, "data-meaning": meaning },
         });
         button.createSpan({ cls: [c("reader-hl-swatch"), c(`reader-hl-swatch--${meaning}`)] });
-        button.createSpan({ text: t(MEANING_LABEL[meaning]) });
+        button.createSpan({ cls: c("visually-hidden"), text: name });
+        setTooltip(button, name);
         (this.popoverScope ?? this.view.owner).registerDomEvent(button, "click", run);
         return button;
     }
@@ -1568,6 +1919,7 @@ export class ReaderHighlights {
             }
         }
         this.lastMeaning = meaning;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1593,6 +1945,7 @@ export class ReaderHighlights {
         }
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (entry) entry.thought = next;
+        this.ledgerOnly(thought, next);
         this.renderMargin();
         this.view.onChange();
         this.hidePopover();
@@ -1629,6 +1982,8 @@ export class ReaderHighlights {
         this.popoverScope = scope;
         // Clicks inside the popover must not count as a new selection in the chapter.
         scope.registerDomEvent(pop, "mousedown", (event: MouseEvent) => event.stopPropagation());
+        // Once focus is in it, the arrows walk its buttons (#811 FR-12).
+        scope.registerDomEvent(pop, "keydown", (event: KeyboardEvent) => this.walkPopover(event));
         this.popover = pop;
         return pop;
     }
@@ -1650,16 +2005,63 @@ export class ReaderHighlights {
         pop.createSpan({ cls: c("reader-hl-status"), text: t(key) });
         const buttons: HTMLElement[] = [];
         for (const action of actions) {
+            // An Undo is the reading's too (#810 FR-17): the button and Ctrl/⌘+Z share one guard.
+            const run = action.key === "reader_hl_undo" ? this.offerUndo(action.run, action.thought) : action.run;
             const button = this.button(pop, action.key, false, () => {
                 // One way back, once: the others go with it.
                 buttons.forEach((b) => b.setAttribute("disabled", "true"));
-                action.run();
+                run();
             });
             buttons.push(button);
         }
         this.statusTimer = ownWindow(this.view.host)?.setTimeout(() => {
             if (this.popover === pop) this.hidePopover();
         }, STATUS_MS);
+    }
+
+    /**
+     * A write's way back, offered to the reading's ledger (#810 FR-15–FR-18) — guarded once, refused
+     * when its thought changed since. Without a ledger (a test, a view that has none), the run itself.
+     */
+    private offerUndo(run: () => void, thought?: Thought): () => void {
+        const store = this.store;
+        const check = thought && store.isAsWritten ? () => store.isAsWritten?.(thought) ?? true : undefined;
+        const guarded = this.view.undoable?.(run, check);
+        if (!guarded) return run;
+        return () =>
+            void guarded().then((outcome) => {
+                if (outcome === "refused") this.say("reader_undo_refused");
+            });
+    }
+
+    /**
+     * A write with no Undo button (a meaning changed, a note edited): its way back is the ledger's only
+     * (#810 FR-16), taking the thought back to what it was — refused once it changed since.
+     */
+    private ledgerOnly(before: Thought, after: Thought): void {
+        this.offerUndo(() => void this.putBack(before, after), after);
+    }
+
+    /** A thought back as it was (#810): saved, its marks recoloured, its row redrawn. */
+    private async putBack(before: Thought, after: Thought): Promise<void> {
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: before.about ?? "" }, () => this.store.save(before));
+        } catch (error) {
+            log.error(`[Reader] could not take a change back: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return;
+        }
+        const entry = this.anchored.find((candidate) => candidate.thought.id === after.id);
+        if (entry) {
+            entry.thought = before;
+            const meaning = meaningOf(before);
+            for (const mark of [...entry.marks, ...this.tintsOf(before.id)]) {
+                for (const other of HIGHLIGHT_MEANINGS) mark.removeClass(c(`reader-highlight--${other}`));
+                mark.addClass(c(`reader-highlight--${meaning}`));
+            }
+        }
+        this.renderMargin();
+        this.view.onChange();
     }
 
     private button(parent: HTMLElement, key: LocaleKey, primary: boolean, run: () => void): HTMLElement {

@@ -50,13 +50,15 @@ export interface OpenOverPage {
     palette?: boolean;
     detour?: boolean;
     panel?: boolean;
+    /** Re-anchoring a detached highlight (#810 FR-12): after a panel, before deep reading. */
+    reanchor?: boolean;
     deep?: boolean;
 }
 
-export type EscapeStep = "proposal" | "shortcuts" | "note" | "search" | "popover" | "peek" | "listen" | "snapshot" | "palette" | "detour" | "panel" | "deep" | "exit";
+export type EscapeStep = "proposal" | "shortcuts" | "note" | "search" | "popover" | "peek" | "listen" | "snapshot" | "palette" | "detour" | "panel" | "reanchor" | "deep" | "exit";
 
 /** The Esc order: today's nearest-first order, with deep reading just before leaving the Reader (FR-6). */
-const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["proposal", "shortcuts", "note", "search", "popover", "peek", "listen", "snapshot", "palette", "detour", "panel", "deep"];
+const ORDER: readonly Exclude<EscapeStep, "exit">[] = ["proposal", "shortcuts", "note", "search", "popover", "peek", "listen", "snapshot", "palette", "detour", "panel", "reanchor", "deep"];
 
 /** The one thing the next Esc closes: the nearest open thing, and the Reader itself when nothing is. */
 export function escapeStep(open: OpenOverPage): EscapeStep {

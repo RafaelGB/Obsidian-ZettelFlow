@@ -93,20 +93,21 @@ describe("ReaderTrail — where you've been (#761 FR-6–FR-9, AC-5)", () => {
 
     it("lists every place newest first, each with what took you away", () => {
         const trail = filled();
-        expect(trail.list().map((e) => e.reason)).toEqual(["passage", "bookmark", "note", "search", "contents", "link"]);
-        expect(trail.size).toBe(6);
+        expect(trail.list().map((e) => e.reason)).toEqual(["scrubber", "passage", "bookmark", "note", "search", "contents", "link"]);
+        expect(trail.size).toBe(7);
     });
 
     it("pops the newest: the pill and Alt+← walk the same trail as the list (FR-8)", () => {
         const trail = filled();
-        expect(trail.pop()?.reason).toBe("passage");
-        expect(trail.list()[0].reason).toBe("bookmark");
+        expect(trail.pop()?.reason).toBe("scrubber");
+        expect(trail.list()[0].reason).toBe("passage");
     });
 
     it("takes only the chosen row off the trail, and a pop then skips it", () => {
         const trail = filled();
-        expect(trail.takeAt(1)?.reason).toBe("bookmark");
-        expect(trail.list().map((e) => e.reason)).toEqual(["passage", "note", "search", "contents", "link"]);
+        expect(trail.takeAt(2)?.reason).toBe("bookmark");
+        expect(trail.list().map((e) => e.reason)).toEqual(["scrubber", "passage", "note", "search", "contents", "link"]);
+        trail.pop();
         trail.pop();
         expect(trail.pop()?.reason).toBe("note");
         expect(trail.takeAt(9)).toBeUndefined();

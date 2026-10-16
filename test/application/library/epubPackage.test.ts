@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { parsePackage } from "application/library/epubPackage";
+import { parseLandmarkText, parsePackage } from "application/library/epubPackage";
 import { DEFAULT_PAGE, layoutOf, pageSize, pairSpreads, spreadSide, svgPageSize, viewportOf } from "application/library/epubFixedLayout";
 import { miniParse } from "../../support/miniXml";
 
@@ -142,5 +142,38 @@ describe("spreads as the book pairs them (#771 AC-2)", () => {
         expect(spreadSide({ properties: ["page-spread-right"] })).toBe("right");
         expect(spreadSide({ properties: ["rendition:page-spread-center"] })).toBe("center");
         expect(spreadSide({})).toBeUndefined();
+    });
+});
+
+describe("where the text of a book begins (#808 FR-1)", () => {
+    const book = (guide: string) =>
+        `<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="2.0"><metadata/><manifest><item id="c" href="Text/cubierta.xhtml" media-type="application/xhtml+xml"/><item id="s" href="Text/sinopsis.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="c"/><itemref idref="s"/></spine>${guide}</package>`;
+
+    it("reads the EPUB 2 guide's text reference, resolved inside the book", () => {
+        const pkg = parsePackage(book('<guide><reference type="cover" href="Text/cubierta.xhtml"/><reference type="text" title="Texto" href="Text/sinopsis.xhtml"/></guide>'), "OEBPS/content.opf", parse);
+        expect(pkg.textHref).toBe("OEBPS/Text/sinopsis.xhtml");
+    });
+
+    it("accepts start and any case, and drops a fragment", () => {
+        expect(parsePackage(book('<guide><reference type="Start" href="Text/sinopsis.xhtml#top"/></guide>'), "OEBPS/content.opf", parse).textHref).toBe("OEBPS/Text/sinopsis.xhtml");
+    });
+
+    it("says nothing when the book has no guide, or the guide names no text", () => {
+        expect(parsePackage(book(""), "OEBPS/content.opf", parse).textHref).toBeUndefined();
+        expect(parsePackage(book('<guide><reference type="toc" href="Text/cubierta.xhtml"/></guide>'), "OEBPS/content.opf", parse).textHref).toBeUndefined();
+    });
+});
+
+describe("the EPUB 3 landmarks (#808 FR-1)", () => {
+    const nav = (landmarks: string) =>
+        `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body><nav epub:type="toc"><ol><li><a href="ch1.xhtml">One</a></li></ol></nav>${landmarks}</body></html>`;
+
+    it("reads bodymatter, resolved against the nav", () => {
+        expect(parseLandmarkText(nav('<nav epub:type="landmarks"><ol><li><a epub:type="cover" href="cover.xhtml">Cover</a></li><li><a epub:type="bodymatter" href="ch1.xhtml#start">Start</a></li></ol></nav>'), "OEBPS/nav.xhtml", parse)).toBe("OEBPS/ch1.xhtml");
+    });
+
+    it("says nothing without landmarks or without bodymatter", () => {
+        expect(parseLandmarkText(nav(""), "OEBPS/nav.xhtml", parse)).toBeUndefined();
+        expect(parseLandmarkText(nav('<nav epub:type="landmarks"><ol><li><a epub:type="toc" href="toc.xhtml">Contents</a></li></ol></nav>'), "OEBPS/nav.xhtml", parse)).toBeUndefined();
     });
 });

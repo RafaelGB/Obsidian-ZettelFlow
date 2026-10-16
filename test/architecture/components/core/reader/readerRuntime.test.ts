@@ -2,6 +2,7 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { press } from "../../../../support/readerKeys";
 import { DomNode, flush } from "../../../../support/dashboardDom";
+import { kicker, place } from "../../../../support/readerPlace";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
 import { KnowledgeIndex } from "architecture/knowledge";
@@ -115,7 +116,7 @@ describe("the reader in the real app (#667)", () => {
         key(content, "ArrowRight", { ctrlKey: true });
         key(content, "ArrowRight", { altKey: true });
         await flush();
-        expect(content.oneByClass("reader-count").textContent).toBe("01 / 03");
+        expect(place(content)).toBe("Chapter 1 / 3");
     });
 
     it("drops the detour and the peek when another reading is opened in the same leaf", async () => {
@@ -123,7 +124,7 @@ describe("the reader in the real app (#667)", () => {
         body(content).fire("click", { target: link(content, "x") });
         content.byClass("reader-peek-action").find((b) => b.textContent === "Read as a detour")!.click();
         await flush();
-        expect(content.oneByClass("reader-count").textContent).toBe("Detour");
+        expect(kicker(content)).toBe("Detour");
 
         await view.setState({ seed: "b.md", kind: "selection", paths: ["b.md", "c.md"] }, {} as never);
         await flush();

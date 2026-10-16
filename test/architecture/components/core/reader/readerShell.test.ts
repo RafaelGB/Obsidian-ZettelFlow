@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import { MarkdownRenderer, Platform, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { ReaderView, readableBody } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState, READER_VIEW } from "architecture/components/core/reader/readerContract";
@@ -177,7 +178,7 @@ describe("the reader view (#668)", () => {
         // The raw note goes to the renderer, which hides the properties itself (as Obsidian does).
         expect(MarkdownRenderer.calls.at(-1)).toEqual({ markdown: "---\nstate: fleeting\n---\nThe body of A.", sourcePath: "a.md" });
         expect(content.oneByClass("reader-body").textContent).not.toContain("fleeting");
-        expect(content.oneByClass("reader-count").textContent).toBe("01 / 01");
+        expect(place(content)).toBe("Chapter 1 / 1");
         expect(content.oneByClass("reader-chapter-title").textContent).toBe("a");
         expect(content.byClass("reader-role-tag")[0].textContent).toBe("Context");
     });

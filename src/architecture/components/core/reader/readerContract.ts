@@ -35,8 +35,11 @@ export interface ReaderState {
      * the place in it.
      */
     source?: string;
-    /** A PDF drawn as its pages were laid out (#681), instead of reflowed into the column. */
-    layout?: "page";
+    /**
+     * A PDF drawn as its pages were laid out (#681), or reflowed into the column — said by the tab or a
+     * link (#813 FR-23), it wins over the view remembered or suggested for the paper.
+     */
+    layout?: "page" | "reading";
     /**
      * Opened from the Library in its own leaf (#733, epic #729): the Library's state to give that
      * leaf back to on exit — its filter, sort, scroll and the book to come back to. Flat values only.
@@ -76,7 +79,7 @@ export function parseReaderState(raw: unknown): ReaderState {
     if (typeof value.highlight === "string" && value.highlight.length > 0) state.highlight = value.highlight;
     if (typeof value.name === "string" && value.name.trim().length > 0) state.name = value.name.trim();
     if (typeof value.source === "string" && /\.(pdf|epub|md)$/i.test(value.source)) state.source = value.source;
-    if (value.layout === "page") state.layout = "page";
+    if (value.layout === "page" || value.layout === "reading") state.layout = value.layout;
     if (typeof value.at === "string" && value.at.length > 0 && value.at.length <= 4096) state.at = value.at;
     if (typeof value.claimFrom === "string" && value.claimFrom.length > 0 && value.claimFrom.length <= 512) state.claimFrom = value.claimFrom;
     if (value.back !== null && typeof value.back === "object" && !Array.isArray(value.back)) {

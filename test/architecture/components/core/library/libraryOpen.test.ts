@@ -30,7 +30,14 @@ describe("opening what is on the shelf (#680, #681)", () => {
         expect(openReader.mock.calls[0][1]).toMatchObject({ seed: "P/a.pdf", source: "P/a.pdf", chapter: 4 });
         expect(openReader.mock.calls[0][1]).not.toHaveProperty("highlight");
         openShelfItem(app, item({ file: "B/b.epub", format: "epub" }), null, { highlight: "h2" });
-        expect(openReader.mock.calls[1][1]).toMatchObject({ source: "B/b.epub", chapter: 0, highlight: "h2" });
+        expect(openReader.mock.calls[1][1]).toMatchObject({ source: "B/b.epub", highlight: "h2" });
+    });
+
+    it("never opened: no chapter at all, so the Reader opens where the text begins (#808 FR-2a)", () => {
+        openShelfItem(app, item({ file: "B/b.epub", format: "epub" }), null);
+        expect(openReader.mock.calls[0][1]).not.toHaveProperty("chapter");
+        openShelfItem(app, item({ file: "B/b.epub", format: "epub", place: 0 }), null);
+        expect(openReader.mock.calls[1][1]).toMatchObject({ chapter: 0 });
     });
 
     it("opens an article in the Reader at the section it was left on (#744 AC-4)", () => {

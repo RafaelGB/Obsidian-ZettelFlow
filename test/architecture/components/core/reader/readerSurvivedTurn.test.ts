@@ -2,6 +2,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { kicker, place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
@@ -110,7 +111,7 @@ function layOut(content: DomNode) {
 }
 
 const livePage = (content: DomNode) => content.byClass("reader-stage")[0]?.children.find((child) => child.hasClass(cls("reader-page")));
-const count = (content: DomNode) => livePage(content)?.byClass("reader-count")[0]?.textContent ?? "";
+const count = (content: DomNode) => place(content);
 const leafOn = (content: DomNode) => (livePage(content)?.byClass("reader-survived").length ?? 0) > 0;
 async function drawn(content: DomNode, chapter: number) {
     await settle(() => count(content) === `Chapter ${chapter} / 4` && (livePage(content)?.byClass("reader-next").length ?? 0) > 0);
@@ -180,7 +181,7 @@ describe("what survived, over the Reader (#755)", () => {
         await settle(() => leafOn(m.content));
         expect(turns(rec).length).toBeGreaterThan(played);
         const leaf = livePage(m.content)!.oneByClass("reader-survived");
-        expect(leaf.oneByClass("reader-count").textContent).toBe("End of chapter 1");
+        expect(kicker(leaf)).toBe("End of chapter 1");
         expect(leaf.oneByClass("reader-chapter-title").textContent).toBe("What survived?");
         expect(leaf.oneByClass("reader-survived-chapter").textContent).toBe("Prelude");
         expect(leaf.byClass("reader-survived-mark").map((row) => row.getAttribute("data-hl"))).toEqual(["h1"]);

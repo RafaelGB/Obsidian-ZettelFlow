@@ -51,9 +51,12 @@ describe("the Library and the Reader share one leaf (#733)", () => {
         expect(ws.getLeaf).not.toHaveBeenCalled();
         expect(library.setViewState).toHaveBeenCalledWith({
             type: "zettelflow-reader",
-            state: { source: "B/b.epub", chapter: 0, back },
+            state: { source: "B/b.epub", back },
             active: true,
         });
+        // A chapter asked for is kept, chapter 0 included (#808 FR-2a); a note reading starts at 0.
+        await openReader({ workspace: ws } as never, { seed: "B/b.epub", source: "B/b.epub", chapter: 0, leaf: library, back });
+        expect(library.setViewState).toHaveBeenLastCalledWith(expect.objectContaining({ state: { source: "B/b.epub", chapter: 0, back } }));
     });
 
     it("closes another reader first: there is only one", async () => {

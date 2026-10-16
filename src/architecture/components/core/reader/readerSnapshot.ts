@@ -160,6 +160,8 @@ export interface SnapshotCapture {
 /** What the Reader lends the snapshot. */
 export interface SnapshotView {
     app: App;
+    /** The reading's undo ledger (#810 FR-16): a snapshot's Undo is Ctrl/⌘+Z's too, guarded once. */
+    undoable?(run: () => unknown): () => Promise<"undone" | "refused" | "spent">;
     /** The Reader's root, positioned: the rectangle, the card and the flights are drawn in it. */
     root: HTMLElement;
     owner: Component;
@@ -545,14 +547,17 @@ export class ReaderSnapshot implements ProposalOwner {
     }
 
     private undoer(card: Card, saved: SnapshotSaved): () => void {
-        return () => {
+        const run = () => {
             const batch = saved.batch;
-            if (!batch) return;
-            void this.undo(batch).then((ok) => {
+            if (!batch) return Promise.resolve();
+            return this.undo(batch).then((ok) => {
                 if (ok && saved.thought) this.view.pageNoteRemoved(saved.thought.id);
                 if (!card.gone) this.status(card, t(ok ? "reader_snapshot_undone" : "reader_snapshot_failed"));
             });
         };
+        // One way back, shared with Ctrl/⌘+Z (#810 FR-17).
+        const guarded = this.view.undoable?.(run);
+        return () => void (guarded ? guarded() : run());
     }
 
     /** A fleeting note: the picture flies into its row under *Notes on this page* (FR-11). */

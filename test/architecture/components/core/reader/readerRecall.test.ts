@@ -202,7 +202,8 @@ describe("recall, over the Reader (#760)", () => {
     async function recall(m: Awaited<ReturnType<typeof open>>) {
         contentsButton(m.content).click();
         const door = panel(m.content).find((el) => el.tag === "button" && el.hasClass(cls("reader-recall-door")))!;
-        expect(door.textContent).toBe("Recall this chapter");
+        // A head action now (#812 FR-11): its name is its label and its tooltip.
+        expect(door.getAttribute("aria-label")).toBe("Recall this chapter");
         door.click();
         rec.finishAll();
         await flush();
@@ -236,7 +237,7 @@ describe("recall, over the Reader (#760)", () => {
             for (const [attr, value] of [["spellcheck", "false"], ["autocorrect", "off"], ["autocapitalize", "off"], ["autocomplete", "off"]]) expect(area.getAttribute(attr)).toBe(value);
             // It lies beside the page, as Alongside does; the margin's list steps back.
             expect(panel(m.content).hasClass(cls("reader-panel--side"))).toBe(true);
-            expect(m.content.hasClass(cls("reader--alongside")) || m.content.find((el) => el.hasClass(cls("reader--alongside"))) !== undefined).toBe(true);
+            expect(m.content.hasClass(cls("reader--drawer")) || m.content.find((el) => el.hasClass(cls("reader--drawer"))) !== undefined).toBe(true);
             // Nothing is offered to keep before you have looked.
             expect(c0.find((el) => el.hasClass(cls("reader-recall-keep")))).toBeUndefined();
         });

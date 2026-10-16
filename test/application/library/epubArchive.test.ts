@@ -29,6 +29,19 @@ describe("a small unzip, with the platform's own inflate (#680)", () => {
         expect(await archive.text("missing")).toBeNull();
     });
 
+    it("says how large an entry is from the directory alone, never inflating it (#813 decision 1)", () => {
+        let inflated = 0;
+        const zip = makeZip({ "a/b.txt": "hello ".repeat(200), "My Chapter.xhtml": "x" });
+        const archive = new ZipArchive(zip, async (bytes) => {
+            inflated++;
+            return bytes;
+        });
+        expect(archive.size("a/b.txt")).toBe(1200);
+        expect(archive.size("My%20Chapter.xhtml")).toBe(1);
+        expect(archive.size("missing")).toBeNull();
+        expect(inflated).toBe(0);
+    });
+
     it("finds an entry a book links URL-encoded", async () => {
         const archive = new ZipArchive(makeZip({ "My Chapter.xhtml": "x" }));
         expect(await archive.text("My%20Chapter.xhtml")).toBe("x");

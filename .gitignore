@@ -145,3 +145,5 @@ __pycache__
 
 # Local Obsidian test vault path — set this to your plugin directory for dev:vault
 .vault-path
+# Claude Code agent worktrees
+.claude/worktrees/

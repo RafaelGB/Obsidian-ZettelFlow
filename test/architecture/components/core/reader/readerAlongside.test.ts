@@ -6,6 +6,7 @@ import { MarkdownRenderer, TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
 import { log } from "architecture";
 import { DomNode, flush, installBrowserGlobals, settle } from "../../../../support/dashboardDom";
 import { withPlatform, IPAD } from "../../../../support/platform";
+import { reducedMotion } from "../../../../support/motionDom";
 import { makePdfJs, prose } from "../../../../support/fakePdf";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -141,7 +142,7 @@ function layOut(content: DomNode, stage: any, root: any) {
     const paragraphs = content.oneByClass("reader-body").findAll((el) => el.tag === "p") as any[];
     paragraphs.forEach((p, i) => {
         p.getBoundingClientRect = () => {
-            const h = root.hasClass("zettelkasten-flow__reader--alongside") ? 150 : 100;
+            const h = root.hasClass("zettelkasten-flow__reader--drawer") ? 150 : 100;
             return { left: 0, top: i * h - stage.scrollTop, width: 600, height: h };
         };
     });
@@ -382,10 +383,73 @@ describe("Alongside: your vault beside the page (#754)", () => {
         const share = (line - paragraphs[at].getBoundingClientRect().top) / paragraphs[at].getBoundingClientRect().height;
         alongsideButton(content).click();
         await flush();
-        expect(root.hasClass("zettelkasten-flow__reader--alongside")).toBe(true);
+        expect(root.hasClass("zettelkasten-flow__reader--drawer")).toBe(true);
         expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(true);
         const box = paragraphs[at].getBoundingClientRect();
         expect(Math.abs(box.top + share * box.height - line)).toBeLessThan(1);
+    });
+
+    it("docks Type beside the column too, never a card over it, the reading line kept (#809 FR-11, FR-13)", async () => {
+        const { content, stage, root } = await open();
+        stage.scrollTop = 120;
+        const paragraphs = layOut(content, stage, root);
+        const line = 800 / 3;
+        const at = paragraphs.findIndex((p) => p.getBoundingClientRect().top + p.getBoundingClientRect().height > line);
+        const share = (line - paragraphs[at].getBoundingClientRect().top) / paragraphs[at].getBoundingClientRect().height;
+        content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Type")!.click();
+        await flush();
+        expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(true);
+        expect(root.hasClass("zettelkasten-flow__reader--drawer")).toBe(true);
+        const box = paragraphs[at].getBoundingClientRect();
+        expect(Math.abs(box.top + share * box.height - line)).toBeLessThan(1);
+    });
+
+    it("opens every panel in one drawer beside the column, and a second one swaps in place (#812 FR-1, FR-5)", async () => {
+        const { content, root } = await open();
+        const bar = (label: string) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === label)!;
+        for (const label of ["Contents", "Type", "Layers", "Alongside"]) {
+            bar(label).click();
+            await flush();
+            expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(true);
+            expect(root.hasClass("zettelkasten-flow__reader--drawer")).toBe(true);
+            expect(bar(label).getAttribute("aria-pressed")).toBe("true");
+        }
+        // Alongside → Contents: the same drawer, its content swapped with a beat of fade.
+        const host = panel(content);
+        const motion = reducedMotion(false);
+        bar("Contents").click();
+        await flush();
+        motion();
+        expect(panel(content)).toBe(host);
+        expect(host.hasClass("zettelkasten-flow__reader-panel--leaving")).toBe(false);
+        expect(host.children.some((child) => child.hasClass("zettelkasten-flow__reader-drawer-swap"))).toBe(true);
+        expect(["Contents", "Type", "Layers", "Alongside"].filter((label) => bar(label).getAttribute("aria-pressed") === "true")).toEqual(["Contents"]);
+    });
+
+    it("on an iPad in portrait the drawer is the sheet, and a swap keeps it where it is (#812 T9)", async () => {
+        await withPlatform(IPAD, async () => {
+            const { content } = await open({}, { width: 820, height: 1180 });
+            const bar = (label: string) => content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === label)!;
+            bar("Type").click();
+            await flush();
+            const host = panel(content);
+            const y = host.getCssProp?.("--zf-sheet-y") ?? (host as any).cssProps?.["--zf-sheet-y"];
+            bar("Contents").click();
+            await flush();
+            expect(panel(content)).toBe(host);
+            expect(host.hasClass("zettelkasten-flow__reader-panel--sheet")).toBe(true);
+            expect(host.getCssProp?.("--zf-sheet-y") ?? (host as any).cssProps?.["--zf-sheet-y"]).toBe(y);
+        });
+    });
+
+    it("Type rises as the sheet in portrait on an iPad (#809 FR-12)", async () => {
+        await withPlatform(IPAD, async () => {
+            const { content } = await open({}, { width: 820, height: 1180 });
+            content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Type")!.click();
+            await flush();
+            expect(panel(content).hasClass("zettelkasten-flow__reader-panel--sheet")).toBe(true);
+            expect(panel(content).hasClass("zettelkasten-flow__reader-panel--side")).toBe(false);
+        });
     });
 
     it("rises as the sheet in portrait on an iPad (FR-14)", async () => {

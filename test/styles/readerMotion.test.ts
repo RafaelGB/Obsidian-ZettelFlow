@@ -276,11 +276,11 @@ describe("Alongside moves like a margin, never like a redraw (#754 AC-10)", () =
 
     it("moves ink's palette out of the column's way: above the bar, centred under the narrowed column (#745 beside #754)", () => {
         const ink = sheet("components/ink.scss");
-        const at = ink.indexOf(".zettelkasten-flow__reader--alongside {");
+        const at = ink.indexOf(".zettelkasten-flow__reader--drawer {");
         expect(at).toBeGreaterThan(0);
         const block = ink.slice(at, ink.indexOf("\n}", at));
         expect(block).toContain("@include palette-above-bar;");
-        expect(block).toContain("left: calc((100% - var(--zf-alongside-w) - var(--size-4-6)) / 2);");
+        expect(block).toContain("left: calc((100% - var(--zf-drawer-w) - var(--size-4-6)) / 2);");
     });
 });
 

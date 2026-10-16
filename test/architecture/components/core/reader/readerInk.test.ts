@@ -3,6 +3,7 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 import { Component, MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { log } from "architecture";
 import { DomNode, flush, installBrowserGlobals } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
 import { penStroke, penUp, touchSwipe, touchTap, twoFingers } from "../../../../support/pointer";
 import { withPlatform, IPAD } from "../../../../support/platform";
@@ -151,7 +152,7 @@ const palette = (content: DomNode) => content.oneByClass("reader-ink-palette");
 const layer = (content: DomNode) => content.oneByClass("reader-ink-layer");
 const paths = (content: DomNode) => layer(content).findAll((el) => el.tag === "path" && el.isConnected);
 const status = (content: DomNode) => content.oneByClass("reader-ink-status");
-const count = (content: DomNode) => content.oneByClass("reader-count").textContent;
+const count = (content: DomNode) => place(content);
 const word = [
     { x: 300, y: 300 },
     { x: 310, y: 290 },
@@ -245,7 +246,7 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         openPalette(content);
         touchSwipe(stage, { x: 800, y: 400 }, { x: 400, y: 410 });
         await flush();
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
     });
 
     it("rejects a palm: a touch while the pen is down, or just after it lifts, neither scrolls nor turns (FR-3)", async () => {
@@ -308,7 +309,7 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         press(content as never, "ArrowRight");
         await flush();
         expect(pageInk.save).toHaveBeenCalledTimes(1);
-        expect(count(content)).toBe("02 / 03");
+        expect(count(content)).toBe("Chapter 2 / 3");
         penStroke(stage, word, { pointerId: PEN });
         view.exit();
         await flush();
@@ -424,10 +425,11 @@ describe("ink in the margin: the palette and the ink layer (#745)", () => {
         expect(store.writeInk).not.toHaveBeenCalled();
     });
 
-    it("undoes with Ctrl/Cmd+Z while the palette is open, and leaves the key to Obsidian otherwise", async () => {
+    it("undoes with Ctrl/Cmd+Z while the palette is open; closed, the key is the reading's own undo (#810 FR-20)", async () => {
         const { content, stage, view } = await open();
         const mod = () => (view as any).scope.handleKey({ key: "z", preventDefault: () => undefined }, { modifiers: "Mod", key: "z" });
-        expect(mod()).toBe(true);
+        // Closed: the Reader takes it — nothing to undo yet, said quietly, never another view's (#810).
+        expect(mod()).toBe(false);
         openPalette(content);
         penStroke(stage, word, { pointerId: PEN });
         expect(mod()).toBe(false);

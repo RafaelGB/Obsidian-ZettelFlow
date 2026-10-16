@@ -310,6 +310,14 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 Page view is the paper as printed, made into a place you can read it — at a desk, and with a pinch on
 an iPad (#767):
 
+- **The view it opens in.** A paper you have never turned Page view on or off for opens in the view
+  it reads best in: a form, a poster or a page of figures — where most of what its first pages hold
+  are short fragments, or there is little text at all — opens **as printed**; prose opens reflowed.
+  The Reader decides from the text of the first three pages, once per copy of the file (a new copy is
+  sampled again), and keeps it beside the paper's place — the PDF itself is never written. **The view
+  you choose wins from then on**: turn Page view on or off (**V**, or its button) and the paper opens
+  that way next time. A tab you left open opens as you left it.
+
 - **Zoom.** It opens at **Fit width**. **Ctrl/⌘ + wheel**, a trackpad pinch, a two-finger pinch on
   touch, **Ctrl/⌘ +** and **Ctrl/⌘ −** zoom from 50 % to 400 %; **Ctrl/⌘ 0**, the level in the bar
   and a double tap go back to **Fit width** (a double tap at Fit width goes to twice it). The page grows
@@ -404,6 +412,17 @@ contents, nested as the book nests them.
 
 ![An EPUB in the Reader: a chapter rebuilt in your reading font, with a figure from the book and a highlight, and the book's own contents](../resources/library/epub-chapter.svg)
 
+- **It opens on its text.** A book you have never opened starts where the book says its text begins —
+  the EPUB 3 nav's `bodymatter` landmark, or the `text` entry of an older book's `<guide>` — not on
+  its cover, title page or credits. A book that says neither opens on its first chapter, as before.
+  The cover and the front matter are still there: **Contents** and **Home** reach them, and a book
+  you have read before always opens where you left it.
+- **A cover is one page.** A chapter that is only a picture — the cover — is shown as one page, the
+  picture fitted to it and centred (alone across both pages in *Spread*). A heading with no words in
+  it, which many covers carry, never takes a page of its own.
+- **An untitled chapter is named by its heading.** A chapter the contents never name reads as
+  *Chapter n* until it is drawn; from then on it goes by its first heading (*Dedicatoria*) wherever the
+  Reader names it. A highlight's place keeps the chapter's own label, so it is always found again.
 - **In your type and your theme.** Each chapter is rebuilt in the Reader's own column: the book's
   headings, paragraphs, lists, tables, quotes and figures — not its fonts, colours or layout.
 - **Safe by construction.** A chapter is never inserted as HTML. It is parsed as data and rebuilt one
@@ -413,7 +432,9 @@ contents, nested as the book nests them.
 - **Footnotes are read in place.** Click a footnote mark and the note floats over the page, at the
   mark. That works for a note in the chapter and for an endnote at the back of the book. The page
   does not move; Esc or a click elsewhere puts it away, and **Go to note** goes there.
-- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens a slim bar under the top.
+- **Search inside the book.** **Ctrl/Cmd+F** (or the bar's search) opens it in the Reader's drawer,
+  beside the page; its field keeps your words through every jump, and opening another panel there
+  puts the search away, tints and all.
   It searches every chapter or page, ignoring case and accents, and says *N results · in M chapters*,
   each with its snippet and its page or chapter. **Enter** and **Shift+Enter** step through them; the
   matches are tinted in the page and the current one is outlined. A match in another chapter is a
@@ -526,6 +547,9 @@ it — each with the size and date of the file it was read from, so a replaced f
 An article's place is kept the same way, under the clipping's path; a status or a collection you
 set on an article is the one thing written into it.
 Covers are kept for the session only, in memory: never in your vault, never in the settings.
+**A book renamed or moved in the vault keeps all of it** (#810): its place, bookmarks, layers, ink
+and highlights follow the new path, with the Library open or closed — see
+[Where ink is kept](reader.md#where-ink-is-kept).
 
 What you *mark* — highlights and margin notes — is not kept by the Library at all: those are
 [thoughts in Think](../architecture/thought-lab.md), files you can open.
@@ -589,6 +613,7 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle test/architecture/components/core/library/bookNoteWriter` | the *Articles* chip and *Change* writing the same setting as Settings → Reading, articles off; an article opened with the shot from its drawn cover; a clipping in the Reader (its sections, Contents, no Page view, highlights at their section, its place kept, the note never written); its status written alone into its own frontmatter, recorded, undone; *Recently added* and its fourth order, a card settling in, nothing at the first draw, reduced motion |
 | `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses*; the *Articles folder* row: `Clippings` by default, emptied to turn articles off, a reset |
 | `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
+| `npx jest test/architecture/plugin/library/sourceRenameFollow` | a renamed book keeps its place, bookmarks, layers, ink and thoughts, with the shelf closed; a book with nothing of yours writes nothing (#810) |
 | `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists over a hand-built vault, each deduplicated and stable, the book's note in none of them; an empty source, highlights only, notes only, an article, a saved path; no digit in a heading, five then *Show all*, the empty message, *Reading your vault…* filled when ready; each item opening its note, its pair in a split, its passage, Think; nothing written; the rise in turn, none the second time, *Show all* by translate, reduced motion |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
 | `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
@@ -616,7 +641,7 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    to the Library.
 6. **From the file.** Right-click the EPUB in the file explorer → **Show in the library**: the Library
    opens on its detail.
-7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n*, the text in your
+7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n* in the bar, the text in your
    reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
    page as laid out at the width of the screen, *100%* in the bar, *Highlight in the reading view*).
    **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link
@@ -626,13 +651,15 @@ In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
    in on its printed area with your line kept; the running head and the page number are still there,
    and the text is the same size on every page. Off is the same move back. Close and reopen the paper:
    still cropped, at once.
-8. **Highlight.** Select a sentence → **Highlight and note**: the sentence stays marked while you
+8. **Highlight.** Select a sentence → **Note**: the sentence stays marked while you
    type. Write a note, **Save**. Expect it in the
    margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
    and the highlight is there. In Think the thought shows the passage and *› p. n*.
 9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
    nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
-10. **A book.** Open the EPUB. Expect its title and author on the top line and *Chapter 1 / n*;
+10. **A book.** Open the EPUB. A book never opened before opens where its text begins (a book with
+    a cover, a title page and credits opens past them); **Home** goes back to its cover, drawn as one
+    page with nothing on a second. Expect its title and author on the top line;
     **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
     the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
     Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.

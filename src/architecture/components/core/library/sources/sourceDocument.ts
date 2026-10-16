@@ -38,6 +38,18 @@ export interface SourceChapter {
     key?: string;
     /** A PDF page's print label, when the paper gives its pages labels (#751 FR-3). */
     page?: string;
+    /**
+     * How long the chapter is, beside the others (#813 FR-2): an EPUB spine item's unpacked size, an
+     * article section's length. Absent: as long as the average.
+     */
+    weight?: number;
+    /** The book's contents never name it (#808 FR-11): its label is only *Chapter n*. */
+    untitled?: true;
+    /**
+     * What an untitled chapter calls itself (#808 FR-11): its first heading, learnt once it is drawn.
+     * Shown where the chapter is named — never stored in a place, which keeps `label` (FR-12).
+     */
+    heading?: string;
 }
 
 export interface SourceTocEntry {
@@ -59,6 +71,10 @@ export interface DrawnChapter {
     designed?: boolean;
     /** Where each print page the book declares begins in the chapter's text (#751 FR-3). */
     pageMarks?: PageMark[];
+    /** An untitled chapter's first heading (#808 FR-11), at most 80 characters. */
+    heading?: string;
+    /** A chapter of pictures and no words — a cover (#808 FR-7): drawn as one page. */
+    cover?: boolean;
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */
@@ -144,10 +160,17 @@ export interface SourceDocument {
     imageOnly: boolean;
     /** Whether the source has a page layout worth keeping: PDFs do, EPUBs reflow by nature. */
     hasPageView: boolean;
+    /** The view a PDF reads best in, read off its first pages (#813 FR-20, FR-21). */
+    suggestedView?: SourceView;
     /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
     direction?: "ltr" | "rtl";
     /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */
     language?: string;
+    /**
+     * Where its text begins (#808 FR-1): the chapter a first reading opens on — past the cover, the
+     * title page and the credits — and the element in it when the book names one. Absent: chapter 0.
+     */
+    start?: { chapter: number; fragment?: string };
     /** Draw chapter `index` into `body`. Anything it holds is let go with `component`. */
     draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter>;
     /**

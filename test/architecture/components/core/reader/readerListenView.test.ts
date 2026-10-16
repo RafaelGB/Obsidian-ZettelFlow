@@ -2,6 +2,7 @@
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
 import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, settle } from "../../../../support/dashboardDom";
+import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { parseXml } from "../../../../support/miniXml";
 import { makeEpub } from "../../../../support/zipFixture";
@@ -137,7 +138,7 @@ function layOut(content: DomNode) {
 }
 
 const livePage = (content: DomNode) => content.byClass("reader-stage")[0]?.children.find((child) => child.hasClass(cls("reader-page")));
-const count = (content: DomNode) => livePage(content)?.byClass("reader-count")[0]?.textContent ?? "";
+const count = (content: DomNode) => place(content);
 const body = (content: DomNode) => livePage(content)!.oneByClass("reader-body");
 const paragraphs = (content: DomNode) => body(content).findAll((el) => el.tag === "p");
 const tinted = (content: DomNode) => paragraphs(content).findIndex((p) => p.hasClass(cls("reader-listen-now")));

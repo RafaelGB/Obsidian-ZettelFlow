@@ -1,143 +1,123 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Bookmarks, and where you've been. Left: a page of a book with the bookmark ribbon filled at its top-right corner, dropped in from the edge, and the line you landed on marked for a moment under the words. Middle: the Contents panel on its Bookmarks tab, Contents, Bookmarks and Where you've been as three chips with no count, two bookmarks listed with their chapter, their first words and when they were made, each with a remove button. Right: the Where you've been tab, newest first, Before a search and Before a link, each with its chapter; the back pill, Alt and the left arrow, and two fingers swiping right walk the same trail. Bottom: going to a place is a camera move; a far page is reached by sliding the last three pages, faint at first, never by a cut.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Bookmarks, and where you've been, in the one drawer. Left: a page of a book with the bookmark ribbon filled at the column's top-right corner, and the line you landed on marked for a moment under the words. Right: the drawer on its Bookmarks tab — Contents, Bookmarks and Where you've been as three chips with no count, then the pencil for Recall and the notebook, then its close — two bookmarks with their chapter, their first words and when they were made, each with a remove button. Below it the same drawer on Where you've been: newest first, Before a search and Before a link, each with its chapter; the back pill, Alt and the left arrow, and two fingers swiping right walk the same trail. Bottom: going to a place is a camera move; a far page is reached by sliding the last three pages, faint at first, never by a cut.">
 <rect width="1200" height="820" fill="#141416"/>
-<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">BOOKMARKS, AND WHERE YOU'VE BEEN</text>
-
-<!-- ── the page, with its ribbon ──────────────────────────────────────────── -->
-<g font-family="sans-serif">
-<rect x="40" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
-<text x="64" y="104" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">THINKING, FAST AND SLOW</text>
-<text x="356" y="104" fill="#5f6168" font-size="12" text-anchor="end">×</text>
-
-<!-- the ribbon, filled, at the pane's top-right corner, just inside the × -->
-<path d="M 318 118 h 26 v 46 l -13 -10 l -13 10 z" fill="#7f6df2"/>
-<path d="M 300 112 q -16 6 -12 22" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="4 4"/>
-<text x="250" y="150" fill="#a99cf5" font-size="10" text-anchor="middle">drops in, settles</text>
-<text x="250" y="164" fill="#a99cf5" font-size="10" text-anchor="middle">tap again: lifts out</text>
-
-<text x="64" y="196" fill="#dcddde" font-family="serif" font-size="20" font-weight="700">4 · The associative machine</text>
-<g fill="#b3b5ba" font-family="serif" font-size="13">
-<text x="64" y="232">An idea that has been activated does</text>
-<text x="64" y="254">not merely evoke one other idea. It</text>
-<text x="64" y="276">activates many ideas, which in turn</text>
-<text x="64" y="298">activate others. Furthermore, only a</text>
-</g>
-<!-- you are here: a wash under the words -->
-<rect x="60" y="306" width="282" height="22" rx="4" fill="#7f6df2" fill-opacity="0.22"/>
-<g fill="#dcddde" font-family="serif" font-size="13">
-<text x="64" y="322">few of the activated ideas will register</text>
-</g>
-<g fill="#b3b5ba" font-family="serif" font-size="13">
-<text x="64" y="344">in consciousness; most of the work of</text>
-<text x="64" y="366">associative thinking is silent, hidden</text>
-<text x="64" y="388">from our conscious selves.</text>
-<text x="64" y="420">The notion that we have limited access</text>
-<text x="64" y="442">to the workings of our minds is</text>
-<text x="64" y="464">difficult to accept because, naturally,</text>
-</g>
-<path d="M 350 317 h 14" stroke="#a99cf5" stroke-width="1.5"/>
-<text x="210" y="500" fill="#a99cf5" font-size="10" text-anchor="middle">you are here: under the words, for a moment, then gone</text>
-<text x="210" y="540" fill="#5f6168" font-size="11" text-anchor="middle">B bookmarks the first line on screen</text>
-<text x="210" y="556" fill="#5f6168" font-size="11" text-anchor="middle">a place, never a thought: nothing in Think, no note</text>
-</g>
-
-<!-- ── Contents → Bookmarks ───────────────────────────────────────────────── -->
-<g font-family="sans-serif">
-<rect x="430" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
-<rect x="454" y="98" width="82" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
-<text x="495" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Contents</text>
-<rect x="542" y="98" width="88" height="26" rx="13" fill="#7f6df2" fill-opacity="0.35" stroke="#7f6df2"/>
-<text x="586" y="115" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Bookmarks</text>
-<rect x="636" y="98" width="112" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
-<text x="692" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Where you've been</text>
-<text x="600" y="146" fill="#5f6168" font-size="10" text-anchor="middle">no tab counts anything</text>
-
-<rect x="454" y="164" width="292" height="66" rx="8" fill="#2a2a30"/>
-<text x="468" y="184" fill="#8b8e94" font-size="11">2 · The characters of the story</text>
-<text x="468" y="204" fill="#dcddde" font-size="12">System 1 operates automatically and…</text>
-<text x="468" y="222" fill="#5f6168" font-size="11">2 days ago</text>
-<text x="732" y="200" fill="#8b8e94" font-size="13" text-anchor="end">×</text>
-
-<rect x="454" y="240" width="292" height="66" rx="8" fill="#2a2a30"/>
-<text x="468" y="260" fill="#8b8e94" font-size="11">4 · The associative machine</text>
-<text x="468" y="280" fill="#dcddde" font-size="12">few of the activated ideas will regis…</text>
-<text x="468" y="298" fill="#5f6168" font-size="11">now</text>
-<text x="732" y="276" fill="#8b8e94" font-size="13" text-anchor="end">×</text>
-
-<text x="600" y="336" fill="#5f6168" font-size="10" text-anchor="middle">in reading order · found again by their words,</text>
-<text x="600" y="350" fill="#5f6168" font-size="10" text-anchor="middle">whatever the font, size, layout or device</text>
-
-<rect x="454" y="380" width="292" height="70" rx="8" fill="none" stroke="#3a3a3a" stroke-dasharray="4 4"/>
-<text x="600" y="404" fill="#8b8e94" font-size="11" text-anchor="middle">No bookmarks yet. Tap the ribbon, or</text>
-<text x="600" y="420" fill="#8b8e94" font-size="11" text-anchor="middle">press B, to keep a place without</text>
-<text x="600" y="436" fill="#8b8e94" font-size="11" text-anchor="middle">highlighting anything.</text>
-<text x="600" y="470" fill="#5f6168" font-size="10" text-anchor="middle">the empty state says what to do</text>
-
-<path d="M 640 520 h 80" stroke="#a99cf5" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="600" y="548" fill="#a99cf5" font-size="10" text-anchor="middle">a tab slides its list in from its side, in one gesture</text>
-</g>
-
-<!-- ── Where you've been ──────────────────────────────────────────────────── -->
-<g font-family="sans-serif">
-<rect x="820" y="76" width="340" height="500" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
-<rect x="844" y="98" width="82" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
-<text x="885" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Contents</text>
-<rect x="932" y="98" width="88" height="26" rx="13" fill="#2a2a30" stroke="#3a3a3a"/>
-<text x="976" y="115" fill="#8b8e94" font-size="12" text-anchor="middle">Bookmarks</text>
-<rect x="1026" y="98" width="112" height="26" rx="13" fill="#7f6df2" fill-opacity="0.35" stroke="#7f6df2"/>
-<text x="1082" y="115" fill="#ffffff" font-size="12" font-weight="600" text-anchor="middle">Where you've been</text>
-
-<rect x="844" y="164" width="292" height="44" rx="8" fill="#2a2a30"/>
-<text x="858" y="191" fill="#dcddde" font-size="12">Before a search</text>
-<text x="1122" y="191" fill="#8b8e94" font-size="11" text-anchor="end">4 · The associative machine</text>
-<rect x="844" y="216" width="292" height="44" rx="8" fill="#2a2a30"/>
-<text x="858" y="243" fill="#dcddde" font-size="12">Before a link</text>
-<text x="1122" y="243" fill="#8b8e94" font-size="11" text-anchor="end">2 · The characters</text>
-<text x="990" y="286" fill="#5f6168" font-size="10" text-anchor="middle">newest first · a row you go back to leaves the trail</text>
-<text x="990" y="302" fill="#5f6168" font-size="10" text-anchor="middle">this reading only, the last twenty places</text>
-
-<rect x="900" y="336" width="180" height="28" rx="14" fill="#2a2a30" stroke="#3a3a3a"/>
-<text x="990" y="355" fill="#dcddde" font-size="12" text-anchor="middle">← Back to 4 · The associ…</text>
-<text x="990" y="392" fill="#8b8e94" font-size="12" text-anchor="middle">the pill · Alt+← · two fingers →</text>
-<g stroke="#a99cf5" stroke-width="1.5" fill="none">
-<circle cx="960" cy="430" r="9"/>
-<circle cx="984" cy="444" r="9"/>
-<path d="M 1000 437 h 46" marker-end="url(#arrow)"/>
-</g>
-<text x="990" y="482" fill="#5f6168" font-size="10" text-anchor="middle">one trail: every way back walks the same steps</text>
-<text x="990" y="540" fill="#5f6168" font-size="11" text-anchor="middle">links, Contents, searches, footnotes,</text>
-<text x="990" y="556" fill="#5f6168" font-size="11" text-anchor="middle">bookmarks and opened passages leave it</text>
-</g>
-
-<!-- ── the camera move ────────────────────────────────────────────────────── -->
-<g font-family="sans-serif">
-<text x="600" y="624" fill="#8b8e94" font-size="12" font-weight="600" text-anchor="middle" letter-spacing="1">GOING TO A PLACE IS A CAMERA MOVE, NEVER A CUT</text>
-<g fill="#2a2a30" stroke="#3a3a3a">
-<rect x="80" y="650" width="70" height="96" rx="4"/>
-<rect x="160" y="650" width="70" height="96" rx="4" fill-opacity="0.35"/>
-<rect x="240" y="650" width="70" height="96" rx="4" fill-opacity="0.35"/>
-</g>
-<text x="250" y="704" fill="#5f6168" font-size="16" text-anchor="middle">⋯</text>
-<g fill="#2a2a30" stroke="#a99cf5">
-<rect x="380" y="650" width="70" height="96" rx="4" fill-opacity="0.6"/>
-<rect x="460" y="650" width="70" height="96" rx="4" fill-opacity="0.8"/>
-<rect x="540" y="650" width="70" height="96" rx="4"/>
-</g>
-<rect x="620" y="650" width="70" height="96" rx="4" fill="#1e1e22" stroke="#7f6df2" stroke-width="2"/>
-<rect x="630" y="688" width="50" height="8" rx="2" fill="#7f6df2" fill-opacity="0.35"/>
-<path d="M 380 768 C 470 790, 560 790, 650 768" fill="none" stroke="#a99cf5" stroke-width="1.5" marker-end="url(#arrow)"/>
-<text x="515" y="806" fill="#a99cf5" font-size="10" text-anchor="middle">far: the last three pages slide in, faint at first, easing out</text>
-<text x="115" y="768" fill="#5f6168" font-size="10" text-anchor="middle">where you were</text>
-
-<text x="930" y="676" fill="#b3b5ba" font-size="12" text-anchor="middle">Page and Spread: the strip travels there</text>
-<text x="930" y="698" fill="#b3b5ba" font-size="12" text-anchor="middle">Scroll: the column glides, two screens at most</text>
-<text x="930" y="720" fill="#b3b5ba" font-size="12" text-anchor="middle">another chapter: its turn, then the landing</text>
-<text x="930" y="742" fill="#b3b5ba" font-size="12" text-anchor="middle">the way back is the reverse shot</text>
-<text x="930" y="770" fill="#5f6168" font-size="10" text-anchor="middle">reduce motion: there at once, the mark still shown</text>
-</g>
-
-<defs>
-<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#a99cf5"/>
-</marker>
-</defs>
+<text x="600.0" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">BOOKMARKS, AND WHERE YOU'VE BEEN</text>
+<rect x="40" y="64" width="1120" height="560" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="76" y="98" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">PENSAR EN SISTEMAS · DONELLA MEADOWS</text>
+<path d="M 740.0 90.0 L 748.0 98.0 M 748.0 90.0 L 740.0 98.0" stroke="#8b8e94" stroke-width="1.5" fill="none"/>
+<path d="M 680 64 L 680 112 L 692 102 L 704 112 L 704 64 Z" stroke="none" stroke-width="0" fill="#7f6df2"/>
+<text x="410" y="140" fill="#8b8e94" font-family="sans-serif" font-size="11" text-anchor="middle" letter-spacing="2.2">04. POR QUÉ LOS SISTEMAS NOS SORPRENDEN</text>
+<text x="250" y="190" fill="#c8c9cc" font-family="serif" font-size="15">Todo lo que creemos saber sobre el mundo</text>
+<text x="250" y="216" fill="#c8c9cc" font-family="serif" font-size="15">es un modelo. Nuestros modelos suelen</text>
+<text x="250" y="242" fill="#c8c9cc" font-family="serif" font-size="15">coincidir bastante con el mundo real,</text>
+<text x="250" y="268" fill="#c8c9cc" font-family="serif" font-size="15">pero nunca del todo.</text>
+<text x="250" y="294" fill="#c8c9cc" font-family="serif" font-size="15"></text>
+<rect x="248.0" y="307" width="281.2" height="19" rx="3" fill="#7f6df2" opacity="0.22"/>
+<text x="250" y="320" fill="#c8c9cc" font-family="serif" font-size="15">Los sistemas nos sorprenden porque nuestra</text>
+<text x="250" y="346" fill="#c8c9cc" font-family="serif" font-size="15">mente prefiere los acontecimientos a los</text>
+<text x="250" y="372" fill="#c8c9cc" font-family="serif" font-size="15">comportamientos, y los comportamientos a</text>
+<text x="250" y="398" fill="#c8c9cc" font-family="serif" font-size="15">las estructuras que los generan.</text>
+<text x="250" y="440" fill="#a99cf5" font-family="sans-serif" font-size="11">the line you landed on, marked for a moment</text>
+<rect x="250" y="470" width="168" height="28" rx="14" fill="#26262b" stroke="#3a3a3a" stroke-width="1"/>
+<text x="334" y="489" fill="#c8c9cc" font-family="sans-serif" font-size="12" text-anchor="middle">← Back to ch. 01</text>
+<text x="430" y="489" fill="#5f6168" font-family="sans-serif" font-size="11">Alt+←  ·  two fingers →</text>
+<rect x="150.60000000000002" y="570" width="528.8" height="34" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 166.60000000000002 582 L 161.60000000000002 587 L 166.60000000000002 592" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<text x="176.60000000000002" y="591" fill="#c8c9cc" font-family="sans-serif" font-size="11">Chapter 14 / 30 · 1 of 9</text>
+<rect x="337.40000000000003" y="585" width="70" height="4" rx="2" fill="#2a2a30"/>
+<rect x="337.40000000000003" y="585" width="31.5" height="4" rx="2" fill="#7f6df2"/>
+<path d="M 419.40000000000003 582 L 424.40000000000003 587 L 419.40000000000003 592" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 433.40000000000003 578 L 433.40000000000003 596" stroke="#3a3a3a" stroke-width="1" fill="none"/>
+<rect x="437.40000000000003" y="577" width="20" height="20" rx="5" fill="#7f6df2" opacity="0.25"/>
+<path d="M 441.40000000000003 583 L 453.40000000000003 583" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<path d="M 441.40000000000003 587 L 453.40000000000003 587" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<path d="M 441.40000000000003 591 L 453.40000000000003 591" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<rect x="466.40000000000003" y="582" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="466.40000000000003" y="588" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="472.40000000000003" y="582" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="472.40000000000003" y="588" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<circle cx="494.40000000000003" cy="586" r="4.5" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 497.90000000000003 589.5 L 501.40000000000003 593" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 514.4000000000001 593 L 513.4000000000001 594 L 514.4000000000001 590 L 523.4000000000001 581 L 525.4000000000001 583 L 516.4000000000001 592 Z" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 538.4000000000001 582 L 548.4000000000001 582" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 543.4000000000001 582 L 543.4000000000001 593" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 561.4000000000001 585 L 567.4000000000001 582 L 573.4000000000001 585 L 567.4000000000001 588 Z" stroke="#8b8e94" stroke-width="1.2" fill="none"/>
+<path d="M 561.4000000000001 589 L 567.4000000000001 592 L 573.4000000000001 589" stroke="#8b8e94" stroke-width="1.2" fill="none"/>
+<rect x="585.4000000000001" y="582" width="12" height="10" rx="1.5" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 593.4000000000001 582 L 593.4000000000001 592" stroke="#8b8e94" stroke-width="1.2" fill="none"/>
+<circle cx="612.4000000000001" cy="588" r="2.6" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<circle cx="618.4000000000001" cy="588" r="2.6" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<rect x="632.4000000000001" y="583" width="14" height="9" rx="1.5" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 635.4000000000001 589 L 643.4000000000001 589" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<rect x="780" y="100" width="360" height="240" rx="12" fill="#1e1e22" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="796" y="118" width="60.800000000000004" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="826.4" y="131.6" fill="#8b8e94" font-family="sans-serif" font-size="10" text-anchor="middle">Contents</text>
+<rect x="860.8" y="118" width="66.4" height="20" rx="10.0" fill="#7f6df2"/>
+<text x="894.0" y="131.6" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="middle">Bookmarks</text>
+<rect x="931.1999999999999" y="118" width="111.2" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="986.8" y="131.6" fill="#8b8e94" font-family="sans-serif" font-size="10" text-anchor="middle">Where you've been</text>
+<path d="M 1069 134 L 1068 135 L 1069 131 L 1078 122 L 1080 124 L 1071 133 Z" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<rect x="1092" y="121" width="12" height="14" rx="2" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 1095 121 L 1095 135" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 1098 126 L 1102 126" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1098 130 L 1102 130" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1118.0 124.0 L 1126.0 132.0 M 1126.0 124.0 L 1118.0 132.0" stroke="#8b8e94" stroke-width="1.5" fill="none"/>
+<rect x="796" y="166" width="328" height="64" rx="8" fill="#26262b"/>
+<path d="M 808 178 L 808 194 L 813 190 L 818 194 L 818 178 Z" stroke="none" stroke-width="0" fill="#7f6df2"/>
+<text x="828" y="190" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600">04. Por qué los sistemas nos sorprenden</text>
+<text x="828" y="208" fill="#c8c9cc" font-family="serif" font-size="11" font-style="italic">Los sistemas nos sorprenden porque…</text>
+<text x="828" y="223" fill="#5f6168" font-family="sans-serif" font-size="10">now</text>
+<path d="M 1104.5 182.5 L 1111.5 189.5 M 1111.5 182.5 L 1104.5 189.5" stroke="#5f6168" stroke-width="1.5" fill="none"/>
+<rect x="796" y="242" width="328" height="64" rx="8" fill="#26262b"/>
+<path d="M 808 254 L 808 270 L 813 266 L 818 270 L 818 254 Z" stroke="none" stroke-width="0" fill="#7f6df2"/>
+<text x="828" y="266" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600">01. Principios básicos</text>
+<text x="828" y="284" fill="#c8c9cc" font-family="serif" font-size="11" font-style="italic">Un sistema no es solo una colección…</text>
+<text x="828" y="299" fill="#5f6168" font-family="sans-serif" font-size="10">yesterday</text>
+<path d="M 1104.5 258.5 L 1111.5 265.5 M 1111.5 258.5 L 1104.5 265.5" stroke="#5f6168" stroke-width="1.5" fill="none"/>
+<rect x="780" y="372" width="360" height="228" rx="12" fill="#1e1e22" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="796" y="390" width="60.800000000000004" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="826.4" y="403.6" fill="#8b8e94" font-family="sans-serif" font-size="10" text-anchor="middle">Contents</text>
+<rect x="860.8" y="390" width="66.4" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="894.0" y="403.6" fill="#8b8e94" font-family="sans-serif" font-size="10" text-anchor="middle">Bookmarks</text>
+<rect x="931.1999999999999" y="390" width="111.2" height="20" rx="10.0" fill="#7f6df2"/>
+<text x="986.8" y="403.6" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="middle">Where you've been</text>
+<path d="M 1069 406 L 1068 407 L 1069 403 L 1078 394 L 1080 396 L 1071 405 Z" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<rect x="1092" y="393" width="12" height="14" rx="2" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 1095 393 L 1095 407" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 1098 398 L 1102 398" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1098 402 L 1102 402" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1118.0 396.0 L 1126.0 404.0 M 1126.0 396.0 L 1118.0 404.0" stroke="#8b8e94" stroke-width="1.5" fill="none"/>
+<rect x="796" y="438" width="328" height="50" rx="8" fill="#26262b"/>
+<text x="810" y="460" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600">Before a search</text>
+<text x="810" y="478" fill="#8b8e94" font-family="sans-serif" font-size="11">01. Principios básicos</text>
+<rect x="796" y="498" width="328" height="50" rx="8" fill="#26262b"/>
+<text x="810" y="520" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600">Before a link</text>
+<text x="810" y="538" fill="#8b8e94" font-family="sans-serif" font-size="11">Introducción. La lente de los sistemas</text>
+<text x="960.0" y="586" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">the same drawer: a tab swaps what it holds</text>
+<text x="600" y="668" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle" letter-spacing="1.5">GOING TO A PLACE IS A CAMERA MOVE</text>
+<rect x="360" y="690" width="100" height="90" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1" opacity="0.25"/>
+<rect x="372" y="706" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.15"/>
+<rect x="372" y="719" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.15"/>
+<rect x="372" y="732" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.15"/>
+<rect x="372" y="745" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.15"/>
+<rect x="372" y="758" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.15"/>
+<rect x="490" y="690" width="100" height="90" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1" opacity="0.45"/>
+<rect x="502" y="706" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.27"/>
+<rect x="502" y="719" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.27"/>
+<rect x="502" y="732" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.27"/>
+<rect x="502" y="745" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.27"/>
+<rect x="502" y="758" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.27"/>
+<rect x="620" y="690" width="100" height="90" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1" opacity="0.7"/>
+<rect x="632" y="706" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.42"/>
+<rect x="632" y="719" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.42"/>
+<rect x="632" y="732" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.42"/>
+<rect x="632" y="745" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.42"/>
+<rect x="632" y="758" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.42"/>
+<rect x="750" y="690" width="100" height="90" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1" opacity="1.0"/>
+<rect x="762" y="706" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.6"/>
+<rect x="762" y="719" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.6"/>
+<rect x="762" y="732" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.6"/>
+<rect x="762" y="745" width="58" height="4" rx="2" fill="#c8c9cc" opacity="0.6"/>
+<rect x="762" y="758" width="76" height="4" rx="2" fill="#c8c9cc" opacity="0.6"/>
+<path d="M 360 796 L 840 796" stroke="#a99cf5" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+<text x="600" y="812" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">a far page: the last three pages slide in, faint at first — never a cut</text>
 </svg>

@@ -47,7 +47,8 @@ export async function openArticleSource(app: App, file: TFile): Promise<SourceDo
         title,
         ...(author ? { author } : {}),
         ...(language ? { language } : {}),
-        chapters: sections.map((section) => ({ label: section.title })),
+        // Each section's length beside the others (#813 FR-2): the text is already in memory.
+        chapters: sections.map((section) => ({ label: section.title, weight: Math.max(1, section.markdown.length) })),
         toc,
         imageOnly: false,
         hasPageView: false,

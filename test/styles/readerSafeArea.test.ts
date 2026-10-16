@@ -64,6 +64,6 @@ describe("the bookmark ribbon hangs at the pane's top-right corner (#784)", () =
     });
 
     it("steps in beside Alongside as the top line does, so the × above the panel stays the panel's", () => {
-        expect(rule(".zettelkasten-flow__reader--alongside button.zettelkasten-flow__reader-ribbon")).toContain("var(--zf-alongside-w)");
+        expect(rule(".zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-ribbon")).toContain("var(--zf-drawer-w)");
     });
 });

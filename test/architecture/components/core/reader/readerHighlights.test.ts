@@ -94,13 +94,13 @@ function mount(initial: Thought[] = [], extra: Partial<HighlightDeps> = {}, body
 beforeEach(() => jest.clearAllMocks());
 
 describe("a selection becomes a highlight in Think (#671)", () => {
-    it("offers highlight, highlight and note, and copy when words are selected", async () => {
+    it("offers the four meanings, Note and Copy when words are selected (#811 FR-1)", async () => {
         const m = mount();
         await m.attach();
         m.select("stores changes");
         m.body.fire("mouseup");
         expect(m.highlights.hasPopover()).toBe(true);
-        for (const label of ["Idea", "Question", "Quote", "To discuss", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
+        for (const label of ["Idea", "Question", "Quote", "To discuss", "Note", "Copy"]) expect(m.button(label)).toBeDefined();
     });
 
     it("lets the popover go when the page scrolls under it (#667)", async () => {
@@ -149,7 +149,7 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         await m.attach();
         m.select("Replay rebuilds it");
         m.body.fire("mouseup");
-        m.button("Highlight and note").click();
+        m.button("Note").click();
         const area = m.host.find((el) => el.tag === "textarea") as DomNode;
         area.value = "  this is the whole point  ";
         m.button("Save").click();
@@ -164,7 +164,7 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         const before = chapterText(m.body as never);
         m.select("Replay rebuilds it");
         m.body.fire("mouseup");
-        m.button("Highlight and note").click();
+        m.button("Note").click();
         // Typing moves the selection into the box; the passage stays marked meanwhile.
         expect(m.marks().map((mark) => mark.textContent)).toEqual(["Replay rebuilds it"]);
         expect(m.marks()[0].hasClass("zettelkasten-flow__reader-highlight--pending")).toBe(true);
@@ -185,7 +185,7 @@ describe("a selection becomes a highlight in Think (#671)", () => {
         const before = chapterText(m.body as never);
         m.select("Replay rebuilds it");
         m.body.fire("mouseup");
-        m.button("Highlight and note").click();
+        m.button("Note").click();
         m.button("Cancel").click();
         expect(m.marks()).toHaveLength(0);
         expect(chapterText(m.body as never)).toBe(before);
@@ -428,7 +428,8 @@ describe("a touch selection, beside the system's menu (#750)", () => {
         expect(m.labels()).not.toContain("Copy");
     });
 
-    it("is unchanged for a mouse: above the words, with its Copy", async () => {
+    it("opens a mouse's popover above, a line clear of the words, when there is no room below — with its Copy (#811 D4)", async () => {
+        // The host's box is 100 px tall: the words at 200 have no room under them.
         const m = mountOnDoc();
         await m.highlights.attach(m.body as never, "Notes/es.md", new Component(), null);
         m.doc.fire("pointerdown", { pointerType: "mouse" });
@@ -436,8 +437,70 @@ describe("a touch selection, beside the system's menu (#750)", () => {
         m.doc.fire("mouseup", { target: new DomNode() });
         const pop = m.host.oneByClass("reader-hl-pop");
         expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(false);
-        expect(pop.cssProps["--zf-hl-y"]).toBe("200px");
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--above")).toBe(true);
+        // 200 − one line (24) − the gap (8): the line above the words stays visible.
+        expect(pop.cssProps["--zf-hl-y"]).toBe("168px");
         expect(m.labels()).toContain("Copy");
+    });
+});
+
+/** Where the popover opens, and that it stays there (#811 FR-14–FR-17, AC-14, AC-16). */
+describe("placement of the selection popover (#811)", () => {
+    function mountWithRoom(room: { top: number; bottom: number }, popHeight = 100) {
+        const host = new DomNode();
+        const doc = new DomNode();
+        const body = chapter() as FakeEl & { ownerDocument: unknown; contains: (n: unknown) => boolean };
+        body.ownerDocument = doc;
+        body.contains = (n) => n === body;
+        let selection: SelectionInfo | null = null;
+        // Every popover measures `popHeight` tall; the host sits at the top of the screen.
+        const made = host.createDiv.bind(host);
+        host.createDiv = ((options: unknown) => {
+            const el = made(options);
+            el.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: popHeight });
+            return el;
+        }) as typeof host.createDiv;
+        const highlights = new ReaderHighlights(
+            { app: {} as never, host: host as never, owner: new Component(), scrollTo: jest.fn(), onChange: jest.fn(), pageRoom: () => room },
+            { store: memoryStore() as HighlightStore, selection: () => selection, headingAt: () => undefined, copy: jest.fn() }
+        );
+        const select = (top: number) => {
+            selection = { start: 0, end: 6, rect: { left: 10, top, width: 30, height: 24 }, clear: jest.fn() };
+        };
+        const open = async (top: number) => {
+            await highlights.attach(body as never, "Notes/es.md", new Component(), null);
+            doc.fire("pointerdown", { pointerType: "mouse" });
+            select(top);
+            doc.fire("mouseup", { target: new DomNode() });
+            return host.oneByClass("reader-hl-pop");
+        };
+        return { highlights, host, open };
+    }
+
+    it("opens below a pointer selection with room under it (AC-14)", async () => {
+        const m = mountWithRoom({ top: 0, bottom: 800 });
+        const pop = await m.open(200);
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(true);
+        // The stylesheet adds its gap under the words: the edge facing them is their bottom.
+        expect(pop.cssProps["--zf-hl-y"]).toBe("224px");
+    });
+
+    it("opens above, clear of the line above, when the bar leaves no room below (AC-14)", async () => {
+        const m = mountWithRoom({ top: 0, bottom: 760 });
+        const pop = await m.open(700);
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--above")).toBe(true);
+        expect(Number.parseInt(pop.cssProps["--zf-hl-y"], 10)).toBeLessThanOrEqual(700 - 24);
+    });
+
+    it("never changes side when More opens near the bottom (AC-16)", async () => {
+        const m = mountWithRoom({ top: 0, bottom: 800 });
+        const pop = await m.open(600);
+        const side = pop.hasClass("zettelkasten-flow__reader-hl-pop--below");
+        const y = pop.cssProps["--zf-hl-y"];
+        const more = m.host.find((el) => el.tag === "button" && el.textContent === "More");
+        more?.click();
+        expect(pop.hasClass("zettelkasten-flow__reader-hl-pop--below")).toBe(side);
+        expect(pop.cssProps["--zf-hl-y"]).toBe(y);
     });
 });
 
@@ -618,7 +681,7 @@ describe("what the lasso asks of the one engine (#747)", () => {
         expect(m.highlights.offerSpan({ start: at, end: at + "Replay rebuilds".length }, { left: 10, top: 40, width: 80, height: 30 }, closed)).toBe(true);
         expect(m.host.byClass("reader-hl-pop--select")).toHaveLength(1);
         expect(m.host.byClass("reader-hl-pop--below")).toHaveLength(1);
-        for (const label of ["Idea", "Question", "Quote", "To discuss", "Highlight and note", "Copy"]) expect(m.button(label)).toBeDefined();
+        for (const label of ["Idea", "Question", "Quote", "To discuss", "Note", "Copy"]) expect(m.button(label)).toBeDefined();
         expect(m.store.write).not.toHaveBeenCalled();
         // 1–4 keep the lasso's words too, as they keep a selection's.
         expect(m.highlights.chooseMeaning(0)).toBe(true);

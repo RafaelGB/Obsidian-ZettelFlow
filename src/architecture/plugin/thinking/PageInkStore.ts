@@ -56,6 +56,57 @@ export class PageInkStore {
         return merged;
     }
 
+    /** Whether a book has a page-ink file (#810 FR-3): nothing to follow when it has none. */
+    public has(about: string): boolean {
+        const folder = this.folder();
+        return Boolean(folder) && ObsidianApi.vault().getFileByPath(pageInkPath(folder, about)) instanceof TFile;
+    }
+
+    /**
+     * The book was renamed (#810 FR-4): its ink ends in **one** file, named for and about `to`. Moved
+     * when `to` has none; merged into the one it has otherwise — strokes unioned, an erase winning —
+     * and the old file to the trash. Neither is overwritten. Nothing happens when `from` has no ink,
+     * so a second call (another device, a late sync) is a no-op. Returns whether anything was written.
+     */
+    public async follow(from: string, to: string, now = Date.now()): Promise<boolean> {
+        const folder = this.folder();
+        if (!folder || from === to) return false;
+        const oldPath = pageInkPath(folder, from);
+        const newPath = pageInkPath(folder, to);
+        const old = ObsidianApi.vault().getFileByPath(oldPath);
+        if (!(old instanceof TFile)) return false;
+        const doc = await this.read(oldPath, from);
+        // A file this build cannot read is never moved over another, nor dropped (#790).
+        if (!doc) throw new Error(`the page ink of ${from} cannot be read`);
+        const mine: PageInk = { ...doc, about: to };
+        if (!(ObsidianApi.vault().getFileByPath(newPath) instanceof TFile)) {
+            await FileService.moveFile(old, newPath);
+            this.known.delete(oldPath);
+            await FileService.rewriteFile(newPath, (content) => {
+                const text = renderPageInk(mine);
+                this.known.set(newPath, { text, doc: mine });
+                return text === content ? null : text;
+            });
+            return true;
+        }
+        let failed = false;
+        await FileService.rewriteFile(newPath, (content) => {
+            const disk = content ? this.parse(newPath, content, to) : emptyPageInk(to);
+            if (!disk) {
+                failed = true;
+                return null;
+            }
+            const merged = mergePageInk(disk, mine, now);
+            const text = renderPageInk(merged);
+            this.known.set(newPath, { text, doc: merged });
+            return text === content ? null : text;
+        });
+        if (failed) throw new Error(`the page ink of ${to} cannot be read`);
+        await FileService.deleteFile(old);
+        this.known.delete(oldPath);
+        return true;
+    }
+
     private async read(path: string, about: string): Promise<PageInk | null> {
         const file = ObsidianApi.vault().getFileByPath(path);
         if (!(file instanceof TFile)) return emptyPageInk(about);

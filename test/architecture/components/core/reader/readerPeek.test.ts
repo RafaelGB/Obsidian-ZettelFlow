@@ -2,6 +2,7 @@ import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { MarkdownRenderer, TFile, WorkspaceLeaf } from "obsidian";
 import { press } from "../../../../support/readerKeys";
 import { DomNode, flush } from "../../../../support/dashboardDom";
+import { kicker, place } from "../../../../support/readerPlace";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
 
@@ -132,7 +133,7 @@ describe("detours, with a way back (#670)", () => {
         button(content, "Read as a detour")!.click();
         await flush();
         expect(title(content)).toBe("x");
-        expect(content.oneByClass("reader-count").textContent).toBe("Detour");
+        expect(kicker(content)).toBe("Detour");
         const pill = content.oneByClass("reader-detour-pill");
         expect(pill.hasClass("zettelkasten-flow__reader-hidden")).toBe(false);
         expect(pill.textContent).toBe("↩ Back to a");
@@ -167,7 +168,7 @@ describe("detours, with a way back (#670)", () => {
         key(content, "ArrowRight");
         await flush();
         expect(title(content)).toBe("b");
-        expect(content.oneByClass("reader-count").textContent).toBe("02 / 03");
+        expect(place(content)).toBe("Chapter 2 / 3");
     });
 });
 
@@ -185,13 +186,16 @@ describe("adding to this reading, and the contents (#670)", () => {
         expect(view.getState()).toMatchObject({ paths: ["a.md", "b.md", "c.md"] });
     });
 
-    it("ticks the chapters you have read and marks where you are", async () => {
+    it("says which chapters you have read and marks where you are (#812 FR-13)", async () => {
         const { content } = await open();
         key(content, "ArrowRight");
         await flush();
         content.byClass("reader-bar-button").find((b) => b.getAttribute("aria-label") === "Contents")!.click();
         const rows = content.byClass("reader-toc-row");
-        expect(rows.map((r) => r.byClass("reader-toc-tick").length)).toEqual([1, 0, 0]);
+        // Read, where you are, not yet — as a glyph and in words, never a number (#812 FR-13).
+        const state = (r: (typeof rows)[number]) => ["read", "part", "unread"].find((s) => r.hasClass(`zettelkasten-flow__reader-toc-row--${s}`));
+        expect(rows.map(state)).toEqual(["read", "part", "unread"]);
+        expect(rows.map((r) => r.getAttribute("aria-label"))).toEqual(["a · Read", "b · Partly read", "c · Not read yet"]);
         expect(rows[1].getAttribute("aria-current")).toBe("step");
     });
 

@@ -65,6 +65,8 @@ export interface ProducedParts {
     seen: boolean;
     /** The lists were drawn. */
     shown(): void;
+    /** Known at last (#822): whether it produced anything — said once. */
+    settled?: (hasContent: boolean) => void;
 }
 
 function noteName(path: string): string {
@@ -109,10 +111,16 @@ export function arrive(rows: readonly HTMLElement[]): void {
  * every item opens what it names; nothing is written.
  */
 export function renderProduced(parent: HTMLElement, parts: ProducedParts): HTMLElement {
-    const section = parent.createDiv({ cls: c("shelf-produced") });
-    section.createEl("h3", { cls: c("shelf-section"), text: t("shelf_produced_title") });
+    // Nothing is drawn until it is known (#822): no *Reading your vault…*, no empty heading.
+    const section = parent.createDiv({ cls: [c("shelf-produced"), c("shelf-detail-quiet")] });
+    const heading = section.createEl("h3", { cls: c("shelf-section"), text: t("shelf_produced_title") });
     const body = section.createDiv({ cls: c("shelf-produced-body") });
-    body.createDiv({ cls: c("shelf-produced-empty"), text: t("shelf_produced_loading") });
+    let settled = false;
+    const settle = (has: boolean) => {
+        if (settled) return;
+        settled = true;
+        parts.settled?.(has);
+    };
     let drawn = false;
     let asking = false;
     const ask = () => {
@@ -124,11 +132,16 @@ export function renderProduced(parent: HTMLElement, parts: ProducedParts): HTMLE
                 asking = false;
                 if (!lists || drawn || body.isConnected === false) return;
                 drawn = true;
+                const has = !producedNothing(lists);
+                if (has) section.removeClass(c("shelf-detail-quiet"));
+                else heading.remove();
                 draw(section, body, lists, parts);
+                settle(has);
             })
             .catch((error: unknown) => {
                 asking = false;
                 log.warn(`[Library] could not read what ${parts.item.id} produced: ${String(error)}`);
+                settle(false);
             });
     };
     // The vault still being read: the section fills in once the model is ready, the rest is usable meanwhile.
@@ -141,7 +154,6 @@ export function renderProduced(parent: HTMLElement, parts: ProducedParts): HTMLE
 function draw(section: HTMLElement, body: HTMLElement, lists: ProducedLists, parts: ProducedParts): void {
     body.empty();
     if (producedNothing(lists)) {
-        body.createDiv({ cls: c("shelf-produced-empty"), text: t("shelf_produced_empty") });
         parts.shown();
         return;
     }

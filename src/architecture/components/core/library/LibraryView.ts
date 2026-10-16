@@ -36,6 +36,7 @@ import {
     type ShelfTarget,
 } from "application/library/shelves";
 import { applyShelfWrites, realShelfWritePort, type ShelfStep, type ShelfWritePort } from "./libraryShelfWrites";
+import { statusOnOpen } from "application/library/bookNote";
 import { bookMenu, nameField, ownMark, reservedShelfNames, shelfMenu, type MoveChoice } from "./libraryShelves";
 import { draggable, dropTarget, type DragHooks } from "./libraryDrag";
 import { motionWelcome } from "architecture/components/core/reader/readerMotion";
@@ -712,7 +713,7 @@ export class LibraryView extends ItemView {
             const at = this.shelf.items.findIndex((item) => item.note === step.edit.path);
             const item = this.shelf.items[at];
             if (!item) continue;
-            const details: BookDetails = { ...(item.details ?? {}) };
+            const details: BookDetails = { ...item.details };
             const next: ShelfItem = { ...item, details };
             if (step.edit.collections) {
                 details.collections = [...step.edit.collections];
@@ -1180,11 +1181,20 @@ export class LibraryView extends ItemView {
     // ── open, and the detail ─────────────────────────────────────────────────
 
     private openItem(item: ShelfItem, at: OpenAt = {}, from: HTMLElement | null = null): void {
+        // Want to read, then opened (#822): Reading, written once — only from the Library's own doors.
+        void this.settleStatusOnOpen(item);
         // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
         if (from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") beginOpenShot(this.containerEl, from);
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
         const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), ...(this.collection ? { shelf: this.collection } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
         if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
+    }
+
+    /** Opening a book you wanted to read moves it to Reading: one recorded write, its Undo under the bar. */
+    private async settleStatusOnOpen(item: ShelfItem): Promise<void> {
+        const change = statusOnOpen(item.details, Boolean(item.collections?.length));
+        if (!change || item.kind === "path") return;
+        await this.writeShelves([{ kind: "move", item, change }], t("shelf_moved", t("shelf_status_reading")), normalizeShelfNames(this.plugin?.settings?.libraryShelves), () => undefined);
     }
 
     private openDetail(id: string): void {
@@ -1218,8 +1228,9 @@ export class LibraryView extends ItemView {
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
             cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
-            produced: (parent) =>
+            produced: (parent, settled) =>
                 renderProduced(parent, {
+                    settled,
                     app: this.app,
                     scope,
                     item,
@@ -1385,6 +1396,8 @@ export class LibraryView extends ItemView {
             },
             addIt: (_file, field) => {
                 const input = this.aside?.querySelector<HTMLInputElement>(`#zf-book-${field}`);
+                // A field folded away (#822) is brought out first.
+                input?.closest(`.${c("shelf-details-row")}`)?.removeClass(c("shelf-details-row--folded"));
                 input?.scrollIntoView?.({ block: "center" });
                 input?.focus();
             },

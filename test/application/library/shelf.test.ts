@@ -3,6 +3,7 @@ import {
     BOOK_PAGES,
     buildShelf,
     bookViewOf,
+    detailSentenceParts,
     DESK_LIMIT,
     layShelves,
     shelfCounts,
@@ -426,5 +427,18 @@ describe("where every book stands: the desk and the status shelves (#820)", () =
         expect(bookViewOf("spines")).toBe("spines");
         expect(bookViewOf("shelf")).toBe("covers");
         expect(bookViewOf(undefined)).toBe("covers");
+    });
+});
+
+describe("the detail's one sentence (#822 AC-2, AC-3)", () => {
+    const base = { kind: "book" as const, progress: 0, lastRead: 0, highlights: 0, born: 0 };
+    it("says only what is there, and never a zero", () => {
+        expect(detailSentenceParts({ ...base, progress: 0.13, lastRead: 5, highlights: 3 })).toEqual([{ kind: "read", percent: 13 }, { kind: "highlights", n: 3 }]);
+        expect(detailSentenceParts({ ...base, progress: 1, lastRead: 5, born: 1, highlights: 1 })).toEqual([{ kind: "finished" }, { kind: "highlights", n: 1 }, { kind: "born", n: 1 }]);
+        expect(detailSentenceParts({ ...base, progress: 0.003, lastRead: 5 })).toEqual([{ kind: "started" }]);
+        expect(detailSentenceParts(base)).toEqual([]);
+        // A path: no notes born, and opened only once it has a place.
+        expect(detailSentenceParts({ ...base, kind: "path", lastRead: 9, born: 2 })).toEqual([]);
+        expect(detailSentenceParts({ ...base, kind: "path", lastRead: 9, place: 0, progress: 0.5 })).toEqual([{ kind: "read", percent: 50 }]);
     });
 });

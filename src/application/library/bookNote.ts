@@ -291,3 +291,27 @@ export function fieldText(details: BookDetails, field: TextField): string {
     if (field === "tags") return (value as string[]).join(", ");
     return String(value);
 }
+
+/**
+ * **Which details show** (#822): the title always, and every field that holds something — the author
+ * the shelf knows counts before there is a note. The rest wait behind *Add details…*; a field you
+ * were sent to (Cite's *Add it*) shows, empty or not.
+ */
+export function foldDetailFields(details: BookDetails, known: { author?: string }, hasNote: boolean, focus?: TextField): { shown: TextField[]; folded: TextField[] } {
+    const shown: TextField[] = [];
+    const folded: TextField[] = [];
+    for (const field of TEXT_FIELDS) {
+        const has = field === "title" || field === focus || fieldText(details, field).trim() !== "" || (field === "author" && !hasNote && Boolean(known.author));
+        (has ? shown : folded).push(field);
+    }
+    return { shown, folded };
+}
+
+/**
+ * **Want to read, then opened** (#822, owner 2026-10-16): a book whose note says *Want to read* and
+ * that stands on a status shelf becomes *Reading* — written once, the write being its own memory. A
+ * book on a shelf of yours keeps what you set; nothing else is written by opening.
+ */
+export function statusOnOpen(details: BookDetails | undefined, onOwnShelf: boolean): BookChange | null {
+    return details?.status === "to-read" && !onOwnShelf ? { status: "reading" } : null;
+}

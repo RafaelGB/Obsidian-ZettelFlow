@@ -4,6 +4,9 @@ import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { LibraryView } from "architecture/components/core/library/LibraryView";
 
+const openReader = jest.fn();
+jest.mock("architecture/components/core/reader/openReader", () => ({ openReader: (...args: unknown[]) => openReader(...args) }));
+
 /** Your shelves (#821): make one, put books on it by hand or by menu, rename it, delete it, undo. */
 
 const DAY = 86_400_000;
@@ -272,5 +275,30 @@ describe("a saved reading path (#821 AC-19)", () => {
         expect(path.attrs.draggable).toBeUndefined();
         path.oneByClass("shelf-more").click();
         expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details"]);
+    });
+});
+
+describe("Want to read, then opened (#822 AC-12..AC-15)", () => {
+    it("moves a book you wanted to read to Reading, written once, with its Undo", async () => {
+        const { view, content, port } = mount({ "Library/Fresh.md": { book: `[[${FRESH}]]`, status: "to-read" } });
+        await view.onOpen();
+        book(content, FRESH).oneByClass("shelf-book-open").click();
+        await flush();
+        expect(port.edit).toHaveBeenCalledTimes(1);
+        expect((port.edit.mock.calls[0] as any[])[1]).toEqual({ status: "reading" });
+        expect(content.oneByClass("shelf-message").textContent).toBe("Moved to ReadingUndo");
+    });
+
+    it("writes nothing for a book on a shelf of yours, or one with no status", async () => {
+        const { view, content, port } = mount({ "Library/Fresh.md": { book: `[[${FRESH}]]`, status: "to-read", collections: ["Mine"] } });
+        await view.onOpen();
+        book(content, FRESH).oneByClass("shelf-book-open").click();
+        const other = mount();
+        await other.view.onOpen();
+        book(other.content, FRESH).oneByClass("shelf-book-open").click();
+        await flush();
+        expect(port.edit).not.toHaveBeenCalled();
+        expect(other.port.edit).not.toHaveBeenCalled();
+        expect(other.port.create).not.toHaveBeenCalled();
     });
 });

@@ -1,7 +1,7 @@
 import type { App, Component } from "obsidian";
 import { c, log } from "architecture";
-import { t } from "architecture/lang";
-import type { ShelfItem } from "application/library/shelf";
+import { t, tCount } from "architecture/lang";
+import { detailSentenceParts, type DetailPart, type ShelfItem } from "application/library/shelf";
 import type { Thought } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import type { OpenAt } from "./libraryOpen";
@@ -19,8 +19,8 @@ export interface DetailParts {
     notebook?: () => void;
     /** The book's note, edited in place (#743); absent for a saved path. */
     details?: (parent: HTMLElement) => void;
-    /** What it produced in your vault (#752), drawn where *Notes born from it* was. */
-    produced?: (parent: HTMLElement) => void;
+    /** What it produced in your vault (#752), drawn where *Notes born from it* was; says when it knows (#822). */
+    produced?: (parent: HTMLElement, settled: (hasContent: boolean) => void) => void;
     /** *Cite this book* (#768 FR-1): the cite panel, grown from the button; absent for a saved path. */
     cite?: (from: HTMLElement) => void;
 }
@@ -108,34 +108,32 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());
 
-    const stats = aside.createDiv({ cls: c("shelf-detail-stats") });
-    const stat = (value: string, label: string, extra?: string) => {
-        const cell = stats.createDiv({ cls: [c("shelf-detail-stat"), ...(extra ? [c(extra)] : [])] });
-        cell.createDiv({ cls: c("shelf-detail-stat-value"), text: value });
-        cell.createDiv({ cls: c("shelf-detail-stat-label"), text: label });
-    };
-    stat(t("shelf_percent", String(Math.round(item.progress * 100))), t("shelf_detail_read", parts.lastRead));
-    stat(String(item.highlights), t("shelf_detail_highlights"));
-    if (item.kind !== "path") stat(String(item.born), t("shelf_detail_born"), item.born > 0 ? "shelf-detail-stat--born" : undefined);
+    // What came of it, in one sentence (#822): only what is there — never a box, never a zero.
+    const said = detailSentenceParts(item).map((part) => sentencePart(part, parts.lastRead));
+    if (said.length > 0) what.createEl("p", { cls: c("shelf-detail-sentence"), text: said.join(" · ") });
 
     // What the book is and what it is to you, part of the same sheet (#743 FR-14).
     if (item.kind !== "path") parts.details?.(aside);
 
-    // What it produced in your vault (#752): the notes born from it, grown into the lists of what it changed.
-    parts.produced?.(aside);
+    // The two sections that may hold nothing (#822): each is drawn once it has something, and when
+    // both have nothing one quiet line says so — never two empty headings.
+    const quiet = quietSections(aside, ["highlights", "produced"]);
 
-    aside.createEl("h3", { cls: c("shelf-section"), text: t("shelf_detail_highlights_title") });
+    // What it produced in your vault (#752): the notes born from it, grown into the lists of what it changed.
+    if (parts.produced) parts.produced(aside, (has) => quiet("produced", has));
+    else quiet("produced", false);
+
+    const heading = aside.createEl("h3", { cls: [c("shelf-section"), c("shelf-detail-highlights-title")], text: t("shelf_detail_highlights_title") });
+    heading.addClass(c("shelf-detail-quiet"));
     const list = aside.createDiv({ cls: c("shelf-detail-highlights") });
-    list.createDiv({ cls: c("shelf-detail-empty"), text: t("shelf_detail_loading") });
     void loadHighlights(item)
         .then((thoughts) => {
             if (list.isConnected === false) return; // the detail was closed or redrawn meanwhile
             list.empty();
             const groups = groupHighlights(item, thoughts);
-            if (groups.length === 0) {
-                list.createDiv({ cls: c("shelf-detail-empty"), text: t("shelf_detail_no_highlights") });
-                return;
-            }
+            quiet("highlights", groups.length > 0);
+            if (groups.length === 0) return;
+            heading.removeClass(c("shelf-detail-quiet"));
             for (const group of groups) {
                 if (group.label) list.createDiv({ cls: c("shelf-detail-group"), text: group.label });
                 for (const thought of group.items) {
@@ -151,8 +149,32 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
         .catch((error: unknown) => {
             log.warn(`[Library] could not list highlights of ${item.id}: ${String(error)}`);
             list.empty();
-            list.createDiv({ cls: c("shelf-detail-empty"), text: t("shelf_detail_no_highlights") });
+            quiet("highlights", false);
         });
+}
+
+/** A part of the sentence, in words. */
+function sentencePart(part: DetailPart, when: string): string {
+    if (part.kind === "read") return t("shelf_detail_part_read", String(part.percent), when);
+    if (part.kind === "started") return t("shelf_detail_part_started", when);
+    if (part.kind === "finished") return t("shelf_detail_part_finished", when);
+    if (part.kind === "highlights") return tCount(part.n, "shelf_detail_part_highlights", String(part.n));
+    return tCount(part.n, "shelf_detail_part_born", String(part.n));
+}
+
+/**
+ * The sections that may hold nothing, settled one by one: once every one has said it is empty, a
+ * single line says so — *Nothing marked or made from it yet* — and says it once.
+ */
+function quietSections(aside: HTMLElement, waiting: string[]): (section: string, hasContent: boolean) => void {
+    const pending = new Set(waiting);
+    let any = false;
+    return (section, hasContent) => {
+        if (!pending.delete(section)) return;
+        any = any || hasContent;
+        if (pending.size > 0 || any || aside.isConnected === false) return;
+        aside.createDiv({ cls: c("shelf-detail-nothing"), text: t("shelf_detail_nothing_yet") });
+    };
 }
 
 async function loadHighlights(item: ShelfItem): Promise<Thought[]> {

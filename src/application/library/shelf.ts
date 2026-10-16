@@ -372,3 +372,31 @@ export function statusCounts(items: readonly ShelfItem[]): Record<StatusFilter, 
     return counts;
 }
 
+
+/** One part of the detail's sentence (#822): what came of a source, and never a zero. */
+export type DetailPart =
+    | { kind: "read"; percent: number }
+    | { kind: "started" }
+    | { kind: "finished" }
+    | { kind: "highlights"; n: number }
+    | { kind: "born"; n: number };
+
+/**
+ * **The detail's one sentence** (#822): how far, how many marks, how many notes — only what is
+ * there. A source never opened says nothing; a count of none is not said; opened but under one per
+ * cent is *Started*, never *0% read*.
+ */
+export function detailSentenceParts(item: Pick<ShelfItem, "kind" | "progress" | "lastRead" | "place" | "highlights" | "born">): DetailPart[] {
+    const parts: DetailPart[] = [];
+    // A saved path's `lastRead` includes when it was saved: it was opened once it has a place.
+    const opened = item.kind === "path" ? item.place !== undefined : item.lastRead > 0 || item.progress >= 1;
+    if (opened) {
+        const percent = Math.round(item.progress * 100);
+        if (item.progress >= 1) parts.push({ kind: "finished" });
+        else if (percent >= 1) parts.push({ kind: "read", percent });
+        else parts.push({ kind: "started" });
+    }
+    if (item.highlights >= 1) parts.push({ kind: "highlights", n: item.highlights });
+    if (item.kind !== "path" && item.born >= 1) parts.push({ kind: "born", n: item.born });
+    return parts;
+}

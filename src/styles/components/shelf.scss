@@ -1089,30 +1089,44 @@
     margin-top: var(--size-4-2);
 }
 
-.zettelkasten-flow__shelf-detail-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
-    gap: var(--size-4-2);
-    margin: var(--size-4-4) 0;
+/* What came of it, in one sentence (#822): no boxes, no zero. */
+.zettelkasten-flow__shelf-detail-sentence {
+    margin: var(--size-4-2) 0 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
 }
 
-.zettelkasten-flow__shelf-detail-stat {
-    @include card;
-    align-items: center;
-    text-align: center;
+/* A section that has nothing yet is not drawn: one quiet line says so, once (#822). */
+.zettelkasten-flow__shelf-detail-quiet {
+    display: none;
 }
 
-.zettelkasten-flow__shelf-detail-stat-value {
-    font-size: var(--font-ui-large);
-    font-weight: var(--font-bold);
+.zettelkasten-flow__shelf-detail-nothing {
+    @include empty-state;
+    animation: zf-shelf-cover-in $motion-fast ease both;
 }
 
-.zettelkasten-flow__shelf-detail-stat--born .zettelkasten-flow__shelf-detail-stat-value {
-    color: var(--color-green);
+/* The details: a row per field; what holds nothing waits behind Add details… */
+.zettelkasten-flow__shelf-details-row {
+    display: contents;
 }
 
-.zettelkasten-flow__shelf-detail-stat-label {
-    @include hint;
+.zettelkasten-flow__shelf-details-row--folded {
+    display: none;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-details-unfold,
+.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-details-unfold {
+    grid-column: 1 / -1;
+    justify-self: start;
+    height: auto;
+    padding: var(--size-2-1) 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
 }
 
 .zettelkasten-flow__shelf-born-mark {
@@ -1193,17 +1207,9 @@
     align-self: flex-start;
 }
 
-.zettelkasten-flow__shelf-produced-empty {
-    @include empty-state;
-}
-
 .zettelkasten-flow__shelf-detail-group {
     margin: var(--size-4-3) 0 var(--size-4-1);
     font-weight: var(--font-semibold);
-}
-
-.zettelkasten-flow__shelf-detail-empty {
-    @include empty-state;
 }
 
 .zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-highlight {
@@ -1439,6 +1445,7 @@ button.zettelkasten-flow__notebook-action {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__shelf-detail-nothing,
     .zettelkasten-flow__notebook,
     .zettelkasten-flow__shelf-desk-card--back {
         animation: none;

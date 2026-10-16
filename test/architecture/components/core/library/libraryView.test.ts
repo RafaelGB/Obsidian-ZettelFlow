@@ -130,8 +130,11 @@ describe("the Library (#680)", () => {
         expect(content.oneByClass("shelf-detail").hasClass("zettelkasten-flow__shelf-detail--open")).toBe(true);
         expect(content.oneByClass("shelf-detail-title").textContent).toBe("Brewer's conjecture");
         expect(content.oneByClass("shelf-detail-file").textContent).toBe("Papers/cap.pdf");
-        expect(content.byClass("shelf-detail-stat-label").map((el) => el.textContent)).toEqual(["read · 3 days ago", "highlights", "notes born"]);
-        expect(content.oneByClass("shelf-detail-empty").textContent).toBe("No highlights yet. Open it and select a passage.");
+        // What came of it, in one sentence — no boxed counts, no zero (#822).
+        expect(content.byClass("shelf-detail-stat")).toHaveLength(0);
+        expect(content.oneByClass("shelf-detail-sentence").textContent).toBe("50% read, 3 days ago");
+        // No highlights: no heading of its own.
+        expect(content.oneByClass("shelf-detail-highlights-title").hasClass("zettelkasten-flow__shelf-detail-quiet")).toBe(true);
         expect(press(content as never, "Escape").defaultPrevented).toBe(true);
         expect(content.oneByClass("shelf-detail").hasClass("zettelkasten-flow__shelf-detail--open")).toBe(false);
         expect(press(content as never, "Escape").defaultPrevented).toBe(false);

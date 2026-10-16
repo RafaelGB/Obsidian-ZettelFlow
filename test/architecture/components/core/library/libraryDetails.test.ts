@@ -328,3 +328,34 @@ describe("Details: saving is felt, not announced (#743 FR-15, FR-16, FR-17)", ()
         }
     });
 });
+
+describe("a calmer detail: the empty fields wait (#822 AC-4..AC-8)", () => {
+    const folded = (host: DomNode) =>
+        host.byClass("shelf-details-row").filter((row) => row.hasClass("zettelkasten-flow__shelf-details-row--folded")).map((row) => row.oneByClass("shelf-details-label").textContent);
+
+    it("shows the title and what holds something; the rest wait behind Add details…", () => {
+        const { host } = mount();
+        expect(folded(host)).toEqual(["Series", "Publisher", "Year", "Language", "ISBN", "Citation key", "Tags"]);
+        expect(host.byClass("shelf-details-unfold").map((el) => el.textContent)).toEqual(["Add details…"]);
+    });
+
+    it("brings every field out at once, the cursor in the first", () => {
+        const { host, field } = mount();
+        const focus = jest.spyOn(field("series"), "focus");
+        host.oneByClass("shelf-details-unfold").click();
+        expect(folded(host)).toEqual([]);
+        expect(host.byClass("shelf-details-unfold")).toHaveLength(0);
+        expect(focus).toHaveBeenCalled();
+    });
+
+    it("shows a field it was sent to, empty or not (Cite's Add it)", () => {
+        const { host } = mount(unread, { focus: "citekey" });
+        expect(folded(host)).not.toContain("Citation key");
+    });
+
+    it("has nothing to unfold for an article", () => {
+        const { host } = mount({ ...unread, kind: "article", format: "article", id: "Clippings/a.md", file: "Clippings/a.md", note: "Clippings/a.md", details: {} });
+        expect(host.byClass("shelf-details-unfold")).toHaveLength(0);
+        expect(host.byClass("shelf-details-row")).toHaveLength(0);
+    });
+});

@@ -44,11 +44,17 @@ describe("the Library lends its leaf to the Reader (#733)", () => {
         content.byClass("shelf-filter")[2].click(); // Papers
         view.contentEl.scrollTop = 240;
         openReader.mockClear();
-        content.byClass("shelf-card-open")[1].click();
+        // The paper you were in lies on the desk; the other stands on its shelf.
+        content.byClass("shelf-book-open")[0].click();
         expect(openReader).toHaveBeenCalledTimes(1);
         const request = openReader.mock.calls[0][1] as Record<string, unknown>;
         expect(request.leaf).toBe(leaf);
         expect(request.back).toEqual({ filter: "papers", sort: "recent", scroll: 240, focus: "Papers/other.pdf" });
+        // A shelf chip is part of the way back too (#820).
+        content.byClass("shelf-filter--status").find((el) => el.textContent === "On the shelf")!.click();
+        openReader.mockClear();
+        content.byClass("shelf-book-open")[0].click();
+        expect((openReader.mock.calls[0][1] as Record<string, unknown>).back).toMatchObject({ status: "none", focus: "Papers/other.pdf" });
     });
 
     it("comes back where it was: the filter, and the shelf scrolled as you left it", async () => {

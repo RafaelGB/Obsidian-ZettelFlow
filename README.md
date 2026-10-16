@@ -56,7 +56,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 <table>
 <tr>
-<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/#the-shelf"><img src="docs/resources/library/shelf.svg" alt="The Library shelf"></a><br><b>One shelf</b><br><sub>Books, papers, clipped articles and saved paths — with what each one produced in your vault.</sub></td>
+<td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/#the-shelf"><img src="docs/resources/library/shelf.svg" alt="The Library: a desk and shelves"></a><br><b>A real library</b><br><sub>Books, papers, clipped articles and saved paths on shelves — yours too, drag to shelve.</sub></td>
 <td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#ink-in-the-margin"><img src="docs/resources/reader/ink.svg" alt="Ink in the margin"></a><br><b>Highlight and write in the margin</b><br><sub>Write with a pen and it stays on the page; keep what you lasso. <i>Read as text</i>, when you ask, proposes what your hand says.</sub></td>
 <td width="33%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/#alongside-your-vault-beside-the-page"><img src="docs/resources/reader/alongside.svg" alt="Alongside"></a><br><b>Alongside</b><br><sub>Your own notes beside the page you are reading, each saying why it is there — and what argues with it.</sub></td>
 </tr>

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, jest } from "@jest/globals";
-import { TFile, WorkspaceLeaf } from "obsidian";
+import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { recordAnimations, reducedMotion } from "../../../../support/motionDom";
 import { LibraryView } from "architecture/components/core/library/LibraryView";
@@ -20,6 +20,14 @@ function file(path: string): TFile {
     (f as unknown as { stat: unknown }).stat = { size: 10, mtime: 20, ctime: 1 };
     return f;
 }
+
+/** Where each book stands (#820): the desk, then each shelf by its status, in the order drawn. */
+const stands = (content: DomNode) => [
+    ["desk", content.byClass("shelf-desk-card").map((el) => el.attrs["data-shelf-id"])],
+    ...content.byClass("shelf-bay").map((bay) => [bay.attrs["data-zf-shelf"], bay.byClass("shelf-book").map((el) => el.attrs["data-shelf-id"])]),
+];
+/** What a book on a shelf says to a screen reader. */
+const label = (content: DomNode, id: string) => content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === id)!.oneByClass("shelf-book-open").attrs["aria-label"];
 
 const library = {
     [BOOK]: { size: 10, mtime: 20, title: "Thinking, Fast and Slow", author: "Daniel Kahneman", chapters: 38, chapter: 2, at: Date.now() - DAY },
@@ -80,58 +88,64 @@ describe("the book's note on the shelf (#743)", () => {
         expect(bookNoteOf(app as never, BOOK)).toBeNull();
     });
 
-    it("shows only All and Every collection while no book has a note or a reading, and every card as before", async () => {
+    it("shows only Every shelf and On the shelf while no book has a note or a reading, and every card as before (#819)", async () => {
         const { view, content } = mount({}, {});
         await view.onOpen();
-        expect(texts(content, "shelf-filter--status")).toEqual(["All3"]);
-        expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection"]);
-        expect(content.byClass("shelf-shelf--want")).toHaveLength(0);
-        expect(content.byClass("shelf-card-status")).toHaveLength(0);
-        expect(content.byClass("shelf-meta").filter((el) => el.textContent === "Never opened")).toHaveLength(3);
+        expect(texts(content, "shelf-filter--status")).toEqual(["Every shelf", "On the shelf"]);
+        expect(content.byClass("shelf-filter--collection")).toHaveLength(0);
+        expect(stands(content)[0]).toEqual(["desk", []]);
+        expect(content.byClass("shelf-bay").map((el) => el.attrs["data-zf-shelf"])).toEqual(["none"]);
+        expect(content.byClass("shelf-book-open").every((el) => el.attrs["aria-label"].endsWith("Not started") || el.attrs["aria-label"].endsWith("read only"))).toBe(true);
     });
 
-    it("reads each note wherever it is kept, and the chips filter by status and collection (AC-6, AC-12)", async () => {
+    it("reads each note wherever it is kept, and the shelf chips filter by status, without counts (AC-6, AC-12, #819)", async () => {
         const { view, content } = mount({
             "Old folder/cap.md": { book: `[[${PAPER}]]`, title: "Brewer's conjecture, proved", status: "to-read", collections: ["Planning"] },
             "Library/Thinking.md": { book: `[[${BOOK}]]`, status: "finished", collections: ["Planning", "Decisions"] },
         });
         await view.onOpen();
-        expect(texts(content, "shelf-filter--status")).toEqual(["All3", "Want to read1", "Finished1"]);
-        expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection", "Decisions", "Planning"]);
-        // Want to read follows what you are reading; the paper is in it, and not again below.
-        expect(texts(content, "shelf-section")).toEqual(["Want to read", "Your shelf"]);
-        expect(content.oneByClass("shelf-shelf--want").byClass("shelf-card-title").map((el) => el.textContent)).toEqual(["Brewer's conjecture, proved"]);
-        expect(texts(content, "shelf-card-status")).toEqual(["Want to read", "Finished"]);
+        expect(texts(content, "shelf-filter--status")).toEqual(["Every shelf", "Want to read", "On the shelf", "Finished"]);
+        expect(content.byClass("shelf-filter--collection")).toHaveLength(0);
+        // Each book stands in one place: on its first shelf of yours (#821) — Planning, for both. Decisions
+        // stands too, empty: a shelf a book is on, but never first.
+        expect(stands(content)).toEqual([["desk", []], ["none", [SCAN]], ["own:Decisions", []], ["own:Planning", [BOOK, PAPER]]]);
+        expect(texts(content, "shelf-filter--own")).toEqual(["Decisions", "Planning"]);
+        expect(label(content, PAPER)).toBe("Open Brewer's conjecture, proved, Want to read");
+        expect(label(content, BOOK)).toBe("Open Thinking, Fast and Slow, Daniel Kahneman, Finished");
+        // Filtered by a shelf of yours: every book on it, first or not.
+        content.byClass("shelf-filter--own").find((el) => el.textContent === "Decisions")!.click();
+        expect(stands(content)).toEqual([["desk", []], ["own:Decisions", [BOOK]]]);
+        expect(view.getState()).toMatchObject({ shelf: "Decisions" });
 
-        content.byClass("shelf-filter--collection").find((el) => el.textContent === "Decisions")!.click();
-        expect(texts(content, "shelf-card-title")).toEqual(["Thinking, Fast and Slow"]);
-        expect(view.getState()).toMatchObject({ collection: "Decisions" });
-        content.byClass("shelf-filter--collection")[0].click();
-        content.byClass("shelf-filter--status").find((el) => el.textContent === "Want to read1")!.click();
-        expect(texts(content, "shelf-card-title")).toEqual(["Brewer's conjecture, proved"]);
+        content.byClass("shelf-filter--status").find((el) => el.textContent === "Want to read")!.click();
+        expect(stands(content)).toEqual([["desk", []], ["to-read", [PAPER]]]);
         expect(view.getState()).toMatchObject({ status: "to-read" });
         // A collection is found by the search too (FR-10).
         content.byClass("shelf-filter--status")[0].click();
         const input = content.oneByClass("shelf-search-input");
         input.value = "decisions";
         input.fire("input");
-        expect(texts(content, "shelf-card-title")).toEqual(["Thinking, Fast and Slow"]);
+        expect(stands(content)).toEqual([["desk", []], ["own:Planning", [BOOK]]]);
     });
 
     it("says Finished on a book you read to the end, before it has any note (FR-3)", async () => {
         const { view, content } = mount({}, { library: { ...library, [BOOK]: { ...library[BOOK], done: true } } });
         await view.onOpen();
-        const card = content.byClass("shelf-card").find((el) => el.attrs["data-shelf-id"] === BOOK)!;
-        expect(card.oneByClass("shelf-card-status").textContent).toBe("Finished");
-        const paper = content.byClass("shelf-card").find((el) => el.attrs["data-shelf-id"] === PAPER)!;
-        expect(paper.byClass("shelf-meta").map((el) => el.textContent)).toContain("Never opened");
+        expect(label(content, BOOK)).toBe("Open Thinking, Fast and Slow, Daniel Kahneman, Finished");
+        // A finished book has the folded corner, never a ribbon.
+        const finished = content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === BOOK)!;
+        expect(finished.byClass("shelf-fold")).toHaveLength(1);
+        expect(finished.byClass("shelf-ribbon")).toHaveLength(0);
+        expect(label(content, PAPER)).toBe("Open Brewer's conjecture, Not started");
     });
 
-    it("says Reading, not Never opened, on a book you set to Reading before opening it", async () => {
+    it("stands a book you set to Reading before opening it on Reading, with the shortest ribbon — never on the desk (#820)", async () => {
         const { view, content } = mount({ "Library/cap.md": { book: `[[${PAPER}]]`, status: "reading" } });
         await view.onOpen();
-        const paper = content.byClass("shelf-card").find((el) => el.attrs["data-shelf-id"] === PAPER)!;
-        expect(paper.oneByClass("shelf-card-status").textContent).toBe("Reading");
+        expect(stands(content)).toEqual([["desk", [BOOK]], ["reading", [PAPER]], ["none", [SCAN]]]);
+        expect(label(content, PAPER)).toBe("Open Brewer's conjecture, Not started");
+        const ribbon = content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === PAPER)!.oneByClass("shelf-ribbon");
+        expect(ribbon.cssProps["--zf-shelf-progress"]).toBe("0");
     });
 
     it("puts Details inside the detail's own sheet, read from the note (FR-14)", async () => {
@@ -148,33 +162,13 @@ describe("the book's note on the shelf (#743)", () => {
         const { view, content, app, writes } = mount({});
         await view.onOpen();
         content.byClass("shelf-more")[0].click();
+        Menu.last!.item("Details").click();
         await flush();
         expect(content.byClass("shelf-details")).toHaveLength(1);
         for (const spy of [app.vault.create, app.vault.modify, app.vault.process, writes.create, writes.edit]) expect(spy).not.toHaveBeenCalled();
     });
 
-    it("shows a new collection over the shelf at once, dropping its chip in (FR-9, FR-16)", async () => {
-        const restore = reducedMotion(false);
-        const record = recordAnimations();
-        try {
-            const { view, content } = mount({ "Library/Thinking.md": { book: `[[${BOOK}]]` } });
-            await view.onOpen();
-            await view.setState({ detail: BOOK }, {} as never);
-            content.oneByClass("shelf-details-add").click();
-            const input = content.oneByClass("shelf-details-add-input");
-            input.value = "Planning";
-            input.fire("keydown", { key: "Enter", preventDefault: () => undefined });
-            await flush();
-            expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection", "Planning"]);
-            const chip = content.byClass("shelf-filter--collection")[1];
-            expect(record.animations.some((a) => a.target === chip && a.keyframes[0].transform === "scale(0.96)")).toBe(true);
-        } finally {
-            record.stop();
-            restore();
-        }
-    });
-
-    it("carries a card to its new row by a translate when its status changes, the others closing the gap (FR-16)", async () => {
+    it("carries a book to its new shelf by a translate when its status changes, the others closing the gap (FR-16)", async () => {
         const restore = reducedMotion(false);
         const record = recordAnimations();
         // A layout: every card a row below the one before it, in the order the shelf draws them.
@@ -189,20 +183,23 @@ describe("the book's note on the shelf (#743)", () => {
         try {
             const { view, content, writes } = mount({ "Library/cap.md": { book: `[[${PAPER}]]`, status: "to-read" } });
             await view.onOpen();
-            expect(content.byClass("shelf-card").map((el) => el.attrs["data-shelf-id"])).toEqual([PAPER, BOOK, SCAN]);
+            expect(stands(content)).toEqual([["desk", [BOOK]], ["to-read", [PAPER]], ["none", [SCAN]]]);
             await view.setState({ detail: BOOK }, {} as never);
             const select = content.oneByClass("shelf-details-status");
-            select.value = "to-read";
+            select.value = "finished";
             select.fire("change");
             await flush();
             expect(writes.create).toHaveBeenCalledTimes(1);
-            // The book joined Want to read, ahead of the paper: it was read more recently.
-            expect(content.byClass("shelf-card").map((el) => el.attrs["data-shelf-id"])).toEqual([BOOK, PAPER, SCAN]);
+            // The book left the desk for Finished; the others closed the gap.
+            expect(stands(content)).toEqual([["desk", []], ["to-read", [PAPER]], ["none", [SCAN]], ["finished", [BOOK]]]);
             const moved = record.animations.filter((a) => a.target.attrs?.["data-shelf-id"]);
-            expect(moved.map((a) => [a.target.attrs["data-shelf-id"], a.keyframes[0]])).toEqual([
-                [BOOK, { transform: "translate(0px, 100px)" }],
-                [PAPER, { transform: "translate(0px, -100px)" }],
-            ]);
+            expect(new Map(moved.map((a) => [a.target.attrs["data-shelf-id"], a.keyframes[0]]))).toEqual(
+                new Map([
+                    [PAPER, { transform: "translate(0px, 100px)" }],
+                    [SCAN, { transform: "translate(0px, 100px)" }],
+                    [BOOK, { transform: "translate(0px, -200px)" }],
+                ])
+            );
             expect(new Set(moved.flatMap((a) => a.keyframes.flatMap((frame) => Object.keys(frame))))).toEqual(new Set(["transform"]));
             expect(moved.every((a) => a.options.duration === 250)).toBe(true);
         } finally {
@@ -223,7 +220,8 @@ describe("the book's note on the shelf (#743)", () => {
             select.value = "to-read";
             select.fire("change");
             await flush();
-            expect(content.oneByClass("shelf-shelf--want").byClass("shelf-card").map((el) => el.attrs["data-shelf-id"])).toEqual([BOOK, PAPER]);
+            // Read more recently than the paper: first on Want to read.
+            expect(stands(content)).toEqual([["desk", []], ["to-read", [BOOK, PAPER]], ["none", [SCAN]]]);
             expect(record.animations).toHaveLength(0);
         } finally {
             record.stop();

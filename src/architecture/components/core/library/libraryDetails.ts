@@ -10,6 +10,7 @@ import {
     BOOK_STATUSES,
     TEXT_FIELDS,
     fieldText,
+    foldDetailFields,
     isBookStatus,
     parseField,
     readBookNote,
@@ -20,7 +21,7 @@ import {
     type TextField,
 } from "application/library/bookNote";
 import { adoptNote, createBookNote, editArticle, editBookNote, noteAt, type BookNoteWrite, type CreateBookNote } from "./bookNoteWriter";
-import { dropIn } from "./libraryFlip";
+import { dropIn, flipMove } from "./libraryFlip";
 import { parseAuthors, proposedKey } from "application/library/citation";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -47,6 +48,9 @@ const INVALID_KEY: Partial<Record<TextField, LocaleKey>> = {
     isbn: "shelf_details_isbn_invalid",
     citekey: "shelf_details_citekey_invalid",
 };
+
+/** How far apart the unfolded rows rise in (#822 MF-1). */
+const UNFOLD_STEP_MS = 30;
 
 /** How long the check stays before it fades by itself (FR-15). */
 export const CHECK_MS = 1200;
@@ -260,10 +264,15 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
 
     section.createEl("h3", { cls: c("shelf-section"), text: t("shelf_details") });
     const grid = section.createDiv({ cls: c("shelf-details-grid") });
+    // What holds nothing yet waits behind *Add details…* (#822): a short book is a short form.
+    const { folded } = foldDetailFields(details, item.author ? { author: item.author } : {}, Boolean(notePath), parts.focus);
+    const rows: HTMLElement[] = [];
     for (const field of article ? [] : TEXT_FIELDS) {
         const id = `zf-book-${field}`;
-        grid.createEl("label", { cls: c("shelf-details-label"), text: t(FIELD_KEY[field]), attr: { for: id } });
-        const cell = grid.createDiv({ cls: c("shelf-details-cell") });
+        const fieldRow = grid.createDiv({ cls: [c("shelf-details-row"), ...(folded.includes(field) ? [c("shelf-details-row--folded")] : [])] });
+        rows.push(fieldRow);
+        fieldRow.createEl("label", { cls: c("shelf-details-label"), text: t(FIELD_KEY[field]), attr: { for: id } });
+        const cell = fieldRow.createDiv({ cls: c("shelf-details-cell") });
         const input = cell.createEl("input", {
             cls: c("shelf-details-input"),
             attr: {
@@ -303,6 +312,33 @@ export function renderDetails(parent: HTMLElement, parts: DetailsParts): void {
                 event.preventDefault();
                 commit();
             }
+        });
+    }
+
+    if (!article && folded.length > 0) {
+        const unfold = grid.createEl("button", { cls: c("shelf-details-unfold"), attr: { type: "button" }, text: t("shelf_details_unfold") });
+        scope.registerDomEvent(unfold, "click", () => {
+            const hidden = rows.filter((row) => row.hasClass(c("shelf-details-row--folded")));
+            // What follows makes room by a translate; the rows rise in, staggered (MF-1).
+            flipMove(section, () => {
+                unfold.remove();
+                for (const row of hidden) row.removeClass(c("shelf-details-row--folded"));
+            });
+            if (motionWelcome(section)) {
+                hidden.forEach((row, i) => {
+                    for (const child of Array.from(row.children) as HTMLElement[]) {
+                        child.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }], {
+                            duration: MOTION.base,
+                            easing: MOTION.ease,
+                            delay: Math.min(i, 5) * UNFOLD_STEP_MS,
+                            fill: "backwards",
+                        });
+                    }
+                });
+            }
+            const first = hidden[0]?.querySelector("input");
+            first?.focus();
+            first?.scrollIntoView?.({ block: "nearest", behavior: motionWelcome(section) ? "smooth" : "auto" });
         });
     }
 

@@ -1,5 +1,5 @@
 import { progressOf, sourceFormat, type LibraryMeta } from "./sourceMeta";
-import { BOOK_STATUSES, effectiveStatus, type BookDetails, type BookNoteEntry, type BookStatus } from "./bookNote";
+import { effectiveStatus, type BookDetails, type BookNoteEntry, type BookStatus } from "./bookNote";
 
 /**
  * **The Library shelf** (#680, epic #675) — pure: what is on it, in which order, and what came of
@@ -232,8 +232,10 @@ export function shelfCounts(items: readonly ShelfItem[]): Record<ShelfFilter, nu
     return counts;
 }
 
-export type StatusFilter = "all" | BookStatus;
-export const STATUS_FILTERS: readonly StatusFilter[] = ["all", ...BOOK_STATUSES];
+/** A status shelf (#819, #820): a status — or `none`, *On the shelf*, a book nothing is said of yet. */
+export type StatusFilter = "all" | BookStatus | "none";
+/** The status shelves in the order they stand: Reading, Want to read, On the shelf, Finished. */
+export const STATUS_FILTERS: readonly StatusFilter[] = ["all", "reading", "to-read", "none", "finished"];
 
 export interface ShelfQuery {
     filter: ShelfFilter;
@@ -258,7 +260,7 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
     const shown = items.filter(
         (item) =>
             matchesFilter(item, query.filter) &&
-            (status === "all" || item.status === status) &&
+            (status === "all" || (status === "none" ? !item.status : item.status === status)) &&
             (!collection || (item.collections ?? []).some((name) => fold(name) === collection)) &&
             (!needle || haystack(item).includes(needle))
     );
@@ -271,52 +273,130 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
     return shown.sort((a, b) => b.lastRead - a.lastRead || byTitle(a, b));
 }
 
-/** How many sources *Continue reading* offers. */
-export const CONTINUE_LIMIT = 2;
+/** How many books lie open on the desk (#820): what you are reading now, never the whole pile. */
+export const DESK_LIMIT = 2;
+
+/** A status shelf (#820): Reading, Want to read, On the shelf or Finished. */
+export type ShelfStatus = Exclude<StatusFilter, "all">;
+
+/** One shelf of the Library: a status shelf, or one of yours (#821). */
+export interface ShelfRow {
+    /** `status:<status>` or `own:<folded name>` — what the shelf is known by across a redraw. */
+    key: string;
+    status?: ShelfStatus;
+    /** Your shelf's name, as you spelt it. */
+    own?: string;
+    items: ShelfItem[];
+}
+
+export interface ShelfLayout {
+    /** What you are reading now — open on the desk, and on no shelf. */
+    desk: ShelfItem[];
+    /** The status shelves in the order they stand, each holding something; then yours, A→Z. */
+    shelves: ShelfRow[];
+}
+
+const statusRow = (status: ShelfStatus, items: ShelfItem[]): ShelfRow => ({ key: `status:${status}`, status, items });
+const ownRow = (name: string, items: ShelfItem[]): ShelfRow => ({ key: `own:${fold(name)}`, own: name, items });
 
 /**
- * What you were last in and have not finished — the reason to open the Library. A book you said
- * you finished, or put back to *Want to read*, is not offered again (#743).
+ * **Where every book stands** (#820, #821): one pass over the shelf as asked for. What you were last
+ * in and have not finished lies open on the desk — up to two, most recent first, and only while
+ * nothing narrows the shelf to one status or one shelf. Every other book stands in one place: on its
+ * first shelf of yours, else on the shelf of its status — *On the shelf* when nothing is said of it.
+ *
+ * `own` is every shelf of yours (see `yourShelves`): one you made and left empty still stands, with
+ * room for books, while nothing narrows the view. Narrowed to a status, every book of that status is
+ * on one shelf, wherever it stands otherwise; narrowed to a shelf of yours, every book on it.
  */
-export function continueReading(items: readonly ShelfItem[]): ShelfItem[] {
-    return items
+export function layShelves(items: readonly ShelfItem[], query: ShelfQuery, own: readonly string[] = []): ShelfLayout {
+    const shown = viewShelf(items, query);
+    const status = query.status ?? "all";
+    if (query.collection) {
+        const wanted = fold(query.collection);
+        const name = own.find((candidate) => fold(candidate) === wanted) ?? shown.flatMap((item) => item.collections ?? []).find((candidate) => fold(candidate) === wanted) ?? query.collection;
+        return { desk: [], shelves: shown.length > 0 || !query.search.trim() ? [ownRow(name, shown)] : [] };
+    }
+    if (status !== "all") return { desk: [], shelves: shown.length > 0 ? [statusRow(status, shown)] : [] };
+    const desk = shown
         .filter((item) => item.lastRead > 0 && item.progress < 1 && item.status !== "finished" && item.status !== "to-read")
         .sort((a, b) => b.lastRead - a.lastRead)
-        .slice(0, CONTINUE_LIMIT);
+        .slice(0, DESK_LIMIT);
+    const onDesk = new Set(desk.map((item) => item.id));
+    const byStatus = new Map<ShelfStatus, ShelfItem[]>();
+    const byOwn = new Map<string, ShelfItem[]>();
+    for (const item of shown) {
+        if (onDesk.has(item.id)) continue;
+        const first = item.collections?.[0];
+        if (first) {
+            const key = fold(first);
+            const row = byOwn.get(key);
+            if (row) row.push(item);
+            else byOwn.set(key, [item]);
+            continue;
+        }
+        const place: ShelfStatus = item.status ?? "none";
+        const row = byStatus.get(place);
+        if (row) row.push(item);
+        else byStatus.set(place, [item]);
+    }
+    const shelves = STATUS_FILTERS.filter((place): place is ShelfStatus => place !== "all" && byStatus.has(place)).map((place) => statusRow(place, byStatus.get(place) ?? []));
+    // Yours, A→Z: every one with a book here — and, while nothing narrows the view, the empty ones too.
+    const quiet = query.filter === "all" && !query.search.trim();
+    const names = new Map<string, string>();
+    for (const name of own) names.set(fold(name), name);
+    for (const item of shown) {
+        const first = item.collections?.[0];
+        if (first && !names.has(fold(first)) && !onDesk.has(item.id)) names.set(fold(first), first);
+    }
+    for (const name of [...names.values()].sort((a, b) => a.localeCompare(b))) {
+        const row = byOwn.get(fold(name)) ?? [];
+        if (row.length > 0 || quiet) shelves.push(ownRow(name, row));
+    }
+    return { desk, shelves };
 }
 
-/** How long something stays new on the shelf (#744 FR-8). */
-export const RECENT_DAYS = 30;
-/** As many as one row can hold at its widest; the row itself shows what fits. */
-export const RECENT_LIMIT = 12;
+/** How the Library shows its books (#819, #820): covers, or spines on the shelf. */
+export type BookView = "covers" | "spines";
+export const BOOK_VIEWS: readonly BookView[] = ["covers", "spines"];
 
-/**
- * **Recently added** (#744 FR-8): what came into the vault in the last thirty days and is not
- * finished, newest first — so a book dropped in yesterday is found the day it lands.
- */
-export function recentlyAdded(items: readonly ShelfItem[], now: number): ShelfItem[] {
-    const since = now - RECENT_DAYS * 86_400_000;
-    return items
-        .filter((item) => item.added !== undefined && item.added >= since && item.progress < 1 && item.status !== "finished")
-        .sort((a, b) => (b.added ?? 0) - (a.added ?? 0) || a.title.localeCompare(b.title))
-        .slice(0, RECENT_LIMIT);
-}
-
-/** What you said you want to read (#743 FR-9): the section that follows *Continue reading*. */
-export function wantToRead(items: readonly ShelfItem[]): ShelfItem[] {
-    return items.filter((item) => item.status === "to-read");
+/** The saved value, read: anything but *spines* is covers. */
+export function bookViewOf(value: unknown): BookView {
+    return value === "spines" ? "spines" : "covers";
 }
 
 /** How many items each status chip would show (#743). */
 export function statusCounts(items: readonly ShelfItem[]): Record<StatusFilter, number> {
-    const counts: Record<StatusFilter, number> = { all: items.length, "to-read": 0, reading: 0, finished: 0 };
-    for (const item of items) if (item.status) counts[item.status]++;
+    const counts: Record<StatusFilter, number> = { all: items.length, "to-read": 0, reading: 0, finished: 0, none: 0 };
+    for (const item of items) counts[item.status ?? "none"]++;
     return counts;
 }
 
-/** Every collection on the shelf, once each, alphabetically: the collection chips (#743). */
-export function shelfCollections(items: readonly ShelfItem[]): string[] {
-    const seen = new Map<string, string>();
-    for (const item of items) for (const name of item.collections ?? []) if (!seen.has(fold(name))) seen.set(fold(name), name);
-    return [...seen.values()].sort((a, b) => a.localeCompare(b));
+
+/** One part of the detail's sentence (#822): what came of a source, and never a zero. */
+export type DetailPart =
+    | { kind: "read"; percent: number }
+    | { kind: "started" }
+    | { kind: "finished" }
+    | { kind: "highlights"; n: number }
+    | { kind: "born"; n: number };
+
+/**
+ * **The detail's one sentence** (#822): how far, how many marks, how many notes — only what is
+ * there. A source never opened says nothing; a count of none is not said; opened but under one per
+ * cent is *Started*, never *0% read*.
+ */
+export function detailSentenceParts(item: Pick<ShelfItem, "kind" | "progress" | "lastRead" | "place" | "highlights" | "born">): DetailPart[] {
+    const parts: DetailPart[] = [];
+    // A saved path's `lastRead` includes when it was saved: it was opened once it has a place.
+    const opened = item.kind === "path" ? item.place !== undefined : item.lastRead > 0 || item.progress >= 1;
+    if (opened) {
+        const percent = Math.round(item.progress * 100);
+        if (item.progress >= 1) parts.push({ kind: "finished" });
+        else if (percent >= 1) parts.push({ kind: "read", percent });
+        else parts.push({ kind: "started" });
+    }
+    if (item.highlights >= 1) parts.push({ kind: "highlights", n: item.highlights });
+    if (item.kind !== "path" && item.born >= 1) parts.push({ kind: "born", n: item.born });
+    return parts;
 }

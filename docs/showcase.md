@@ -144,13 +144,14 @@ cites the passage, or let it go. Fixed intervals, no counts, no streaks.
 
 ## Your Library — the sources your ideas come from
 
-**Ribbon menu → Library.** The PDFs and EPUBs already in your vault, and the reading paths you saved,
-share one shelf. Each has its cover — the book's own, the paper's first page, a constellation for a
-path — and says what came of it: how far you are, what you highlighted, and the **notes born from
-it**. *Continue reading* leads, and a scanned PDF says it is **read only** before you open it.
+**Ribbon menu → Library.** The PDFs and EPUBs already in your vault, the articles you clipped and the
+reading paths you saved stand on shelves, like a library: what you are reading open on the desk, the
+rest on planks by where they stand for you — *Reading*, *Want to read*, *On the shelf*, *Finished* —
+and on **shelves of your own** you make and drag books onto. A ribbon marks how far you are, a folded
+corner what you finished; a scanned PDF says it is **read only** before you open it.
 Nothing is imported, nothing leaves the vault, and no source file is ever modified.
 
-![The Library: Continue reading, then books, papers and reading paths with their progress, highlights and notes born](resources/library/shelf.svg)
+![The Library as a library: the bar that stays, the desk with the two books you are reading, and the shelves on planks with a ribbon on the books you are reading and a folded corner on the finished](resources/library/shelf.svg)
 
 Open a paper and its pages reflow into the Reader's column, in your type — or keep the layout with
 **Page view**; open a book and its chapters are rebuilt from the EPUB, safely, with its own

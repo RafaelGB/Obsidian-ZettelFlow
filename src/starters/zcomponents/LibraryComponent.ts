@@ -1,5 +1,5 @@
 import { Menu, TFile } from "obsidian";
-import { PluginComponent } from "architecture";
+import { PluginComponent, log } from "architecture";
 import { t } from "architecture/lang";
 import { sourceFormat } from "application/library/sourceMeta";
 import { setLibraryHost } from "architecture/components/core/library/libraryHost";
@@ -8,6 +8,9 @@ import { clearCoverCache } from "architecture/components/core/library/libraryCov
 import { READABLE } from "architecture/components/core/library/libraryOpen";
 import { openReader } from "architecture/components/core/reader/openReader";
 import { normalizeLibrary } from "application/library/sourceMeta";
+import { statusOnOpen } from "application/library/bookNote";
+import { bookNoteOf } from "architecture/components/core/library/bookNoteIndex";
+import { editBookNote, noteAt } from "architecture/components/core/library/bookNoteWriter";
 import ZettelFlow from "main";
 
 /**
@@ -48,6 +51,11 @@ export class LibraryComponent extends PluginComponent {
                             .onClick(() => {
                                 // Never read (#808 FR-2a): no chapter, so it opens where its text begins.
                                 const place = normalizeLibrary(this.plugin.settings.library)[file.path]?.chapter;
+                                // Want to read, then opened (#822): Reading, written once into its note — never by the Reader.
+                                const entry = bookNoteOf(app, file.path);
+                                const change = statusOnOpen(entry?.details, Boolean(entry?.details.collections?.length));
+                                const target = change && entry ? noteAt(entry.path) : null;
+                                if (change && target) void editBookNote(target, change).catch((error: unknown) => log.error(`[Library] could not set Reading: ${String(error)}`));
                                 void openReader(app, { seed: file.path, source: file.path, ...(place !== undefined ? { chapter: place } : {}) });
                             })
                     );

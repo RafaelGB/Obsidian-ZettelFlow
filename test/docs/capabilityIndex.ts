@@ -133,6 +133,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "chapter-pause": { summary: "at the end of a chapter you marked, the book turns onto a blank leaf — your marks, what they touched, one question; never a summary. Turned off on the leaf.", page: "../development/reader.md#what-survived" },
     "chapter-recall": { summary: "put the chapter and your marks away, write what it argued from memory, then see what you marked — nothing compared or scored; keep your words as a note that cites the book.", page: "../development/reader.md#recall" },
     library: { summary: "your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page.", page: "../development/library.md" },
+    "library-shelves": { summary: "shelves of your own in the Library — make one, drag a book onto it (or long-press on an iPad), filter by it; one write per change, with an Undo.", page: "../development/library.md#your-shelves" },
     "highlights-review": { summary: "what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go.", page: "../development/highlights-review.md" },
     "think-about": { summary: "open a thread about a note without writing to it.", page: "../architecture/thought-lab.md" },
     "claim-door": { summary: "say in one sentence what a note claims.", page: "../development/claim-returns.md" },

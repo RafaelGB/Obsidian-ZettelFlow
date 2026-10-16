@@ -58,7 +58,7 @@ describe("how a book opens and a chapter turns (#732)", () => {
     it("offers both choices in the Reading section and saves what you pick", async () => {
         const host = plugin({ open: "shot", chapter: "leaf" });
         const group = readingSettingsGroup(host as never) as { items: SettingGroupItem[] };
-        expect(group.items).toHaveLength(5);
+        expect(group.items).toHaveLength(6);
 
         const open = renderRow(group.items[0]);
         expect(open.options.map(([key]) => key)).toEqual(["shot", "instant"]);
@@ -101,6 +101,20 @@ describe("how a book opens and a chapter turns (#732)", () => {
         // Off stays off when the row is drawn again.
         draw();
         expect(value).toBe(false);
+    });
+
+    it("shows the Library's books as covers until you choose spines, the value the bar's switch writes (#819 FR-8)", async () => {
+        const host = plugin();
+        const changed = jest.fn();
+        const group = readingSettingsGroup(host as never, undefined, undefined, changed) as { items: SettingGroupItem[] };
+        const item = group.items.find((entry) => (entry as { name?: string }).name === "Library shows books as") as SettingGroupItem;
+        const row = renderRow(item);
+        expect(row.options.map(([key]) => key)).toEqual(["covers", "spines"]);
+        expect(row.value()).toBe("covers");
+        await row.pick("spines");
+        expect((host.settings as { libraryBookView?: string }).libraryBookView).toBe("spines");
+        expect(host.saveSettings).toHaveBeenCalledTimes(1);
+        expect(changed).toHaveBeenCalledTimes(1);
     });
 
     it("speaks both languages", () => {

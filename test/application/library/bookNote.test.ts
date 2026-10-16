@@ -5,11 +5,12 @@ import {
     bookNoteFields,
     bookNoteFileName,
     bookNoteMarkdown,
-    collectionsInUse,
     declaredFromPackage,
     declaredFromPdf,
     effectiveStatus,
     fieldText,
+    foldDetailFields,
+    statusOnOpen,
     freeBookNotePath,
     indexBookNotes,
     isbnOf,
@@ -136,7 +137,6 @@ describe("found by its link, never by its folder (#743 AC-12)", () => {
         ]);
         expect([...index.keys()]).toEqual(["Books/Dune.epub", "Papers/cap.pdf"]);
         expect(index.get("Books/Dune.epub")).toEqual({ path: "Archive/Dune again.md", source: "Books/Dune.epub", details: { status: "to-read" } });
-        expect(collectionsInUse(index.values())).toEqual(["Planning"]);
     });
 
     it("reads a link out of a frontmatter value", () => {
@@ -209,5 +209,29 @@ describe("what a book declares (#743 FR-5)", () => {
             author: ["Seth Gilbert", "Nancy Lynch"],
         });
         expect(declaredFromPdf({})).toEqual({});
+    });
+});
+
+describe("which details show (#822 AC-4)", () => {
+    it("shows the title and what holds something, the rest folded", () => {
+        expect(foldDetailFields({ author: ["Kahneman"], year: 2011 }, {}, true)).toEqual({
+            shown: ["title", "author", "year"],
+            folded: ["series", "publisher", "language", "isbn", "citekey", "tags"],
+        });
+        // Before a note, the author the shelf knows counts.
+        expect(foldDetailFields({}, { author: "Kahneman" }, false).shown).toEqual(["title", "author"]);
+        expect(foldDetailFields({}, {}, false).shown).toEqual(["title"]);
+        expect(foldDetailFields({}, {}, true, "citekey").shown).toEqual(["title", "citekey"]);
+    });
+});
+
+describe("Want to read, then opened (#822 AC-11..AC-14)", () => {
+    it("becomes Reading once, only on a status shelf", () => {
+        expect(statusOnOpen({ status: "to-read" }, false)).toEqual({ status: "reading" });
+        expect(statusOnOpen({ status: "to-read" }, true)).toBeNull();
+        for (const status of ["reading", "finished", undefined] as const) expect(statusOnOpen(status ? { status } : {}, false)).toBeNull();
+        expect(statusOnOpen(undefined, false)).toBeNull();
+        // Written, the note says Reading: it never fires again.
+        expect(statusOnOpen({ status: "reading" }, false)).toBeNull();
     });
 });

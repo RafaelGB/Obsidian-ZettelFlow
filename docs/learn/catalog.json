@@ -3298,6 +3298,27 @@
     },
     {
       "name": {
+        "en": "Your shelves",
+        "es": "Tus estantes"
+      },
+      "line": {
+        "en": "Make shelves of your own in the Library, drag books onto them, and filter by them.",
+        "es": "Crea estantes propios en la biblioteca, arrastra libros a ellos y filtra por ellos."
+      },
+      "door": {
+        "en": "Library › + New shelf, or a book's ⋯ › Move to shelf…",
+        "es": "Biblioteca › + Nuevo estante, o el ⋯ de un libro › Mover al estante…"
+      },
+      "group": {
+        "en": "Read",
+        "es": "Leer"
+      },
+      "doc": "development/library.md",
+      "tutorial": "library",
+      "capability": "library-shelves"
+    },
+    {
+      "name": {
         "en": "Write in the margin",
         "es": "Escribir en el margen"
       },

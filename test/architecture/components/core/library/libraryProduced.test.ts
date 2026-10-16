@@ -128,18 +128,19 @@ describe("what it produced, in the detail (#752 AC-3, FR-6, FR-7)", () => {
         expect(host.byClass("shelf-produced-more")).toHaveLength(0);
     });
 
-    it("says so when nothing came of it yet, and nothing else", async () => {
+    it("draws nothing when nothing came of it yet — no heading, no line of its own (#822)", async () => {
         const { host } = mount(lists({ born: [], ideas: [], links: [], tensions: [], questions: [], unresolved: [] }));
         await flush();
         expect(host.byClass("shelf-produced-list")).toHaveLength(0);
-        expect(host.oneByClass("shelf-produced-empty").textContent).toBe("Nothing yet. What you make from this book shows here.");
+        expect(host.byClass("shelf-section")).toHaveLength(0);
+        expect(host.oneByClass("shelf-produced").hasClass("zettelkasten-flow__shelf-detail-quiet")).toBe(true);
     });
 
-    it("says Reading your vault… while the model is built, and fills in when it is ready", async () => {
+    it("waits, quiet, while the model is built, and fills in when it is ready (#822)", async () => {
         let ready = false;
         const { host, resolved, shown } = mount(() => (ready ? lists() : null));
         await flush();
-        expect(host.oneByClass("shelf-produced-empty").textContent).toBe("Reading your vault…");
+        expect(host.oneByClass("shelf-produced").hasClass("zettelkasten-flow__shelf-detail-quiet")).toBe(true);
         expect(shown).not.toHaveBeenCalled();
         resolved();
         await flush();
@@ -147,7 +148,7 @@ describe("what it produced, in the detail (#752 AC-3, FR-6, FR-7)", () => {
         ready = true;
         resolved();
         await flush();
-        expect(host.byClass("shelf-produced-empty")).toHaveLength(0);
+        expect(host.oneByClass("shelf-produced").hasClass("zettelkasten-flow__shelf-detail-quiet")).toBe(false);
         expect(headings(host)[0]).toBe("Notes born from it");
         expect(shown).toHaveBeenCalledTimes(1);
     });
@@ -170,7 +171,7 @@ describe("what it produced, in the detail (#752 AC-3, FR-6, FR-7)", () => {
         });
         await flush();
         expect(aside.byClass("shelf-born-list")).toHaveLength(0);
-        expect(aside.oneByClass("shelf-produced-empty").textContent).toBe("Reading your vault…");
+        expect(aside.byClass("shelf-detail-nothing")).toHaveLength(0);
         aside.byText("Open")!.click();
         expect(open).toHaveBeenCalled();
     });

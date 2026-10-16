@@ -14,6 +14,8 @@ export interface LibraryHost extends ReaderHost {
         bookNotesFolder?: string;
         /** Where articles come from (#744): `Clippings` until you choose; empty turns them off. */
         articlesFolder?: string;
+        /** Covers or spines (#819): the bar's switch and Settings → Reading are this one value. */
+        libraryBookView?: "covers" | "spines";
     };
 }
 

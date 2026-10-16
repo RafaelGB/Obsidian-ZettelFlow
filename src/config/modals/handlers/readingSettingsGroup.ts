@@ -53,7 +53,9 @@ export function readingSettingsGroup(
     /** After the folder changes: the pointer in *Folders ZettelFlow uses* follows it. */
     bookNotesChanged: () => void = () => undefined,
     /** After the articles folder changes (#744): an open Library shows the shelf it now makes. */
-    articlesChanged: () => void = () => undefined
+    articlesChanged: () => void = () => undefined,
+    /** After *Library shows books as* changes (#819): an open Library turns its books. */
+    bookViewChanged: () => void = articlesChanged
 ): SettingDefinitionItem {
     const save = async (change: Partial<ReadingMotion>) => {
         plugin.settings.readingMotion = { ...readingMotion(plugin.settings.readingMotion), ...change };
@@ -94,6 +96,23 @@ export function readingSettingsGroup(
                         toggle.onChange(async (value) => {
                             plugin.settings.readerPrefs = { ...normalizeReaderPrefs(plugin.settings.readerPrefs), chapterPause: value };
                             await plugin.saveSettings();
+                        });
+                    });
+                },
+            },
+            {
+                // Covers | Spines (#819 FR-8): the same value as the switch in the Library's bar.
+                name: t("settings_reading_book_view_name"),
+                desc: t("settings_reading_book_view_desc"),
+                render: (setting: Setting) => {
+                    setting.addDropdown((dropdown) => {
+                        dropdown.addOption("covers", t("shelf_view_covers"));
+                        dropdown.addOption("spines", t("shelf_view_spines"));
+                        dropdown.setValue(plugin.settings.libraryBookView === "spines" ? "spines" : "covers");
+                        dropdown.onChange(async (value) => {
+                            plugin.settings.libraryBookView = value === "spines" ? "spines" : "covers";
+                            await plugin.saveSettings();
+                            bookViewChanged();
                         });
                     });
                 },

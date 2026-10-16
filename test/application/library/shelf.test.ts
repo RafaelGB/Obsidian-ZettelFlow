@@ -240,7 +240,9 @@ describe("the shelf reads the book notes (#743)", () => {
         expect(ids({ status: "reading" })).toEqual(["path:r1"]);
         expect(ids({ collection: "planning" })).toEqual([PAPER, BOOK]);
         expect(ids({ collection: "Software design", status: "finished" })).toEqual([]);
-        expect(statusCounts(shelf)).toEqual({ all: 4, "to-read": 1, reading: 1, finished: 1 });
+        expect(statusCounts(shelf)).toEqual({ all: 4, "to-read": 1, reading: 1, finished: 1, none: 1 });
+        // On the shelf (#819, #820): what has no status yet — never opened, nothing said about it.
+        expect(ids({ status: "none" })).toEqual(shelf.filter((item) => !item.status).map((item) => item.id).sort());
         expect(shelfCollections(shelf)).toEqual(["Planning", "Software design"]);
     });
 

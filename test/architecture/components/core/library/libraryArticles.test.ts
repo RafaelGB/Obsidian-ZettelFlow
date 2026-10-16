@@ -85,7 +85,7 @@ function mount(settings: Record<string, unknown> = {}, extra: string[] = []) {
 }
 
 const texts = (content: DomNode, cls: string) => content.byClass(cls).map((el) => el.textContent);
-const chips = (content: DomNode) => content.oneByClass("shelf-bar").byClass("shelf-filter");
+const chips = (content: DomNode) => content.oneByClass("shelf-bar").byClass("shelf-filter--kind");
 
 afterEach(() => __captureSettings(null));
 

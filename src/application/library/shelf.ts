@@ -1,5 +1,5 @@
 import { progressOf, sourceFormat, type LibraryMeta } from "./sourceMeta";
-import { BOOK_STATUSES, effectiveStatus, type BookDetails, type BookNoteEntry, type BookStatus } from "./bookNote";
+import { effectiveStatus, type BookDetails, type BookNoteEntry, type BookStatus } from "./bookNote";
 
 /**
  * **The Library shelf** (#680, epic #675) — pure: what is on it, in which order, and what came of
@@ -232,8 +232,10 @@ export function shelfCounts(items: readonly ShelfItem[]): Record<ShelfFilter, nu
     return counts;
 }
 
-export type StatusFilter = "all" | BookStatus;
-export const STATUS_FILTERS: readonly StatusFilter[] = ["all", ...BOOK_STATUSES];
+/** A status shelf (#819, #820): a status — or `none`, *On the shelf*, a book nothing is said of yet. */
+export type StatusFilter = "all" | BookStatus | "none";
+/** The status shelves in the order they stand: Reading, Want to read, On the shelf, Finished. */
+export const STATUS_FILTERS: readonly StatusFilter[] = ["all", "reading", "to-read", "none", "finished"];
 
 export interface ShelfQuery {
     filter: ShelfFilter;
@@ -258,7 +260,7 @@ export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): Shelf
     const shown = items.filter(
         (item) =>
             matchesFilter(item, query.filter) &&
-            (status === "all" || item.status === status) &&
+            (status === "all" || (status === "none" ? !item.status : item.status === status)) &&
             (!collection || (item.collections ?? []).some((name) => fold(name) === collection)) &&
             (!needle || haystack(item).includes(needle))
     );
@@ -309,8 +311,8 @@ export function wantToRead(items: readonly ShelfItem[]): ShelfItem[] {
 
 /** How many items each status chip would show (#743). */
 export function statusCounts(items: readonly ShelfItem[]): Record<StatusFilter, number> {
-    const counts: Record<StatusFilter, number> = { all: items.length, "to-read": 0, reading: 0, finished: 0 };
-    for (const item of items) if (item.status) counts[item.status]++;
+    const counts: Record<StatusFilter, number> = { all: items.length, "to-read": 0, reading: 0, finished: 0, none: 0 };
+    for (const item of items) counts[item.status ?? "none"]++;
     return counts;
 }
 

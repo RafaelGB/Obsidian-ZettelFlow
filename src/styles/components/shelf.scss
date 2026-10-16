@@ -28,41 +28,77 @@
     padding: var(--size-4-6) var(--size-4-6) var(--size-4-16);
 }
 
-/* ── head: what this is, and the search ────────────────────────────────── */
-.zettelkasten-flow__shelf-head {
+/* ── the bar that stays (#819): the search, one row of chips, the order, covers or spines ───────── */
+/* Sticky in the leaf's scroller, translucent over the shelves; it spans the column's padding so the
+   books pass under a band, not under a floating box. Below the scrim (2) and the detail (3). */
+.zettelkasten-flow__shelf-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    margin: calc(-1 * var(--size-4-6)) calc(-1 * var(--size-4-6)) var(--size-4-4);
+    padding: var(--size-4-4) var(--size-4-6) var(--size-4-3);
+    background-color: color-mix(in srgb, var(--background-primary) 85%, transparent);
+    backdrop-filter: blur(var(--size-4-3));
+
+    /* The hairline, once the shelves scroll under it (MF-1) — an opacity, nothing else moves. */
+    &::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0;
+        height: var(--size-4-1);
+        transform: translateY(100%);
+        background: linear-gradient(color-mix(in srgb, var(--text-normal) 8%, transparent), transparent);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity $motion-fast;
+    }
+}
+
+.zettelkasten-flow__shelf-host--under .zettelkasten-flow__shelf-bar::after {
+    opacity: 1;
+}
+
+/* A result is never hidden under the bar when focus moves to it. */
+.workspace-leaf-content[data-type="zettelflow-library"] .view-content.zettelkasten-flow__shelf-host {
+    scroll-padding-top: var(--size-4-32, 8rem);
+}
+
+.zettelkasten-flow__shelf-bar-top {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-head {
     margin-bottom: var(--size-4-4);
 }
 
-.zettelkasten-flow__shelf-titles {
-    flex: 1 1 14rem;
-    min-width: 0;
-}
-
 .zettelkasten-flow__shelf-heading {
+    flex: 1 1 auto;
+    min-width: 0;
     margin: 0;
-    font-size: var(--h1-size);
+    font-size: var(--h2-size);
     letter-spacing: -0.01em;
-}
-
-.zettelkasten-flow__shelf-subtitle {
-    @include hint;
-    margin-top: var(--size-2-1);
 }
 
 .zettelkasten-flow__shelf-search {
     display: flex;
     align-items: center;
     gap: var(--size-4-2);
-    flex: 0 1 18rem;
+    flex: 0 1 22rem;
+    min-width: 0;
     padding: var(--size-4-1) var(--size-4-3);
     border: $line-quiet;
     border-radius: var(--radius-m);
     background-color: var(--background-secondary);
     color: var(--text-muted);
+
+    &:focus-within {
+        border-color: var(--interactive-accent);
+    }
 }
 
 .zettelkasten-flow__shelf-search-icon {
@@ -79,13 +115,66 @@
     color: var(--text-normal);
 }
 
-/* ── filters and the order ─────────────────────────────────────────────── */
-.zettelkasten-flow__shelf-bar {
+/* The key that finds — where there is a key (FR-3); never on a touch screen. */
+.zettelkasten-flow__shelf-search-key {
+    font-size: var(--font-ui-smaller);
+    color: var(--text-faint);
+}
+
+.zettelkasten-flow__shelf-search-input:focus + .zettelkasten-flow__shelf-search-key {
+    visibility: hidden;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .zettelkasten-flow__shelf-search-key {
+        display: none;
+    }
+}
+
+/* Covers | Spines: one segmented control, the setting's own value. */
+.zettelkasten-flow__shelf-view-switch {
+    display: inline-flex;
+    flex: none;
+    padding: var(--size-2-1);
+    border-radius: var(--radius-m);
+    background-color: var(--background-modifier-hover);
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-view-option {
+    padding: var(--size-2-2) var(--size-4-3);
+    border: 0;
+    border-radius: var(--radius-s);
+    background: none;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    cursor: pointer;
+
+    &.is-active {
+        background-color: var(--background-primary);
+        color: var(--text-normal);
+        box-shadow: var(--shadow-s);
+    }
+}
+
+/* ── one row of chips: kind | shelf · your shelves — and the order ─────────────────────────────── */
+.zettelkasten-flow__shelf-chips {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--size-4-2);
-    margin-bottom: var(--size-4-4);
+}
+
+.zettelkasten-flow__shelf-chip-group,
+.zettelkasten-flow__shelf-own-slot {
+    display: contents;
+}
+
+.zettelkasten-flow__shelf-chips-sep {
+    align-self: stretch;
+    width: var(--border-width);
+    margin: var(--size-2-1) var(--size-4-1);
+    background-color: var(--background-modifier-border);
 }
 
 .zettelkasten-flow__shelf-filter {
@@ -104,6 +193,42 @@
 
 .zettelkasten-flow__shelf-sort {
     margin-left: auto;
+}
+
+/* A narrow pane: the heading steps aside for the search. */
+@container (max-width: 40rem) {
+    .zettelkasten-flow__shelf-bar .zettelkasten-flow__shelf-heading {
+        display: none;
+    }
+
+    .zettelkasten-flow__shelf-search {
+        flex: 1 1 auto;
+    }
+}
+
+/* A phone: one line of chips that scrolls sideways, never three lines of bar. */
+@container (max-width: 30rem) {
+    .zettelkasten-flow__shelf-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+    }
+
+    .zettelkasten-flow__shelf-filter,
+    .zettelkasten-flow__shelf-sort {
+        flex: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__shelf-bar::after {
+        transition: none;
+    }
+
+    .zettelkasten-flow__shelf-chips {
+        scroll-behavior: auto;
+    }
 }
 
 .zettelkasten-flow__shelf-section {
@@ -390,6 +515,7 @@
 
     // A folded row starts a hair below the first, so not even its top edge is drawn.
     > .zettelkasten-flow__shelf-card {
+    isolation: isolate;
         margin-top: var(--size-2-1);
     }
 }

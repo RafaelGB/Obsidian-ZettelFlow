@@ -7,9 +7,7 @@ import {
     SHELF_SORTS,
     STATUS_FILTERS,
     continueReading,
-    fold,
     recentlyAdded,
-    shelfCollections,
     shelfCounts,
     statusCounts,
     titleFromName,
@@ -27,7 +25,7 @@ import { cachedCover, readCover } from "./libraryCovers";
 import { drawCover, progressRing, showCoverImage } from "./libraryCoverEl";
 import { renderDetail } from "./libraryDetail";
 import { renderDetails, STATUS_KEY, type DetailsParts } from "./libraryDetails";
-import { arriveIn, dropIn, flipMove, FLIP_KEY } from "./libraryFlip";
+import { arriveIn, flipMove, FLIP_KEY } from "./libraryFlip";
 import { addFolderField } from "config/modals/handlers/folderField";
 import { ARTICLES_DEFAULT, inFolder } from "application/library/article";
 import { declaredMetadata } from "./sources/declared";
@@ -62,6 +60,14 @@ const SECTION_KEY: Record<ShelfFilter, LocaleKey> = {
     papers: "shelf_filter_papers",
     articles: "shelf_section_articles",
     paths: "shelf_section_paths",
+};
+/** The shelf chips (#819): every shelf, and the status shelves by the names they stand under. */
+const SHELF_CHIP_KEY: Record<StatusFilter, LocaleKey> = {
+    all: "shelf_every_shelf",
+    reading: "shelf_status_reading",
+    "to-read": "shelf_status_to_read",
+    none: "shelf_status_none",
+    finished: "shelf_status_finished",
 };
 const SORT_KEY: Record<ShelfSort, LocaleKey> = {
     recent: "shelf_sort_recent",
@@ -131,8 +137,13 @@ export class LibraryView extends ItemView {
     /** Where things stand for you, and one collection (#743): the second row of chips. */
     private status: StatusFilter = "all";
     private collection: string | null = null;
-    /** The collections the chip row last drew: a new one drops in (FR-16). */
-    private drawnCollections: Set<string> | null = null;
+    /** The search field of the bar that stays (#819): `/` finds it. */
+    private searchInput: HTMLInputElement | null = null;
+    /** Where your own shelves' chips stand in the bar (#821). */
+    protected ownShelvesSlot: HTMLElement | null = null;
+    /** The bar that stays, and the shelves under it (#819): where a result starts. */
+    private bar: HTMLElement | null = null;
+    private shelfHost: HTMLElement | null = null;
     /** What *Recently added* last drew (#744 FR-13): a card new since then settles in. `null` before the first draw. */
     private drawnRecent: Set<string> | null = null;
     /** The inline *Change* of the articles folder is open (#744 FR-2). */
@@ -180,6 +191,14 @@ export class LibraryView extends ItemView {
     ) {
         super(leaf);
         this.scope = new Scope(this.app?.scope);
+        // `/` finds the search (#819 FR-3), on the shelf only — never while typing, never over the detail.
+        this.scope.register([], "/", (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            const typing = Boolean(target?.closest?.("input, textarea, select, [contenteditable=true]"));
+            if (typing || this.detail || this.notebook || !this.searchInput) return true;
+            this.searchInput.focus();
+            return false;
+        });
         // Esc closes the detail, then the notebook; with neither open it is Obsidian's.
         this.scope.register([], "Escape", () => {
             // The cite panel is the nearest thing: it goes first, and the detail stays (#768 FR-10).
@@ -216,7 +235,6 @@ export class LibraryView extends ItemView {
             filter: this.filter,
             sort: this.sort,
             ...(this.status !== "all" ? { status: this.status } : {}),
-            ...(this.collection ? { collection: this.collection } : {}),
             ...(this.detail ? { detail: this.detail } : {}),
             ...(this.notebook ? { notebook: this.notebook } : {}),
         };
@@ -228,7 +246,8 @@ export class LibraryView extends ItemView {
         if (typeof value.filter === "string" && (SHELF_FILTERS as readonly string[]).includes(value.filter)) this.filter = value.filter as ShelfFilter;
         if (typeof value.sort === "string" && (SHELF_SORTS as readonly string[]).includes(value.sort)) this.sort = value.sort as ShelfSort;
         this.status = typeof value.status === "string" && (STATUS_FILTERS as readonly string[]).includes(value.status) ? (value.status as StatusFilter) : "all";
-        this.collection = typeof value.collection === "string" && value.collection ? value.collection : null;
+        // A collection saved by an earlier Library opens on every shelf (#819 AC-11).
+        this.collection = null;
         this.detail = typeof value.detail === "string" && value.detail ? value.detail : null;
         this.openField =
             this.detail && typeof value.field === "string" && (TEXT_FIELDS as readonly string[]).includes(value.field) ? { field: value.field as TextField, detail: this.detail, until: Date.now() + FIELD_HOLD_MS } : null;
@@ -244,6 +263,19 @@ export class LibraryView extends ItemView {
         this.contentEl.addClass(c("shelf-host"));
         this.root = this.contentEl.createDiv({ cls: c("shelf") });
         this.body = this.root.createDiv({ cls: c("shelf-body") });
+        // The bar draws its hairline once the shelves scroll under it (#819 MF-1), and not before.
+        let under = false;
+        this.registerDomEvent(
+            this.contentEl,
+            "scroll",
+            () => {
+                const now = this.contentEl.scrollTop > 0;
+                if (now === under) return;
+                under = now;
+                this.contentEl.toggleClass(c("shelf-host--under"), now);
+            },
+            { passive: true }
+        );
         // The dim and the detail live beside the shelf's scroller, not in it (#779): placed over the pane
         // you see, they cover it whatever the shelf's scroll, and the shelf waits under them.
         this.scrim?.remove();
@@ -359,6 +391,8 @@ export class LibraryView extends ItemView {
     private render(): void {
         const body = this.body;
         if (!body) return;
+        // The control you pressed keeps the focus through the redraw (#819 FR-22).
+        const focused = (body.ownerDocument?.activeElement as HTMLElement | null | undefined)?.closest?.("[data-zf-control]")?.getAttribute("data-zf-control") ?? null;
         body.empty();
         this.renderScope?.unload();
         const scope = new Component();
@@ -366,34 +400,44 @@ export class LibraryView extends ItemView {
         this.renderScope = scope;
         this.observer?.disconnect();
 
-        const head = body.createDiv({ cls: c("shelf-head") });
-        const titles = head.createDiv({ cls: c("shelf-titles") });
-        titles.createEl("h1", { cls: c("shelf-heading"), text: t("shelf_title") });
-        titles.createDiv({ cls: c("shelf-subtitle"), text: t("shelf_subtitle") });
         const items = this.shelf.items;
         if (items.length === 0) {
+            const head = body.createDiv({ cls: c("shelf-head") });
+            const titles = head.createDiv({ cls: c("shelf-titles") });
+            titles.createEl("h1", { cls: c("shelf-heading"), text: t("shelf_title") });
             this.renderEmpty(body, scope);
             return;
         }
 
-        const search = head.createEl("label", { cls: c("shelf-search") });
+        // The bar that stays (#819): where you search, what you see and how, fixed over the shelves.
+        const bar = body.createDiv({ cls: c("shelf-bar"), attr: { role: "search" } });
+        const top = bar.createDiv({ cls: c("shelf-bar-top") });
+        top.createEl("h1", { cls: c("shelf-heading"), text: t("shelf_title") });
+        const search = top.createEl("label", { cls: c("shelf-search") });
         setIcon(search.createSpan({ cls: c("shelf-search-icon") }), "search");
         const input = search.createEl("input", {
             cls: c("shelf-search-input"),
             attr: { type: "search", placeholder: t("shelf_search"), "aria-label": t("shelf_search"), spellcheck: "false" },
         });
+        // Where a key is there to press, the key that finds (FR-3): a hint, never on a touch screen.
+        search.createEl("kbd", { cls: c("shelf-search-key"), text: "/", attr: { "aria-hidden": "true" } });
         input.value = this.search;
+        this.searchInput = input;
         scope.registerDomEvent(input, "input", () => {
             this.search = input.value;
             this.renderShelf(shelfHost, scope);
         });
+        this.renderViewSwitch(top, scope);
 
-        const bar = body.createDiv({ cls: c("shelf-bar") });
+        // One row of chips (#819 FR-6): what kind of thing, then which shelf — then the order.
+        const chips = bar.createDiv({ cls: c("shelf-chips") });
+        const kinds = chips.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_kind_row") } });
         const counts = shelfCounts(items);
         for (const filter of SHELF_FILTERS) {
-            const chip = bar.createEl("button", {
-                cls: [c("shelf-filter"), ...(filter === this.filter ? ["is-active"] : [])],
-                attr: { type: "button", "aria-pressed": String(filter === this.filter) },
+            const on = filter === this.filter;
+            const chip = kinds.createEl("button", {
+                cls: [c("shelf-filter"), c("shelf-filter--kind"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on), "data-zf-control": `kind:${filter}` },
             });
             chip.createSpan({ text: t(FILTER_KEY[filter]) });
             chip.createSpan({ cls: c("shelf-filter-count"), text: String(counts[filter]) });
@@ -401,68 +445,94 @@ export class LibraryView extends ItemView {
                 this.filter = filter;
                 this.app.workspace.requestSaveLayout();
                 this.render();
+                this.snapUnderBar();
             });
         }
-        const sort = bar.createEl("select", { cls: ["dropdown", c("shelf-sort")], attr: { "aria-label": t("shelf_sort_label") } });
-        if (this.filter === "articles") this.renderArticlesFrom(body, scope);
-        this.renderNoteChips(body, scope);
+        chips.createSpan({ cls: c("shelf-chips-sep"), attr: { "aria-hidden": "true" } });
+        this.renderShelfChips(chips, scope);
+        const sort = chips.createEl("select", { cls: ["dropdown", c("shelf-sort")], attr: { "aria-label": t("shelf_sort_label"), "data-zf-control": "sort" } });
         for (const option of SHELF_SORTS) sort.createEl("option", { text: t(SORT_KEY[option]), attr: { value: option } });
         sort.value = this.sort;
         scope.registerDomEvent(sort, "change", () => {
             this.sort = sort.value as ShelfSort;
             this.app.workspace.requestSaveLayout();
             this.renderShelf(shelfHost, scope);
+            this.snapUnderBar();
         });
 
+        // Where articles come from (#744) is the Articles chip's own line, under the bar (FR-9).
+        if (this.filter === "articles") this.renderArticlesFrom(body, scope);
         const shelfHost = body.createDiv({ cls: c("shelf-shelf-host") });
+        this.bar = bar;
+        this.shelfHost = shelfHost;
         this.renderShelf(shelfHost, scope);
+        if (focused) body.querySelector<HTMLElement>(`[data-zf-control="${focused}"]`)?.focus({ preventScroll: true });
     }
 
     /**
-     * The second row of chips (#743 FR-9): **All · Reading · Want to read · Finished**, each status
-     * once something stands there, and **Every collection** with each collection in use.
+     * After a chip or the order changes (#819 FR-23): when you were further down than the shelves'
+     * top, the result starts under the bar; at the top, nothing moves.
      */
-    private renderNoteChips(body: HTMLElement, scope: Component): void {
+    private snapUnderBar(): void {
+        const bar = this.bar;
+        const host = this.shelfHost;
+        if (!bar || !host) return;
+        const top = host.offsetTop - bar.offsetHeight;
+        if (this.contentEl.scrollTop > top) this.contentEl.scrollTop = Math.max(0, top);
+    }
+
+    /**
+     * The shelf chips (#819 FR-6): **Every shelf**, then the status shelves in the order they stand —
+     * Reading · Want to read · On the shelf · Finished — each once something stands there (or it is
+     * the one chosen). Your own shelves join this row with #821; it has their place already.
+     */
+    private renderShelfChips(row: HTMLElement, scope: Component): void {
         const items = this.shelf.items;
-        const row = body.createDiv({ cls: [c("shelf-bar"), c("shelf-bar--notes")] });
-        const statuses = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_status_row") } });
+        const group = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_status_row") } });
         const counts = statusCounts(items);
         for (const status of STATUS_FILTERS) {
             if (status !== "all" && counts[status] === 0 && this.status !== status) continue;
             const on = status === this.status;
-            const chip = statuses.createEl("button", {
+            const chip = group.createEl("button", {
                 cls: [c("shelf-filter"), c("shelf-filter--status"), ...(on ? ["is-active"] : [])],
-                attr: { type: "button", "aria-pressed": String(on) },
+                attr: { type: "button", "aria-pressed": String(on), "data-zf-control": `shelf:${status}` },
+                text: t(SHELF_CHIP_KEY[status]),
             });
-            chip.createSpan({ text: t(status === "all" ? "shelf_filter_all" : STATUS_KEY[status]) });
-            chip.createSpan({ cls: c("shelf-filter-count"), text: String(counts[status]) });
             scope.registerDomEvent(chip, "click", () => {
                 this.status = status;
                 this.app.workspace.requestSaveLayout();
                 this.render();
+                this.snapUnderBar();
             });
         }
-        const names = shelfCollections(items);
-        const chosen = this.collection;
-        if (chosen && !names.some((name) => fold(name) === fold(chosen))) names.push(chosen);
-        const groups = row.createDiv({ cls: c("shelf-chip-group"), attr: { role: "group", "aria-label": t("shelf_collection_row") } });
-        const known = this.drawnCollections;
-        for (const name of [null, ...names]) {
-            const on = name === null ? chosen === null : fold(name) === fold(chosen ?? "");
-            const chip = groups.createEl("button", {
-                cls: [c("shelf-filter"), c("shelf-filter--collection"), ...(on ? ["is-active"] : [])],
-                attr: { type: "button", "aria-pressed": String(on) },
-                text: name ?? t("shelf_filter_collection_all"),
+        // Your own shelves, and + New shelf (#821), stand here.
+        this.ownShelvesSlot = row.createDiv({ cls: c("shelf-own-slot") });
+    }
+
+    /** Covers or spines: the setting's one value (#819 FR-8), covers until you choose. */
+    private bookView(): "covers" | "spines" {
+        return this.plugin?.settings?.libraryBookView === "spines" ? "spines" : "covers";
+    }
+
+    private setBookView(view: "covers" | "spines"): void {
+        if (view === this.bookView() || !this.plugin?.settings) return;
+        this.plugin.settings.libraryBookView = view;
+        void this.plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+        this.render();
+    }
+
+    /** Covers | Spines (#819 FR-8): placed here; what it does is the shelves' own (#820). */
+    private renderViewSwitch(parent: HTMLElement, scope: Component): void {
+        const group = parent.createDiv({ cls: c("shelf-view-switch"), attr: { role: "group", "aria-label": t("shelf_view_label") } });
+        for (const view of ["covers", "spines"] as const) {
+            const on = view === this.bookView();
+            const button = group.createEl("button", {
+                cls: [c("shelf-view-option"), ...(on ? ["is-active"] : [])],
+                attr: { type: "button", "aria-pressed": String(on), "data-view": view, "data-zf-control": `view:${view}` },
+                text: t(view === "covers" ? "shelf_view_covers" : "shelf_view_spines"),
             });
-            scope.registerDomEvent(chip, "click", () => {
-                this.collection = name;
-                this.app.workspace.requestSaveLayout();
-                this.render();
-            });
-            // A collection you just gave a book drops into the row (FR-16); the first draw is still.
-            if (name !== null && known && !known.has(fold(name))) dropIn(chip);
+            scope.registerDomEvent(button, "click", () => this.setBookView(view));
         }
-        this.drawnCollections = new Set(names.map(fold));
     }
 
     /**

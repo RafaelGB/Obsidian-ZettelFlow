@@ -80,34 +80,30 @@ describe("the book's note on the shelf (#743)", () => {
         expect(bookNoteOf(app as never, BOOK)).toBeNull();
     });
 
-    it("shows only All and Every collection while no book has a note or a reading, and every card as before", async () => {
+    it("shows only Every shelf and On the shelf while no book has a note or a reading, and every card as before (#819)", async () => {
         const { view, content } = mount({}, {});
         await view.onOpen();
-        expect(texts(content, "shelf-filter--status")).toEqual(["All3"]);
-        expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection"]);
+        expect(texts(content, "shelf-filter--status")).toEqual(["Every shelf", "On the shelf"]);
+        expect(content.byClass("shelf-filter--collection")).toHaveLength(0);
         expect(content.byClass("shelf-shelf--want")).toHaveLength(0);
         expect(content.byClass("shelf-card-status")).toHaveLength(0);
         expect(content.byClass("shelf-meta").filter((el) => el.textContent === "Never opened")).toHaveLength(3);
     });
 
-    it("reads each note wherever it is kept, and the chips filter by status and collection (AC-6, AC-12)", async () => {
+    it("reads each note wherever it is kept, and the shelf chips filter by status, without counts (AC-6, AC-12, #819)", async () => {
         const { view, content } = mount({
             "Old folder/cap.md": { book: `[[${PAPER}]]`, title: "Brewer's conjecture, proved", status: "to-read", collections: ["Planning"] },
             "Library/Thinking.md": { book: `[[${BOOK}]]`, status: "finished", collections: ["Planning", "Decisions"] },
         });
         await view.onOpen();
-        expect(texts(content, "shelf-filter--status")).toEqual(["All3", "Want to read1", "Finished1"]);
-        expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection", "Decisions", "Planning"]);
+        expect(texts(content, "shelf-filter--status")).toEqual(["Every shelf", "Want to read", "On the shelf", "Finished"]);
+        expect(content.byClass("shelf-filter--collection")).toHaveLength(0);
         // Want to read follows what you are reading; the paper is in it, and not again below.
         expect(texts(content, "shelf-section")).toEqual(["Want to read", "Your shelf"]);
         expect(content.oneByClass("shelf-shelf--want").byClass("shelf-card-title").map((el) => el.textContent)).toEqual(["Brewer's conjecture, proved"]);
         expect(texts(content, "shelf-card-status")).toEqual(["Want to read", "Finished"]);
 
-        content.byClass("shelf-filter--collection").find((el) => el.textContent === "Decisions")!.click();
-        expect(texts(content, "shelf-card-title")).toEqual(["Thinking, Fast and Slow"]);
-        expect(view.getState()).toMatchObject({ collection: "Decisions" });
-        content.byClass("shelf-filter--collection")[0].click();
-        content.byClass("shelf-filter--status").find((el) => el.textContent === "Want to read1")!.click();
+        content.byClass("shelf-filter--status").find((el) => el.textContent === "Want to read")!.click();
         expect(texts(content, "shelf-card-title")).toEqual(["Brewer's conjecture, proved"]);
         expect(view.getState()).toMatchObject({ status: "to-read" });
         // A collection is found by the search too (FR-10).
@@ -151,27 +147,6 @@ describe("the book's note on the shelf (#743)", () => {
         await flush();
         expect(content.byClass("shelf-details")).toHaveLength(1);
         for (const spy of [app.vault.create, app.vault.modify, app.vault.process, writes.create, writes.edit]) expect(spy).not.toHaveBeenCalled();
-    });
-
-    it("shows a new collection over the shelf at once, dropping its chip in (FR-9, FR-16)", async () => {
-        const restore = reducedMotion(false);
-        const record = recordAnimations();
-        try {
-            const { view, content } = mount({ "Library/Thinking.md": { book: `[[${BOOK}]]` } });
-            await view.onOpen();
-            await view.setState({ detail: BOOK }, {} as never);
-            content.oneByClass("shelf-details-add").click();
-            const input = content.oneByClass("shelf-details-add-input");
-            input.value = "Planning";
-            input.fire("keydown", { key: "Enter", preventDefault: () => undefined });
-            await flush();
-            expect(texts(content, "shelf-filter--collection")).toEqual(["Every collection", "Planning"]);
-            const chip = content.byClass("shelf-filter--collection")[1];
-            expect(record.animations.some((a) => a.target === chip && a.keyframes[0].transform === "scale(0.96)")).toBe(true);
-        } finally {
-            record.stop();
-            restore();
-        }
     });
 
     it("carries a card to its new row by a translate when its status changes, the others closing the gap (FR-16)", async () => {

@@ -26,6 +26,7 @@ import {
 import { SelectorMenuModal } from "zettelkasten";
 import { NoteBuilderType } from "./typing";
 import { useNoteBuilderStore } from "./state/NoteBuilderState";
+import { contextAnswers, previewHasContent, upcomingGroupTemplate, type ContextAnswer } from "application/notes/previewLookahead";
 import { SuggestionRow } from "./SuggestionRow";
 import { FrictionPrompt } from "./FrictionPrompt";
 
@@ -319,8 +320,10 @@ function DiffSummary({ diff, editing }: { diff: NoteDiff; editing: boolean }) {
  * to it would not re-render. Builder data is read fresh inside the effect.
  */
 export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }) {
-  const { modal, collapsible = false } = props;
+  const { modal, flow, collapsible = false } = props;
   const position = useNoteBuilderStore((store) => store.position);
+  // The step the walk is on (#816): a group's own template is shown from the start of the group.
+  const currentNode = useNoteBuilderStore((store) => store.currentNode);
   const title = useNoteBuilderStore((store) => store.title);
   const linkVersion = useNoteBuilderStore((store) => store.linkVersion);
 
@@ -332,6 +335,8 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
     { title: string; path: string; relation: string; diff: NoteDiff } | { error: SatelliteError } | null
   >(null);
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
+  // What you answered that is not part of the note (#816 FR-7): shown under the card.
+  const [answers, setAnswers] = useState<ContextAnswer[]>([]);
   // Rejected suggestions are not proposed again for the rest of the session (#411 FR-4).
   const [rejected, setRejected] = useState<string[]>([]);
   // Deliberate friction, default off (#411 FR-6): creation is high-frequency, and the manifesto
@@ -357,27 +362,45 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
     const builder = useNoteBuilderStore.getState().builder;
     const paths = builder.note.getPaths();
     const elements = builder.note.getElements();
-    const hasContent =
-      paths.size > 0 || elements.size > 0 || title.length > 0 || builder.note.getCrystallizeSeed() !== undefined;
-
-    if (!hasContent) {
-      setState("empty");
-      setPreview(null);
-      setSuggestions([]);
-      return;
-    }
-
-    setState("loading");
     let cancelled = false;
-    const timer = window.setTimeout(() => {
+    let timer: number | undefined;
+
+    void (async () => {
+      // A group's own template (#816 FR-1 – FR-4): the one file node it leads to, read ahead — for
+      // the preview only. The build adds it when the walk gets there, and never before.
+      const children = currentNode?.type === "group" ? await flow.childrensOf(currentNode.id).catch(() => []) : [];
+      if (cancelled) return;
+      const upcoming = upcomingGroupTemplate(currentNode, children, paths.values());
+      const ordered = [...elements.entries()].sort((a, b) => a[0] - b[0]).map(([, element]) => element);
+      setAnswers(contextAnswers(ordered));
+      const hasContent = previewHasContent({
+        title,
+        paths: paths.size,
+        crystallize: builder.note.getCrystallizeSeed() !== undefined,
+        upcoming,
+        elements: ordered,
+      });
+
+      if (!hasContent) {
+        setState("empty");
+        setPreview(null);
+        setSuggestions([]);
+        return;
+      }
+
+      setState("loading");
+      timer = window.setTimeout(() => {
       void (async () => {
         const started = window.performance.now();
         try {
-          const templates = await loadTemplates(
+          const walked = await loadTemplates(
             paths,
             builder.note.getInlineBodies(),
             templateCacheRef.current
           );
+          // After every template the walk holds, as the build will merge it once it gets there.
+          const ahead = upcoming ? await loadTemplates(new Map([[Number.MAX_SAFE_INTEGER, upcoming]]), new Map(), templateCacheRef.current) : [];
+          const templates = [...walked, ...ahead];
           if (cancelled) return;
           const assembled = assembleNotePreview(buildPreviewInput(builder, title, modal, templates));
           const nextSuggestions = gatherSuggestions(assembled, modal);
@@ -389,7 +412,8 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
             buildNoteDiff({
               baseline,
               preview: assembled,
-              sources: diffSources(paths, templates),
+              // The group's template, read ahead, is named after its file like the rest (#816).
+              sources: diffSources(upcoming ? new Map([...paths, [Number.MAX_SAFE_INTEGER, upcoming]]) : paths, templates),
               documentText: baseline.body,
               modifications: collectModifications(builder),
             })
@@ -407,13 +431,14 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
           setState("error");
         }
       })();
-    }, DEBOUNCE_MS);
+      }, DEBOUNCE_MS);
+    })();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
+      if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [position, title, linkVersion, modal]);
+  }, [position, title, linkVersion, modal, currentNode, flow]);
 
   // Render the assembled note (YAML frontmatter + body) once ready.
   useEffect(() => {
@@ -464,6 +489,23 @@ export function CompanionPane(props: NoteBuilderType & { collapsible?: boolean }
           )}
           {(state === "ready" || state === "loading") && preview && diff && (
             <DiffSummary diff={diff} editing={modal.isEditor()} />
+          )}
+          {/* What you said that the note does not show (#816 FR-7 – FR-11): quiet, and only when there is some. */}
+          {answers.length > 0 && (
+            <div className={c("companion-pane-answers")}>
+              <h5 className={c("companion-pane-heading")}>{t("companion_pane_answers_title")}</h5>
+              <ul className={c("companion-pane-diff-list")}>
+                {answers.map((answer, i) => (
+                  <li className={c("companion-pane-diff-row", "companion-pane-answer")} key={`answer-${i}-${answer.label}`}>
+                    <span className={c("companion-pane-diff-text")}>
+                      <span className={c("companion-pane-diff-key")}>{answer.label}</span>
+                      {" → "}
+                      <span className={c("companion-pane-diff-value")}>{answer.value}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {state === "ready" && satellite && (
             <div className={c("companion-pane-satellite")}>

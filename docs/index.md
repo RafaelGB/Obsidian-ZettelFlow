@@ -69,7 +69,7 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     [:octicons-arrow-right-24: The Reader](development/reader.md)
 
--   ![The Library: your PDFs, EPUBs and saved reading paths on one shelf](resources/library/shelf.svg)
+-   ![The Library: your PDFs, EPUBs, articles and saved reading paths on shelves, with a desk for what you are reading](resources/library/shelf.svg)
 
     **Your library**
 

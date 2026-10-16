@@ -1,89 +1,117 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="A book&#39;s note: in the Library&#39;s detail, Details lists the book&#39;s title, author, series, publisher and year as quiet inline fields, a Status of Want to read with a small check beside it, the collection Planning as a chip and + Collection, and the line Saved in Library/Thinking, Fast and Slow.md with Undo; the note itself, an ordinary note in the Library folder whose properties are book, author, year, status and collections; and the shelf, where a Want to read chip and a Planning chip filter, and a Want to read section holds the book">
-<rect x="0" y="0" width="1200" height="630" rx="0" fill="#141416" stroke="none" stroke-width="0" />
-<circle cx="54" cy="52" r="13" fill="#7f6df2" />
-<text x="54" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >1</text>
-<text x="76" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >Details, where you look at the book</text>
-<rect x="36" y="76" width="400" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
-<text x="58" y="108" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" letter-spacing="1.6">DETAILS</text>
-<text x="58" y="140" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Title</text>
-<text x="158" y="140" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Thinking, Fast and Slow</text>
-<text x="58" y="174" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Author</text>
-<text x="158" y="174" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Daniel Kahneman</text>
-<text x="58" y="208" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Series</text>
-<text x="158" y="208" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" ></text>
-<text x="58" y="242" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Publisher</text>
-<text x="158" y="242" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Farrar, Straus and Giroux</text>
-<text x="58" y="276" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Year</text>
-<rect x="150" y="259" width="230" height="26" rx="5" fill="#1c1c1f" stroke="#5a5a60" stroke-width="1" />
-<text x="158" y="276" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >2011</text>
-<text x="58" y="310" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Language</text>
-<text x="158" y="310" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >en</text>
-<text x="58" y="344" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Status</text>
-<rect x="150" y="327" width="230" height="26" rx="5" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="158" y="344" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Want to read</text>
-<text x="368" y="344" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle" >▾</text>
-<text x="396" y="345" fill="#44cf6e" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle" >✓</text>
-<text x="58" y="384" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Collections</text>
-<rect x="58" y="396" width="96" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="106.0" y="412" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Planning  ×</text>
-<rect x="162" y="396" width="100" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="4 3"/>
-<text x="212.0" y="412" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >+ Collection</text>
-<text x="58" y="448" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Saved in</text>
-<text x="108" y="448" fill="#9d8df7" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Library/Thinking, Fast and Slow.md</text>
-<text x="58" y="470" fill="#9d8df7" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Undo</text>
-<text x="236" y="500" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">Saved when you leave a field. No dialog, no toast.</text>
-<circle cx="488" cy="52" r="13" fill="#7f6df2" />
-<text x="488" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >2</text>
-<text x="510" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >Its own note, in your vault</text>
-<rect x="470" y="76" width="330" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
-<text x="490" y="108" fill="#5f6168" font-family="sans-serif" font-size="10.5" font-weight="600" text-anchor="start" letter-spacing="1.2">LIBRARY / THINKING, FAST AND SLOW.MD</text>
-<text x="492" y="146" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >book</text>
-<text x="592" y="146" fill="#9d8df7" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >[[Books/Thinking, Fast a…]]</text>
-<text x="492" y="180" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >author</text>
-<text x="592" y="180" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Daniel Kahneman</text>
-<text x="492" y="214" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >publisher</text>
-<text x="592" y="214" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Farrar, Straus and Giroux</text>
-<text x="492" y="248" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >year</text>
-<text x="592" y="248" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >2011</text>
-<text x="492" y="282" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >status</text>
-<text x="592" y="282" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >to-read</text>
-<text x="492" y="316" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="500" text-anchor="start" >collections</text>
-<rect x="592" y="301" width="76" height="22" rx="11" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="630" y="316" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Planning</text>
-<line x1="490" y1="342" x2="780" y2="342" stroke="#3a3a3a" stroke-width="1"/>
-<text x="492" y="372" fill="#8b8e94" font-family="Georgia, serif" font-size="13" font-weight="400" text-anchor="start" >Your own words go here, as in any note.</text>
-<text x="635" y="470" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">Ordinary properties: Bases and</text>
-<text x="635" y="488" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">Dataview read your library as data.</text>
-<circle cx="852" cy="52" r="13" fill="#7f6df2" />
-<text x="852" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >3</text>
-<text x="874" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >The shelf reads it</text>
-<rect x="834" y="76" width="330" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
-<rect x="852" y="96" width="58" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="881.0" y="112" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >All  3</text>
-<rect x="918" y="96" width="110" height="24" rx="12" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
-<text x="973.0" y="112" fill="#ffffff" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="middle" >Want to read  1</text>
-<rect x="1036" y="96" width="84" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="1078.0" y="112" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Finished  1</text>
-<rect x="852" y="128" width="112" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="908.0" y="144" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Every collection</text>
-<rect x="972" y="128" width="72" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
-<text x="1008.0" y="144" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Planning</text>
-<text x="852" y="186" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start" >Want to read</text>
-<rect x="852" y="202" width="92" height="136" rx="4" fill="#e0a351" stroke="none" stroke-width="0" />
-<text x="898" y="250" fill="#1b1b1b" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Thinking,</text>
-<text x="898" y="263" fill="#1b1b1b" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Fast and</text>
-<text x="898" y="276" fill="#1b1b1b" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Slow</text>
-<text x="898" y="322" fill="#1b1b1b" font-family="sans-serif" font-size="6" font-weight="400" text-anchor="middle" opacity="0.75" letter-spacing="1.2">DANIEL KAHNEMAN</text>
-<text x="962" y="222" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >Thinking, Fast and Slow</text>
-<text x="962" y="240" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Daniel Kahneman</text>
-<text x="962" y="266" fill="#9d8df7" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >Want to read</text>
-<text x="852" y="378" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start" >Your shelf</text>
-<rect x="852" y="394" width="92" height="110" rx="4" fill="#4b6b8a" stroke="none" stroke-width="0" />
-<text x="898" y="446" fill="#ffffff" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Out of the</text>
-<text x="898" y="459" fill="#ffffff" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Tar Pit</text>
-<rect x="956" y="394" width="92" height="110" rx="4" fill="#5b8a4b" stroke="none" stroke-width="0" />
-<text x="1002" y="446" fill="#ffffff" font-family="Georgia, serif" font-size="10" font-weight="700" text-anchor="middle" >Dune</text>
-<text x="1060" y="412" fill="#9d8df7" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >Finished</text>
-<text x="600" y="560" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">Nothing is written until you change something, and then only that book's note, through the write record.</text>
-<text x="600" y="582" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">It is found by its link to the book, wherever it is kept. The book file is never touched.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="A calmer detail: the shelf dimmed behind; the book's cover, title and author, Open, Notebook, Cite this book and Close; one sentence — 13% read, 4 hours ago — where boxed counts used to be; Details with only Title and Author, Add details… for the rest, Status, Shelves with Clásicos and + Shelf, where the note is saved; one quiet line saying nothing is marked or made yet — and the book's note itself with its properties">
+<defs><pattern id="weave" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0.5H4M0.5 0V4" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/></pattern><linearGradient id="hinge" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.35"/><stop offset="0.07" stop-color="#fff" stop-opacity="0.08"/><stop offset="0.13" stop-color="#000" stop-opacity="0"/></linearGradient><linearGradient id="spineshade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.28"/><stop offset="0.3" stop-color="#000" stop-opacity="0"/><stop offset="0.7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.32"/></linearGradient><linearGradient id="plank" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6b5843"/><stop offset="1" stop-color="#43372b"/></linearGradient><linearGradient id="wall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#18181b" stop-opacity="0"/><stop offset="0.5" stop-color="#1f1e22"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.45"/></filter></defs>
+<rect x="0.0" y="0.0" width="1200.0" height="820.0" rx="0" fill="#141416" stroke="none" stroke-width="1" />
+<rect x="30.0" y="20.0" width="1140.0" height="780.0" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="52" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="70" cy="40" r="5.5" fill="#e9973f"/>
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e"/>
+<text x="600.0" y="45.0" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1" />
+<rect x="30.0" y="60.0" width="44.0" height="740.0" rx="0" fill="#202022" stroke="none" stroke-width="1" />
+<rect x="40.0" y="112.0" width="24.0" height="24.0" rx="6" fill="#2f2b45" stroke="none" stroke-width="1" />
+<text x="52.0" y="129.0" fill="#7f6df2" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" >▥</text>
+<rect x="74.0" y="60.0" width="1096.0" height="34.0" rx="0" fill="#202022" stroke="none" stroke-width="1" />
+<rect x="84.0" y="66.0" width="120.0" height="28.0" rx="6" fill="#18181b" stroke="none" stroke-width="1" />
+<text x="100.0" y="85.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Library</text>
+<rect x="74.0" y="94.0" width="1096.0" height="118.0" rx="0" fill="#1a1a1d" stroke="none" stroke-width="1" />
+<text x="100.0" y="130.0" fill="#dcddde" font-family="sans-serif" font-size="22" font-weight="700" text-anchor="start" >Library</text>
+<rect x="620.0" y="110.0" width="320.0" height="32.0" rx="8" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="636.0" y="131.0" fill="#5f6168" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start" >⌕</text>
+<text x="656.0" y="131.0" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Search titles and authors</text>
+<rect x="912.0" y="117.0" width="18.0" height="18.0" rx="4" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="921.0" y="130.0" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle" >/</text>
+<rect x="960.0" y="110.0" width="180.0" height="32.0" rx="8" fill="#26262a" stroke="none" stroke-width="1" />
+<rect x="963.0" y="113.0" width="87.0" height="26.0" rx="6" fill="#18181b" stroke="#4a4a4f" stroke-width="1" />
+<text x="1006.0" y="131.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Covers</text>
+<text x="1093.0" y="131.0" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Spines</text>
+<rect x="100.0" y="156.0" width="55.5" height="26.0" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="110.0" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >All</text>
+<text x="145.5" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">17</text>
+<rect x="161.5" y="156.0" width="68.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="171.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Books</text>
+<text x="220.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">16</text>
+<rect x="236.0" y="156.0" width="75.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="246.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Papers</text>
+<text x="301.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">1</text>
+<rect x="317.0" y="156.0" width="88.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="327.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Articles</text>
+<text x="395.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">0</text>
+<rect x="411.0" y="156.0" width="68.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="421.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Paths</text>
+<text x="469.5" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">0</text>
+<line x1="487.5" y1="160" x2="487.5" y2="178" stroke="#3a3a3a" stroke-width="1" />
+<rect x="497.5" y="156.0" width="91.5" height="26.0" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="507.5" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >Every shelf</text>
+<rect x="595.0" y="156.0" width="65.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="605.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Reading</text>
+<rect x="666.5" y="156.0" width="98.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="676.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Want to read</text>
+<rect x="770.5" y="156.0" width="98.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="780.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >On the shelf</text>
+<rect x="874.5" y="156.0" width="72.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="884.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Finished</text>
+<rect x="100.0" y="190.0" width="86.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<path d="M110 197 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="124.0" y="207.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Clásicos</text>
+<rect x="192.0" y="190.0" width="91.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="202.0" y="207.5" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >+ New shelf</text>
+<rect x="1010.0" y="190.0" width="130.0" height="26.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="1022.0" y="207.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Recently read</text>
+<text x="1128.0" y="207.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" >⌄</text>
+<rect x="74.0" y="226.0" width="1096.0" height="3.0" rx="0" fill="#000" stroke="none" stroke-width="1" opacity="0.35"/>
+<rect x="74.0" y="94.0" width="1096.0" height="706.0" rx="0" fill="#000" stroke="none" stroke-width="1" opacity="0.45"/>
+<rect x="110.0" y="250.0" width="380.0" height="250.0" rx="10" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="128.0" y="280.0" fill="#8b8e94" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" >Library/Domain-Driven Design.md</text>
+<text x="128.0" y="316.0" fill="#5f6168" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >book</text>
+<text x="240.0" y="316.0" fill="#9d8df7" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >[[Domain-Driven Design.epub]]</text>
+<text x="128.0" y="348.0" fill="#5f6168" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >author</text>
+<text x="240.0" y="348.0" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >Eric Evans</text>
+<text x="128.0" y="380.0" fill="#5f6168" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >year</text>
+<text x="240.0" y="380.0" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >2003</text>
+<text x="128.0" y="412.0" fill="#5f6168" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >status</text>
+<text x="240.0" y="412.0" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >to-read</text>
+<text x="128.0" y="444.0" fill="#5f6168" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >collections</text>
+<text x="240.0" y="444.0" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" >Clásicos</text>
+<text x="128.0" y="482.0" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" font-style="italic" >A note of its own: Bases and search see it.</text>
+<rect x="650.0" y="94.0" width="520.0" height="706.0" rx="0" fill="#1b1b1e" stroke="none" stroke-width="1" />
+<line x1="650" y1="94" x2="650" y2="800" stroke="#3a3a3a" stroke-width="1" />
+<g filter="url(#shadow)">
+<rect x="678.0" y="122.0" width="96.0" height="144.0" rx="4" fill="#b5772e" stroke="none" stroke-width="1" />
+<rect x="678.0" y="122.0" width="96.0" height="144.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="689.5" y="132.1" width="76.8" height="123.8" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="731.8" y="214.7" fill="#ffffff" font-family="Georgia, serif" font-size="9.120000000000001" font-weight="700" text-anchor="middle" >Domain-Driven</text>
+<text x="731.8" y="225.7" fill="#ffffff" font-family="Georgia, serif" font-size="9.120000000000001" font-weight="700" text-anchor="middle" >Design</text>
+<text x="731.8" y="243.0" fill="#ffffff" font-family="Georgia, serif" font-size="6.9312000000000005" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Eric Evans</text>
+<rect x="678.0" y="122.0" width="96.0" height="144.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<text x="794.0" y="150.0" fill="#dcddde" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="start" >Domain-Driven Design</text>
+<text x="794.0" y="172.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Eric Evans</text>
+<text x="794.0" y="194.0" fill="#5f6168" font-family="monospace" font-size="12" font-weight="400" text-anchor="start" >Library/Domain-Driven Design.epub</text>
+<rect x="794.0" y="208.0" width="54.0" height="28.0" rx="6" fill="#7f6df2" stroke="none" stroke-width="1" />
+<text x="821.0" y="227.0" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Open</text>
+<rect x="856.0" y="208.0" width="80.0" height="28.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="896.0" y="227.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Notebook</text>
+<rect x="944.0" y="208.0" width="104.0" height="28.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="996.0" y="227.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Cite this book</text>
+<rect x="1056.0" y="208.0" width="56.0" height="28.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="1084.0" y="227.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Close</text>
+<text x="794.0" y="262.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >13% read, 4 hours ago</text>
+<text x="678.0" y="312.0" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="700" text-anchor="start" >Details</text>
+<text x="678.0" y="350.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Title</text>
+<text x="810.0" y="350.0" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" >Domain-Driven Design</text>
+<text x="678.0" y="386.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Author</text>
+<text x="810.0" y="386.0" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start" >Eric Evans</text>
+<text x="678.0" y="418.0" fill="#7f6df2" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Add details…</text>
+<text x="678.0" y="456.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Status</text>
+<rect x="800.0" y="438.0" width="330.0" height="28.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="812.0" y="457.0" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Want to read</text>
+<text x="1118.0" y="457.0" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" >⌄</text>
+<text x="678.0" y="496.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Shelves</text>
+<rect x="678.0" y="508.0" width="104.0" height="26.0" rx="13" fill="#2f2b45" stroke="#7f6df2" stroke-width="1" stroke-opacity="0.5"/>
+<path d="M690 515 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="706.0" y="525.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Clásicos  ×</text>
+<rect x="790.0" y="508.0" width="70.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="825.0" y="525.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >+ Shelf</text>
+<text x="678.0" y="566.0" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Saved in Library/Domain-Driven Design.md</text>
+<text x="678.0" y="616.0" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" font-style="italic" >Nothing marked or made from it yet. Open it and select a passage.</text>
 </svg>

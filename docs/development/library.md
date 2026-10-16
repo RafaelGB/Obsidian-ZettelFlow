@@ -9,7 +9,7 @@ paper, a book, a long article saved as a PDF. The Library puts those sources on 
 the reading paths you saved across your own notes, and says what came of each one: how far you are,
 what you marked, and the notes born from it.
 
-![The Library: Continue reading, then the shelf of books, papers and reading paths with their progress, highlights and notes born — and a scanned PDF marked read only](../resources/library/shelf.svg)
+![The Library as a library: the bar that stays, the desk with the two books you are reading, then the Reading and Finished shelves on planks — a ribbon on the books you are reading, a folded corner on the finished — and the card that rises over the book you point at](../resources/library/shelf.svg)
 
 ## Open it
 
@@ -19,12 +19,13 @@ what you marked, and the notes born from it.
 - **Right-click a PDF or an EPUB → Show in the library** opens the Library on that source's detail.
 - **Command palette → "Open the library"**, which you can bind to a hotkey.
 
-The Library opens in the main area, like any tab. It is laid out to work as well in a narrow pane or
-a sidebar: the shelf narrows, the cards get smaller and *Continue reading* stacks.
+The Library opens in the main area, like any tab. It is laid out to work as well in a narrow pane, a
+sidebar or an iPad: the books get a little smaller, the desk stacks, and the row of chips scrolls
+sideways instead of wrapping into three lines.
 
-## The shelf
+## What is on it
 
-Four kinds of things share the shelf:
+Four kinds of things share the Library:
 
 | Kind | What it is | Its cover |
 |---|---|---|
@@ -34,52 +35,146 @@ Four kinds of things share the shelf:
 | **Paths** | the [reading paths](reader.md) you saved at the end of one | a constellation of its notes |
 
 **Nothing is imported.** A source is a file that is already in your vault, in any folder: drop a book
-in and it is on the shelf; delete it and it is gone. Nothing is uploaded and nothing leaves the vault.
+in and it is on a shelf; delete it and it is gone. Nothing is uploaded and nothing leaves the vault.
 
-Until a cover has been read, a book is drawn with its title on one of your theme's colours, so a new
-shelf is never a wall of grey boxes. Covers are read as they scroll into view.
+## The bar that stays
 
-Each card says **what came of it**:
+Everything you search, filter and order by sits in **one bar at the top**, and it stays there however
+far down the shelves you scroll: translucent over the books, with a fine line under it once something
+passes beneath.
 
-- **how far you are** — a ring, and a percentage;
-- **how many passages you highlighted** in it;
-- **how many notes were born from it** — the notes that cite it as their source (see
-  [From passage to note](#from-passage-to-note));
-- **when you last read it**, or *Never opened* — or, once it has one, where it stands for you:
-  *Want to read* or *Finished* (see [A book's note](#a-books-note)).
+- **The search** finds titles, authors, series and shelves, accent-blind (*sonke* finds *Sönke*).
+  **/** puts the cursor in it from anywhere in the Library — never while you are typing elsewhere.
+- **One row of chips.** First the kind — **All · Books · Papers · Articles · Paths**, each with its
+  count; then the shelf — **Every shelf · Reading · Want to read · On the shelf · Finished** (a status
+  shelf's chip is there once something stands on it), then **your shelves**, each with a small
+  bookmark, and **+ New shelf**. Shelf chips carry no counts.
+- **The order** — **Recently read** (never-opened things last, by title), **Most highlighted**,
+  **Title** or **Recently added**. After a change of chip or order, a result you were scrolled past
+  starts right under the bar; at the top, nothing moves.
+- **Covers | Spines** — how the books stand (see [Spines](#spines)). It is the same value as
+  **Settings → Reading → Library shows books as**: change it in either place.
 
-**Continue reading** leads the shelf: the two things you were last in and have not finished, with
-where you are (*Page 8 of 12*, *Chapter 3 of 38*, *Note 2 of 7*) and **Resume**. A book you marked
-*Finished*, or put back to *Want to read*, is not offered there. **Want to read** follows it, only
-when something is in it, and the rest of the shelf comes after.
+The Library remembers the chips and the order across sessions, and the control you pressed keeps the
+focus while the shelves redraw.
 
-**Recently added** follows *Continue reading*: what came into the vault in the last thirty days and
-is not finished, newest first — one row, as many as fit. A book you dropped in yesterday is found
-the day it lands, not among five hundred. *Added* is when the file came into the vault, or an
-article's `created` when Web Clipper wrote one. The row is hidden when nothing came in, and while
-the shelf is filtered or searched. A file that arrives while the Library is open settles into the
-row — a touch smaller and clear, to itself — and the cards beside it make room; nothing moves when
-the shelf is first drawn, and under reduced motion it is simply there.
+## The desk and the shelves { #the-shelf }
 
-Above the shelf: **All · Books · Papers · Articles · Paths**, each with its count; a search over titles,
-authors, series and collections (*sonke* finds *Sönke*); and the order — **Recently read**
-(never-opened things come last, by title), **Most highlighted**, **Title** or **Recently added**. Under them, a second
-row: **All · Reading · Want to read · Finished** — each status once something stands there — and
-**Every collection** with each collection in use. The Library remembers the filters and the order.
+**The desk** comes first: the books you are reading now, open in front of the shelves — up to two,
+the one you were in last first. Each is a small card with its cover, title and author, where you are
+and when (*Chapter 4 of 16 · 2 hours ago*), a thin thread for how far, never a number — and
+**Resume reading**. A book you marked *Finished*, or put back to *Want to read*, is not on the desk.
+The desk is there only while every shelf is shown: pick one shelf and it steps aside. Back from the
+Reader, the book you were in breathes once.
+
+**The shelves** follow, each on a plank with its name on the plank's edge, the way a library labels
+them:
+
+| Shelf | What stands there |
+|---|---|
+| **Reading** | *where you left them* — books you opened and have not finished, beyond the two on the desk; and a book you set to *Reading* before opening it, with the shortest ribbon |
+| **Want to read** | *next on the pile* — what you said you want to read |
+| **On the shelf** | *not started yet* — a book nothing is said of: never opened, no status |
+| **Finished** | *read to the end* |
+| **Your shelves** | after the four, A→Z — see [Your shelves](#your-shelves) |
+
+**A book stands in one place.** On the desk, or on its first shelf of yours, or else on the shelf of
+its status. A shelf with nothing on it is not drawn (a shelf of yours is: it waits for books). A
+shelf longer than the pane is **one row that scrolls sideways**, with momentum on a trackpad and a
+finger, and the Library keeps where you were along each shelf through every redraw and back from the
+Reader.
+
+**Books at a real size.** A cover is the size of a book on a shelf, not a poster: about six to a
+row on a laptop, the shelf's own scroll for the rest. **Nothing is written under a cover** — the
+cover is the book. Its title, author and where it stands are said once to a screen reader (*Open
+Deep Work, Cal Newport, Chapter 2 of 9 · 3 days ago*) and shown on **the card that rises** when you
+point at a book or reach it with **Tab**. Its state shows on the book itself:
+
+- **a ribbon** hangs from a book you are reading — longer the further you are, never a percentage;
+- **a folded corner** marks a book you finished, so it still says so on a shelf of yours;
+- **PDF**, small in the corner, marks a paper.
+
+**Drawn covers look cloth-bound.** Until a cover has been read — and for an article, always — a book
+is drawn in one of your theme's colours with a hinge down its left edge, a fine weave and a
+blind-stamped frame, its title in a serif and its author in italic, said once. Covers are read as
+they come into view, along a shelf too.
+
+**⋯** on a book opens its menu: **Details**, and **Move to shelf…** (see
+[Your shelves](#your-shelves)). A right click opens the same menu.
+
+**Arrivals.** A file that arrives while the Library is open settles onto its shelf — a touch smaller
+and clear, to itself — and the books beside it make room; nothing moves when the Library is first
+drawn, and under reduced motion it is simply there.
+
+### Spines
+
+**Covers | Spines** in the bar turns every book on the shelves spine-out — the desk keeps its cards.
+A spine is as **thick as the book is long** (its pages, its chapters, an article's sections, a
+path's notes — never its file size), and of its own height, a little under a cover's, the same every
+time; the title runs up it. The ribbon and the folded corner are on spines too. The choice is one
+value with **Settings → Reading → Library shows books as** (*Covers* until you choose).
+
+![The same shelves, spine-out: Spines pressed in the bar, the desk unchanged, and on each plank the spines at their own thickness and height, a ribbon on the books you are reading](../resources/library/spines.svg)
 
 ### A scanned PDF says so before you open it
 
 Some PDFs are pictures of pages: a scan has no text, so there is nothing to select and nothing to
 highlight. When the Library reads a PDF's cover it also looks for text on its first pages, and a PDF
-without any is marked **Scanned · read only** on its card and in its detail. You can still open it
-and read it.
+without any says **Scanned · read only** on the card that rises over it, to a screen reader, and in
+its detail. You can still open it and read it.
+
+## Your shelves
+
+**Collections are shelves.** The names you gave books — *Planning*, *Clásicos* — are shelves of your
+own, beside the Library's four: one idea, not two. Nothing already in a collection is lost: a shelf
+of yours is read from the same `collections` property of a [book's note](#a-books-note) (or an
+article's own frontmatter), and written to it.
+
+![Your shelves: Clásicos and a new empty shelf beside + New shelf, a book lifted off On the shelf and carried onto Clásicos — the one shelf lit — Moved to Clásicos with Undo in the bar, and the book's menu offering Move to shelf…](../resources/library/shelves-drag.svg)
+
+- **Make one.** **+ New shelf**, at the end of the chips: name it where it will stand and press
+  **Enter** (**Esc** lets it go). An empty shelf stands with *Drag books here to shelve them* on it.
+  A name you already have, an empty one, or one of the Library's own — *Reading*, *Leyendo*, in any
+  language the plugin speaks — is refused beside the field, saying why. Making a shelf writes nothing
+  to your vault: the shelves you made are remembered in the plugin's settings (`libraryShelves`).
+- **Put a book on it.** **Drag** a book onto a shelf on a desktop: it lifts out of its place, its
+  cover goes with the pointer, and only a shelf that can take it lights up — the rest say *not
+  allowed*. On an **iPad**, **press and hold** a book until it lifts, then drag it: a quick swipe is
+  still the shelf's own scroll. **Esc**, or letting go anywhere else, puts it back with nothing
+  written. Or, without dragging: **⋯ → Move to shelf…**, which lists every shelf it can go to, the
+  one it stands on checked — from the keyboard too. You can drop where every shelf is shown; *Move
+  to shelf…* works everywhere.
+- **Filter by it.** Its chip in the bar shows every book on it — first shelf or not.
+- **Rename or delete it** from **⋯** on its label: *Rename shelf* edits the name in place, across
+  every note that has it; *Delete shelf* takes it off every note — **its books stay**, on their next
+  shelf. A saved reading path is never put on a shelf.
+
+**What a move writes**, into the book's note (made in the Book notes folder if the book has none
+yet) or an article's own properties — `collections` and `status`, nothing else:
+
+| You put the book on… | `collections` | `status` |
+|---|---|---|
+| **your shelf X** | X first, the others kept (`[X, …]`) | unchanged |
+| **Reading**, **Want to read** or **Finished** | removed — it stands where you put it | set to that status (unchanged if it already was) |
+| **On the shelf** — only a book never opened | removed | removed |
+| renaming shelf A to B | A becomes B where it was in each list | unchanged |
+| deleting shelf A | A removed from each list | unchanged |
+
+Every change — one book, or a shelf renamed across forty notes — is **one recorded write**: **Undo**
+sits on a line in the bar (*Moved to Clásicos · Undo*) for half a minute, and *What ZettelFlow
+changed* lists it too. A write that fails says so on that line and moves nothing. The book is
+carried to its new shelf by a translate; under reduced motion it is simply there.
 
 ## A source in detail
 
-**⋯** on a card opens its detail, over the shelf: the cover, the title and author, the file, and three
-facts — how far you have read and when, your highlights, and the notes born from it. Below them,
+**⋯ → Details** on a book opens its detail, over the shelves: the cover, the title and author, the
+file, and **one sentence** of what came of it — *13% read, 4 hours ago · 3 highlights · 1 note born*.
+Only what is there is said: a book never opened says nothing there, no count of none is written, and
+a book opened but under one per cent is *Started*. Below it,
 [**what it produced in your vault**](#what-a-book-produced-in-your-vault), and **your highlights,
 by chapter** — every passage with your note under it, each one opening the source at that passage.
+A section with nothing in it is not drawn at all; when neither has anything, one quiet line says
+*Nothing marked or made from it yet. Open it and select a passage.*
 **Esc** or **Close** puts the detail away. However far down the shelf you are, the detail and its
 dim cover the pane where you are, and the shelf waits under them: closing the detail leaves you
 exactly where you were.
@@ -123,9 +218,9 @@ Under **What it produced in your vault**, each list is shown only when it has so
   opens the Reader at its passage; a challenge opens Think on the book.
 - **The same for a paper and an article.** A saved path shows only *Still unresolved*, about its
   notes.
-- **While your vault is still being read** the section says *Reading your vault…* and fills in when
-  it is ready; the rest of the detail works meanwhile. A book nothing came of yet says *Nothing yet.
-  What you make from this book shows here.*
+- **While your vault is still being read** the section waits, unseen, and appears when it has
+  something; the rest of the detail works meanwhile. A book nothing came of yet has no section — the
+  detail's one quiet line says so.
 - **Motion.** The first time you open a book's detail, the items rise into place a few milliseconds
   apart; the next time they are simply there. Under reduced motion everything appears at once.
 - **It writes nothing.** Opening the detail adds nothing to *What ZettelFlow changed*.
@@ -137,23 +232,27 @@ Computing the lists over a 10,000-note vault takes about 2 ms, so they cost noth
 
 **Every book and paper can have a note of its own**: an ordinary Markdown note whose properties say
 what the book is — its title, author, series, publisher, year, language, ISBN, citation key and tags — and what
-it is *to you*: a **status** and its **collections**. You never write it by hand: it is edited from
+it is *to you*: a **status** and its **shelves** (`collections`). You never write it by hand: it is edited from
 the book's detail, and the vault keeps it, so Bases, Dataview and search see your library as data.
 
-![A book's note: the Details section in the Library's detail, the note itself with its properties, and the shelf filtered by Want to read and a collection](../resources/library/book-note.svg)
+![A book's note: the calm detail — one sentence, only Title and Author shown, Add details… for the rest, Status, Shelves with Clásicos and + Shelf, one quiet line — beside the note itself with its properties](../resources/library/book-note.svg)
 
-**Details**, in a source's detail (**⋯** on its card), shows the fields as quiet inline fields —
-already filled with the title and author the file declares. Change one and leave the field (or press
+**Details**, in a source's detail (**⋯ → Details**), shows the fields as quiet inline fields —
+already filled with the title and author the file declares. Only the title and the fields that hold
+something are shown; the rest wait behind **Add details…**, which brings them all out at once — the
+others glide down to make room — with the cursor in the first. A field Cite's *Add it* sends you to is
+shown, empty or not. Change one and leave the field (or press
 **Enter**): it is saved, and a small check beside it fades in and out by itself. No dialog, no
 notice; if a write fails, your text stays in the field and a line under it says so.
 
 - **Status** is one of three: **Want to read**, **Reading**, **Finished** — stored as `to-read`,
   `reading`, `finished`, whatever language the plugin speaks. While you have set none it is read
   from your reading and nothing is written: *Finished* once you reached the end, *Reading* once you
-  opened it. One you set wins.
-- **Collections** are names you give — *Planning*, *Software design* — and a book can be in several.
-  **+ Collection** suggests the names you already use; **×** takes a book out of one. They are a list
-  of their own, never tags, so they do not mix with the tags you file the book under.
+  opened it. One you set wins — with one exception, below.
+- **Shelves** are [your shelves](#your-shelves) — *Planning*, *Clásicos* — and a book can be on
+  several; the first is where it stands. **+ Shelf** suggests the shelves you have, the empty ones
+  too; **×** takes a book off one. They are kept in `collections`, a list of their own, never tags, so
+  they do not mix with the tags you file the book under.
 - **Citation key** is the key a [citation](reader.md#cite-a-passage) cites the book by, saved as
   `citekey` (the name Pandoc and Better BibTeX use). Until you set one, the field shows the key a
   citation proposes, such as `kahneman2011thinking`. A key starts with a letter, a digit or `_` and
@@ -161,7 +260,14 @@ notice; if a write fails, your text stays in the field and a line under it says 
 - **Saved in Library/…** says where the note is and opens it. Right after a change, **Undo** beside it
   takes the last one back — the whole note, if that change created it.
 
-**Nothing is written until you change something.** Opening, reading, highlighting or finishing a
+**Want to read, then opened.** A book whose note says *Want to read* and that stands on a status
+shelf becomes **Reading** the first time you open it from the Library — its book, **Resume
+reading**, or the file menu's **Read in the reader**: `status: reading` is written once, recorded,
+with **Undo** on the line in the bar; after that the note says *Reading* and nothing fires again. A
+book on a shelf of yours keeps the status you set, and a *Finished* book opened again stays
+*Finished*. The Reader itself still writes no note.
+
+**Nothing else is written until you change something.** Opening, reading, highlighting or finishing a
 book creates no note. The first change creates one, named after the book, in the **Book notes
 folder** — **Settings → Reading → Book notes folder**, `Library` until you choose — and fills it
 with what the file declares (an EPUB's creator, publisher, date, language, ISBN and series; a PDF's
@@ -200,7 +306,7 @@ A book's note **is the book, not something that came of it**: it never counts am
 born* from the book — not on the card, not in the detail, not in *This note* — even when it also
 cites the book in a `source` property.
 
-Your library, as a Base — every book you want to read, by collection:
+Your library, as a Base — every book you want to read, by shelf of yours:
 
 ```yaml
 filters:
@@ -221,7 +327,7 @@ shelves it as an **Article**, beside the books, and the Reader reads it like one
 type, highlights with meanings, search, footnotes, time left and bookmarks — with no import and no
 copy: the clipping stays the note it is.
 
-![Articles from Web Clipper: the Articles chip and where articles come from, the Recently added row with a new card settling in, and a clipping read in the Reader with its headings in Contents](../resources/library/articles.svg)
+![Articles from Web Clipper: the Articles chip and where articles come from, a new clipping settling onto its shelf, and a clipping read in the Reader with its headings in Contents](../resources/library/articles.svg)
 
 **What is an article.** A note in the **articles folder** — or any folder inside it — whose `source`
 property is a web address (`https://…`). That is exactly what Web Clipper's default template
@@ -234,14 +340,13 @@ the folder is never an article, whatever it carries, and neither is a note in it
 the same value. Empty it to turn articles off (*Articles are off*). The Library reads articles from
 the metadata cache — it never opens a clipping to put it on the shelf.
 
-**On the shelf**, an article's card shows its `title`, its author — Web Clipper writes a list of
-links (`[[Jane Doe]]`), and their names are shown — or, when nobody signed it, the site it came from
-(`example.com`), and the year it was `published`. Its cover is drawn in one of your theme's colours,
-as a book's is before its cover is read.
+**On the shelves**, an article stands like a book: its cover drawn in one of your theme's colours,
+cloth-bound, with its `title` and its author — Web Clipper writes a list of links (`[[Jane Doe]]`),
+and their names are shown — or, when nobody signed it, the site it came from (`example.com`).
 
-**Reading one.** Click it, or **Resume**: the camera pushes into its drawn cover and it opens in the
+**Reading one.** Click it, or **Resume reading**: the camera pushes into its drawn cover and it opens in the
 Reader, in the Library's tab, as [one continuous shot](reader.md#one-continuous-shot) — closing plays
-it back onto its card. Its **sections are its headings** at the shallowest level it uses (its H1s,
+it back onto its place on the shelf. Its **sections are its headings** at the shallowest level it uses (its H1s,
 or its H2s when it has no H1), and the text before the first one is a section of its own, named
 after the article. **Contents** lists every heading. The corner says *Section 2 / 5*. The Library
 remembers where you are, like a book's place, and reaching the last section makes it *Finished* —
@@ -249,17 +354,17 @@ read, not written. A footnote is read where it is referenced. A link to the web 
 is not followed from the page, as in a book.
 
 **Notes born from it.** A note that cites the clipping — `source:: [[Clippings/The case for slow
-software]]` — is born from it, counted on its card and listed in its detail. Crystallizing a
+software]]` — is born from it, said in its detail's sentence and listed there. Crystallizing a
 passage writes exactly that, with the section after it.
 
-**Its status and collections are its own properties.** An article has no separate
+**Its status and shelves are its own properties.** An article has no separate
 [book's note](#a-books-note): its own frontmatter is its note. **Details** offers its **Status** and
-**Collections** only, and writes those keys into the clipping — through the same recorded write,
+**Shelves** only, and writes those keys into the clipping — through the same recorded write,
 with **Undo** — and nothing else in it. (Obsidian rewrites the properties block when a property
 changes, so its layout may be tidied; the values and the body are untouched.)
 
 **Reading never writes it.** No highlight, no place, nothing reaches the clipping's body or
-properties — only a status or a collection you set. Highlights are thoughts in Think, the place is
+properties — only a status or a shelf you set. Highlights are thoughts in Think, the place is
 plugin data.
 
 **Network.** None of ZettelFlow's own: Web Clipper saved the page, and ZettelFlow never fetches a
@@ -299,7 +404,7 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   its words, every time you open the paper. Think shows where it came from — *cap.pdf › p. 6* — and
   **Open in the Reader** lands on that page.
 - **Resume.** The Library remembers the page you were on; the shelf's **Resume**, the PDF's own menu
-  and *Continue reading* all open it there. Reaching the last page marks it read.
+  and the desk's *Resume reading* all open it there. Reaching the last page marks it read.
 - **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
   **See it in the library** or **Read it again**.
 
@@ -544,8 +649,9 @@ Book notes folder ([A book's note](#a-books-note)) — the only thing the Librar
 then. What the Library remembers about a source is kept in the plugin's settings:
 the title, author and length the file declares, whether a PDF is only images, and where you are in
 it — each with the size and date of the file it was read from, so a replaced file is read again.
-An article's place is kept the same way, under the clipping's path; a status or a collection you
-set on an article is the one thing written into it.
+An article's place is kept the same way, under the clipping's path; a status or a shelf you
+set on an article is the one thing written into it. The shelves you made, empty ones too, and
+*Library shows books as* are kept in the plugin's settings (`libraryShelves`, `libraryBookView`).
 Covers are kept for the session only, in memory: never in your vault, never in the settings.
 **A book renamed or moved in the vault keeps all of it** (#810): its place, bookmarks, layers, ink
 and highlights follow the new path, with the Library open or closed — see
@@ -607,109 +713,66 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 
 | Command | Proves |
 |---|---|
-| `npx jest test/application/library` | the shelf (kinds, filters, accent-blind search, orders, *Continue reading*), what is remembered about a source, the notes born from it, the unzip and the EPUB package; a book's note read (string or list, an unknown status ignored), its status read from the reading, its first write and file name, found by its link, never born from its book |
-| `npx jest test/architecture/components/core/library/bookNoteWriter test/architecture/components/core/library/libraryDetails test/architecture/components/core/library/libraryBookNotes` | a book's note created at a free path in the Book notes folder with what the file declares, edited key by key, adopted with only its link (body to the byte), each one undone; Details saving on leaving a field or Enter, the status, collections, the check's fade and reduced motion; the status and collection chips, *Want to read*, a card carried to its new row, nothing written by opening |
-| `npx jest test/application/library/article test/application/library/shelf test/application/library/passageToNote` | what an article is (the folder and a web `source`, never a tag alone, none when the folder is empty), its fields (authors' names from links, the year, the site), its sections (H1s, else H2s, a lede, code blocks, footnotes carried), its kind, byline and count on the shelf; *Recently added* (30 days, unfinished, newest first, one row) and its order; a note citing an article born from it |
-| `npx jest test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle test/architecture/components/core/library/bookNoteWriter` | the *Articles* chip and *Change* writing the same setting as Settings → Reading, articles off; an article opened with the shot from its drawn cover; a clipping in the Reader (its sections, Contents, no Page view, highlights at their section, its place kept, the note never written); its status written alone into its own frontmatter, recorded, undone; *Recently added* and its fourth order, a card settling in, nothing at the first draw, reduced motion |
-| `npx jest test/config/settings/bookNotesFolder` | the *Book notes folder* row under Reading: `Library` by default, saved on leaving it, a reset, no folder made; shown, not edited, in *Folders ZettelFlow uses*; the *Articles folder* row: `Clippings` by default, emptied to turn articles off, a reset |
-| `npx jest test/architecture/components/core/library` | the Library view: empty state, the shelf, filters with counts, search, sort, the detail and Esc, a rename; covers and what a source declares, a scan detected |
-| `npx jest test/architecture/plugin/library/sourceRenameFollow` | a renamed book keeps its place, bookmarks, layers, ink and thoughts, with the shelf closed; a book with nothing of yours writes nothing (#810) |
-| `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists over a hand-built vault, each deduplicated and stable, the book's note in none of them; an empty source, highlights only, notes only, an article, a saved path; no digit in a heading, five then *Show all*, the empty message, *Reading your vault…* filled when ready; each item opening its note, its pair in a split, its passage, Think; nothing written; the rise in turn, none the second time, *Show all* by translate, reduced motion |
-| `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource` | a PDF page reflowed (paragraphs, headings, hyphens, page numbers, two columns); a PDF in the Reader: pages as chapters, page view, a scan's banner, landing on a highlight's page, the end card, a file that cannot be read |
-| `npx jest test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub` | the sanitizer against hostile XHTML (scripts, `on*` handlers, `javascript:` and `data:` URLs, iframes, forms, `meta`/`base`, remote images, runaway nesting); presentation MathML kept and Content MathML shown as its text; inline SVG against hostile drawings (script, `foreignObject`, `javascript:`/`data:`/remote references on links, `use`, pictures and paints, `style` promoted to colours only, CSS-escape bypasses, filters, animation, nested `use`, scoped ids); the SVG cover still a picture; the element budget through both; an EPUB in the Reader: spine as chapters, contents from the nav, links inside the book, images from the archive let go on the next chapter, an equation and a drawing in their namespaces, a drawing's label found by search |
-| `npx jest test/application/library/passageToNote` | a book's passage cited as `[[book.epub]] p. 42`, the crystallized note read as a sourced claim and counted as born from the book, a source never offered as a place to append to, a note's origin read off its own lines |
-| `npx jest test/architecture/components/core/reader/readerHighlights` | a source's highlights found only on their own page, kept with their page; a note by page with Undo |
-| `npx jest test/architecture/components/core/library/sources/pdfPageView` | Page view's arithmetic: Fit width, Fit page and a level, clamped to 50–400 % and resisting past it; the point under the pointer kept; a turned page's sides; the drawing capped at the device's limit and never blank; Scroll Down and Across, Page, Spread (page 1 alone, then pairs; one page without room); at most seven pages drawn anywhere in 600; the page most on screen; a link's destination; a malformed stored view |
-| `npx jest test/architecture/components/core/reader/readerPageView` | Page view in the Reader: Ctrl+wheel follows without drawing, then redraws sharp; Ctrl/⌘ + − 0 and the bar's level; the spring back from 400 %; blank sheets, a first draw's fade and none on a redraw; native scrolling; the Page view group only in Page view; Across; Page and Spread turns; a rotation kept, the PDF and the vault never written; the overview and its flight, in both views, and a pinch past the smallest zoom; links in and out; a scan; reduced motion |
-| `npx jest test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop` | Crop margins: what is printed on a page (text, pictures and drawn shapes, a background left out, an unknown operator never trusted), the paper's right and left frames, no run and no mark of a sample paper outside its frame, Fit width on the wider frame and a turned frame; the switch only in Page view and unavailable in a scan, measuring with nothing moving, one camera move with the line kept and its way back, reduced motion, a failure said once, kept per paper and never measured twice, nothing written; offsets, layouts, links, jumps, thumbnails and rotation on a cropped page |
-| `npx jest test/application/library/epubPackage test/application/library/epubFixedLayout` | fixed layout read from the book and from each page, a page's size (its viewport however written, an SVG page's box, the package's, 768 × 1024 when none), spreads paired as the book says (first page alone, centred, right to left, `none`, `landscape`, an explicit Spread over the orientation); the CSS cleaner against hostile sheets (`@import`, remote, `//`, `data:` and `javascript:` URLs, a remote font, CSS escapes, `image-set`, `src()`, `attr()`, `env()`, custom properties with a URL, `:host` and `::part`, `position: fixed`, animation) and the second check after parsing; the designed policy of the one sanitiser |
-| `npx jest test/architecture/components/core/reader/readerDesigned` | a designed book in the Reader: each page in its own shadow root with its own sheet, no `style`, `link` or `script` anywhere, only minted `blob:` URLs, nothing fetched, fonts under our name and let go on close, no loose styles where the platform cannot keep them inside; Fit page, zoom, Page, Spread and Scroll; the hint once; no search, no rotate or crop; the overview's cards inside their own boundaries, nothing fetched; time left by pages; right to left; resume; at most six pages held; a 120 ms fade and nothing under reduced motion; a designed page among flowing chapters |
-| `npm run test:perf -- library` | the shelf of 500 sources, each with its book's note, and 200 articles read off the cache, builds, orders, filters and searches in budget; a dense two-column page reflows in budget; a 5 MB EPUB opens in budget; a 600-page paper scrolls in Page view in budget, with at most seven pages drawn; a paper's crop frames are found in budget; a 300-page comic turns with at most six pages held; a 200 KB designed stylesheet cleans in budget |
+| `npx jest test/application/library/shelf test/application/library/shelves test/application/library/spine` | the shelf (kinds, filters, accent-blind search, orders); where every book stands — the desk (two, most recent, never *Want to read* or *Finished*, none once a shelf is chosen), the status shelves in order, *On the shelf* for a book nothing is said of, your shelves A→Z with the empty ones while nothing narrows the view, every book in one place for every combination; what each move writes (your shelf first, a status shelf taking every shelf of yours away, *On the shelf* only for a book never opened, nothing where it already stands); rename and delete across notes; a shelf's name refused when empty, taken or the Library's own in English or Spanish; a spine's thickness from the book's length, clamped, and its height the same every time; the detail's one sentence, never a zero |
+| `npx jest test/application/library/bookNote` | a book's note read (string or list, an unknown status ignored), its status read from the reading, its first write and file name, found by its link, never born from its book; which details show and which fold; *Want to read* becoming *Reading* once, never on a shelf of yours |
+| `npx jest test/architecture/components/core/library/libraryBar test/architecture/components/core/library/libraryView` | the bar that stays: one bar, one row of chips, *All* once, no counts on shelf chips, **/** to the search and never while typing, a saved collection opening on every shelf, Covers \| Spines writing the setting; the desk's cards, nothing under a cover, one card that rises outside every shelf, labels on the planks, every book once in the DOM, a shelf's sideways scroll kept through a redraw, spines for every shelf book while the desk keeps cards |
+| `npx jest test/architecture/components/core/library/libraryYourShelves` | *+ New shelf* named in place, refused with its reason, Esc keeping nothing, nothing written to the vault; *Move to shelf…* listing where a book can go with its shelf checked and *On the shelf* only for a book never opened; one write, the book carried, the line with Undo, a failure said there; a drag lighting only the shelf that takes it, refused over *On the shelf* for an opened book, no drop while one shelf is chosen; rename and delete from the label's menu across notes, Undo; a path never moved; *Want to read* becoming *Reading* on opening, nothing for a book on your shelf |
+| `npx jest test/architecture/components/core/library/bookNoteWriter test/architecture/components/core/library/libraryDetails test/architecture/components/core/library/libraryBookNotes` | a book's note created at a free path in the Book notes folder with what the file declares, edited key by key, adopted with only its link (body to the byte), each one undone; Details saving on leaving a field or Enter, the empty fields folded behind *Add details…* and brought out at once with the cursor in the first, a field Cite sends you to shown; the status and shelves; a book carried to its new shelf, nothing written by opening |
+| `npx jest test/application/library/article test/application/library/passageToNote test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle` | what an article is, its fields and sections, its kind and count; the *Articles* chip and *Change* writing the same setting as Settings → Reading; an article opened with the shot from its drawn cover; a clipping in the Reader, the note never written; its status written alone into its own frontmatter; a book that arrives settling onto its shelf, nothing at the first draw, reduced motion |
+| `npx jest test/config/readingSettingsGroup test/config/settings/bookNotesFolder` | *Library shows books as* — Covers until you choose, the same value as the bar's switch; the *Book notes folder* and *Articles folder* rows |
+| `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists, each item opening what it names, nothing written; the section unseen until it has something, the rise in turn, reduced motion |
+| `npx jest test/architecture/plugin/library/sourceRenameFollow` | a renamed book keeps its place, bookmarks, layers, ink and thoughts (#810) |
+| `npx jest test/styles` | every colour of the shelves, planks, cloth, ribbon and drop light is the theme's; the grid; only transform and opacity move, nothing under reduced motion |
+| `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub test/architecture/components/core/reader/readerHighlights test/architecture/components/core/library/sources/pdfPageView test/architecture/components/core/reader/readerPageView test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop test/application/library/epubPackage test/application/library/epubFixedLayout test/architecture/components/core/reader/readerDesigned` | reading a PDF (reflow, Page view, crop, a scan) and an EPUB (the sanitizer, equations and drawings, designed pages) — see the sections above |
+| `npm run test:perf -- library` | the shelf of 500 sources and 200 articles builds, lays out its desk and shelves, filters and searches in budget; the PDF and EPUB budgets |
 
-In a vault (a test vault with a PDF paper, a scanned PDF and an EPUB):
+In a vault (a test vault with a PDF paper, a scanned PDF, an EPUB you have opened and a few you have
+not):
 
 1. **Empty state.** In a vault with no PDF, no EPUB and no saved path, open **ribbon menu → Library**.
-   Expect *Your shelf is empty, for now* and, with a note open, **Read a path across your notes**.
-2. **The shelf.** Add the three files to any folder. Expect them on the shelf at once; each cover is
-   drawn, then replaced by the real one as it scrolls into view. The EPUB is a book, the short PDF a
-   paper.
-3. **A scan.** Expect **Scanned · read only** on the scanned PDF's card once its cover has been read,
-   and in its detail.
-4. **Filters and search.** Click **Papers**: only PDFs. Type an author's name without its accents:
-   it is found. Change the order to **Title**; close and reopen the Library: the order is kept.
-5. **Detail.** **⋯** on a card: the detail slides in. **Esc** closes it; a second **Esc** does nothing
-   to the Library.
-6. **From the file.** Right-click the EPUB in the file explorer → **Show in the library**: the Library
-   opens on its detail.
-7. **A paper.** Click the paper on the shelf. Expect the Reader with *Page 1 / n* in the bar, the text in your
-   reading font, no chapter dots for a long PDF. **→** turns the page; **V** switches to Page view (the
-   page as laid out at the width of the screen, *100%* in the bar, *Highlight in the reading view*).
-   **Ctrl/⌘ + wheel** over a word grows the page around it; **Ctrl/⌘ 0** comes back. A reference link
-   jumps with the back pill; a DOI shows its address with *Copy link* and opens nothing. **V** again
-   comes back.
-   **Crop margins** (**Type → Page view**): the switch says it is measuring, the page waits, then moves
-   in on its printed area with your line kept; the running head and the page number are still there,
-   and the text is the same size on every page. Off is the same move back. Close and reopen the paper:
-   still cropped, at once.
-8. **Highlight.** Select a sentence → **Note**: the sentence stays marked while you
-   type. Write a note, **Save**. Expect it in the
-   margin. Leave with **Esc**, open the paper again from **Continue reading**: you are on that page,
-   and the highlight is there. In Think the thought shows the passage and *› p. n*.
-9. **The scan.** Open the scanned PDF. Expect the banner and the page as a picture; selecting does
-   nothing. **Note this page** → a note → **Save**: it is listed under *Notes on this page*.
-10. **A book.** Open the EPUB. A book never opened before opens where its text begins (a book with
-    a cover, a title page and credits opens past them); **Home** goes back to its cover, drawn as one
-    page with nothing on a second. Expect its title and author on the top line;
-    **Contents** lists the book's own chapters. Click a footnote mark: the note floats over the page and
-    the page does not move. Click a cross-reference: the Reader goes there, and **← Back to …** (or
-    Alt+←) returns you to the line you left. Highlight a sentence; it shows in Think with the chapter's name.
-    In a book with MathML and inline SVG: a fraction is drawn as a fraction inside its sentence, a
-    display equation sits centred on its own line, and a diagram is drawn no wider than the column, in
-    your theme's text colour where it uses the current colour. Search for a diagram's label: it is
-    found and the drawing is tinted. Highlight a sentence holding an inline equation: the equation is
-    tinted whole and its characters are in the quote. A book whose chapter holds a script or a
-    `foreignObject` inside an SVG shows neither, and the developer tools' network panel shows nothing
-    fetched.
-11. **From passage to note.** Click a highlight in the book → **Crystallize into a note** → change
-    the title → **Create**. Expect a new note quoting the passage, ending with
-    `source:: [[…epub]] <chapter or page>`. Open This note on it: **Born from** names the book; click
-    it and the Reader opens there. Back in the Library, the book's card says **1 note born**.
-12. **A comic.** Open a fixed-layout EPUB (a free comic or picture book; or build one: a package
-    declaring `rendition:layout` *pre-paginated*, pages with a `viewport` of 600 × 800 and absolutely
-    placed panels and captions). Expect the first page whole, its balloons where they were drawn, in the
-    book's own font, and one quiet line saying highlights and search are not available. **→** turns a
-    page with your chapter motion. In **Type → Layout → Spread** two pages sit side by side, the first
-    alone if the book says so, and **→** turns the whole spread. **Ctrl/⌘ + wheel** over a panel grows it
-    around the pointer, still sharp; **Ctrl/⌘ 0** flies back to the whole page. The bar says
-    *Page n / N* and a time left; the Reader's bar and top line are in your theme, not the comic's.
-    A right-to-left sample turns with **←**. On an iPad (landscape) a spread, (portrait) one page; a
-    pinch follows your fingers, a swipe the page. Close halfway and open again: the same page.
-13. **A book's note.** In the Library, a book's **⋯** → **Details**: the title and author are filled
-    in. Set **Status → Want to read**: a check fades beside it, a `Library` folder appears holding a
-    note named after the book with `status: to-read` and `book:` linking it, and on the shelf a
-    *Want to read* section holds the book. **+ Collection** → *Planning* → **Enter**: a *Planning*
-    chip appears over the shelf; click it — only that book. Change **Settings → Reading → Book notes
-    folder** to `Reading notes`: no folder appears; give another book a status: its note is in
-    `Reading notes`, the first one still in `Library`, and both details say where. **Undo** on the
-    *Saved in* line takes the last change back.
-14. **An article.** Clip a long page with Web Clipper (or put a note in `Clippings` with
-    `source: https://example.com/slow-software`, `author: ["[[Jane Doe]]"]`, a few paragraphs and two
-    headings). Expect it in **Recently added** and under **Articles**, by *Jane Doe*. Open it: the
-    camera pushes into its cover; **Contents** lists its headings; highlight a sentence; close it: the
-    camera pulls back onto its card, which says *1 highlight*. Its file is unchanged. Set its
-    **Status → Finished** in Details: only `status` is added to it. A note in `Clippings` whose
-    `source` is `[[Some note]]` is not on the shelf.
-15. **What it produced.** In a book with three highlights (one marked *Question*), crystallize one
-    into *Note A*; in it link an older note (*Planning fallacy*) and a new one (*Risk window*); in an
-    older note write `contradicts:: [[Note A]]`. Open the book's **⋯**. Expect **What it produced in
-    your vault**: *Notes born from it* lists Note A, *Ideas it led to* Risk window (not Planning
-    fallacy), *Links you made* Note A ↔ Planning fallacy, *Tensions* the older note ↔ Note A, *Still
-    unresolved* the two other highlights. No heading carries a number. Click the *Question* highlight:
-    the Reader opens at it. Click the pair: a split opens beside the Library, which stays as it was.
-    A book you never opened says *Nothing yet. What you make from this book shows here.* Home →
-    Recent shows no entry for any of it.
-16. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-    Opening and reading a book created no note; only changing its Details did. A hostile fixed-layout
-    page (a style sheet that imports, loads a font and a picture from `https://example.com`, a
-    `<script>`, a `position: fixed` overlay): with the developer tools' network panel open, nothing is
-    fetched, nothing runs, the overlay stays inside its page, and the Reader's bar is unchanged.
+   Expect *Your shelf is empty, for now* and, with a note open, **Read a path across your notes** —
+   and no bar: nothing to search.
+2. **The desk and the shelves.** Add the files. Expect the book you opened on **the desk** with
+   **Resume reading** and a thread, no percentage anywhere; the books you never opened on a plank
+   labelled **On the shelf** — *not started yet*; nothing written under any cover. Each cover is
+   drawn cloth-bound, then replaced by the real one as it comes into view.
+3. **The card that rises.** Point at a book (or **Tab** to it): a small card rises over it with its
+   title, author and *Not started* (or where you are). Scroll the shelf sideways: the card goes.
+4. **The bar stays.** Scroll down: the bar stays, with a fine line under it. Press **/**: the cursor
+   is in the search. Type an author without accents: found. Click **Papers**: only PDFs, the result
+   starting under the bar.
+5. **Spines.** Press **Spines**: every book on the shelves turns spine-out, thicker the longer it is;
+   the desk keeps its cards. Open **Settings → Reading**: *Library shows books as* says *Spines*. Set
+   it back to *Covers* there: the Library follows.
+6. **A shelf of yours.** **+ New shelf** → *Clásicos* → **Enter**: an empty shelf stands with *Drag
+   books here to shelve them*, and a *Clásicos* chip with a bookmark. Try *Leyendo*: refused, saying
+   why; nothing is made.
+7. **Drag.** Drag a book from *On the shelf* onto *Clásicos*: only *Clásicos* lights; drop it. It is
+   carried there, and the bar says *Moved to Clásicos · Undo*. Its note (in `Library`) has
+   `collections: [Clásicos]`. **Undo**: the book is back and the note is gone. Drag a book you have
+   opened over *On the shelf*: it does not light, and letting go there writes nothing.
+8. **On an iPad.** Swipe along a shelf: it scrolls. Press and hold a book: it lifts; drag it onto
+   *Clásicos* and let go: the same as step 7.
+9. **Move to shelf….** **⋯** on a book → **Move to shelf…**: its shelf is checked; *On the shelf*
+   is offered only for a book never opened. Pick **Finished**: it stands on *Finished* with a folded
+   corner, and its note has `status: finished` and no `collections`.
+10. **Rename and delete.** **⋯** on *Clásicos*'s label → **Rename shelf** → *Clásicos españoles*:
+    the label, the chip and every note on it follow, in one write. **Delete shelf**: its books stay,
+    on their status shelves; **Undo** brings it back.
+11. **A calm detail.** **⋯ → Details** on a book you never opened and never marked: no sentence, the
+    title and author, **Add details…**, and one line — *Nothing marked or made from it yet*. No
+    boxed counts, no empty headings. **Add details…**: the other fields come out, the cursor in
+    *Series*.
+12. **Want to read, then opened.** Set a book on *On the shelf* to **Want to read**: it moves to that
+    shelf. Click it: the Reader opens, and back in the Library it stands on **Reading**, with *Moved to
+    Reading · Undo* in the bar; its note says `status: reading`. Put a book on *Clásicos*, set it to
+    *Want to read*, open it: it stays *Want to read*.
+13. **A paper, a book, an article, a comic.** As before: a paper reflowed with Page view and crop, a
+    scan's banner, an EPUB with its contents, equations and drawings, a clipping read in the Reader, a
+    fixed-layout comic's spreads — see the sections above. Closing each plays the camera back onto
+    its place on its shelf, even far along a shelf that scrolls.
+14. **Reduced motion.** With reduced motion on, every move above happens at once: no lift, no glide,
+    no rising card motion — the same result.
+15. **Negative.** Compare each source file before and after (size and modification date): unchanged.
+    Opening, reading and highlighting created no note; only a move, a status or a field you changed
+    did, each listed in *What ZettelFlow changed*. No toast appeared for any of it.

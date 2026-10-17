@@ -128,3 +128,24 @@ describe("the Type panel, one row per choice (#753 FR-1, FR-14)", () => {
         expect(host.byClass("reader-type-note")).toHaveLength(1);
     });
 });
+
+describe("Code lines in the Type panel, for a book with code (#824 FR-6, AC-8)", () => {
+    it("is not there for a book without code", () => {
+        const host = new DomNode();
+        renderTypePanel(host as any, DEFAULT_READER_PREFS, scope(), jest.fn());
+        expect(rows(host).some((r) => r.oneByClass("reader-type-label").textContent === "Code lines")).toBe(false);
+    });
+
+    it("sits after Margins with Scroll · Wrap, the one in force active, and a pick is the reader's", () => {
+        const host = new DomNode();
+        const pick = jest.fn();
+        renderTypePanel(host as any, DEFAULT_READER_PREFS, scope(), pick, undefined, { codeLines: "wrap" });
+        const labels = rows(host).map((r) => r.oneByClass("reader-type-label").textContent);
+        expect(labels.slice(labels.indexOf("Margins"), labels.indexOf("Margins") + 2)).toEqual(["Margins", "Code lines"]);
+        const code = rows(host)[labels.indexOf("Code lines")];
+        expect(options(code).map((o) => o.text)).toEqual(["Scroll", "Wrap"]);
+        expect(options(code).map((o) => o.hasClass("is-active"))).toEqual([false, true]);
+        options(code)[0].click();
+        expect(pick).toHaveBeenCalledWith({ ...DEFAULT_READER_PREFS, codeLines: "scroll" });
+    });
+});

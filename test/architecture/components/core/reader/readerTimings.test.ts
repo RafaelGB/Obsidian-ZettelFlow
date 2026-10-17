@@ -5,6 +5,7 @@ import { join } from "path";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, installBrowserGlobals, settle } from "../../../../support/dashboardDom";
 import { parseXml } from "../../../../support/miniXml";
+import { withTextNodes } from "../../../../support/domText";
 import { press } from "../../../../support/readerKeys";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { installColumns, type Columns } from "../../../../support/readerColumns";
@@ -16,7 +17,7 @@ import { clearSamples, sampleCount } from "architecture/monitoring/measure";
 import type { HighlightStore } from "architecture/components/core/reader/readerHighlights";
 
 const g = globalThis as any;
-const proto = DomNode.prototype as any;
+let undoText: () => void;
 const BOOK = generateBook(7);
 
 function file(path: string): TFile {
@@ -69,15 +70,13 @@ describe("the Reader times what a reader waits through (#825)", () => {
                 return { ...parseXml(text), getElementsByTagName: () => [] };
             }
         };
-        proto.appendText = function (this: DomNode, text: string) {
-            this.createSpan({ text });
-        };
+        undoText = withTextNodes();
         g.URL.createObjectURL = () => "blob:1";
         g.URL.revokeObjectURL = () => undefined;
     });
     afterAll(() => {
         delete g.DOMParser;
-        delete proto.appendText;
+        undoText();
     });
     beforeEach(() => {
         installBrowserGlobals();

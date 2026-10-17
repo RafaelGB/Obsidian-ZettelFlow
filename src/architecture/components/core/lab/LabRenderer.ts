@@ -1168,7 +1168,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (thought.madeBy) return this.renderAnswered(box, thought, quote, about);
         const meaning = meaningOf(thought);
         const block = box.createDiv({ cls: [c("lab-quote"), c(`lab-quote--${meaning}`)].join(" ") });
-        block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
+        // Code kept from a book (#824 FR-8) stays code: its lines and their indentation, in monospace.
+        if (quote.code) block.createEl("pre", { cls: [c("lab-quote-text"), c("lab-quote-code")] }).createEl("code", { text: quote.exact });
+        else block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
         const meta = block.createDiv({ cls: c("lab-quote-meta") });
         // What you marked it as (#720): one click shows only the highlights that mean the same.
         const chip = meta.createEl("button", {

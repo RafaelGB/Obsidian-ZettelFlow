@@ -20,6 +20,7 @@ import { isMeaning, type HighlightMeaning } from "./highlightMeaning";
 import { DEFAULT_LAYER, isLayer, type MarkLayer } from "./markLayer";
 import type { Incubation } from "./incubation";
 import type { TextQuote } from "./quoteAnchor";
+import { codeLanguageOf } from "application/library/codeLanguage";
 import type { InkSide, PageInkAnchor } from "application/reader/ink/inkAnchor";
 
 /** The frontmatter key a thought's little structure lives under. */
@@ -51,6 +52,12 @@ export interface Response {
  */
 export interface ThoughtQuote extends TextQuote {
     heading?: string;
+    /**
+     * The passage is code (#824 FR-8): kept from a book's listing, with its language when the book said
+     * it. Its lines and their indentation are `exact` as it is; it becomes a fenced block where it is
+     * written as Markdown.
+     */
+    code?: { language?: string };
 }
 
 /**
@@ -292,6 +299,7 @@ export function renderThought(thought: Thought): string {
         lines.push(`  quotePrefix: ${JSON.stringify(thought.quote.prefix)}`);
         lines.push(`  quoteSuffix: ${JSON.stringify(thought.quote.suffix)}`);
         if (thought.quote.heading) lines.push(`  quoteHeading: ${JSON.stringify(thought.quote.heading)}`);
+        if (thought.quote.code) lines.push(`  quoteCode: ${JSON.stringify(thought.quote.code.language ?? "")}`);
     }
     if (thought.meaning) lines.push(`  meaning: ${thought.meaning}`);
     if (thought.review) {
@@ -477,11 +485,15 @@ function readQuote(read: (field: string) => string | undefined): ThoughtQuote | 
     const exact = readString(read("quoteExact"));
     if (!exact) return undefined;
     const heading = readString(read("quoteHeading"));
+    const code = read("quoteCode");
+    // A file edited by hand writes what it likes: only a language on the closed list is a fence's.
+    const language = code === undefined ? undefined : (codeLanguageOf(readString(code)) ?? undefined);
     return {
         exact,
         prefix: readString(read("quotePrefix")) ?? "",
         suffix: readString(read("quoteSuffix")) ?? "",
         ...(heading ? { heading } : {}),
+        ...(code === undefined ? {} : { code: language ? { language } : {} }),
     };
 }
 

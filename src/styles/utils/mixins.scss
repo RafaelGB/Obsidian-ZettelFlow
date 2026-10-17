@@ -95,6 +95,20 @@
     font-size: $text-small;
 }
 
+/// A **key on a keyboard** (#824): the Reader's shortcuts panel and a book's own `kbd` — one shape.
+@mixin key-cap {
+    min-width: var(--size-4-6);
+    padding: var(--size-2-1) var(--size-4-2);
+    text-align: center;
+    font-family: var(--font-interface);
+    font-size: var(--font-ui-smaller);
+    color: var(--reader-fg);
+    background-color: var(--reader-bg);
+    border: var(--border-width) solid var(--reader-line);
+    border-bottom-width: var(--size-2-1);
+    border-radius: var(--radius-s);
+}
+
 /// The **Reader's palette** (#668): the page, its surface, its ink. Worn by the reader and by
 /// anything that sets a passage the way the reader does (the review cards, #678).
 @mixin reader-palette {
@@ -122,6 +136,18 @@
     --text-faint: var(--color-base-50);
     --code-background: var(--background-primary-alt);
     --code-normal: var(--text-normal);
+    // The token colours (#824): Obsidian declares them on `body` from the app's palette, so the
+    // Reader's own looks re-derive them from theirs — a keyword is the theme's keyword on any page.
+    --code-comment: var(--text-faint);
+    --code-function: var(--color-yellow);
+    --code-important: var(--color-orange);
+    --code-keyword: var(--color-pink);
+    --code-operator: var(--color-red);
+    --code-property: var(--color-cyan);
+    --code-punctuation: var(--text-muted);
+    --code-string: var(--color-green);
+    --code-tag: var(--color-red);
+    --code-value: var(--color-purple);
     --hr-color: var(--background-modifier-border);
     --table-border-color: var(--background-modifier-border);
     --blockquote-border-color: var(--interactive-accent);

@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
-import { Component, TFile } from "obsidian";
+import { Component, TFile, __setPrism } from "obsidian";
 import { DomNode, installBrowserGlobals } from "../support/dashboardDom";
 import { parseXml } from "../support/miniXml";
+import { withTextNodes } from "../support/domText";
+import { fakePrism } from "../support/fakePrism";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../support/motionDom";
 import { columnStage, drawChapter, installColumns, wearType, type Columns } from "../support/readerColumns";
 import { openEpubSource } from "architecture/components/core/library/sources/epubSource";
@@ -42,7 +44,7 @@ function best(runs: number, work: () => unknown): number {
 }
 
 const g = globalThis as any;
-const proto = DomNode.prototype as any;
+let undoText: () => void;
 const BOOK = generateBook(7);
 
 function laid(chapter: "long" | "short", layout: "page" | "spread" = "page") {
@@ -64,15 +66,16 @@ describe("the Reader's four moments (#825)", () => {
                 return { ...parseXml(text), getElementsByTagName: () => [] };
             }
         };
-        proto.appendText = function (this: DomNode, text: string) {
-            this.createSpan({ text });
-        };
+        undoText = withTextNodes();
+        // Obsidian's Prism, as its shape (#824): the colouring is timed with the grammars jest has.
+        __setPrism(fakePrism);
         g.URL.createObjectURL = () => "blob:1";
         g.URL.revokeObjectURL = () => undefined;
     });
     afterAll(() => {
         delete g.DOMParser;
-        delete proto.appendText;
+        undoText();
+        __setPrism(null);
     });
     beforeEach(() => {
         installBrowserGlobals();
@@ -169,6 +172,24 @@ describe("the Reader's four moments (#825)", () => {
             endChapterTurn();
         });
         assertBudget("reader.chapter.turn.start", ms);
+    });
+
+    it("reader.code.chapter.300", async () => {
+        // A chapter of 300 listings (~5,000 lines), rebuilt, coloured and cut into lines (#824 FR-9).
+        const file = Object.assign(new TFile(), { path: "Books/technical.epub", extension: "epub", stat: { size: BOOK.bytes.length } });
+        const app = { vault: { readBinary: async () => BOOK.bytes.buffer.slice(BOOK.bytes.byteOffset, BOOK.bytes.byteOffset + BOOK.bytes.byteLength) } };
+        const doc = await openEpubSource(app as never, file);
+        let fastest = Number.POSITIVE_INFINITY;
+        for (let run = 0; run < 3; run++) {
+            const { body } = columnStage();
+            const component = new Component();
+            const started = performance.now();
+            const drawn = await doc.draw(2, body, component, "reading");
+            fastest = Math.min(fastest, performance.now() - started);
+            expect(drawn.listings).toBe(300);
+            component.unload();
+        }
+        assertBudget("reader.code.chapter.300", fastest);
     });
 
     it("reader.chapter.turn.shape", () => {

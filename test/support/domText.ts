@@ -15,6 +15,8 @@ export function withTextNodes(): () => void {
         childNodes: { configurable: true, get(this: DomNode) { return this.children; } },
         parentNode: { configurable: true, get(this: DomNode) { return this.parent; } },
         firstChild: { configurable: true, get(this: DomNode) { return this.children[0] ?? null; } },
+        // An element's attributes as the DOM lists them (#824: a listing's own markup is read by it).
+        attributes: { configurable: true, get(this: DomNode) { return Object.entries(this.attrs).map(([name, value]) => ({ name, value })); } },
         data: {
             configurable: true,
             get(this: DomNode) { return this.text; },

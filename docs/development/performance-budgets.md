@@ -103,10 +103,11 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `reader.lookup.stardict.open.200k` (a 200,000-entry StarDict dictionary and 50,000 synonyms opened for look-up, once per session, #766) | 205–222 ms (555 ms before its words were decoded in one pass; in the app, three real dictionaries — a million synonyms among them — open in ~290 ms) | 750 |
 | `reader.lookup.stardict.find.200k` (a later look-up in it: the word found, its dictzip chunk inflated, its entry split, #766) | 0.26–0.39 ms | 3 |
 | `reader.scrubber.model.120ch` (the book's line: 120 chapters, 2,000 highlights and 200 bookmarks laid out, once per opening and on each change, #813) | 0.41 ms | 2 |
-| `reader.chapter.open` (a 1 MB technical chapter rebuilt from the book and laid out in pages, its first page ready, #825) | 86 ms | 350 |
+| `reader.chapter.open` (a 1 MB technical chapter rebuilt from the book, its 360 listings coloured, and laid out in pages, its first page ready, #825 / #824) | 148 ms (86 before its listings were coloured) | 500 |
 | `reader.page.turn` (one page turn in Page, the mean of 1,000 through a long chapter, #825) | 0.007 ms, 0 paginations and 0 reflows | 0.05 |
-| `reader.relayout` (a long chapter laid out again after a type change and landed on the same line, the slowest of six rows, #825) | 20 ms | 80 |
-| `reader.chapter.turn.start` (a chapter turn's sheet built over a full page and set moving, #825) | 12 ms | 50 |
+| `reader.relayout` (a long chapter laid out again after a type change and landed on the same line, the slowest of six rows, #825) | 25 ms (its listings re-fitted, written only when their cut changes, #824) | 80 |
+| `reader.chapter.turn.start` (a chapter turn's sheet built over a full page and set moving, #825) | 10 ms | 50 |
+| `reader.code.chapter.300` (a chapter of 300 listings rebuilt, coloured with Prism's shape and cut into lines, #824) | 40 ms | 200 |
 | `reader.chapter.turn.shape` (the nodes that sheet copies for a chapter ten times longer, as a multiple of a short one's, #825) | 0.96× | 1.2 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
@@ -224,6 +225,14 @@ are read from the table below.
 page **empty for 1.6 s**. A 150 ms timer cannot fire while drawing the chapter holds the main
 thread. The chapter's waiting state is now laid over the page at once and faded in after the delay by
 CSS, on the compositor (`readerWaiting.ts`).
+
+**And the first thing they caught (#824).** The first build of code in technical books failed two of
+these, the day after they were set. `reader.relayout` went from 20 to 113 ms and
+`reader.chapter.turn.start` from 12 to 87 ms. Fitting the listings to their pages merged every
+listing back into one piece before measuring it, on every layout, which cost the page two extra
+layouts each time. Now the listings are read as they are (a short one by its box alone) and written
+only when their cut changes, which brought relayout back to 25 ms. The column model needed a fix too:
+it had counted the chapter turn's sheet, a copy of the page beside the stage, as a change to the page.
 
 ## What these numbers do not include
 

@@ -20,6 +20,7 @@ import {
 } from "./readerPages";
 import type { ReaderLayout } from "./readerPrefs";
 import { pageTravel, scrollTravel, TRAVEL_FAINT } from "./readerTravel";
+import { mergeListing, runsOf, splitListing } from "./readerCode";
 
 /**
  * **The chapter in pages** (#753, epic #739) — the DOM side of `readerPages`. In *Page* and *Spread*
@@ -150,6 +151,8 @@ export class ReaderPager {
         this.direction = direction;
         this.shape = shape;
         if (this.paged) return;
+        // In *Scroll* a listing is one run again (#824 FR-7).
+        this.fitListings(0);
         this.finishRunning();
         this.dragging = null;
         this.geometry = null;
@@ -203,6 +206,7 @@ export class ReaderPager {
             "--zf-page-x": "0px",
         });
         this.fitTables(Math.max(1, size.height - padTop - padBottom));
+        this.fitListings(Math.max(1, size.height - padTop - padBottom));
         this.pages = pageCount(this.page.scrollWidth, geometry.stridePx, geometry.gapPx);
         let view = this.view;
         if (land === "start") view = 0;
@@ -246,6 +250,69 @@ export class ReaderPager {
             if (height <= pageHeight) continue;
             table.addClass(fit);
             table.setCssProps({ "--zf-fit": String(Math.max(0.2, Math.floor((pageHeight / height) * 1000) / 1000)) });
+        }
+    }
+
+    /**
+     * A book's listings, page by page (#824 FR-7). A listing that fits a page is one run, kept whole —
+     * on the next page if it would not fit the rest of this one. One taller than a page is cut between
+     * lines into runs: the first fills what is left of the page (or starts the next, with under three
+     * lines left), each after it a page, every run but the last marked as continuing. The listings are
+     * read as they are — a short one by its box alone, a tall one by its lines — and only one whose cut
+     * changes is written: a layout that moves nothing in the code costs one read of it. Back in *Scroll*,
+     * every listing is one run again.
+     */
+    private fitListings(pageHeight: number): void {
+        const listings = Array.from(this.page.querySelectorAll<HTMLElement>(`pre.${c("reader-code")}`));
+        if (listings.length === 0) return;
+        if (!this.paged) {
+            for (const pre of listings) if (runsOf(pre).length > 1) mergeListing(pre);
+            return;
+        }
+        const strip = this.page.getBoundingClientRect();
+        const style = (this.stage as El).win?.getComputedStyle?.(this.page);
+        const top = strip.top + (parseFloat(style?.paddingTop ?? "") || 0);
+        // Every read first: each listing's runs, a tall one's lines, and how much page is left where it starts.
+        const plans = listings.map((pre) => {
+            const runs = runsOf(pre);
+            if (runs.length === 0) return null;
+            const total = runs.reduce((sum, run) => sum + run.getBoundingClientRect().height, 0);
+            if (runs.length === 1 && total <= pageHeight) return null;
+            const lines = runs.flatMap((run) => (Array.from(run.children) as HTMLElement[]).map((line) => line.getBoundingClientRect().height));
+            // Where the listing begins: its own first box, wherever it sits — in a figure, a list, first.
+            const first = pre.getClientRects?.()[0];
+            const used = first ? Math.max(0, first.top - top) : 0;
+            return { pre, runs, lines, left: pageHeight - (used % pageHeight) };
+        });
+        for (const plan of plans) {
+            if (!plan) continue;
+            const { pre, runs, lines, left } = plan;
+            const current = runs.map((run) => run.children.length);
+            if (lines.reduce((sum, h) => sum + h, 0) <= pageHeight || lines.length < 2) {
+                if (runs.length > 1) mergeListing(pre);
+                continue;
+            }
+            const line = Math.max(...lines);
+            // A page's run gives a line to the mark that says it goes on, and room for its scrollbar.
+            const room = Math.max(line, pageHeight - line * 1.5);
+            const counts: number[] = [];
+            let budget = left - line * 1.5 >= line * 3 ? left - line * 1.5 : room;
+            let count = 0;
+            let used = 0;
+            for (const h of lines) {
+                if (count > 0 && used + h > budget) {
+                    counts.push(count);
+                    count = 0;
+                    used = 0;
+                    budget = room;
+                }
+                count++;
+                used += h;
+            }
+            if (count > 0) counts.push(count);
+            // Already cut this way: nothing is written, and the page is not laid out again for it.
+            if (counts.length === current.length && counts.every((n, i) => n === current[i])) continue;
+            splitListing(pre, counts);
         }
     }
 

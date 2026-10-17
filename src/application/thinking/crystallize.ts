@@ -1,4 +1,4 @@
-import { isHighlight, type Thought } from "./thought";
+import { isHighlight, type Thought, type ThoughtQuote } from "./thought";
 import { placeOf, samePlace, sourceEntry, type PassagePlace } from "application/library/provenance";
 
 /**
@@ -117,8 +117,19 @@ export function crystallizeSeed(
 function wordsOf(thought: Thought): string {
     const own = thought.text.trim();
     if (!isHighlight(thought)) return own;
-    const passage = `> ${(thought.quote?.exact ?? "").replace(/\s+/g, " ").trim()}`;
+    const passage = passageMarkdown(thought.quote ?? { exact: "", prefix: "", suffix: "" });
     return own ? `${passage}\n\n${own}` : passage;
+}
+
+/**
+ * A kept passage as Markdown (#824 FR-8): prose as a quote on one line; code as a fenced block in its
+ * language, its lines and indentation as they were — with a longer fence when the code holds one.
+ */
+export function passageMarkdown(quote: ThoughtQuote): string {
+    if (!quote.code) return `> ${quote.exact.replace(/\s+/g, " ").trim()}`;
+    const longest = Math.max(0, ...(quote.exact.match(/`+/g) ?? []).map((run) => run.length));
+    const fence = "`".repeat(Math.max(3, longest + 1));
+    return `${fence}${quote.code.language ?? ""}\n${quote.exact.replace(/\n+$/, "")}\n${fence}`;
 }
 
 /**

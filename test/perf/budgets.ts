@@ -408,8 +408,14 @@ export const BUDGETS = {
         // Re-measured for #825 (2026-10-17): the Reader and Library slices since #802 (#807, #818 and the
         // rest) had brought main to 3,090 KB without this line moving; #825's four timings and the chapter's
         // waiting state add 2 KB: 3,092 KB. Epic #827 may raise the ceiling by at most 20 KB (owner, 2026-10-17).
-        limit: 3_100,
-        measured: "3,092 KB",
+        // 3,100 → 3,110 (#824): code in technical books adds 10.7 KB — the closed list of 46 languages, the
+        // listing cut into lines and runs, the converted book's code found by its face, the quote that stays
+        // code: 3,104 KB. Looked for something to subtract first: Prism is Obsidian's own (no library added),
+        // Obsidian's `.token` colours and `markdown-rendered` code rules draw it, the Type panel's row is
+        // `segmentedRow`, the listing's fit is `fitTables`' shape, the keep is the one keep. Half the epic's
+        // allowance; 10 KB stay for #826.
+        limit: 3_110,
+        measured: "3,104 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },
@@ -542,8 +548,9 @@ export const BUDGETS = {
     "reader.chapter.open": {
         name: "open a 1 MB technical chapter: rebuilt from the book and laid out in pages, its first page ready (ms)",
         // ~4x: the tests' XML parser and the model's layout, so this is our share of the wait, not all of it.
-        limit: 350,
-        measured: "86 ms (the slower of two runs)",
+        // 86 → 148 ms (#824): the long chapter's 360 listings are now coloured and cut into lines before it is shown.
+        limit: 500,
+        measured: "148 ms (the slower of two runs)",
         because:
             "the wait between choosing a chapter and its first page (#825 B1): a reader asked for ≤ 300 ms on a real device, and the Reader's own share must stay a fraction of it — a rebuild or a pagination that went quadratic would cost many times this",
     },
@@ -557,8 +564,9 @@ export const BUDGETS = {
     },
     "reader.relayout": {
         name: "lay a long chapter out again after a type change, landed on the same line: the slowest of the six type rows (ms)",
+        // 20 → 25 ms (#824): a relayout also re-fits the listings — read as they are, written only when their cut changes.
         limit: 80,
-        measured: "20 ms (the slowest row, the slower of two runs)",
+        measured: "25 ms (the slowest row, the slower of two runs)",
         because:
             "a change of font, size, spacing, width, margins or layout must land on the line you were reading within 150 ms on a device (#825 B3); each row asserts the same passage is in view afterwards",
     },
@@ -567,14 +575,22 @@ export const BUDGETS = {
         // The sheet's copy is bounded (the shape budget below); its scan reads one box per block of the
         // chapter, so this grows with the chapter — the time ratio is logged beside the shape, not gated.
         limit: 50,
-        measured: "12 ms (best of five, the slower of two runs)",
+        measured: "10 ms (best of five, the slower of two runs)",
         because:
             "the sheet stands between the gesture and the first frame of the turn (#825 B4, §XVI): it must start moving within 100 ms on a device, so the Reader's share must stay well under it",
+    },
+    "reader.code.chapter.300": {
+        name: "rebuild a chapter of 300 listings (~5,000 lines), colour it with Prism's shape and cut it into lines (ms)",
+        // ~4x: the tests' XML parser and a Prism shaped like Obsidian's with small grammars — the app's is on #824.
+        limit: 200,
+        measured: "40 ms (the slower of two runs)",
+        because:
+            "a chapter of code is coloured before it is on the page (#824 AC-M3), so all of it is in the wait before its first page: a book that is nearly all code must still open as a chapter does, under the 300 ms a reader is promised on a device (#825 FR-5)",
     },
     "reader.chapter.turn.shape": {
         name: "the nodes a chapter turn's sheet copies for a chapter ten times longer, as a multiple of a short one's",
         limit: 1.2,
-        measured: "0.96 (twenty-one nodes against twenty-two)",
+        measured: "0.91 (the slower of two runs)",
         because:
             "the sheet holds only what is on screen (#825 AC-3): a copy that grew with the chapter — the whole body cloned — is the regression this ratio exists to catch",
     },

@@ -2,6 +2,9 @@
 import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/epubSanitize";
 import { DomNode } from "./dashboardDom";
 import { parseXml } from "./miniXml";
+import { fakePrism } from "./fakePrism";
+import { withTextNodes } from "./domText";
+import { colourListings } from "architecture/components/core/reader/readerCode";
 import type { FixtureChapter } from "./zipFixture";
 
 /**
@@ -29,6 +32,7 @@ const READER = "zettelkasten-flow__reader";
 const STAGE = `${READER}-stage`;
 const PAGE = `${READER}-page`;
 const BODY = `${READER}-body`;
+const RUN = `${READER}-code-run`;
 
 const FONT_PX: Record<string, number> = { small: 16, medium: 19, large: 22 };
 const LINE: Record<string, number> = { tight: 1.5, normal: 1.75, airy: 2 };
@@ -97,11 +101,26 @@ export function installColumns(view: { width: number; height: number }): Columns
         rects: proto.getClientRects,
         scrollWidth: Object.getOwnPropertyDescriptor(proto, "scrollWidth"),
         style: g.getComputedStyle,
+        mutators: {} as Record<string, any>,
     };
     const laid = new WeakMap<any, Laid>();
     const texts = new WeakMap<any, number>();
     let reflows = 0;
     let widthReads = 0;
+    // The tree's shape changes (a listing split into runs, merged back): what the layout is keyed on.
+    let version = 0;
+    const mutators = ["appendChild", "remove", "after", "createEl", "insertBefore", "empty"] as const;
+    for (const name of mutators) {
+        const original = proto[name];
+        saved.mutators[name] = original;
+        proto[name] = function (this: any, ...args: any[]) {
+            // Only a change inside a page lays the page out again — as a browser's layout is incremental:
+            // a sheet built beside the stage, or a node not yet on it, costs the page nothing.
+            // (The turn's sheet is a copy of the page — its class too — but it lies beside the stage.)
+            if (ancestorWith(this, PAGE) && ancestorWith(this, STAGE)) version++;
+            return original.apply(this, args);
+        };
+    }
 
     const textLength = (block: any): number => {
         let length = texts.get(block);
@@ -110,6 +129,14 @@ export function installColumns(view: { width: number; height: number }): Columns
             texts.set(block, length);
         }
         return length;
+    };
+
+    /** A listing's lines in a run, and the run's height: a line each, more where *Wrap* folds them. */
+    const codeLineH = (type: ReturnType<typeof typeOf>) => type.linePx * 0.9;
+    const lineHeightOf = (line: any, columnPx: number, type: ReturnType<typeof typeOf>, wrap: boolean): number => {
+        if (!wrap) return codeLineH(type);
+        const perLine = Math.max(1, Math.floor(columnPx / (type.fontPx * 0.6)));
+        return Math.max(1, Math.ceil(textLength(line) / perLine)) * codeLineH(type);
     };
 
     /** The height a block takes in a column `columnPx` wide, in this type. */
@@ -130,7 +157,8 @@ export function installColumns(view: { width: number; height: number }): Columns
         if (!(columnPx > 0) || !(pageH > 0)) return null;
         const blocks = blocksOf(page);
         const type = typeOf(page.find((el: any) => el.classes?.has(BODY)) ?? page);
-        const key = [columnPx, prop(page, "--zf-page-gap"), pageH, type.fontPx, type.linePx, type.charPx, blocks.length, blocks[0] ?? ""].join("|");
+        const wrap = closestWith(page.find((el: any) => el.classes?.has(BODY)) ?? page, `${READER}--code-`) === "wrap";
+        const key = [columnPx, prop(page, "--zf-page-gap"), pageH, type.fontPx, type.linePx, type.charPx, wrap, version, blocks.length, blocks[0] ?? ""].join("|");
         const known = laid.get(page);
         if (known && known.key === key && known.pieces.has(blocks[0])) return known;
         reflows++;
@@ -139,6 +167,40 @@ export function installColumns(view: { width: number; height: number }): Columns
         let column = 0;
         let y = 0;
         for (const block of blocks) {
+            const runs = block.tag === "pre" ? block.findAll((el: any) => el.classes?.has(RUN)) : [];
+            if (runs.length > 0) {
+                // A listing is laid out by its runs (#824): each one whole — a box that scrolls never splits.
+                // Its own first box is where it begins, even when its first run is pushed to the next page.
+                const all: Piece[] = [{ column, top: y, height: 0 }];
+                for (const run of runs) {
+                    const lineHs = run.children.map((line: any) => lineHeightOf(line, columnPx, type, wrap));
+                    const height = lineHs.reduce((sum: number, h: number) => sum + h, 0) + (run.attrs?.["data-zf-continues"] ? codeLineH(type) : 0);
+                    if (y > 0 && y + height > pageH) {
+                        column++;
+                        y = 0;
+                    }
+                    const piece = { column, top: y, height };
+                    pieces.set(run, [piece]);
+                    all.push(piece);
+                    let lineTop = y;
+                    run.children.forEach((line: any, i: number) => {
+                        pieces.set(line, [{ column, top: lineTop, height: lineHs[i] }]);
+                        lineTop += lineHs[i];
+                    });
+                    y += height;
+                    if (y >= pageH - 0.5) {
+                        column++;
+                        y = 0;
+                    }
+                }
+                pieces.set(block, all);
+                y += gap;
+                if (y >= pageH) {
+                    column++;
+                    y = 0;
+                }
+                continue;
+            }
             let rest = heightOf(block, columnPx, pageH, type);
             if (WHOLE.has(block.tag) && y > 0 && y + rest > pageH) {
                 column++;
@@ -195,7 +257,8 @@ export function installColumns(view: { width: number; height: number }): Columns
         if (this.classes?.has(STAGE)) return { left: 0, top: 0, width: view.width, height: view.height };
         if (this.classes?.has(PAGE) && prop(this, "--zf-page-col") > 0) return stripBox(this);
         const pieces = piecesOf(this);
-        if (pieces && pieces.length > 0) return pieces[0];
+        // The box of something laid out: its first piece with a size (a listing's empty start is its rects' only).
+        if (pieces && pieces.length > 0) return pieces.find((piece) => piece.height > 0) ?? pieces[0];
         return saved.rect.call(this);
     };
     proto.getClientRects = function (this: any) {
@@ -222,6 +285,7 @@ export function installColumns(view: { width: number; height: number }): Columns
             return widthReads;
         },
         uninstall() {
+            for (const [name, original] of Object.entries(saved.mutators)) proto[name] = original;
             proto.getBoundingClientRect = saved.rect;
             if (saved.rects) proto.getClientRects = saved.rects;
             else delete proto.getClientRects;
@@ -251,6 +315,14 @@ export function drawChapter(body: any, chapter: FixtureChapter): void {
         element: (parent: any, tag: string, attrs: Record<string, string>) => parent.createEl(tag, { attr: attrs }),
         text: (parent: any, text: string) => parent.appendText(text),
     }, `OEBPS/${chapter.href}`);
+    // Its listings coloured and cut into lines, as the app does before a chapter is shown (#824) —
+    // read through text nodes, as the DOM has them.
+    const undo = withTextNodes();
+    try {
+        colourListings(body, fakePrism);
+    } finally {
+        undo();
+    }
 }
 
 /** Change the type the stage wears, the way `applyPrefs` swaps the root's classes. */

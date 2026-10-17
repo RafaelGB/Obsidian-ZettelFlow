@@ -56,6 +56,27 @@ export class FakeEl {
         return this.childNodes.map((child) => child.textContent).join("");
     }
 
+    /** `tag`, `.class` or `tag.class` — what the Reader asks of a chapter's elements (#824). */
+    matches(selector: string): boolean {
+        const [tag, cls] = selector.split(".");
+        return (!tag || this.tag === tag) && (!cls || this.classes.has(cls) || this.cls.split(/\s+/).includes(cls));
+    }
+
+    closest(selector: string): FakeEl | null {
+        for (let el: FakeEl | null = this; el; el = el.parentNode) if (el.matches(selector)) return el;
+        return null;
+    }
+
+    querySelector(selector: string): FakeEl | null {
+        for (const child of this.childNodes) {
+            if (!(child instanceof FakeEl)) continue;
+            if (child.matches(selector)) return child;
+            const found = child.querySelector(selector);
+            if (found) return found;
+        }
+        return null;
+    }
+
     private detach(node: FakeNode): void {
         const old = node.parentNode;
         if (old) old.childNodes.splice(old.childNodes.indexOf(node), 1);

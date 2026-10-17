@@ -1669,11 +1669,51 @@ choice wins. In a right-to-left book the leaf turns over the other way. Under re
 fits are instant, and a pinch still follows your fingers. See
 [Designed pages](library.md#designed-pages-comics-picture-books-and-cookbooks).
 
+## Code in technical books
+
+A technical book's code reads as code: in your theme's code colours, whole lines, on its page.
+
+![Code in technical books: a spread in Page with a coloured Python listing that stops at a line's end with a quiet "continues" and goes on at the top of the next page, a long line scrolling inside its own box; the Type panel's Code lines row, Scroll or Wrap; a wrapped line hanging under its indent; a converted book's code found by the face its stylesheet sets; and a card in Think holding the kept lines as a fenced python block](../resources/reader/code.svg)
+
+- **Coloured by your theme, the same as in your notes.** When the book says what language a listing is
+  in (`data-code-language="python"`, `data-lang`, `class="language-python"`…), the Reader colours it
+  with the Prism Obsidian ships, so a keyword in a book is the colour of the same keyword in a note's
+  code block. Only that one fact survives from the book's markup, and only from a closed list of
+  about 45 languages; the book's own colours, classes and styles never reach the page. A listing in
+  a language off the list, or one that names none, is still code: monospace, uncoloured.
+- **Found in a converted book too.** Most EPUBs sold today are conversions, and they rarely write
+  `<pre>`: a listing is one paragraph per line, set in a typewriter face by the book's stylesheet. The
+  Reader reads that stylesheet for **one** thing, which classes are set in a monospace face, and
+  makes their consecutive lines one listing, indentation included; inline code in that face becomes
+  inline code. Nothing else of the stylesheet is used.
+- **Whole lines, on their page.** In *Page* and *Spread* a listing that fits a page is kept whole,
+  on the next page if the rest of this one cannot hold it. A longer one is cut **between lines**, never
+  through one: each part fills a page and says, quietly, that it *continues*. Back in *Scroll* it is
+  one listing again.
+- **Code lines: Scroll or Wrap** (in **Type**, only for a book with code). *Scroll* keeps every line
+  whole and lets a long one scroll sideways inside its own listing; *Wrap* folds it, the rest hanging
+  under its own indent. Until you pick, a desktop or a tablet scrolls and a phone wraps. A drag inside
+  a listing that can scroll moves the listing; at its edge, or beside it, it turns the page.
+- **Kept code stays code.** Highlight lines of a listing and keep them: the thought records that the
+  passage is code and its language, Think shows it in monospace, and a note made from it holds a
+  fenced block (` ```python `) with its lines and indentation as they were.
+
+Two things worth knowing:
+- **An element's `lang` is never a hint.** It names a human language (`cs` is Czech, not C#), and it
+  stays what the column hyphenates by.
+- **Old highlights in a converted book's code** were made when its lines were separate paragraphs.
+  Most are found again by their words, because the Reader reads a run of spaces as one. A few made on
+  a book whose markup ran its lines together, with no space between them, may not be found. Those
+  are listed, never lost.
+
+Under the Reader's own *Light*, *Sepia* or *Dark* look, code takes Obsidian's default code colours
+from that look's palette. A community theme's own `--code-*` colours show under *Your theme*.
+
 ## Type you can tune
 
 The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading
 theme), **Font** (your theme's own, or a serif), **Size**, then the finer type — **Line spacing**,
-**Width**, **Margins** and **Justify** — then **Focus mode**, the time left and
+**Width**, **Margins** and, in a book with code, **Code lines** ([code in technical books](#code-in-technical-books)) and **Justify** — then **Focus mode**, the time left and
 **Pause at chapter ends** ([what survived?](#what-survived)). Each row has its
 name, and the marker under your choice slides to the next one you pick. Every change applies at
 once, so you choose by looking, and the choices are kept for every book, next time too.

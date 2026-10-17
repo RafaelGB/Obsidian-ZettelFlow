@@ -75,6 +75,8 @@ export interface DrawnChapter {
     heading?: string;
     /** A chapter of pictures and no words — a cover (#808 FR-7): drawn as one page. */
     cover?: boolean;
+    /** How many listings of code the chapter has (#824): the *Code lines* row appears for them. */
+    listings?: number;
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */

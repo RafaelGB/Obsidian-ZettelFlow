@@ -640,3 +640,20 @@ export async function loadPdfJs(): Promise<any> {
   if (!pdfJs) throw new Error("pdf.js is not available");
   return pdfJs;
 }
+
+/**
+ * Obsidian's own Prism (#824): `loadPrism()` resolves to the `Prism` the app ships. A test hands in
+ * the Prism it wants the code to see (`test/support/fakePrism.ts`); with none, loading fails the way an
+ * app without it would. Each call is counted, so a test can prove a novel never asks for it.
+ */
+let prism: unknown = null;
+export const prismCalls = { count: 0 };
+export function __setPrism(lib: unknown): void {
+  prism = lib;
+  prismCalls.count = 0;
+}
+export async function loadPrism(): Promise<any> {
+  prismCalls.count++;
+  if (!prism) throw new Error("Prism is not available");
+  return prism;
+}

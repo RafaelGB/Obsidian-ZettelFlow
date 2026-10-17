@@ -326,3 +326,28 @@ describe("a thought accepted from a Reader move (#756)", () => {
         expect(parseThought(text, "Lab/t1.md").madeBy).toBeUndefined();
     });
 });
+
+describe("a passage kept from a book's code (#824 FR-8)", () => {
+    const quoted = (code?: { language?: string }) =>
+        newThought({ text: "", id: "t1", at: 1, about: "Books/a.epub", quote: { exact: "def f():\n    return 1", prefix: "", suffix: "", ...(code ? { code } : {}) } });
+
+    it("records that it is code, and its language, and reads them back", () => {
+        const back = parseThought(renderThought(quoted({ language: "python" })), "lab/t1.md");
+        expect(back.quote?.code).toEqual({ language: "python" });
+        expect(back.quote?.exact).toBe("def f():\n    return 1");
+        expect(parseThought(renderThought(quoted({})), "lab/t1.md").quote?.code).toEqual({});
+    });
+
+    it("leaves a prose passage as it always was", () => {
+        const rendered = renderThought(quoted());
+        expect(rendered).not.toContain("quoteCode");
+        expect(parseThought(rendered, "lab/t1.md").quote?.code).toBeUndefined();
+    });
+});
+
+describe("a hand-edited quoteCode (#824 review)", () => {
+    it("keeps only a language on the closed list for the fence", () => {
+        const file = renderThought(newThought({ text: "", id: "t1", at: 1, about: "Books/a.epub", quote: { exact: "x", prefix: "", suffix: "", code: { language: "python" } } })).replace('quoteCode: "python"', 'quoteCode: "``` evil"');
+        expect(parseThought(file, "lab/t1.md").quote?.code).toEqual({});
+    });
+});

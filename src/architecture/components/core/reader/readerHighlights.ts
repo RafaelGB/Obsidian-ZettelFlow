@@ -6,7 +6,8 @@ import { isInk, type Thought, type ThoughtLocator, type ThoughtQuote } from "app
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
-import { chapterText, paragraphsAround, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
+import { chapterText, paragraphsAround, pointAt, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
+import { listingLanguage } from "./readerCode";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
 import { DEFAULT_MEANING, HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
 import { MOTION, fly, motionWelcome } from "./readerMotion";
@@ -832,10 +833,35 @@ export class ReaderHighlights {
     quoteFor(start: number, end: number): { span: TextSpan; quote: ThoughtQuote } | null {
         const body = this.body;
         if (!body) return null;
-        const made = quoteAt(chapterText(body), start, end);
+        const text = chapterText(body);
+        const made = quoteAt(text, start, end);
         if (!made) return null;
         const heading = this.heading(body, made.span.start);
-        return { span: made.span, quote: { ...made.quote, ...(heading ? { heading } : {}) } };
+        // Code only when the passage begins and ends in the same listing: a span into the prose is prose.
+        const code = this.codeAt(body, made.span.start, made.span.end);
+        if (!code) return { span: made.span, quote: { ...made.quote, ...(heading ? { heading } : {}) } };
+        // Kept from a listing (#824 FR-8): its first line keeps its indentation, and the quote says it is
+        // code. Back over the indent only when the selection began at it — never into a line's middle.
+        let from = made.span.start;
+        let back = from;
+        while (back > 0 && (text[back - 1] === " " || text[back - 1] === "\t")) back--;
+        if (back === 0 || text[back - 1] === "\n") from = back;
+        const span = { start: from, end: made.span.end };
+        const prefix = text.slice(Math.max(0, from - made.quote.prefix.length), from);
+        return { span, quote: { exact: text.slice(from, span.end), prefix, suffix: made.quote.suffix, ...(heading ? { heading } : {}), code } };
+    }
+
+    /** The listing of code a place in the chapter is in, as the quote records it — or none (#824). */
+    private codeAt(body: HTMLElement, start: number, end: number): { language?: string } | null {
+        const listingAt = (offset: number) => {
+            const at = pointAt(body, offset);
+            const parent = (at?.node as unknown as { parentNode?: Element | null } | undefined)?.parentNode ?? null;
+            return parent?.closest?.(`pre.${c("reader-code")}`) ?? null;
+        };
+        const pre = listingAt(start);
+        if (!pre || listingAt(Math.max(start, end - 1)) !== pre) return null;
+        const language = listingLanguage(pre);
+        return language ? { language } : {};
     }
 
     private currentQuote(): { selection: SelectionInfo; span: TextSpan; quote: ThoughtQuote } | null {

@@ -3021,16 +3021,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     justify-content: flex-end;
 
     kbd {
-        min-width: var(--size-4-6);
-        padding: var(--size-2-1) var(--size-4-2);
-        text-align: center;
-        font-family: var(--font-interface);
-        font-size: var(--font-ui-smaller);
-        color: var(--reader-fg);
-        background-color: var(--reader-bg);
-        border: var(--border-width) solid var(--reader-line);
-        border-bottom-width: var(--size-2-1);
-        border-radius: var(--radius-s);
+        @include key-cap;
     }
 }
 
@@ -4038,4 +4029,78 @@ button.zettelkasten-flow__reader-hl-layer {
     .zettelkasten-flow__reader-scrubber-tip {
         animation: none;
     }
+}
+
+/* ── Code in a book (#824) ────────────────────────────────────────────────────────────────────────
+   The chapter wears `markdown-rendered`, so Obsidian's own code rules already draw a listing's box and
+   colour its tokens (`.token.keyword` from the theme's `--code-*`). What a book needs on top: the
+   listing cut into lines inside runs — a run scrolls sideways and is kept whole on a page, so a listing
+   is never cut through a line or clipped at the page's foot — and the reader's choice to wrap. */
+.zettelkasten-flow__reader-source-body {
+    pre.zettelkasten-flow__reader-code {
+        /* The runs scroll, not the listing: a box that scrolls is never split across pages. */
+        overflow: visible;
+        white-space: pre;
+        tab-size: 4;
+        font-family: var(--font-monospace);
+    }
+
+    .zettelkasten-flow__reader-code code {
+        white-space: pre;
+    }
+
+    .zettelkasten-flow__reader-code-run {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x pan-y;
+        break-inside: avoid;
+    }
+
+    /* A listing split across pages says it goes on — a mark, never a word of the book. */
+    .zettelkasten-flow__reader-code-run[data-zf-continues]::after {
+        content: attr(data-zf-continues);
+        display: block;
+        padding-top: var(--size-4-1);
+        text-align: end;
+        color: var(--reader-faint);
+        font-family: var(--font-interface);
+        font-size: var(--font-ui-smaller);
+        font-style: italic;
+    }
+
+    .zettelkasten-flow__reader-code-line {
+        display: block;
+        white-space: pre;
+    }
+
+    /* Inline code, a key, a sample, a variable: in the line, never raising it. */
+    code,
+    kbd,
+    samp,
+    var {
+        line-height: 1;
+    }
+
+    samp {
+        font-family: var(--font-monospace);
+    }
+
+    var {
+        font-family: var(--font-monospace);
+        font-style: italic;
+    }
+
+    kbd {
+        @include key-cap;
+    }
+}
+
+/* *Code lines: Wrap* (#824 FR-5): a long line folds, and the rest of it hangs under its own indent. */
+.zettelkasten-flow__reader--code-wrap .zettelkasten-flow__reader-source-body .zettelkasten-flow__reader-code-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding-inline-start: calc((var(--zf-indent, 0) + 2) * 1ch);
+    text-indent: calc((var(--zf-indent, 0) + 2) * -1ch);
 }

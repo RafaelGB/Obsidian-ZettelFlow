@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Cite a passage. Left: a book in the Reader, a highlighted sentence and its popover with More open: the dots, Add a note and More, then Open in Think and Delete, then Claim, Link to an idea, Crystallize and Cite. The Cite panel grows from the menu, a faint dot marking the point it grows from: headed Cite this passage, with five chips, Markdown, Inline, Citation key, BibTeX and CSL JSON, Inline chosen, and its text reading (Kahneman, 2011, ch. 3); below it, the Copy button reads Copied with a check. Right, above: the same panel on Markdown, the passage as a quote and the line Daniel Kahneman, Thinking, Fast and Slow (2011), ch. 3, with a link back to the book's chapter; and on BibTeX, an @book entry with its author, title, year and publisher. Right, below: a paper whose details have no year, its panel on Inline reading (Flyvbjerg, n.d., p. 6) and the quiet line No year in this paper's details, Add it, which opens the Library detail at Year. Underneath: drawn from the book's note; what is missing is left out, never guessed; Copy is all it does, nothing written.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">CITE A PASSAGE — FROM THE BOOK'S NOTE, READY TO PASTE</text>
+
+<!-- ── the book ───────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="600" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">THINKING, FAST AND SLOW · 3 · THE LAZY CONTROLLER</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="80" y="156">Mental effort is costly, and the mind is thrifty</text>
+<text x="80" y="182">with it. A general law of least effort applies to</text>
+<text x="80" y="208">cognitive as well as physical exertion. The law</text>
+<text x="80" y="234">asserts that if there are several ways of …</text>
+</g>
+<!-- the highlight -->
+<rect x="125" y="164" width="262" height="24" rx="4" fill="#e5c07b" fill-opacity="0.22"/>
+<rect x="76" y="190" width="256" height="24" rx="4" fill="#e5c07b" fill-opacity="0.22"/>
+
+<!-- the highlight's popover, More open: Cite among the rest (#811) -->
+<g font-family="sans-serif" font-size="12">
+<rect x="80" y="244" width="420" height="92" rx="10" fill="#26262c" stroke="#45454d"/>
+<circle cx="100" cy="263" r="8.5" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<circle cx="100" cy="263" r="5" fill="#e5c07b"/>
+<circle cx="120" cy="263" r="5" fill="#4a9dff"/>
+<circle cx="140" cy="263" r="5" fill="#44cf6e"/>
+<circle cx="160" cy="263" r="5" fill="#a882ff"/>
+<rect x="176" y="253" width="80" height="20" rx="5" fill="#7f6df2"/>
+<text x="216" y="267" fill="#ffffff" text-anchor="middle">Add a note</text>
+<rect x="262" y="253" width="52" height="20" rx="5" fill="#33303f" stroke="#a99cf5"/>
+<text x="288" y="267" fill="#dcddde" text-anchor="middle">More</text>
+<rect x="94" y="279" width="96" height="20" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="142" y="293" fill="#b3b5ba" text-anchor="middle">Open in Think</text>
+<rect x="196" y="279" width="56" height="20" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="224" y="293" fill="#b3b5ba" text-anchor="middle">Delete</text>
+<path d="M 94 306 h 392" stroke="#3a3a3a"/>
+<rect x="94" y="311" width="50" height="20" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="119" y="325" fill="#b3b5ba" text-anchor="middle">Claim</text>
+<rect x="150" y="311" width="96" height="20" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="198" y="325" fill="#b3b5ba" text-anchor="middle">Link to an idea</text>
+<rect x="252" y="311" width="76" height="20" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="290" y="325" fill="#b3b5ba" text-anchor="middle">Crystallize</text>
+<rect x="334" y="311" width="44" height="20" rx="5" fill="#33333a" stroke="#a99cf5"/>
+<text x="356" y="325" fill="#dcddde" text-anchor="middle">Cite</text>
+<text x="388" y="325" fill="#5f6168">Layer · Think</text>
+</g>
+
+<!-- the panel, grown from the menu: its origin is the menu's own point -->
+<g font-family="sans-serif">
+<circle cx="356" cy="334" r="3" fill="#a99cf5"/>
+<rect x="80" y="338" width="460" height="300" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="100" y="368" fill="#dcddde" font-size="14" font-weight="600">Cite this passage</text>
+<text x="518" y="368" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<g font-size="12">
+<rect x="100" y="382" width="80" height="24" rx="12" fill="none" stroke="#45454d"/>
+<text x="140" y="398" fill="#b3b5ba" text-anchor="middle">Markdown</text>
+<rect x="186" y="382" width="60" height="24" rx="12" fill="#3b3550" stroke="#a99cf5"/>
+<text x="216" y="398" fill="#dcddde" text-anchor="middle">Inline</text>
+<rect x="252" y="382" width="90" height="24" rx="12" fill="none" stroke="#45454d"/>
+<text x="297" y="398" fill="#b3b5ba" text-anchor="middle">Citation key</text>
+<rect x="348" y="382" width="64" height="24" rx="12" fill="none" stroke="#45454d"/>
+<text x="380" y="398" fill="#b3b5ba" text-anchor="middle">BibTeX</text>
+<rect x="418" y="382" width="80" height="24" rx="12" fill="none" stroke="#45454d"/>
+<text x="458" y="398" fill="#b3b5ba" text-anchor="middle">CSL JSON</text>
+</g>
+<!-- the text, one fixed box: a form change crossfades it, nothing else moves -->
+<rect x="100" y="420" width="420" height="140" rx="6" fill="#1f1f24"/>
+<text x="116" y="448" fill="#dcddde" font-family="monospace" font-size="14">(Kahneman, 2011, ch. 3)</text>
+<!-- Copy, acknowledged in place -->
+<rect x="400" y="596" width="120" height="28" rx="6" fill="#7f6df2"/>
+<path d="M426 610 l5 5 l9 -10" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="476" y="615" fill="#ffffff" font-size="13" text-anchor="middle">Copied</text>
+</g>
+
+<!-- ── the other forms ─────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="680" y="100" fill="#5f6168" font-size="11" letter-spacing="1">MARKDOWN — THE LINK BACK OF #751, NEVER A BLOCK ID</text>
+<rect x="680" y="112" width="480" height="96" rx="8" fill="#1f1f24" stroke="#3a3a3a"/>
+<g font-family="monospace" font-size="12" fill="#b3b5ba">
+<text x="696" y="138">&gt; A general law of least effort applies to</text>
+<text x="696" y="156">&gt; cognitive as well as physical exertion.</text>
+<text x="696" y="174">&gt; — Daniel Kahneman, *Thinking, Fast and Slow*</text>
+<text x="696" y="192">&#160;&#160;(2011), ch. 3 · <tspan fill="#a99cf5">[[Books/Thinking…epub#OEBPS/ch03…]]</tspan></text>
+</g>
+
+<text x="680" y="238" fill="#5f6168" font-size="11" letter-spacing="1">BIBTEX — ONLY WHAT IS KNOWN</text>
+<rect x="680" y="250" width="480" height="116" rx="8" fill="#1f1f24" stroke="#3a3a3a"/>
+<g font-family="monospace" font-size="12" fill="#b3b5ba">
+<text x="696" y="274">@book{kahneman2011thinking,</text>
+<text x="696" y="292">&#160;&#160;author = {Kahneman, Daniel},</text>
+<text x="696" y="310">&#160;&#160;title = {Thinking, Fast and Slow},</text>
+<text x="696" y="328">&#160;&#160;year = {2011},</text>
+<text x="696" y="346">&#160;&#160;publisher = {Farrar, Straus and Giroux}</text>
+<text x="696" y="360">}</text>
+</g>
+
+<!-- a paper with no year -->
+<text x="680" y="402" fill="#5f6168" font-size="11" letter-spacing="1">A PAPER WITH NO YEAR — LEFT OUT, NEVER GUESSED</text>
+<rect x="680" y="414" width="480" height="168" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="700" y="442" fill="#dcddde" font-size="14" font-weight="600">Cite this passage</text>
+<rect x="700" y="456" width="440" height="56" rx="6" fill="#1f1f24"/>
+<text x="716" y="489" fill="#dcddde" font-family="monospace" font-size="14">(Flyvbjerg, n.d., p. 6)</text>
+<text x="700" y="538" fill="#8b8e94" font-size="12">No year in this paper's details · <tspan fill="#a99cf5">Add it</tspan></text>
+<path d="M934 546 C 960 580, 1000 600, 1040 612" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<!-- the Library detail, at Year -->
+<rect x="940" y="604" width="220" height="72" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="956" y="628" fill="#8b8e94" font-size="11">Year</text>
+<rect x="1000" y="616" width="140" height="20" rx="4" fill="#26262c" stroke="#a99cf5"/>
+<rect x="1006" y="620" width="1.5" height="12" fill="#dcddde"/>
+<text x="956" y="660" fill="#8b8e94" font-size="11">Citation key</text>
+<text x="1040" y="660" fill="#5f6168" font-size="11" font-family="monospace">flyvbjergreference</text>
+</g>
+
+<!-- ── underneath ──────────────────────────────────────────────────────── -->
+<g font-family="sans-serif" font-size="13" fill="#8b8e94" text-anchor="middle">
+<text x="600" y="724">Drawn from the book's note · what is missing is left out, never guessed · no lookup, no network</text>
+<text x="600" y="748">Copy is all it does: the text you see, on your click — nothing written, the clipboard never read</text>
+</g>
+</svg>

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Code in technical books. A spread in Page: on the left page a paragraph, then a Python listing coloured in the theme's code colours, keyword def in pink, strings in green, comments faint; the listing is too long for the page, so it stops at a line's end with a quiet mark, continues, and goes on at the top of the right page, where a long line scrolls sideways inside its own box. Beside it, the Type panel's new row, Code lines, Scroll or Wrap, with Scroll chosen; below it the same line wrapped, its rest hanging under its own indent. Underneath, a converted book's code: three paragraphs set in a typewriter face by the book's stylesheet become one listing. On the right, a card in Think holding the kept lines as a fenced python block.">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">CODE IN TECHNICAL BOOKS</text>
+
+<!-- ── a spread in Page: the listing whole lines, continued ─────────────────── -->
+<text x="40" y="84" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">PAGE · A LISTING TOO LONG FOR ONE PAGE</text>
+<rect x="40" y="96" width="740" height="440" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<path d="M 410 112 L 410 520" stroke="#2a2a2e" stroke-width="1"/>
+
+<!-- left page -->
+<g font-family="serif" fill="#dcddde" font-size="15">
+<text x="70" y="140">The best modules are deep: a lot of</text>
+<text x="70" y="164">power behind a simple interface. Here</text>
+<text x="70" y="188">is a shallow one, for contrast:</text>
+</g>
+<rect x="66" y="206" width="318" height="270" rx="6" fill="#202024"/>
+<g font-family="monospace" font-size="13" fill="#dcddde">
+<text x="80" y="232"><tspan fill="#5f6168"># A shallow method: it hides nothing.</tspan></text>
+<text x="80" y="256"><tspan fill="#f78fc4">def</tspan> <tspan fill="#e8d47a">add_null</tspan>(data, attribute):</text>
+<text x="80" y="280">    <tspan fill="#f78fc4">if</tspan> attribute <tspan fill="#f78fc4">in</tspan> data:</text>
+<text x="80" y="304">        <tspan fill="#f78fc4">return</tspan></text>
+<text x="80" y="328">    data[attribute] = <tspan fill="#c99bf5">None</tspan></text>
+<text x="80" y="352">    log(<tspan fill="#8fd18f">"added"</tspan>, attribute)</text>
+<text x="80" y="376">    <tspan fill="#f78fc4">for</tspan> key <tspan fill="#f78fc4">in</tspan> data:</text>
+<text x="80" y="400">        check(key)</text>
+<text x="80" y="424">    <tspan fill="#f78fc4">return</tspan> data</text>
+</g>
+<text x="374" y="462" fill="#8b8e94" font-family="sans-serif" font-size="11" font-style="italic" text-anchor="end">continues</text>
+<text x="226" y="500" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">cut between lines, never through one</text>
+
+<!-- right page -->
+<rect x="432" y="120" width="322" height="150" rx="6" fill="#202024"/>
+<g font-family="monospace" font-size="13" fill="#dcddde">
+<text x="446" y="146"><tspan fill="#f78fc4">def</tspan> <tspan fill="#e8d47a">check</tspan>(key):</text>
+<text x="446" y="170">    <tspan fill="#f78fc4">return</tspan> registry.lookup(key, default=<tspan fill="#c99bf5">None</tspan>, str</text>
+<text x="446" y="194">    <tspan fill="#5f6168"># one line, wider than the page</tspan></text>
+</g>
+<rect x="446" y="246" width="294" height="6" rx="3" fill="#2a2a2e"/>
+<rect x="446" y="246" width="150" height="6" rx="3" fill="#5f6168"/>
+<text x="593" y="290" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">a long line scrolls in its own box</text>
+<g font-family="serif" fill="#dcddde" font-size="15">
+<text x="440" y="330">The method's interface is as complex</text>
+<text x="440" y="354">as its implementation: it offers no</text>
+<text x="440" y="378">abstraction at all.</text>
+</g>
+
+<!-- ── Type: Code lines ─────────────────────────────────────────────────────── -->
+<text x="810" y="84" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">TYPE · ONLY IN A BOOK WITH CODE</text>
+<rect x="810" y="96" width="350" height="190" rx="12" fill="#1e1e22" stroke="#3a3a3a"/>
+<g font-family="sans-serif">
+<text x="830" y="128" fill="#5f6168" font-size="9" font-weight="600" letter-spacing="1">MARGINS</text>
+<rect x="830" y="136" width="310" height="28" rx="6" fill="#26262b"/>
+<text x="881" y="155" fill="#8b8e94" font-size="12" text-anchor="middle">Small</text>
+<rect x="934" y="138" width="102" height="24" rx="5" fill="#3b3550"/>
+<text x="985" y="155" fill="#dcddde" font-size="12" text-anchor="middle">Medium</text>
+<text x="1089" y="155" fill="#8b8e94" font-size="12" text-anchor="middle">Large</text>
+<text x="830" y="192" fill="#a99cf5" font-size="9" font-weight="600" letter-spacing="1">CODE LINES</text>
+<rect x="830" y="200" width="310" height="28" rx="6" fill="#26262b"/>
+<rect x="832" y="202" width="152" height="24" rx="5" fill="#3b3550"/>
+<text x="908" y="219" fill="#dcddde" font-size="12" text-anchor="middle">Scroll</text>
+<text x="1062" y="219" fill="#8b8e94" font-size="12" text-anchor="middle">Wrap</text>
+<text x="985" y="262" fill="#8b8e94" font-size="11" text-anchor="middle">Scroll on a desktop, Wrap on a phone, until you pick</text>
+</g>
+
+<!-- Wrap: the line folds, hanging under its indent -->
+<text x="810" y="320" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">WRAP · THE REST HANGS UNDER ITS INDENT</text>
+<rect x="810" y="332" width="350" height="104" rx="8" fill="#202024"/>
+<g font-family="monospace" font-size="13" fill="#dcddde">
+<text x="826" y="360"><tspan fill="#f78fc4">def</tspan> <tspan fill="#e8d47a">check</tspan>(key):</text>
+<text x="826" y="384">    <tspan fill="#f78fc4">return</tspan> registry.lookup(key,</text>
+<text x="826" y="408">          default=<tspan fill="#c99bf5">None</tspan>, strict=<tspan fill="#c99bf5">True</tspan>)</text>
+</g>
+<path d="M 862 400 L 862 412" stroke="#a99cf5" stroke-width="1.5"/>
+
+<!-- ── a converted book: its code found by its face ────────────────────────── -->
+<text x="40" y="584" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">A CONVERTED BOOK · ITS CODE FOUND BY THE FACE ITS STYLESHEET SETS</text>
+<rect x="40" y="596" width="350" height="184" rx="10" fill="#1b1b1f" stroke="#3a3a3a"/>
+<g font-family="monospace" font-size="12" fill="#8b8e94">
+<text x="56" y="626">&lt;p class="class_sc"&gt;private void add(…) {&lt;/p&gt;</text>
+<text x="56" y="650">&lt;p class="class_sd"&gt;data.put(a, null);&lt;/p&gt;</text>
+<text x="56" y="674">&lt;p class="class_sc"&gt;}&lt;/p&gt;</text>
+<text x="56" y="714" fill="#5f6168">.class_sc { font-family:</text>
+<text x="56" y="734" fill="#5f6168">  lucidasanstypewriter }</text>
+</g>
+<path d="M 400 688 L 450 688" stroke="#a99cf5" stroke-width="1.5" marker-end="url(#a)"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a99cf5"/></marker></defs>
+<rect x="460" y="626" width="320" height="110" rx="6" fill="#202024"/>
+<g font-family="monospace" font-size="13" fill="#dcddde">
+<text x="476" y="656">private void add(String a) {</text>
+<text x="476" y="682">    data.put(a, null);</text>
+<text x="476" y="708">}</text>
+</g>
+<text x="620" y="764" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">one listing; nothing else of the stylesheet is used</text>
+
+<!-- ── Think: kept code stays code ─────────────────────────────────────────── -->
+<text x="810" y="584" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">THINK · KEPT CODE STAYS CODE</text>
+<rect x="810" y="596" width="350" height="184" rx="10" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="826" y="612" width="4" height="96" rx="2" fill="#e0a458"/>
+<g font-family="monospace" font-size="12" fill="#dcddde">
+<text x="842" y="632" fill="#8b8e94">```python</text>
+<text x="842" y="652">def add_null(data, attribute):</text>
+<text x="842" y="672">    if attribute in data:</text>
+<text x="842" y="692" fill="#8b8e94">```</text>
+</g>
+<text x="826" y="736" fill="#8b8e94" font-family="sans-serif" font-size="11">Idea · from A Philosophy of Software Design › Ch. 4</text>
+<text x="826" y="760" fill="#5f6168" font-family="sans-serif" font-size="11">a note made from it holds the fenced block</text>
+</svg>

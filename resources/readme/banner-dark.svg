@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="ZettelFlow — draw your note workflow on a Canvas once, then read, think and practise with every note it makes.">
+<title>ZettelFlow</title>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b1a26"/><stop offset="1" stop-color="#121119"/></linearGradient>
+<linearGradient id="logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7ff5"/><stop offset="1" stop-color="#5b45d6"/></linearGradient>
+<linearGradient id="word" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#efeefa"/><stop offset="1" stop-color="#8f7ff5"/></linearGradient>
+<radialGradient id="glow" cx="0.78" cy="0.45" r="0.5"><stop offset="0" stop-color="#7f6df2" stop-opacity="0.3"/><stop offset="1" stop-color="#7f6df2" stop-opacity="0"/></radialGradient>
+<pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2a2938"/></pattern>
+<marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6c6a80"/></marker>
+</defs>
+<style>
+.node .ring{opacity:0}
+.n0 .ring{animation:ring 6s infinite 0.2s}
+.n1 .ring{animation:ring 6s infinite 1.2s}
+.n2 .ring{animation:ring 6s infinite 2.2s}
+@keyframes ring{0%{opacity:0}6%{opacity:1}18%{opacity:0}100%{opacity:0}}
+.edge{stroke-dasharray:6 6;animation:march 1.2s linear infinite}
+@keyframes march{to{stroke-dashoffset:-24}}
+.note{animation:rise 6s infinite}
+@keyframes rise{0%,40%{opacity:0;transform:translateY(8px)}50%,92%{opacity:1;transform:none}100%{opacity:0}}
+.ln{opacity:0}
+.l0{animation:type 6s infinite 0s}.l1{animation:type 6s infinite .15s}.l2{animation:type 6s infinite .3s}.l3{animation:type 6s infinite .45s}.l4{animation:type 6s infinite .6s}
+@keyframes type{0%,50%{opacity:0}56%,92%{opacity:1}100%{opacity:0}}
+.hl{transform-box:fill-box;transform-origin:left;animation:sweep 6s infinite}
+@keyframes sweep{0%,62%{transform:scaleX(0)}74%,94%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+.cursor{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){
+*{animation:none!important}
+.ln,.note{opacity:1}
+.hl{transform:none}
+.pulse{display:none}
+}
+</style>
+<rect width="1280" height="420" rx="20" fill="url(#bg)"/>
+<rect width="1280" height="420" rx="20" fill="url(#glow)"/>
+<rect x="680" y="40" width="560" height="340" rx="16" fill="url(#dots)" stroke="#2a2938"/>
+
+<g transform="translate(64 64) scale(1.25)"><rect width="64" height="64" rx="14" fill="url(#logo)"/>
+<path d="M17 18 H47 L17 46 H47" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+<circle cx="17" cy="18" r="5.5" fill="#fff"/><circle cx="47" cy="18" r="5.5" fill="#fff"/>
+<circle cx="17" cy="46" r="5.5" fill="#fff"/><circle cx="47" cy="46" r="5.5" fill="#e0a351"/></g>
+<text x="64" y="216" fill="url(#word)" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="-2">ZettelFlow</text>
+<text x="66" y="260" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="23" font-weight="600">Draw your note workflow on a Canvas once —</text>
+<text x="66" y="292" fill="#a3a1b8" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="23" font-weight="500">then read, think and practise with every note it makes.</text>
+<rect x="64" y="318" width="150.0" height="34" rx="17" fill="#272637" stroke="#3d3b54"/><circle cx="81" cy="335" r="4.5" fill="#f06a6f"/>
+<text x="93" y="340" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="550">Canvas workflows</text>
+<rect x="224" y="318" width="150.0" height="34" rx="17" fill="#272637" stroke="#3d3b54"/><circle cx="241" cy="335" r="4.5" fill="#e0a351"/>
+<text x="253" y="340" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="550">Reader &amp; Library</text>
+<rect x="384" y="318" width="136.0" height="34" rx="17" fill="#272637" stroke="#3d3b54"/><circle cx="401" cy="335" r="4.5" fill="#5cc98a"/>
+<text x="413" y="340" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="550">Practice loops</text>
+<rect x="530" y="318" width="129.0" height="34" rx="17" fill="#272637" stroke="#3d3b54"/><circle cx="547" cy="335" r="4.5" fill="#5aa9f0"/>
+<text x="559" y="340" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="550">Offline-first</text>
+
+<path class="edge" d="M795 144 V186 M795 238 V280" fill="none" stroke="#6c6a80" stroke-width="2" marker-end="url(#arr)"/>
+<path class="edge" d="M870 306 C 905 306, 905 210, 940 210" fill="none" stroke="#8f7ff5" stroke-width="2" marker-end="url(#arr)"/>
+<g class="node n0">
+<rect x="720" y="92" width="150" height="52" rx="10" fill="#22212e" stroke="#3a3850" stroke-width="1.5"/>
+<rect x="720" y="92" width="5" height="52" rx="2.5" fill="#f06a6f"/>
+<text x="740" y="123" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="650">Capture</text>
+<rect class="ring" x="716" y="88" width="158" height="60" rx="13" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<g class="node n1">
+<rect x="720" y="186" width="150" height="52" rx="10" fill="#22212e" stroke="#3a3850" stroke-width="1.5"/>
+<rect x="720" y="186" width="5" height="52" rx="2.5" fill="#e0a351"/>
+<text x="740" y="217" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="650">Classify</text>
+<rect class="ring" x="716" y="182" width="158" height="60" rx="13" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<g class="node n2">
+<rect x="720" y="280" width="150" height="52" rx="10" fill="#22212e" stroke="#3a3850" stroke-width="1.5"/>
+<rect x="720" y="280" width="5" height="52" rx="2.5" fill="#5cc98a"/>
+<text x="740" y="311" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="650">Connect</text>
+<rect class="ring" x="716" y="276" width="158" height="60" rx="13" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+</g>
+<circle class="pulse" r="6" fill="#8f7ff5">
+<animateMotion dur="6s" repeatCount="indefinite" keyPoints="0;0.5;1;1" keyTimes="0;0.33;0.55;1" calcMode="linear" path="M795 118 V212 V306 H870 C 905 306, 905 210, 940 210"/>
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.55;0.58;1"/>
+</circle>
+
+<g class="note">
+<rect x="944" y="96" width="250" height="168" rx="12" fill="#22212e" stroke="#8f7ff5" stroke-width="1.5"/>
+<text x="962" y="128" fill="#efeefa" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">Ideas as debt</text>
+<rect x="1114" y="112" width="64" height="22" rx="11" fill="#8f7ff5"/>
+<text x="1146" y="127" fill="#ffffff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="650" text-anchor="middle">New note</text>
+<text class="ln l0" x="962" y="158" fill="#6c6a80" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13.5">---</text>
+<text class="ln l1" x="962" y="179" fill="#a3a1b8" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13.5">state: fleeting</text>
+<text class="ln l2" x="962" y="200" fill="#8f7ff5" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13.5">type: concept</text>
+<text class="ln l3" x="962" y="221" fill="#a3a1b8" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13.5">links: 3</text>
+<text class="ln l4" x="962" y="242" fill="#6c6a80" font-family="ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="13.5">---</text>
+</g>
+<g class="book" transform="translate(0 -12)">
+<path d="M960 300 q60 -14 120 0 v86 q-60 -14 -120 0 z" fill="#22212e" stroke="#3a3850" stroke-width="1.5"/>
+<path d="M1080 300 q60 -14 120 0 v86 q-60 -14 -120 0 z" fill="#22212e" stroke="#3a3850" stroke-width="1.5"/>
+<line x1="1080" y1="300" x2="1080" y2="386" stroke="#3a3850" stroke-width="1.5"/>
+<rect x="972" y="310" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="972" y="325" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="972" y="340" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="972" y="355" width="60" height="4" rx="2" fill="#6c6a80" opacity="0.55"/>
+<rect x="1092" y="310" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="1092" y="325" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="1092" y="340" width="94" height="4" rx="2" fill="#6c6a80" opacity="0.55"/><rect x="1092" y="355" width="50" height="4" rx="2" fill="#6c6a80" opacity="0.55"/>
+<rect class="hl" x="1089" y="322" width="100" height="10" rx="3" fill="#e0a351" opacity="0.55"/>
+</g>
+</svg>

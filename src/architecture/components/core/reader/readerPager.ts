@@ -323,14 +323,17 @@ export class ReaderPager {
      */
     turn(dir: 1 | -1): boolean {
         if (!this.canTurn(dir)) return false;
-        this.finishRunning();
-        this.dragging = null;
-        const from = this.x;
-        this.view += dir;
-        const to = this.offsetOf(this.view);
-        this.setX(to);
-        this.slide(from, to, MOTION.page);
-        this.turned();
+        // Timed to the move handed to the compositor and the view's hooks (#825 B2): it lays nothing out.
+        measure("reader.page.turn", () => {
+            this.finishRunning();
+            this.dragging = null;
+            const from = this.x;
+            this.view += dir;
+            const to = this.offsetOf(this.view);
+            this.setX(to);
+            this.slide(from, to, MOTION.page);
+            this.turned();
+        });
         return true;
     }
 
@@ -454,12 +457,14 @@ export class ReaderPager {
         const outcome = !force && dir !== 0 && this.canTurn(dir) ? releaseTurn({ dx: drag.dx, width, vx }) : "spring";
         const from = this.x;
         if (outcome === "complete" && dir !== 0) {
-            this.view += dir;
-            const to = this.offsetOf(this.view);
-            this.setX(to);
-            const progress = Math.abs(drag.dx) / Math.max(1, width);
-            this.slide(from, to, MOTION.page * (1 - Math.min(1, progress)), completionRate(progress, vx, width, MOTION.page));
-            this.turned();
+            measure("reader.page.turn", () => {
+                this.view += dir;
+                const to = this.offsetOf(this.view);
+                this.setX(to);
+                const progress = Math.abs(drag.dx) / Math.max(1, width);
+                this.slide(from, to, MOTION.page * (1 - Math.min(1, progress)), completionRate(progress, vx, width, MOTION.page));
+                this.turned();
+            });
             return "complete";
         }
         this.setX(drag.base);

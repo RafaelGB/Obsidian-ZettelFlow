@@ -2643,12 +2643,47 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 /* ── A chapter changes physically (#735) ────────────────────────────────────────────────────────
    The page you were on, laid over the stage as a sheet of paper; it leaves as a leaf, keeps flowing
    or slides off. Placed exactly where the stage is, and only what was on screen is in it. */
+.zettelkasten-flow__reader-chapter-wait,
 .zettelkasten-flow__turn-sheet,
 .zettelkasten-flow__turn-shade,
 .zettelkasten-flow__turn-underlay {
     position: absolute;
     inset: $stage-inset;
     pointer-events: none;
+}
+
+/* A chapter slow to open (#825): the paper, and the pen about to write — faded in, never a spinner. */
+.zettelkasten-flow__reader-chapter-wait {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--reader-bg);
+    /* Invisible until the delay is over (`both`), then a fade on opacity — on the compositor, so a
+       chapter that holds the main thread still gets its pen on time. */
+    animation: zf-reader-chapter-wait-in 250ms ease-out var(--zf-wait-delay) both;
+
+    .zettelkasten-flow__reader-ink-wait {
+        position: relative;
+        inset: auto;
+        width: 50%;
+    }
+}
+
+@keyframes zf-reader-chapter-wait-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* No fade: the pen is simply there once the delay is over — and still never on a fast open. */
+    .zettelkasten-flow__reader-chapter-wait {
+        animation-duration: 1ms;
+    }
 }
 
 /* Under a sheet a finger lifts (#750): the paper, and the name of where the turn goes. Nothing is drawn yet. */

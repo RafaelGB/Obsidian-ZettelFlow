@@ -265,6 +265,11 @@ its shelf again. Any key or click jumps a shot to its end, and with reduced moti
   snapping, and the book you are reading breathes once when you come back to the Library. Each one
   moves only what the screen can move for free (transform and opacity), and none of them counts at
   you.
+- **A slow chapter says so, quietly.** A chapter is almost always on the page before you could notice
+  it being drawn, and then nothing is shown. Only a slow one, a long chapter on a slow device, shows
+  three faint lines breathing, like a pen about to write, where the page will be. They fade in after
+  150 ms, and they appear on time even while the chapter is still being drawn. You never see an empty
+  page.
 - **Less motion, if you asked for it.** With your system's *reduce motion* setting on, every one of
   these is instant: nothing slides, sweeps or fades.
 
@@ -1785,11 +1790,19 @@ resume entries) as one recorded batch, from the plugin's own rename listener
   property (so it never clashes with the `transform` the entrance uses). The decisions are pure in
   `readerPages.ts` (`pageGeometry`, `spreadFits`, `pageCount`, `pageHolding`, `pageForShare`,
   `keyIntent`, `edgeTurn`, `forwardSign`); `readerPager.ts` measures once per layout inside
-  `measure("reader.paginate")` (shown under Health → speed), writes `--zf-page-*` with `setCssProps`
+  `measure("reader.paginate")` (shown under Settings › Advanced › Timings from this vault), writes `--zf-page-*` with `setCssProps`
   and animates the turn on `translate` alone. A place is a `Range` at the first line on screen, so
   the DOM is never rebuilt. `readerSettle.ts` settles the text around that line after a change;
   `readerTypePanel.ts` draws the Type panel with `segmentedRow` — the one control later rows reuse.
   Page turns at a chapter's ends go through the view's `go(±1)`, where the chapter turn is played.
+- Speed (#825): the four moments a reader waits through are timed with the same `measure`
+  instrument and listed in *Settings › Advanced › Timings from this vault*, each with how many times it
+  ran. `reader.chapter.open` is a `stopwatch` in `renderSourceChapter`, abandoned when another open
+  overtakes it and for a paper or a designed page. `reader.page.turn` wraps `ReaderPager.turn()` and a
+  completed `release()`, `reader.relayout` wraps the reshape in `savePrefs`, and
+  `reader.chapter.turn.start` wraps `buildTurn`. Their budgets are in
+  [Performance budgets](performance-budgets.md#the-four-reading-moments-825), and a slow chapter's
+  waiting state is `armChapterWait` in `readerWaiting.ts`.
 - The trail and bookmarks (#761): `ReaderTrail` in `readerJumps.ts` (one trail: `push`, `pop`,
   `list` newest first, `takeAt`; per reading, at most 20) holds a *spot* — the chapter and an offset
   into `chapterText` (`offsetAt`/`pointAt` in `readerMarks.ts`), with the share and scroll as

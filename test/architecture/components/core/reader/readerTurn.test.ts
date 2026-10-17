@@ -5,6 +5,7 @@ import { DomNode, flush } from "../../../../support/dashboardDom";
 import { recordAnimations, type AnimationRecord } from "../../../../support/motionDom";
 import { adoptChapterScrub, beginChapterScrub, endChapterTurn, isFolded, playChapterTurn, playFold, unfoldAtOnce } from "architecture/components/core/reader/readerTurn";
 import { MOTION, copyLive } from "architecture/components/core/reader/readerMotion";
+import { clearSamples, lastSample, sampleCount } from "architecture/monitoring/measure";
 
 const VIEW = readFileSync(join(__dirname, "..", "..", "..", "..", "..", "src", "architecture", "components", "core", "reader", "ReaderView.ts"), "utf8");
 
@@ -374,5 +375,42 @@ describe("recall folds the page away, and back (#760)", () => {
         unfoldAtOnce(root as never, page as never);
         expect(page.hasClass(FOLDED)).toBe(false);
         expect(root.byClass("turn-fold")).toHaveLength(0);
+    });
+});
+
+/** The start of a chapter turn is timed, and it copies the page on screen — never the chapter (#825 B4). */
+describe("the start of a chapter turn (#825)", () => {
+    let rec: AnimationRecord;
+    afterEach(() => {
+        endChapterTurn();
+        rec?.stop();
+    });
+
+    it("times the sheet, played by the clock or held by a finger", () => {
+        rec = recordAnimations();
+        clearSamples();
+        const played = reader();
+        playChapterTurn(played.root as never, played.stage as never, played.page as never, "stack", 1);
+        endChapterTurn();
+        const held = reader();
+        beginChapterScrub(held.root as never, held.stage as never, held.page as never, "leaf", 1, "p. 2")?.cancel();
+        expect(sampleCount("reader.chapter.turn.start")).toBe(2);
+        expect(lastSample("reader.chapter.turn.start")?.scale).toBeUndefined();
+    });
+
+    it("copies the ten blocks on screen of a four-hundred-block page, and no others", () => {
+        rec = recordAnimations();
+        const { root, stage, page } = reader();
+        page.empty();
+        const box = (left: number, top: number, width: number, height: number) => () => ({ left, top, width, height });
+        (stage as unknown as { getBoundingClientRect: unknown }).getBoundingClientRect = box(0, 0, 600, 800);
+        (page as unknown as { getBoundingClientRect: unknown }).getBoundingClientRect = box(0, 0, 600, 800);
+        for (let i = 0; i < 400; i++) {
+            const block = page.createEl("p", { text: `Block ${i}` }) as unknown as { getBoundingClientRect: unknown };
+            block.getBoundingClientRect = box(0, (i - 10) * 80 + 5, 600, 70);
+        }
+        expect(playChapterTurn(root as never, stage as never, page as never, "stack", 1)).toBe(true);
+        const copied = sheetOf(root).findAll((el) => el.tag === "p").map((el) => el.textContent);
+        expect(copied).toEqual(Array.from({ length: 10 }, (_, i) => `Block ${i + 10}`));
     });
 });

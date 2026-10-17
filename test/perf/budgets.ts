@@ -405,8 +405,11 @@ export const BUDGETS = {
         // MOTION, the Systems room's play() and boxOf(), S4's catalog, images and source, and the
         // capability doors' own runCommand/activateSurface, and the interim room it replaces is gone.
         // A WebGL library coming back is still a megabyte over.
+        // Re-measured for #825 (2026-10-17): the Reader and Library slices since #802 (#807, #818 and the
+        // rest) had brought main to 3,090 KB without this line moving; #825's four timings and the chapter's
+        // waiting state add 2 KB: 3,092 KB. Epic #827 may raise the ceiling by at most 20 KB (owner, 2026-10-17).
         limit: 3_100,
-        measured: "3,024 KB",
+        measured: "3,092 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },
@@ -532,6 +535,48 @@ export const BUDGETS = {
         measured: "0.86 ms (best of five, one run, 2026-10-15)",
         because:
             "a rename in the file explorer must not stall the app (#810): a line-level rewrite per thought and one pass over the plugin data — a regression to parse-and-render, or to a per-thought scan of the Library, would cost many times this",
+    },
+    // The four moments a reader waits through (#825), over the column model (`test/support/readerColumns.ts`):
+    // the Reader's own work on a laid-out chapter, never the browser's paint, column breaking or parser.
+    // Measured 2026-10-17, the slower of two `--runInBand --expose-gc` runs; the app's numbers are on #825.
+    "reader.chapter.open": {
+        name: "open a 1 MB technical chapter: rebuilt from the book and laid out in pages, its first page ready (ms)",
+        // ~4x: the tests' XML parser and the model's layout, so this is our share of the wait, not all of it.
+        limit: 350,
+        measured: "86 ms (the slower of two runs)",
+        because:
+            "the wait between choosing a chapter and its first page (#825 B1): a reader asked for ≤ 300 ms on a real device, and the Reader's own share must stay a fraction of it — a rebuild or a pagination that went quadratic would cost many times this",
+    },
+    "reader.page.turn": {
+        name: "one page turn in Page, the mean of 1,000 through a long chapter (ms)",
+        // ~7x: a hundredth of a millisecond is noise on a busy runner; a turn that laid out would be milliseconds.
+        limit: 0.05,
+        measured: "0.007 ms (the mean of a thousand, two runs)",
+        because:
+            "a page must move in the frame after the key (#825 B2, FR-5): a turn moves the strip on the compositor and lays nothing out — asserted beside the time, 0 paginations and 0 reflows over 1,000 turns",
+    },
+    "reader.relayout": {
+        name: "lay a long chapter out again after a type change, landed on the same line: the slowest of the six type rows (ms)",
+        limit: 80,
+        measured: "20 ms (the slowest row, the slower of two runs)",
+        because:
+            "a change of font, size, spacing, width, margins or layout must land on the line you were reading within 150 ms on a device (#825 B3); each row asserts the same passage is in view afterwards",
+    },
+    "reader.chapter.turn.start": {
+        name: "build a chapter turn's sheet over a full page of a long chapter and set it moving (ms)",
+        // The sheet's copy is bounded (the shape budget below); its scan reads one box per block of the
+        // chapter, so this grows with the chapter — the time ratio is logged beside the shape, not gated.
+        limit: 50,
+        measured: "12 ms (best of five, the slower of two runs)",
+        because:
+            "the sheet stands between the gesture and the first frame of the turn (#825 B4, §XVI): it must start moving within 100 ms on a device, so the Reader's share must stay well under it",
+    },
+    "reader.chapter.turn.shape": {
+        name: "the nodes a chapter turn's sheet copies for a chapter ten times longer, as a multiple of a short one's",
+        limit: 1.2,
+        measured: "0.96 (twenty-one nodes against twenty-two)",
+        because:
+            "the sheet holds only what is on screen (#825 AC-3): a copy that grew with the chapter — the whole body cloned — is the regression this ratio exists to catch",
     },
 } satisfies Record<string, Budget>;
 

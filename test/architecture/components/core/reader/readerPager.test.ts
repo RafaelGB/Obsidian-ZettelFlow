@@ -4,7 +4,7 @@ import { DomNode } from "../../../../support/dashboardDom";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { ReaderPager } from "architecture/components/core/reader/readerPager";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
-import { lastSample } from "architecture/monitoring/measure";
+import { clearSamples, lastSample, sampleCount } from "architecture/monitoring/measure";
 import { TRAVEL_FAINT, TRAVEL_PAGES, pageTravel, scrollTravel, travelDuration } from "architecture/components/core/reader/readerTravel";
 
 /**
@@ -219,6 +219,52 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         pager.drag(-500);
         expect(pager.release(0, "spring")).toBe("spring");
         expect(pager.current).toBe(4);
+    });
+
+    it("times a turn the finger completes, and not one that springs back (#825 B2)", () => {
+        const { pager } = paged();
+        const before = sampleCount("reader.page.turn");
+        pager.drag(-400);
+        pager.release(0);
+        expect(sampleCount("reader.page.turn")).toBe(before + 1);
+        pager.drag(-60);
+        pager.release(0);
+        expect(sampleCount("reader.page.turn")).toBe(before + 1);
+    });
+});
+
+describe("a page turn lays nothing out (#825 B2, AC-2)", () => {
+    let rec: AnimationRecord;
+    beforeEach(() => {
+        rec = recordAnimations();
+        clearSamples();
+    });
+    afterEach(() => rec.stop());
+
+    it("times each turn, and reads the strip's width zero times over fifty of them", () => {
+        const c = chapter();
+        let widthReads = 0;
+        // The fake strip's width, read through a page that counts each read.
+        const width = Object.getOwnPropertyDescriptor(c.page, "scrollWidth")!.get!;
+        const counted = Object.create(c.page, {
+            scrollWidth: {
+                get: () => {
+                    widthReads++;
+                    return width.call(c.page);
+                },
+            },
+        });
+        c.page = counted;
+        const pager = new ReaderPager(c.stage, c.page);
+        pager.configure("page", "ltr");
+        pager.relayout("start");
+        const paginated = sampleCount("reader.paginate");
+        widthReads = 0;
+        for (let i = 0; i < 50; i++) pager.turn(i % 18 < 9 ? 1 : -1);
+        expect(sampleCount("reader.page.turn")).toBe(50);
+        expect(sampleCount("reader.paginate")).toBe(paginated);
+        expect(widthReads).toBe(0);
+        expect(lastSample("reader.page.turn")?.scale).toBeUndefined();
     });
 });
 

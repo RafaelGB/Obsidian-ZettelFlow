@@ -43,6 +43,21 @@ describe("the timings in settings (#645)", () => {
         expect(analysis).not.toContain("over");
     });
 
+    it("says how many times a Reader moment ran, and never over how many notes (#825)", () => {
+        const samples: Partial<Record<Measurable, Sample>> = {
+            "plugin.load": { name: "plugin.load", ms: 50, at: 0, ok: true },
+            "reader.page.turn": { name: "reader.page.turn", ms: 3, at: 0, ok: true },
+            "reader.relayout": { name: "reader.relayout", ms: 90, at: 0, ok: true },
+        };
+        const counts: Partial<Record<Measurable, number>> = { "plugin.load": 1, "reader.page.turn": 12, "reader.relayout": 1 };
+        const [, load, turn, relayout] = speedLines((name) => samples[name], (name) => counts[name] ?? 0);
+        expect(turn).toContain("12 times");
+        expect(turn).toContain("measured");
+        expect(turn).not.toContain("over");
+        expect(relayout).toContain("1 time ");
+        expect(load).not.toContain("time");
+    });
+
     it("is one read-only row: a title, lines drawn into its description, no control", () => {
         const items = speedSettingsItems(() => undefined);
         expect(items).toHaveLength(1);

@@ -3,7 +3,10 @@ import type MomentFn from "moment";
 import { c } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { formatDuration, speedFacts } from "architecture/knowledge/state";
-import { lastSample, type Measurable, type Sample } from "architecture/monitoring/measure";
+import { lastSample, sampleCount, type Measurable, type Sample } from "architecture/monitoring/measure";
+
+type Read = (name: Measurable) => Sample | undefined;
+type Count = (name: Measurable) => number;
 
 /** Obsidian re-exports moment without its call signature; the app's own tabs do the same cast. */
 const moment = obsidianMoment as unknown as typeof MomentFn;
@@ -26,22 +29,23 @@ export interface SpeedRow {
 }
 
 /** The timings as table rows, read now — empty when nothing has been measured this session. */
-export function speedRows(read: (name: Measurable) => Sample | undefined = lastSample): SpeedRow[] {
-    const facts = speedFacts(read);
+export function speedRows(read: Read = lastSample, count: Count = sampleCount): SpeedRow[] {
+    const facts = speedFacts(read, count);
     if (facts.empty) return [];
     return facts.facts.map((fact) => ({
         label: t(fact.labelKey as LocaleKey),
         duration: formatDuration(fact.ms),
         detail: [
             ...(fact.scale === undefined ? [] : [tCount(fact.scale, "speed_over_notes", String(fact.scale))]),
+            ...(fact.count === undefined ? [] : [tCount(fact.count, "speed_samples", String(fact.count))]),
             t("speed_measured_at", moment(fact.at).fromNow()),
         ].join(" · "),
     }));
 }
 
 /** The lines the timings row shows, read now: the intro, then one line per timing. */
-export function speedLines(read: (name: Measurable) => Sample | undefined = lastSample): string[] {
-    const rows = speedRows(read);
+export function speedLines(read: Read = lastSample, count: Count = sampleCount): string[] {
+    const rows = speedRows(read, count);
     // Said once, without ceremony, instead of a table of zeros.
     if (rows.length === 0) return [t("speed_never_measured")];
     return [t("speed_intro"), ...rows.map((row) => [row.label, row.duration, row.detail].join(" · "))];
@@ -55,15 +59,13 @@ export function speedLines(read: (name: Measurable) => Sample | undefined = last
  * Drawn as a small table (#663): what ran, how long, and over what — one line per timing, the
  * duration in its own column so the numbers line up and can be read down.
  */
-export function speedSettingsItems(
-    read: (name: Measurable) => Sample | undefined = lastSample
-): SettingGroupItem[] {
+export function speedSettingsItems(read: Read = lastSample, count: Count = sampleCount): SettingGroupItem[] {
     return [
         {
             name: t("speed_title"),
             render: (setting) => {
                 setting.descEl.empty();
-                const rows = speedRows(read);
+                const rows = speedRows(read, count);
                 if (rows.length === 0) {
                     setting.descEl.createDiv({ text: t("speed_never_measured") });
                     return;

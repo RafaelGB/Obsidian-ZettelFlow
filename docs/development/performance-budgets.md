@@ -103,6 +103,11 @@ Measured 2026-09-18 on the reference machine (Node 22):
 | `reader.lookup.stardict.open.200k` (a 200,000-entry StarDict dictionary and 50,000 synonyms opened for look-up, once per session, #766) | 205–222 ms (555 ms before its words were decoded in one pass; in the app, three real dictionaries — a million synonyms among them — open in ~290 ms) | 750 |
 | `reader.lookup.stardict.find.200k` (a later look-up in it: the word found, its dictzip chunk inflated, its entry split, #766) | 0.26–0.39 ms | 3 |
 | `reader.scrubber.model.120ch` (the book's line: 120 chapters, 2,000 highlights and 200 bookmarks laid out, once per opening and on each change, #813) | 0.41 ms | 2 |
+| `reader.chapter.open` (a 1 MB technical chapter rebuilt from the book and laid out in pages, its first page ready, #825) | 86 ms | 350 |
+| `reader.page.turn` (one page turn in Page, the mean of 1,000 through a long chapter, #825) | 0.007 ms, 0 paginations and 0 reflows | 0.05 |
+| `reader.relayout` (a long chapter laid out again after a type change and landed on the same line, the slowest of six rows, #825) | 20 ms | 80 |
+| `reader.chapter.turn.start` (a chapter turn's sheet built over a full page and set moving, #825) | 12 ms | 50 |
+| `reader.chapter.turn.shape` (the nodes that sheet copies for a chapter ten times longer, as a multiple of a short one's, #825) | 0.96× | 1.2 |
 
 Two of these changed what the rest of the epic should do, and they are recorded here rather than
 smoothed over:
@@ -180,6 +185,46 @@ cold — 205–250 ms locally, 404–413 ms on CI against a 400 ms ceiling — w
 had not changed. A case that reads a memoised dependency warms that dependency **itself**, as the
 gap cases do; it never relies on the order of the cases around it.
 
+## The four reading moments (#825)
+
+Four budgets cover the moments a reader actually waits through: **opening a chapter**, **turning a
+page**, **laying a chapter out again** after a type change, and **starting a chapter turn**. They read
+a seeded synthetic technical book (`test/perf/generateBook.ts`): a 1 MB chapter of prose, figures,
+tables, listings and footnotes, a short one a tenth its size, 300 listings, and a chapter of notes.
+`WRITE_BOOK=<file.epub> npx jest test/perf/generateBook` writes it to disk for a walk by hand.
+
+**What jest can prove, and what it cannot.** jsdom has no layout engine, and *Page* is one strip of
+CSS columns the browser breaks. So `test/support/readerColumns.ts` lays the chapter out the way the
+stylesheet would: from the type the Reader's root wears and the custom properties the pager writes,
+lazily, when a box is read. It **counts its reflows**. That is what lets `reader.page.turn` assert
+that 1,000 turns lay out **nothing**, and `reader.relayout` assert that each type row lands on the
+**same passage**. It is a model, not Chromium. The budgets gate the Reader's own work and its shape;
+the browser's paint, its column breaking and its `DOMParser` come from the app.
+
+**The real numbers.** Measured 2026-10-17 in Obsidian 1.14.4, in a separate instance driven over
+CDP. The machine was an Intel Core Ultra 7 165H with 31 GB of RAM, on Windows 11 with a 120 Hz
+display. The chapters were the longest of a technical book (*A Philosophy of Software Design*, 56
+pages) and a long prose book (*Pensar en sistemas*, 87 pages). Each figure is the median / worst
+from the request to the next frame. The full method is in
+[#825's baseline](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/825#issuecomment-6233162131).
+
+| Moment | Technical | Prose | Target |
+|---|---|---|---|
+| Open a chapter → its first page on screen | 52 / 60 ms | 37 / 49 ms | ≤ 300 ms |
+| A page turn → the next frame | 7.7 / 11.4 ms | 6.3 / 7.6 ms | the frame after the key |
+| A relayout (slowest row) → the next frame | 38 / 40 ms | 30 / 45 ms | ≤ 150 ms, same line |
+| A chapter turn → its sheet built | 5.5 / 6.5 ms | 4.5 / 5.7 ms | ≤ 100 ms |
+
+There were **no long tasks** (over 50 ms) in any of it. At 120 Hz, none of 80 page turns took two
+frames. Every target passed, so none of the optimisations #825 kept in reserve (idle pre-layout,
+skipping off-screen work, trimming the bundle) was built. The iPad numbers are still pending; they
+are read from the table below.
+
+**One finding the budgets could not have made.** Throttled 20× over CDP, a slow chapter left its
+page **empty for 1.6 s**. A 150 ms timer cannot fire while drawing the chapter holds the main
+thread. The chapter's waiting state is now laid over the page at once and faded in after the delay by
+CSS, on the compositor (`readerWaiting.ts`).
+
 ## What these numbers do not include
 
 Everything above is the **pure model layer**: snapshots in, ideas and projections out. That is what
@@ -206,9 +251,18 @@ notes:
 | Reading every note for inline fields | the first, full enrichment pass |
 | Reading the notes that changed | an incremental pass (#459) |
 | The heaviest analysis | the last expensive projection that ran |
+| Counting what is left out | the scope's census |
+| Laying a chapter out in pages | the Reader's pagination of a chapter (#753) |
+| Opening a chapter | a book's flowing chapter, from the open to its first page laid out (#825) |
+| Turning a page | a page turn in *Page* or *Spread* (#825) |
+| Laying a chapter out again after a type change | a relayout landed on your line (#825) |
+| Starting a chapter turn | the turn's sheet built and set moving (#825) |
 
-Each row carries the note count it was measured over and when. A kind never measured is **absent**,
-not shown as zero.
+Each row carries the note count it was measured over and when. The four reading moments also say
+**how many times** they ran this session, as *12 times*. A start-up row says no count, because it
+runs once. A kind never measured is **absent**, not shown as zero. The newest sample of each kind is
+kept beside the 64-sample ring (#825), so a thousand page turns never push *Loading the plugin* out
+of the table.
 
 **Facts, and no verdict** (§XII). No score, no band, no colour, no "your vault is slow". A
 guardrail test scans the section's strings for comparative and prescriptive words — it rejected

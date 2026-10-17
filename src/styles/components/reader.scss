@@ -3081,6 +3081,16 @@ body.zettelkasten-flow__reader-covers-app {
     }
 }
 
+/* Where the strip is: set on the page at every move of a finger and every turn, and read by the page
+   alone. Registered as not inherited (#826), so a move restyles the page, never the hundreds of
+   blocks under it — a drag measured 13–15 ms of style recalculation a move before this. Its own name:
+   `--zf-page-x` is also a printed page's crop, a share its ink and marks inherit (#769), and stays so. */
+@property --zf-strip-x {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0;
+}
+
 /* ── Pages or scroll, one page or a spread (#753) ───────────────────────────────────────────────
    In *Page* and *Spread* the chapter is one strip of columns the size of the screen. The pager
    (readerPager.ts) measures it once and sets the custom properties; a turn moves the strip with the
@@ -3103,7 +3113,7 @@ body.zettelkasten-flow__reader-covers-app {
         column-width: var(--zf-page-col, 68ch);
         column-gap: var(--zf-page-gap, var(--size-4-8));
         column-fill: auto;
-        translate: var(--zf-page-x, 0) 0;
+        translate: var(--zf-strip-x, 0) 0;
     }
 
     .zettelkasten-flow__reader-stage .zettelkasten-flow__reader-body {

@@ -1,3 +1,4 @@
+import { meterGesture, type GestureMeter } from "architecture/monitoring/frameMeter";
 import { c } from "architecture";
 import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 
@@ -162,6 +163,8 @@ interface Shot {
     landing: boolean;
     pushed: Promise<unknown>;
     stopSkip: () => void;
+    /** Its frames, while a developer's frame meter is on (#826). */
+    meter: GestureMeter;
 }
 
 let open: Shot | null = null;
@@ -209,6 +212,7 @@ function removeRig(rig: Rig): void {
 }
 
 function endOpen(shot: Shot): void {
+    shot.meter.end();
     shot.stopSkip();
     removeRig(shot.rig);
     if (open === shot) open = null;
@@ -258,10 +262,14 @@ export function beginOpenShot(view: HTMLElement, cover: HTMLElement): boolean {
         landing: false,
         pushed: animation.finished.catch(() => undefined),
         stopSkip: () => undefined,
+        meter: meterGesture("open-shot", "clock", win),
     };
     shot.stopSkip = armSkip(win, () => {
+        shot.meter.interrupted();
         shot.skipped = true;
         finishAll(shot.animations);
+        // The camera jumps to its end: the motion stops with the next frame shown (#826 AC-8).
+        win.requestAnimationFrame(() => shot.meter.end("interrupted"));
     });
     open = shot;
     // A Reader that never lands (it failed to open): the shelf's copy does not stay on screen. And
@@ -349,11 +357,15 @@ export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page
     rig.inner.setCssProps({ "--zf-shot-dy": px(rectOf(page).top - rectOf(stage).top) });
     let animations: Animation[] = [];
     let skipped = false;
+    // Its frames, while a developer's frame meter is on (#826).
+    const meter = meterGesture("close-shot", "clock", win);
     const stopSkip = armSkip(win, () => {
+        meter.interrupted();
         skipped = true;
         finishAll(animations);
     });
     const done = () => {
+        meter.end();
         stopSkip();
         removeRig(rig);
     };

@@ -414,8 +414,12 @@ export const BUDGETS = {
         // Obsidian's `.token` colours and `markdown-rendered` code rules draw it, the Type panel's row is
         // `segmentedRow`, the listing's fit is `fitTables`' shape, the keep is the one keep. Half the epic's
         // allowance; 10 KB stay for #826.
-        limit: 3_110,
-        measured: "3,104 KB",
+        // 3,110 → 3,115 (#826): the frame meter adds 7 KB — the verdict a developer's iPad and the desktop
+        // traces share, the meter that costs nothing when off, its row in Settings › Advanced in two
+        // languages: 3,112 KB. The driver and the trace reading stay outside the bundle (scripts/). The
+        // epic used 15 of its 20 KB.
+        limit: 3_115,
+        measured: "3,112 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

@@ -145,6 +145,9 @@ export function whereLabel(item: ShelfItem): string {
  * It writes no note. What it remembers about a source — the title the file declares, its length,
  * where you are — is kept in plugin data; the files are never touched (L5).
  */
+/** How long an open waits for the camera's first frame at most (#826): a hidden window draws none. */
+const OPEN_AFTER_FRAME_MS = 100;
+
 export class LibraryView extends ItemView {
     private filter: ShelfFilter = "all";
     private sort: ShelfSort = "recent";
@@ -1180,14 +1183,38 @@ export class LibraryView extends ItemView {
 
     // ── open, and the detail ─────────────────────────────────────────────────
 
+    /** Which open is the latest (#826): an open the camera's first frame delayed must still be the one asked for. */
+    private openToken = 0;
+
     private openItem(item: ShelfItem, at: OpenAt = {}, from: HTMLElement | null = null): void {
         // Want to read, then opened (#822): Reading, written once — only from the Library's own doors.
         void this.settleStatusOnOpen(item);
         // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
-        if (from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot") beginOpenShot(this.containerEl, from);
+        const shot = Boolean(from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot" && beginOpenShot(this.containerEl, from));
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
         const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), ...(this.collection ? { shelf: this.collection } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
-        if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
+        const token = ++this.openToken;
+        const openNow = () => {
+            // Overtaken by another open, or the Library closed while the camera's first frame was shown.
+            const shown = (this.leaf as { view?: unknown }).view;
+            if (token !== this.openToken || (shown !== undefined && shown !== this) || !this.containerEl.isConnected) return;
+            if (!openShelfItem(this.app, item, this.plugin ?? null, at, { leaf: this.leaf, back })) this.openDetail(item.id);
+        };
+        if (!shot) return openNow();
+        // The camera's first frame is shown before the Reader starts opening (#826): opened in the same
+        // task, the Reader held that frame back ~110 ms on a 200-book Library; after it, the push runs on
+        // the compositor while the Reader opens underneath. Same path, same duration, same easing.
+        const win = this.containerEl.win;
+        // A hidden window draws no frame: the open never waits on one for more than a beat.
+        let done = false;
+        const once = () => {
+            if (done) return;
+            done = true;
+            openNow();
+        };
+        if (typeof win.requestAnimationFrame !== "function") return void win.setTimeout(once, 0);
+        win.requestAnimationFrame(() => win.setTimeout(once, 0));
+        win.setTimeout(once, OPEN_AFTER_FRAME_MS);
     }
 
     /** Opening a book you wanted to read moves it to Reading: one recorded write, its Undo under the bar. */

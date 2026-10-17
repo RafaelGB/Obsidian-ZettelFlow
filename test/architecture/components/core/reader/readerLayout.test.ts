@@ -51,7 +51,7 @@ async function open(paths = ["a.md", "b.md", "c.md"], pages = 4, prefs?: Record<
         stage.scrollHeight = 700;
         const prop = (name: string) => parseFloat(page.cssProps[name] ?? "0") || 0;
         Object.defineProperty(page, "scrollWidth", { configurable: true, get: () => prop("--zf-page-col") + (prop("--zf-page-col") + prop("--zf-page-gap")) * (stagePages.count - 1) });
-        page.getBoundingClientRect = () => ({ left: prop("--zf-page-gap") + prop("--zf-page-x"), top: 0, width: prop("--zf-page-w"), height: 700 });
+        page.getBoundingClientRect = () => ({ left: prop("--zf-page-gap") + prop("--zf-strip-x"), top: 0, width: prop("--zf-page-w"), height: 700 });
     };
     await view.setState({ seed: paths[0], kind: "selection", paths }, {} as never);
     await view.onOpen();

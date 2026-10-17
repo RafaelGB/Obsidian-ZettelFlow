@@ -234,6 +234,8 @@ layouts each time. Now the listings are read as they are (a short one by its box
 only when their cut changes, which brought relayout back to 25 ms. The column model needed a fix too:
 it had counted the chapter turn's sheet, a copy of the page beside the stage, as a change to the page.
 
+Frames are not budgeted here: how smooth a motion is, frame by frame, is [the motion audit](motion-audit.md) (#826).
+
 ## What these numbers do not include
 
 Everything above is the **pure model layer**: snapshots in, ideas and projections out. That is what

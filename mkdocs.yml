@@ -275,6 +275,7 @@ nav:
           - Contributing & conventions: development/contributing-and-conventions.md
           - Testing & guardrails: development/testing-and-guardrails.md
           - Performance budgets: development/performance-budgets.md
+          - Motion audit (frames): development/motion-audit.md
           - Spec-driven development: development/spec-driven-development.md
           - Constitution: development/constitution.md
           - Styling (the user's theme wins): development/obsidian-styling.md

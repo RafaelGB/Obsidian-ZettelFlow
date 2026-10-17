@@ -19,10 +19,10 @@ import type { FixtureChapter } from "./zipFixture";
  *   *Font* the width of a character;
  * - the page, from the custom properties the pager writes (`--zf-page-col`, `--zf-page-gap`,
  *   `--zf-page-h`) — so *Width*, *Margins* and *Layout* arrive through the pager's own geometry;
- * - the strip's place, from `--zf-page-x`, which moves every box and lays out nothing.
+ * - the strip's place, from `--zf-strip-x`, which moves every box and lays out nothing.
  *
  * It **counts its reflows**: a box read after the page's shape changed lays the chapter out again,
- * and a box read after only `--zf-page-x` changed does not — which is the claim B2 makes about a turn.
+ * and a box read after only `--zf-strip-x` changed does not — which is the claim B2 makes about a turn.
  *
  * It is a model, not Chromium: the numbers it gives are the Reader's work over a laid-out chapter,
  * never the browser's own column breaking. The real numbers come from the app (#825 T8).
@@ -229,8 +229,8 @@ export function installColumns(view: { width: number; height: number }): Columns
         return result;
     };
 
-    /** The strip's own box: where its first column starts, moved by `--zf-page-x`. */
-    const stripBox = (page: any) => ({ left: prop(page, "--zf-page-gap") + prop(page, "--zf-page-x"), top: 0, width: prop(page, "--zf-page-w"), height: view.height });
+    /** The strip's own box: where its first column starts, moved by `--zf-strip-x`. */
+    const stripBox = (page: any) => ({ left: prop(page, "--zf-page-gap") + prop(page, "--zf-strip-x"), top: 0, width: prop(page, "--zf-page-w"), height: view.height });
 
     /** The boxes of a block a column break cut — one per column it runs through. */
     const piecesOf = (el: any): { left: number; top: number; width: number; height: number }[] | null => {

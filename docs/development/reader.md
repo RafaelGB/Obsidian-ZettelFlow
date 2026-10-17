@@ -1842,7 +1842,8 @@ resume entries) as one recorded batch, from the plugin's own rename listener
   completed `release()`, `reader.relayout` wraps the reshape in `savePrefs`, and
   `reader.chapter.turn.start` wraps `buildTurn`. Their budgets are in
   [Performance budgets](performance-budgets.md#the-four-reading-moments-825), and a slow chapter's
-  waiting state is `armChapterWait` in `readerWaiting.ts`.
+  waiting state is `armChapterWait` in `readerWaiting.ts`. How smooth the Reader's motion is, frame by
+  frame on a desktop and an iPad, is in [the motion audit](motion-audit.md) (#826).
 - The trail and bookmarks (#761): `ReaderTrail` in `readerJumps.ts` (one trail: `push`, `pop`,
   `list` newest first, `takeAt`; per reading, at most 20) holds a *spot* — the chapter and an offset
   into `chapterText` (`offsetAt`/`pointAt` in `readerMarks.ts`), with the share and scroll as

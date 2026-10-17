@@ -8,6 +8,7 @@ import { DEFAULT_SETTINGS } from "config/typing";
 import type { ZettelFlowSettings } from "config/typing";
 import { controlContainer } from "architecture/components/settings/settingContainer";
 import { speedSettingsItems } from "./speedSettingsItems";
+import { frameMeterSettingsItems } from "./frameMeterSettingsItems";
 import { addFolderField } from "./folderField";
 import { dictionarySettings } from "application/library/dictionarySettings";
 
@@ -280,6 +281,8 @@ export function scriptsLoggingGroup(visible: () => boolean): SettingDefinitionIt
             // The timings from this vault, read-only (#645): what you look at when something feels
             // slow — beside the log level, not on the Health surface.
             ...speedSettingsItems(),
+            // The frame meter (#826): a gesture's frames, on this device, for this session only.
+            ...frameMeterSettingsItems(),
         ],
     };
 }

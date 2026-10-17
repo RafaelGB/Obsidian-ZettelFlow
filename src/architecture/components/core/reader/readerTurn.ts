@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { measure } from "architecture/monitoring/measure";
+import { meterGesture } from "architecture/monitoring/frameMeter";
 import { MOTION, copyLive, motionWelcome } from "./readerMotion";
 import type { ChapterMotion } from "./readingMotion";
 
@@ -248,9 +249,12 @@ export function playChapterTurn(root: HTMLElement, stage: HTMLElement, page: HTM
     // The sheet copied and set moving — what stands between the gesture and the first frame (#825 B4).
     const { sheet, shade, animations } = measure("reader.chapter.turn.start", () => buildTurn(root, stage, page, motion, dir, view));
     const stopSkip = armSkip(win);
+    // Its frames, while a developer's frame meter is on (#826): the clock's turn, from the request.
+    const meter = meterGesture(`chapter-turn:${motion}:clock`, "clock", win);
     const turn: Turn = {
         animations,
         cleanup: () => {
+            meter.end();
             stopSkip();
             releaseCanvases(sheet);
             sheet.remove();
@@ -306,6 +310,9 @@ export function beginChapterScrub(root: HTMLElement, stage: HTMLElement, page: H
     root.insertBefore(underlay, shade);
     page.addClass(c("reader-page--under-scrub"));
     let stopSkip: () => void = () => undefined;
+    // Its frames, while a developer's frame meter is on (#826): the finger's turn, from its first move.
+    const meter = meterGesture(`chapter-turn:${motion}:held`, "tracked", win);
+    let moved = false;
     const reveal = () => {
         page.removeClass(c("reader-page--under-scrub"));
         underlay.remove();
@@ -314,6 +321,7 @@ export function beginChapterScrub(root: HTMLElement, stage: HTMLElement, page: H
         animations,
         reveal,
         cleanup: () => {
+            meter.end();
             stopSkip();
             reveal();
             releaseCanvases(sheet);
@@ -334,6 +342,10 @@ export function beginChapterScrub(root: HTMLElement, stage: HTMLElement, page: H
         duration,
         scrub: (progress) => {
             if (released || running !== turn) return;
+            if (!moved) {
+                moved = true;
+                meter.moved();
+            }
             const at = Math.min(1, Math.max(0, progress)) * duration;
             for (const animation of animations) animation.currentTime = at;
         },

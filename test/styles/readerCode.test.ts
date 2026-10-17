@@ -50,3 +50,11 @@ describe("code in a book, in the stylesheet (#824)", () => {
         expect(READER.match(/@include key-cap;/g)?.length).toBe(2);
     });
 });
+
+describe("the strip's place is not inherited, and a printed page's crop still is (#826)", () => {
+    it("registers the pager's own property, and never the crop's", () => {
+        expect(READER).toMatch(/@property --zf-strip-x \{\s*syntax: "<length>";\s*inherits: false;/);
+        expect(READER).not.toMatch(/@property --zf-page-x/);
+        expect(READER).toContain("translate: var(--zf-strip-x, 0) 0;");
+    });
+});

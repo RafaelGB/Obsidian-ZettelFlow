@@ -151,6 +151,8 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
         const cover = beginOpenShot.mock.calls[0][1] as DomNode;
         expect(cover.getAttribute("data-zf-book")).toBe(SLOW);
         expect(cover.hasClass("zettelkasten-flow__shelf-cover--article")).toBe(true);
+        // The Reader opens once the camera's first frame is shown (#826).
+        await new Promise((resolve) => setTimeout(resolve, 0));
         expect(openReader.mock.calls[0][1]).toMatchObject({ seed: SLOW, source: SLOW, back: { filter: "articles", focus: SLOW } });
     });
 

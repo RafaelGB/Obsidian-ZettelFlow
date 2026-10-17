@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { measure } from "architecture/monitoring/measure";
+import { meterGesture, type GestureMeter } from "architecture/monitoring/frameMeter";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { completionRate, releaseTurn, rubberBand } from "./readerGestures";
 import {
@@ -108,6 +109,8 @@ export class ReaderPager {
     private size: { width: number; height: number } | null = null;
     private observer: ResizeObserver | null = null;
     private checking = false;
+    /** A drag's frames, for a developer's frame meter (#826); the do-nothing handle when it is off. */
+    private meter: GestureMeter | null = null;
 
     constructor(
         private readonly stage: HTMLElement,
@@ -155,6 +158,7 @@ export class ReaderPager {
         this.fitListings(0);
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         this.geometry = null;
         this.pages = 1;
         this.view = 0;
@@ -166,6 +170,7 @@ export class ReaderPager {
     reset(): void {
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         this.remembered = null;
         this.view = 0;
         this.pages = 1;
@@ -184,6 +189,7 @@ export class ReaderPager {
     private layoutNow(land: Landing): void {
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         // Kept: the line noted after the last turn, or — when a turn has not been noted yet — the
         // first line on screen now, read from the layout as it still is.
         const kept = land === "keep" && !this.atLast ? (connected(this.remembered) ? this.remembered : this.firstVisible()) : null;
@@ -203,8 +209,9 @@ export class ReaderPager {
             "--zf-page-col": px(geometry.columnPx),
             "--zf-page-gap": px(geometry.gapPx),
             "--zf-page-h": px(Math.max(1, size.height - padTop - padBottom)),
-            "--zf-page-x": "0px",
+            "--zf-strip-x": "0px",
         });
+        this.inkLayer()?.setCssProps({ "--zf-page-x": "0px" });
         this.fitTables(Math.max(1, size.height - padTop - padBottom));
         this.fitListings(Math.max(1, size.height - padTop - padBottom));
         this.pages = pageCount(this.page.scrollWidth, geometry.stridePx, geometry.gapPx);
@@ -316,6 +323,17 @@ export class ReaderPager {
         }
     }
 
+    /** A drag something else ended (a turn, a layout, a new chapter): its frames end with it (#826). */
+    private dropMeter(): void {
+        this.meter?.end();
+        this.meter = null;
+    }
+
+    /** The ink layer drawn inside the page, if one is (#745). */
+    private inkLayer(): HTMLElement | null {
+        return this.page.querySelector<HTMLElement>(`:scope > .${c("reader-ink-layer")}`);
+    }
+
     /** A `ch` at the reading size, from the body's own font size. */
     private chPx(): number {
         const body = this.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? this.page;
@@ -329,7 +347,10 @@ export class ReaderPager {
 
     private setX(x: number): void {
         this.x = x;
-        this.page.setCssProps({ "--zf-page-x": px(x) });
+        this.page.setCssProps({ "--zf-strip-x": px(x) });
+        // The ink layer read the strip's place as its own `--zf-page-x`, inherited: it gets it as it was,
+        // on itself alone — the page's own is not inherited (#826), or a move restyled every block.
+        this.inkLayer()?.setCssProps({ "--zf-page-x": px(x) });
     }
 
     /** Input during a move (#751 FR-15): the move jumps to its end — the place is already set under it. */
@@ -394,6 +415,7 @@ export class ReaderPager {
         measure("reader.page.turn", () => {
             this.finishRunning();
             this.dragging = null;
+            this.dropMeter();
             const from = this.x;
             this.view += dir;
             const to = this.offsetOf(this.view);
@@ -425,6 +447,7 @@ export class ReaderPager {
         if (!this.paged) return 0;
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         const target = Math.min(Math.max(0, view), this.views - 1);
         const from = this.view;
         if (target === from) return 0;
@@ -502,6 +525,10 @@ export class ReaderPager {
         if (!this.dragging) {
             this.finishRunning();
             this.dragging = { base: this.offsetOf(this.view), dx: 0 };
+            this.dropMeter();
+            // Its frames, while a developer's frame meter is on (#826): the page under the finger.
+            this.meter = meterGesture("page-drag", "tracked", (this.stage as El).win);
+            this.meter.moved();
         }
         this.dragging.dx = dx;
         this.atLast = false;
@@ -516,6 +543,20 @@ export class ReaderPager {
      * gesture the system took (`force: "spring"`) always springs back.
      */
     release(vx: number, force?: "spring"): "complete" | "spring" {
+        const outcome = this.releaseNow(vx, force);
+        // The motion ends when the page lands: the turn or the spring that the release played.
+        const meter = this.meter;
+        this.meter = null;
+        if (meter) {
+            const how = outcome === "complete" ? "turn" : "spring";
+            const landing = this.running;
+            if (landing) void landing.finished.then(() => meter.end(how), () => meter.end(how));
+            else meter.end(how);
+        }
+        return outcome;
+    }
+
+    private releaseNow(vx: number, force?: "spring"): "complete" | "spring" {
         const drag = this.dragging;
         this.dragging = null;
         if (!drag || !this.geometry) return "spring";

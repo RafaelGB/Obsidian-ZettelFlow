@@ -804,6 +804,29 @@ button.zettelkasten-flow__wizard-footer-skip {
     border-top: $line-quiet;
 }
 
+/* Your answers (#816): what you said that the note does not show — the same quiet list as the diff,
+   a beat after it, never louder than the note itself. */
+.zettelkasten-flow__companion-pane-answers {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    padding-top: $space-2;
+    border-top: $line-quiet;
+    animation: zf-companion-answers-in var(--anim-duration-fast) ease-out backwards;
+}
+
+@keyframes zf-companion-answers-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__companion-pane-answers {
+        animation: none;
+    }
+}
+
 .zettelkasten-flow__companion-pane-diff-list {
     display: flex;
     flex-direction: column;

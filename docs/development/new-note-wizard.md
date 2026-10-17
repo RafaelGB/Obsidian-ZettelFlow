@@ -30,7 +30,12 @@ title:
 **3 · The live preview.** On the right you see the note as it will be: its title, its properties and
 its body. Under it, **What this will change** lists every property the note gains and every block of
 text it adds. When two step templates set the same property differently, the list names the
-conflict. **Connection suggestions** are notes that share tags or title words with this one. They
+conflict. **Your answers**, under the card, lists what you answered that is not part of the note —
+an answer kept for a script or a template, a step whose zone is *context* — in the order you gave
+it; it is not shown when there is none. A **group** step shows its own template from its first
+question, not only once its questions are done; a group that offers a choice shows no template
+until you pick, so the preview never shows a note the build will not write. The preview only
+reads: the note the build writes is exactly what it was. **Connection suggestions** are notes that share tags or title words with this one. They
 are only proposals. For each one you choose **Link**, **Other words** (link it with your own text)
 or **Not related**. Your choice is recorded once the note exists.
 

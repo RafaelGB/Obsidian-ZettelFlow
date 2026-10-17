@@ -367,6 +367,7 @@ export default {
     write_origin_unknown: 'ZettelFlow',
     step_builder_body_template_placeholder: 'Escribe contenido en Markdown aquí...',
     companion_pane_preview_title: 'Vista previa en vivo',
+    companion_pane_answers_title: 'Tus respuestas',
     companion_pane_suggestions_title: 'Sugerencias de conexión',
     companion_pane_empty: 'Responde un paso para ver cómo toma forma tu nota aquí.',
     companion_pane_loading: 'Ensamblando vista previa...',

@@ -1054,6 +1054,15 @@ button.zettelkasten-flow__lab-meaning-chip {
     font-family: var(--font-text);
 }
 
+/* Code kept from a book (#824): its lines as they were, scrolled sideways rather than folded. */
+.zettelkasten-flow__lab-quote-code {
+    overflow-x: auto;
+    white-space: pre;
+    tab-size: 4;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+}
+
 /* The source line wraps, and its way back to the Reader moves under it rather than off the card. */
 .zettelkasten-flow__lab-quote-meta {
     @include hint;

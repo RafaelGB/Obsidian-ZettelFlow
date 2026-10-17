@@ -265,6 +265,11 @@ its shelf again. Any key or click jumps a shot to its end, and with reduced moti
   snapping, and the book you are reading breathes once when you come back to the Library. Each one
   moves only what the screen can move for free (transform and opacity), and none of them counts at
   you.
+- **A slow chapter says so, quietly.** A chapter is almost always on the page before you could notice
+  it being drawn, and then nothing is shown. Only a slow one, a long chapter on a slow device, shows
+  three faint lines breathing, like a pen about to write, where the page will be. They fade in after
+  150 ms, and they appear on time even while the chapter is still being drawn. You never see an empty
+  page.
 - **Less motion, if you asked for it.** With your system's *reduce motion* setting on, every one of
   these is instant: nothing slides, sweeps or fades.
 
@@ -1664,11 +1669,51 @@ choice wins. In a right-to-left book the leaf turns over the other way. Under re
 fits are instant, and a pinch still follows your fingers. See
 [Designed pages](library.md#designed-pages-comics-picture-books-and-cookbooks).
 
+## Code in technical books
+
+A technical book's code reads as code: in your theme's code colours, whole lines, on its page.
+
+![Code in technical books: a spread in Page with a coloured Python listing that stops at a line's end with a quiet "continues" and goes on at the top of the next page, a long line scrolling inside its own box; the Type panel's Code lines row, Scroll or Wrap; a wrapped line hanging under its indent; a converted book's code found by the face its stylesheet sets; and a card in Think holding the kept lines as a fenced python block](../resources/reader/code.svg)
+
+- **Coloured by your theme, the same as in your notes.** When the book says what language a listing is
+  in (`data-code-language="python"`, `data-lang`, `class="language-python"`…), the Reader colours it
+  with the Prism Obsidian ships, so a keyword in a book is the colour of the same keyword in a note's
+  code block. Only that one fact survives from the book's markup, and only from a closed list of
+  about 45 languages; the book's own colours, classes and styles never reach the page. A listing in
+  a language off the list, or one that names none, is still code: monospace, uncoloured.
+- **Found in a converted book too.** Most EPUBs sold today are conversions, and they rarely write
+  `<pre>`: a listing is one paragraph per line, set in a typewriter face by the book's stylesheet. The
+  Reader reads that stylesheet for **one** thing, which classes are set in a monospace face, and
+  makes their consecutive lines one listing, indentation included; inline code in that face becomes
+  inline code. Nothing else of the stylesheet is used.
+- **Whole lines, on their page.** In *Page* and *Spread* a listing that fits a page is kept whole,
+  on the next page if the rest of this one cannot hold it. A longer one is cut **between lines**, never
+  through one: each part fills a page and says, quietly, that it *continues*. Back in *Scroll* it is
+  one listing again.
+- **Code lines: Scroll or Wrap** (in **Type**, only for a book with code). *Scroll* keeps every line
+  whole and lets a long one scroll sideways inside its own listing; *Wrap* folds it, the rest hanging
+  under its own indent. Until you pick, a desktop or a tablet scrolls and a phone wraps. A drag inside
+  a listing that can scroll moves the listing; at its edge, or beside it, it turns the page.
+- **Kept code stays code.** Highlight lines of a listing and keep them: the thought records that the
+  passage is code and its language, Think shows it in monospace, and a note made from it holds a
+  fenced block (` ```python `) with its lines and indentation as they were.
+
+Two things worth knowing:
+- **An element's `lang` is never a hint.** It names a human language (`cs` is Czech, not C#), and it
+  stays what the column hyphenates by.
+- **Old highlights in a converted book's code** were made when its lines were separate paragraphs.
+  Most are found again by their words, because the Reader reads a run of spaces as one. A few made on
+  a book whose markup ran its lines together, with no space between them, may not be found. Those
+  are listed, never lost.
+
+Under the Reader's own *Light*, *Sepia* or *Dark* look, code takes Obsidian's default code colours
+from that look's palette. A community theme's own `--code-*` colours show under *Your theme*.
+
 ## Type you can tune
 
 The **Type** panel is one panel, read top to bottom: **Layout** (above), **Look** (the reading
 theme), **Font** (your theme's own, or a serif), **Size**, then the finer type — **Line spacing**,
-**Width**, **Margins** and **Justify** — then **Focus mode**, the time left and
+**Width**, **Margins** and, in a book with code, **Code lines** ([code in technical books](#code-in-technical-books)) and **Justify** — then **Focus mode**, the time left and
 **Pause at chapter ends** ([what survived?](#what-survived)). Each row has its
 name, and the marker under your choice slides to the next one you pick. Every change applies at
 once, so you choose by looking, and the choices are kept for every book, next time too.
@@ -1785,11 +1830,20 @@ resume entries) as one recorded batch, from the plugin's own rename listener
   property (so it never clashes with the `transform` the entrance uses). The decisions are pure in
   `readerPages.ts` (`pageGeometry`, `spreadFits`, `pageCount`, `pageHolding`, `pageForShare`,
   `keyIntent`, `edgeTurn`, `forwardSign`); `readerPager.ts` measures once per layout inside
-  `measure("reader.paginate")` (shown under Health → speed), writes `--zf-page-*` with `setCssProps`
+  `measure("reader.paginate")` (shown under Settings › Advanced › Timings from this vault), writes `--zf-page-*` with `setCssProps`
   and animates the turn on `translate` alone. A place is a `Range` at the first line on screen, so
   the DOM is never rebuilt. `readerSettle.ts` settles the text around that line after a change;
   `readerTypePanel.ts` draws the Type panel with `segmentedRow` — the one control later rows reuse.
   Page turns at a chapter's ends go through the view's `go(±1)`, where the chapter turn is played.
+- Speed (#825): the four moments a reader waits through are timed with the same `measure`
+  instrument and listed in *Settings › Advanced › Timings from this vault*, each with how many times it
+  ran. `reader.chapter.open` is a `stopwatch` in `renderSourceChapter`, abandoned when another open
+  overtakes it and for a paper or a designed page. `reader.page.turn` wraps `ReaderPager.turn()` and a
+  completed `release()`, `reader.relayout` wraps the reshape in `savePrefs`, and
+  `reader.chapter.turn.start` wraps `buildTurn`. Their budgets are in
+  [Performance budgets](performance-budgets.md#the-four-reading-moments-825), and a slow chapter's
+  waiting state is `armChapterWait` in `readerWaiting.ts`. How smooth the Reader's motion is, frame by
+  frame on a desktop and an iPad, is in [the motion audit](motion-audit.md) (#826).
 - The trail and bookmarks (#761): `ReaderTrail` in `readerJumps.ts` (one trail: `push`, `pop`,
   `list` newest first, `takeAt`; per reading, at most 20) holds a *spot* — the chapter and an offset
   into `chapterText` (`offsetAt`/`pointAt` in `readerMarks.ts`), with the share and scroll as

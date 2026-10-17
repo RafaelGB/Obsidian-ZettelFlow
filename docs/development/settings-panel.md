@@ -211,6 +211,12 @@ should meet a log level on their first day. It remembers whether you left it ope
 - **Logging** — *Off*, *Errors only*, *Warnings*, *Information*, *Debugging* or *Everything*.
 - **Timings from this vault** — a small table of what ran, how long it took and over how many
   notes. It is read each time the tab is drawn.
+- **Frame meter** — for developers, and for an iPad, where nothing else can time a gesture. While it
+  is on, a page drag, a chapter turn, a shelf drag and the opening and closing shots are timed frame
+  by frame. Each gesture gets one line: its runs, its slowest frames, how long it took to start
+  moving, and whether it stayed within budget. The line also shows the screen refresh it measured.
+  It is off by default and lasts this session only: nothing is saved, nothing is exported, and it is
+  never on Health. See [the motion audit](motion-audit.md).
 
 The tab ends on one line: the version, the documentation, where to report a problem, and how to
 support the project.

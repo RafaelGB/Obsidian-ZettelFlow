@@ -8,6 +8,7 @@ import {
     planCrystallization,
     renderCrystallized,
     renderProvenance,
+    passageMarkdown,
 } from "application/thinking/crystallize";
 import { newThought, type Thought } from "application/thinking/thought";
 
@@ -190,5 +191,27 @@ describe("the seed a crystallize flow opens with (#712)", () => {
         for (const value of [seed.title, seed.content, seed.quote, seed.source]) expect(value).not.toContain("<%");
         expect(seed.content).toContain("&lt;% tp.system.prompt() %>");
         expect(seed.title).toBe("&lt;% tp.file.title %>");
+    });
+});
+
+describe("a passage of code becomes a fenced block (#824 FR-8, AC-10)", () => {
+    const code = "def shallow(a):\n    data.put(a, None)\n\n    return\n";
+
+    it("fences a listing in its language, its lines and indentation as they were", () => {
+        expect(passageMarkdown({ exact: code, prefix: "", suffix: "", code: { language: "python" } })).toBe("```python\ndef shallow(a):\n    data.put(a, None)\n\n    return\n```");
+        expect(passageMarkdown({ exact: "x = 1", prefix: "", suffix: "", code: {} })).toBe("```\nx = 1\n```");
+    });
+
+    it("uses a longer fence when the code holds one", () => {
+        expect(passageMarkdown({ exact: "print('```')", prefix: "", suffix: "", code: {} })).toBe("````\nprint('```')\n````");
+    });
+
+    it("keeps prose as the quote it always was", () => {
+        expect(passageMarkdown({ exact: "A  general\nlaw.", prefix: "", suffix: "" })).toBe("> A general law.");
+    });
+
+    it("writes the fenced block into the note a highlight of code becomes", () => {
+        const highlight = newThought({ text: "", id: "h1", at: 1, about: "Books/a.epub", quote: { exact: code, prefix: "", suffix: "", code: { language: "python" } } });
+        expect(planCrystallization([highlight])?.body.startsWith("```python\ndef shallow(a):\n    data.put(a, None)")).toBe(true);
     });
 });

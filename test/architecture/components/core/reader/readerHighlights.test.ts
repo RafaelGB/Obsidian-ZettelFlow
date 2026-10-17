@@ -788,3 +788,58 @@ describe("a mark's layer (#758)", () => {
         expect(m.store.save.mock.calls[1][0]).not.toHaveProperty("layer");
     });
 });
+
+/** Keeping lines of a book's listing keeps code (#824 FR-8, AC-10). */
+describe("a highlight of code (#824)", () => {
+    function withListing(): FakeEl {
+        const pre = new FakeEl("pre", [new FakeEl("code", ["def shallow(a):\n    data.put(a, None)\n    return\n"])]);
+        pre.classes.add("zettelkasten-flow__reader-code");
+        pre.attrs["data-zf-code"] = "python";
+        return new FakeEl("div", [new FakeEl("p", ["Here is a shallow method:"]), pre, new FakeEl("p", ["It does little."])]);
+    }
+
+    it("keeps the lines with the first one's indent, and says they are code in their language — one write", async () => {
+        const m = mount([], {}, withListing());
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("data.put");
+        const found = m.highlights.quoteFor(start, text.indexOf("return") + "return".length)!;
+        expect(found.quote.exact).toBe("    data.put(a, None)\n    return");
+        expect(found.quote.code).toEqual({ language: "python" });
+        await m.highlights.keepSpan(found.span, found.quote, { meaning: "idea", origin: "selection" });
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect((m.store.write.mock.calls[0][1] as { quote: ThoughtQuote }).quote.code).toEqual({ language: "python" });
+    });
+
+    it("leaves a highlight of prose as it always was", async () => {
+        const m = mount([], {}, withListing());
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("shallow method");
+        expect(m.highlights.quoteFor(start, start + "shallow method".length)!.quote.code).toBeUndefined();
+    });
+});
+
+describe("a highlight of code, its edges (#824 review)", () => {
+    function withListing(): FakeEl {
+        const pre = new FakeEl("pre", [new FakeEl("code", ["x =  y + 1\n    z = 2\n"])]);
+        pre.classes.add("zettelkasten-flow__reader-code");
+        return new FakeEl("div", [pre, new FakeEl("p", ["And then prose."])]);
+    }
+
+    it("never widens a selection that begins in the middle of a line", async () => {
+        const m = mount([], {}, withListing());
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("y + 1");
+        expect(m.highlights.quoteFor(start, start + 5)!.quote.exact).toBe("y + 1");
+    });
+
+    it("keeps a passage that runs out of the listing into the prose as prose", async () => {
+        const m = mount([], {}, withListing());
+        await m.attach();
+        const text = chapterText(m.body as never);
+        const start = text.indexOf("z = 2");
+        expect(m.highlights.quoteFor(start, text.indexOf("prose") + 5)!.quote.code).toBeUndefined();
+    });
+});

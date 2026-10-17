@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
 import { parseXml } from "../../support/miniXml";
+import { codeFacesOf, linkedStylesheets, type CodeFaces } from "application/library/epubCodeFaces";
 
 /** What the sanitizer built: a tree of plain records, serialised to read like markup. */
 interface Built {
@@ -348,5 +349,145 @@ describe("a heading with nothing to say takes no room (#808 FR-10)", () => {
     it("keeps a heading with words, and one that is a picture", () => {
         expect(clean("<h1>Principios básicos</h1>").out).toBe("<h1>Principios básicos</h1>");
         expect(clean('<h1><img src="../Images/title.png" alt="Title"/></h1>').out).toContain("<h1><img");
+    });
+});
+
+/** What a listing keeps, and what it never does (#824 FR-1, FR-2, FR-12; AC-1, AC-2, AC-3, AC-15). */
+describe("code in a book (#824)", () => {
+    const cleanWith = (body: string, code?: CodeFaces) => {
+        const doc = parseXml(`<html xmlns="http://www.w3.org/1999/xhtml"><body>${body}</body></html>`);
+        const root: Built = { tag: "root", attrs: {}, children: [] };
+        sanitizeChapter(bodyOf(doc.documentElement as unknown as SourceNode), root, builder, "OEBPS/text/ch1.xhtml", code ? { code } : {});
+        return root;
+    };
+    const everyAttr = (el: Built | string, out: string[] = []): string[] => {
+        if (typeof el === "string") return out;
+        out.push(...Object.keys(el.attrs));
+        el.children.forEach((child) => everyAttr(child, out));
+        return out;
+    };
+    const textOf = (el: Built | string): string => (typeof el === "string" ? el : el.children.map(textOf).join(""));
+
+    it("keeps the language as one fact, however the book says it, and no class or style anywhere", () => {
+        const hints = [
+            '<pre data-type="programlisting" data-code-language="python">def f(): pass</pre>',
+            '<pre><code class="language-python">def f(): pass</code></pre>',
+            '<pre class="highlight-py">def f(): pass</pre>',
+        ];
+        for (const body of hints) {
+            const { out } = clean(body);
+            expect({ body, python: out.includes('data-zf-code="python"') }).toEqual({ body, python: true });
+            expect(out).not.toMatch(/ (class|style|lang|data-code-language|data-type)=/);
+        }
+    });
+
+    it("keeps a listing whose hint is hostile or unknown as code, with no language", () => {
+        for (const hint of ['data-code-language="x&lt;script&gt;"', 'data-code-language="javascript:alert(1)"', 'class="language-brainfuck"', `data-code-language="${"y".repeat(200)}"`]) {
+            const { out } = clean(`<pre ${hint}><code>x = 1</code></pre>`);
+            expect(out).toBe("<pre><code>x = 1</code></pre>");
+        }
+    });
+
+    it("keeps a listing's text byte for byte: its tabs, its spaces, its coloured spans' words", () => {
+        const source = '<pre data-code-language="python"><span class="k" style="color:#00f">def</span>\tf():\n\t\t<span class="k">return</span>  "a  b"\n</pre>';
+        const root = cleanWith(source);
+        expect(textOf(root)).toBe('def\tf():\n\t\treturn  "a  b"\n');
+        expect(everyAttr(root).filter((name) => name === "class" || name === "style")).toEqual([]);
+    });
+
+    it("makes a converted book's code lines one listing, by the face its stylesheet sets them in (FR-12)", () => {
+        const faces = codeFacesOf(".code { font-family: lucidasanstypewriter; margin: 0 0 0 4.7% } .code2 { font-family: lucidasanstypewriter; text-indent: 7.6%; margin: 0 0 0 4.7% } .inline { font-family: \"Courier New\", monospace } .prose { font-family: Times }");
+        const root = cleanWith(
+            '<p class="prose">Here is a shallow method:</p>\n' +
+                '<p class="code">private void add(String a) {</p>\n' +
+                '<p class="code2"><span class="x">data.put(a, null);</span></p>\n' +
+                '<p class="code">}</p>\n' +
+                '<p class="prose">It calls <span class="inline">data.put</span> and nothing else.</p>',
+            faces
+        );
+        const html = root.children.map((child) => (typeof child === "string" ? child : JSON.stringify(child))).join("");
+        const pres = root.children.filter((child): child is Built => typeof child !== "string" && child.tag === "pre");
+        expect(pres).toHaveLength(1);
+        expect(textOf(pres[0])).toBe("private void add(String a) {\n    data.put(a, null);\n}");
+        const last = root.children.filter((child): child is Built => typeof child !== "string" && child.tag === "p").pop()!;
+        expect(last.children.find((child): child is Built => typeof child !== "string" && child.tag === "code")?.children).toEqual(["data.put"]);
+        expect(everyAttr(root).filter((name) => name === "class" || name === "style")).toEqual([]);
+        expect(html).not.toContain("lucida");
+    });
+
+    it("changes nothing in a book whose stylesheet sets no code face", () => {
+        const body = '<p class="a">One.</p><p class="a">Two.</p>';
+        expect(JSON.stringify(cleanWith(body, codeFacesOf(".a { font-family: Georgia, serif }")))).toBe(JSON.stringify(cleanWith(body)));
+    });
+});
+
+describe("the classes a book sets its code in (#824 FR-12)", () => {
+    it("finds the monospace faces, whatever they are called, and only those", () => {
+        const faces = codeFacesOf(
+            "p.a { font-family: lucidasanstypewriter } .b{font-family:'Source Code Pro'} .c { font-family: Consolas, monospace } .d { font-family: Times } .e .f { font-family: monospace } /* .g { font-family: monospace } */"
+        );
+        expect([...faces.mono].sort()).toEqual(["a", "b", "c"]);
+    });
+
+    it("turns a class that indents past the listing's base into spaces", () => {
+        const faces = codeFacesOf(".base { font-family: mono; margin: 0 0 0 4.687% } .in { font-family: mono; text-indent: 7.656%; margin: 0 0 0 4.688% } .in2 { font-family: mono; margin-left: 4em }");
+        expect(faces.indent.get("base")).toBeUndefined();
+        expect(faces.indent.get("in")).toBe(4);
+        expect(faces.indent.get("in2")).toBe(4);
+    });
+
+    it("reads the stylesheets a chapter links to, and never one off the book", () => {
+        expect(linkedStylesheets('<head><link href="../css/book.css" rel="stylesheet" type="text/css"/><link rel="stylesheet" href="https://cdn.example/x.css"/><link rel="icon" href="i.png"/></head>')).toEqual(["../css/book.css"]);
+    });
+});
+
+/** What the review of #824 found, each held by a test. */
+describe("code in a book, the hard cases (#824 review)", () => {
+    const cleanWith = (body: string, css: string) => {
+        const doc = parseXml(`<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body>${body}</body></html>`);
+        const root: Built = { tag: "root", attrs: {}, children: [] };
+        sanitizeChapter(bodyOf(doc.documentElement as unknown as SourceNode), root, builder, "OEBPS/text/ch1.xhtml", { code: codeFacesOf(css) });
+        return root;
+    };
+    const textOf = (el: Built | string): string => (typeof el === "string" ? el : el.children.map(textOf).join(""));
+    const pres = (root: Built) => root.children.filter((c): c is Built => typeof c !== "string" && c.tag === "pre");
+    const CSS = ".code { font-family: Courier }";
+
+    it("reads a hostile stylesheet in linear time — a page must never hang on one", () => {
+        const started = Date.now();
+        codeFacesOf("a".repeat(512 * 1024));
+        codeFacesOf(".x{".repeat(100_000));
+        expect(Date.now() - started).toBeLessThan(500);
+    });
+
+    it("takes a code face by its family, never a book face from the Monotype foundry", () => {
+        expect([...codeFacesOf(".a { font-family: 'Monotype Sabon', serif } .b { font-family: 'Lucida Console' } .c { font-family: 'DejaVu Sans Mono' } .d { font-family: Fira Code }").mono].sort()).toEqual(["b", "c", "d"]);
+        expect([...codeFacesOf("@media screen { .m { font-family: monospace } } .n { font-family: Georgia }").mono]).toEqual(["m"]);
+    });
+
+    it("makes each <br> of a code paragraph a line of its own", () => {
+        const root = cleanWith('<p class="code">int a;<br/>int b;</p><p class="code">int c;</p>', CSS);
+        expect(textOf(pres(root)[0])).toBe("int a;\nint b;\nint c;");
+    });
+
+    it("keeps the ids links land on and the print pages above the listing, never in its code", () => {
+        const root = cleanWith('<p class="code" id="filepos1">void f() {<span epub:type="pagebreak" title="143">143</span></p><p class="code">}</p>', CSS);
+        expect(textOf(pres(root)[0])).toBe("void f() {\n}");
+        const marks = root.children.filter((c): c is Built => typeof c !== "string" && c.tag === "span").map((c) => c.attrs);
+        expect(marks).toEqual([{ "data-zf-id": "filepos1" }, { "data-zf-page": "143" }]);
+    });
+
+    it("drops what the sanitiser drops inside a code line, and reads a wrapper's lines one by one", () => {
+        const root = cleanWith('<div class="code"><p class="code">a = 1<script>steal()</script></p><p class="code">b = 2</p></div>', CSS);
+        const listing = pres(root.children.find((c): c is Built => typeof c !== "string" && c.tag === "div")!);
+        expect(listing).toHaveLength(1);
+        expect(textOf(listing[0])).toBe("a = 1\nb = 2");
+    });
+
+    it("never takes a human language for a programming one", () => {
+        const doc = parseXml('<html xmlns="http://www.w3.org/1999/xhtml"><body><pre lang="cs">Ahoj</pre></body></html>');
+        const root: Built = { tag: "root", attrs: {}, children: [] };
+        sanitizeChapter(bodyOf(doc.documentElement as unknown as SourceNode), root, builder, "OEBPS/text/ch1.xhtml");
+        expect(pres(root)[0].attrs).toEqual({ lang: "cs" });
     });
 });

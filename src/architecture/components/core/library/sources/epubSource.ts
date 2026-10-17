@@ -1,8 +1,10 @@
-import type { App, Component, TFile } from "obsidian";
+import { loadPrism, type App, type Component, type TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { titleFromName } from "application/library/shelf";
-import { fragmentOf, spineIndexOf, type PageTarget } from "application/library/epubPackage";
+import { fragmentOf, resolveHref, spineIndexOf, type PageTarget } from "application/library/epubPackage";
+import { NO_CODE_FACES, codeFacesOf, linkedStylesheets, type CodeFaces } from "application/library/epubCodeFaces";
+import { colourListings, type PrismLike } from "architecture/components/core/reader/readerCode";
 import type { PageMark } from "application/library/provenance";
 import { offsetAt, type NodeLike } from "architecture/components/core/reader/readerMarks";
 import { bodyOf, chapterLanguage, sanitizeChapter, type ChapterBuilder, type SourceNode } from "application/library/epubSanitize";
@@ -89,6 +91,23 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
     const pagesOf = designed.some(Boolean) ? designedPages(file, book, spine.map((item) => item.href)) : null;
     // Where the text begins (#808 FR-1): only a chapter the reading order has — never a skipped page.
     const startAt = book.text ? spineIndexOf(spine, book.text.href) : -1;
+    // A book's stylesheets, read once each for the classes its code is set in (#824 FR-12).
+    const faces = new Map<string, Promise<CodeFaces>>();
+    const codeFaces = async (href: string, xhtml: string): Promise<CodeFaces | null> => {
+        const sheets = linkedStylesheets(xhtml).map((sheet) => resolveHref(href, sheet));
+        if (sheets.length === 0) return null;
+        const key = sheets.join("|");
+        let known = faces.get(key);
+        if (!known) {
+            known = Promise.all(sheets.map((sheet) => book.archive.text(sheet).catch(() => null)))
+                .then((texts) => codeFacesOf(texts.filter((css): css is string => css !== null).join("\n")))
+                // A stylesheet that cannot be read is no code face: the chapter is drawn as it always was.
+                .catch(() => NO_CODE_FACES);
+            faces.set(key, known);
+        }
+        const found = await known;
+        return found.mono.size > 0 ? found : null;
+    };
     const toc: SourceTocEntry[] = [];
     for (const entry of book.toc) {
         const chapter = spineIndexOf(spine, entry.href);
@@ -118,7 +137,22 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             const doc = domParse(xhtml, "application/xhtml+xml");
             const root = doc.documentElement as unknown as SourceNode | null;
             if (!root) throw new Error(`chapter ${index} cannot be read`);
-            const { images } = sanitizeChapter(bodyOf(root), body, domBuilder, href);
+            // The classes the book sets its code in, read from its own stylesheet (#824 FR-12).
+            const code = /\bclass\s*=/i.test(xhtml) ? await codeFaces(href, xhtml) : null;
+            const hasCode = /<pre[\s>]/i.test(xhtml) || Boolean(code);
+            // A chapter with code is built aside, coloured, and only then put on the page (#824 AC-M3):
+            // a listing is never seen uncoloured. A chapter without any is drawn as it always was.
+            const into = hasCode ? detached(body) : body;
+            const { images } = sanitizeChapter(bodyOf(root), into, domBuilder, href, code ? { code } : {});
+            let listings = 0;
+            if (into !== body) {
+                if (into.querySelector("pre")) {
+                    // Obsidian's own Prism (#824 FR-3), asked for only when a listing names a language (FR-9).
+                    const prism = into.querySelector("[data-zf-code]") ? await prismOrNone() : null;
+                    listings = colourListings(into, prism);
+                }
+                for (const child of Array.from(into.childNodes)) body.appendChild(child);
+            }
             if (images.length > 0) {
                 const urls: string[] = [];
                 // Let go once the chapter turn has played: its sheet is a copy of this page, and a
@@ -150,6 +184,7 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             return {
                 words: text.split(/\s+/).filter(Boolean).length,
                 picture: false,
+                ...(listings > 0 ? { listings } : {}),
                 ...(language ? { language } : {}),
                 ...(pageMarks.length > 0 ? { pageMarks } : {}),
                 ...(heading ? { heading } : {}),
@@ -172,6 +207,24 @@ export async function openEpubSource(app: App, file: TFile): Promise<SourceDocum
             pagesOf?.close();
         },
     };
+}
+
+/** An element in the chapter's own document, off the page: where a chapter with code is built first. */
+function detached(body: HTMLElement): HTMLElement {
+    const holder = body.createDiv();
+    holder.remove();
+    return holder;
+}
+
+/** Obsidian's Prism, or none where it cannot be loaded: the code is then drawn uncoloured (#824). */
+async function prismOrNone(): Promise<PrismLike | null> {
+    try {
+        const prism = (await loadPrism()) as PrismLike | null;
+        return prism && typeof prism.tokenize === "function" && typeof prism.languages === "object" ? prism : null;
+    } catch (error) {
+        log.debug(`[Reader] Prism could not be loaded, code is drawn uncoloured: ${String(error)}`);
+        return null;
+    }
 }
 
 /** The first heading's words (#808 FR-11), on one line and at most 80 characters; empty when none. */

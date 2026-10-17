@@ -1,3 +1,5 @@
+import { codeLanguageOf, codeLanguageOfClass } from "./codeLanguage";
+import type { CodeFaces } from "./epubCodeFaces";
 import { fragmentOf, leavesTheBook, resolveHref } from "./epubPackage";
 import {
     MATH_DROP,
@@ -113,6 +115,9 @@ const ATTRS: Record<string, RegExp> = {
 /** Bounds, so a hostile chapter cannot make the page hang. */
 const MAX_DEPTH = 64;
 const MAX_ELEMENTS = 60_000;
+
+/** The blocks a converted book writes a listing's lines as (#824 FR-12). */
+const LINE_BLOCKS = new Set(["p", "div"]);
 
 const ELEMENT = 1;
 const TEXT = 3;
@@ -506,9 +511,78 @@ export function sanitizeChapter<E>(
     parent: E,
     builder: ChapterBuilder<E>,
     chapterHref: string,
-    options: { policy?: SanitizePolicy; inline?: string[] } = {}
+    options: SanitizeOptions = {}
 ): SanitizeResult {
     return sanitizeNodes(root, parent, builder, EPUB_PROFILE, chapterHref, options);
+}
+
+export interface SanitizeOptions {
+    policy?: SanitizePolicy;
+    inline?: string[];
+    /** The classes the book's stylesheet sets in a monospace face (#824 FR-12): its code, by name. */
+    code?: CodeFaces;
+}
+
+/** The language a `pre` or `code` says it is in (#824 FR-1), from the closed list — or none. */
+function hintOf(node: SourceNode): string | null {
+    return (
+        codeLanguageOf(attr(node, "data-code-language")) ??
+        codeLanguageOf(attr(node, "data-lang")) ??
+        // Never `lang`: it names a human language \u2014 `cs` is Czech, `pl` Polish, not C# or Perl.
+        codeLanguageOfClass(attr(node, "class"))
+    );
+}
+
+/** What a converted book's code line holds besides its text: the ids links land on, the print pages. */
+interface LineMarks {
+    ids: string[];
+    pages: string[];
+}
+
+/**
+ * The lines of a listing a converted book wrote as a paragraph (#824 FR-12): its text, each `<br>` a
+ * line of its own, its indent kept. Its ids and print-page marks are gathered, never written into the
+ * code (a page's printed number is not part of what you read); what the sanitiser drops is dropped.
+ */
+function linesOf(node: SourceNode, faces: CodeFaces, drop: ReadonlySet<string>, marks: LineMarks): string[] {
+    let indent = 0;
+    for (const name of attr(node, "class").split(/\s+/)) indent = Math.max(indent, faces.indent.get(name) ?? 0);
+    const lines = [""];
+    const visit = (at: SourceNode, depth: number) => {
+        const id = attr(at, "id") || attr(at, "xml:id");
+        if (/^[\w.:-]{1,120}$/.test(id)) marks.ids.push(id);
+        for (let i = 0; i < at.childNodes.length && depth < MAX_DEPTH; i++) {
+            const child = at.childNodes[i];
+            if (child.nodeType === TEXT || child.nodeType === CDATA) {
+                lines[lines.length - 1] += (child.data ?? child.textContent ?? "").replace(/\r?\n/g, " ");
+                continue;
+            }
+            if (child.nodeType !== ELEMENT) continue;
+            const name = nameOf(child);
+            if (drop.has(name)) continue;
+            if (name === "br") {
+                lines.push("");
+                continue;
+            }
+            const page = pageBreakLabel(child);
+            if (page !== null) {
+                if (page) marks.pages.push(page);
+                continue;
+            }
+            visit(child, depth + 1);
+        }
+    };
+    visit(node, 0);
+    return lines.map((line) => " ".repeat(indent) + line.replace(/\u00a0/g, " ").trimEnd());
+}
+
+/** Whether an element holds blocks of its own: then it is a wrapper, not a line. */
+function holdsBlocks(node: SourceNode): boolean {
+    for (let i = 0; i < node.childNodes.length; i++) {
+        const child = node.childNodes[i];
+        if (child.nodeType === ELEMENT && /^(p|div|pre|ul|ol|table|blockquote|section|h[1-6])$/.test(nameOf(child))) return true;
+    }
+    return false;
 }
 
 /**
@@ -548,10 +622,15 @@ export function sanitizeNodes<E>(
     builder: ChapterBuilder<E>,
     profile: SanitizeProfile,
     chapterHref = "",
-    options: { policy?: SanitizePolicy; inline?: string[] } = {}
+    options: SanitizeOptions = {}
 ): SanitizeResult {
     const book = profile.book;
     const designed = book && options.policy === "designed";
+    // A book's code by its face (#824 FR-12): flowing chapters only — a designed page keeps its own.
+    const faces = book && !designed && options.code && options.code.mono.size > 0 ? options.code : null;
+    const inCodeFace = (node: SourceNode): boolean => Boolean(faces && attr(node, "class").split(/\s+/).some((name) => faces.mono.has(name)));
+    const isLine = (node: SourceNode | undefined): node is SourceNode =>
+        Boolean(node && node.nodeType === ELEMENT && LINE_BLOCKS.has(nameOf(node)) && inCodeFace(node) && !holdsBlocks(node));
     const result: SanitizeResult = { images: [], elements: 0, ...(designed ? { styles: [], inline: options.inline ?? [] } : {}) };
 
     const image = (into: E, path: string, alt: string, own: Record<string, string> = {}) => {
@@ -573,6 +652,27 @@ export function sanitizeNodes<E>(
             }
             if (child.nodeType !== ELEMENT) continue; // comments, processing instructions
             const name = nameOf(child);
+            if (faces && isLine(child)) {
+                // Consecutive lines set in the book's code face are one listing (#824 FR-12): a `pre`,
+                // a line each, their text as written and their indent as spaces. What links land on and
+                // the print pages that begin in it are kept just above it, never in the code.
+                const marks: LineMarks = { ids: [], pages: [] };
+                const lines = linesOf(child, faces, profile.drop, marks);
+                let last = i;
+                for (let j = i + 1; j < node.childNodes.length; j++) {
+                    const next = node.childNodes[j];
+                    if (next.nodeType === TEXT && !(next.data ?? next.textContent ?? "").trim()) continue;
+                    if (!isLine(next)) break;
+                    lines.push(...linesOf(next, faces, profile.drop, marks));
+                    last = j;
+                }
+                i = last;
+                for (const id of marks.ids) builder.element(into, "span", { "data-zf-id": id });
+                for (const page of marks.pages) builder.element(into, "span", { "data-zf-page": page });
+                result.elements += 1 + marks.ids.length + marks.pages.length;
+                builder.text(builder.element(into, "pre", {}), lines.join("\n"));
+                continue;
+            }
             if (designed && name === "style") {
                 // Collected for the cleaner, never built (#771).
                 result.styles?.push((child.textContent ?? "").slice(0, 512 * 1024));
@@ -647,6 +747,13 @@ export function sanitizeNodes<E>(
                 }
             }
             let element = tag;
+            if (book && !designed && (tag === "pre" || tag === "code")) {
+                // The one fact a listing keeps (#824 FR-1): its language, as the id it is coloured by.
+                const hint = hintOf(child);
+                if (hint) attrs["data-zf-code"] = hint;
+            }
+            // Inline text set in the book's code face is inline code (#824 FR-12).
+            if (tag === "span" && inCodeFace(child)) element = "code";
             if (tag === "a") {
                 const href = attr(child, "href");
                 if (href && !leavesTheBook(href)) attrs["data-zf-href"] = placeIn(chapterHref, href);

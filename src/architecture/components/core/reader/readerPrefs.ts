@@ -17,6 +17,8 @@ export type ReaderLayout = "scroll" | "page" | "spread";
 export type ReaderSpacing = "tight" | "normal" | "airy";
 export type ReaderWidth = "narrow" | "medium" | "wide";
 export type ReaderMargins = "small" | "medium" | "large";
+/** How a book's code sets its long lines (#824 FR-5): scrolled sideways in their listing, or wrapped. */
+export type ReaderCodeLines = "scroll" | "wrap";
 
 export interface ReaderPrefs {
     font: ReaderFont;
@@ -41,6 +43,11 @@ export interface ReaderPrefs {
      * page to look back at it. On by default; the Type panel, Settings and the leaf share this value.
      */
     chapterPause: boolean;
+    /**
+     * *Code lines* (#824 FR-5): what the reader picked. Absent, the device decides — *Scroll* on a desktop
+     * or a tablet, *Wrap* on a phone, where a listing's own sideways scroll is cramped (owner, 2026-10-17).
+     */
+    codeLines?: ReaderCodeLines;
 }
 
 export const READER_FONTS: readonly ReaderFont[] = ["sans", "serif"];
@@ -50,6 +57,12 @@ export const READER_LAYOUTS: readonly ReaderLayout[] = ["scroll", "page", "sprea
 export const READER_SPACINGS: readonly ReaderSpacing[] = ["tight", "normal", "airy"];
 export const READER_WIDTHS: readonly ReaderWidth[] = ["narrow", "medium", "wide"];
 export const READER_MARGINS: readonly ReaderMargins[] = ["small", "medium", "large"];
+export const READER_CODE_LINES: readonly ReaderCodeLines[] = ["scroll", "wrap"];
+
+/** How code lines are set here: the reader's pick, or the device's default (#824). */
+export function codeLinesOf(prefs: Pick<ReaderPrefs, "codeLines">, phone: boolean): ReaderCodeLines {
+    return prefs.codeLines ?? (phone ? "wrap" : "scroll");
+}
 
 /** Every default is 3.6's look, and wears no class of its own (#757 FR-9). */
 export const DEFAULT_READER_PREFS: ReaderPrefs = {
@@ -83,6 +96,7 @@ export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
         margins: pick(READER_MARGINS, value.margins, DEFAULT_READER_PREFS.margins),
         justify: value.justify === true,
         chapterPause: value.chapterPause !== false,
+        ...(READER_CODE_LINES.includes(value.codeLines as ReaderCodeLines) ? { codeLines: value.codeLines as ReaderCodeLines } : {}),
     };
 }
 
@@ -95,7 +109,7 @@ export function normalizeReaderPrefs(raw: unknown): ReaderPrefs {
  * now (#809 FR-4): `false` where it cannot hyphenate its language, so the text sets ragged while the
  * preference stays as it is (FR-5).
  */
-export function readerClassNames(prefs: ReaderPrefs, justified = true): { plugin: string[]; obsidian: string[] } {
+export function readerClassNames(prefs: ReaderPrefs, justified = true, phone = false): { plugin: string[]; obsidian: string[] } {
     const plugin = [
         "reader",
         `reader--font-${prefs.font}`,
@@ -108,6 +122,8 @@ export function readerClassNames(prefs: ReaderPrefs, justified = true): { plugin
         ...((prefs.width ?? "medium") !== "medium" ? [`reader--width-${prefs.width}`] : []),
         ...((prefs.margins ?? "medium") !== "medium" ? [`reader--margins-${prefs.margins}`] : []),
         ...(prefs.justify && justified ? ["reader--justify"] : []),
+        // Scroll is the stylesheet's own default for code, and wears nothing (#824).
+        ...(codeLinesOf(prefs, phone) === "wrap" ? ["reader--code-wrap"] : []),
     ];
     const obsidian = prefs.theme === "dark" ? ["theme-dark"] : prefs.theme === "light" || prefs.theme === "sepia" ? ["theme-light"] : [];
     return { plugin, obsidian };

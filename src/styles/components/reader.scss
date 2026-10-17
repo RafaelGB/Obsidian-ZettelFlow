@@ -2643,12 +2643,47 @@ button.zettelkasten-flow__reader-hl-filter-chip {
 /* ── A chapter changes physically (#735) ────────────────────────────────────────────────────────
    The page you were on, laid over the stage as a sheet of paper; it leaves as a leaf, keeps flowing
    or slides off. Placed exactly where the stage is, and only what was on screen is in it. */
+.zettelkasten-flow__reader-chapter-wait,
 .zettelkasten-flow__turn-sheet,
 .zettelkasten-flow__turn-shade,
 .zettelkasten-flow__turn-underlay {
     position: absolute;
     inset: $stage-inset;
     pointer-events: none;
+}
+
+/* A chapter slow to open (#825): the paper, and the pen about to write — faded in, never a spinner. */
+.zettelkasten-flow__reader-chapter-wait {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--reader-bg);
+    /* Invisible until the delay is over (`both`), then a fade on opacity — on the compositor, so a
+       chapter that holds the main thread still gets its pen on time. */
+    animation: zf-reader-chapter-wait-in 250ms ease-out var(--zf-wait-delay) both;
+
+    .zettelkasten-flow__reader-ink-wait {
+        position: relative;
+        inset: auto;
+        width: 50%;
+    }
+}
+
+@keyframes zf-reader-chapter-wait-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* No fade: the pen is simply there once the delay is over — and still never on a fast open. */
+    .zettelkasten-flow__reader-chapter-wait {
+        animation-duration: 1ms;
+    }
 }
 
 /* Under a sheet a finger lifts (#750): the paper, and the name of where the turn goes. Nothing is drawn yet. */
@@ -2986,16 +3021,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     justify-content: flex-end;
 
     kbd {
-        min-width: var(--size-4-6);
-        padding: var(--size-2-1) var(--size-4-2);
-        text-align: center;
-        font-family: var(--font-interface);
-        font-size: var(--font-ui-smaller);
-        color: var(--reader-fg);
-        background-color: var(--reader-bg);
-        border: var(--border-width) solid var(--reader-line);
-        border-bottom-width: var(--size-2-1);
-        border-radius: var(--radius-s);
+        @include key-cap;
     }
 }
 
@@ -3055,6 +3081,16 @@ body.zettelkasten-flow__reader-covers-app {
     }
 }
 
+/* Where the strip is: set on the page at every move of a finger and every turn, and read by the page
+   alone. Registered as not inherited (#826), so a move restyles the page, never the hundreds of
+   blocks under it — a drag measured 13–15 ms of style recalculation a move before this. Its own name:
+   `--zf-page-x` is also a printed page's crop, a share its ink and marks inherit (#769), and stays so. */
+@property --zf-strip-x {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0;
+}
+
 /* ── Pages or scroll, one page or a spread (#753) ───────────────────────────────────────────────
    In *Page* and *Spread* the chapter is one strip of columns the size of the screen. The pager
    (readerPager.ts) measures it once and sets the custom properties; a turn moves the strip with the
@@ -3077,7 +3113,7 @@ body.zettelkasten-flow__reader-covers-app {
         column-width: var(--zf-page-col, 68ch);
         column-gap: var(--zf-page-gap, var(--size-4-8));
         column-fill: auto;
-        translate: var(--zf-page-x, 0) 0;
+        translate: var(--zf-strip-x, 0) 0;
     }
 
     .zettelkasten-flow__reader-stage .zettelkasten-flow__reader-body {
@@ -4003,4 +4039,78 @@ button.zettelkasten-flow__reader-hl-layer {
     .zettelkasten-flow__reader-scrubber-tip {
         animation: none;
     }
+}
+
+/* ── Code in a book (#824) ────────────────────────────────────────────────────────────────────────
+   The chapter wears `markdown-rendered`, so Obsidian's own code rules already draw a listing's box and
+   colour its tokens (`.token.keyword` from the theme's `--code-*`). What a book needs on top: the
+   listing cut into lines inside runs — a run scrolls sideways and is kept whole on a page, so a listing
+   is never cut through a line or clipped at the page's foot — and the reader's choice to wrap. */
+.zettelkasten-flow__reader-source-body {
+    pre.zettelkasten-flow__reader-code {
+        /* The runs scroll, not the listing: a box that scrolls is never split across pages. */
+        overflow: visible;
+        white-space: pre;
+        tab-size: 4;
+        font-family: var(--font-monospace);
+    }
+
+    .zettelkasten-flow__reader-code code {
+        white-space: pre;
+    }
+
+    .zettelkasten-flow__reader-code-run {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        touch-action: pan-x pan-y;
+        break-inside: avoid;
+    }
+
+    /* A listing split across pages says it goes on — a mark, never a word of the book. */
+    .zettelkasten-flow__reader-code-run[data-zf-continues]::after {
+        content: attr(data-zf-continues);
+        display: block;
+        padding-top: var(--size-4-1);
+        text-align: end;
+        color: var(--reader-faint);
+        font-family: var(--font-interface);
+        font-size: var(--font-ui-smaller);
+        font-style: italic;
+    }
+
+    .zettelkasten-flow__reader-code-line {
+        display: block;
+        white-space: pre;
+    }
+
+    /* Inline code, a key, a sample, a variable: in the line, never raising it. */
+    code,
+    kbd,
+    samp,
+    var {
+        line-height: 1;
+    }
+
+    samp {
+        font-family: var(--font-monospace);
+    }
+
+    var {
+        font-family: var(--font-monospace);
+        font-style: italic;
+    }
+
+    kbd {
+        @include key-cap;
+    }
+}
+
+/* *Code lines: Wrap* (#824 FR-5): a long line folds, and the rest of it hangs under its own indent. */
+.zettelkasten-flow__reader--code-wrap .zettelkasten-flow__reader-source-body .zettelkasten-flow__reader-code-line {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding-inline-start: calc((var(--zf-indent, 0) + 2) * 1ch);
+    text-indent: calc((var(--zf-indent, 0) + 2) * -1ch);
 }

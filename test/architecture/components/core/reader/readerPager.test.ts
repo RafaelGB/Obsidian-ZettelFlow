@@ -4,7 +4,7 @@ import { DomNode } from "../../../../support/dashboardDom";
 import { recordAnimations, reducedMotion, type AnimationRecord } from "../../../../support/motionDom";
 import { ReaderPager } from "architecture/components/core/reader/readerPager";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
-import { lastSample } from "architecture/monitoring/measure";
+import { clearSamples, lastSample, sampleCount } from "architecture/monitoring/measure";
 import { TRAVEL_FAINT, TRAVEL_PAGES, pageTravel, scrollTravel, travelDuration } from "architecture/components/core/reader/readerTravel";
 
 /**
@@ -22,7 +22,7 @@ function chapter(width = 1000, pages = 10) {
     const prop = (name: string) => parseFloat(page.cssProps[name] ?? "0") || 0;
     const stride = () => prop("--zf-page-col") + prop("--zf-page-gap");
     Object.defineProperty(page, "scrollWidth", { get: () => prop("--zf-page-col") + stride() * (pages - 1) });
-    page.getBoundingClientRect = () => ({ left: prop("--zf-page-gap") + prop("--zf-page-x"), top: 0, width: prop("--zf-page-w"), height: 800 });
+    page.getBoundingClientRect = () => ({ left: prop("--zf-page-gap") + prop("--zf-strip-x"), top: 0, width: prop("--zf-page-w"), height: 800 });
     /** A place in column `n` of the strip, as it is now. */
     const placeIn = (n: number) => {
         const el = new DomNode("span") as any;
@@ -54,8 +54,8 @@ describe("the chapter in pages (#753)", () => {
 
     it("lays the strip out from custom properties, never an inline style, and times it", () => {
         const { page, pager } = paged();
-        for (const name of ["--zf-page-w", "--zf-page-col", "--zf-page-gap", "--zf-page-h", "--zf-page-x"]) expect(page.cssProps[name]).toBeDefined();
-        expect(page.cssProps["--zf-page-x"]).toBe("0px");
+        for (const name of ["--zf-page-w", "--zf-page-col", "--zf-page-gap", "--zf-page-h", "--zf-strip-x"]) expect(page.cssProps[name]).toBeDefined();
+        expect(page.cssProps["--zf-strip-x"]).toBe("0px");
         expect(pager.views).toBe(10);
         expect(lastSample("reader.paginate")).toBeDefined();
     });
@@ -66,7 +66,7 @@ describe("the chapter in pages (#753)", () => {
         expect(rec.animations).toHaveLength(1);
         expect([...rec.keys()]).toEqual(["translate"]);
         expect(rec.animations[0].options).toMatchObject({ duration: MOTION.page, easing: MOTION.ease });
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(-stride(), 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(-stride(), 1);
         expect(pager.current).toBe(1);
     });
 
@@ -87,7 +87,7 @@ describe("the chapter in pages (#753)", () => {
         pager.turn(1);
         expect(rec.animations).toHaveLength(0);
         expect(pager.current).toBe(2);
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(-2 * stride(), 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(-2 * stride(), 1);
     });
 
     it("says false at the chapter's ends, for the view to turn the chapter", () => {
@@ -103,7 +103,7 @@ describe("the chapter in pages (#753)", () => {
         expect(wide.pager.perView).toBe(2);
         expect(wide.pager.views).toBe(5);
         wide.pager.turn(1);
-        expect(parseFloat(wide.page.cssProps["--zf-page-x"])).toBeCloseTo(-2 * wide.stride(), 1);
+        expect(parseFloat(wide.page.cssProps["--zf-strip-x"])).toBeCloseTo(-2 * wide.stride(), 1);
         const narrow = paged(800, "spread");
         expect(narrow.pager.perView).toBe(1);
     });
@@ -168,13 +168,13 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         pager.configure("page", "ltr");
         pager.relayout("start");
         pager.goTo(4);
-        return { ...c, pager, base: parseFloat(c.page.cssProps["--zf-page-x"]) };
+        return { ...c, pager, base: parseFloat(c.page.cssProps["--zf-strip-x"]) };
     }
 
     it("follows the finger 1:1 with no animation", () => {
         const { pager, page, base } = paged();
         pager.drag(-120);
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(base - 120, 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(base - 120, 1);
         expect(rec.animations).toHaveLength(0);
     });
 
@@ -183,7 +183,7 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         pager.drag(-400);
         expect(pager.release(0)).toBe("complete");
         expect(pager.current).toBe(5);
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(base - stride(), 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(base - stride(), 1);
         expect([...rec.keys()]).toEqual(["translate"]);
         rec.animations.splice(0);
         pager.drag(-60);
@@ -197,7 +197,7 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         const { pager, page } = paged();
         pager.goTo(0);
         pager.drag(90);
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(30, 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(30, 1);
         expect(pager.release(0)).toBe("spring");
         expect(pager.current).toBe(0);
     });
@@ -207,7 +207,7 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         motion = reducedMotion(true);
         const { pager, page, base } = paged();
         pager.drag(-50);
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(base - 50, 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(base - 50, 1);
         pager.drag(-500);
         pager.release(0);
         expect(rec.animations).toHaveLength(0);
@@ -219,6 +219,52 @@ describe("with a finger, the page is in your hand (#753 FR-13, FR-16)", () => {
         pager.drag(-500);
         expect(pager.release(0, "spring")).toBe("spring");
         expect(pager.current).toBe(4);
+    });
+
+    it("times a turn the finger completes, and not one that springs back (#825 B2)", () => {
+        const { pager } = paged();
+        const before = sampleCount("reader.page.turn");
+        pager.drag(-400);
+        pager.release(0);
+        expect(sampleCount("reader.page.turn")).toBe(before + 1);
+        pager.drag(-60);
+        pager.release(0);
+        expect(sampleCount("reader.page.turn")).toBe(before + 1);
+    });
+});
+
+describe("a page turn lays nothing out (#825 B2, AC-2)", () => {
+    let rec: AnimationRecord;
+    beforeEach(() => {
+        rec = recordAnimations();
+        clearSamples();
+    });
+    afterEach(() => rec.stop());
+
+    it("times each turn, and reads the strip's width zero times over fifty of them", () => {
+        const c = chapter();
+        let widthReads = 0;
+        // The fake strip's width, read through a page that counts each read.
+        const width = Object.getOwnPropertyDescriptor(c.page, "scrollWidth")!.get!;
+        const counted = Object.create(c.page, {
+            scrollWidth: {
+                get: () => {
+                    widthReads++;
+                    return width.call(c.page);
+                },
+            },
+        });
+        c.page = counted;
+        const pager = new ReaderPager(c.stage, c.page);
+        pager.configure("page", "ltr");
+        pager.relayout("start");
+        const paginated = sampleCount("reader.paginate");
+        widthReads = 0;
+        for (let i = 0; i < 50; i++) pager.turn(i % 18 < 9 ? 1 : -1);
+        expect(sampleCount("reader.page.turn")).toBe(50);
+        expect(sampleCount("reader.paginate")).toBe(paginated);
+        expect(widthReads).toBe(0);
+        expect(lastSample("reader.page.turn")?.scale).toBeUndefined();
     });
 });
 
@@ -261,7 +307,7 @@ describe("going to a place travels, never cuts (#761 FR-15, §XVI)", () => {
         expect(rec.animations).toHaveLength(1);
         expect(rec.animations[0].keyframes).toEqual([{ translate: "0px 0" }, { translate: `${-2 * stride()}px 0` }]);
         expect(rec.animations[0].options).toMatchObject({ duration: ms, easing: MOTION.ease });
-        expect(parseFloat(page.cssProps["--zf-page-x"])).toBeCloseTo(-2 * stride(), 1);
+        expect(parseFloat(page.cssProps["--zf-strip-x"])).toBeCloseTo(-2 * stride(), 1);
     });
 
     it("reaches a far page by its last few, faint at first: speed, not dozens of pages", () => {
@@ -300,5 +346,19 @@ describe("going to a place travels, never cuts (#761 FR-15, §XVI)", () => {
         pager.glideTo(9000);
         expect(rec.animations[1].keyframes[0]).toEqual({ translate: "0px 1400px", opacity: TRAVEL_FAINT });
         expect(pager.glideTo(9000)).toBe(0);
+    });
+});
+
+describe("the strip's place is the page's alone (#826 review)", () => {
+    it("moves the page by its own property, and gives the ink layer the place it always had", () => {
+        const c = chapter();
+        const ink = c.page.createDiv({ cls: "zettelkasten-flow__reader-ink-layer" });
+        const pager = new ReaderPager(c.stage, c.page);
+        pager.configure("page", "ltr");
+        pager.relayout("start");
+        pager.turn(1);
+        expect(c.page.cssProps["--zf-strip-x"]).toBeDefined();
+        expect(c.page.cssProps["--zf-page-x"]).toBeUndefined();
+        expect(ink.cssProps["--zf-page-x"]).toBe(c.page.cssProps["--zf-strip-x"]);
     });
 });

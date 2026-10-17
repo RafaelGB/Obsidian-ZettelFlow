@@ -5,7 +5,9 @@ import {
     MAX_SAMPLES,
     measure,
     measureAsync,
+    sampleCount,
     samples,
+    stopwatch,
     type Measurable,
 } from "architecture/monitoring/measure";
 
@@ -82,5 +84,44 @@ describe("one instrument, used by the app and by the budgets (#457)", () => {
         measure(DERIVE_ONE, () => 1);
         clearSamples();
         expect(samples()).toEqual([]);
+    });
+});
+
+describe("a flood of page turns forgets nothing (#825)", () => {
+    beforeEach(() => {
+        clearSamples();
+    });
+
+    it("keeps the start-up row after a thousand Reader samples", () => {
+        measure("plugin.load", () => 1);
+        for (let index = 0; index < 1000; index++) measure("reader.page.turn", () => index);
+        expect(lastSample("plugin.load")).toBeDefined();
+        expect(samples()).toHaveLength(MAX_SAMPLES);
+    });
+
+    it("counts each kind, and an unmeasured kind is zero", () => {
+        for (let index = 0; index < 1000; index++) measure("reader.page.turn", () => index);
+        expect(sampleCount("reader.page.turn")).toBe(1000);
+        expect(sampleCount("reader.relayout")).toBe(0);
+    });
+
+    it("times work that spans awaits, and an abandoned one records nothing", () => {
+        const kept = stopwatch("reader.chapter.open");
+        kept.done();
+        kept.done();
+        expect(sampleCount("reader.chapter.open")).toBe(1);
+        const overtaken = stopwatch("reader.chapter.open");
+        overtaken.abandon();
+        overtaken.done();
+        expect(sampleCount("reader.chapter.open")).toBe(1);
+        expect(lastSample("reader.chapter.open")?.scale).toBeUndefined();
+    });
+
+    it("empties the counts and the latest of each kind too", () => {
+        measure("plugin.load", () => 1);
+        measure("reader.page.turn", () => 1);
+        clearSamples();
+        expect(sampleCount("reader.page.turn")).toBe(0);
+        expect(lastSample("plugin.load")).toBeUndefined();
     });
 });

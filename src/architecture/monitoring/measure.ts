@@ -31,7 +31,15 @@ export type Measurable =
     | "canvas.scan"
     | "scope.census"
     /** The Reader laying a chapter out in pages (#753): one forced layout of the chapter. */
-    | "reader.paginate";
+    | "reader.paginate"
+    /** A book's flowing chapter, from the open to its first page laid out (#825). */
+    | "reader.chapter.open"
+    /** A page turn in Page or Spread, up to the move handed to the compositor (#825). */
+    | "reader.page.turn"
+    /** A type change laid out again and landed on the same line (#825). */
+    | "reader.relayout"
+    /** The sheet of a chapter turn built and set moving (#825). */
+    | "reader.chapter.turn.start";
 
 export interface Sample {
     name: Measurable;
@@ -52,6 +60,13 @@ export interface Sample {
 export const MAX_SAMPLES = 64;
 
 const ring: Sample[] = [];
+/**
+ * The newest sample of each kind, beside the ring (#825): a thousand page turns would push the
+ * start-up rows out of a ring of 64, and those are the rows a surface most wants to keep.
+ */
+const latest = new Map<Measurable, Sample>();
+/** How many times each kind ran this session — bounded by the number of kinds, not of samples. */
+const counts = new Map<Measurable, number>();
 
 /** `performance.now()` where it exists (Obsidian, modern Node), `Date.now()` where it does not. */
 function now(): number {
@@ -59,14 +74,17 @@ function now(): number {
 }
 
 function record(name: Measurable, started: number, ok: boolean, scale?: number): void {
-    ring.push({
+    const sample: Sample = {
         name,
         ms: now() - started,
         at: Date.now(),
         ok,
         ...(scale === undefined ? {} : { scale }),
-    });
+    };
+    ring.push(sample);
     if (ring.length > MAX_SAMPLES) ring.splice(0, ring.length - MAX_SAMPLES);
+    latest.set(name, sample);
+    counts.set(name, (counts.get(name) ?? 0) + 1);
 }
 
 export interface MeasureOptions {
@@ -104,20 +122,53 @@ export async function measureAsync<T>(
     }
 }
 
+export interface Stopwatch {
+    /** Record the time since it started. Once: a second call does nothing. */
+    done(): void;
+    /** Record nothing — the work was overtaken, and a cancelled run must not pass for a fast one. */
+    abandon(): void;
+}
+
+/**
+ * Time work that spans awaits and can be superseded (#825): a chapter open another open overtakes
+ * is abandoned, not recorded.
+ */
+export function stopwatch(name: Measurable): Stopwatch {
+    const started = now();
+    let open = true;
+    return {
+        done() {
+            if (!open) return;
+            open = false;
+            record(name, started, true);
+        },
+        abandon() {
+            open = false;
+        },
+    };
+}
+
 /** Everything still in the ring, oldest first. */
 export function samples(): readonly Sample[] {
     return ring;
 }
 
-/** The most recent timing of one kind — what a surface shows and a budget asserts. */
+/**
+ * The most recent timing of one kind — what a surface shows and a budget asserts. Kept apart from the
+ * ring (#825), so it can be a sample the ring has already let go of.
+ */
 export function lastSample(name: Measurable): Sample | undefined {
-    for (let index = ring.length - 1; index >= 0; index--) {
-        if (ring[index].name === name) return ring[index];
-    }
-    return undefined;
+    return latest.get(name);
+}
+
+/** How many times one kind was measured since the last `clearSamples` (#825) — a run that threw counts too. */
+export function sampleCount(name: Measurable): number {
+    return counts.get(name) ?? 0;
 }
 
 /** Empty it. A decision (between two measured runs), so it is stated rather than inlined. */
 export function clearSamples(): void {
     ring.length = 0;
+    latest.clear();
+    counts.clear();
 }

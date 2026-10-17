@@ -220,3 +220,15 @@ export function twoFingers(trace: TwoFingerTrace): TwoFingerKind {
 export function pinchRelease(scale: number): "card" | "spring" {
     return scale <= PINCH_TO_CARD ? "card" : "spring";
 }
+
+/**
+ * Whether a sideways drag that starts on `target` belongs to a listing of code (#824 AC-M1): inside a
+ * run that is wider than its box and can still scroll the way the finger goes. At its edge, or beside
+ * it, the drag is the page's again. The two never both move.
+ */
+export function listingScrolls(target: EventTarget | null, dx: number): boolean {
+    const run = (target as Element | null)?.closest?.(`.${c("reader-code-run")}`) as HTMLElement | null;
+    if (!run || run.scrollWidth <= run.clientWidth + 1) return false;
+    // A finger moving left reveals what is to the right.
+    return dx < 0 ? run.scrollLeft + run.clientWidth < run.scrollWidth - 1 : dx > 0 ? run.scrollLeft > 0 : false;
+}

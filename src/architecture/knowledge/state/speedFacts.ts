@@ -1,4 +1,4 @@
-import { lastSample, type Measurable, type Sample } from "architecture/monitoring/measure";
+import { lastSample, sampleCount, type Measurable, type Sample } from "architecture/monitoring/measure";
 
 /**
  * How fast it is **here** (#462, epic #452) — pure.
@@ -15,8 +15,12 @@ import { lastSample, type Measurable, type Sample } from "architecture/monitorin
  * a verdict draws it for you, and this is your vault.
  */
 
-/** The timings worth showing, and the key each is labelled with. */
-export const SPEED_ROWS: { name: Measurable; labelKey: string }[] = [
+/**
+ * The timings worth showing, and the key each is labelled with. A `counted` row also says how many
+ * times it ran this session (#825): a page turn happens hundreds of times, a start-up once — and a
+ * start-up row reading "1 time" would be noise, so only the reading moments carry it.
+ */
+export const SPEED_ROWS: { name: Measurable; labelKey: string; counted?: true }[] = [
     // What starting cost (#795): the plugin's own load, and the one build at layout-ready.
     { name: "plugin.load", labelKey: "speed_row_plugin_load" },
     { name: "index.startup", labelKey: "speed_row_index_startup" },
@@ -26,6 +30,11 @@ export const SPEED_ROWS: { name: Measurable; labelKey: string }[] = [
     { name: "analysis.heaviest", labelKey: "speed_row_analysis" },
     { name: "scope.census", labelKey: "speed_row_scope" },
     { name: "reader.paginate", labelKey: "speed_row_paginate" },
+    // The four moments a reader waits through (#825).
+    { name: "reader.chapter.open", labelKey: "speed_row_chapter_open", counted: true },
+    { name: "reader.page.turn", labelKey: "speed_row_page_turn", counted: true },
+    { name: "reader.relayout", labelKey: "speed_row_relayout", counted: true },
+    { name: "reader.chapter.turn.start", labelKey: "speed_row_chapter_turn", counted: true },
 ];
 
 export interface SpeedFact {
@@ -35,6 +44,8 @@ export interface SpeedFact {
     scale?: number;
     /** Unix ms of when it was measured. */
     at: number;
+    /** How many times it ran this session — on the counted rows only. */
+    count?: number;
 }
 
 export interface SpeedFacts {
@@ -44,7 +55,10 @@ export interface SpeedFacts {
 }
 
 /** Read the latest timing of each kind. A kind never measured is absent, not zero. */
-export function speedFacts(read: (name: Measurable) => Sample | undefined = lastSample): SpeedFacts {
+export function speedFacts(
+    read: (name: Measurable) => Sample | undefined = lastSample,
+    count: (name: Measurable) => number = sampleCount
+): SpeedFacts {
     const facts: SpeedFact[] = [];
     for (const row of SPEED_ROWS) {
         const sample = read(row.name);
@@ -54,6 +68,7 @@ export function speedFacts(read: (name: Measurable) => Sample | undefined = last
             ms: sample.ms,
             at: sample.at,
             ...(sample.scale === undefined ? {} : { scale: sample.scale }),
+            ...(row.counted ? { count: count(row.name) } : {}),
         });
     }
     return { facts, empty: facts.length === 0 };

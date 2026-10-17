@@ -1,3 +1,4 @@
+import { meterGesture, type GestureMeter } from "architecture/monitoring/frameMeter";
 import type { Component } from "obsidian";
 import { c } from "architecture";
 import type { ShelfItem } from "application/library/shelf";
@@ -40,6 +41,12 @@ function light(root: ParentNode | null | undefined, bay: HTMLElement | null): vo
 }
 
 /** A shelf that books can be put on. */
+/**
+ * A desktop drag's frames (#826): kept beside `dragging`, because a drop that redraws the shelf takes
+ * the dragged book away, and a detached drag source never hears its `dragend`.
+ */
+let nativeMeter: GestureMeter | null = null;
+
 export function dropTarget(bay: HTMLElement, hooks: DragHooks, scope: Component): void {
     bay.setAttr("data-zf-drop", "true");
     scope.registerDomEvent(bay, "dragover", (event: DragEvent) => {
@@ -62,6 +69,9 @@ export function dropTarget(bay: HTMLElement, hooks: DragHooks, scope: Component)
         if (!item || !hooks.canDrop(item, bay)) return;
         event.preventDefault();
         dragging = null;
+        // The drop may redraw the shelf and take the dragged book away: its frames end here.
+        nativeMeter?.end("drop");
+        nativeMeter = null;
         hooks.drop(item, bay);
     });
 }
@@ -69,9 +79,14 @@ export function dropTarget(bay: HTMLElement, hooks: DragHooks, scope: Component)
 /** A book that can be picked up: dragged on a desktop, long-pressed on a touch screen. */
 export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem, hooks: DragHooks, scope: Component): void {
     book.setAttr("draggable", "true");
+    // Its frames, while a developer's frame meter is on (#826): the shelves lighting under the book.
+    let meter: GestureMeter | null = null;
     scope.registerDomEvent(book, "dragstart", (event: DragEvent) => {
         dragging = item;
         book.addClass(LIFTED);
+        nativeMeter?.end();
+        nativeMeter = meterGesture("shelf-drag:native", "tracked", book.win);
+        nativeMeter.moved();
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/plain", item.title);
@@ -79,6 +94,8 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
         }
     });
     scope.registerDomEvent(book, "dragend", () => {
+        nativeMeter?.end();
+        nativeMeter = null;
         dragging = null;
         book.removeClass(LIFTED);
         light(book.closest(`.${c("shelf-shelf-host")}`), null);
@@ -92,6 +109,8 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
     const end = () => {
         if (press) window.clearTimeout(press.timer);
         press = null;
+        meter?.end();
+        meter = null;
         if (lifted) {
             lifted.ghost?.remove();
             light(book.closest(`.${c("shelf-shelf-host")}`), null);
@@ -115,6 +134,7 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
                 ghost.setCssProps({ "--zf-ghost-x": `${start.x}px`, "--zf-ghost-y": `${start.y}px` });
             }
             lifted = { ghost, bay: null };
+            meter = meterGesture("shelf-drag", "tracked", book.win);
             book.setPointerCapture?.(start.id);
         }, LONG_PRESS_MS);
         press = start;
@@ -126,6 +146,7 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
             if (Math.hypot(event.clientX - press.x, event.clientY - press.y) >= SLOP_PX) end();
             return;
         }
+        meter?.moved();
         lifted.ghost?.setCssProps({ "--zf-ghost-x": `${event.clientX}px`, "--zf-ghost-y": `${event.clientY}px` });
         const bay = bayAt(event.clientX, event.clientY);
         lifted.bay = bay && hooks.canDrop(item, bay) ? bay : null;

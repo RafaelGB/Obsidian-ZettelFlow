@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { DEFAULT_READER_PREFS, READER_LAYOUTS, READER_MARGINS, READER_SPACINGS, READER_WIDTHS, normalizeReaderPrefs, readerClassNames } from "architecture/components/core/reader/readerPrefs";
+import { DEFAULT_READER_PREFS, READER_LAYOUTS, READER_MARGINS, READER_SPACINGS, READER_WIDTHS, normalizeReaderPrefs, readerClassNames, codeLinesOf } from "architecture/components/core/reader/readerPrefs";
 
 describe("the layout is one of your reading preferences (#753 AC-1, FR-1)", () => {
     it("reads Scroll for nothing stored, for anything unknown, and for every preference saved before it", () => {
@@ -57,5 +57,27 @@ describe("the type you can tune (#757 AC-1, AC-2, FR-9)", () => {
         expect(extra({ margins: "large" })).toEqual(["reader--margins-large"]);
         expect(extra({ margins: "small" })).toEqual(["reader--margins-small"]);
         expect(extra({ justify: true })).toEqual(["reader--justify"]);
+    });
+});
+
+describe("Code lines, the reader's or the device's (#824 FR-5, AC-8)", () => {
+    it("is the device's until the reader picks: Scroll on a desktop, Wrap on a phone", () => {
+        const prefs = normalizeReaderPrefs({});
+        expect(prefs.codeLines).toBeUndefined();
+        expect(codeLinesOf(prefs, false)).toBe("scroll");
+        expect(codeLinesOf(prefs, true)).toBe("wrap");
+        expect(codeLinesOf({ codeLines: "scroll" }, true)).toBe("scroll");
+    });
+
+    it("keeps a pick, and drops anything that is not one", () => {
+        expect(normalizeReaderPrefs({ codeLines: "wrap" }).codeLines).toBe("wrap");
+        expect(normalizeReaderPrefs({ codeLines: "folded" }).codeLines).toBeUndefined();
+    });
+
+    it("wears a class only to wrap: scroll is the stylesheet's own default", () => {
+        expect(readerClassNames({ ...DEFAULT_READER_PREFS, codeLines: "wrap" }).plugin).toContain("reader--code-wrap");
+        expect(readerClassNames({ ...DEFAULT_READER_PREFS, codeLines: "scroll" }, true, true).plugin).not.toContain("reader--code-wrap");
+        expect(readerClassNames(DEFAULT_READER_PREFS, true, true).plugin).toContain("reader--code-wrap");
+        expect(readerClassNames(DEFAULT_READER_PREFS).plugin).not.toContain("reader--code-wrap");
     });
 });

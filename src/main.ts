@@ -1,3 +1,4 @@
+import { setFrameMeter } from "architecture/monitoring/frameMeter";
 import { DEFAULT_SETTINGS, ZettelFlowSettings } from 'config';
 import { WorkbenchView } from "architecture/components/core/workbench/WorkbenchView";
 import { normalizeLoadedSettings } from "config/normalizeLoadedSettings";
@@ -138,6 +139,7 @@ export default class ZettelFlow extends Plugin {
 		JudgementLog.getInstance().flush(); // #336: persist any pending verdict.
 		MoveLog.getInstance().flush(); // #491: persist any pending move.
 		draftStore.release(); // #410: never hold an unloaded plugin across a disable/enable.
+		setFrameMeter(false); // #826: a developer's frame meter leaves no listener or loop behind.
 		unloadPluginComponents();
 		actionsStore.unregisterAll();
 	}

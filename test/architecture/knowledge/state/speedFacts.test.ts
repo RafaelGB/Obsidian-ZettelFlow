@@ -46,6 +46,23 @@ describe("how fast it is here (#462)", () => {
             "analysis.heaviest",
             "scope.census",
             "reader.paginate",
+            // The four reading moments (#825).
+            "reader.chapter.open",
+            "reader.page.turn",
+            "reader.relayout",
+            "reader.chapter.turn.start",
+        ]);
+    });
+
+    it("carries a run count on the Reader moments only (#825)", () => {
+        const sample = (name: Measurable): Sample => ({ name, ms: 2, at: 1, ok: true });
+        const facts = speedFacts(
+            reader({ "plugin.load": sample("plugin.load"), "reader.page.turn": sample("reader.page.turn") }),
+            (name) => (name === "reader.page.turn" ? 12 : 1)
+        );
+        expect(facts.facts).toEqual([
+            { labelKey: "speed_row_plugin_load", ms: 2, at: 1 },
+            { labelKey: "speed_row_page_turn", ms: 2, at: 1, count: 12 },
         ]);
     });
 
@@ -86,6 +103,7 @@ describe("the speed section states no verdict (#462, §XII)", () => {
             "speed_never_measured",
             "speed_measured_at",
             "speed_over_notes",
+            "speed_samples",
         ]);
         const judgement = /\b(slow|fast|poor|bad|good|should|improve|optimi[sz]e|too many|warning)\b/i;
         for (const key of keys) {

@@ -1,5 +1,6 @@
 import { c } from "architecture";
 import { measure } from "architecture/monitoring/measure";
+import { meterGesture, type GestureMeter } from "architecture/monitoring/frameMeter";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { completionRate, releaseTurn, rubberBand } from "./readerGestures";
 import {
@@ -20,6 +21,7 @@ import {
 } from "./readerPages";
 import type { ReaderLayout } from "./readerPrefs";
 import { pageTravel, scrollTravel, TRAVEL_FAINT } from "./readerTravel";
+import { mergeListing, runsOf, splitListing } from "./readerCode";
 
 /**
  * **The chapter in pages** (#753, epic #739) — the DOM side of `readerPages`. In *Page* and *Spread*
@@ -107,6 +109,8 @@ export class ReaderPager {
     private size: { width: number; height: number } | null = null;
     private observer: ResizeObserver | null = null;
     private checking = false;
+    /** A drag's frames, for a developer's frame meter (#826); the do-nothing handle when it is off. */
+    private meter: GestureMeter | null = null;
 
     constructor(
         private readonly stage: HTMLElement,
@@ -150,8 +154,11 @@ export class ReaderPager {
         this.direction = direction;
         this.shape = shape;
         if (this.paged) return;
+        // In *Scroll* a listing is one run again (#824 FR-7).
+        this.fitListings(0);
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         this.geometry = null;
         this.pages = 1;
         this.view = 0;
@@ -163,6 +170,7 @@ export class ReaderPager {
     reset(): void {
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         this.remembered = null;
         this.view = 0;
         this.pages = 1;
@@ -181,6 +189,7 @@ export class ReaderPager {
     private layoutNow(land: Landing): void {
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         // Kept: the line noted after the last turn, or — when a turn has not been noted yet — the
         // first line on screen now, read from the layout as it still is.
         const kept = land === "keep" && !this.atLast ? (connected(this.remembered) ? this.remembered : this.firstVisible()) : null;
@@ -200,9 +209,11 @@ export class ReaderPager {
             "--zf-page-col": px(geometry.columnPx),
             "--zf-page-gap": px(geometry.gapPx),
             "--zf-page-h": px(Math.max(1, size.height - padTop - padBottom)),
-            "--zf-page-x": "0px",
+            "--zf-strip-x": "0px",
         });
+        this.inkLayer()?.setCssProps({ "--zf-page-x": "0px" });
         this.fitTables(Math.max(1, size.height - padTop - padBottom));
+        this.fitListings(Math.max(1, size.height - padTop - padBottom));
         this.pages = pageCount(this.page.scrollWidth, geometry.stridePx, geometry.gapPx);
         let view = this.view;
         if (land === "start") view = 0;
@@ -249,6 +260,80 @@ export class ReaderPager {
         }
     }
 
+    /**
+     * A book's listings, page by page (#824 FR-7). A listing that fits a page is one run, kept whole —
+     * on the next page if it would not fit the rest of this one. One taller than a page is cut between
+     * lines into runs: the first fills what is left of the page (or starts the next, with under three
+     * lines left), each after it a page, every run but the last marked as continuing. The listings are
+     * read as they are — a short one by its box alone, a tall one by its lines — and only one whose cut
+     * changes is written: a layout that moves nothing in the code costs one read of it. Back in *Scroll*,
+     * every listing is one run again.
+     */
+    private fitListings(pageHeight: number): void {
+        const listings = Array.from(this.page.querySelectorAll<HTMLElement>(`pre.${c("reader-code")}`));
+        if (listings.length === 0) return;
+        if (!this.paged) {
+            for (const pre of listings) if (runsOf(pre).length > 1) mergeListing(pre);
+            return;
+        }
+        const strip = this.page.getBoundingClientRect();
+        const style = (this.stage as El).win?.getComputedStyle?.(this.page);
+        const top = strip.top + (parseFloat(style?.paddingTop ?? "") || 0);
+        // Every read first: each listing's runs, a tall one's lines, and how much page is left where it starts.
+        const plans = listings.map((pre) => {
+            const runs = runsOf(pre);
+            if (runs.length === 0) return null;
+            const total = runs.reduce((sum, run) => sum + run.getBoundingClientRect().height, 0);
+            if (runs.length === 1 && total <= pageHeight) return null;
+            const lines = runs.flatMap((run) => (Array.from(run.children) as HTMLElement[]).map((line) => line.getBoundingClientRect().height));
+            // Where the listing begins: its own first box, wherever it sits — in a figure, a list, first.
+            const first = pre.getClientRects?.()[0];
+            const used = first ? Math.max(0, first.top - top) : 0;
+            return { pre, runs, lines, left: pageHeight - (used % pageHeight) };
+        });
+        for (const plan of plans) {
+            if (!plan) continue;
+            const { pre, runs, lines, left } = plan;
+            const current = runs.map((run) => run.children.length);
+            if (lines.reduce((sum, h) => sum + h, 0) <= pageHeight || lines.length < 2) {
+                if (runs.length > 1) mergeListing(pre);
+                continue;
+            }
+            const line = Math.max(...lines);
+            // A page's run gives a line to the mark that says it goes on, and room for its scrollbar.
+            const room = Math.max(line, pageHeight - line * 1.5);
+            const counts: number[] = [];
+            let budget = left - line * 1.5 >= line * 3 ? left - line * 1.5 : room;
+            let count = 0;
+            let used = 0;
+            for (const h of lines) {
+                if (count > 0 && used + h > budget) {
+                    counts.push(count);
+                    count = 0;
+                    used = 0;
+                    budget = room;
+                }
+                count++;
+                used += h;
+            }
+            if (count > 0) counts.push(count);
+            // Already cut this way: nothing is written, and the page is not laid out again for it.
+            if (counts.length === current.length && counts.every((n, i) => n === current[i])) continue;
+            splitListing(pre, counts);
+        }
+    }
+
+    /** A drag something else ended (a turn, a layout, a new chapter): its frames end with it (#826). */
+    private dropMeter(): void {
+        this.meter?.end();
+        this.meter = null;
+    }
+
+    /** The ink layer drawn inside the page, if one is (#745). */
+    private inkLayer(): HTMLElement | null {
+        return this.page.querySelector<HTMLElement>(`:scope > .${c("reader-ink-layer")}`);
+    }
+
     /** A `ch` at the reading size, from the body's own font size. */
     private chPx(): number {
         const body = this.page.querySelector<HTMLElement>(`.${c("reader-body")}`) ?? this.page;
@@ -262,7 +347,10 @@ export class ReaderPager {
 
     private setX(x: number): void {
         this.x = x;
-        this.page.setCssProps({ "--zf-page-x": px(x) });
+        this.page.setCssProps({ "--zf-strip-x": px(x) });
+        // The ink layer read the strip's place as its own `--zf-page-x`, inherited: it gets it as it was,
+        // on itself alone — the page's own is not inherited (#826), or a move restyled every block.
+        this.inkLayer()?.setCssProps({ "--zf-page-x": px(x) });
     }
 
     /** Input during a move (#751 FR-15): the move jumps to its end — the place is already set under it. */
@@ -323,14 +411,18 @@ export class ReaderPager {
      */
     turn(dir: 1 | -1): boolean {
         if (!this.canTurn(dir)) return false;
-        this.finishRunning();
-        this.dragging = null;
-        const from = this.x;
-        this.view += dir;
-        const to = this.offsetOf(this.view);
-        this.setX(to);
-        this.slide(from, to, MOTION.page);
-        this.turned();
+        // Timed to the move handed to the compositor and the view's hooks (#825 B2): it lays nothing out.
+        measure("reader.page.turn", () => {
+            this.finishRunning();
+            this.dragging = null;
+            this.dropMeter();
+            const from = this.x;
+            this.view += dir;
+            const to = this.offsetOf(this.view);
+            this.setX(to);
+            this.slide(from, to, MOTION.page);
+            this.turned();
+        });
         return true;
     }
 
@@ -355,6 +447,7 @@ export class ReaderPager {
         if (!this.paged) return 0;
         this.finishRunning();
         this.dragging = null;
+        this.dropMeter();
         const target = Math.min(Math.max(0, view), this.views - 1);
         const from = this.view;
         if (target === from) return 0;
@@ -432,6 +525,10 @@ export class ReaderPager {
         if (!this.dragging) {
             this.finishRunning();
             this.dragging = { base: this.offsetOf(this.view), dx: 0 };
+            this.dropMeter();
+            // Its frames, while a developer's frame meter is on (#826): the page under the finger.
+            this.meter = meterGesture("page-drag", "tracked", (this.stage as El).win);
+            this.meter.moved();
         }
         this.dragging.dx = dx;
         this.atLast = false;
@@ -446,6 +543,20 @@ export class ReaderPager {
      * gesture the system took (`force: "spring"`) always springs back.
      */
     release(vx: number, force?: "spring"): "complete" | "spring" {
+        const outcome = this.releaseNow(vx, force);
+        // The motion ends when the page lands: the turn or the spring that the release played.
+        const meter = this.meter;
+        this.meter = null;
+        if (meter) {
+            const how = outcome === "complete" ? "turn" : "spring";
+            const landing = this.running;
+            if (landing) void landing.finished.then(() => meter.end(how), () => meter.end(how));
+            else meter.end(how);
+        }
+        return outcome;
+    }
+
+    private releaseNow(vx: number, force?: "spring"): "complete" | "spring" {
         const drag = this.dragging;
         this.dragging = null;
         if (!drag || !this.geometry) return "spring";
@@ -454,12 +565,14 @@ export class ReaderPager {
         const outcome = !force && dir !== 0 && this.canTurn(dir) ? releaseTurn({ dx: drag.dx, width, vx }) : "spring";
         const from = this.x;
         if (outcome === "complete" && dir !== 0) {
-            this.view += dir;
-            const to = this.offsetOf(this.view);
-            this.setX(to);
-            const progress = Math.abs(drag.dx) / Math.max(1, width);
-            this.slide(from, to, MOTION.page * (1 - Math.min(1, progress)), completionRate(progress, vx, width, MOTION.page));
-            this.turned();
+            measure("reader.page.turn", () => {
+                this.view += dir;
+                const to = this.offsetOf(this.view);
+                this.setX(to);
+                const progress = Math.abs(drag.dx) / Math.max(1, width);
+                this.slide(from, to, MOTION.page * (1 - Math.min(1, progress)), completionRate(progress, vx, width, MOTION.page));
+                this.turned();
+            });
             return "complete";
         }
         this.setX(drag.base);

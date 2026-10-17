@@ -31,7 +31,7 @@ import { keepRecall, recallFlowName, undoRecall } from "./readerRecallNote";
 import { recallCitation } from "application/library/recallNote";
 import { canFullscreen, isApple, panelShape, tooLarge, touchPointer } from "./readerDevice";
 import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
-import { PINCH_SHARE, completionRate, edgeZone, isThing, pinchRelease, releaseTurn, rubberBand, startGesture, twoFingers, type Gesture, type TwoFingerKind, SYSTEM_EDGE_PX } from "./readerGestures";
+import { PINCH_SHARE, completionRate, edgeZone, isThing, listingScrolls, pinchRelease, releaseTurn, rubberBand, startGesture, twoFingers, type Gesture, type TwoFingerKind, SYSTEM_EDGE_PX } from "./readerGestures";
 import { blockAtLine, placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
 import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type AlongsideReading } from "./readerAlongside";
 import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
@@ -86,7 +86,7 @@ import { isHighlight, isInk, type Thought, type ThoughtLocator } from "applicati
 import { openLibrary } from "architecture/components/core/library/openLibrary";
 import { END_OF_CHAPTER, bookMinutesLeft, learnPace, minutesFor, minutesLeft, minutesLeftByPages, normalizePace, paceWpm, pagePace, readFraction, scrolls, splitMinutes, wordCount, type Pace } from "./readerPace";
 import { designedKeyIntent, visibleTurn } from "./readerDesigned";
-import { normalizeReaderPrefs, readerClassNames, type ReaderLayout, type ReaderPrefs } from "./readerPrefs";
+import { codeLinesOf, normalizeReaderPrefs, readerClassNames, type ReaderLayout, type ReaderPrefs } from "./readerPrefs";
 import { ReaderPager, stageScale, type Landing, type PageAnchor } from "./readerPager";
 import { dragDirection, edgeTurn, keyIntent, type BookDirection, type KeyIntent } from "./readerPages";
 import { LAYOUT_SETTLE, settleAround, TYPE_SETTLE } from "./readerSettle";
@@ -101,6 +101,8 @@ import { PdfPageRun } from "./readerPageRun";
 import { PREVIEW_BLOCKS, cardMarks, cardPixels, cardProgress, normalizeContentsTab, overviewLimit, overviewUnits, renderOverview, OVERVIEW_LIMITS, type ContentsTab, type MarkSource, type Overview, type OverviewUnit } from "./readerOverview";
 import { fly } from "./readerMotion";
 import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
+import { armChapterWait } from "./readerWaiting";
+import { measure, stopwatch } from "architecture/monitoring/measure";
 import { CitePanel } from "./readerCite";
 import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
 import { citeSourceOf } from "architecture/components/core/library/libraryCite";
@@ -396,6 +398,10 @@ export class ReaderView extends ItemView {
     /** The bar's door to each panel, pressed while its panel is open (#777 FR-3). */
     private panelButtons: Record<Exclude<Panel, null | "recall" | "overview">, HTMLElement> | null = null;
     private root: HTMLElement | null = null;
+    /** The books with code drawn this session (#824 FR-6): their Type panel has *Code lines*. */
+    private readonly codeBooks = new Set<string>();
+    /** A slow chapter's wait (#825): taken away by the next open too, if a draw never settles. */
+    private disarmWait: (() => void) | null = null;
     private els: {
         title: HTMLElement;
         page: HTMLElement;
@@ -1160,6 +1166,8 @@ export class ReaderView extends ItemView {
     }
 
     async onClose(): Promise<void> {
+        this.disarmWait?.();
+        this.disarmWait = null;
         // Closing the tab in deep reading still gives the window back as it was.
         this.leaveDeep(true);
         // Nothing of this reading can be reached by Ctrl/⌘+Z once it is closed (#810 FR-15).
@@ -1468,7 +1476,7 @@ export class ReaderView extends ItemView {
     private applyPrefs(): void {
         if (!this.root) return;
         // The layout as it applies now: a PDF's Page view and the end card are never paged (#753).
-        const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() }, this.justifyHere().justified);
+        const { plugin, obsidian } = readerClassNames({ ...this.prefs, layout: this.effectiveLayout() }, this.justifyHere().justified, Platform.isPhone);
         // A shot's states survive a change of type or theme: taking them off would replay an entrance.
         const kept = ["reader--idle", "reader--in-shot", "reader--arrived", "reader--deep", "reader--deep-entering", "reader--deep-leaving", "reader--page-run", "reader--drawer", "reader--sheet", "reader--snapshot", "reader--listening"].filter((name) => this.root?.hasClass?.(c(name)) ?? false);
         this.root.className = [...plugin.map((name) => c(name)), ...obsidian, ...kept.map((name) => c(name))].join(" ");
@@ -1501,7 +1509,7 @@ export class ReaderView extends ItemView {
         // noted before the change, landed on after it, and the text around it settles.
         const coarse = next.layout !== before.layout || next.font !== before.font || next.size !== before.size;
         // The finer type (#757 FR-13) keeps your line the same way, with a quicker, fainter settle.
-        const fine = next.spacing !== before.spacing || next.width !== before.width || next.margins !== before.margins || next.justify !== before.justify;
+        const fine = next.spacing !== before.spacing || next.width !== before.width || next.margins !== before.margins || next.justify !== before.justify || next.codeLines !== before.codeLines;
         const reshapes = coarse || fine;
         // A paper in Page view (#767): its printed pages take the new layout, the page you were on kept.
         if (this.runMode() && this.pageRun) {
@@ -1523,17 +1531,23 @@ export class ReaderView extends ItemView {
         const anchor = reshapes && pager && !this.ended ? pager.firstVisible() : null;
         const tops = anchor && pager ? pager.blockTops() : null;
         this.prefs = next;
-        this.applyPrefs();
         if (pager && anchor && tops) {
-            pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
-            if (pager.paged) pager.relayout({ anchor });
-            else pager.reveal(anchor);
-            const keep = pager.blockOf(anchor);
-            settleAround(keep, pager.visibleBlocks().map((el) => ({ el, oldTop: tops.get(el) ?? null })), coarse ? LAYOUT_SETTLE : TYPE_SETTLE);
+            // The type changed, the chapter laid out again and landed on your line (#825 B3).
+            measure("reader.relayout", () => {
+                this.applyPrefs();
+                pager.configure(this.effectiveLayout(), this.bookDirection(), this.pageShape());
+                if (pager.paged) pager.relayout({ anchor });
+                else pager.reveal(anchor);
+                const keep = pager.blockOf(anchor);
+                settleAround(keep, pager.visibleBlocks().map((el) => ({ el, oldTop: tops.get(el) ?? null })), coarse ? LAYOUT_SETTLE : TYPE_SETTLE);
+            });
             this.onStageScroll();
-        } else if (reshapes) {
-            this.applyLayout();
-            this.pager?.relayout("keep");
+        } else {
+            this.applyPrefs();
+            if (reshapes) {
+                this.applyLayout();
+                this.pager?.relayout("keep");
+            }
         }
         if (this.plugin?.settings) {
             this.plugin.settings.readerPrefs = next;
@@ -2957,6 +2971,9 @@ export class ReaderView extends ItemView {
     private async renderSourceChapter(): Promise<void> {
         if (!this.els || !this.path || !this.sourcePath) return;
         const generation = ++this.generation;
+        // From the open to the first page laid out (#825 B1): a book's flowing chapters only, and an
+        // open another overtakes, or that never draws, records nothing.
+        const opening = stopwatch("reader.chapter.open");
         const { page, stage } = this.els;
         const path = this.sourcePath;
         const doc = this.source;
@@ -3026,21 +3043,31 @@ export class ReaderView extends ItemView {
             large.createDiv({ cls: c("reader-too-large-text"), text: t("reader_source_too_large") });
             const shelf = large.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_back_to_shelf") });
             component.registerDomEvent(shelf, "click", () => this.backToShelf(path));
+            opening.abandon();
             return;
         }
         if (!doc) {
             body.createDiv({ cls: c("reader-missing"), text: t(this.sourceFailed ? "reader_source_failed" : "reader_source_opening") });
+            opening.abandon();
             return;
         }
         const run = asRun ? this.ensureRun(doc) : null;
         if (run) {
+            // A paper's printed pages are timed as their own window, never as a chapter opening.
+            opening.abandon();
             this.renderRunChapter(run, body, index, total);
             return;
         }
+        // Designed pages and a paper's reading view are not a book's flowing chapter (#825 B1).
+        if (doc.format === "pdf" || doc.designed || doc.chapters[index]?.designed) opening.abandon();
         this.dropRun();
         let picture = false;
         let pageMarks: PageMark[] = [];
         this.pageLanguage = null;
+        // A chapter slow to open says so, past the delay — never on a fast one (#825).
+        this.disarmWait?.();
+        const disarmWait = this.root ? armChapterWait(this.root, stage, t("reader_chapter_waiting")) : () => undefined;
+        this.disarmWait = disarmWait;
         try {
             const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
@@ -3051,6 +3078,10 @@ export class ReaderView extends ItemView {
             this.rejustify();
             this.chapterWords = drawn.words;
             this.seenWords.set(index, drawn.words);
+            if (drawn.listings && !this.codeBooks.has(path)) {
+                this.codeBooks.add(path);
+                if (this.panel === "type") this.renderPanel();
+            }
             const named = doc.chapters[index];
             if (drawn.heading && named?.untitled && !named.heading) named.heading = drawn.heading;
             // Said once: nothing when the chapter opens with its own heading, or has no name (decision 5).
@@ -3062,8 +3093,15 @@ export class ReaderView extends ItemView {
         } catch (error) {
             log.error(`[Reader] could not draw ${path} at ${index}: ${error instanceof Error ? error.message : String(error)}`);
             if (generation === this.generation) body.createDiv({ cls: c("reader-missing"), text: t("reader_source_failed") });
+            opening.abandon();
+        } finally {
+            disarmWait();
+            if (this.disarmWait === disarmWait) this.disarmWait = null;
         }
-        if (generation !== this.generation) return;
+        if (generation !== this.generation) {
+            opening.abandon();
+            return;
+        }
         body.toggleClass(c("reader-source-body--picture"), picture);
         // A designed page among flowing chapters (#771 FR-1) says it once too, above itself.
         if (doc.chapters[index]?.designed && !this.designedHintShown) page.insertBefore(this.designedHint(page), body);
@@ -3122,6 +3160,7 @@ export class ReaderView extends ItemView {
         // At once: the chapter turn already moved the camera. In pages, `layPages` lands it.
         if (landing) this.landHere(landing, false);
         this.layPages();
+        opening.done();
         this.onStageScroll();
         this.refreshRibbon();
         this.listenDrawn();
@@ -4856,6 +4895,8 @@ export class ReaderView extends ItemView {
             ...(hint?.kind === "hyphenated" ? { hyphenatedAs: hint.language } : {}),
             ...(hint?.kind === "missing" ? { hyphenationMissing: hint.language } : {}),
             pageView: Boolean(this.sourcePath && this.sourceView === "page" && this.source?.hasPageView),
+            // A book whose code has been drawn (#824 FR-6): its long lines, scrolled or wrapped.
+            ...(this.sourcePath && this.codeBooks.has(this.sourcePath) ? { codeLines: codeLinesOf(this.prefs, Platform.isPhone) } : {}),
             // Page view's own rows (#767 FR-13): shown in Page view only.
             ...(run
                 ? {
@@ -5632,6 +5673,11 @@ export class ReaderView extends ItemView {
         if (kind !== "swipe") return;
         // A paper in a scroll of pages, or zoomed wider than the screen, pans under the finger (#767).
         if (this.pageRun && this.runMode() && (this.runLayout() === "scroll" || this.pageRun.overflowsAcross())) {
+            this.touch = null;
+            return;
+        }
+        // A drag inside a listing of code that can scroll is the listing's (#824 AC-M1).
+        if (touch.dir === 0 && listingScrolls(event.target, touch.gesture.dx)) {
             this.touch = null;
             return;
         }

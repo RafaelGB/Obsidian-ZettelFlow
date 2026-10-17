@@ -3,7 +3,7 @@ import { c } from "architecture";
 import { t } from "architecture/lang";
 import { flightTransform, MOTION, motionWelcome } from "./readerMotion";
 import { panelHead, type PanelClose } from "./readerPanelHead";
-import { READER_FONTS, READER_LAYOUTS, READER_MARGINS, READER_SIZES, READER_SPACINGS, READER_THEMES, READER_WIDTHS, type ReaderPrefs } from "./readerPrefs";
+import { READER_CODE_LINES, READER_FONTS, READER_LAYOUTS, READER_MARGINS, READER_SIZES, READER_SPACINGS, READER_THEMES, READER_WIDTHS, type ReaderCodeLines, type ReaderPrefs } from "./readerPrefs";
 
 /**
  * **The Type panel** (#668, extracted in #753): how you set the page — its layout, face, size and
@@ -107,7 +107,14 @@ export interface TypePanelContext {
     pageRun?: PageViewControls;
     /** The panel's own way out, at the end of its title row (#777 FR-1). */
     close?: PanelClose;
+    /**
+     * *Code lines* (#824 FR-6): how this book's code sets its long lines here — present once a chapter
+     * with a listing has been drawn this session. Absent, a book without code shows no such row.
+     */
+    codeLines?: ReaderCodeLines;
 }
+
+const CODE_LINES_KEY: Record<ReaderCodeLines, LocaleKey> = { scroll: "reader_code_scroll", wrap: "reader_code_wrap" };
 
 const FIT_KEY: Record<"width" | "page", LocaleKey> = { width: "reader_pv_fit_width", page: "reader_pv_fit_page" };
 const DIRECTION_KEY: Record<"down" | "across", LocaleKey> = { down: "reader_pv_down", across: "reader_pv_across" };
@@ -271,6 +278,8 @@ export function renderTypePanel(
     segmentedRow(host, { id: "spacing", label: "reader_spacing", options: READER_SPACINGS, current: prefs.spacing, key: (o) => SPACING_KEY[o], onPick: (spacing) => onPick({ ...prefs, spacing }) }, scope, before);
     segmentedRow(host, { id: "width", label: "reader_width", options: READER_WIDTHS, current: prefs.width, key: (o) => WIDTH_KEY[o], onPick: (width) => onPick({ ...prefs, width }) }, scope, before);
     segmentedRow(host, { id: "margins", label: "reader_margins", options: READER_MARGINS, current: prefs.margins, key: (o) => MARGINS_KEY[o], onPick: (margins) => onPick({ ...prefs, margins }) }, scope, before);
+    // A book with code (#824 FR-6): its long lines scroll in their listing, or wrap under their indent.
+    if (context.codeLines) segmentedRow(host, { id: "code", label: "reader_code_lines", options: READER_CODE_LINES, current: context.codeLines, key: (o) => CODE_LINES_KEY[o], onPick: (codeLines) => onPick({ ...prefs, codeLines }) }, scope, before);
     toggleRow(host, "align-justify", "reader_justify", prefs.justify, scope, () => onPick({ ...prefs, justify: !prefs.justify }));
     // Quietly, which language the words break by, so a wrong guess can be seen (FR-7).
     // What the hyphens do here (#809 FR-8): the language they follow, or why the column reads ragged.

@@ -17,6 +17,7 @@ import {
     PINCH_TO_CARD,
     TAP_MS,
     type TwoFingerTrace,
+    listingScrolls,
 } from "architecture/components/core/reader/readerGestures";
 
 const at = (x: number, y: number, t: number) => ({ x, y, t });
@@ -150,5 +151,26 @@ describe("two fingers, decided once (#776 D13, AC-14)", () => {
         expect(pinchRelease(0.4)).toBe("card");
         expect(pinchRelease(PINCH_TO_CARD)).toBe("card");
         expect(pinchRelease(0.7)).toBe("spring");
+    });
+});
+
+describe("a drag inside a listing of code (#824 AC-M1)", () => {
+    const run = (scrollLeft: number, scrollWidth = 900, clientWidth = 400) => {
+        const el = { scrollLeft, scrollWidth, clientWidth };
+        const target = { closest: (selector: string) => (selector.includes("reader-code-run") ? el : null) };
+        return target as unknown as EventTarget;
+    };
+
+    it("is the listing's while it can still scroll the way the finger goes", () => {
+        expect(listingScrolls(run(0), -40)).toBe(true);
+        expect(listingScrolls(run(200), 40)).toBe(true);
+    });
+
+    it("is the page's at the listing's edge, beside it, or when it does not scroll at all", () => {
+        expect(listingScrolls(run(0), 40)).toBe(false);
+        expect(listingScrolls(run(500), -40)).toBe(false);
+        expect(listingScrolls(run(0, 400, 400), -40)).toBe(false);
+        expect(listingScrolls({ closest: () => null } as unknown as EventTarget, -40)).toBe(false);
+        expect(listingScrolls(null, -40)).toBe(false);
     });
 });

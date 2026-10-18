@@ -1060,7 +1060,7 @@ export class LibraryView extends ItemView {
         const note = this.lastNote();
         if (!note) return;
         const read = empty.createEl("button", { cls: "mod-cta", attr: { type: "button" }, text: t("shelf_empty_read") });
-        scope.registerDomEvent(read, "click", () => readFrom(this.app, note));
+        scope.registerDomEvent(read, "click", () => readFrom(this.app, note, undefined, read));
     }
 
     /** The note you were in before the Library — where *Read a path across your notes* starts. */

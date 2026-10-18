@@ -1188,7 +1188,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             text: t("lab_highlight_open_reader"),
             attr: { type: "button" },
         });
-        this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id }));
+        this.registerDomEvent(open, "click", () => void openReader(this.app, { seed: about, highlight: thought.id, from: open }));
     }
 
     /** The passage a Reader move answered (#756), where it is, the note it is also about, and the way back. */
@@ -1216,7 +1216,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         renderInkCard(box, thought, {
             drawing: (ink) => ThoughtStore.getInstance().drawingOf(ink),
             name: displayName(about, ObsidianApi.getOwnPlugin()?.settings.library),
-            ...(reachable ? { open: () => void openReader(this.app, { seed: about, highlight: thought.id }) } : {}),
+            ...(reachable ? { open: (from: HTMLElement) => void openReader(this.app, { seed: about, highlight: thought.id, from }) } : {}),
             listen: (el, run) => this.registerDomEvent(el, "click", run),
             // Read as text (#748): the same chip, gate and card as in the Reader's margin.
             chip: (parent) => this.inkReading().renderChip(parent, thought, (el, run) => this.registerDomEvent(el, "click", run)),

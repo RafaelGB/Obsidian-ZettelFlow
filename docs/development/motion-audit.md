@@ -87,8 +87,11 @@ main-thread frames from the meter, and layout and style time from the trace, ove
 | Shelf drag | slowest frames 9–17 ms, 2 layouts | (unchanged) | Within budget. |
 | Closing a book | ~120 ms before the camera moves | (unchanged) | It waits for the Library to draw the cover: [#829](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/829). |
 
-The ways into the Reader that open it with a **cut**, not from an origin, are listed in
-[#828](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/828).
+The ways into the Reader that opened it with a **cut** were given their origin in
+[#828](https://github.com/RafaelGB/Obsidian-ZettelFlow/issues/828): every door on screen now flies from
+what was clicked. A menu or a command keeps the Reader's own entrance. The origin's flight is not
+metered, on purpose: it is a compositor `transform` animation, and timing it would spend bundle space
+on a number nobody needed yet.
 
 ## On an iPad
 

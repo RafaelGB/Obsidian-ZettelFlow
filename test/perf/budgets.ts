@@ -418,8 +418,10 @@ export const BUDGETS = {
         // traces share, the meter that costs nothing when off, its row in Settings › Advanced in two
         // languages: 3,112 KB. The driver and the trace reading stay outside the bundle (scripts/). The
         // epic used 15 of its 20 KB.
+        // #817's wizard preview brought main to 3,114.2 KB without this line moving; #828's doors add 0.5 KB:
+        // 3,114.7 KB — 0.3 KB under the ceiling, so the next feature needs a deliberate raise.
         limit: 3_115,
-        measured: "3,112 KB",
+        measured: "3,114.7 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

@@ -81,7 +81,7 @@ export class ReadingPathModal extends Modal {
                 attr: { type: "button" },
                 text: `${t(KIND_KEY[resume.kind])} · ${t("reader_resume", String(resume.entry.chapter + 1), String(resume.entry.total))}`,
             });
-            line.addEventListener("click", () => this.start(resume.kind, resume.entry.chapter));
+            line.addEventListener("click", () => this.start(resume.kind, resume.entry.chapter, line));
         }
 
         this.renderSaved(contentEl);
@@ -102,10 +102,13 @@ export class ReadingPathModal extends Modal {
                 text: tCount(option.path.chapters.length, "reader_choose_chapters", String(option.path.chapters.length)),
             });
             card.addEventListener("click", () => {
+                // The way already chosen is not drawn again: a double-click's card must still be on
+                // screen when it travels into the Reader (#828).
+                if (this.selected === option.kind) return;
                 this.selected = option.kind;
                 this.render();
             });
-            card.addEventListener("dblclick", () => this.start(option.kind, 0));
+            card.addEventListener("dblclick", () => this.start(option.kind, 0, card));
         }
 
         const chosen = this.options.find((option) => option.kind === this.selected) ?? this.options[0];
@@ -119,7 +122,7 @@ export class ReadingPathModal extends Modal {
             attr: { type: "button" },
             text: t("reader_choose_start"),
         });
-        go.addEventListener("click", () => this.start(this.selected, 0));
+        go.addEventListener("click", () => this.start(this.selected, 0, go));
     }
 
     /**
@@ -141,8 +144,9 @@ export class ReadingPathModal extends Modal {
                 text: tCount(entry.paths.length, "reader_choose_chapters", String(entry.paths.length)),
             });
             open.addEventListener("click", () => {
+                // The row travels before the chooser closes: a closed one has nothing left to fly (#828).
+                void openSavedReading(this.app, entry, open);
                 this.close();
-                void openSavedReading(this.app, entry);
             });
             const rename = row.createEl("button", {
                 cls: "clickable-icon",
@@ -192,9 +196,12 @@ export class ReadingPathModal extends Modal {
         this.render();
     }
 
-    private start(kind: ReadingPathOption["kind"], chapter: number): void {
+    /** Read it — what was clicked travels into the Reader first, then the chooser closes (#828 FR-3). */
+    private start(kind: ReadingPathOption["kind"], chapter: number, from?: HTMLElement): void {
+        // What was clicked, or — if a redraw took it away — the way on screen that stands for it.
+        const origin = from?.isConnected ? from : (this.contentEl.querySelector<HTMLElement>(`.${c("reader-chooser-card")}.is-active`) ?? undefined);
+        void openReader(this.app, { seed: this.seed, kind, chapter, ...(origin ? { from: origin } : {}) });
         this.close();
-        void openReader(this.app, { seed: this.seed, kind, chapter });
     }
 }
 
@@ -249,19 +256,20 @@ function drawDiagram(host: HTMLElement, kind: ReadingPathOption["kind"]): void {
  * **Read from here** (#669): the chooser when there is a choice — several ways through the note, or
  * a reading of it left part-way — and straight into the reading when there is only one way.
  */
-export function readFrom(app: App, seed: string, host: ReaderHost | null = readerHost()): void {
+export function readFrom(app: App, seed: string, host: ReaderHost | null = readerHost(), from?: HTMLElement): void {
     const options = optionsFor(app, seed);
     const saved = savedThrough(normalizeSaved(host?.settings?.readerSaved), seed);
     if (options.length > 1 || saved.length > 0 || pendingResume(host, seed, options)) {
         new ReadingPathModal(app, seed, options, host).open();
         return;
     }
-    void openReader(app, { seed });
+    // Straight in: the button that was clicked is where the reading comes from (#828).
+    void openReader(app, { seed, ...(from ? { from } : {}) });
 }
 
 /** A saved path (#672), read again in the order it was kept, under its name. */
-export function openSavedReading(app: App, entry: SavedReading): Promise<void> {
-    return openReader(app, { seed: entry.seed, kind: "selection", paths: entry.paths, name: entry.name });
+export function openSavedReading(app: App, entry: SavedReading, from?: HTMLElement): Promise<void> {
+    return openReader(app, { seed: entry.seed, kind: "selection", paths: entry.paths, name: entry.name, ...(from ? { from } : {}) });
 }
 
 /**
@@ -269,11 +277,11 @@ export function openSavedReading(app: App, entry: SavedReading): Promise<void> {
  * order their links suggest, and resumed where you left that same set. Nothing to read reads
  * nothing.
  */
-export function readSelection(app: App, paths: readonly string[], host: ReaderHost | null = readerHost()): void {
+export function readSelection(app: App, paths: readonly string[], host: ReaderHost | null = readerHost(), from?: HTMLElement): void {
     const notes = [...new Set(paths)].filter((path) => path.toLowerCase().endsWith(".md"));
     if (notes.length === 0) return;
     const built = selectionFor(notes);
     const ordered = built ? built.chapters.map((chapter) => chapter.path) : [...notes].sort().slice(0, SELECTION_CAP);
     const resumed = resumeOf(normalizeResume(host?.settings?.readerResume), readingKey("selection", ordered[0], ordered));
-    void openReader(app, { seed: ordered[0], kind: "selection", paths: ordered, chapter: resumed?.chapter ?? 0 });
+    void openReader(app, { seed: ordered[0], kind: "selection", paths: ordered, chapter: resumed?.chapter ?? 0, ...(from ? { from } : {}) });
 }

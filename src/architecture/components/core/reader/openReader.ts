@@ -164,7 +164,10 @@ export function flyOrigin(from: HTMLElement): void {
     const start = from.getBoundingClientRect();
     const stage = area.getBoundingClientRect();
     if (!(start.width > 0) || !(stage.width > 0)) return;
-    const grow = 1.4;
+    // A chip grows a little; a card (Home's *Reading*, a chooser's way) grows — or shrinks — only as far
+    // as the main area holds it around the reading line, so the ghost is never clipped (#828 MF-4).
+    const room = 2 * Math.min(READING_LINE, 1 - READING_LINE) * stage.height;
+    const grow = Math.min(1.4, (0.9 * stage.width) / start.width, (0.9 * room) / start.height);
     const width = start.width * grow;
     const height = start.height * grow;
     const to = { left: stage.left + (stage.width - width) / 2, top: stage.top + stage.height * READING_LINE - height / 2, width, height };

@@ -167,9 +167,10 @@ export class CrystallizeModal extends Modal {
             open.createSpan({ text: "↗ ", attr: { "aria-hidden": "true" } });
             open.createSpan({ text: t("reader_open_source_passage") });
             open.addEventListener("click", () => {
-                // The passage, not the preview: nothing is written, exactly as cancelling.
+                // The passage, not the preview: nothing is written, exactly as cancelling. The button
+                // travels into the Reader before the modal closes — a closed one has nothing to fly (#828).
+                void openReader(this.app, { seed: place.file, source: place.file, at: serializePlace(place), from: open });
                 this.close();
-                void openReader(this.app, { seed: place.file, source: place.file, at: serializePlace(place) });
             });
         }
     }

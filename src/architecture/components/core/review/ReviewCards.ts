@@ -18,7 +18,8 @@ export interface ReviewDeps {
     /** Your verdict, in the judgement record. Subject and path only — never the words. */
     record(thought: Thought, verdict: "confirmed" | "modified"): void;
     /** Leave the review for the Reader, on the passage. */
-    openReader(thought: Thought): void;
+    /** Open it in the Reader, from its *Open in the Reader* button when it is on screen (#828). */
+    openReader(thought: Thought, from?: HTMLElement): void;
     /**
      * Make it a note — Think's own crystallize, behind its own confirmation, on this one highlight.
      * `done` is told the note it wrote, if any.
@@ -131,6 +132,9 @@ export class ReviewCards extends Component {
         });
     }
 
+    /** The card's *Open in the Reader* button, while it is drawn (#828). */
+    private readerButton: HTMLElement | null = null;
+
     /** Do what a button would. Public so a door and a key share one path. */
     public async act(action: CardAction): Promise<void> {
         const card = this.current();
@@ -146,7 +150,7 @@ export class ReviewCards extends Component {
                 this.fieldEl?.focus();
                 return;
             case "reader":
-                this.deps.openReader(card);
+                this.deps.openReader(card, this.readerButton?.isConnected ? this.readerButton : undefined);
                 return;
             case "crystallize":
                 this.deps.toNote(card, (path) => {
@@ -252,6 +256,7 @@ export class ReviewCards extends Component {
 
     private renderActions(box: HTMLElement, scope: Component): void {
         const row = box.createDiv({ cls: c("review-actions") });
+        this.readerButton = null;
         ACTIONS.forEach((action, i) => {
             const button = row.createEl("button", {
                 cls: [c("review-action"), ...(action === "kept" ? ["mod-cta"] : [])],
@@ -260,6 +265,8 @@ export class ReviewCards extends Component {
             setIcon(button.createSpan({ cls: c("review-action-icon") }), ACTION_ICON[action]);
             button.createSpan({ text: t(ACTION_LABEL[action]) });
             button.createEl("kbd", { cls: c("review-kbd"), text: String(i + 1) });
+            // The Reader opens from this button, clicked or keyed (#828): it is what travels.
+            if (action === "reader") this.readerButton = button;
             scope.registerDomEvent(button, "click", () => void this.act(action));
         });
     }

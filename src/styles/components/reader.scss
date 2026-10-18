@@ -2790,7 +2790,18 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     font-size: var(--font-ui-small);
     white-space: nowrap;
     overflow: hidden;
-    z-index: var(--layer-popover);
+    /* Something carried (#828): above a modal that closes as it leaves it — a popover's layer is under one.
+       It also passes over a notice or a menu for its one flight, and takes no pointer. */
+    z-index: var(--layer-dragged-item);
+}
+
+/* A card travels as the card it is (#828 MF-4): Home's *Reading*, a chooser's way, keep their own layout. */
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__reader-origin-ghost:is(.zettelkasten-flow__home-card, .zettelkasten-flow__reader-chooser-card) {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    white-space: normal;
+    text-align: start;
 }
 
 .zettelkasten-flow__reader-hl-ghost {

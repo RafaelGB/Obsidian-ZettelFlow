@@ -128,7 +128,8 @@ describe("a few things you marked, one card at a time (#678)", () => {
     it("opens the Reader on the passage, and crystallize on the card — via keys 3 and 4", () => {
         const m = mount([mark("a", "one")]);
         m.key("3");
-        expect(m.deps.openReader).toHaveBeenCalledWith(expect.objectContaining({ id: "a" }));
+        // From its *Open in the Reader* button, keyed or clicked: what travels into the Reader (#828).
+        expect(m.deps.openReader).toHaveBeenCalledWith(expect.objectContaining({ id: "a" }), expect.objectContaining({ attrs: expect.objectContaining({ "aria-keyshortcuts": "3" }) }));
         m.key("4");
         expect(m.deps.toNote).toHaveBeenCalledWith(expect.objectContaining({ id: "a" }), expect.any(Function));
         const done = m.deps.toNote.mock.calls[0][1] as (path?: string) => void;

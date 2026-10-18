@@ -288,7 +288,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         kind: string,
         title: string,
         line: string,
-        open: () => void,
+        open: (event: MouseEvent) => void,
         progress?: number
     ): HTMLElement {
         const card = parent.createEl("button", { cls: [c("family-card"), c("home-card")], attr: { type: "button" } });
@@ -332,7 +332,8 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
                 t("home_left_reading"),
                 reading.title,
                 t("home_left_reading_line", String(reading.chapter + 1), String(reading.total)),
-                () => void this.openReading(reading),
+                // The card you clicked is where the reading comes from (#828).
+                (event) => void this.openReading(reading, event.currentTarget as HTMLElement),
                 Math.min(1, (reading.chapter + 1) / Math.max(1, reading.total))
             );
         }
@@ -348,12 +349,13 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         }
     }
 
-    private async openReading(reading: ReadingInProgress): Promise<void> {
+    private async openReading(reading: ReadingInProgress, from?: HTMLElement): Promise<void> {
         const open = reading.open;
-        if (open.kind === "source") await openReader(this.app, { seed: open.path, source: open.path, chapter: reading.chapter });
+        const origin = from ? { from } : {};
+        if (open.kind === "source") await openReader(this.app, { seed: open.path, source: open.path, chapter: reading.chapter, ...origin });
         else if (open.kind === "saved")
-            await openReader(this.app, { seed: open.seed, kind: "selection", paths: open.paths, name: open.name, chapter: reading.chapter });
-        else await openReader(this.app, { seed: open.seed, kind: open.reading, chapter: reading.chapter });
+            await openReader(this.app, { seed: open.seed, kind: "selection", paths: open.paths, name: open.name, chapter: reading.chapter, ...origin });
+        else await openReader(this.app, { seed: open.seed, kind: open.reading, chapter: reading.chapter, ...origin });
     }
 
     /**

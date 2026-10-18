@@ -17,7 +17,8 @@ export function renderInkCard(
         /** The source's name, as the shelf shows it. */
         name: string;
         /** Back to the very spot in the Reader, when the source is still there. */
-        open?: () => void;
+        /** Open it in the Reader, from the button that was clicked (#828: the origin flies). */
+        open?: (from: HTMLElement) => void;
         /** Where the card's listeners live. */
         listen: (el: HTMLElement, run: () => void) => void;
         /** The chip under the drawing (#748): *Read as text*, or what it was read as. */
@@ -32,7 +33,8 @@ export function renderInkCard(
     meta.createSpan({ text: parts.name });
     if (parts.open) {
         const open = meta.createEl("button", { cls: c("lab-quote-open"), text: t("lab_highlight_open_reader"), attr: { type: "button" } });
-        parts.listen(open, parts.open);
+        const openFrom = parts.open;
+        parts.listen(open, () => openFrom(open));
     }
     void parts
         .drawing(thought)

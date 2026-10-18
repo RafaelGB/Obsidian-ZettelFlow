@@ -240,6 +240,15 @@ its shelf again. Any key or click jumps a shot to its end, and with reduced moti
 **Settings → Reading → Opening a book → Instant**, the same places are reached at once. This is
 [constitution §XVI](constitution.md#xvi-one-continuous-shot) at work.
 
+**Every door carries its origin.** Wherever you open the Reader from something you can see, what you
+clicked lifts and travels to the reading line as the Reader arrives under it. That covers Home's
+*Reading* card, a highlight's or an ink note's *Open in the Reader* in Think, a Review card,
+*Open source passage* when making a note, a way or a saved path in the reading chooser, *Read these*
+in Explore and the Library's *Read a path across your notes*. A modal you open it from closes as the
+flight leaves it, never before. A door with nothing on screen to come from, such as a menu item or a
+command, opens with the Reader's own entrance and invents no origin. Nothing flies when the Reader is
+already open, under reduced motion, or with *Opening a book* set to *Instant*.
+
 ![One continuous shot: the shelf, the push into the book, the cover opening on your page, that page becoming the Reader; closing backwards; and the three ways a chapter turns](../resources/reader/one-continuous-shot.svg)
 
 ### A reader that feels good

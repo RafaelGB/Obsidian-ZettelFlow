@@ -927,8 +927,9 @@ export class AskGraphRenderer extends KnowledgeModeRenderer {
         });
         // A reading of everything is not a reading, and a map of everything is not a map.
         if (this.terms.length === 0) return;
-        this.button(foot, scope, "reader_read_these", "explore-take-read", null, () =>
-            readSelection(this.app, this.matches.map((idea) => idea.path))
+        // The button you clicked is where the reading comes from (#828).
+        const read: HTMLElement = this.button(foot, scope, "reader_read_these", "explore-take-read", null, () =>
+            readSelection(this.app, this.matches.map((idea) => idea.path), undefined, read)
         );
         this.button(foot, scope, "explore_make_map", "explore-take-map", null, () => this.makeMap()).addClass("mod-cta");
     }

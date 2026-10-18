@@ -58,9 +58,10 @@ export function reviewDeps(app: App, close: () => void): ReviewDeps {
                 verdict,
             });
         },
-        openReader: (thought) => {
+        openReader: (thought, from) => {
+            // The button travels into the Reader before the review closes: a closed one has nothing to fly (#828).
+            if (thought.about) void openReader(app, { seed: thought.about, highlight: thought.id, ...(from ? { from } : {}) });
             close();
-            if (thought.about) void openReader(app, { seed: thought.about, highlight: thought.id });
         },
         toNote: (thought, done) => {
             // The plan quotes the passage and cites where it was read (#679), so the note is sourced.

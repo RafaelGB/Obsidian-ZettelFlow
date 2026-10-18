@@ -13,7 +13,7 @@
  * and a stroke over it stays ink — never a highlight of the wrong words (#746 Risk 4).
  */
 
-import { reflowPage, runOf, type PageBlock } from "./pdfText";
+import { reflowPage, runOf, type PageBlock, type PdfStyles, type ReflowOptions } from "./pdfText";
 
 /** A pdf.js text item, as far as words need it. */
 export interface PdfWordItem {
@@ -21,6 +21,12 @@ export interface PdfWordItem {
     transform: number[];
     width: number;
     height?: number;
+    fontName?: string;
+}
+
+/** How the page's text was reflowed (#837): the same faces and options the Reading view drew it with. */
+export interface PageWordsOptions extends ReflowOptions {
+    styles?: PdfStyles;
 }
 
 /** A word on a printed page: where it is (fractions of the page) and where it is in the page's text. */
@@ -124,8 +130,9 @@ function wordAround(text: string, start: number, end: number, edges: ReadonlySet
  * The words of a page: their boxes as fractions of the page as drawn, and their offsets in the text
  * the Reading view shows. An image-only page (or one that is a figure) has none.
  */
-export function pageWordsOf(items: readonly PdfWordItem[], page: PageGeometry): PageText {
-    const blocks: PageBlock[] = reflowPage(items.map((item) => runOf(item)));
+export function pageWordsOf(items: readonly PdfWordItem[], page: PageGeometry, options: PageWordsOptions = {}): PageText {
+    const { styles, ...reflow } = options;
+    const blocks: PageBlock[] = reflowPage(items.map((item) => runOf(item, styles)), reflow);
     const headings: { at: number; text: string }[] = [];
     const edges = new Set<number>();
     let text = "";

@@ -1706,6 +1706,9 @@ A technical book's code reads as code: in your theme's code colours, whole lines
 - **Kept code stays code.** Highlight lines of a listing and keep them: the thought records that the
   passage is code and its language, Think shows it in monospace, and a note made from it holds a
   fenced block (` ```python `) with its lines and indentation as they were.
+- **A PDF's code too.** In a PDF's reading view, lines set in a monospace face become the same
+  listing, uncoloured, since a PDF names no language
+  ([what a page keeps](library.md#what-a-page-keeps)).
 
 Two things worth knowing:
 - **An element's `lang` is never a hint.** It names a human language (`cs` is Czech, not C#), and it

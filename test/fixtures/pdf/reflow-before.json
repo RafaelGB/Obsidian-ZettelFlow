@@ -1,0 +1,31 @@
+[
+ {
+  "text": "Chapter 1. Formats in a paperThis paragraph has a bold term and an italic phrase inside it, and a note1. It continues on a second line with inline parseConfig() code in it. • First item of a list • Second item of a list 1. A numbered item 2. Another numbered item function greet(name) { return 'Hello ' + name;}A quoted passage set in from both margins, as a block quote would be in an essay, with a second line.See example.org for more.1 The footnote text, small, at the foot of the page.",
+  "blocks": [
+   {
+    "kind": "heading",
+    "text": "Chapter 1. Formats in a paper"
+   },
+   {
+    "kind": "paragraph",
+    "text": "This paragraph has a bold term and an italic phrase inside it, and a note1. It continues on a second line with inline parseConfig() code in it. • First item of a list • Second item of a list 1. A numbered item 2. Another numbered item function greet(name) { return 'Hello ' + name;"
+   },
+   {
+    "kind": "paragraph",
+    "text": "}"
+   },
+   {
+    "kind": "paragraph",
+    "text": "A quoted passage set in from both margins, as a block quote would be in an essay, with a second line."
+   },
+   {
+    "kind": "paragraph",
+    "text": "See example.org for more."
+   },
+   {
+    "kind": "paragraph",
+    "text": "1 The footnote text, small, at the foot of the page."
+   }
+  ]
+ }
+]

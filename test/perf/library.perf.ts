@@ -115,13 +115,15 @@ describe("the Library (#675)", () => {
     });
 
     it("library.pdf.reflow.page", () => {
-        // A dense two-column page of a paper: 2 × 60 lines, each in eight runs, a heading on top.
+        // A dense two-column page of a paper: 2 × 60 lines, each in eight runs, a heading on top — every
+        // fourth line set in monospace, and a monospace name in every seventh (#837): its formats read too.
         const runs: TextRun[] = [{ str: "3 Asynchronous Networks", x: 72, y: 760, size: 16, width: 200 }];
         for (const x of [72, 320]) {
             for (let line = 0; line < 60; line++) {
                 for (let part = 0; part < 8; part++) {
                     const str = part === 7 && line % 9 === 8 ? "end." : `word${line}${part}`;
-                    runs.push({ str, x: x + part * 28, y: 740 - line * 11.5, size: 9, width: 25 });
+                    const mono = line % 4 === 3 || (line % 7 === 0 && part === 3);
+                    runs.push({ str, x: x + part * 28, y: 740 - line * 11.5, size: 9, width: 25, ...(mono ? { mono } : {}) });
                 }
             }
         }

@@ -363,9 +363,9 @@ export const BUDGETS = {
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
     "library.pdf.reflow.page": {
-        name: "reflow a dense two-column PDF page (961 runs) into paragraphs",
+        name: "reflow a dense two-column PDF page (961 runs) into paragraphs, its code included (#837)",
         limit: 30,
-        measured: "7.5 ms",
+        measured: "7.9 ms",
         because:
             "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
     },
@@ -420,8 +420,11 @@ export const BUDGETS = {
         // epic used 15 of its 20 KB.
         // #817's wizard preview brought main to 3,114.2 KB without this line moving; #828's doors add 0.5 KB:
         // 3,114.7 KB — 0.3 KB under the ceiling, so the next feature needs a deliberate raise.
-        limit: 3_115,
-        measured: "3,114.7 KB",
+        // 3,115 → 3,140 (#836, owner, 2026-10-18): one raise for the epic — the formats a PDF page keeps and
+        // the copy you hand back with your notes. No PDF library: the copy is written by Obsidian's own pdf.js.
+        // F1 code in a PDF (#837) +3.3 KB — the listing is #824's, its lines read off pdf.js's own styles.
+        limit: 3_140,
+        measured: "3,118.0 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

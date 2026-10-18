@@ -13,6 +13,8 @@ export interface FakeRun {
     size?: number;
     width?: number;
     hasEOL?: boolean;
+    /** pdf.js's name for the run's font (#837); its face is the page's `styles[font]`. */
+    font?: string;
 }
 
 /** A link annotation on a fake page (#767): an internal destination, or an address out of the paper. */
@@ -31,6 +33,8 @@ export interface FakePage {
     links?: FakeLink[];
     /** What the page paints, as pdf.js 5.3's operator list (#769); nothing but its text when absent. */
     ops?: { fnArray: number[]; argsArray: unknown[] };
+    /** pdf.js's `styles`: each font's family — `monospace` for a code face (#837). */
+    styles?: Record<string, { fontFamily: string }>;
 }
 
 export interface FakePdf {
@@ -136,7 +140,9 @@ export function makePdfJs(pdf: FakePdf) {
                     width: r.width ?? r.str.length * (r.size ?? 10) * 0.5,
                     height: r.size ?? 10,
                     hasEOL: r.hasEOL ?? false,
+                    ...(r.font ? { fontName: r.font } : {}),
                 })),
+                ...(spec.styles ? { styles: spec.styles } : {}),
             }),
             render: (options: any) => {
                 calls.rendered.push(n);

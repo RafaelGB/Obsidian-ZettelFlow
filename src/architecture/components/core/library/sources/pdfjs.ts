@@ -17,6 +17,8 @@ export interface PdfTextItem {
     width: number;
     height: number;
     hasEOL?: boolean;
+    /** pdf.js's name for the run's font: the key of its face in the page's `styles` (#837). */
+    fontName?: string;
 }
 
 export interface PdfViewport {
@@ -43,7 +45,8 @@ export interface PdfPage {
     getViewport(options: { scale: number; rotation?: number; offsetX?: number; offsetY?: number }): PdfViewport;
     /** What the page paints, as pdf.js's operator list (`fnArray` codes from `OPS`, their `argsArray`) (#769). */
     getOperatorList?(): Promise<{ fnArray: ArrayLike<number>; argsArray: ArrayLike<unknown> }>;
-    getTextContent(): Promise<{ items: (PdfTextItem | { type: string })[] }>;
+    /** `styles` says each font's family — `monospace` for a code face (#837, pdf.js 5.3). */
+    getTextContent(): Promise<{ items: (PdfTextItem | { type: string })[]; styles?: Record<string, { fontFamily?: string }> }>;
     render(options: { canvasContext: CanvasRenderingContext2D; viewport: PdfViewport }): { promise: Promise<void>; cancel(): void };
     getAnnotations?(options?: { intent?: string }): Promise<PdfAnnotation[]>;
     /** The page's own `/Rotate`, in degrees. */

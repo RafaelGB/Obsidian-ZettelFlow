@@ -408,6 +408,24 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
 - **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
   **See it in the library** or **Read it again**.
 
+### What a page keeps
+
+The reading view rebuilds more than paragraphs: the formats a paper is set in come back, read off the
+page itself. Only the clear cases are taken; when in doubt a block stays a paragraph, as before.
+
+![A PDF page as printed beside the same page in the reading view: the heading, bold and italic, a footnote marker raised, inline code, a bulleted and a numbered list with hanging markers, a listing in its own box with its indentation, a block quote, a link and the footnote at the foot](../resources/library/pdf-formats.svg)
+
+- **Code keeps its lines.** Lines set in a monospace face read as one listing, with their
+  indentation, in the same box as a book's code ([code in technical books](reader.md#code-in-technical-books)):
+  whole on its page, *Code lines* in the Type panel, and kept to Think as a fenced block. A name in a
+  sentence set in monospace reads as inline code. No language is guessed, so a PDF's code is not
+  coloured. A paper typed entirely in a typewriter face reads as prose.
+
+**The page's text never changes.** A format only cuts the page into blocks and marks words inside
+them — every character stays where it was. A highlight made before a paper read its formats is found
+where it was, in both views, and Page view indexes exactly the text the reading view draws. The one
+exception is inside a listing, whose lines are lines: each starts on its own, with its indentation.
+
 ### Page view
 
 ![Page view: a two-column paper at Fit width with 150% beside the Page view button, a spread with page 1 alone on the right, the overview with the current page marked, and a link out of the paper showing its address with Copy link](../resources/library/pdf-page-view.svg)

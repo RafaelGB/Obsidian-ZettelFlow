@@ -1,7 +1,7 @@
 import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { IMAGE_ONLY_SAMPLE, isImageOnly, reflowPage, runOf, suggestPdfView, type PageBlock } from "application/library/pdfText";
+import { IMAGE_ONLY_SAMPLE, isImageOnly, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
 import { pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
@@ -9,6 +9,8 @@ import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/
 import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
 import { resolveDest, shareDown } from "./pdfPageView";
+import { drawBlocks, plainBlocks } from "./pdfDraw";
+import { colourListings } from "architecture/components/core/reader/readerCode";
 
 /** The widest a page is drawn at, in CSS pixels — the Reader's column, and a little more. */
 const PAGE_WIDTH = 760;
@@ -70,7 +72,7 @@ function quietCancel(error: unknown): void {
  * The printed pages of a PDF (#767): sizes read as they are asked for, its own labels, drawings that
  * can be let go, and its links — where they sit and where they go. pdf.js stays behind this seam.
  */
-function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null): SourcePages {
+function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null, typewritten = false): SourcePages {
     const sizes = new Map<number, Promise<{ width: number; height: number }>>();
     const page = (index: number): Promise<PdfPage> => doc.getPage(index + 1);
     const turn = (p: PdfPage, rotation: number) => (((p.rotate ?? 0) + rotation) % 360 + 360) % 360;
@@ -159,7 +161,8 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
                 const viewport = p.getViewport({ scale: 1, rotation: turn(p, rotation) });
                 if (!viewport.convertToViewportRectangle) return { text: "", words: [], headings: [] };
                 const toViewport = (rect: number[]) => viewport.convertToViewportRectangle!(rect);
-                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport });
+                // The same faces the Reading view drew the page with (#837): its text, character for character.
+                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport }, { styles: content.styles ?? {}, typewritten });
             } catch (error) {
                 log.debug(`[Library] no words on page ${index + 1}: ${String(error)}`);
                 return { text: "", words: [], headings: [] };
@@ -210,11 +213,17 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in.
     const samples: string[] = [];
     const shapes: PageBlock[][] = [];
+    const faces: TextRun[][] = [];
     for (let n = 1; n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
-        const items = (await (await doc.getPage(n)).getTextContent()).items.filter(isTextItem);
+        const content = await (await doc.getPage(n)).getTextContent();
+        const items = content.items.filter(isTextItem);
         samples.push(items.map((item) => item.str).join(""));
-        shapes.push(reflowPage(items.map(runOf)));
+        // The view it suggests is read off the page as it always was (#837 FR-11): formats never move it.
+        shapes.push(reflowPage(items.map((item) => runOf(item))));
+        faces.push(items.map((item) => runOf(item, content.styles ?? {})));
     }
+    // A typewritten paper reads as prose (#837 FR-6): its body face decides, not one page of code.
+    const typewritten = isTypewritten(faces);
     // The shelf may have sampled it already: a scan is known before its first page is drawn.
     if (imageOnlyKnown === undefined) imageOnly = isImageOnly(samples);
     const suggestedView = imageOnly ? undefined : suggestPdfView(shapes);
@@ -245,7 +254,7 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     };
 
     const firstBox = doc.numPages > 0 ? (await doc.getPage(1)).getViewport({ scale: 1 }) : { width: 612, height: 792 };
-    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels);
+    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten);
 
     return {
         format: "pdf",
@@ -267,18 +276,35 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
             }
             const page = await doc.getPage(index + 1);
             const content = await page.getTextContent();
-            const blocks = reflowPage(content.items.filter(isTextItem).map(runOf));
+            const styles = content.styles ?? {};
+            const blocks = reflowPage(content.items.filter(isTextItem).map((item) => runOf(item, styles)), { typewritten });
             const text = blocks.map((block) => block.text).join(" ");
             if (text.replace(/[^\p{L}]/gu, "").length < PICTURE_LETTERS) {
                 // A page that is a figure: its picture is what there is to read.
                 await drawPicture(index, body, component);
                 return { words: 0, picture: true };
             }
-            for (const block of blocks) body.createEl(block.kind === "heading" ? "h2" : "p", { text: block.text });
-            return { words: text.split(/\s+/).filter(Boolean).length, picture: false };
+            if (plainBlocks(blocks)) {
+                drawBlocks(body, blocks);
+                return { words: text.split(/\s+/).filter(Boolean).length, picture: false };
+            }
+            // A page with formats is built aside and put on the page whole (#837 AC-M1): a listing is
+            // never seen as a run-on paragraph first.
+            const into = detached(body);
+            drawBlocks(into, blocks);
+            const listings = into.querySelector("pre") ? colourListings(into, null) : 0;
+            for (const child of Array.from(into.childNodes)) body.appendChild(child);
+            return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(listings > 0 ? { listings } : {}) };
         },
         close(): void {
             void doc.destroy().catch(() => undefined);
         },
     };
+}
+
+/** An element in the page's own document, off the page: where a page with formats is built first. */
+function detached(body: HTMLElement): HTMLElement {
+    const holder = body.createDiv();
+    holder.remove();
+    return holder;
 }

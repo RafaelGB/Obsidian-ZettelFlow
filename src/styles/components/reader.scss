@@ -1953,7 +1953,8 @@ button.zettelkasten-flow__reader-search-result {
 /* A footnote read in place (#718): it floats under its mark and grows from it. */
 .zettelkasten-flow__reader-note-pop {
     position: absolute;
-    left: var(--zf-note-x, 50%);
+    /* Centred on its mark, but never past the Reader's edge: a mark at a line's start is common (#840). */
+    left: clamp(calc(min(13rem, 50% - var(--size-4-4)) + var(--size-4-4)), var(--zf-note-x, 50%), calc(100% - min(13rem, 50% - var(--size-4-4)) - var(--size-4-4)));
     top: var(--zf-note-y, 50%);
     transform: translate(-50%, var(--size-4-2));
     transform-origin: top center;
@@ -4139,6 +4140,23 @@ button.zettelkasten-flow__reader-hl-layer {
 
     .zettelkasten-flow__reader-pdf-marker {
         color: var(--text-muted);
+    }
+
+    /* A footnote's marker (#840): raised, never opening its line. */
+    sup {
+        line-height: 0;
+    }
+
+    /* A footnote, small where it was printed; the first of them set apart from the text above. */
+    .zettelkasten-flow__reader-pdf-footnote {
+        font-size: var(--font-smaller);
+        color: var(--reader-muted);
+    }
+
+    :not(.zettelkasten-flow__reader-pdf-footnote) + .zettelkasten-flow__reader-pdf-footnote {
+        margin-top: var(--size-4-4);
+        padding-top: var(--size-4-2);
+        border-top: var(--border-width) solid var(--reader-line);
     }
 }
 

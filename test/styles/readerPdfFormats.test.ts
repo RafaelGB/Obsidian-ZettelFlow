@@ -30,3 +30,25 @@ describe("a PDF's formats, in the stylesheet (#836)", () => {
         expect(section).toMatch(/> :not\(\.zettelkasten-flow__reader-pdf-marker\) \{\s*grid-column: 2;/);
     });
 });
+
+describe("footnotes, in the stylesheet (#840)", () => {
+    it("never lets a raised marker open its line (AC-M2)", () => {
+        expect(rule("sup")).toContain("line-height: 0;");
+    });
+
+    it("sets a footnote small, in the Reader's own muted ink, the first apart from the text (AC-12)", () => {
+        const note = rule(".zettelkasten-flow__reader-pdf-footnote");
+        expect(note).toContain("font-size: var(--font-smaller);");
+        expect(note).toContain("color: var(--reader-muted);");
+        expect(rule(":not(.zettelkasten-flow__reader-pdf-footnote) + .zettelkasten-flow__reader-pdf-footnote")).toContain("border-top: var(--border-width) solid var(--reader-line);");
+    });
+});
+
+describe("a footnote opened at its mark stays inside the Reader (#840, walked in Obsidian 1.14.4)", () => {
+    it("clamps the pop's centre to half its width from either edge", () => {
+        const at = READER.indexOf(".zettelkasten-flow__reader-note-pop {");
+        const pop = READER.slice(at, READER.indexOf("}", at));
+        expect(pop).toContain("left: clamp(calc(min(13rem, 50% - var(--size-4-4)) + var(--size-4-4)), var(--zf-note-x, 50%), calc(100% - min(13rem, 50% - var(--size-4-4)) - var(--size-4-4)));");
+        expect(pop).toContain("width: min(26rem, calc(100% - var(--size-4-8)));");
+    });
+});

@@ -363,9 +363,9 @@ export const BUDGETS = {
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
     "library.pdf.reflow.page": {
-        name: "reflow a dense two-column PDF page (961 runs) into paragraphs, its code and lists included (#837, #838)",
+        name: "reflow a dense two-column PDF page (961 runs) into paragraphs, its code, lists, markers and footnotes included (#837, #838, #840)",
         limit: 30,
-        measured: "8.0 ms",
+        measured: "11.1 ms",
         because:
             "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
     },
@@ -425,8 +425,10 @@ export const BUDGETS = {
         // F1 code in a PDF (#837) +3.3 KB — the listing is #824's, its lines read off pdf.js's own styles.
         // F2 lists (#838) +2.6 KB — the five markers, the chain of two, nesting by place, the hanging item.
         // F3 bold and italic (#839) +1.6 KB — a face read off its font's real name, once per font.
+        // F4 footnotes and quotes (#840) +2.4 KB — the raised marker, the foot zone, the set-in quote, and the
+        // marker opening its note through #718's pop (0.4 KB of it).
         limit: 3_140,
-        measured: "3,122.2 KB",
+        measured: "3,124.6 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

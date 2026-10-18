@@ -126,7 +126,11 @@ describe("the Library (#675)", () => {
                     const mono = line % 4 === 3 || (line % 7 === 0 && part === 3);
                     runs.push({ str, x: x + part * 28, y: 740 - line * 11.5, size: 9, width: 25, ...(mono ? { mono } : {}) });
                 }
+                // A footnote marker raised after every tenth line's last word (#840).
+                if (line % 10 === 5) runs.push({ str: String(line), x: x + 221, y: 743 - line * 11.5, size: 6, width: 6 });
             }
+            // Three footnotes at the column's foot, small, each with its mark.
+            for (const n of [5, 15, 25]) runs.push({ str: `${n} A footnote at the foot of the column, small.`, x, y: 40 - (n % 10) * 2 - Math.floor(n / 10) * 8, size: 7, width: 200 });
         }
         const ms = best(5, () => reflowPage(runs));
         assertBudget("library.pdf.reflow.page", ms);

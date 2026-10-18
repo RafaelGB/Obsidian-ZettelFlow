@@ -7,6 +7,7 @@ import { makePdfJs, prose, run, type FakePage } from "../../../../support/fakePd
 import { FORMATS, formatsPage } from "../../../../support/pdfFormats";
 import { openPdfSource } from "architecture/components/core/library/sources/pdfSource";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
+import { noteExcerpt } from "architecture/components/core/reader/readerJumps";
 
 /**
  * **A PDF page drawn with its formats** (epic #836): the elements the reading view builds from the
@@ -133,5 +134,32 @@ describe("bold and italic, drawn (#839)", () => {
         const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
         for (const index of [0, 1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
         expect(calls.opLists).toEqual([1, 3]);
+    });
+});
+
+describe("footnotes and block quotes, drawn (#840)", () => {
+    it("draws the marker raised, opening its footnote by the path a book's takes (FR-7)", async () => {
+        const { doc, body } = await drawn([formatsFake()]);
+        const link = body.find((el: any) => el.tagName === "A");
+        expect(link.getAttribute("data-zf-href")).toBe("#zf-pdf-note-1");
+        expect(link.children.filter((el: any) => el.tagName === "SUP").map((el: any) => el.textContent)).toEqual(["1"]);
+        expect(doc.resolveLink!(0, "#zf-pdf-note-1")).toEqual({ chapter: 0, fragment: "zf-pdf-note-1" });
+        expect(doc.resolveLink!(0, "https://example.org")).toBeNull();
+        const note = body.find((el: any) => el.getAttribute?.("data-zf-id") === "zf-pdf-note-1");
+        expect(note.hasClass("zettelkasten-flow__reader-pdf-footnote")).toBe(true);
+        expect(note.getAttribute("role")).toBe("note");
+        expect(noteExcerpt(note)).toBe("1 The footnote text, small, at the foot of the page.");
+    });
+
+    it("draws a block quote as the theme's own blockquote", async () => {
+        const { body } = await drawn([formatsFake()]);
+        const quote = body.find((el: any) => el.tagName === "BLOCKQUOTE");
+        expect(quote.children.map((el: any) => el.tagName)).toEqual(["P"]);
+        expect(quote.textContent).toContain("A quoted passage set in from both margins");
+    });
+
+    it("still draws exactly the text Page view indexes, with every format on the page (AC-1)", async () => {
+        const { doc, body } = await drawn([formatsFake()]);
+        expect(chapterText(body)).toBe((await doc.pages!.words!(0, 0)).text);
     });
 });

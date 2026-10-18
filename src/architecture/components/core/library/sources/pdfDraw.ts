@@ -1,4 +1,5 @@
 import { c } from "architecture";
+import { t } from "architecture/lang";
 import type { InlineSpan, PageBlock, SpanKind } from "application/library/pdfText";
 
 /**
@@ -29,7 +30,10 @@ function inline(parent: HTMLElement, text: string, spans: readonly InlineSpan[],
         const start = Math.max(span.start, at);
         const end = Math.min(span.end, to);
         inline(parent, text, spans, at, start, depth + 1);
-        inline(parent.createEl(TAG[kind]), text, spans, start, end, depth + 1);
+        const el = parent.createEl(TAG[kind]);
+        // A marker opens its footnote where it is read (#840 FR-7), by the path a book's takes (#718).
+        if (span.to) el.setAttribute("data-zf-href", `#${span.to.note}`);
+        inline(el, text, spans, start, end, depth + 1);
         at = end;
     }
     inline(parent, text, spans, at, to, depth + 1);
@@ -80,16 +84,36 @@ function drawItem(into: HTMLElement, open: OpenList[], block: PageBlock): void {
     list.item = item;
 }
 
+/** A footnote, small at the foot where it was printed (#840): a note the Reader can read at its mark. */
+function drawFootnote(into: HTMLElement, block: PageBlock): HTMLElement {
+    const note = into.createDiv({ cls: c("reader-pdf-footnote"), attr: { role: "note", "aria-label": t("reader_note_label"), "data-zf-note": "true" } });
+    if (block.id) note.setAttribute("data-zf-id", block.id);
+    words(note, block);
+    return note;
+}
+
 /** Draw a page's blocks into `into`, in order. */
 export function drawBlocks(into: HTMLElement, blocks: readonly PageBlock[]): void {
     let open: OpenList[] = [];
+    // The quote or the footnote a part goes on in (#840).
+    let holder: { kind: PageBlock["kind"]; el: HTMLElement } | null = null;
     for (const block of blocks) {
         if (block.kind === "item") {
             drawItem(into, open, block);
             continue;
         }
         open = [];
-        if (block.kind === "heading") into.createEl("h2").appendText(block.text);
+        if (block.cont && holder?.kind === block.kind) {
+            words(block.kind === "quote" ? holder.el.createEl("p") : holder.el.createDiv({ cls: c("reader-pdf-part") }), block);
+            continue;
+        }
+        holder = null;
+        if (block.kind === "quote") {
+            const quote = into.createEl("blockquote");
+            words(quote.createEl("p"), block);
+            holder = { kind: "quote", el: quote };
+        } else if (block.kind === "footnote") holder = { kind: "footnote", el: drawFootnote(into, block) };
+        else if (block.kind === "heading") into.createEl("h2").appendText(block.text);
         else if (block.kind === "listing") into.createEl("pre").createEl("code").appendText(block.text);
         else words(into.createEl("p"), block);
     }

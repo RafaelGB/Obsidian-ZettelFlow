@@ -60,7 +60,12 @@ export interface InlineSpan {
     kind: SpanKind;
     start: number;
     end: number;
+    /** Where a link goes (#840): a footnote on the page, by its id. */
+    to?: LinkTo;
 }
+
+/** Where a link in a page goes: a footnote on it (#840). */
+export type LinkTo = { note: string };
 
 export interface PageBlock {
     kind: BlockKind;
@@ -77,8 +82,10 @@ export interface PageBlock {
     marker?: number;
     /** An item of a numbered or lettered list (#838). */
     ordered?: boolean;
-    /** A part of the item above, that today was its own paragraph: drawn inside it, on its own line (#838). */
+    /** A part of the item, quote or footnote above, that today was its own paragraph: drawn inside it, on its own line (#838, #840). */
     cont?: boolean;
+    /** A footnote's id on its page (#840): what its marker opens. */
+    id?: string;
 }
 
 /** How a page is reflowed (epic #836). */
@@ -105,6 +112,33 @@ interface Line {
     src: (TextRun | null)[];
     /** The runs of the line, left to right. */
     parts: TextRun[];
+    /** Its footnote markers (#840): small runs raised off its baseline, attached to a word. */
+    raised?: Set<TextRun>;
+}
+
+/** What a footnote is marked with: a number, a symbol, a lone letter (#840). */
+const NOTE_MARK = /^(\d{1,3}|[*†‡§]|\p{L})$/u;
+
+/**
+ * A line's footnote markers (#840 FR-2): a run set at most three quarters the line's size, raised a
+ * quarter of it off the baseline its largest letters sit on, written as a mark, and attached to the
+ * word before it — no space typed between them.
+ */
+function raisedOf(line: Line): Set<TextRun> {
+    const raised = new Set<TextRun>();
+    const base = median(line.parts.filter((part) => part.size >= line.size * 0.95 && part.str.trim()).map((part) => part.y));
+    for (const part of line.parts) {
+        if (part.size > line.size * 0.75 || part.y - base < line.size * 0.25 || !NOTE_MARK.test(part.str.trim())) continue;
+        const at = line.src.indexOf(part);
+        if (at <= 0) continue;
+        const before = line.text[at - 1];
+        const from = line.src[at - 1];
+        // Attached: the word right before it, or a space only the gap made — ours, or pdf.js's own
+        // whitespace-only item for it — never one typed inside the text.
+        if (/\s/.test(before) && from !== null && from.str.trim().length > 0) continue;
+        raised.add(part);
+    }
+    return raised;
 }
 
 /** pdf.js's `styles` map, as far as a run's face goes. */
@@ -193,7 +227,10 @@ function linesOf(runs: readonly TextRun[]): Line[] {
         }
         if (segment) out.push(segment);
     }
-    return out.map(tidy).filter((line) => line.text.length > 0);
+    return out
+        .map(tidy)
+        .filter((line) => line.text.length > 0)
+        .map((line) => ({ ...line, raised: raisedOf(line) }));
 }
 
 /** A line's whitespace folded to single spaces and trimmed, each character keeping its run. */
@@ -249,6 +286,7 @@ function lineSpans(line: Line, options: ReflowOptions): InlineSpan[] {
         ...(options.typewritten ? [] : spansOf(line, "code", (run) => Boolean(run.mono))),
         ...spansOf(line, "strong", (run) => Boolean(run.bold) && !run.mono),
         ...spansOf(line, "em", (run) => Boolean(run.italic) && !run.mono),
+        ...spansOf(line, "sup", (run) => line.raised?.has(run) ?? false),
     ];
 }
 
@@ -373,9 +411,16 @@ interface Role {
 interface RoleContext {
     body: number;
     leading: number;
+    /** Where the column's lines start: the median of their left edges. */
+    left: number;
     isHeading: (line: Line) => boolean;
     options: ReflowOptions;
+    /** The footnote marks raised in the page's text (#840): a footnote is one of them. */
+    marks: ReadonlySet<string>;
 }
+
+/** A footnote starts with its mark, raised or not, and its text (#840 FR-3). */
+const FOOT_MARK = /^(\d{1,3}|[*†‡§])\s*(?=\S)/u;
 
 /** The bullets that make a list on their own (#838 FR-3): nothing else is set like them. */
 const SURE_BULLET = /^[•◦▪]\s+\S/u;
@@ -479,6 +524,44 @@ function rolesOf(lines: readonly Line[], context: RoleContext): Role[] {
         stack = [];
         textX = null;
     });
+
+    // A block quote (#840 FR-4): two lines or more at the body's size, all set in from both margins,
+    // all starting at one place — so a first-line indent, or a centred block, is never one.
+    const right = Math.max(...lines.map((line) => line.right));
+    let quote: number[] = [];
+    const flush = () => {
+        if (quote.length >= 2) quote.forEach((j, k) => (roles[j] = k === 0 ? { kind: "quote", starts: true } : { kind: "quote" }));
+        quote = [];
+    };
+    lines.forEach((line, i) => {
+        const setIn = prose(i) && Math.abs(line.size - body) < body * 0.15 && line.x - context.left >= body * 2.5 && line.right <= right - body;
+        if (setIn && quote.length > 0 && goesOn(i) && near(line.x, lines[quote[0]].x)) {
+            quote.push(i);
+            return;
+        }
+        flush();
+        if (setIn) quote.push(i);
+    });
+    flush();
+
+    // The foot of the column: every line after its last at the body's size. A footnote there starts
+    // with a mark raised in the page's text; the small lines after it go on with it (#840 FR-3).
+    let last = -1;
+    lines.forEach((line, i) => {
+        if (roles[i].kind !== "heading" && Math.abs(line.size - body) < body * 0.15) last = i;
+    });
+    let inNote = false;
+    for (let i = last + 1; i < lines.length; i++) {
+        if (!prose(i) || lines[i].size > body * 0.85) {
+            inNote = false;
+            continue;
+        }
+        const mark = FOOT_MARK.exec(lines[i].text);
+        if (mark && context.marks.has(mark[1])) {
+            roles[i] = { kind: "footnote", starts: true, block: { marker: mark[0].length } };
+            inNote = true;
+        } else if (inNote) roles[i] = { kind: "footnote" };
+    }
     return roles;
 }
 
@@ -488,7 +571,7 @@ function rolesOf(lines: readonly Line[], context: RoleContext): Role[] {
  * the space stays — at the end of the block before — so the page's text is the same, and a highlight
  * made before the format still finds its words. A listing alone has its own whitespace (#837).
  */
-function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBlock[] {
+function blocksOf(lines: readonly Line[], options: ReflowOptions = {}, marks: ReadonlySet<string> = new Set()): PageBlock[] {
     if (lines.length === 0) return [];
     const body = median(lines.flatMap((line) => Array.from({ length: Math.max(1, Math.round(line.text.length / 10)) }, () => line.size)));
     const left = median(lines.map((line) => line.x));
@@ -500,7 +583,7 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
     }
     const leading = median(gaps) || body * 1.2;
     const isHeading = (line: Line) => line.size >= body * 1.2 && line.text.length <= 140;
-    const roles = rolesOf(lines, { body, leading, isHeading, options });
+    const roles = rolesOf(lines, { body, leading, left, isHeading, options, marks });
 
     const blocks: PageBlock[] = [];
     let current: Draft | null = null;
@@ -531,7 +614,7 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
                 blocks.push(finish(current));
             }
             // A line that goes on with the item above, cut from it today, is a part of that item (#838 FR-6).
-            const part = !role.starts && current?.kind === kind && kind === "item" ? { level: current.level, cont: true } : {};
+            const part = !role.starts && current?.kind === kind && (kind === "item" || kind === "quote" || kind === "footnote") ? { ...(kind === "item" ? { level: current.level } : {}), cont: true } : {};
             current = { kind, text: kind === "listing" ? "" : line.text, spans: spansAt(line, kind, 0, options), lines: [line], ...role.block, ...part };
         } else if (kind === "listing") {
             current.lines.push(line);
@@ -552,16 +635,47 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
 /** A page's runs as blocks — headings, paragraphs and the formats a page keeps — in reading order. */
 export function reflowPage(runs: readonly TextRun[], options: ReflowOptions = {}): PageBlock[] {
     const lines = linesOf(runs);
+    // The marks raised in the page's text: what makes a small line at the foot a footnote (#840).
+    const marks = new Set(options.plain ? [] : lines.flatMap((line) => [...(line.raised ?? [])].map((run) => run.str.trim())));
     const split = columnSplit(lines);
-    if (split === null) return blocksOf(lines, options);
+    if (split === null) return linkNotes(blocksOf(lines, options, marks));
     // Full-width lines (a title across both columns) read first; then each column, top to bottom.
     const spanning = lines.filter((line) => line.x < split && line.right > split + (line.right - line.x) * 0.2);
     const rest = lines.filter((line) => !spanning.includes(line));
-    return [
-        ...blocksOf(spanning, options),
-        ...blocksOf(rest.filter((line) => line.x < split), options),
-        ...blocksOf(rest.filter((line) => line.x >= split), options),
-    ];
+    return linkNotes([
+        ...blocksOf(spanning, options, marks),
+        ...blocksOf(rest.filter((line) => line.x < split), options, marks),
+        ...blocksOf(rest.filter((line) => line.x >= split), options, marks),
+    ]);
+}
+
+/**
+ * A marker to its footnote (#840 FR-7): when exactly one footnote on the page starts with its mark,
+ * the marker opens it where it is read, as a book's does (#718). Two with the same mark, or none, and
+ * it is only raised.
+ */
+function linkNotes(blocks: PageBlock[]): PageBlock[] {
+    const notes = new Map<string, PageBlock[]>();
+    for (const block of blocks) {
+        if (block.kind !== "footnote" || block.cont) continue;
+        const mark = block.text.slice(0, block.marker).trim();
+        notes.set(mark, [...(notes.get(mark) ?? []), block]);
+    }
+    if (notes.size === 0) return blocks;
+    let n = 0;
+    const ids = new Map<string, string>();
+    for (const [mark, found] of notes) {
+        if (found.length !== 1) continue;
+        const id = `zf-pdf-note-${++n}`;
+        found[0].id = id;
+        ids.set(mark, id);
+    }
+    for (const block of blocks) {
+        const links = (block.spans ?? []).filter((span) => span.kind === "sup" && ids.has(block.text.slice(span.start, span.end).trim()));
+        for (const span of links) block.spans!.push({ kind: "link", start: span.start, end: span.end, to: { note: ids.get(block.text.slice(span.start, span.end).trim())! } });
+        if (links.length > 0) block.spans!.sort((p, q) => p.start - q.start);
+    }
+    return blocks;
 }
 
 /** The words on a page, for the minutes it takes. */

@@ -303,6 +303,11 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
             for (const child of Array.from(into.childNodes)) body.appendChild(child);
             return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(listings > 0 ? { listings } : {}) };
         },
+        resolveLink(fromChapter: number, href: string) {
+            // A footnote's marker, to its note on the same page (#840 FR-7): the only link the reading
+            // view draws that the Reader follows itself.
+            return href.startsWith("#zf-pdf-note-") ? { chapter: fromChapter, fragment: href.slice(1) } : null;
+        },
         close(): void {
             void doc.destroy().catch(() => undefined);
         },

@@ -428,6 +428,12 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
   They are read off the name of the font each word is set in (*Times-Bold*, *MinionPro-It*, the faces
   LaTeX uses), so a PDF that names its fonts plainly shows nothing. A heading, or a paragraph set
   wholly in one face, is left as it is — that is its font, not an emphasis.
+- **Footnotes and quotes.** A small mark raised after a word reads as a footnote marker, and the
+  small text at the foot of the page that starts with that mark reads as its footnote — still where it
+  was printed, set apart from the text. Click the marker and the footnote opens over the page, as a
+  book's does ([links, detours and context](reader.md#links-detours-and-context)). A footer that starts
+  with a page number is not a footnote: its mark must be raised somewhere on the page. Two lines or
+  more set in from both margins, at one place, read as a block quote.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found

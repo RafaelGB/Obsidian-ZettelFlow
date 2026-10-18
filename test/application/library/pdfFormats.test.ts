@@ -76,7 +76,7 @@ describe("code in a PDF keeps its lines (#837)", () => {
     it("marks a monospace name inside a sentence as inline code (FR-5)", () => {
         const paragraph = reflowPage(page().runs).find((block) => block.text.includes("parseConfig()"))!;
         expect(paragraph.kind).toBe("paragraph");
-        expect(paragraph.spans).toEqual([{ kind: "code", start: paragraph.text.indexOf("parseConfig()"), end: paragraph.text.indexOf("parseConfig()") + "parseConfig()".length }]);
+        expect(paragraph.spans!.filter((span) => span.kind === "code")).toEqual([{ kind: "code", start: paragraph.text.indexOf("parseConfig()"), end: paragraph.text.indexOf("parseConfig()") + "parseConfig()".length }]);
     });
 
     it("reads a typewritten paper as prose: its body face decides (FR-6)", () => {
@@ -95,7 +95,7 @@ describe("code in a PDF keeps its lines (#837)", () => {
     it("leaves a page with no monospace as it was (AC-7)", () => {
         const plain = page().runs.filter((run) => !run.mono);
         const blocks = reflowPage(plain);
-        expect(blocks.every((block) => block.kind !== "listing" && !block.spans)).toBe(true);
+        expect(blocks.every((block) => block.kind !== "listing" && !block.spans?.some((span) => span.kind === "code"))).toBe(true);
         expect(blocks).toEqual(reflowPage(plain.map(({ mono: _mono, font: _font, ...run }) => run)));
     });
 });
@@ -188,7 +188,7 @@ describe("bold and italic, from the font's real name (#839)", () => {
         const blocks = reflowPage(facesOfPage());
         const paragraph = blocks.find((block) => block.text.startsWith("This paragraph"))!;
         const marked = (paragraph.spans ?? []).map((span) => [span.kind, paragraph.text.slice(span.start, span.end)]);
-        expect(marked).toEqual([
+        expect(marked.filter(([kind]) => kind !== "sup" && kind !== "link")).toEqual([
             ["strong", "bold term"],
             ["em", "italic phrase"],
             ["code", "parseConfig()"],
@@ -204,5 +204,66 @@ describe("bold and italic, from the font's real name (#839)", () => {
 
     it("never moves a character: the text is the same with faces or without (AC-1)", () => {
         expect(joined(reflowPage(facesOfPage()))).toBe(joined(reflowPage(page().runs)));
+    });
+});
+
+describe("footnotes and block quotes (#840)", () => {
+    const at = (str: string, x: number, y: number, size = 10): TextRun => ({ str, x, y, size, width: str.length * size * 0.5 });
+    const blocks = () => reflowPage(page().runs);
+
+    it("raises the marker attached to its word, keeping its character in the text (AC-2)", () => {
+        const paragraph = blocks().find((block) => block.text.startsWith("This paragraph"))!;
+        const sup = paragraph.spans!.find((span) => span.kind === "sup")!;
+        expect(paragraph.text.slice(sup.start - 4, sup.end + 1)).toBe("note1.");
+    });
+
+    it("leaves a raised run after a typed space, or a raised phrase, as it was (AC-3)", () => {
+        const spaced = reflowPage([at("A claim made in passing ", 72, 700), at("2", 190, 704, 6), at(" and more words.", 196, 700)]);
+        expect(spaced[0].spans).toBeUndefined();
+        const phrase = reflowPage([at("A claim", 72, 700), at("see below", 107, 704, 6)]);
+        expect(phrase[0].spans).toBeUndefined();
+    });
+
+    it("styles the small text at the foot that starts with a raised mark as a footnote, where it is (AC-4)", () => {
+        const all = blocks();
+        const note = all[all.length - 1];
+        expect(note).toMatchObject({ kind: "footnote", marker: 2, id: "zf-pdf-note-1" });
+        expect(note.text).toBe("1 The footnote text, small, at the foot of the page.");
+    });
+
+    it("does not take a footer that starts with a number no marker raised for a footnote (AC-5)", () => {
+        const page = reflowPage([...Array.from({ length: 4 }, (_, i) => at(`Body text line ${i + 1} of the page, set at its size and running on.`, 72, 700 - i * 12)), at("12 Journal of Distributed Systems", 72, 60, 8)]);
+        expect(page.some((block) => block.kind === "footnote")).toBe(false);
+    });
+
+    it("makes two lines set in from both margins a block quote, and one indented line nothing (AC-6, AC-7)", () => {
+        expect(blocks().filter((block) => block.kind === "quote").map((block) => block.text)).toEqual([
+            "A quoted passage set in from both margins, as a block quote would be in an essay, with a second line.",
+        ]);
+        const indent = reflowPage([at("A paragraph that begins with an indent, the way", 100, 700), at("books set their paragraphs, and runs on flush left.", 72, 688)]);
+        expect(indent.some((block) => block.kind === "quote")).toBe(false);
+    });
+
+    it("opens the footnote from its marker: a link to the one note with that mark (FR-7)", () => {
+        const paragraph = blocks().find((block) => block.text.startsWith("This paragraph"))!;
+        expect(paragraph.spans!.find((span) => span.kind === "link")).toMatchObject({ to: { note: "zf-pdf-note-1" } });
+    });
+
+    it("keeps the page's text: every character, every space (AC-1)", () => {
+        expect(joined(blocks())).toBe(joined(reflowPage(page().runs.filter(() => true))));
+        expect(folded(joined(blocks()))).toBe(folded(BEFORE[0].text).replace("name;}", "name; }"));
+    });
+});
+
+describe("a marker after pdf.js's own space (#840, walked in Obsidian 1.14.4)", () => {
+    it("is still attached: the whitespace-only item pdf.js puts in a gap is not a typed space", () => {
+        const runs: TextRun[] = [
+            { str: "and a note", x: 72, y: 700, size: 10, width: 50 },
+            { str: " ", x: 122, y: 700, size: 10, width: 3 },
+            { str: "1", x: 126, y: 704, size: 6, width: 3 },
+            { str: ".", x: 129, y: 700, size: 10, width: 3 },
+        ];
+        const [block] = reflowPage(runs);
+        expect(block.spans?.map((span) => [span.kind, block.text.slice(span.start, span.end)])).toEqual([["sup", "1"]]);
     });
 });

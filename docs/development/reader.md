@@ -1185,9 +1185,10 @@ Obsidian itself. **The original is only read**, never written.
 
 ![Share a copy with your notes: a paper as you marked it in the Reader, the sheet that says what goes on the copy and makes it, and the copy open in another reader with a yellow and a blue highlight, a note as its comment signed Rafa, and a margin note on the first page](../resources/reader/share-copy.svg)
 
-- **Where.** At the head of **Contents** in a PDF, beside *Recall* and *Notebook*, and in the book's
-  **Notebook** in the Library, beside *Export as a reading note*. It is there for PDFs only, and it is
-  disabled — saying so — while nothing in the PDF is marked.
+- **Where.** At the head of the list of what you marked, in the Reader's margin — where you see
+  what will go on the copy — and as an icon at the head of **Contents**. In the Library, in the PDF's
+  detail beside *Notebook* and *Cite*, and in its **Notebook** beside *Export as a reading note*. It is
+  there for PDFs only, and it is disabled — saying so — while nothing in the PDF is marked.
 - **What goes on it.**
     - Each highlight, over its words on the printed page, in its meaning's colour: an idea yellow,
       a question blue, a quote green, a discussion purple. The colours are fixed, since the copy is read

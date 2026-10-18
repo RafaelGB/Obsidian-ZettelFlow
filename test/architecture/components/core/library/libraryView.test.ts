@@ -414,3 +414,22 @@ describe("sharing a marked PDF from its notebook (#842)", () => {
         expect(content.byText("Share a copy with your notes")).toBeUndefined();
     });
 });
+
+describe("sharing a marked PDF from its detail (#842, the owner's door)", () => {
+    const PAPER = "Papers/cap.pdf";
+    const marked = [{ id: "h1", at: 1, text: "", links: [], about: PAPER, quote: { exact: "a web service cannot be consistent", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } }] as unknown as Thought[];
+
+    it("offers it beside Notebook and Cite, for a PDF with marks, and grows the sheet from it", async () => {
+        const m = mount([PAPER], { library });
+        const view = new LibraryView(new WorkspaceLeaf(m.app, m.content), m.host, { store: { highlightsAbout: jest.fn(async () => marked) } });
+        await view.onOpen();
+        await view.setState({ detail: PAPER }, {} as never);
+        await flush();
+        const share = m.content.find((el) => el.getAttribute("data-zf-share") !== null)!;
+        expect(share.textContent).toBe("Share a copy with your notes");
+        expect(share.getAttribute("disabled")).toBeNull();
+        share.click();
+        await flush();
+        expect(m.content.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
+    });
+});

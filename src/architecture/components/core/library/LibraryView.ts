@@ -60,7 +60,7 @@ import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
-import { SharePanel } from "architecture/components/core/reader/readerShare";
+import { SharePanel, hasMarks } from "architecture/components/core/reader/readerShare";
 import type { Thought } from "application/thinking/thought";
 import { penOf, type SharePen } from "application/reader/share/shareInk";
 import { keptPageView } from "architecture/components/core/reader/readerSource";
@@ -1265,6 +1265,7 @@ export class LibraryView extends ItemView {
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
             cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
+            share: item.file && item.format === "pdf" && item.kind !== "path" ? this.shareDoorFor(item.file) : undefined,
             produced: (parent, settled) =>
                 renderProduced(parent, {
                     settled,
@@ -1452,6 +1453,24 @@ export class LibraryView extends ItemView {
         const r = from.getBoundingClientRect();
         const panel = this.citePanel.show({ source: citeSourceOf(this.app, file, format, item.title), file, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
         panel?.addClass(c("reader-cite--library"));
+    }
+
+    /** The detail's door to a shared copy (#842): what is marked is read once, when the detail opens. */
+    private shareDoorFor(path: string): { available: () => Promise<boolean>; open: (from: HTMLElement) => void } {
+        const marked = (async () => {
+            const thoughts = await (this.deps.store ?? ThoughtStore.getInstance()).highlightsAbout(path);
+            const ink = await PageInkStore.getInstance()
+                .load(path)
+                .catch(() => null);
+            return { thoughts, pen: penOf(ink, thoughts) };
+        })();
+        return {
+            available: async () => {
+                const { thoughts, pen } = await marked;
+                return hasMarks(thoughts, pen);
+            },
+            open: (from) => void marked.then(({ thoughts, pen }) => this.shareCopy(path, from, thoughts, pen)),
+        };
     }
 
     /** *Share a copy with your notes* (#842 FR-20): the sheet, grown from the notebook's button. */

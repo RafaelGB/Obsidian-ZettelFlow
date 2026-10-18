@@ -492,7 +492,12 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // it is saved, Undo sends it to the trash. At the head of the Reader's Contents, and the notebook.
         nameKey: "cap_reader_share_copy",
         owner: "zettelflow-reader",
-        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/library/libraryNotebook.ts", "zettelflow-library")],
+        doors: [
+            CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"),
+            CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"),
+            CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library"),
+            CONTROL("architecture/components/core/library/libraryNotebook.ts", "zettelflow-library"),
+        ],
     },
     "chapter-pause": {
         // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,

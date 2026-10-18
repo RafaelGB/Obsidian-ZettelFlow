@@ -1455,6 +1455,10 @@ export class ReaderView extends ItemView {
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
+                shareDoor: (host, scope) => {
+                    const path = this.sourcePath;
+                    if (path && this.source?.format === "pdf") this.shareDoor(host, path, scope, true);
+                },
                 thinkMoves: () => this.thinkMoves(),
                 passageActions: () => this.passageActions(),
                 lookup: () => this.lookup,
@@ -4655,7 +4659,7 @@ export class ReaderView extends ItemView {
      * *Share a copy with your notes* (#842 FR-20), at the head of Contents beside Recall and Notebook —
      * for a PDF only, and disabled with its reason while nothing in it is marked (FR-21).
      */
-    private shareDoor(actions: HTMLElement, path: string, scope: Component): void {
+    private shareDoor(actions: HTMLElement, path: string, scope: Component, labelled = false): void {
         const store = this.highlightDeps.store ?? ThoughtStore.getInstance();
         // What is marked: the thoughts about the PDF, and the book's page ink (#843) — read only.
         const marked = async () => {
@@ -4665,20 +4669,22 @@ export class ReaderView extends ItemView {
                 .catch(() => null);
             return { thoughts, pen: penOf(ink, thoughts) };
         };
-        const button = panelAction(
-            actions,
-            "file-output",
-            "reader_share_copy",
-            () => {
+        const share = () => {
                 void marked().then(({ thoughts, pen }) => {
                     if (!hasMarks(thoughts, pen) || this.sourcePath !== path) return;
                     const box = button.getBoundingClientRect();
                     const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
                     this.sharePanel?.show({ path, thoughts, pen, turns, from: { left: box.left, top: box.top, width: box.width, height: box.height } });
                 });
-            },
-            scope
-        );
+        };
+        let button: HTMLElement;
+        if (labelled) {
+            // In the list of what you marked: a labelled button, its name said in full.
+            button = actions.createEl("button", { cls: c("reader-share-list-door"), attr: { type: "button" } });
+            setIcon(button.createSpan({ cls: c("reader-share-list-door-icon") }), "file-output");
+            button.createSpan({ text: t("reader_share_copy") });
+            scope.registerDomEvent(button, "click", share);
+        } else button = panelAction(actions, "file-output", "reader_share_copy", share, scope);
         button.addClass(c("reader-share-door"));
         void marked().then(({ thoughts, pen }) => {
             if (hasMarks(thoughts, pen)) return;

@@ -76,6 +76,8 @@ export interface HighlightView {
     onInk?(thoughts: Thought[]): void;
     /** The ink notes' rows, beside the highlights in the margin's list. */
     renderInk?(host: HTMLElement, scope: Component): void;
+    /** *Share a copy with your notes* (#842), at the head of the list of what you marked. */
+    shareDoor?(host: HTMLElement, scope: Component): void;
     /**
      * The moves of the popover's *Think* group, last in *More* (#756 FR-1, #811 FR-7) — *Contradict*,
      * *Connect*, and the AI's later (#759). Offered only in a book or a paper; the view decides.
@@ -658,6 +660,8 @@ export class ReaderHighlights {
 
     /** The highlights as a list — the margin's content, and the context panel's on a narrow pane. */
     renderList(host: HTMLElement, scope: Component): void {
+        // Where what you marked is listed is where it is handed back from (#842).
+        this.view.shareDoor?.(host, scope);
         this.renderHighlightList(host, scope);
         this.view.renderInk?.(host, scope);
     }

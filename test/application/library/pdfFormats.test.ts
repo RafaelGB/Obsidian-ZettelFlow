@@ -22,9 +22,8 @@ const joined = (blocks: readonly PageBlock[]) => blocks.map((block) => block.tex
 const GEOMETRY = { width: 612, height: 792, toViewport: (rect: number[]) => rect };
 
 describe("the text does not change (#836 FR-1)", () => {
-    it("reads the page as it always did when its faces are unknown", () => {
-        const { items } = page();
-        expect(reflowPage(items.map((item) => runOf(item)))).toEqual(BEFORE[0].blocks);
+    it("reads the page as it always did when asked for plain blocks", () => {
+        expect(reflowPage(page().runs, { plain: true })).toEqual(BEFORE[0].blocks);
     });
 
     it("keeps every character in order, and every space outside a listing", () => {
@@ -35,8 +34,7 @@ describe("the text does not change (#836 FR-1)", () => {
     });
 
     it("leaves the view a PDF suggests where it was (#837 FR-11)", () => {
-        const { items } = page();
-        expect(suggestPdfView([reflowPage(items.map((item) => runOf(item)))])).toBe(suggestPdfView([BEFORE[0].blocks]));
+        expect(suggestPdfView([reflowPage(page().runs, { plain: true })])).toBe(suggestPdfView([BEFORE[0].blocks]));
     });
 
     it("indexes in Page view the text the Reading view draws", () => {
@@ -85,7 +83,9 @@ describe("code in a PDF keeps its lines (#837)", () => {
         const { items } = page();
         const typed = items.map((item) => ({ ...runOf(item), mono: true }));
         expect(isTypewritten([typed, typed, typed])).toBe(true);
-        expect(reflowPage(typed, { typewritten: true })).toEqual(BEFORE[0].blocks);
+        const blocks = reflowPage(typed, { typewritten: true });
+        expect(blocks.some((block) => block.kind === "listing" || block.spans?.some((span) => span.kind === "code"))).toBe(false);
+        expect(nonSpace(joined(blocks))).toBe(nonSpace(BEFORE[0].text));
         const prose = items.map((item) => runOf(item));
         const code: TextRun[] = Array.from({ length: 30 }, (_, i) => ({ str: `let value${i} = compute(${i});`, x: 72, y: 700 - i * 12, size: 10, width: 150, mono: true }));
         expect(isTypewritten([prose, prose, code])).toBe(false);
@@ -97,5 +97,62 @@ describe("code in a PDF keeps its lines (#837)", () => {
         const blocks = reflowPage(plain);
         expect(blocks.every((block) => block.kind !== "listing" && !block.spans)).toBe(true);
         expect(blocks).toEqual(reflowPage(plain.map(({ mono: _mono, font: _font, ...run }) => run)));
+    });
+});
+
+describe("a PDF's lists keep their items (#838)", () => {
+    const at = (str: string, x: number, y: number): TextRun => ({ str, x, y, size: 10, width: str.length * 5 });
+    const items = (blocks: readonly PageBlock[]) => blocks.filter((block) => block.kind === "item");
+
+    it("makes the bulleted and the numbered lines of the formats page two lists, the marker in the text (AC-2)", () => {
+        const found = items(reflowPage(page().runs));
+        expect(found.map((block) => [block.text.slice(0, block.marker), block.ordered, block.level])).toEqual([
+            ["• ", false, 0],
+            ["• ", false, 0],
+            ["1. ", true, 0],
+            ["2. ", true, 0],
+        ]);
+        // Today's space between the items stays at the end of each one.
+        expect(found[0].text).toBe("• First item of a list ");
+    });
+
+    it("takes only a clear list: a lone number or dash stays prose, a lone sure bullet is an item (AC-3, AC-4)", () => {
+        const kinds = (runs: TextRun[]) => reflowPage(runs).map((block) => block.kind);
+        expect(kinds([at("1. Introduction to the problem", 72, 700), at("The text of the section goes on below it.", 72, 688)])).not.toContain("item");
+        expect(kinds([at("- one thing said in passing", 72, 700), at("and the sentence goes on with the next line.", 72, 688)])).not.toContain("item");
+        expect(kinds([at("1. One step", 72, 700), at("3. Another step", 72, 688)])).not.toContain("item");
+        expect(kinds([at("J. Smith wrote the first draft.", 72, 700), at("K. Jones wrote the second one.", 72, 688)])).not.toContain("item");
+        expect(kinds([at("• the one bullet on the page", 72, 700)])).toEqual(["item"]);
+        expect(kinds([at("a) first", 72, 700), at("b) second", 72, 688)])).toEqual(["item", "item"]);
+        expect(kinds([at("(i) first", 72, 700), at("(ii) second", 72, 688)])).toEqual(["item", "item"]);
+    });
+
+    it("nests an item by where its marker sits, and comes back out (AC-5)", () => {
+        const levels = items(reflowPage([at("• outer one", 72, 700), at("◦ inner one", 90, 688), at("◦ inner two", 90, 676), at("• outer two", 72, 664)])).map((block) => block.level);
+        expect(levels).toEqual([0, 1, 1, 0]);
+    });
+
+    it("joins a line set under an item's words to the item, and ends the list at the margin (AC-6)", () => {
+        const blocks = reflowPage([
+            at("• An item whose words run on past the end of its first", 72, 700),
+            at("line and go on under them here.", 82, 688),
+            at("The paragraph after the list starts back at the margin.", 72, 676),
+        ]);
+        expect(blocks.map((block) => block.kind)).toEqual(["item", "paragraph"]);
+        expect(blocks[0].text).toBe("• An item whose words run on past the end of its first line and go on under them here.");
+    });
+
+    it("keeps a continuation today cut from its item as a part of it, never glued to it", () => {
+        const blocks = reflowPage([at("• A short item.", 72, 700), at("Its second paragraph, under its words.", 82, 688)]);
+        expect(blocks.map((block) => [block.kind, Boolean(block.cont)])).toEqual([
+            ["item", false],
+            ["item", true],
+        ]);
+        expect(joined(blocks)).toBe("• A short item.Its second paragraph, under its words.");
+    });
+
+    it("leaves the text as it was: every list fixture reads the same characters and spaces (AC-1)", () => {
+        const runs = [at("Before the list, a sentence that runs on", 72, 700), at("• first item", 72, 688), at("• second item", 72, 676), at("1. one", 72, 664), at("2. two", 72, 652)];
+        expect(joined(reflowPage(runs))).toBe(joined(reflowPage(runs, { plain: true })));
     });
 });

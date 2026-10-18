@@ -4118,6 +4118,30 @@ button.zettelkasten-flow__reader-hl-layer {
     }
 }
 
+/* ── A PDF's formats (epic #836) ───────────────────────────────────────────────────────────────────
+   The reading view rebuilds what a paper was set in. A list's marker is the page's own characters,
+   hanging in the margin (#838): never a counter the stylesheet draws, so it is never drawn twice. */
+.zettelkasten-flow__reader-source-body {
+    .zettelkasten-flow__reader-pdf-list {
+        list-style: none;
+        padding-inline-start: 0;
+    }
+
+    .zettelkasten-flow__reader-pdf-item {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        column-gap: var(--size-4-2);
+
+        > :not(.zettelkasten-flow__reader-pdf-marker) {
+            grid-column: 2;
+        }
+    }
+
+    .zettelkasten-flow__reader-pdf-marker {
+        color: var(--text-muted);
+    }
+}
+
 /* *Code lines: Wrap* (#824 FR-5): a long line folds, and the rest of it hangs under its own indent. */
 .zettelkasten-flow__reader--code-wrap .zettelkasten-flow__reader-source-body .zettelkasten-flow__reader-code-line {
     white-space: pre-wrap;

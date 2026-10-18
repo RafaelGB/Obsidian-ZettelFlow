@@ -420,6 +420,10 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
   whole on its page, *Code lines* in the Type panel, and kept to Think as a fenced block. A name in a
   sentence set in monospace reads as inline code. No language is guessed, so a PDF's code is not
   coloured. A paper typed entirely in a typewriter face reads as prose.
+- **Lists keep their items.** Each item starts its own line, its marker hanging in the margin as
+  printed — the page's own `•`, `1.` or `a)`, never renumbered — and a line set under an item's words
+  goes on with it. A nested item sits further in. Only a clear list is a list: a bullet, or two
+  numbered (or dashed) lines in a row, in sequence; a lone *1. Introduction* stays what it was.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found

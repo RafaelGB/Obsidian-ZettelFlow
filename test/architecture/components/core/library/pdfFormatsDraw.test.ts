@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import { Component, TFile, __setPdfJs } from "obsidian";
 import { DomNode } from "../../../../support/dashboardDom";
 import { withTextNodes } from "../../../../support/domText";
-import { makePdfJs, prose, type FakePage } from "../../../../support/fakePdf";
+import { makePdfJs, prose, run, type FakePage } from "../../../../support/fakePdf";
 import { FORMATS, formatsPage } from "../../../../support/pdfFormats";
 import { openPdfSource } from "architecture/components/core/library/sources/pdfSource";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
@@ -83,5 +83,27 @@ describe("code in a PDF, drawn (#837)", () => {
         const { body, result } = await drawn([{ runs: prose(["A paragraph of plain prose that runs on for a while and then", "stops at the end of its second line, as a paper's would."]) }]);
         expect(body.children.map((el: any) => el.tagName)).toEqual(["P"]);
         expect(result.listings).toBeUndefined();
+    });
+});
+
+describe("a PDF's lists, drawn (#838)", () => {
+    it("draws a bulleted and a numbered list, each marker the page's own characters (AC-2)", async () => {
+        const { body } = await drawn([formatsFake()]);
+        const lists = body.findAll((el: any) => el.hasClass("zettelkasten-flow__reader-pdf-list"));
+        expect(lists.map((el: any) => [el.tagName, el.children.length])).toEqual([
+            ["UL", 2],
+            ["OL", 2],
+        ]);
+        expect(lists[0].byClass("reader-pdf-marker")[0].textContent).toBe("• ");
+        expect(lists[1].byClass("reader-pdf-item-text")[1].textContent).toBe("Another numbered item ");
+    });
+
+    it("nests a deeper list inside the item before it, and a part inside its item", async () => {
+        const { body } = await drawn([{ runs: [run("• outer one", 72, 700), run("◦ inner one", 90, 688), run("• outer two.", 72, 676), run("Its own second paragraph.", 83, 664)] }]);
+        const outer = body.find((el: any) => el.tagName === "UL");
+        const first = outer.children[0];
+        expect(first.find((el: any) => el.tagName === "UL")?.byClass("reader-pdf-item-text")[0].textContent).toBe("inner one ");
+        expect(outer.children[1].byClass("reader-pdf-part").map((el: any) => el.textContent)).toEqual(["Its own second paragraph."]);
+        expect(chapterText(body)).toBe("• outer one ◦ inner one • outer two.Its own second paragraph.");
     });
 });

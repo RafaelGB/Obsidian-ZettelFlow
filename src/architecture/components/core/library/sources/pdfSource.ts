@@ -219,7 +219,7 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         const items = content.items.filter(isTextItem);
         samples.push(items.map((item) => item.str).join(""));
         // The view it suggests is read off the page as it always was (#837 FR-11): formats never move it.
-        shapes.push(reflowPage(items.map((item) => runOf(item))));
+        shapes.push(reflowPage(items.map((item) => runOf(item)), { plain: true }));
         faces.push(items.map((item) => runOf(item, content.styles ?? {})));
     }
     // A typewritten paper reads as prose (#837 FR-6): its body face decides, not one page of code.

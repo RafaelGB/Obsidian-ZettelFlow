@@ -68,6 +68,14 @@ export interface PageBlock {
      */
     text: string;
     spans?: InlineSpan[];
+    /** An item's depth in its list (#838): 0 is the outermost. */
+    level?: number;
+    /** How many characters of `text` are an item's marker and the space after it (#838). */
+    marker?: number;
+    /** An item of a numbered or lettered list (#838). */
+    ordered?: boolean;
+    /** A part of the item above, that today was its own paragraph: drawn inside it, on its own line (#838). */
+    cont?: boolean;
 }
 
 /** How a page is reflowed (epic #836). */
@@ -77,6 +85,11 @@ export interface ReflowOptions {
      * read as prose, as before; nothing in it is taken for code.
      */
     typewritten?: boolean;
+    /**
+     * Headings and paragraphs only, as a page always read (#836 FR-11): what the view a PDF suggests is
+     * decided on, so no format can move it.
+     */
+    plain?: boolean;
 }
 
 interface Line {
@@ -274,16 +287,14 @@ function mends(text: string, next: string): boolean {
 }
 
 /** A block being built: its text, its formats, and — for a listing — its lines, set when it ends. */
-interface Draft {
-    kind: BlockKind;
-    text: string;
+interface Draft extends Omit<PageBlock, "spans"> {
     spans: InlineSpan[];
     lines: Line[];
 }
 
 /** A line's formats, moved to where its text starts in the block. */
 function spansAt(line: Line, kind: BlockKind, at: number, options: ReflowOptions): InlineSpan[] {
-    if (kind !== "paragraph" || options.typewritten) return [];
+    if (kind === "heading" || kind === "listing" || options.typewritten || options.plain) return [];
     return codeSpansOf(line).map((span) => ({ ...span, start: span.start + at, end: span.end + at }));
 }
 
@@ -296,7 +307,129 @@ function finish(draft: Draft): PageBlock {
         if (last && last.kind === span.kind && text.slice(last.end, span.start).trim() === "") last.end = span.end;
         else spans.push({ ...span });
     }
-    return spans.length > 0 ? { kind: draft.kind, text, spans } : { kind: draft.kind, text };
+    const { lines: _lines, spans: _spans, ...block } = draft;
+    return spans.length > 0 ? { ...block, text, spans } : { ...block, text };
+}
+
+/** What a line is, before the lines are made blocks: its kind, and what it starts. */
+interface Role {
+    kind: BlockKind;
+    /** The line starts a block of its own, whatever today's rules say: an item (#838). */
+    starts?: boolean;
+    /** What the block it starts carries: an item's level, marker and order. */
+    block?: Pick<PageBlock, "level" | "marker" | "ordered">;
+}
+
+interface RoleContext {
+    body: number;
+    leading: number;
+    isHeading: (line: Line) => boolean;
+    options: ReflowOptions;
+}
+
+/** The bullets that make a list on their own (#838 FR-3): nothing else is set like them. */
+const SURE_BULLET = /^[•◦▪]\s+\S/u;
+/** Dashes and stars: a list only two at a time, since a line may start with one. */
+const DASH_BULLET = /^[–*-]\s+\S/u;
+const NUMBER_MARK = /^(?:(\d{1,3})[.)]|\((\d{1,3})\))\s+\S/;
+/** A letter is `a)` or `(a)`, never `a.`: `J. Smith` at a line's start is a name, not an item. */
+const LETTER_MARK = /^(?:([a-z])\)|\(([a-z])\))\s+\S/;
+const ROMAN_MARK = /^(?:([ivx]{1,5})[.)]|\(([ivx]{1,5})\))\s+\S/;
+
+interface Mark {
+    type: "sure" | "dash" | "number" | "letter" | "roman";
+    /** Its place in its sequence: 1 for `1.`, `a)`, `(i)`; 0 for a bullet. */
+    value: number;
+    /** The marker and the space after it, in characters. */
+    length: number;
+}
+
+function romanValue(text: string): number {
+    const digits: Record<string, number> = { i: 1, v: 5, x: 10 };
+    let total = 0;
+    for (let i = 0; i < text.length; i++) {
+        const value = digits[text[i]];
+        total += value < (digits[text[i + 1]] ?? 0) ? -value : value;
+    }
+    return total;
+}
+
+/** The marker a line starts with, if it starts with one. A roman numeral is tried before a letter. */
+function markOf(text: string): Mark | null {
+    const length = (match: RegExpExecArray) => match[0].length - 1;
+    let match = SURE_BULLET.exec(text);
+    if (match) return { type: "sure", value: 0, length: length(match) };
+    if ((match = DASH_BULLET.exec(text))) return { type: "dash", value: 0, length: length(match) };
+    if ((match = NUMBER_MARK.exec(text))) return { type: "number", value: Number(match[1] ?? match[2]), length: length(match) };
+    if ((match = ROMAN_MARK.exec(text))) return { type: "roman", value: romanValue(match[1] ?? match[2]), length: length(match) };
+    if ((match = LETTER_MARK.exec(text))) return { type: "letter", value: (match[1] ?? match[2]).charCodeAt(0) - 96, length: length(match) };
+    return null;
+}
+
+/**
+ * What each line is (epic #836): a heading, a line of code, an item of a list or the part of one
+ * that goes on below it — or prose, as today.
+ *
+ * **Only a clear list is a list** (#838 FR-3): a bullet that is nothing else (`•`, `◦`, `▪`) is an
+ * item on its own; a dash, a star, a number or a letter only with a second one under it, at the same
+ * place, the two in sequence — so `1. Introduction` alone stays what it was.
+ */
+function rolesOf(lines: readonly Line[], context: RoleContext): Role[] {
+    const { body, leading, isHeading, options } = context;
+    const roles: Role[] = lines.map((line) => ({ kind: isHeading(line) ? "heading" : !options.typewritten && !options.plain && isCodeLine(line) ? "listing" : "paragraph" }));
+    if (options.plain) return roles;
+    const prose = (i: number) => roles[i].kind === "paragraph";
+    const marks = lines.map((line, i) => (prose(i) ? markOf(line.text) : null));
+    const near = (a: number, b: number) => Math.abs(a - b) <= body * 0.5;
+    // Whether a list can go on from the line above: no wide gap, no heading, no code.
+    const goesOn = (i: number) => i > 0 && prose(i) && lines[i - 1].y - lines[i].y > 0 && lines[i - 1].y - lines[i].y <= leading * 1.45;
+
+    // Which marked lines are items: a sure bullet always; any other only in a chain of two in sequence.
+    const items = new Set<number>();
+    const seen = new Set<number>();
+    marks.forEach((mark, i) => {
+        if (!mark || seen.has(i)) return;
+        if (mark.type === "sure") {
+            items.add(i);
+            return;
+        }
+        const chain = [i];
+        for (let j = i + 1; j < lines.length && goesOn(j); j++) {
+            const next = marks[j];
+            if (next && next.type === mark.type && near(lines[j].x, lines[i].x)) chain.push(j);
+            else if (lines[j].x <= lines[i].x + body * 0.5) break;
+        }
+        chain.forEach((j) => seen.add(j));
+        const values = chain.map((j) => marks[j]!.value);
+        if (chain.length >= 2 && (mark.type === "dash" || values[1] === values[0] + 1)) chain.forEach((j) => items.add(j));
+    });
+
+    // Levels, by where each marker sits; a line under an item's words goes on with it (#838 FR-5, FR-6).
+    let stack: number[] = [];
+    let textX: number | null = null;
+    lines.forEach((line, i) => {
+        if (!goesOn(i)) {
+            stack = [];
+            textX = null;
+        }
+        if (items.has(i)) {
+            const mark = marks[i]!;
+            while (stack.length > 0 && line.x < stack[stack.length - 1] - body * 0.5) stack.pop();
+            if (stack.length === 0 || line.x > stack[stack.length - 1] + body * 0.8) stack.push(line.x);
+            else stack[stack.length - 1] = line.x;
+            const ordered = mark.type === "number" || mark.type === "letter" || mark.type === "roman";
+            roles[i] = { kind: "item", starts: true, block: { level: stack.length - 1, marker: mark.length, ordered } };
+            textX = line.x + ((line.right - line.x) * mark.length) / Math.max(1, line.text.length);
+            return;
+        }
+        if (textX !== null && prose(i) && near(line.x, textX)) {
+            roles[i] = { kind: "item" };
+            return;
+        }
+        stack = [];
+        textX = null;
+    });
+    return roles;
 }
 
 /**
@@ -317,11 +450,12 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
     }
     const leading = median(gaps) || body * 1.2;
     const isHeading = (line: Line) => line.size >= body * 1.2 && line.text.length <= 140;
+    const roles = rolesOf(lines, { body, leading, isHeading, options });
 
     const blocks: PageBlock[] = [];
     let current: Draft | null = null;
     let previous: Line | null = null;
-    for (const line of lines) {
+    lines.forEach((line, i) => {
         const heading = isHeading(line);
         // Today's kind, and whether today's rules start a new paragraph here.
         const today = heading ? "heading" : "paragraph";
@@ -332,8 +466,9 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
             const shortBefore = previous.right - previous.x < widest * 0.72 && ENDS_SENTENCE.test(previous.text);
             todayBreaks = gap > leading * 1.45 || gap < 0 || (today === "paragraph" && (indented || shortBefore));
         }
-        const kind: BlockKind = heading ? "heading" : !options.typewritten && isCodeLine(line) ? "listing" : "paragraph";
-        let breaks = !current || current.kind !== kind;
+        const role = roles[i];
+        const kind = role.kind;
+        let breaks = !current || current.kind !== kind || Boolean(role.starts);
         if (!breaks && previous) {
             // A listing keeps its lines together through one blank line (#837 FR-3); prose breaks as today.
             const gap = previous.y - line.y;
@@ -345,7 +480,9 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
                 if (!todayBreaks && !mends(current.text, line.text)) current.text += " ";
                 blocks.push(finish(current));
             }
-            current = { kind, text: kind === "listing" ? "" : line.text, spans: spansAt(line, kind, 0, options), lines: [line] };
+            // A line that goes on with the item above, cut from it today, is a part of that item (#838 FR-6).
+            const part = !role.starts && current?.kind === kind && kind === "item" ? { level: current.level, cont: true } : {};
+            current = { kind, text: kind === "listing" ? "" : line.text, spans: spansAt(line, kind, 0, options), lines: [line], ...role.block, ...part };
         } else if (kind === "listing") {
             current.lines.push(line);
         } else {
@@ -356,7 +493,7 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}): PageBloc
             current.text = base + line.text;
         }
         previous = line;
-    }
+    });
     if (current) blocks.push(finish(current));
     // A page number, a lone running number: not text anyone reads — and never a line of code.
     return blocks.filter((block) => block.kind === "listing" || !/^\s*[-–]?\s*\d{1,4}\s*[-–]?\s*$/.test(block.text));

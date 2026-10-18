@@ -446,8 +446,11 @@ export const BUDGETS = {
         // something to subtract first: the PDF is written by Obsidian's own pdf.js (no library: pdf-lib alone
         // is ~400 KB), and Cite and Share now share one floating panel (readerFloat), 1 KB back. The ceiling
         // moves to the epic's end measure plus a little; #833–#835 would take 44 KB off the bundle.
-        limit: 3_150,
-        measured: "3,144.8 KB",
+        // E2 your pen on the copy (#843) +4.7 KB — strokes mapped to the page's own space at its turn, curves
+        // raised to the cubics pdf.js draws, the sheet's toggle and its six strings. The epic: +34.8 KB in all,
+        // and the ceiling closes at its measure plus 2.5 KB: 3,150 → 3,152.
+        limit: 3_152,
+        measured: "3,149.5 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

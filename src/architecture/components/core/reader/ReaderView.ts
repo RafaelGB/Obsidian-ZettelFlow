@@ -105,6 +105,8 @@ import { armChapterWait } from "./readerWaiting";
 import { measure, stopwatch } from "architecture/monitoring/measure";
 import { CitePanel } from "./readerCite";
 import { SharePanel, hasMarks } from "./readerShare";
+import { penOf } from "application/reader/share/shareInk";
+import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
 import { citeSourceOf } from "architecture/components/core/library/libraryCite";
 import { SittingClock, chapterEnds, endingAt, shouldPause, spanOf, touchedNotes, wasSkip, type ChapterSpan } from "./readerSurvived";
@@ -1151,6 +1153,13 @@ export class ReaderView extends ItemView {
             host: () => this.root,
             author: () => this.plugin?.settings?.shareAuthor ?? "",
             saveAuthor: (name) => this.saveShareAuthor(name),
+            pen: () => this.plugin?.settings?.sharePen !== false,
+            savePen: (include) => {
+                const plugin = this.plugin;
+                if (!plugin?.settings || plugin.settings.sharePen === include) return;
+                plugin.settings.sharePen = include;
+                void plugin.saveSettings?.();
+            },
             undoWith: (undo) => this.ledgerUndo(undo),
         });
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
@@ -4645,22 +4654,31 @@ export class ReaderView extends ItemView {
      */
     private shareDoor(actions: HTMLElement, path: string, scope: Component): void {
         const store = this.highlightDeps.store ?? ThoughtStore.getInstance();
+        // What is marked: the thoughts about the PDF, and the book's page ink (#843) — read only.
+        const marked = async () => {
+            const thoughts = await store.highlightsAbout(path);
+            const ink = await PageInkStore.getInstance()
+                .load(path)
+                .catch(() => null);
+            return { thoughts, pen: penOf(ink, thoughts) };
+        };
         const button = panelAction(
             actions,
             "file-output",
             "reader_share_copy",
             () => {
-                void store.highlightsAbout(path).then((thoughts) => {
-                    if (!hasMarks(thoughts) || this.sourcePath !== path) return;
+                void marked().then(({ thoughts, pen }) => {
+                    if (!hasMarks(thoughts, pen) || this.sourcePath !== path) return;
                     const box = button.getBoundingClientRect();
-                    this.sharePanel?.show({ path, thoughts, from: { left: box.left, top: box.top, width: box.width, height: box.height } });
+                    const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+                    this.sharePanel?.show({ path, thoughts, pen, turns, from: { left: box.left, top: box.top, width: box.width, height: box.height } });
                 });
             },
             scope
         );
         button.addClass(c("reader-share-door"));
-        void store.highlightsAbout(path).then((thoughts) => {
-            if (hasMarks(thoughts)) return;
+        void marked().then(({ thoughts, pen }) => {
+            if (hasMarks(thoughts, pen)) return;
             button.setAttribute("disabled", "");
             setTooltip(button, t("reader_share_empty"), { placement: "bottom" });
         });

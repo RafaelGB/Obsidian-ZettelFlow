@@ -59,6 +59,18 @@
     font-size: var(--font-ui-smaller);
 }
 
+/* A line with nothing to say keeps its place (#843): the sheet's height never changes. */
+.zettelkasten-flow__reader-share-hint--none {
+    visibility: hidden;
+    min-height: 1lh;
+}
+
+.zettelkasten-flow__reader-share-pen {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
 /* One line while it works, and what it said after: its height kept either way. */
 .zettelkasten-flow__reader-share-status {
     display: flex;

@@ -22,6 +22,7 @@ export interface ReaderHost {
         /** The citation form chosen last (#768): read through `citeFormOf()`. */
         citeForm?: unknown;
         shareAuthor?: string;
+        sharePen?: boolean;
     };
     saveSettings?(): Promise<void>;
 }

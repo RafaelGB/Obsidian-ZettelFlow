@@ -169,6 +169,8 @@ export interface ZettelFlowSettings {
      * remembered from it (§XIII) — never a settings row. Empty signs nothing.
      */
     shareAuthor?: string;
+    /** Whether a shared copy carries your pen (#843): remembered from the sheet, on until you turn it off. */
+    sharePen?: boolean;
     /**
      * Look up and Translate (#766, epic #741) — the settings' *Reading* section: the folder your
      * StarDict dictionaries are in (never written), the languages set for a dictionary that declares

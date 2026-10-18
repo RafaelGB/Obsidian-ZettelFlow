@@ -8,6 +8,8 @@ import { quoteAt } from "application/thinking/quoteAnchor";
 import type { Thought } from "application/thinking/thought";
 import { highlightPayload, notePayload, placeHighlight, placeNotes, userSpaceGeometry, type PageBox } from "application/reader/share/shareMarks";
 import { checkCopy, fillHoles, holeFor, startsWith, type PlannedMark, type ReadMark } from "application/reader/share/shareFill";
+import { inkPayloads } from "application/reader/share/shareInk";
+import { inkPayloads } from "application/reader/share/shareInk";
 
 /**
  * **A shared copy, through the real pdf.js** (#842 AC-3, AC-6, AC-8, AC-9): the payloads the share
@@ -68,10 +70,13 @@ describeReal("a shared copy, through the real pdf.js (#842)", () => {
         const lines = placeHighlight(text, box, thought)!;
         const hole = holeFor(0, COMMENT, author)!;
         const [note] = placeNotes(box, text.words, ["A note in the margin, for the reader."]);
-        const payloads = [highlightPayload(lines, 0, thought, hole.user), notePayload(note, 0, author || undefined)];
+        // A pen stroke drawn in Page view, red, across the top of the page (#843).
+        const pen = inkPayloads({ page: 0, place: { px: 0.2, py: 0.1 }, strokes: [{ colour: "red", pointerType: "mouse", points: [0, 1, 2, 3].map((i) => ({ x: i * 2, y: i % 2, p: 0.5, tilt: 0, t: i })) }] }, box, 0, author || undefined);
+        const payloads = [highlightPayload(lines, 0, thought, hole.user), notePayload(note, 0, author || undefined), ...pen];
         const planned: PlannedMark[] = [
             { page: 0, subtype: "Highlight", contents: COMMENT, author },
             { page: 0, subtype: "FreeText", contents: note.lines.join("\n"), author },
+            { page: 0, subtype: "Ink", contents: "", author },
         ];
         return { lines, hole, payloads, planned };
     }
@@ -123,7 +128,15 @@ describeReal("a shared copy, through the real pdf.js (#842)", () => {
     it("keeps what the PDF already had: its link, beside the new marks (AC-6)", () => {
         const { after, before } = make("Rafa");
         expect(before.get(0)).toBe(1);
-        expect(after.get(0)!.map((mark) => mark.subtype).sort()).toEqual(["FreeText", "Highlight", "Link"]);
+        expect(after.get(0)!.map((mark) => mark.subtype).sort()).toEqual(["FreeText", "Highlight", "Ink", "Link"]);
+    });
+
+    it("carries your pen as ink, in its colour and with your name (#843 AC-1, AC-3)", () => {
+        const { after } = make("Rafa");
+        const ink = after.get(0)!.find((mark) => mark.subtype === "Ink") as ReadMark & { color: number[] };
+        expect(ink.title).toBe("Rafa");
+        // pdf.js keeps a colour as 0-1 floats: one channel may come back a unit off.
+        [0xd9, 0x38, 0x3c].forEach((channel, i) => expect(Math.abs(ink.color[i] - channel)).toBeLessThanOrEqual(1));
     });
 
     it("says a corrupted comment does not read back, so nothing would be saved (AC-9)", () => {

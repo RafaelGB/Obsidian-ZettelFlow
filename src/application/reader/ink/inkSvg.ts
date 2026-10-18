@@ -28,7 +28,7 @@ export const INK_METADATA_ID = "zettelflow-ink";
  * A plain colour per name for viewers **outside** the Reader. This is a data file, not a stylesheet:
  * inside the Reader every name is the theme's own variable.
  */
-const FILE_COLOUR: Record<InkColour, string> = {
+export const INK_FILE_COLOUR: Record<InkColour, string> = {
     // A mid grey: legible on a light page and on a dark one, wherever the file is embedded.
     pencil: "#8a8a8a",
     red: "#d9383c",
@@ -120,7 +120,7 @@ export function renderInkSvg(drawing: InkDrawing): string {
     ];
     for (const stroke of strokes) {
         for (const path of mergedPaths(segmentsOf(stroke.points, stroke.pointerType), INK_PRECISION)) {
-            lines.push(`<path data-ink="${stroke.colour}" stroke="${FILE_COLOUR[stroke.colour]}" stroke-width="${n(path.w)}" d="${path.d}"/>`);
+            lines.push(`<path data-ink="${stroke.colour}" stroke="${INK_FILE_COLOUR[stroke.colour]}" stroke-width="${n(path.w)}" d="${path.d}"/>`);
         }
     }
     lines.push("</g>", "</svg>", "");

@@ -6,7 +6,8 @@ import { FileService } from "architecture/plugin/services/FileService";
 import { bufferedWrites, replaceBufferedWrites } from "architecture/plugin/writes/recordVaultWrite";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { shareCopy, type ShareDeps } from "architecture/components/core/reader/readerShareRun";
-import { hasMarks, shareCounts } from "architecture/components/core/reader/readerShare";
+import { SharePanel, hasMarks, shareCounts } from "architecture/components/core/reader/readerShare";
+import { DomNode } from "../../../../support/dashboardDom";
 import { utf16Hex } from "application/reader/share/shareFill";
 import type { Thought } from "application/thinking/thought";
 
@@ -64,6 +65,7 @@ function fakePdf(options: { pages?: number; protectedBy?: "password" | "encrypt"
                 const text = Buffer.from(copy).toString("latin1");
                 const mine = stored.filter((p) => p.pageIndex === index).map((p) => {
                     if (p.annotationType === 3) return { subtype: "FreeText", contentsObj: { str: p.value }, titleObj: { str: p.user ?? "" } };
+                    if (p.annotationType === 15) return { subtype: "Ink", contentsObj: { str: "" }, titleObj: { str: p.user ?? "" } };
                     const hole = p.user ? text.indexOf(`/Contents <FEFF`, text.indexOf(`#${stored.indexOf(p)}#`)) : -1;
                     const hex = hole >= 0 ? text.slice(hole + 15, text.indexOf(">", hole)) : "";
                     const str = (hex.match(/.{4}/g) ?? []).map((unit) => String.fromCharCode(parseInt(unit, 16))).join("");
@@ -202,5 +204,77 @@ describe("making the shared copy (#842)", () => {
         const note = { id: "n", at: 1, text: "On the figure.", links: [], about: PATH, locator: { at: 2, label: "p. 3" } } as unknown as Thought;
         expect(shareCounts([highlight(0, "A note"), highlight(1), note])).toBe("2 highlights · 1 with a note · 1 margin note");
         expect(shareCounts([highlight(0)])).toBe("1 highlight");
+    });
+});
+
+describe("your pen on the copy (#843)", () => {
+    const stroke = { colour: "red" as const, pointerType: "mouse", points: [0, 1, 2].map((i) => ({ x: i, y: i, p: 0.5, tilt: 0, t: i })) };
+    const drawing = { page: 2, place: { px: 0.1, py: 0.1 }, strokes: [stroke] };
+    const pen = (over: Partial<{ drawings: any[]; notes: Thought[]; beside: number }> = {}) => ({ drawings: [drawing], notes: [], beside: 0, ...over });
+
+    it("carries what you drew in Page view as ink on its page, when you include it (FR-1, FR-3)", async () => {
+        vaultOf();
+        const pdf = fakePdf();
+        const outcome = await shareCopy(deps(pdf), { path: PATH, thoughts: [highlight(0)], author: "Rafa", suffix: "annotated", pen: { of: pen(), include: true } }, { aborted: false });
+        expect(outcome).toMatchObject({ ok: true });
+        expect(pdf.stored.filter((p) => p.annotationType === 15).map((p) => [p.pageIndex, p.user])).toEqual([[2, "Rafa"]]);
+        expect(pdf.calls.textContent).toEqual([1, 3]);
+    });
+
+    it("leaves it off when you turn it off", async () => {
+        vaultOf();
+        const pdf = fakePdf();
+        await shareCopy(deps(pdf), { path: PATH, thoughts: [highlight(0)], author: "", suffix: "annotated", pen: { of: pen(), include: false } }, { aborted: false });
+        expect(pdf.stored.some((p) => p.annotationType === 15)).toBe(false);
+    });
+
+    it("hands back a PDF marked only with the pen (FR-1)", async () => {
+        vaultOf();
+        expect(await shareCopy(deps(fakePdf()), { path: PATH, thoughts: [], author: "", suffix: "annotated", pen: { of: pen(), include: true } }, { aborted: false })).toMatchObject({ ok: true });
+        expect(hasMarks([], pen())).toBe(true);
+        expect(shareCounts([], 1)).toBe("1 drawing");
+    });
+
+    it("leaves the whole pen off, and says so, when an ink note cannot be read (FR-10)", async () => {
+        vaultOf();
+        const pdf = fakePdf();
+        const kept = { id: "k", at: 1, text: "", links: [], about: PATH, ink: { drawing: "k.svg", page: { px: 0, py: 0, pw: 0.1, ph: 0.1 } }, locator: { at: 1, label: "p. 2" } } as unknown as Thought;
+        const outcome = await shareCopy({ ...deps(pdf), drawingOf: async () => "<svg>not an ink file</svg>" }, { path: PATH, thoughts: [highlight(0)], author: "", suffix: "annotated", pen: { of: pen({ notes: [kept] }), include: true } }, { aborted: false });
+        expect(outcome).toMatchObject({ ok: true, inkUnreadable: true });
+        expect(pdf.stored.some((p) => p.annotationType === 15)).toBe(false);
+    });
+});
+
+describe("the sheet's pen (#843 FR-11)", () => {
+    const stroke = { colour: "blue" as const, pointerType: "mouse", points: [{ x: 0, y: 0, p: 0.5, tilt: 0, t: 0 }] };
+
+    function sheet(pen: any, remembered?: boolean) {
+        const host = new DomNode("div") as any;
+        const saved: boolean[] = [];
+        const panel = new SharePanel({ app: { vault: { getAbstractFileByPath: () => null } } as never, host: () => host, author: () => "", saveAuthor: () => undefined, pen: () => remembered ?? true, savePen: (include) => saved.push(include) });
+        panel.show({ path: PATH, thoughts: [highlight(0)], pen, from: { left: 0, top: 0, width: 10, height: 10 } });
+        return { host, saved };
+    }
+
+    it("offers your pen only when there is page ink, on until you turn it off, and counts it", () => {
+        const { host } = sheet({ drawings: [{ page: 0, place: { px: 0, py: 0 }, strokes: [stroke] }], notes: [], beside: 2 });
+        const box = host.find((el: any) => el.tagName === "INPUT" && el.type === "checkbox");
+        expect(box.checked).toBe(true);
+        expect(host.oneByClass("reader-share-counts").textContent).toBe("1 highlight · 1 drawing");
+        box.checked = false;
+        box.fire("change");
+        expect(host.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
+        expect(host.byClass("reader-share-hint").map((el: any) => el.textContent)).toContain("2 drawings made beside the text stay off the copy");
+    });
+
+    it("draws no pen row for a PDF with no page ink, and keeps the empty line's place", () => {
+        const { host } = sheet({ drawings: [], notes: [], beside: 0 });
+        expect(host.byClass("reader-share-pen")).toHaveLength(0);
+        expect(host.byClass("reader-share-hint--none")).toHaveLength(1);
+    });
+
+    it("starts from what you chose last", () => {
+        const { host } = sheet({ drawings: [{ page: 0, place: { px: 0, py: 0 }, strokes: [stroke] }], notes: [], beside: 0 }, false);
+        expect(host.find((el: any) => el.type === "checkbox").checked).toBe(false);
     });
 });

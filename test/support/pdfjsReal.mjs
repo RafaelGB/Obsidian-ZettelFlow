@@ -38,6 +38,8 @@ try {
             const value = { ...payload };
             if (value.quadPoints) value.quadPoints = new Float32Array(value.quadPoints);
             if (value.outlines) value.outlines = value.outlines.map((outline) => new Float32Array(outline));
+            // JSON writes a path's moves (NaN) as null: they are moves again here.
+            if (value.paths) value.paths = { lines: value.paths.lines.map((line) => new Float32Array(line.map((v) => (v === null ? NaN : v)))), points: value.paths.points.map((points) => new Float32Array(points)) };
             doc.annotationStorage.setValue(`pdfjs_internal_editor_${key}`, value);
         });
         out.saved = Buffer.from(await doc.saveDocument()).toString("base64");

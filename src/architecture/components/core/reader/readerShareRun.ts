@@ -6,6 +6,9 @@ import type { Thought } from "application/thinking/thought";
 import { classifyMarks, highlightPayload, markedPages, notePayload, placeHighlights, placeNotes, userSpaceGeometry, type PageBox } from "application/reader/share/shareMarks";
 import { checkCopy, fillHoles, freeCopyPath, holeFor, type CopyCheck, type Hole, type PlannedMark, type ReadMark } from "application/reader/share/shareFill";
 import { isTextItem, type PdfDocument, type PdfPage } from "architecture/components/core/library/sources/pdfjs";
+import { inkPayloads, turnOf, type PageDrawing, type SharePen } from "application/reader/share/shareInk";
+import { isUnreadable, parseInkSvg } from "application/reader/ink/inkSvg";
+import { isPageInk } from "application/thinking/thought";
 
 /**
  * **Make the shared copy** (#842, epic #836): the one run that reads the PDF, asks Obsidian's own
@@ -26,6 +29,8 @@ export interface ShareDeps {
     create(path: string, data: ArrayBuffer): Promise<TFile | null>;
     /** Let a frame through between two pages. */
     frame(): Promise<void>;
+    /** An ink note's drawing (#843), its SVG as kept. */
+    drawingOf?(thought: Thought): Promise<string | undefined>;
 }
 
 export interface ShareInput {
@@ -34,13 +39,15 @@ export interface ShareInput {
     author: string;
     /** The copy's suffix in the language spoken: `annotated`, `anotado`. */
     suffix: string;
+    /** Your pen (#843): what of it goes, whether you asked for it, and the turn you read each page at. */
+    pen?: { of: SharePen; include: boolean; turns?: Readonly<Record<number, number>> };
 }
 
 /** What the run is doing, for the one line the sheet shows while it works (FR-15). */
 export type ShareStep = { step: "place"; page: number; of: number } | { step: "write" } | { step: "check" };
 
 export type ShareOutcome =
-    | { ok: true; path: string; batch?: string; unplaced: number }
+    | { ok: true; path: string; batch?: string; unplaced: number; inkUnreadable?: true }
     | { ok: false; reason: "empty" | "protected" | "unplaced" | "check" | "failed" | "cancelled"; check?: CopyCheck };
 
 /** A protected PDF (FR-13): asked for a password, or carrying an encryption dictionary. */
@@ -66,9 +73,28 @@ async function readMarks(page: PdfPage): Promise<ReadMark[]> {
 /** The comment a highlight carries: its margin note, as you wrote it. */
 const commentOf = (thought: Thought) => thought.text.trim();
 
+/**
+ * The pen's drawings that go, ink notes read (FR-10): one ink note that cannot be read leaves the whole
+ * pen off — never a part of what you drew — and says so.
+ */
+async function drawingsOf(deps: ShareDeps, input: ShareInput): Promise<{ drawings: PageDrawing[]; unreadable: boolean }> {
+    const pen = input.pen;
+    if (!pen?.include) return { drawings: [], unreadable: false };
+    const drawings = [...pen.of.drawings];
+    for (const thought of pen.of.notes) {
+        const text = await deps.drawingOf?.(thought);
+        const drawing = text === undefined ? null : parseInkSvg(text);
+        if (!drawing || isUnreadable(drawing)) return { drawings: [], unreadable: true };
+        const ink = thought.ink;
+        if (ink && isPageInk(ink) && thought.locator) drawings.push({ page: thought.locator.at, place: ink.page, strokes: drawing.strokes });
+    }
+    return { drawings, unreadable: false };
+}
+
 export async function shareCopy(deps: ShareDeps, input: ShareInput, signal: { aborted: boolean }, onStep: (step: ShareStep) => void = () => undefined): Promise<ShareOutcome> {
     const marks = classifyMarks(input.thoughts);
-    if (marks.highlights.length === 0 && marks.notes.length === 0) return { ok: false, reason: "empty" };
+    const penned = input.pen?.include ? input.pen.of.drawings.length + input.pen.of.notes.length : 0;
+    if (marks.highlights.length === 0 && marks.notes.length === 0 && penned === 0) return { ok: false, reason: "empty" };
     let doc: PdfDocument | null = null;
     let check: PdfDocument | null = null;
     try {
@@ -83,7 +109,8 @@ export async function shareCopy(deps: ShareDeps, input: ShareInput, signal: { ab
         if (await isProtected(doc)) return { ok: false, reason: "protected" };
         if (!doc.annotationStorage || !doc.saveDocument) return { ok: false, reason: "failed" };
 
-        const pages = markedPages(marks).filter((index) => index >= 0 && index < doc!.numPages);
+        const pen = await drawingsOf(deps, input);
+        const pages = [...new Set([...markedPages(marks), ...pen.drawings.map((drawing) => drawing.page)])].sort((p, q) => p - q).filter((index) => index >= 0 && index < doc!.numPages);
         const planned: PlannedMark[] = [];
         const holes: Hole[] = [];
         const before = new Map<number, number>();
@@ -111,6 +138,14 @@ export async function shareCopy(deps: ShareDeps, input: ShareInput, signal: { ab
                 doc!.annotationStorage!.setValue(`pdfjs_internal_editor_${key++}`, notePayload(note, index, input.author || undefined));
                 planned.push({ page: index, subtype: "FreeText", contents: note.lines.join("\n"), author: input.author });
             });
+            // Your pen, where Page view shows it: at the page's own turn and yours (#843 FR-3).
+            const turn = turnOf(page.rotate ?? 0, input.pen?.turns?.[index] ?? 0);
+            for (const drawing of pen.drawings.filter((each) => each.page === index)) {
+                for (const payload of inkPayloads(drawing, view, turn, input.author || undefined)) {
+                    doc.annotationStorage.setValue(`pdfjs_internal_editor_${key++}`, payload);
+                    planned.push({ page: index, subtype: "Ink", contents: "", author: input.author });
+                }
+            }
             await deps.frame();
         }
         if (planned.length === 0) return { ok: false, reason: "unplaced" };
@@ -149,7 +184,7 @@ export async function shareCopy(deps: ShareDeps, input: ShareInput, signal: { ab
             }
         });
         if (!written) return { ok: false, reason: "failed" };
-        return { ok: true, path: written, ...(batch ? { batch } : {}), unplaced };
+        return { ok: true, path: written, ...(batch ? { batch } : {}), unplaced, ...(pen.unreadable ? { inkUnreadable: true as const } : {}) };
     } catch (error) {
         log.error(`[Reader] could not share a copy of ${input.path}: ${error instanceof Error ? error.message : String(error)}`);
         return { ok: false, reason: "failed" };

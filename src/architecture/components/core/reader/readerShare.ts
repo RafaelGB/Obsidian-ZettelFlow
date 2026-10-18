@@ -5,6 +5,8 @@ import { FileService } from "architecture/plugin/services/FileService";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { openPdfData } from "architecture/components/core/library/sources/pdfjs";
 import { classifyMarks } from "application/reader/share/shareMarks";
+import type { SharePen } from "application/reader/share/shareInk";
+import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { freeCopyPath } from "application/reader/share/shareFill";
 import type { Thought } from "application/thinking/thought";
 import { panelClose } from "./readerPanelHead";
@@ -25,6 +27,9 @@ export interface ShareHost {
     /** The name the comments were signed with last (`settings.shareAuthor`). */
     author(): string;
     saveAuthor(name: string): void;
+    /** Whether your pen went on the last copy (`settings.sharePen`): on until you say otherwise (#843). */
+    pen?(): boolean;
+    savePen?(include: boolean): void;
     /** How an Undo runs where the sheet is: through the Reader's own guard, or as it is. */
     undoWith?(undo: () => Promise<boolean>): () => Promise<boolean>;
     /** A seam for tests: the run's app. */
@@ -36,6 +41,9 @@ export interface ShareRequest {
     path: string;
     /** Every thought about it: the sheet keeps the marks. */
     thoughts: readonly Thought[];
+    /** Your pen on it (#843), and the turn you read each page at. */
+    pen?: SharePen;
+    turns?: Readonly<Record<number, number>>;
     from: FloatBox;
 }
 
@@ -53,26 +61,31 @@ export function shareDepsFor(app: App): ShareDeps {
         },
         exists: (path) => app.vault.getAbstractFileByPath(path) !== null,
         create: (path, data) => FileService.createBinaryFileOnce(path, data),
+        drawingOf: (thought) => ThoughtStore.getInstance().drawingOf(thought),
         frame: () => new Promise((resolve) => (typeof activeWindow === "undefined" ? window : activeWindow).requestAnimationFrame(() => resolve())),
     };
 }
 
-/** The counts line (FR-22): what goes on the copy, each count a phrase of its own. */
-export function shareCounts(thoughts: readonly Thought[]): string {
+/** How many drawings of your pen go on the copy (#843). */
+const drawn = (pen?: SharePen) => (pen ? pen.drawings.length + pen.notes.length : 0);
+
+/** The counts line (FR-22): what goes on the copy, each count a phrase of its own — your pen's too. */
+export function shareCounts(thoughts: readonly Thought[], drawings = 0): string {
     const marks = classifyMarks(thoughts);
     const noted = marks.highlights.filter((thought) => thought.text.trim()).length;
     const phrases = [
         marks.highlights.length > 0 ? tCount(marks.highlights.length, "reader_share_highlights", String(marks.highlights.length)) : "",
         noted > 0 ? tCount(noted, "reader_share_with_note", String(noted)) : "",
         marks.notes.length > 0 ? tCount(marks.notes.length, "reader_share_margin_notes", String(marks.notes.length)) : "",
+        drawings > 0 ? tCount(drawings, "reader_share_drawings", String(drawings)) : "",
     ];
     return phrases.filter(Boolean).join(" · ");
 }
 
-/** Whether a PDF has anything to share (FR-21): a door with nothing behind it is disabled. */
-export function hasMarks(thoughts: readonly Thought[]): boolean {
+/** Whether a PDF has anything to share (FR-21): a door with nothing behind it is disabled. A PDF marked only with the pen has (#843). */
+export function hasMarks(thoughts: readonly Thought[], pen?: SharePen): boolean {
     const marks = classifyMarks(thoughts);
-    return marks.highlights.length + marks.notes.length > 0;
+    return marks.highlights.length + marks.notes.length + drawn(pen) > 0;
 }
 
 const nameOf = (path: string) => path.split("/").pop() ?? path;
@@ -107,7 +120,22 @@ export class SharePanel {
         head.createDiv({ cls: c("reader-share-title"), text: t("reader_share_copy") });
         panelClose(head, { label: "reader_share_cancel", onClose: () => this.close(), scope });
         el.createDiv({ cls: c("reader-share-intro"), text: t("reader_share_intro") });
-        el.createDiv({ cls: c("reader-share-counts"), text: shareCounts(request.thoughts) });
+        let include = drawn(request.pen) > 0 && (this.view.pen?.() ?? true);
+        const counts = el.createDiv({ cls: c("reader-share-counts"), text: shareCounts(request.thoughts, include ? drawn(request.pen) : 0) });
+        // Your pen (#843): a choice only when there is page ink to share; only its phrase changes.
+        if (drawn(request.pen) > 0) {
+            const row = el.createEl("label", { cls: c("reader-share-pen") });
+            const box = row.createEl("input", { attr: { type: "checkbox" } });
+            box.checked = include;
+            row.createSpan({ text: t("reader_share_pen") });
+            scope.registerDomEvent(box, "change", () => {
+                include = box.checked;
+                counts.setText(shareCounts(request.thoughts, include ? drawn(request.pen) : 0));
+            });
+        }
+        // What the pen drew beside the text stays behind, and says so; its line kept, so nothing moves.
+        const beside = request.pen?.beside ?? 0;
+        el.createDiv({ cls: [c("reader-share-hint"), ...(beside > 0 ? [] : [c("reader-share-hint--none")])], text: beside > 0 ? tCount(beside, "reader_share_text_ink", String(beside)) : "" });
 
         const field = el.createEl("label", { cls: c("reader-share-author") });
         field.createSpan({ cls: c("reader-share-author-name"), text: t("reader_share_author") });
@@ -135,7 +163,8 @@ export class SharePanel {
             if (open.working) return;
             const author = input.value.trim();
             this.view.saveAuthor(author);
-            void this.run(open, request, author, { status, actions, make, input });
+            if (drawn(request.pen) > 0) this.view.savePen?.(include);
+            void this.run(open, request, author, include, { status, actions, make, input });
         });
 
         placeFloating(host, open, request.from, "share", true);
@@ -144,7 +173,7 @@ export class SharePanel {
         return el;
     }
 
-    private async run(open: Open, request: ShareRequest, author: string, parts: { status: HTMLElement; actions: HTMLElement; make: HTMLElement; input: HTMLInputElement }): Promise<void> {
+    private async run(open: Open, request: ShareRequest, author: string, include: boolean, parts: { status: HTMLElement; actions: HTMLElement; make: HTMLElement; input: HTMLInputElement }): Promise<void> {
         open.working = true;
         open.el.addClass(c("reader-share--working"));
         parts.make.setAttribute("disabled", "");
@@ -166,7 +195,8 @@ export class SharePanel {
         };
         let outcome: ShareOutcome;
         try {
-            outcome = await shareCopy(this.view.deps ?? shareDepsFor(this.view.app), { path: request.path, thoughts: request.thoughts, author, suffix: t("reader_share_suffix") }, open.abort, onStep);
+            const pen = request.pen ? { pen: { of: request.pen, include, ...(request.turns ? { turns: request.turns } : {}) } } : {};
+            outcome = await shareCopy(this.view.deps ?? shareDepsFor(this.view.app), { path: request.path, thoughts: request.thoughts, author, suffix: t("reader_share_suffix"), ...pen }, open.abort, onStep);
         } catch (error) {
             log.error(`[Reader] the shared copy failed: ${String(error)}`);
             outcome = { ok: false, reason: "failed" };
@@ -195,6 +225,7 @@ export class SharePanel {
         const app = this.view.app;
         status.createDiv({ cls: c("reader-share-said"), text: t("reader_share_done", nameOf(outcome.path)) });
         if (outcome.unplaced > 0) status.createDiv({ cls: c("reader-share-hint"), text: tCount(outcome.unplaced, "reader_share_unplaced", String(outcome.unplaced)) });
+        if (outcome.inkUnreadable) status.createDiv({ cls: c("reader-share-hint"), text: t("reader_share_ink_unreadable") });
         open.el.addClass(c("reader-share--done"));
         const shell = app as App & { showInFolder?: (path: string) => void };
         const canShow = !Platform.isMobile && typeof shell.showInFolder === "function";

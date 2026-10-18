@@ -11,6 +11,7 @@ import { buildNotebook, filterNotebook, readingNoteMarkdown, type Notebook, type
 import type { Thought } from "application/thinking/thought";
 import { renderInkThumb } from "architecture/components/core/reader/readerInkThumb";
 import { hasMarks } from "architecture/components/core/reader/readerShare";
+import type { SharePen } from "application/reader/share/shareInk";
 import type { ShelfItem } from "application/library/shelf";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -47,7 +48,9 @@ export interface NotebookParts {
     folder: string;
     rememberFolder: (folder: string) => void;
     /** *Share a copy with your notes* (#842), for a PDF: its marks, handed back on a new PDF. */
-    share?: (from: HTMLElement, thoughts: Thought[]) => void;
+    share?: (from: HTMLElement, thoughts: Thought[], pen: SharePen | null) => void;
+    /** The PDF's pen (#843), read only: a PDF marked only with it has something to share. */
+    pen?: () => Promise<SharePen | null>;
 }
 
 /**
@@ -86,10 +89,16 @@ export function renderNotebook(host: HTMLElement, item: ShelfItem, parts: Notebo
         .then((thoughts) => {
             if (list.isConnected === false) return;
             const book = buildNotebook(thoughts, (at) => t("notebook_place", String(at + 1)));
-            if (shareButton && hasMarks(thoughts)) {
-                shareButton.removeAttribute("disabled");
-                scope.registerDomEvent(shareButton, "click", () => parts.share?.(shareButton, thoughts));
-            } else if (shareButton) setTooltip(shareButton, t("reader_share_empty"));
+            if (shareButton) {
+                void (parts.pen?.() ?? Promise.resolve(null)).then((pen) => {
+                    if (!hasMarks(thoughts, pen ?? undefined)) {
+                        setTooltip(shareButton, t("reader_share_empty"));
+                        return;
+                    }
+                    shareButton.removeAttribute("disabled");
+                    scope.registerDomEvent(shareButton, "click", () => parts.share?.(shareButton, thoughts, pen));
+                });
+            }
             counts.setText(`${tCount(book.highlights, "notebook_highlights", String(book.highlights))} · ${tCount(book.notes, "notebook_notes", String(book.notes))}`);
             if (book.groups.length === 0) {
                 list.createDiv({ cls: c("notebook-empty"), text: t("notebook_empty") });

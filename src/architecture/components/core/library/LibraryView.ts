@@ -62,6 +62,9 @@ import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
 import { SharePanel } from "architecture/components/core/reader/readerShare";
 import type { Thought } from "application/thinking/thought";
+import { penOf, type SharePen } from "application/reader/share/shareInk";
+import { keptPageView } from "architecture/components/core/reader/readerSource";
+import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { citeFormOf } from "application/library/citation";
 import { citeSourceOf } from "./libraryCite";
 import type { KnowledgeIndex } from "architecture/knowledge";
@@ -1408,7 +1411,13 @@ export class LibraryView extends ItemView {
                 this.plugin.settings.readingNoteFolder = folder;
                 void this.plugin.saveSettings?.();
             },
-            share: (from, thoughts) => this.shareCopy(path, from, thoughts),
+            share: (from, thoughts, pen) => this.shareCopy(path, from, thoughts, pen),
+            pen: async () => {
+                const ink = await PageInkStore.getInstance()
+                    .load(path)
+                    .catch(() => null);
+                return penOf(ink, await (this.deps.store ?? ThoughtStore.getInstance()).highlightsAbout(path));
+            },
         });
         return true;
     }
@@ -1444,7 +1453,7 @@ export class LibraryView extends ItemView {
     }
 
     /** *Share a copy with your notes* (#842 FR-20): the sheet, grown from the notebook's button. */
-    private shareCopy(path: string, from: HTMLElement, thoughts: Thought[]): void {
+    private shareCopy(path: string, from: HTMLElement, thoughts: Thought[], pen: SharePen | null): void {
         this.sharePanel ??= new SharePanel({
             app: this.app,
             host: () => this.containerEl,
@@ -1455,9 +1464,17 @@ export class LibraryView extends ItemView {
                 settings.shareAuthor = name;
                 void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
             },
+            pen: () => this.plugin?.settings?.sharePen !== false,
+            savePen: (include) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.sharePen === include) return;
+                settings.sharePen = include;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
         });
         const r = from.getBoundingClientRect();
-        this.sharePanel.show({ path, thoughts, from: { left: r.left, top: r.top, width: r.width, height: r.height } })?.addClass(c("reader-share--library"));
+        const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+        this.sharePanel.show({ path, thoughts, ...(pen ? { pen } : {}), turns, from: { left: r.left, top: r.top, width: r.width, height: r.height } })?.addClass(c("reader-share--library"));
     }
 
     private closeDetail(): void {

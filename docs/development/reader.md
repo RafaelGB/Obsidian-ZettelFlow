@@ -1196,6 +1196,13 @@ Obsidian itself. **The original is only read**, never written.
     - A note you wrote on a page with no passage, as a text note in that page's wider margin (or its
       top corner, on a page with no room or no words to measure, such as a scan).
     - Every layer goes — reading, reflection, research — whatever you are showing.
+    - **Your pen**, when *Include your pen* is on (it is, until you turn it off): what you drew on a
+      printed page in Page view, and the ink notes you kept from it, as ink on the copy — in its
+      colours, at the width you drew, where Page view shows it, your turn of the page included. A PDF
+      marked only with the pen can be handed back too. Ink drawn beside the reflowed text has no place
+      on a printed page, so it stays behind and the sheet counts it; the pen's pressure shading is
+      lost, since a PDF's ink has one width. If an ink note cannot be read, the whole pen stays off
+      and the sheet says so.
 - **Your name on the comments.** Type it in the sheet, or leave it empty and nothing is signed. It
   is remembered for next time, in the sheet itself; there is no setting for it.
 - **The sheet says what goes before anything is written**: *3 highlights · 1 with a note · 1 margin
@@ -1204,7 +1211,7 @@ Obsidian itself. **The original is only read**, never written.
 - **Checked before it is saved.** The copy is written by Obsidian's own pdf.js, read back, and saved
   only if it says what was written: the original's bytes first, each highlight with its comment and
   your name. If any check fails, nothing is saved and the sheet says so. A protected PDF gets no copy.
-- **What stays off.** Ink notes (handwriting kept as a note), an answer the Reader proposed and you
+- **What stays off.** Ink drawn beside the reflowed text, an answer the Reader proposed and you
   accepted, and a highlight whose words can no longer be found on its page — counted, never guessed.
 - **After.** *Show in folder* on a desktop, ready to attach to an email; *Open* on a phone or a tablet.
   **Undo** sends the copy to the trash, and so does **Ctrl/⌘+Z** while the Reader is open.

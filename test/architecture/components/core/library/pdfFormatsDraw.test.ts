@@ -31,6 +31,7 @@ function formatsFake(): FakePage {
         styles,
         width: FORMATS.width,
         height: FORMATS.height,
+        links: (FORMATS.pages[0].links ?? []).map((link) => ({ rect: link.rect as [number, number, number, number], ...(link.url ? { url: link.url } : {}) })),
     };
 }
 
@@ -161,5 +162,34 @@ describe("footnotes and block quotes, drawn (#840)", () => {
     it("still draws exactly the text Page view indexes, with every format on the page (AC-1)", async () => {
         const { doc, body } = await drawn([formatsFake()]);
         expect(chapterText(body)).toBe((await doc.pages!.words!(0, 0)).text);
+    });
+});
+
+describe("links in the reading view (#841)", () => {
+    it("links the words under a link out of the paper, shown and never followed (FR-2)", async () => {
+        const { body } = await drawn([formatsFake()]);
+        const out = body.findAll((el: any) => el.getAttribute?.("data-zf-url"));
+        expect(out.map((el: any) => [el.tagName, el.textContent, el.getAttribute("data-zf-url")])).toEqual([["A", "example.org", "https://example.org"]]);
+        expect(out[0].getAttribute("href")).toBeNull();
+    });
+
+    it("links the words under a link into the paper, to the page Page view would go to (FR-3)", async () => {
+        const runs = prose(["Proofs of every claim are in the appendix, where", "the reader who wants them will find them waiting."]);
+        const { doc, body } = await drawn([{ runs, links: [{ rect: [230, 696, 278, 709], dest: [{ num: 1 }, { name: "XYZ" }, 0, 700, 0] }] }, { runs: prose(["The appendix."]) }]);
+        const link = body.find((el: any) => el.getAttribute?.("data-zf-dest"));
+        expect(link.textContent).toBe("appendix,");
+        expect(link.getAttribute("title")).toBe("Link in the paper");
+        expect(await doc.pages!.destination(JSON.parse(link.getAttribute("data-zf-dest")))).toMatchObject({ page: 1 });
+    });
+
+    it("draws the same text, with or without its links (AC-1)", async () => {
+        const { doc, body } = await drawn([formatsFake()]);
+        expect(chapterText(body)).toBe((await doc.pages!.words!(0, 0)).text);
+    });
+
+    it("leaves a page with no links as it was, and never links a word already a footnote's (FR-6)", async () => {
+        const { body } = await drawn([{ ...formatsFake(), links: [] }]);
+        expect(body.findAll((el: any) => el.getAttribute?.("data-zf-url"))).toEqual([]);
+        expect(body.findAll((el: any) => el.tagName === "A").map((el: any) => el.getAttribute("data-zf-href"))).toEqual(["#zf-pdf-note-1"]);
     });
 });

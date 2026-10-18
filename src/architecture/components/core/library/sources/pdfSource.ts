@@ -2,11 +2,11 @@ import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
-import { pageWordsOf, type PageText } from "application/library/pdfWords";
+import { linkBlocks, pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag } from "application/library/sourceMeta";
 import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/library/pdfCrop";
-import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage } from "./pdfjs";
+import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage, type PdfTextItem } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
 import { resolveDest, shareDown } from "./pdfPageView";
 import { drawBlocks, plainBlocks } from "./pdfDraw";
@@ -259,6 +259,16 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     const firstBox = doc.numPages > 0 ? (await doc.getPage(1)).getViewport({ scale: 1 }) : { width: 612, height: 792 };
     const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten);
 
+    const linked = async (page: PdfPage, index: number, items: PdfTextItem[], blocks: PageBlock[]): Promise<PageBlock[]> => {
+        const links = await pages.links(index, 0);
+        if (links.length === 0) return blocks;
+        const viewport = page.getViewport({ scale: 1, rotation: (((page.rotate ?? 0) % 360) + 360) % 360 });
+        if (!viewport.convertToViewportRectangle) return blocks;
+        const toViewport = (rect: number[]) => viewport.convertToViewportRectangle!(rect);
+        const words = pageWordsOf(items, { width: viewport.width, height: viewport.height, toViewport }, { blocks });
+        return linkBlocks(blocks, words, links);
+    };
+
     return {
         format: "pdf",
         pages,
@@ -284,7 +294,9 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
             const styles = content.styles ?? {};
             const items = content.items.filter(isTextItem);
             const faces = await fonts.read(page, items, early);
-            const blocks = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten });
+            const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten });
+            // Its links, over the very words Page view links (#841); a page with none does no more.
+            const blocks = await linked(page, index, items, reflowed);
             const text = blocks.map((block) => block.text).join(" ");
             if (text.replace(/[^\p{L}]/gu, "").length < PICTURE_LETTERS) {
                 // A page that is a figure: its picture is what there is to read.
@@ -300,7 +312,8 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
             const into = detached(body);
             drawBlocks(into, blocks);
             const listings = into.querySelector("pre") ? colourListings(into, null) : 0;
-            for (const child of Array.from(into.childNodes)) body.appendChild(child);
+            // Only elements stand at the top of a drawn page: its blocks, moved whole.
+            for (const child of Array.from(into.children)) body.appendChild(child);
             return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(listings > 0 ? { listings } : {}) };
         },
         resolveLink(fromChapter: number, href: string) {

@@ -64,8 +64,8 @@ export interface InlineSpan {
     to?: LinkTo;
 }
 
-/** Where a link in a page goes: a footnote on it (#840). */
-export type LinkTo = { note: string };
+/** Where a link in a page goes: a footnote on it (#840), a place in the paper or an address out of it (#841). */
+export type LinkTo = { note: string } | { dest: unknown } | { url: string };
 
 export interface PageBlock {
     kind: BlockKind;

@@ -427,8 +427,10 @@ export const BUDGETS = {
         // F3 bold and italic (#839) +1.6 KB — a face read off its font's real name, once per font.
         // F4 footnotes and quotes (#840) +2.4 KB — the raised marker, the foot zone, the set-in quote, and the
         // marker opening its note through #718's pop (0.4 KB of it).
+        // F5 links (#841) +1.7 KB — the words under each link, found by Page view's own boxes; Page view's
+        // pop for a link out, the Reader's own jump for a link in.
         limit: 3_140,
-        measured: "3,124.6 KB",
+        measured: "3,126.3 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

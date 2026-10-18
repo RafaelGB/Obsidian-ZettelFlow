@@ -434,6 +434,9 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
   book's does ([links, detours and context](reader.md#links-detours-and-context)). A footer that starts
   with a page number is not a footnote: its mark must be raised somewhere on the page. Two lines or
   more set in from both margins, at one place, read as a block quote.
+- **Links you can follow.** The words under a link are a link, the same words Page view links. A
+  citation or a *see section 3* goes to its page, with the way back on the trail; a link out of the
+  paper shows its address with **Copy link**, and is never opened.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found

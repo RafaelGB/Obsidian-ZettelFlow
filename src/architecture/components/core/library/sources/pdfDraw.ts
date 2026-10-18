@@ -1,6 +1,6 @@
 import { c } from "architecture";
 import { t } from "architecture/lang";
-import type { InlineSpan, PageBlock, SpanKind } from "application/library/pdfText";
+import type { InlineSpan, LinkTo, PageBlock, SpanKind } from "application/library/pdfText";
 
 /**
  * **A reflowed PDF page, drawn** (epic #836): its blocks as the elements they are — a heading, a
@@ -15,6 +15,19 @@ import type { InlineSpan, PageBlock, SpanKind } from "application/library/pdfTex
 const NESTING: readonly SpanKind[] = ["link", "strong", "em", "code", "sup"];
 
 const TAG: Record<SpanKind, keyof HTMLElementTagNameMap> = { link: "a", strong: "strong", em: "em", code: "code", sup: "sup" };
+
+/**
+ * Where a link goes, as the Reader's link handler reads it: a footnote by the path a book's takes
+ * (#718, #840), a place in the paper, or an address it shows and never follows (#841, L1).
+ */
+function linkTo(el: HTMLElement, to: LinkTo): void {
+    if ("note" in to) el.setAttribute("data-zf-href", `#${to.note}`);
+    else if ("url" in to) el.setAttribute("data-zf-url", to.url);
+    else {
+        el.setAttribute("data-zf-dest", JSON.stringify(to.dest));
+        el.setAttribute("title", t("reader_pv_link_in"));
+    }
+}
 
 /** `text[from, to)` into `parent`, each format from `depth` on wrapping the characters it covers. */
 function inline(parent: HTMLElement, text: string, spans: readonly InlineSpan[], from: number, to: number, depth = 0): void {
@@ -32,7 +45,7 @@ function inline(parent: HTMLElement, text: string, spans: readonly InlineSpan[],
         inline(parent, text, spans, at, start, depth + 1);
         const el = parent.createEl(TAG[kind]);
         // A marker opens its footnote where it is read (#840 FR-7), by the path a book's takes (#718).
-        if (span.to) el.setAttribute("data-zf-href", `#${span.to.note}`);
+        if (span.to) linkTo(el, span.to);
         inline(el, text, spans, start, end, depth + 1);
         at = end;
     }

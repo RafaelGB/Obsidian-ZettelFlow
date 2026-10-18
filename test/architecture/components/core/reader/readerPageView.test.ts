@@ -674,3 +674,27 @@ describe("links in the paper (#767 FR-11, FR-12, AC-7)", () => {
         expect(zoomButton(content).textContent).toBe("125%");
     });
 });
+
+/** A PDF's links in the reading view (#841): the same two links Page view draws, on the words under them. */
+describe("links in a PDF's reading view (#841)", () => {
+    const linked = () => paper({ 0: { runs: [...prose(["See the references for the proofs of it all."], { top: 606 }), ...prose(["And the DOI is the paper's own address."], { top: 566 })] } });
+    const body = (content: DomNode) => content.oneByClass("reader-stage").oneByClass("reader-source-body");
+
+    it("shows a link out of the paper with Copy link, and never follows it", async () => {
+        const { content, app } = await open(0, {}, linked(), { layout: "reading" });
+        const out = body(content).find((el) => el.getAttribute("data-zf-url") !== null) as DomNode;
+        expect(out.textContent).toContain("DOI");
+        body(content).fire("click", { target: out });
+        expect(content.oneByClass("reader-pv-outlink").oneByClass("reader-pv-outlink-url").textContent).toBe("https://doi.org/10.1145/564585.564601");
+        expect(app.workspace.openLinkText).not.toHaveBeenCalled();
+    });
+
+    it("follows a link into the paper to its page, with a way back", async () => {
+        const { content } = await open(0, {}, linked(), { layout: "reading" });
+        const into = body(content).find((el) => el.getAttribute("data-zf-dest") !== null) as DomNode;
+        expect(into.textContent).toContain("references");
+        body(content).fire("click", { target: into });
+        await settle(() => barLabel(content) === "Page 8 / 8");
+        expect(barLabel(content)).toBe("Page 8 / 8");
+    });
+});

@@ -3184,6 +3184,18 @@ export class ReaderView extends ItemView {
         if (!link) return;
         event.preventDefault();
         event.stopPropagation();
+        // A PDF's link in the reading view (#841): out of the paper it is shown, never followed (L1);
+        // into it, the page it names, with a way back — as Page view's own links do.
+        const url = link.getAttribute("data-zf-url");
+        if (url) {
+            this.openOutLink(url, link);
+            return;
+        }
+        const dest = link.getAttribute("data-zf-dest");
+        if (dest !== null) {
+            void this.followDest(dest);
+            return;
+        }
         const href = link.getAttribute("data-zf-href");
         const resolved = href ? this.source?.resolveLink?.(this.index, href) : null;
         if (!resolved) return;
@@ -3198,6 +3210,18 @@ export class ReaderView extends ItemView {
             return;
         }
         this.jumpTo(resolved.chapter, resolved.fragment, "link");
+    }
+
+    /** A place in the paper a reading-view link names (#841), resolved as Page view resolves it. */
+    private async followDest(dest: string): Promise<void> {
+        const generation = this.generation;
+        let target: { page: number } | null = null;
+        try {
+            target = (await this.source?.pages?.destination(JSON.parse(dest) as unknown)) ?? null;
+        } catch (error) {
+            log.debug(`[Reader] a link in the paper cannot be followed: ${String(error)}`);
+        }
+        if (target && generation === this.generation) this.jumpTo(target.page, undefined, "link");
     }
 
     /** The note a footnote mark points at, in this chapter or another one (endnotes). */

@@ -41,6 +41,9 @@ export interface TextRun {
     mono?: boolean;
     /** pdf.js's name for the run's font, when it gave one. */
     font?: string;
+    /** Set in a bold or an italic face (#839): read off the font's real name. */
+    bold?: boolean;
+    italic?: boolean;
 }
 
 /**
@@ -107,14 +110,20 @@ interface Line {
 /** pdf.js's `styles` map, as far as a run's face goes. */
 export type PdfStyles = Record<string, { fontFamily?: string } | undefined>;
 
+/** The faces of a document's fonts, by pdf.js's name for each (#839): what its real name says. */
+export type PdfFaces = Record<string, { bold?: boolean; italic?: boolean } | undefined>;
+
 /** A pdf.js text item as a run: its place from `transform`, its size from the glyph scale. */
-export function runOf(item: { str: string; transform: number[]; width: number; height?: number; fontName?: string }, styles?: PdfStyles): TextRun {
+export function runOf(item: { str: string; transform: number[]; width: number; height?: number; fontName?: string }, styles?: PdfStyles, faces?: PdfFaces): TextRun {
     const [a, b, , d, e, f] = item.transform;
     const size = Math.abs(d) || Math.hypot(a, b) || item.height || 10;
     const run: TextRun = { str: item.str, x: e, y: f, size, width: item.width };
     if (item.fontName && styles) {
         run.font = item.fontName;
         if (styles[item.fontName]?.fontFamily === "monospace") run.mono = true;
+        const face = faces?.[item.fontName];
+        if (face?.bold) run.bold = true;
+        if (face?.italic) run.italic = true;
     }
     return run;
 }
@@ -213,24 +222,56 @@ function isCodeLine(line: Line): boolean {
 }
 
 /** The ranges of a line set in monospace inside prose (#837 FR-5): inline code. */
-function codeSpansOf(line: Line): InlineSpan[] {
+function spansOf(line: Line, kind: SpanKind, test: (run: TextRun) => boolean): InlineSpan[] {
     const spans: InlineSpan[] = [];
     let start = -1;
     let end = -1;
     for (let i = 0; i <= line.text.length; i++) {
         const char = line.text[i];
         const blank = char !== undefined && /\s/.test(char);
-        if (char !== undefined && (blank || line.src[i]?.mono)) {
+        const run = line.src[i];
+        if (char !== undefined && (blank || (run && test(run)))) {
             if (!blank) {
                 if (start < 0) start = i;
                 end = i + 1;
             }
             continue;
         }
-        if (start >= 0) spans.push({ kind: "code", start, end });
+        if (start >= 0) spans.push({ kind, start, end });
         start = -1;
     }
     return spans;
+}
+
+/** A line's formats inside prose: inline code (#837), bold and italic (#839). */
+function lineSpans(line: Line, options: ReflowOptions): InlineSpan[] {
+    return [
+        ...(options.typewritten ? [] : spansOf(line, "code", (run) => Boolean(run.mono))),
+        ...spansOf(line, "strong", (run) => Boolean(run.bold) && !run.mono),
+        ...spansOf(line, "em", (run) => Boolean(run.italic) && !run.mono),
+    ];
+}
+
+/**
+ * A run's face, read off its font's real name (#839): `Times-Bold`, `MinionPro-It`, `Arial,BoldItalic`,
+ * and the faces LaTeX sets papers in — `NimbusRomNo9L-Medi` (its bold), `-ReguItal`, `CMBX10`, `CMTI10`.
+ * Only the style part after the last `-` or `,` is read, so `Boldini-Regular` is neither; a subset's
+ * `ABCDEF+` prefix is left out. A name with no style part says nothing, past Computer Modern's own.
+ */
+export function faceOf(name: string | undefined): { bold?: true; italic?: true } {
+    if (!name) return {};
+    const bare = name.replace(/^[A-Z]{6}\+/, "");
+    const cut = Math.max(bare.lastIndexOf("-"), bare.lastIndexOf(","));
+    if (cut < 0) {
+        // Computer Modern names its face in its family: bold extended, text italic (never math italic).
+        const cm = /^CM(BX|B|TI|BXTI|SL)\d/.exec(bare)?.[1];
+        return cm ? { ...(cm.startsWith("B") ? { bold: true as const } : {}), ...(/TI|SL/.test(cm) ? { italic: true as const } : {}) } : {};
+    }
+    const style = bare.slice(cut + 1);
+    return {
+        ...(/bold|black|heavy|semibold|demi|^medi/i.test(style) ? { bold: true as const } : {}),
+        ...(/ital|oblique/i.test(style) || /It$/.test(style) ? { italic: true as const } : {}),
+    };
 }
 
 /** The width of one monospace character on the lines: what a column of indentation is. */
@@ -294,19 +335,28 @@ interface Draft extends Omit<PageBlock, "spans"> {
 
 /** A line's formats, moved to where its text starts in the block. */
 function spansAt(line: Line, kind: BlockKind, at: number, options: ReflowOptions): InlineSpan[] {
-    if (kind === "heading" || kind === "listing" || options.typewritten || options.plain) return [];
-    return codeSpansOf(line).map((span) => ({ ...span, start: span.start + at, end: span.end + at }));
+    if (kind === "heading" || kind === "listing" || options.plain) return [];
+    return lineSpans(line, options).map((span) => ({ ...span, start: span.start + at, end: span.end + at }));
 }
 
-/** A draft as the block it is: a listing's text is its lines; formats a space apart are one. */
+const letters = (text: string) => text.replace(/[^\p{L}\p{N}]/gu, "").length;
+
+/**
+ * A draft as the block it is: a listing's text is its lines; formats of one kind a space apart are
+ * one. Bold or italic over the whole block is only the face it is set in (#839 FR-4): not marked.
+ */
 function finish(draft: Draft): PageBlock {
     const text = draft.kind === "listing" ? listingText(draft.lines) + draft.text : draft.text;
-    const spans: InlineSpan[] = [];
-    for (const span of draft.spans) {
-        const last = spans[spans.length - 1];
-        if (last && last.kind === span.kind && text.slice(last.end, span.start).trim() === "") last.end = span.end;
-        else spans.push({ ...span });
+    const merged: InlineSpan[] = [];
+    for (const span of [...draft.spans].sort((p, q) => (p.kind === q.kind ? p.start - q.start : p.kind < q.kind ? -1 : 1))) {
+        const last = merged[merged.length - 1];
+        if (last && last.kind === span.kind && text.slice(last.end, span.start).trim() === "") last.end = Math.max(last.end, span.end);
+        else merged.push({ ...span });
     }
+    const total = letters(text);
+    const covered = (kind: SpanKind) => merged.filter((span) => span.kind === kind).reduce((sum, span) => sum + letters(text.slice(span.start, span.end)), 0);
+    const whole = new Set((["strong", "em"] as const).filter((kind) => total > 0 && covered(kind) >= total));
+    const spans = merged.filter((span) => !whole.has(span.kind as "strong" | "em")).sort((p, q) => p.start - q.start);
     const { lines: _lines, spans: _spans, ...block } = draft;
     return spans.length > 0 ? { ...block, text, spans } : { ...block, text };
 }

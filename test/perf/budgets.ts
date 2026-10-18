@@ -424,8 +424,9 @@ export const BUDGETS = {
         // the copy you hand back with your notes. No PDF library: the copy is written by Obsidian's own pdf.js.
         // F1 code in a PDF (#837) +3.3 KB — the listing is #824's, its lines read off pdf.js's own styles.
         // F2 lists (#838) +2.6 KB — the five markers, the chain of two, nesting by place, the hanging item.
+        // F3 bold and italic (#839) +1.6 KB — a face read off its font's real name, once per font.
         limit: 3_140,
-        measured: "3,120.6 KB",
+        measured: "3,122.2 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

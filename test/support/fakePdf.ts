@@ -51,6 +51,8 @@ export interface FakePdf {
     holdOps?: boolean;
     /** Every operator list fails: the margins cannot be measured (#769). */
     failOps?: boolean;
+    /** Each font's real name, by the id its runs carry (#839): what `commonObjs` answers after an operator list. */
+    fonts?: Record<string, string>;
     /** The library's `OPS` (#769); pdf.js 5.3's codes when absent. */
     OPS?: Record<string, number> | null;
 }
@@ -177,6 +179,13 @@ export function makePdfJs(pdf: FakePdf) {
                 return new Promise((resolve) => heldOps.push(() => resolve(list)));
             },
             cleanup: () => undefined,
+            commonObjs: {
+                get: (id: string) => {
+                    const name = pdf.fonts?.[id];
+                    if (name === undefined) throw new Error(`Requesting object that isn't resolved yet ${id}.`);
+                    return { name };
+                },
+            },
         };
     };
     const doc = {

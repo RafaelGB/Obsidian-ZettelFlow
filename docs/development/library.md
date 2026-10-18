@@ -424,6 +424,10 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
   printed — the page's own `•`, `1.` or `a)`, never renumbered — and a line set under an item's words
   goes on with it. A nested item sits further in. Only a clear list is a list: a bullet, or two
   numbered (or dashed) lines in a row, in sequence; a lone *1. Introduction* stays what it was.
+- **Bold and italic** come back where they stand out: a defined term, a book's title, an emphasis.
+  They are read off the name of the font each word is set in (*Times-Bold*, *MinionPro-It*, the faces
+  LaTeX uses), so a PDF that names its fonts plainly shows nothing. A heading, or a paragraph set
+  wholly in one face, is left as it is — that is its font, not an emphasis.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found

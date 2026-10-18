@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
+import { faceOf, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
 import { pageWordsOf } from "application/library/pdfWords";
 import { folded, formatsPage, nonSpace } from "../../support/pdfFormats";
 
@@ -154,5 +154,55 @@ describe("a PDF's lists keep their items (#838)", () => {
     it("leaves the text as it was: every list fixture reads the same characters and spaces (AC-1)", () => {
         const runs = [at("Before the list, a sentence that runs on", 72, 700), at("• first item", 72, 688), at("• second item", 72, 676), at("1. one", 72, 664), at("2. two", 72, 652)];
         expect(joined(reflowPage(runs))).toBe(joined(reflowPage(runs, { plain: true })));
+    });
+});
+
+describe("bold and italic, from the font's real name (#839)", () => {
+    const facesOfPage = () => {
+        const { items, styles, names } = formatsPage();
+        const faces = Object.fromEntries(Object.entries(names).map(([id, name]) => [id, faceOf(name)]));
+        return items.map((item) => runOf(item, styles, faces));
+    };
+
+    it("reads the style part of a name, and nothing else (FR-2)", () => {
+        expect(faceOf("Times-Bold")).toEqual({ bold: true });
+        expect(faceOf("Times-Italic")).toEqual({ italic: true });
+        expect(faceOf("ABCDEF+MinionPro-BoldIt")).toEqual({ bold: true, italic: true });
+        expect(faceOf("Arial,BoldItalic")).toEqual({ bold: true, italic: true });
+        expect(faceOf("Helvetica-Oblique")).toEqual({ italic: true });
+        expect(faceOf("TimesNewRomanPS-BoldMT")).toEqual({ bold: true });
+        expect(faceOf("Boldini-Regular")).toEqual({});
+        expect(faceOf("Times-Roman")).toEqual({});
+        // The faces LaTeX sets a paper in, as a real arXiv paper names them.
+        expect(faceOf("RCUMTF+NimbusRomNo9L-Medi")).toEqual({ bold: true });
+        expect(faceOf("NimbusRomNo9L-ReguItal")).toEqual({ italic: true });
+        expect(faceOf("NimbusRomNo9L-Regu")).toEqual({});
+        expect(faceOf("FUIULY+CMBX10")).toEqual({ bold: true });
+        expect(faceOf("CMTI10")).toEqual({ italic: true });
+        expect(faceOf("CMR10")).toEqual({});
+        expect(faceOf("LICAEO+CMMI10")).toEqual({});
+        expect(faceOf(undefined)).toEqual({});
+    });
+
+    it("marks the bold term and the italic phrase, never the heading set in bold (AC-1, AC-4)", () => {
+        const blocks = reflowPage(facesOfPage());
+        const paragraph = blocks.find((block) => block.text.startsWith("This paragraph"))!;
+        const marked = (paragraph.spans ?? []).map((span) => [span.kind, paragraph.text.slice(span.start, span.end)]);
+        expect(marked).toEqual([
+            ["strong", "bold term"],
+            ["em", "italic phrase"],
+            ["code", "parseConfig()"],
+        ]);
+        expect(blocks[0]).toEqual({ kind: "heading", text: "Chapter 1. Formats in a paper" });
+    });
+
+    it("does not mark a block set wholly in one face: that is just its font (FR-4)", () => {
+        const italic = (str: string, y: number): TextRun => ({ str, x: 72, y, size: 10, width: str.length * 5, italic: true });
+        const [block] = reflowPage([italic("A whole paragraph set in italic, as an epigraph", 700), italic("or a quotation is, carries no emphasis at all.", 688)]);
+        expect(block.spans).toBeUndefined();
+    });
+
+    it("never moves a character: the text is the same with faces or without (AC-1)", () => {
+        expect(joined(reflowPage(facesOfPage()))).toBe(joined(reflowPage(page().runs)));
     });
 });

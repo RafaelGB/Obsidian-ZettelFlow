@@ -33,8 +33,8 @@ function formatsFake(): FakePage {
     };
 }
 
-async function open(pages: FakePage[]) {
-    const { lib } = makePdfJs({ pages });
+async function open(pages: FakePage[], fonts: Record<string, string> | null = FORMATS.fonts) {
+    const { lib } = makePdfJs({ pages, ...(fonts ? { fonts } : {}) });
     __setPdfJs(lib);
     const paper = new TFile();
     paper.path = "Papers/formats.pdf";
@@ -44,8 +44,8 @@ async function open(pages: FakePage[]) {
     return openPdfSource(app as never, paper);
 }
 
-async function drawn(pages: FakePage[]) {
-    const doc = await open(pages);
+async function drawn(pages: FakePage[], fonts?: Record<string, string> | null) {
+    const doc = await open(pages, fonts === undefined ? FORMATS.fonts : fonts);
     const body = new DomNode("div");
     const result = await doc.draw(0, body as never, new Component(), "reading");
     return { doc, body: body as any, result };
@@ -105,5 +105,33 @@ describe("a PDF's lists, drawn (#838)", () => {
         expect(first.find((el: any) => el.tagName === "UL")?.byClass("reader-pdf-item-text")[0].textContent).toBe("inner one ");
         expect(outer.children[1].byClass("reader-pdf-part").map((el: any) => el.textContent)).toEqual(["Its own second paragraph."]);
         expect(chapterText(body)).toBe("• outer one ◦ inner one • outer two.Its own second paragraph.");
+    });
+});
+
+describe("bold and italic, drawn (#839)", () => {
+    const marked = (body: any, tag: string) => body.findAll((el: any) => el.tagName === tag).map((el: any) => el.textContent);
+
+    it("draws the bold term and the italic phrase as strong and em, the heading as it was", async () => {
+        const { body } = await drawn([formatsFake()]);
+        expect(marked(body, "STRONG")).toEqual(["bold term"]);
+        expect(marked(body, "EM")).toEqual(["italic phrase"]);
+        expect(body.find((el: any) => el.tagName === "H2").find((el: any) => el.tagName === "STRONG")).toBeUndefined();
+    });
+
+    it("draws a page whose fonts cannot be read as it always did, its text the same (FR-7)", async () => {
+        const plain = await drawn([formatsFake()], null);
+        expect(marked(plain.body, "STRONG")).toEqual([]);
+        const styled = await drawn([formatsFake()]);
+        expect(chapterText(plain.body)).toBe(chapterText(styled.body));
+    });
+
+    it("reads each font once: a later page with the same fonts waits for nothing (FR-6)", async () => {
+        const { lib, calls } = makePdfJs({ pages: [formatsFake(), formatsFake(), { ...formatsFake(), runs: [{ str: "A face not seen before", x: 72, y: 700, size: 10, font: "FX" }] }], fonts: { ...FORMATS.fonts, FX: "Garamond-Italic" } });
+        __setPdfJs(lib);
+        const paper = new TFile();
+        paper.path = "Papers/two.pdf";
+        const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
+        for (const index of [0, 1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
+        expect(calls.opLists).toEqual([1, 3]);
     });
 });

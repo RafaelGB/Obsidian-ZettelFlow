@@ -10,6 +10,7 @@ import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlin
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
 import { resolveDest, shareDown } from "./pdfPageView";
 import { drawBlocks, plainBlocks } from "./pdfDraw";
+import { faceReader } from "./pdfFonts";
 import { colourListings } from "architecture/components/core/reader/readerCode";
 
 /** The widest a page is drawn at, in CSS pixels — the Reader's column, and a little more. */
@@ -213,17 +214,19 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
     // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in.
     const samples: string[] = [];
     const shapes: PageBlock[][] = [];
-    const faces: TextRun[][] = [];
+    const sampled: TextRun[][] = [];
     for (let n = 1; n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
         const content = await (await doc.getPage(n)).getTextContent();
         const items = content.items.filter(isTextItem);
         samples.push(items.map((item) => item.str).join(""));
         // The view it suggests is read off the page as it always was (#837 FR-11): formats never move it.
         shapes.push(reflowPage(items.map((item) => runOf(item)), { plain: true }));
-        faces.push(items.map((item) => runOf(item, content.styles ?? {})));
+        sampled.push(items.map((item) => runOf(item, content.styles ?? {})));
     }
     // A typewritten paper reads as prose (#837 FR-6): its body face decides, not one page of code.
-    const typewritten = isTypewritten(faces);
+    const typewritten = isTypewritten(sampled);
+    // Bold and italic, from each font's real name, read once per font (#839).
+    const fonts = faceReader(file.path);
     // The shelf may have sampled it already: a scan is known before its first page is drawn.
     if (imageOnlyKnown === undefined) imageOnly = isImageOnly(samples);
     const suggestedView = imageOnly ? undefined : suggestPdfView(shapes);
@@ -275,9 +278,13 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
                 return { words: 0, picture: true };
             }
             const page = await doc.getPage(index + 1);
+            // The first page reads its fonts beside its text; a later one only for a font not seen yet.
+            const early = fonts.early(page);
             const content = await page.getTextContent();
             const styles = content.styles ?? {};
-            const blocks = reflowPage(content.items.filter(isTextItem).map((item) => runOf(item, styles)), { typewritten });
+            const items = content.items.filter(isTextItem);
+            const faces = await fonts.read(page, items, early);
+            const blocks = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten });
             const text = blocks.map((block) => block.text).join(" ");
             if (text.replace(/[^\p{L}]/gu, "").length < PICTURE_LETTERS) {
                 // A page that is a figure: its picture is what there is to read.

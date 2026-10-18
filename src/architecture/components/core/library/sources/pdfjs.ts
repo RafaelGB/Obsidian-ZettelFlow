@@ -51,6 +51,11 @@ export interface PdfPage {
     getAnnotations?(options?: { intent?: string }): Promise<PdfAnnotation[]>;
     /** The page's own `/Rotate`, in degrees. */
     rotate?: number;
+    /**
+     * The objects the page's operator list loaded — its fonts, by the name its text items carry (#839).
+     * `get` throws for one not loaded yet; a font's `name` is its real one (`Times-Bold`).
+     */
+    commonObjs?: { get(id: string): unknown };
     cleanup?(): void;
 }
 

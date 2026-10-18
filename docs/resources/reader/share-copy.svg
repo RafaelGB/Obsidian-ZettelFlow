@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-label="Hand back a marked copy. Left: a paper in the Reader with a blue and a yellow highlight, a question in the margin, and the share door at the head of Contents. Middle: the sheet Share a copy with your notes, saying 2 highlights, 1 with a note, 1 margin note, the name Rafa on the comments and the new file attention (annotated).pdf, with Make the copy; below it, Copy saved, checked before it was saved, with Undo, Open and Show in folder. Right: the copy open in another PDF reader, the same highlights, the question shown as the highlight's comment signed Rafa, and the margin note on the first page.">
+<rect x="0" y="0" width="1200" height="760" fill="#141319" />
+<text x="600" y="40" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">HAND BACK A MARKED COPY — THE ORIGINAL IS ONLY READ</text>
+<text x="40" y="82" fill="#6c6a80" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start">IN THE READER</text>
+<rect x="40" y="94" width="330" height="560" fill="#1c1b22" rx="12" stroke="#3a3847" stroke-width="1.5"/>
+<rect x="56" y="110" width="298" height="30" fill="#24232c" rx="6"/>
+<text x="70" y="130" fill="#a3a1b8" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Contents</text>
+<rect x="248" y="116" width="18" height="18" fill="#3a3847" rx="4"/>
+<rect x="280" y="116" width="18" height="18" fill="#3a3847" rx="4"/>
+<rect x="310" y="113" width="26" height="24" fill="#8f7ff5" rx="6"/>
+<path d="M318 120 h7 l4 4 v8 h-11 z M325 120 v4 h4" fill="none" stroke="#fff" stroke-width="1.5"/>
+<text x="70" y="176" fill="#efeefa" font-family="Georgia, serif" font-size="18" font-weight="700" text-anchor="start">1  Introduction</text>
+<rect x="70" y="196" width="270" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="212" width="250" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="228" width="262" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="244" width="120" height="6" fill="#45425e" rx="3"/>
+<rect x="132" y="193" width="128" height="12" fill="#5aa9f0" rx="2" opacity="0.55"/>
+<rect x="84" y="386" width="254" height="70" fill="#26252f" rx="8" stroke="#3a3847"/>
+<text x="98" y="408" fill="#d9d6ea" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" font-style="italic">¿Citarías también GRU aquí?</text>
+<text x="98" y="428" fill="#8f8ca6" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">a question · p. 2</text>
+<rect x="70" y="276" width="262" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="292" width="270" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="308" width="240" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="324" width="266" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="340" width="180" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="305" width="214" height="12" fill="#e0de71" rx="2" opacity="0.5"/>
+<rect x="70" y="480" width="266" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="496" width="250" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="512" width="262" height="6" fill="#45425e" rx="3"/>
+<rect x="70" y="528" width="200" height="6" fill="#45425e" rx="3"/>
+<text x="70" y="610" fill="#8f8ca6" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">2 highlights · 1 with a note · 1 margin note</text>
+<path d="M380 360 L420 360" stroke="#8f7ff5" stroke-width="2"/><path d="M412 352 L422 360 L412 368" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+<rect x="430" y="150" width="340" height="330" fill="#22212e" rx="12" stroke="#3a3850" stroke-width="1.5"/>
+<text x="450" y="182" fill="#efeefa" font-family="sans-serif" font-size="15" font-weight="600" text-anchor="start">Share a copy with your notes</text>
+<text x="450" y="206" fill="#a3a1b8" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">A new PDF beside the original, with your</text>
+<text x="450" y="222" fill="#a3a1b8" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">highlights and notes on it. The original isn't changed.</text>
+<text x="450" y="252" fill="#dadada" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">2 highlights · 1 with a note · 1 margin note</text>
+<text x="450" y="284" fill="#dadada" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Your name on the comments</text>
+<rect x="450" y="294" width="300" height="30" fill="#1a1920" rx="6" stroke="#45425e"/>
+<text x="462" y="314" fill="#efeefa" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Rafa</text>
+<text x="450" y="342" fill="#8b8a98" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Optional. Readers like Acrobat show it beside each note.</text>
+<text x="450" y="372" fill="#a3a1b8" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">New file: attention (annotated).pdf</text>
+<rect x="450" y="386" width="300" height="2" fill="#8f7ff5" rx="1"/>
+<rect x="560" y="420" width="80" height="32" fill="#2d2b3a" rx="6"/>
+<text x="600" y="441" fill="#dadada" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Cancel</text>
+<rect x="650" y="420" width="100" height="32" fill="#8f7ff5" rx="6"/>
+<text x="700" y="441" fill="#fff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle">Make the copy</text>
+<rect x="430" y="500" width="340" height="120" fill="#22212e" rx="12" stroke="#3a3850" stroke-width="1.5"/>
+<text x="450" y="530" fill="#efeefa" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Copy saved: attention (annotated).pdf</text>
+<text x="450" y="552" fill="#8b8a98" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Checked before it was saved: the original first,</text>
+<text x="450" y="568" fill="#8b8a98" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">every comment and its name read back as written.</text>
+<rect x="450" y="580" width="64" height="28" fill="#2d2b3a" rx="6"/>
+<text x="482" y="599" fill="#dadada" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Undo</text>
+<rect x="590" y="580" width="62" height="28" fill="#2d2b3a" rx="6"/>
+<text x="621" y="599" fill="#dadada" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Open</text>
+<rect x="658" y="580" width="92" height="28" fill="#8f7ff5" rx="6"/>
+<text x="704" y="599" fill="#fff" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">Show in folder</text>
+<path d="M780 360 L820 360" stroke="#8f7ff5" stroke-width="2"/><path d="M812 352 L822 360 L812 368" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+<text x="830" y="82" fill="#6c6a80" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start">THE COPY, IN ANY PDF READER</text>
+<rect x="830" y="94" width="330" height="560" fill="#fbfaff" rx="6" stroke="#d9d6ea" stroke-width="1.5"/>
+<text x="844" y="124" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="400" text-anchor="start">Buen resumen, pero falta</text>
+<text x="844" y="138" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="400" text-anchor="start">hablar del coste de memoria.</text>
+<text x="844" y="152" fill="#6b6358" font-family="sans-serif" font-size="9" font-weight="400" text-anchor="start" font-style="italic">Rafa</text>
+<text x="995" y="186" fill="#2b2722" font-family="Georgia, serif" font-size="16" font-weight="700" text-anchor="middle">Introduction</text>
+<rect x="860" y="206" width="270" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="222" width="250" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="238" width="262" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="254" width="120" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="922" y="203" width="128" height="12" fill="#5aa9f0" rx="1" opacity="0.6"/>
+<rect x="860" y="286" width="262" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="302" width="270" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="318" width="240" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="334" width="266" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="350" width="180" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="315" width="214" height="12" fill="#e0de71" rx="1" opacity="0.75"/>
+<rect x="940" y="222" width="206" height="70" fill="#fff" rx="8" stroke="#d9d6ea"/>
+<path d="M990 222 L982 212 L1004 222" fill="#fff" stroke="#d9d6ea"/>
+<text x="954" y="246" fill="#2b2722" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start">Rafa</text>
+<text x="954" y="264" fill="#2b2722" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">¿Citarías también GRU aquí?</text>
+<text x="954" y="280" fill="#2b2722" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Revisa la (ñ).</text>
+<rect x="860" y="400" width="266" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="416" width="250" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="432" width="262" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="448" width="200" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="464" width="240" height="6" fill="#cfc6b2" rx="3"/>
+<rect x="860" y="480" width="260" height="6" fill="#cfc6b2" rx="3"/>
+<text x="995" y="630" fill="#6b6358" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">Acrobat · Preview · a browser · Obsidian</text>
+<text x="600" y="700" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Your highlights in their colours, your notes as their comments — written by Obsidian's own pdf.js; Undo sends the copy to the trash.</text>
+</svg>

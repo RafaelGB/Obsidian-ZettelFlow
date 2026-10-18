@@ -3,6 +3,11 @@ import { buildShelf, layShelves, statusCounts, viewShelf, type ShelfInputs } fro
 import { articleAdded, articleFields, isArticle } from "application/library/article";
 import { indexBookNotes } from "application/library/bookNote";
 import { reflowPage, type TextRun } from "application/library/pdfText";
+import { pageWordsOf } from "application/library/pdfWords";
+import { quoteAt } from "application/thinking/quoteAnchor";
+import type { Thought } from "application/thinking/thought";
+import { highlightPayload, placeHighlights, userSpaceGeometry } from "application/reader/share/shareMarks";
+import { fillHoles, holeFor } from "application/reader/share/shareFill";
 import { ZipArchive } from "application/library/zip";
 import { chapterTitles, packagePath, parseNav, parsePackage, type XmlParse } from "application/library/epubPackage";
 import { bodyOf, sanitizeChapter, type SourceNode } from "application/library/epubSanitize";
@@ -112,6 +117,44 @@ describe("the Library (#675)", () => {
             statusCounts(items);
         });
         assertBudget("library.shelf.500", ms);
+    });
+
+    it("reader.share.place.500", () => {
+        // 50 printed pages of 40 lines; 10 highlights on each, half with a note (#842).
+        const view: [number, number, number, number] = [0, 0, 612, 792];
+        const pages = Array.from({ length: 50 }, (_, p) =>
+            pageWordsOf(
+                Array.from({ length: 40 }, (_, line) => ({ str: `Page ${p} line ${line} of a paper about consistency and partitions in networks.`, transform: [9, 0, 0, 9, 72, 740 - line * 16], width: 300, height: 9 })),
+                userSpaceGeometry(view)
+            )
+        );
+        const marks = pages.flatMap((page, p) =>
+            Array.from({ length: 10 }, (_, k) => {
+                const at = page.text.indexOf(`line ${k * 3} of`);
+                return { page, p, thought: { id: `${p}-${k}`, at: 1, text: k % 2 ? "Why so?" : "", links: [], quote: quoteAt(page.text, at, at + 40)!.quote, locator: { at: p, label: "" } } as unknown as Thought };
+            })
+        );
+        const ms = best(5, () => {
+            pages.forEach((page, p) => {
+                const { placed } = placeHighlights(page, view, marks.filter((mark) => mark.p === p).map((mark) => mark.thought));
+                placed.forEach(({ thought, lines }, i) => highlightPayload(lines, p, thought, holeFor(i, thought.text, "Rafa")?.user));
+            });
+        });
+        assertBudget("reader.share.place.500", ms);
+    });
+
+    it("reader.share.fill.20mb", () => {
+        const holes = Array.from({ length: 100 }, (_, i) => holeFor(i, `Comment ${i}: ¿por qué?`, "Rafa")!);
+        const tail = holes.map((hole) => `<< /Subtype /Highlight /T (${hole.user}) >>`).join(" ");
+        const make = () => {
+            const bytes = new Uint8Array(20 * 1024 * 1024 + tail.length);
+            for (let i = 0; i < tail.length; i++) bytes[20 * 1024 * 1024 + i] = tail.charCodeAt(i);
+            return bytes;
+        };
+        const copies = Array.from({ length: 5 }, make);
+        let n = 0;
+        const ms = best(5, () => fillHoles(copies[n++ % copies.length], holes, 20 * 1024 * 1024));
+        assertBudget("reader.share.fill.20mb", ms);
     });
 
     it("library.pdf.reflow.page", () => {

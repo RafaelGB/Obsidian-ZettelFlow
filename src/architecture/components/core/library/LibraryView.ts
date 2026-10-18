@@ -60,6 +60,8 @@ import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
+import { SharePanel } from "architecture/components/core/reader/readerShare";
+import type { Thought } from "application/thinking/thought";
 import { citeFormOf } from "application/library/citation";
 import { citeSourceOf } from "./libraryCite";
 import type { KnowledgeIndex } from "architecture/knowledge";
@@ -186,6 +188,8 @@ export class LibraryView extends ItemView {
     private openField: { field: TextField; detail: string; until: number } | null = null;
     /** *Cite this book* (#768): the one cite panel, grown from the detail's button. */
     private citePanel: CitePanel | null = null;
+    /** *Share a copy with your notes* (#842), from a PDF's notebook. */
+    private sharePanel: SharePanel | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
     /** The Library came back into view: the continue card breathes once (#724). */
@@ -236,6 +240,7 @@ export class LibraryView extends ItemView {
                 this.citePanel.close();
                 return false;
             }
+            if (this.sharePanel?.isOpen()) return false;
             if (!this.detail && this.notebook) {
                 this.closeNotebook();
                 return false;
@@ -375,6 +380,8 @@ export class LibraryView extends ItemView {
         this.detailScope?.unload();
         this.citePanel?.dispose();
         this.citePanel = null;
+        this.sharePanel?.dispose();
+        this.sharePanel = null;
         this.scrim?.remove();
         this.aside?.remove();
         this.contentEl.empty();
@@ -1401,6 +1408,7 @@ export class LibraryView extends ItemView {
                 this.plugin.settings.readingNoteFolder = folder;
                 void this.plugin.saveSettings?.();
             },
+            share: (from, thoughts) => this.shareCopy(path, from, thoughts),
         });
         return true;
     }
@@ -1433,6 +1441,23 @@ export class LibraryView extends ItemView {
         const r = from.getBoundingClientRect();
         const panel = this.citePanel.show({ source: citeSourceOf(this.app, file, format, item.title), file, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
         panel?.addClass(c("reader-cite--library"));
+    }
+
+    /** *Share a copy with your notes* (#842 FR-20): the sheet, grown from the notebook's button. */
+    private shareCopy(path: string, from: HTMLElement, thoughts: Thought[]): void {
+        this.sharePanel ??= new SharePanel({
+            app: this.app,
+            host: () => this.containerEl,
+            author: () => this.plugin?.settings?.shareAuthor ?? "",
+            saveAuthor: (name) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.shareAuthor === name) return;
+                settings.shareAuthor = name;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
+        });
+        const r = from.getBoundingClientRect();
+        this.sharePanel.show({ path, thoughts, from: { left: r.left, top: r.top, width: r.width, height: r.height } })?.addClass(c("reader-share--library"));
     }
 
     private closeDetail(): void {

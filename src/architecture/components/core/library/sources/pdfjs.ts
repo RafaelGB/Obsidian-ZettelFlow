@@ -31,6 +31,9 @@ export interface PdfViewport {
 /** An annotation on a page; the Reader reads only its links (#767 FR-11). */
 export interface PdfAnnotation {
     subtype?: string;
+    /** What the annotation says, and who said it (#842): read back to check a shared copy. */
+    contentsObj?: { str?: string };
+    titleObj?: { str?: string };
     rect?: number[];
     /** Where an internal link goes: a named or an explicit destination. */
     dest?: string | unknown[] | null;
@@ -51,6 +54,8 @@ export interface PdfPage {
     getAnnotations?(options?: { intent?: string }): Promise<PdfAnnotation[]>;
     /** The page's own `/Rotate`, in degrees. */
     rotate?: number;
+    /** The page's box in user space, `[x1, y1, x2, y2]` (#842): where a shared copy's marks are placed. */
+    view?: number[];
     /**
      * The objects the page's operator list loaded — its fonts, by the name its text items carry (#839).
      * `get` throws for one not loaded yet; a font's `name` is its real one (`Times-Bold`).
@@ -75,6 +80,11 @@ export interface PdfDocument {
     /** The labels the PDF gives its pages (*i*, *ii*, *1*…), or `null` when it gives none (#767). */
     getPageLabels?(): Promise<string[] | null>;
     destroy(): Promise<void>;
+    /** What a shared copy is written through (#842): new annotations, then the file with them. */
+    annotationStorage?: { setValue(key: string, value: Record<string, unknown>): void };
+    saveDocument?(): Promise<Uint8Array>;
+    /** Non-null for a PDF with an encryption dictionary: a protected PDF gets no copy (#842 FR-13). */
+    getPermissions?(): Promise<number[] | null>;
 }
 
 interface PdfJsLib {
@@ -98,8 +108,12 @@ export async function pdfOps(): Promise<Record<string, number> | null> {
  * no URL, nothing fetched. The fonts and character maps it may ask for are Obsidian's own, local.
  */
 export async function openPdf(app: App, file: TFile): Promise<PdfDocument> {
+    return openPdfData(new Uint8Array(await app.vault.readBinary(file)));
+}
+
+/** Open a PDF from bytes already read (#842): a shared copy is made from its own document. */
+export async function openPdfData(data: Uint8Array): Promise<PdfDocument> {
     const lib = (await loadPdfJs()) as PdfJsLib;
-    const data = new Uint8Array(await app.vault.readBinary(file));
     return lib.getDocument({
         data,
         cMapUrl: "/lib/pdfjs/cmaps/",

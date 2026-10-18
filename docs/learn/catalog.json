@@ -3587,6 +3587,26 @@
     },
     {
       "name": {
+        "en": "Share a marked copy",
+        "es": "Compartir una copia marcada"
+      },
+      "line": {
+        "en": "Hand a PDF you marked back as a new PDF with your highlights and notes on it; the original is only read.",
+        "es": "Devuelve un PDF que marcaste como un PDF nuevo con tus subrayados y notas; el original solo se lee."
+      },
+      "door": {
+        "en": "A PDF in the Reader › Contents › Share a copy with your notes, or its notebook in the Library",
+        "es": "Un PDF en el lector › Contenido › Compartir una copia con tus notas, o su cuaderno en la Biblioteca"
+      },
+      "group": {
+        "en": "Read",
+        "es": "Leer"
+      },
+      "doc": "development/reader.md",
+      "capability": "reader-share-copy"
+    },
+    {
+      "name": {
         "en": "What survived?",
         "es": "¿Qué sobrevivió?"
       },

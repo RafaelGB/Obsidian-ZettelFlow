@@ -362,6 +362,18 @@ export const BUDGETS = {
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
+    "reader.share.place.500": {
+        name: "place 500 highlights over 50 printed pages for a shared copy, with their comments' holes",
+        limit: 50,
+        measured: "9.5 ms",
+        because: "it runs once when you make the copy, between Make the copy and the file; a paper marked all over must still be a moment (#842)",
+    },
+    "reader.share.fill.20mb": {
+        name: "fill 100 comment holes in place in a 20 MB copy, never decoding it",
+        limit: 100,
+        measured: "1.2 ms",
+        because: "a scanned book is tens of megabytes: its holes are found by bytes, after the original's own, in one pass each (#842)",
+    },
     "library.pdf.reflow.page": {
         name: "reflow a dense two-column PDF page (961 runs) into paragraphs, its code, lists, markers and footnotes included (#837, #838, #840)",
         limit: 30,
@@ -429,8 +441,13 @@ export const BUDGETS = {
         // marker opening its note through #718's pop (0.4 KB of it).
         // F5 links (#841) +1.7 KB — the words under each link, found by Page view's own boxes; Page view's
         // pop for a link out, the Reader's own jump for a link in.
-        limit: 3_140,
-        measured: "3,126.3 KB",
+        // 3,140 → 3,150 (#842): the shared copy adds 18.5 KB, over the 10 KB its plan guessed — the sheet,
+        // its run and its checks 12.3 KB, its 30 strings in two languages 4.7 KB, the doors 1.5 KB. Looked for
+        // something to subtract first: the PDF is written by Obsidian's own pdf.js (no library: pdf-lib alone
+        // is ~400 KB), and Cite and Share now share one floating panel (readerFloat), 1 KB back. The ceiling
+        // moves to the epic's end measure plus a little; #833–#835 would take 44 KB off the bundle.
+        limit: 3_150,
+        measured: "3,144.8 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

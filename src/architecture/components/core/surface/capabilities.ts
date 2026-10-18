@@ -130,6 +130,7 @@ export const CAPABILITIES = [
     "reader-snapshot",
     "reader-listen",
     "reader-cite",
+    "reader-share-copy",
     "chapter-pause",
     "chapter-recall",
     "library",
@@ -484,6 +485,14 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "reader_cite",
         owner: "zettelflow-reader",
         doors: [CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"), CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library")],
+    },
+    "reader-share-copy": {
+        // Share a copy with your notes (#842, epic #836): a PDF you marked handed back as a new PDF
+        // beside it, your highlights and notes on it — written by Obsidian's own pdf.js, checked before
+        // it is saved, Undo sends it to the trash. At the head of the Reader's Contents, and the notebook.
+        nameKey: "cap_reader_share_copy",
+        owner: "zettelflow-reader",
+        doors: [CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"), CONTROL("architecture/components/core/library/libraryNotebook.ts", "zettelflow-library")],
     },
     "chapter-pause": {
         // What survived? (#755, epic #742): at the end of a chapter you marked, read for two minutes,

@@ -104,6 +104,7 @@ import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
 import { armChapterWait } from "./readerWaiting";
 import { measure, stopwatch } from "architecture/monitoring/measure";
 import { CitePanel } from "./readerCite";
+import { SharePanel, hasMarks } from "./readerShare";
 import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
 import { citeSourceOf } from "architecture/components/core/library/libraryCite";
 import { SittingClock, chapterEnds, endingAt, shouldPause, spanOf, touchedNotes, wasSkip, type ChapterSpan } from "./readerSurvived";
@@ -465,6 +466,8 @@ export class ReaderView extends ItemView {
     private lookup: ReaderLookup | null = null;
     /** *Cite* (#768): the panel grown from the popover or the highlight, gone on Esc, a click or a turn. */
     private citePanel: CitePanel | null = null;
+    /** *Share a copy with your notes* (#842): a PDF's marks, handed back as a new PDF. */
+    private sharePanel: SharePanel | null = null;
     /** *Snapshot* (#763): the mode that turns a drag on Page view into a capture, and its card. */
     private snapshot: ReaderSnapshot | null = null;
     /** Its door in the bar: shown in Page view, pressed while the mode is on. */
@@ -1143,6 +1146,13 @@ export class ReaderView extends ItemView {
             saveForm: (form) => this.saveCiteForm(form),
             addIt: (file, field) => this.addCiteField(file, field),
         });
+        this.sharePanel = new SharePanel({
+            app: this.app,
+            host: () => this.root,
+            author: () => this.plugin?.settings?.shareAuthor ?? "",
+            saveAuthor: (name) => this.saveShareAuthor(name),
+            undoWith: (undo) => this.ledgerUndo(undo),
+        });
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         // A thought written in the thinking space is in the cache a moment later: the marks are read then (#755).
         const thoughtChanged = this.app.metadataCache.on?.("changed", (file: TFile) => {
@@ -1201,6 +1211,9 @@ export class ReaderView extends ItemView {
         // A citation on screen goes with the Reader: it never wrote anything (#768 FR-7).
         this.citePanel?.dispose();
         this.citePanel = null;
+        // A copy being made goes with the Reader, unwritten: Cancel is the same (#842 FR-16).
+        this.sharePanel?.dispose();
+        this.sharePanel = null;
         // A capture not yet kept goes with the Reader: nothing written (#763 AC-3).
         this.snapshot?.dispose();
         this.snapshot = null;
@@ -4626,6 +4639,41 @@ export class ReaderView extends ItemView {
         };
     }
 
+    /**
+     * *Share a copy with your notes* (#842 FR-20), at the head of Contents beside Recall and Notebook —
+     * for a PDF only, and disabled with its reason while nothing in it is marked (FR-21).
+     */
+    private shareDoor(actions: HTMLElement, path: string, scope: Component): void {
+        const store = this.highlightDeps.store ?? ThoughtStore.getInstance();
+        const button = panelAction(
+            actions,
+            "file-output",
+            "reader_share_copy",
+            () => {
+                void store.highlightsAbout(path).then((thoughts) => {
+                    if (!hasMarks(thoughts) || this.sourcePath !== path) return;
+                    const box = button.getBoundingClientRect();
+                    this.sharePanel?.show({ path, thoughts, from: { left: box.left, top: box.top, width: box.width, height: box.height } });
+                });
+            },
+            scope
+        );
+        button.addClass(c("reader-share-door"));
+        void store.highlightsAbout(path).then((thoughts) => {
+            if (hasMarks(thoughts)) return;
+            button.setAttribute("disabled", "");
+            setTooltip(button, t("reader_share_empty"), { placement: "bottom" });
+        });
+    }
+
+    /** The name a shared copy's comments are signed with (#842 FR-6), remembered from the sheet. */
+    private saveShareAuthor(name: string): void {
+        const plugin = this.plugin;
+        if (!plugin?.settings || plugin.settings.shareAuthor === name) return;
+        plugin.settings.shareAuthor = name;
+        void plugin.saveSettings?.();
+    }
+
     /** The form chosen last (#768 FR-2), kept in the plugin's data. */
     private saveCiteForm(form: CiteForm): void {
         const settings = this.plugin?.settings;
@@ -4994,6 +5042,7 @@ export class ReaderView extends ItemView {
             const actions = tabs.createDiv({ cls: c("reader-panel-actions") });
             if (this.recallSpan()) panelAction(actions, "pencil-line", "reader_recall", () => this.startRecall(), scope).addClass(c("reader-recall-door"));
             if (sourcePath) panelAction(actions, "notebook-pen", "notebook_title", () => void openLibrary(this.app, undefined, sourcePath), scope);
+            if (sourcePath && this.source?.format === "pdf") this.shareDoor(actions, sourcePath, scope);
         }
         // Contents' own way out, at the end of its tabs (#777 FR-1).
         const close = this.panelCloseFor("reader_close_contents");

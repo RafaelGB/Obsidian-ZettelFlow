@@ -34,6 +34,8 @@ const ILLUSTRATIONS: [svg: string, page: string][] = [
     ["community/install-shot.svg", "community/index.md"],
     // #836: the formats a PDF page keeps in the reading view.
     ["library/pdf-formats.svg", "development/library.md"],
+    // #842: a marked PDF handed back as a copy with your notes.
+    ["reader/share-copy.svg", "development/reader.md"],
 ];
 
 describe("the docs illustrations (#800 D12)", () => {

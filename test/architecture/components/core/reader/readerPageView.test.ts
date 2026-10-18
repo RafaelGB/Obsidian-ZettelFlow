@@ -698,3 +698,31 @@ describe("links in a PDF's reading view (#841)", () => {
         expect(barLabel(content)).toBe("Page 8 / 8");
     });
 });
+
+/** Share a copy with your notes (#842 FR-20, FR-21): at the head of a PDF's Contents, beside Notebook. */
+describe("sharing a marked PDF from the Reader (#842)", () => {
+    const shareDoor = (content: DomNode) => content.byClass("reader-share-door")[0];
+
+    it("is at the head of Contents, disabled while nothing in the PDF is marked", async () => {
+        const { content } = await open(0, {}, undefined, { layout: "reading" });
+        contents(content);
+        await flush();
+        const door = shareDoor(content);
+        expect(door.getAttribute("aria-label")).toBe("Share a copy with your notes");
+        expect(door.getAttribute("disabled")).not.toBeNull();
+    });
+
+    it("opens the sheet for a PDF with marks, growing from the door", async () => {
+        const { content, store } = await open(0, {}, undefined, { layout: "reading" });
+        (store.highlightsAbout as jest.Mock<any>).mockImplementation(async () => [
+            { id: "h1", at: 1, text: "", links: [], about: PATH, quote: { exact: "consistency in a network", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } },
+        ]);
+        contents(content);
+        await flush();
+        const door = shareDoor(content);
+        expect(door.getAttribute("disabled")).toBeNull();
+        door.click();
+        await flush();
+        expect(content.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
+    });
+});

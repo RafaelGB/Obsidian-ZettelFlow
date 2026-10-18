@@ -1,4 +1,4 @@
-import { Modal, TFile, normalizePath, setIcon, type App, type Component } from "obsidian";
+import { Modal, TFile, normalizePath, setIcon, setTooltip, type App, type Component } from "obsidian";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { FolderSuggest } from "architecture/settings/suggesters/FolderSuggest";
@@ -10,6 +10,7 @@ import { HIGHLIGHT_MEANINGS, type HighlightMeaning } from "application/thinking/
 import { buildNotebook, filterNotebook, readingNoteMarkdown, type Notebook, type NotebookGroup } from "application/library/notebook";
 import type { Thought } from "application/thinking/thought";
 import { renderInkThumb } from "architecture/components/core/reader/readerInkThumb";
+import { hasMarks } from "architecture/components/core/reader/readerShare";
 import type { ShelfItem } from "application/library/shelf";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -45,6 +46,8 @@ export interface NotebookParts {
     /** Where the last reading note went, so the next one goes there too. */
     folder: string;
     rememberFolder: (folder: string) => void;
+    /** *Share a copy with your notes* (#842), for a PDF: its marks, handed back on a new PDF. */
+    share?: (from: HTMLElement, thoughts: Thought[]) => void;
 }
 
 /**
@@ -71,6 +74,8 @@ export function renderNotebook(host: HTMLElement, item: ShelfItem, parts: Notebo
     const actions = head.createDiv({ cls: c("notebook-actions") });
     const resume = actions.createEl("button", { attr: { type: "button" }, text: t("notebook_continue") });
     scope.registerDomEvent(resume, "click", () => parts.open());
+    // A PDF's marks can go back on a copy of it (#842 FR-20): disabled until they are read, and while there are none.
+    const shareButton = item.format === "pdf" && parts.share ? actions.createEl("button", { attr: { type: "button", disabled: "true" }, text: t("reader_share_copy") }) : null;
     const exportButton = actions.createEl("button", { cls: "mod-cta", attr: { type: "button", disabled: "true" }, text: t("notebook_export") });
 
     const filters = page.createDiv({ cls: c("notebook-filters") });
@@ -81,6 +86,10 @@ export function renderNotebook(host: HTMLElement, item: ShelfItem, parts: Notebo
         .then((thoughts) => {
             if (list.isConnected === false) return;
             const book = buildNotebook(thoughts, (at) => t("notebook_place", String(at + 1)));
+            if (shareButton && hasMarks(thoughts)) {
+                shareButton.removeAttribute("disabled");
+                scope.registerDomEvent(shareButton, "click", () => parts.share?.(shareButton, thoughts));
+            } else if (shareButton) setTooltip(shareButton, t("reader_share_empty"));
             counts.setText(`${tCount(book.highlights, "notebook_highlights", String(book.highlights))} · ${tCount(book.notes, "notebook_notes", String(book.notes))}`);
             if (book.groups.length === 0) {
                 list.createDiv({ cls: c("notebook-empty"), text: t("notebook_empty") });

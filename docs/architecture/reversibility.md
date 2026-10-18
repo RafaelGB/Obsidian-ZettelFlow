@@ -157,6 +157,12 @@ The record has exactly two readers, and both are an **offer in the moment**:
   highlight's own Undo saves the thought back and has no such limit. It never reads a batch another
   surface wrote.
 
+A **shared copy of a PDF** (#842) is one `file-created` in a `reader-share` batch, written by
+`FileService.createBinaryFileOnce` — the binary create that returns nothing, and touches nothing,
+when the path is taken, so a copy is never written over another file. The sheet's *Undo* (and the
+Reader's Ctrl/⌘+Z) sends it to the trash. The original PDF is only read, so there is nothing of it to
+take back.
+
 A **renamed book's follow** (#810) is a recorded batch with no Undo of its own: it is the mechanical
 consequence of your rename, and renaming the book back makes everything follow back.
 

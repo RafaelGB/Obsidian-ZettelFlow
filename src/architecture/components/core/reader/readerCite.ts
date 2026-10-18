@@ -1,4 +1,4 @@
-import { Component, setIcon } from "obsidian";
+import { setIcon } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
 import {
@@ -14,6 +14,7 @@ import {
 } from "application/library/citation";
 import { MOTION, motionWelcome } from "./readerMotion";
 import { panelClose } from "./readerPanelHead";
+import { closeFloating, growFloating, openFloating, placeFloating, type FloatBox, type Floating } from "./readerFloat";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -28,7 +29,7 @@ type LocaleKey = Parameters<typeof t>[0];
  */
 
 /** A box on screen: where Cite was asked from. */
-export type CiteBox = { left: number; top: number; width: number; height: number };
+export type CiteBox = FloatBox;
 
 /** One citation asked for: what is cited, from where. */
 export interface CiteRequest {
@@ -83,9 +84,6 @@ const MISSING_LINE: Record<CiteSource["kind"], LocaleKey> = {
 /** How long *Copied* stays before the button says *Copy* again (FR-12). */
 export const COPIED_MS = 1200;
 
-/** The panel's least distance from the edges of what it floats over. */
-const GAP_PX = 8;
-
 function writeClipboard(host: HTMLElement, text: string): Promise<void> | void {
     const win = (host as HTMLElement & { win?: Window }).win ?? window;
     return win.navigator?.clipboard?.writeText(text);
@@ -98,11 +96,7 @@ function namedFields(fields: readonly MissingField[]): string {
     return t("reader_cite_or", names.slice(0, -1).join(", "), names[names.length - 1]);
 }
 
-interface Open {
-    el: HTMLElement;
-    scope: Component;
-    gone: boolean;
-}
+type Open = Floating;
 
 export class CitePanel {
     private open: Open | null = null;
@@ -131,27 +125,10 @@ export class CitePanel {
             link: citeLink(request.file, fields.title, request.chapterKey),
         };
         const title = request.passage?.trim() ? t("reader_cite_title") : t("shelf_cite_book");
-        const el = host.createDiv({ cls: c("reader-cite"), attr: { role: "region", "aria-label": title } });
-        const scope = new Component();
-        scope.load();
-        const open: Open = { el, scope, gone: false };
+        // Esc, or a click anywhere else puts it away (FR-10): over the page, in another pane, in the sidebar.
+        const open = openFloating(host, "reader-cite", title, () => this.close());
+        const { el, scope } = open;
         this.open = open;
-        // A click inside is not a new selection in the chapter, nor a click outside the panel.
-        scope.registerDomEvent(el, "mousedown", (event: MouseEvent) => event.stopPropagation());
-        // A click anywhere else puts it away (FR-10): over the page, in another pane, in the sidebar.
-        // Caught on the way down: a pane that keeps its own clicks to itself still puts it away.
-        const away = (event: MouseEvent) => {
-            if (!el.contains(event.target as Node | null)) this.close();
-        };
-        const doc = host.ownerDocument as Document | null | undefined;
-        if (doc) scope.registerDomEvent(doc, "mousedown", away, { capture: true });
-        else scope.registerDomEvent(host, "mousedown", away, { capture: true });
-        scope.registerDomEvent(el, "keydown", (event: KeyboardEvent) => {
-            if (event.key !== "Escape") return;
-            event.preventDefault();
-            event.stopPropagation();
-            this.close();
-        });
 
         const head = el.createDiv({ cls: c("reader-cite-head") });
         head.createDiv({ cls: c("reader-cite-title"), text: title });
@@ -231,16 +208,8 @@ export class CitePanel {
             }, COPIED_MS);
         });
 
-        this.place(host, el, request.from);
-        if (motionWelcome(el)) {
-            el.animate(
-                [
-                    { transform: "scale(0.96)", opacity: 0 },
-                    { transform: "scale(1)", opacity: 1 },
-                ],
-                { duration: MOTION.fast, easing: MOTION.ease }
-            );
-        }
+        placeFloating(host, open, request.from, "cite");
+        growFloating(open);
         (buttons.get(form) ?? copy).focus?.();
         return el;
     }
@@ -256,48 +225,11 @@ export class CitePanel {
     close(animated = true): void {
         const open = this.open;
         if (!open || open.gone) return;
-        open.gone = true;
         this.open = null;
-        open.scope.unload();
-        open.el.addClass(c("reader-cite--leaving"));
-        if (!animated || !motionWelcome(open.el)) {
-            open.el.remove();
-            return;
-        }
-        const out = open.el.animate(
-            [
-                { transform: "scale(1)", opacity: 1 },
-                { transform: "scale(0.96)", opacity: 0 },
-            ],
-            { duration: MOTION.fast, easing: MOTION.ease, fill: "forwards" }
-        );
-        const drop = () => open.el.remove();
-        out.onfinish = drop;
-        ((open.el as HTMLElement & { win?: Window }).win ?? window).setTimeout(drop, MOTION.fast + 300);
+        closeFloating(open, "reader-cite--leaving", animated);
     }
 
     dispose(): void {
         this.close(false);
-    }
-
-    /**
-     * Where the panel sits: where it was asked from — the popover it takes the place of, the button —
-     * kept inside what it floats over, and growing from that point (FR-10).
-     */
-    private place(host: HTMLElement, el: HTMLElement, from: CiteBox): void {
-        const box = host.getBoundingClientRect();
-        const size = el.getBoundingClientRect();
-        const width = size.width || 0;
-        const height = size.height || 0;
-        const centre = from.left + from.width / 2 - box.left;
-        const top = from.top - box.top;
-        const x = Math.max(GAP_PX, Math.min(centre - width / 2, box.width - width - GAP_PX));
-        const y = Math.max(GAP_PX, Math.min(top, box.height - height - GAP_PX));
-        el.setCssProps({
-            "--zf-cite-x": `${Math.round(x)}px`,
-            "--zf-cite-y": `${Math.round(y)}px`,
-            "--zf-origin-x": `${Math.round(centre - x)}px`,
-            "--zf-origin-y": `${Math.round(top - y)}px`,
-        });
     }
 }

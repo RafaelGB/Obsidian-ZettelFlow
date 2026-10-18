@@ -1,0 +1,114 @@
+@use '../utils/mixins' as *;
+
+/*
+ * Share a copy with your notes (#842, epic #836): the sheet grown from the control that asked for
+ * it, as Cite is (#768). Its rows keep their height while it works — one line says what is happening,
+ * a hairline under it fills — so nothing below it ever moves. That line shows only once a run is
+ * slow, faded in by the stylesheet itself, so a busy main thread can never make it late (#825).
+ * The theme's colours only (§XV); the grow and the shrink are scripted, transform and opacity.
+ */
+.zettelkasten-flow__reader-share {
+    @include floating-panel;
+    left: var(--zf-share-x, var(--size-4-4));
+    top: var(--zf-share-y, var(--size-4-4));
+    width: min(26rem, calc(100% - var(--size-4-8)));
+}
+
+/* In the Library it floats over the book's notebook, which sits over the shelf. */
+.zettelkasten-flow__reader-share--library {
+    z-index: 5;
+}
+
+.zettelkasten-flow__reader-share--leaving {
+    pointer-events: none;
+}
+
+.zettelkasten-flow__reader-share-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader-share-title {
+    flex: 1;
+    min-width: 0;
+    font-weight: var(--font-semibold);
+}
+
+.zettelkasten-flow__reader-share-intro,
+.zettelkasten-flow__reader-share-where,
+.zettelkasten-flow__reader-share-hint {
+    color: var(--reader-muted, var(--text-muted));
+}
+
+.zettelkasten-flow__reader-share-counts {
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__reader-share-author {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+
+    input {
+        width: 100%;
+    }
+}
+
+.zettelkasten-flow__reader-share-hint {
+    font-size: var(--font-ui-smaller);
+}
+
+/* One line while it works, and what it said after: its height kept either way. */
+.zettelkasten-flow__reader-share-status {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    min-height: 2lh;
+}
+
+.zettelkasten-flow__reader-share-step {
+    color: var(--reader-muted, var(--text-muted));
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-share--working .zettelkasten-flow__reader-share-status {
+    animation: zf-share-wait var(--zf-share-delay, 0ms) step-end both;
+}
+
+@keyframes zf-share-wait {
+    from {
+        visibility: hidden;
+    }
+}
+
+.zettelkasten-flow__reader-share-bar {
+    height: var(--border-width);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scaleX(var(--zf-share-progress, 0));
+    transform-origin: left center;
+    transition: transform var(--anim-duration-fast, 140ms) ease-out;
+}
+
+.zettelkasten-flow__reader-share-said {
+    font-weight: var(--font-medium);
+}
+
+.zettelkasten-flow__reader-share-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+}
+
+/* Undo stands apart from the ways on, at the start of the row. */
+.zettelkasten-flow__reader-share-undo {
+    margin-inline-end: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader-share-bar {
+        transition: none;
+    }
+}

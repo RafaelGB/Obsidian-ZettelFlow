@@ -1176,6 +1176,41 @@ below the last line, still counts.
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
 
+## Hand back a marked copy
+
+You read someone's PDF to give them feedback: you highlight it and write notes in its margin. The
+person who sent it needs a PDF back, not your vault. **Share a copy with your notes** writes one —
+a new file beside the original, with your marks on it, readable in Acrobat, Preview, a browser or
+Obsidian itself. **The original is only read**, never written.
+
+![Share a copy with your notes: a paper as you marked it in the Reader, the sheet that says what goes on the copy and makes it, and the copy open in another reader with a yellow and a blue highlight, a note as its comment signed Rafa, and a margin note on the first page](../resources/reader/share-copy.svg)
+
+- **Where.** At the head of **Contents** in a PDF, beside *Recall* and *Notebook*, and in the book's
+  **Notebook** in the Library, beside *Export as a reading note*. It is there for PDFs only, and it is
+  disabled — saying so — while nothing in the PDF is marked.
+- **What goes on it.**
+    - Each highlight, over its words on the printed page, in its meaning's colour: an idea yellow,
+      a question blue, a quote green, a discussion purple. The colours are fixed, since the copy is read
+      outside your theme.
+    - The note you wrote on a highlight, as **its comment** — what Acrobat and Preview show beside it.
+    - A note you wrote on a page with no passage, as a text note in that page's wider margin (or its
+      top corner, on a page with no room or no words to measure, such as a scan).
+    - Every layer goes — reading, reflection, research — whatever you are showing.
+- **Your name on the comments.** Type it in the sheet, or leave it empty and nothing is signed. It
+  is remembered for next time, in the sheet itself; there is no setting for it.
+- **The sheet says what goes before anything is written**: *3 highlights · 1 with a note · 1 margin
+  note*, and the new file's name — `paper (annotated).pdf`, or `paper (annotated) 2.pdf` when one is
+  there already. Nothing is ever written over another file.
+- **Checked before it is saved.** The copy is written by Obsidian's own pdf.js, read back, and saved
+  only if it says what was written: the original's bytes first, each highlight with its comment and
+  your name. If any check fails, nothing is saved and the sheet says so. A protected PDF gets no copy.
+- **What stays off.** Ink notes (handwriting kept as a note), an answer the Reader proposed and you
+  accepted, and a highlight whose words can no longer be found on its page — counted, never guessed.
+- **After.** *Show in folder* on a desktop, ready to attach to an email; *Open* on a phone or a tablet.
+  **Undo** sends the copy to the trash, and so does **Ctrl/⌘+Z** while the Reader is open.
+- **Only what you mark is read.** The share reads just the pages with a mark, in its own document,
+  so the page you are reading never moves; on a 2 MB paper the copy took about half a second.
+
 ## Layers, and read it clean
 
 A book read twice carries two readings on top of each other: what struck you the first time, what

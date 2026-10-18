@@ -21,6 +21,7 @@ export interface ReaderHost {
         dictionaries?: unknown;
         /** The citation form chosen last (#768): read through `citeFormOf()`. */
         citeForm?: unknown;
+        shareAuthor?: string;
     };
     saveSettings?(): Promise<void>;
 }

@@ -448,9 +448,9 @@ export const BUDGETS = {
         // moves to the epic's end measure plus a little; #833–#835 would take 44 KB off the bundle.
         // E2 your pen on the copy (#843) +4.7 KB — strokes mapped to the page's own space at its turn, curves
         // raised to the cubics pdf.js draws, the sheet's toggle and its six strings. The epic: +34.8 KB in all,
-        // and the ceiling closes at its measure plus 2.5 KB: 3,150 → 3,152.
+        // and the ceiling closes at its measure plus 2 KB: 3,150 → 3,152 (review fixes: 3,150.2 KB).
         limit: 3_152,
-        measured: "3,149.5 KB",
+        measured: "3,150.2 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

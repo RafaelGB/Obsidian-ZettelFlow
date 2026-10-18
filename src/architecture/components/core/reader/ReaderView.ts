@@ -1158,7 +1158,7 @@ export class ReaderView extends ItemView {
                 const plugin = this.plugin;
                 if (!plugin?.settings || plugin.settings.sharePen === include) return;
                 plugin.settings.sharePen = include;
-                void plugin.saveSettings?.();
+                void plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not save: ${String(error)}`));
             },
             undoWith: (undo) => this.ledgerUndo(undo),
         });
@@ -3002,8 +3002,10 @@ export class ReaderView extends ItemView {
         const index = this.index;
         this.visited.add(`${path}#${index}`);
         this.closePeek();
-        // Another chapter: a citation of the one before goes, as on a page turn (#768 FR-10).
+        // Another chapter: a citation of the one before goes, as on a page turn (#768 FR-10) — and the
+        // shared copy's sheet, a run under way cancelled before anything is written (#842).
         this.citePanel?.close();
+        this.sharePanel?.close();
         this.highlights?.reset();
         this.chapter?.unload();
         const component = new Component();
@@ -4166,6 +4168,7 @@ export class ReaderView extends ItemView {
         this.lookup?.close();
         // So does the cite panel (#768 FR-10): Esc, a click outside, a page turn.
         this.citePanel?.close();
+        this.sharePanel?.close();
         this.notePop?.remove();
         this.notePop = null;
         this.notePopScope?.unload();
@@ -4689,7 +4692,7 @@ export class ReaderView extends ItemView {
         const plugin = this.plugin;
         if (!plugin?.settings || plugin.settings.shareAuthor === name) return;
         plugin.settings.shareAuthor = name;
-        void plugin.saveSettings?.();
+        void plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not save: ${String(error)}`));
     }
 
     /** The form chosen last (#768 FR-2), kept in the plugin's data. */

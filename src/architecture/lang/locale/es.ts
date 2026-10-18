@@ -3213,6 +3213,7 @@ export default {
     reader_share_protected: 'Este PDF está protegido, así que no se ha creado ninguna copia.',
     reader_share_check_failed: 'La copia no se leía tal como se escribió, así que no se ha guardado nada.',
     reader_share_failed: 'No se ha podido crear la copia. No se ha escrito nada.',
+    reader_share_none_placed: 'Ninguna de tus marcas se ha encontrado en las páginas impresas, así que no se ha creado ninguna copia.',
     reader_share_pen: 'Incluir tu lápiz',
     reader_share_drawings: '{0} dibujos',
     reader_share_drawings_one: '{0} dibujo',

@@ -1375,6 +1375,8 @@ export class LibraryView extends ItemView {
     }
 
     private closeNotebook(): void {
+        // A copy being made from this notebook is cancelled before anything is written (#842).
+        this.sharePanel?.close();
         this.notebook = null;
         this.notebookScope?.unload();
         this.notebookScope = null;

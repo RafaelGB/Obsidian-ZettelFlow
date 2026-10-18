@@ -3214,6 +3214,7 @@ export default {
     reader_share_protected: 'This PDF is protected, so no copy was made.',
     reader_share_check_failed: "The copy didn't read back as written, so nothing was saved.",
     reader_share_failed: "Couldn't make the copy. Nothing was written.",
+    reader_share_none_placed: "None of your marks could be found on the printed pages, so no copy was made.",
     reader_share_pen: 'Include your pen',
     reader_share_drawings: '{0} drawings',
     reader_share_drawings_one: '{0} drawing',

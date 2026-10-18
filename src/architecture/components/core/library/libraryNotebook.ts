@@ -90,7 +90,10 @@ export function renderNotebook(host: HTMLElement, item: ShelfItem, parts: Notebo
             if (list.isConnected === false) return;
             const book = buildNotebook(thoughts, (at) => t("notebook_place", String(at + 1)));
             if (shareButton) {
-                void (parts.pen?.() ?? Promise.resolve(null)).then((pen) => {
+                void (parts.pen?.() ?? Promise.resolve(null)).catch((error: unknown) => {
+                    log.error(`[Library] could not read the pen of ${item.id}: ${String(error)}`);
+                    return null;
+                }).then((pen) => {
                     if (!hasMarks(thoughts, pen ?? undefined)) {
                         setTooltip(shareButton, t("reader_share_empty"));
                         return;

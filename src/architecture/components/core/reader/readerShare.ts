@@ -211,7 +211,7 @@ export class SharePanel {
         status.empty();
         parts.actions.empty();
         if (!outcome.ok) {
-            const line = outcome.reason === "protected" ? "reader_share_protected" : outcome.reason === "check" ? "reader_share_check_failed" : outcome.reason === "empty" ? "reader_share_empty" : "reader_share_failed";
+            const line = outcome.reason === "protected" ? "reader_share_protected" : outcome.reason === "check" ? "reader_share_check_failed" : outcome.reason === "empty" ? "reader_share_empty" : outcome.reason === "unplaced" ? "reader_share_none_placed" : "reader_share_failed";
             status.createDiv({ cls: c("reader-share-said"), text: t(line) });
             const close = parts.actions.createEl("button", { text: t("reader_share_cancel"), attr: { type: "button" } });
             open.scope.registerDomEvent(close, "click", () => this.close());

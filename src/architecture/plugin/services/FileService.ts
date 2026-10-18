@@ -160,8 +160,10 @@ export class FileService {
             FileService.recordCreation(path);
             return created;
         } catch (error) {
-            log.debug(`[FileService] ${path} was not created, something is there: ${String(error)}`);
-            return null;
+            // Taken a moment later: another name. Anything else — a full disk, a name the system refuses — is the error.
+            if (ObsidianApi.vault().getAbstractFileByPath(path)) return null;
+            log.error(`[FileService] could not create ${path}: ${error instanceof Error ? error.message : String(error)}`);
+            throw error;
         }
     }
 

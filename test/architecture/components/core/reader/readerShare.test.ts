@@ -115,6 +115,15 @@ describe("a create that never writes over anything (#842 FR-14, AC-20)", () => {
         expect(bufferedWrites().map((write) => [write.kind, write.path])).toEqual([["file-created", "Papers/new.pdf"]]);
     });
 
+    it("says a create that fails for another reason, never taking it for a path already used (review)", async () => {
+        const { vault } = vaultOf();
+        vault.createBinary.mockImplementationOnce(async () => {
+            throw new Error("ENOSPC: no space left on device");
+        });
+        await expect(FileService.createBinaryFileOnce("Papers/full.pdf", new ArrayBuffer(1))).rejects.toThrow("ENOSPC");
+        expect(bufferedWrites()).toEqual([]);
+    });
+
     it("leaves an existing file exactly as it was, writing nothing and recording nothing", async () => {
         const { files, vault } = vaultOf();
         expect(await FileService.createBinaryFileOnce(PATH, new ArrayBuffer(9))).toBeNull();

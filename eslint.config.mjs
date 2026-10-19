@@ -39,6 +39,10 @@ export default [
       // on type-only names (CanvasData, EventRef, Menu, React...). typescript-eslint recommends
       // turning it off for .ts/.tsx. See https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule
       "no-undef": "off",
+      // The hub's review flags an assertion that changes nothing (3.8.0, #845). Our recommended set does
+      // not run this rule, so it is named here. The hub reads DOM collections with other typings (there
+      // `children` holds HTMLElement), so prefer no assertion where the base type already serves.
+      "@typescript-eslint/no-unnecessary-type-assertion": "error",
     },
   },
 ];

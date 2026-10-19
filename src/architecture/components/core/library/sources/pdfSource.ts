@@ -385,7 +385,8 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     // The pages the reading view asked pdf.js about: their decoded pictures are let go once you are past them.
     const touched = new Set<number>();
     const letGo = (reading: number) => {
-        for (const index of [...touched]) {
+        // Deleting from a Set while it is walked is safe: each entry is visited once.
+        for (const index of touched) {
             if (Math.abs(index - reading) <= PAGES_HELD) continue;
             touched.delete(index);
             void doc.getPage(index + 1).then((page) => page.cleanup?.(), () => undefined);

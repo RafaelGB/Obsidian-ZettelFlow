@@ -82,6 +82,15 @@ describe("what the reading view leaves out of a page (#852 FR-2)", () => {
         expect(leftOutOf(print(grid(600, 4, 3)))).toEqual({ pictures: 0, tables: true });
     });
 
+    it("leaves out nothing an island shows: its pictures, and a plot's gridlines (#854)", () => {
+        const page = print(image(100, 100, 400, 300), [700, 650, 600, 550, 500, 450].map((y) => across(y)));
+        // The picture is shown; the six lines across, above it, are not: a ruled table left out.
+        const picture = { box: { x: 0.1, y: 0.45, w: 0.8, h: 0.5 }, island: "figure" as const };
+        expect(leftOutOf(page, [picture])).toEqual({ pictures: 0, tables: true });
+        // Shown too, as a plot's gridlines: nothing is left out.
+        expect(leftOutOf(page, [picture, { box: { x: 0, y: 0, w: 1, h: 0.45 }, island: "figure" }])).toBeNull();
+    });
+
     it("is nothing for a page of prose, or one it could not read", () => {
         expect(leftOutOf(print(across(400)))).toBeNull();
         expect(leftOutOf(null)).toBeNull();

@@ -277,7 +277,7 @@ describe("a designed PDF opens as printed, and the reading view says what it lea
 
     it("says under a reflowed page what it leaves out, and takes you to Page view on the same page (AC-2)", async () => {
         // In Page, the view on show is the page asked for: the fake DOM has no scroll to say it.
-        const { content, view } = await open(1, { layout: "reading" }, withOps(undefined, opList(LOGO, image(100, 100, 400, 300))), { readerPrefs: { layout: "page" } });
+        const { content, view } = await open(1, { layout: "reading" }, withOps(undefined, opList(image(100, 100, 120, 80), image(300, 100, 120, 80))), { readerPrefs: { layout: "page" } });
         await settle(() => Boolean(note(content)));
         expect(note(content)!.find((el) => el.tag === "span")!.textContent).toBe("Leaves out 2 pictures and the page's layout.");
         const button = note(content)!.find((el) => el.tag === "button")!;

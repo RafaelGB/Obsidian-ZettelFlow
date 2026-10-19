@@ -13,6 +13,9 @@
  * so the shelf samples the first pages when it draws the cover and remembers the answer.
  */
 
+import type { CropBox } from "./pdfCrop";
+import { islandsOf, type Island, type IslandPage } from "./pdfIslands";
+
 /** How many pages are sampled to decide a PDF has no text. */
 export const IMAGE_ONLY_SAMPLE = 3;
 
@@ -50,7 +53,11 @@ export interface TextRun {
  * What a block of a page is (epic #836). A **listing** is code (#837). The other kinds are filled in
  * by the slices after it.
  */
-export type BlockKind = "heading" | "paragraph" | "listing" | "item" | "quote" | "footnote";
+/**
+ * What a block is. An `island` is a part of the page shown as printed — a table, a figure (#854): its
+ * text is still the page's, read where it stands. A `rule` is a separator the page draws, and has none.
+ */
+export type BlockKind = "heading" | "paragraph" | "listing" | "item" | "quote" | "footnote" | "island" | "rule";
 
 /** A format inside a block's words (epic #836): `code` here, the others by the slices after it. */
 export type SpanKind = "code" | "strong" | "em" | "sup" | "link";
@@ -86,6 +93,12 @@ export interface PageBlock {
     cont?: boolean;
     /** A footnote's id on its page (#840): what its marker opens. */
     id?: string;
+    /** An island's crop (#854): its box on the page as shares, from the top-left; what it is; its height over its width. */
+    box?: CropBox;
+    island?: "table" | "figure";
+    aspect?: number;
+    /** An island's width in points, as printed: it is never drawn much larger than that. */
+    points?: number;
 }
 
 /** How a page is reflowed (epic #836). */
@@ -106,6 +119,11 @@ export interface ReflowOptions {
      * sits (its box's bottom and height, in the runs' own space). They are left out.
      */
     furniture?: { keys: ReadonlySet<string>; bottom: number; height: number };
+    /**
+     * Where the page sits and what it prints besides its text (#854): with it, its tables and figures
+     * are islands shown as printed, and its rules separators. Without it, the page reads as before.
+     */
+    page?: IslandPage;
 }
 
 /** A page's top and foot, as a share of its height: where furniture is printed, and only there. */
@@ -679,6 +697,11 @@ export function reflowPage(runs: readonly TextRun[], options: ReflowOptions = {}
     const lines = furniture?.keys.size ? linesOf(runs).filter((line) => !furniture.keys.has(furnitureKey(line, furniture.bottom, furniture.height) ?? "")) : linesOf(runs);
     // The marks raised in the page's text: what makes a small line at the foot a footnote (#840).
     const marks = new Set(options.plain ? [] : lines.flatMap((line) => [...(line.raised ?? [])].map((run) => run.str.trim())));
+    // Its islands of print (#854), read before the columns: a table is never taken for two of them.
+    if (options.page && !options.plain) {
+        const found = islandsOf(lines.map((line) => ({ ...line, cells: cellsOf(line) })), options.page);
+        if (found.islands.length > 0 || found.rules.length > 0) return linkNotes(withIslands(lines, found.islands, found.rules, options.page, options, marks));
+    }
     const split = columnSplit(lines);
     if (split === null) return linkNotes(blocksOf(lines, options, marks));
     // Full-width lines (a title across both columns) read first; then each column, top to bottom.
@@ -689,6 +712,82 @@ export function reflowPage(runs: readonly TextRun[], options: ReflowOptions = {}
         ...blocksOf(rest.filter((line) => line.x < split), options, marks),
         ...blocksOf(rest.filter((line) => line.x >= split), options, marks),
     ]);
+}
+
+/** Where a line's cells start (#854): its first run, and each run more than an em past the one before. */
+function cellsOf(line: Line): number[] {
+    // pdf.js fills the space between two cells with a run of spaces: only the runs with words count.
+    const inked = line.parts.filter((part) => part.str.trim().length > 0);
+    const starts = [inked[0]?.x ?? line.x];
+    for (let i = 1; i < inked.length; i++) {
+        const before = inked[i - 1];
+        if (inked[i].x - (before.x + before.width) > line.size) starts.push(inked[i].x);
+    }
+    return starts;
+}
+
+/** A part of the page that breaks its flow (#854): an island, or a separator, at its height. */
+interface Break {
+    top: number;
+    left: number;
+    right: number;
+    block: PageBlock;
+}
+
+/**
+ * A page with islands (#854): the lines outside them read as any page does — in columns, if it has
+ * them once its tables are out — and each island and separator stands where it is, in reading order.
+ * An island's text is its lines', so the page's text keeps every word (FR-4).
+ */
+function withIslands(lines: readonly Line[], islands: readonly Island[], rules: readonly number[], page: IslandPage, options: ReflowOptions, marks: ReadonlySet<string>): PageBlock[] {
+    const inside = new Set(islands.flatMap((island) => island.lines));
+    const rest = lines.filter((_, i) => !inside.has(i));
+    const breaks: Break[] = [
+        ...islands.map((island) => ({
+            top: island.top,
+            left: page.left + island.box.x * page.width,
+            right: page.left + (island.box.x + island.box.w) * page.width,
+            block: {
+                kind: "island" as const,
+                text: island.lines.map((i) => lines[i].text).join(" "),
+                box: island.box,
+                island: island.kind,
+                aspect: (island.box.h * page.height) / Math.max(1e-6, island.box.w * page.width),
+                points: island.box.w * page.width,
+            },
+        })),
+        ...rules.map((y) => ({ top: y, left: page.left, right: page.left + page.width, block: { kind: "rule" as const, text: "" } })),
+    ];
+    const flow = (part: readonly Line[], marked: ReadonlySet<string>, at: readonly Break[]): PageBlock[] => {
+        const out: PageBlock[] = [];
+        let left = [...part];
+        for (const brk of [...at].sort((a, b) => b.top - a.top)) {
+            out.push(...blocksOf(left.filter((line) => line.y > brk.top), options, marked), brk.block);
+            left = left.filter((line) => line.y <= brk.top);
+        }
+        return [...out, ...blocksOf(left, options, marked)];
+    };
+    const split = columnSplit(rest);
+    if (split === null) return separated(flow(rest, marks, breaks));
+    const spanning = rest.filter((line) => line.x < split && line.right > split + (line.right - line.x) * 0.2);
+    const others = rest.filter((line) => !spanning.includes(line));
+    const across = breaks.filter((brk) => brk.left < split && brk.right > split + (brk.right - brk.left) * 0.2);
+    const side = (brk: Break) => ((brk.left + brk.right) / 2 < split ? "left" : "right");
+    return separated([
+        ...flow(spanning, marks, across),
+        ...flow(others.filter((line) => line.x < split), marks, breaks.filter((brk) => !across.includes(brk) && side(brk) === "left")),
+        ...flow(others.filter((line) => line.x >= split), marks, breaks.filter((brk) => !across.includes(brk) && side(brk) === "right")),
+    ]);
+}
+
+/**
+ * Separators only where they separate (#854 FR-5): never first or last, never two in a row, never
+ * beside an island (its own frame) or a listing — the rules a manual boxes its code in are the box
+ * the reading view already draws round it.
+ */
+function separated(blocks: PageBlock[]): PageBlock[] {
+    const boxed = (block: PageBlock | undefined) => !block || block.kind === "rule" || block.kind === "island" || block.kind === "listing";
+    return blocks.filter((block, i) => block.kind !== "rule" || (!boxed(blocks[i - 1]) && !boxed(blocks[i + 1]) && blocks[i - 1]?.kind !== "rule"));
 }
 
 /**

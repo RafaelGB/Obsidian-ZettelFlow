@@ -258,6 +258,14 @@ two rounds per build. The figure is how long a page arriving on screen stays bla
 No more pictures are held than before. Opening a copy the Library has read already no longer reads
 its first three pages again; that saves 60–140 ms on the manual, unthrottled.
 
+**What a page prints, and its islands (#852–#854).** Reading a page's print off its operator list
+(`library.pdf.print.page`, 1.7 ms) and reflowing it with its islands (`library.pdf.islands.page`,
+5.2 ms on a 40-row table and a 500-shape plot) run beside its text. The operator list is the one
+pdf.js already builds for the page's fonts, and the next page's is asked for before you turn. Measured
+in the same instance, a page opened in the reading view took 253–399 ms with islands and 269–337 ms
+before them: the same, within the noise. An island's picture arrives 4–80 ms after the text, and
+Page view never asks pdf.js for more than it draws.
+
 Frames are not budgeted here: how smooth a motion is, frame by frame, is [the motion audit](motion-audit.md) (#826).
 
 ## What these numbers do not include

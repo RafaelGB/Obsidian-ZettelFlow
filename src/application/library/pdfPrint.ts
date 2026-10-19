@@ -22,7 +22,15 @@ export interface PagePrint {
     rules: CropBox[];
     /** How many shapes it paints, rules included. */
     paths: number;
+    /**
+     * The other shapes it paints — not thin lines, not a background behind the whole page — as shares
+     * of it, at most `SHAPES_MAX`: a plot's marks and bars are a figure (#854 FR-2).
+     */
+    shapes?: CropBox[];
 }
+
+/** A page keeps at most this many shapes' boxes: a figure is found long before, and a map is not held. */
+export const SHAPES_MAX = 2000;
 
 /** A picture smaller than this share of the page is an icon or a bullet, not something left out. */
 export const PICTURE_MIN_AREA = 0.0025;
@@ -54,6 +62,7 @@ export function printOf(
     const rules: CropBox[] = [];
     const flat: CropBox[] = [];
     const tall: CropBox[] = [];
+    const shapes: CropBox[] = [];
     let paths = 0;
     const aspect = height / Math.max(1e-6, width);
     const known = paintedOf(opList.fnArray, opList.argsArray, ops, (rect, picture) => {
@@ -66,6 +75,7 @@ export function printOf(
         // Thin, in one unit for both directions (a share of the page's height): a piece of a line.
         if (box.h <= RULE_THICK && box.w > box.h) flat.push(box);
         else if (box.w / aspect <= RULE_THICK && box.h > box.w) tall.push(box);
+        else if (box.w * box.h < 0.95 && shapes.length < SHAPES_MAX) shapes.push(box);
     });
     if (!known) return null;
     // A table's lines are often drawn a cell at a time: the pieces that meet are one line first.
@@ -73,7 +83,7 @@ export function printOf(
     for (const line of joined(tall, false)) if (line.h >= RULE_DOWN) rules.push(line);
     // A line along a picture's edge is the picture's frame (a screenshot's border), not a rule.
     const framing = (rule: CropBox) => pictures.some((pic) => onEdge(rule, pic));
-    return { pictures, rules: rules.filter((rule) => !framing(rule)), paths };
+    return { pictures, rules: rules.filter((rule) => !framing(rule)), paths, shapes };
 }
 
 /** Thin pieces on one level that meet (or nearly), joined into the lines they draw. */
@@ -142,9 +152,16 @@ export interface LeftOut {
     tables: boolean;
 }
 
-/** `null` when the page leaves nothing out that is worth saying. */
-export function leftOutOf(print: PagePrint | null): LeftOut | null {
+/**
+ * `null` when the page leaves nothing out that is worth saying. What it shows as printed (#854) is not
+ * left out: a picture inside one of its islands, its ruled table when it shows a table.
+ */
+export function leftOutOf(print: PagePrint | null, shown: readonly { box: CropBox; island?: "table" | "figure" }[] = []): LeftOut | null {
     if (!print) return null;
-    const tables = hasRuledTable(print);
-    return print.pictures.length > 0 || tables ? { pictures: print.pictures.length, tables } : null;
+    const inside = (pic: CropBox) => shown.some(({ box }) => pic.x + pic.w / 2 >= box.x && pic.x + pic.w / 2 <= box.x + box.w && pic.y + pic.h / 2 >= box.y && pic.y + pic.h / 2 <= box.y + box.h);
+    const pictures = print.pictures.filter((pic) => !inside(pic)).length;
+    // The rules an island shows — a plot's gridlines, a table's own — are not a table left out.
+    const outside = { ...print, rules: print.rules.filter((rule) => !shown.some(({ box }) => rule.y >= box.y && rule.y <= box.y + box.h && rule.x + rule.w / 2 >= box.x && rule.x + rule.w / 2 <= box.x + box.w)) };
+    const tables = hasRuledTable(outside) && !shown.some((island) => island.island === "table");
+    return pictures > 0 || tables ? { pictures, tables } : null;
 }

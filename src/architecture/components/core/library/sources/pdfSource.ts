@@ -99,16 +99,50 @@ async function pagePrint(page: PdfPage, list: Promise<{ fnArray: ArrayLike<numbe
     return printOf(await list, ops, (rect) => convert(rect), viewport.width, viewport.height);
 }
 
-/** Where a page's runs sit (#853): its box's bottom and height in their own space. */
-function boxOf(page: PdfPage): { bottom: number; height: number } {
+/** Where a page's runs sit (#853): its box in their own space. */
+function boxOf(page: PdfPage): { left: number; bottom: number; width: number; height: number } {
     const v = page.view;
-    if (v && v.length === 4) return { bottom: Math.min(v[1], v[3]), height: Math.abs(v[3] - v[1]) };
-    return { bottom: 0, height: page.getViewport({ scale: 1, rotation: 0 }).height };
+    if (v && v.length === 4) return { left: Math.min(v[0], v[2]), bottom: Math.min(v[1], v[3]), width: Math.abs(v[2] - v[0]), height: Math.abs(v[3] - v[1]) };
+    const viewport = page.getViewport({ scale: 1, rotation: 0 });
+    return { left: 0, bottom: 0, width: viewport.width, height: viewport.height };
+}
+
+/**
+ * The page as its islands are read (#854): where it sits and what it prints. A page turned by its own
+ * `/Rotate` has none — its print is read on the turned page, its text in its own space.
+ */
+function islandPage(page: PdfPage, print: PagePrint | null): Pick<ReflowOptions, "page"> {
+    if (!print || (((page.rotate ?? 0) % 360) + 360) % 360 !== 0) return {};
+    return { page: { ...boxOf(page), print } };
+}
+
+/** How many islands' pictures are kept for a turn back (#854 AC-5): a few, each a table's or a figure's pixels. */
+const ISLAND_CACHE = 4;
+/** The widest an island's picture is drawn, in device pixels. */
+const ISLAND_MAX_PX = 1600;
+const islandPictures = new Map<string, HTMLCanvasElement>();
+
+/**
+ * Keep an island's picture, the oldest let go past the few kept. The canvas itself is kept — one page
+ * is read at a time, so it is moved into the island again when its page comes back, never copied.
+ */
+function keepIsland(key: string, canvas: HTMLCanvasElement): void {
+    islandPictures.delete(key);
+    islandPictures.set(key, canvas);
+    // The oldest is only forgotten: it may still be on screen, on a page of many islands.
+    while (islandPictures.size > ISLAND_CACHE) islandPictures.delete(islandPictures.keys().next().value as string);
+}
+
+/** The box an island element holds, from its `data-zf-island`. */
+function islandBox(el: HTMLElement): CropBox | null {
+    const parts = (el.getAttribute("data-zf-island") ?? "").split(",").map(Number);
+    return parts.length === 4 && parts.every(Number.isFinite) ? { x: parts[0], y: parts[1], w: parts[2], h: parts[3] } : null;
 }
 
 /** The document's furniture as a page's reflow takes it (#853): nothing when it has none. */
 function furnitureFor(page: PdfPage, keys: ReadonlySet<string>): Pick<ReflowOptions, "furniture"> {
-    return keys.size > 0 ? { furniture: { keys, ...boxOf(page) } } : {};
+    const { bottom, height } = boxOf(page);
+    return keys.size > 0 ? { furniture: { keys, bottom, height } } : {};
 }
 
 /** The pages read beside the first ones to find its furniture (#853): a quarter, half and three quarters in. */
@@ -126,7 +160,14 @@ function quietCancel(error: unknown): void {
  * The printed pages of a PDF (#767): sizes read as they are asked for, its own labels, drawings that
  * can be let go, and its links — where they sit and where they go. pdf.js stays behind this seam.
  */
-function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null, typewritten = false, furniture: ReadonlySet<string> = new Set()): SourcePages {
+function pagesOf(
+    doc: PdfDocument,
+    first: { width: number; height: number },
+    labels: string[] | null,
+    typewritten = false,
+    furniture: ReadonlySet<string> = new Set(),
+    printed: (index: number) => PagePrint | null = () => null
+): SourcePages {
     const sizes = new Map<number, Promise<{ width: number; height: number }>>();
     const page = (index: number): Promise<PdfPage> => doc.getPage(index + 1);
     const turn = (p: PdfPage, rotation: number) => (((p.rotate ?? 0) + rotation) % 360 + 360) % 360;
@@ -216,7 +257,10 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
                 if (!viewport.convertToViewportRectangle) return { text: "", words: [], headings: [] };
                 const toViewport = (rect: number[]) => viewport.convertToViewportRectangle!(rect);
                 // The same faces the Reading view drew the page with (#837): its text, character for character.
-                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport }, { styles: content.styles ?? {}, typewritten, ...furnitureFor(p, furniture) });
+                // Its islands too, when the reading view has read its print (#854): Page view never asks
+                // pdf.js for more than it draws — a page of photographs would decode them twice (#851).
+                // Islands keep every word, so the words are the same either way; only their order is the reading view's.
+                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport }, { styles: content.styles ?? {}, typewritten, ...furnitureFor(p, furniture), ...islandPage(p, printed(index)) });
             } catch (error) {
                 log.debug(`[Library] no words on page ${index + 1}: ${String(error)}`);
                 return { text: "", words: [], headings: [] };
@@ -331,7 +375,62 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     };
 
     const firstBox = doc.numPages > 0 ? (await doc.getPage(1)).getViewport({ scale: 1 }) : { width: 612, height: 792 };
-    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten, furnitureKeys);
+    // What each page reflowed prints besides its text, as the reading view read it (#854).
+    const printedPages = new Map<number, PagePrint | null>();
+    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten, furnitureKeys, (index) => printedPages.get(index) ?? null);
+
+    /**
+     * The islands of a drawn page, shown as printed (#854 FR-3, AC-5): each drawn once it nears the
+     * screen, as Page view draws a page — its crop, at the reading's width, never past `ISLAND_MAX_PX` —
+     * and drawn again from what was kept when the page comes back. It fades in as a page does.
+     */
+    const showIslands = (index: number, body: HTMLElement, component: Component): void => {
+        const figures = Array.from(body.querySelectorAll<HTMLElement>("[data-zf-island]"));
+        if (figures.length === 0) return;
+        const draw = (figure: HTMLElement) => {
+            const box = islandBox(figure);
+            if (!box || figure.querySelector("canvas")) return;
+            const ratio = (body.ownerDocument?.defaultView?.devicePixelRatio ?? 1) || 1;
+            const width = Math.min(ISLAND_MAX_PX, Math.round((figure.clientWidth || PAGE_WIDTH) * ratio));
+            const key = `${file.path}|${index}|${figure.getAttribute("data-zf-island")}|${width}`;
+            const kept = islandPictures.get(key);
+            if (kept && kept.width > 1) {
+                figure.appendChild(kept);
+                figure.addClass(c("reader-pdf-island--drawn"));
+                return;
+            }
+            const canvas = figure.createEl("canvas", { cls: c("reader-pdf-island-picture"), attr: { "aria-hidden": "true" } });
+            const render = pages.render?.bind(pages);
+            if (!render) return;
+            void pages.size(index).then((size) => {
+                const task = render(index, canvas, { scale: width / Math.max(1, box.w * size.width), rotation: 0, frame: box });
+                component.register(() => task.cancel());
+                return task.promise.then(() => {
+                    if (!(canvas.width > 1)) return;
+                    figure.addClass(c("reader-pdf-island--drawn"));
+                    keepIsland(key, canvas);
+                });
+            }).catch((error: unknown) => log.debug(`[Library] an island of page ${index + 1} was not drawn: ${String(error)}`));
+        };
+        const Observer = body.ownerDocument?.defaultView?.IntersectionObserver ?? (typeof window === "undefined" ? undefined : window.IntersectionObserver);
+        if (!Observer) {
+            figures.forEach(draw);
+            return;
+        }
+        // Near the screen: a screen ahead, either way the reading goes (down in Scroll, across in Page).
+        const near = new Observer(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    near.unobserve(entry.target);
+                    draw(entry.target as HTMLElement);
+                }
+            },
+            { rootMargin: "100%" }
+        );
+        figures.forEach((figure) => near.observe(figure));
+        component.register(() => near.disconnect());
+    };
 
     const linked = async (page: PdfPage, index: number, items: PdfTextItem[], blocks: PageBlock[]): Promise<PageBlock[]> => {
         const links = await pages.links(index, 0);
@@ -375,7 +474,10 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
             const items = content.items.filter(isTextItem);
             // The fonts are read off the very list the page was asked for: pdf.js keeps one per page.
             const faces = await fonts.read(page, items, early ?? list);
-            const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten, ...furnitureFor(page, furnitureKeys) });
+            // What it prints besides its text: its islands are shown as printed (#854), the rest is said (#852).
+            const print = await pagePrint(page, list, ops);
+            printedPages.set(index, print);
+            const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten, ...furnitureFor(page, furnitureKeys), ...islandPage(page, print) });
             // Its links, over the very words Page view links (#841); a page with none does no more.
             const blocks = await linked(page, index, items, reflowed);
             const text = blocks.map((block) => block.text).join(" ");
@@ -384,7 +486,8 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
                 await drawPicture(index, body, component);
                 return { words: 0, picture: true };
             }
-            const leftOut = leftOutOf(await pagePrint(page, list, ops));
+            const shown = blocks.filter((block) => block.kind === "island" && block.box).map((block) => ({ box: block.box!, ...(block.island ? { island: block.island } : {}) }));
+            const leftOut = leftOutOf(print, shown);
             const said = leftOut ? { leftOut } : {};
             if (plainBlocks(blocks)) {
                 drawBlocks(body, blocks);
@@ -397,6 +500,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
             const listings = into.querySelector("pre") ? colourListings(into, null) : 0;
             // Only elements stand at the top of a drawn page: its blocks, moved whole.
             for (const child of Array.from(into.children)) body.appendChild(child);
+            showIslands(index, body, component);
             return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...said, ...(listings > 0 ? { listings } : {}) };
         },
         resolveLink(fromChapter: number, href: string) {

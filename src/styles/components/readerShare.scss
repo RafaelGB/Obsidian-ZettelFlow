@@ -14,24 +14,6 @@
     width: min(26rem, calc(100% - var(--size-4-8)));
 }
 
-/* The door at the head of what you marked (#842): a quiet labelled button, its icon beside its name. */
-button.zettelkasten-flow__reader-share-list-door {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--size-4-1);
-    margin-bottom: var(--size-4-2);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__reader-share-list-door-icon {
-    display: inline-flex;
-
-    svg {
-        width: var(--icon-xs);
-        height: var(--icon-xs);
-    }
-}
-
 /* In the Library it floats over the book's notebook, which sits over the shelf. */
 .zettelkasten-flow__reader-share--library {
     z-index: 5;

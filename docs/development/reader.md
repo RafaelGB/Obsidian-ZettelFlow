@@ -1185,10 +1185,10 @@ Obsidian itself. **The original is only read**, never written.
 
 ![Share a copy with your notes: a paper as you marked it in the Reader, the sheet that says what goes on the copy and makes it, and the copy open in another reader with a yellow and a blue highlight, a note as its comment signed Rafa, and a margin note on the first page](../resources/reader/share-copy.svg)
 
-- **Where.** At the head of the list of what you marked, in the Reader's margin — where you see
-  what will go on the copy — and as an icon at the head of **Contents**. In the Library, in the PDF's
-  detail beside *Notebook* and *Cite*, and in its **Notebook** beside *Export as a reading note*. It is
-  there for PDFs only, and it is disabled — saying so — while nothing in the PDF is marked.
+- **Where.** In the Reader's options — the quiet **⋯** beside the bookmark, and the tab's own *More
+  options* — for a PDF. In the Library, in the PDF's detail beside *Notebook* and *Cite*, and in its
+  **Notebook** beside *Export as a reading note*. While nothing in the PDF is marked it is there,
+  disabled, saying so; what it offers is read as you open it.
 - **What goes on it.**
     - Each highlight, over its words on the printed page, in its meaning's colour: an idea yellow,
       a question blue, a quote green, a discussion purple. The colours are fixed, since the copy is read
@@ -1197,13 +1197,14 @@ Obsidian itself. **The original is only read**, never written.
     - A note you wrote on a page with no passage, as a text note in that page's wider margin (or its
       top corner, on a page with no room or no words to measure, such as a scan).
     - Every layer goes — reading, reflection, research — whatever you are showing.
-    - **Your pen**, when *Include your pen* is on (it is, until you turn it off): what you drew on a
-      printed page in Page view, and the ink notes you kept from it, as ink on the copy — in its
-      colours, at the width you drew, where Page view shows it, your turn of the page included. A PDF
-      marked only with the pen can be handed back too. Ink drawn beside the reflowed text has no place
-      on a printed page, so it stays behind and the sheet counts it; the pen's pressure shading is
-      lost, since a PDF's ink has one width. If an ink note cannot be read, the whole pen stays off
-      and the sheet says so.
+    - **Your pen**, when *Include your pen* is on (it is, until you turn it off): what you drew on the
+      printed page, and the ink notes you kept from it, as ink on the copy — in its colours, at the
+      width you drew, where Page view shows it, your turn of the page included. On a PDF **the pen
+      draws on the page as printed**: take it up in the reading view and the Reader moves to Page view,
+      where you can also select words to highlight them. A PDF marked only with the pen can be handed
+      back too. Ink drawn beside the reflowed text before this has no place on a printed page, so it
+      stays behind and the sheet counts it; the pen's pressure shading is lost, since a PDF's ink has
+      one width. If an ink note cannot be read, the whole pen stays off and the sheet says so.
 - **Your name on the comments.** Type it in the sheet, or leave it empty and nothing is signed. It
   is remembered for next time, in the sheet itself; there is no setting for it.
 - **The sheet says what goes before anything is written**: *3 highlights · 1 with a note · 1 margin

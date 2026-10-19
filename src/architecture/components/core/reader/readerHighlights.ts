@@ -76,8 +76,6 @@ export interface HighlightView {
     onInk?(thoughts: Thought[]): void;
     /** The ink notes' rows, beside the highlights in the margin's list. */
     renderInk?(host: HTMLElement, scope: Component): void;
-    /** *Share a copy with your notes* (#842), at the head of the list of what you marked. */
-    shareDoor?(host: HTMLElement, scope: Component): void;
     /**
      * The moves of the popover's *Think* group, last in *More* (#756 FR-1, #811 FR-7) — *Contradict*,
      * *Connect*, and the AI's later (#759). Offered only in a book or a paper; the view decides.
@@ -660,8 +658,6 @@ export class ReaderHighlights {
 
     /** The highlights as a list — the margin's content, and the context panel's on a narrow pane. */
     renderList(host: HTMLElement, scope: Component): void {
-        // Where what you marked is listed is where it is handed back from (#842).
-        this.view.shareDoor?.(host, scope);
         this.renderHighlightList(host, scope);
         this.view.renderInk?.(host, scope);
     }
@@ -908,6 +904,38 @@ export class ReaderHighlights {
         this.offered = { selection, ...found };
         this.popoverClosed = onClose ?? null;
         return true;
+    }
+
+    /**
+     * Words selected on a printed page in Page view (#842): the same first row a selection gets — the
+     * four meanings as dots, *Note*, *Copy* — kept through `keep`, the page's own write. Nothing is
+     * written until you choose; `onClose` when the popover goes, whatever took it.
+     */
+    offerPassage(text: string, rect: SelectionInfo["rect"], keep: (meaning: HighlightMeaning, note: string) => void, onClose?: () => void): void {
+        const pop = this.openPopover(rect, "select", true);
+        const row = pop.createDiv({ cls: [c("reader-hl-row"), c("reader-hl-first")] });
+        const dots = row.createDiv({ cls: c("reader-hl-meanings") });
+        for (const meaning of HIGHLIGHT_MEANINGS) {
+            this.meaningButton(dots, meaning, meaning === this.lastMeaning, () => {
+                this.hidePopover();
+                keep(meaning, "");
+            });
+        }
+        this.button(row, "reader_hl_note", true, () => {
+            const meaning = this.lastMeaning;
+            const editor = this.openPopover(rect, "editing", true);
+            this.noteForm(editor, "", (note) => {
+                this.hidePopover();
+                keep(meaning, note.trim());
+            });
+            this.place(editor, rect, true);
+        });
+        this.button(row, "reader_hl_copy", false, () => {
+            this.copy(this.view.host, text);
+            this.status("reader_hl_copied");
+        });
+        this.place(pop, rect, true);
+        this.popoverClosed = onClose ?? null;
     }
 
     /**

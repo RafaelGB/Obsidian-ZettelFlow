@@ -3155,7 +3155,7 @@ export default {
     reader_source_count_section: 'Section {0} / {1}',
     reader_source_scanned: 'This PDF is made of images, so there is no text to highlight. You can read it, and note in the margin by page.',
     reader_source_note_page: 'Note this page',
-    reader_source_page_hint: 'Page view keeps the page as it was laid out. Highlight in the reading view.',
+    reader_source_page_hint: 'Page view keeps the page as it was laid out. Select words to highlight them; the pen draws here.',
     reader_source_designed_hint: 'This page is shown as it was designed. Highlights and search are not available on designed pages.',
     reader_source_designed_failed: 'This page could not be drawn.',
     // Page view, grown up (#767): zoom, layouts, rotation, the pages, the links.
@@ -3187,6 +3187,7 @@ export default {
     reader_pv_link_in: 'Link in the paper',
     // #842: share a copy of a PDF with your notes.
     reader_share_copy: 'Share a copy with your notes',
+    reader_options: 'Options',
     reader_share_intro: "A new PDF beside the original, with your highlights and notes on it. The original isn't changed.",
     reader_share_highlights: '{0} highlights',
     reader_share_highlights_one: '{0} highlight',

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
-import { TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
+import { Menu, TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
 import { DomNode, flush, settle } from "../../../../support/dashboardDom";
 import { press } from "../../../../support/readerKeys";
 import { makePdfJs, prose, type FakePage } from "../../../../support/fakePdf";
@@ -699,42 +699,48 @@ describe("links in a PDF's reading view (#841)", () => {
     });
 });
 
-/** Share a copy with your notes (#842 FR-20, FR-21): at the head of a PDF's Contents, beside Notebook. */
-describe("sharing a marked PDF from the Reader (#842)", () => {
-    const shareDoor = (content: DomNode) => content.byClass("reader-share-door").find((el) => el.hasClass(cls("reader-panel-action")))!;
+/** Share a copy with your notes (#842): in the Reader's options, the quiet ⋯ beside the bookmark. */
+describe("sharing a marked PDF from the Reader's options (#842)", () => {
+    const options = (content: DomNode) => content.oneByClass("reader-options");
+    const marked = [{ id: "h1", at: 1, text: "", links: [], about: PATH, quote: { exact: "consistency in a network", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } }];
 
-    it("is at the head of Contents, disabled while nothing in the PDF is marked", async () => {
+    it("offers it, disabled and saying why, while nothing in the PDF is marked", async () => {
         const { content } = await open(0, {}, undefined, { layout: "reading" });
-        contents(content);
+        options(content).click();
         await flush();
-        const door = shareDoor(content);
-        expect(door.getAttribute("aria-label")).toBe("Share a copy with your notes");
-        expect(door.getAttribute("disabled")).not.toBeNull();
+        const item = (Menu as any).last.item("Nothing marked in this PDF yet, so there's nothing to share.");
+        expect(item.disabled).toBe(true);
+        expect((Menu as any).last.item("Notebook")).toBeDefined();
     });
 
-    it("opens the sheet for a PDF with marks, growing from the door", async () => {
+    it("reads what is marked as it opens, and grows the sheet from the ⋯", async () => {
         const { content, store } = await open(0, {}, undefined, { layout: "reading" });
-        (store.highlightsAbout as jest.Mock<any>).mockImplementation(async () => [
-            { id: "h1", at: 1, text: "", links: [], about: PATH, quote: { exact: "consistency in a network", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } },
-        ]);
-        contents(content);
+        (store.highlightsAbout as jest.Mock<any>).mockImplementation(async () => marked);
+        options(content).click();
         await flush();
-        const door = shareDoor(content);
-        expect(door.getAttribute("disabled")).toBeNull();
-        door.click();
+        const item = (Menu as any).last.item("Share a copy with your notes");
+        expect(item.disabled).toBe(false);
+        item.click();
         await flush();
         expect(content.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
     });
+
+    it("draws no share door in the margin or at the head of Contents any more", async () => {
+        const { content } = await open(0, {}, undefined, { layout: "reading" });
+        contents(content);
+        await flush();
+        expect(content.byClass("reader-share-door")).toHaveLength(0);
+        expect(content.byClass("reader-share-list-door")).toHaveLength(0);
+    });
 });
 
-describe("sharing from the list of what you marked (#842, the owner's door)", () => {
-    it("heads the margin's list with a labelled door, for a PDF", async () => {
-        const { content, store } = await open(0, {}, undefined, { layout: "reading" });
-        (store.highlightsAbout as jest.Mock<any>).mockImplementation(async () => [
-            { id: "h1", at: 1, text: "", links: [], about: PATH, quote: { exact: "consistency in a network", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } },
-        ]);
-        const list = content.byClass("reader-share-list-door");
-        expect(list.length).toBeGreaterThan(0);
-        expect(list[0].textContent).toBe("Share a copy with your notes");
+/** On a PDF the pen draws on the page as printed (#842): the only place a drawing is handed back from. */
+describe("the pen on a PDF goes to the printed page (#842)", () => {
+    it("takes you to Page view when you take up the pen in the reading view", async () => {
+        const { content, view } = await open(0, {}, undefined, { layout: "reading" });
+        expect((view as any).sourceView).toBe("reading");
+        content.oneByClass("reader-ink-button").click();
+        await settle(() => content.byClass("reader-pv-run").length > 0);
+        expect((view as any).sourceView).toBe("page");
     });
 });

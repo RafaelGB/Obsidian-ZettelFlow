@@ -1,4 +1,4 @@
-import {
+import { Menu,
     Component,
     ItemView,
     Keymap,
@@ -105,7 +105,7 @@ import { armChapterWait } from "./readerWaiting";
 import { measure, stopwatch } from "architecture/monitoring/measure";
 import { CitePanel } from "./readerCite";
 import { SharePanel, hasMarks } from "./readerShare";
-import { penOf } from "application/reader/share/shareInk";
+import { penOf, type SharePen } from "application/reader/share/shareInk";
 import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
 import { citeSourceOf } from "architecture/components/core/library/libraryCite";
@@ -470,6 +470,8 @@ export class ReaderView extends ItemView {
     private citePanel: CitePanel | null = null;
     /** *Share a copy with your notes* (#842): a PDF's marks, handed back as a new PDF. */
     private sharePanel: SharePanel | null = null;
+    /** The ⋯ beside the bookmark (#842). */
+    private optionsButton: HTMLElement | null = null;
     /** *Snapshot* (#763): the mode that turns a drag on Page view into a capture, and its card. */
     private snapshot: ReaderSnapshot | null = null;
     /** Its door in the bar: shown in Page view, pressed while the mode is on. */
@@ -1062,6 +1064,11 @@ export class ReaderView extends ItemView {
         this.dropRun();
     }
 
+    /** Whether this is a PDF read reflowed, whose pen belongs on its printed page (#842). */
+    private penOnPrintedPage(): boolean {
+        return Boolean(this.source?.format === "pdf" && this.source.hasPageView && this.sourceView === "reading");
+    }
+
     /** Page view ↔ reading view, for a PDF (#681). The place is kept. */
     private toggleView(): void {
         if (!this.source?.hasPageView) return;
@@ -1294,6 +1301,14 @@ export class ReaderView extends ItemView {
         setIcon(ribbon.createSpan({ cls: c("reader-ribbon-mark") }), "bookmark");
         this.registerDomEvent(ribbon, "click", () => void this.toggleBookmark());
         this.ribbon = ribbon;
+        // The Reader's options, beside the bookmark (#842): quiet, and read when opened.
+        const options = root.createEl("button", {
+            cls: ["clickable-icon", c("reader-options"), c("reader-hidden")].join(" "),
+            attr: { type: "button", "aria-label": t("reader_options") },
+        });
+        setIcon(options, "more-horizontal");
+        this.registerDomEvent(options, "click", () => void this.openOptions(options));
+        this.optionsButton = options;
 
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
@@ -1328,7 +1343,12 @@ export class ReaderView extends ItemView {
                 layerForNew: () => this.layerTarget(),
                 drawn: () => this.syncLayers(),
                 // One pointer owner at a time (#763): the palette opening leaves Snapshot.
-                opened: () => this.snapshot?.leave(),
+                opened: () => {
+                    this.snapshot?.leave();
+                    // On a PDF the pen draws on the page as printed (#842): the only place a drawing can be
+                    // handed back from. Asked for in the reading view, the camera goes to Page view.
+                    if (this.penOnPrintedPage()) this.toggleView();
+                },
             },
             this.inkDeps
         );
@@ -1455,10 +1475,6 @@ export class ReaderView extends ItemView {
                 },
                 onInk: (thoughts) => this.ink?.onInk(thoughts),
                 renderInk: (host, scope) => this.ink?.renderList(host, scope),
-                shareDoor: (host, scope) => {
-                    const path = this.sourcePath;
-                    if (path && this.source?.format === "pdf") this.shareDoor(host, path, scope, true);
-                },
                 thinkMoves: () => this.thinkMoves(),
                 passageActions: () => this.passageActions(),
                 lookup: () => this.lookup,
@@ -2996,6 +3012,9 @@ export class ReaderView extends ItemView {
 
     private async renderSourceChapter(): Promise<void> {
         if (!this.els || !this.path || !this.sourcePath) return;
+        // A PDF's reading view draws no ink of its own (#842): the pen is put away here, and comes back
+        // when you take it up again — on the printed page.
+        if (this.penOnPrintedPage() && this.ink?.isOpen()) this.ink.closePalette(false);
         const generation = ++this.generation;
         // From the open to the first page laid out (#825 B1): a book's flowing chapters only, and an
         // open another overtakes, or that never draws, records nothing.
@@ -4659,38 +4678,71 @@ export class ReaderView extends ItemView {
      * *Share a copy with your notes* (#842 FR-20), at the head of Contents beside Recall and Notebook —
      * for a PDF only, and disabled with its reason while nothing in it is marked (FR-21).
      */
-    private shareDoor(actions: HTMLElement, path: string, scope: Component, labelled = false): void {
-        const store = this.highlightDeps.store ?? ThoughtStore.getInstance();
-        // What is marked: the thoughts about the PDF, and the book's page ink (#843) — read only.
-        const marked = async () => {
-            const thoughts = await store.highlightsAbout(path);
-            const ink = await PageInkStore.getInstance()
-                .load(path)
-                .catch(() => null);
-            return { thoughts, pen: penOf(ink, thoughts) };
-        };
-        const share = () => {
-                void marked().then(({ thoughts, pen }) => {
-                    if (!hasMarks(thoughts, pen) || this.sourcePath !== path) return;
-                    const box = button.getBoundingClientRect();
+    /** What is marked in a PDF (#842, #843): the thoughts about it, and the book's page ink — read only. */
+    private async markedIn(path: string): Promise<{ thoughts: Thought[]; pen: SharePen }> {
+        const thoughts = await (this.highlightDeps.store ?? ThoughtStore.getInstance()).highlightsAbout(path);
+        const ink = await PageInkStore.getInstance()
+            .load(path)
+            .catch(() => null);
+        return { thoughts, pen: penOf(ink, thoughts) };
+    }
+
+    /**
+     * The Reader's options (#842): a quiet ⋯ beside the bookmark, read when it is opened — so what it
+     * offers is what is true now. *Share a copy with your notes* for a PDF, disabled while nothing is
+     * marked; and the source's notebook.
+     */
+    private async openOptions(from: HTMLElement): Promise<void> {
+        const path = this.sourcePath;
+        if (!path) return;
+        const menu = new Menu();
+        this.fillOptions(menu, path, from, this.source?.format === "pdf" ? await this.markedIn(path) : null);
+        const box = from.getBoundingClientRect();
+        menu.showAtPosition({ x: box.left, y: box.bottom });
+    }
+
+    /** The options, into Obsidian's own menu: the ⋯'s and the tab's. */
+    private fillOptions(menu: Menu, path: string, from: HTMLElement | null, marked: { thoughts: Thought[]; pen: SharePen } | null): void {
+        if (marked) {
+            const ready = hasMarks(marked.thoughts, marked.pen);
+            menu.addItem((item) =>
+                item
+                    .setTitle(t(ready ? "reader_share_copy" : "reader_share_empty"))
+                    .setIcon("file-output")
+                    .setDisabled(!ready)
+                    .onClick(() => {
+                        if (this.sourcePath !== path) return;
+                        const box = (from ?? this.ribbon ?? this.root)?.getBoundingClientRect();
+                        const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+                        this.sharePanel?.show({ path, thoughts: marked.thoughts, pen: marked.pen, turns, from: { left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width ?? 0, height: box?.height ?? 0 } });
+                    })
+            );
+        }
+        menu.addItem((item) =>
+            item
+                .setTitle(t("notebook_title"))
+                .setIcon("notebook-pen")
+                .onClick(() => void openLibrary(this.app, undefined, path))
+        );
+    }
+
+    /** The tab's own *More options* carries the Reader's too (#842). */
+    onPaneMenu(menu: Menu, source: string): void {
+        super.onPaneMenu(menu, source);
+        const path = this.sourcePath;
+        if (!path || this.source?.format !== "pdf") return;
+        // Obsidian draws the menu now: what is marked is read as it would be, without waiting.
+        menu.addItem((item) =>
+            item
+                .setTitle(t("reader_share_copy"))
+                .setIcon("file-output")
+                .onClick(() => void this.markedIn(path).then((marked) => {
+                    if (!hasMarks(marked.thoughts, marked.pen) || this.sourcePath !== path) return;
+                    const box = (this.ribbon ?? this.root)?.getBoundingClientRect();
                     const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
-                    this.sharePanel?.show({ path, thoughts, pen, turns, from: { left: box.left, top: box.top, width: box.width, height: box.height } });
-                });
-        };
-        let button: HTMLElement;
-        if (labelled) {
-            // In the list of what you marked: a labelled button, its name said in full.
-            button = actions.createEl("button", { cls: c("reader-share-list-door"), attr: { type: "button" } });
-            setIcon(button.createSpan({ cls: c("reader-share-list-door-icon") }), "file-output");
-            button.createSpan({ text: t("reader_share_copy") });
-            scope.registerDomEvent(button, "click", share);
-        } else button = panelAction(actions, "file-output", "reader_share_copy", share, scope);
-        button.addClass(c("reader-share-door"));
-        void marked().then(({ thoughts, pen }) => {
-            if (hasMarks(thoughts, pen)) return;
-            button.setAttribute("disabled", "");
-            setTooltip(button, t("reader_share_empty"), { placement: "bottom" });
-        });
+                    this.sharePanel?.show({ path, thoughts: marked.thoughts, pen: marked.pen, turns, from: { left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width ?? 0, height: box?.height ?? 0 } });
+                }))
+        );
     }
 
     /** The name a shared copy's comments are signed with (#842 FR-6), remembered from the sheet. */
@@ -5069,7 +5121,6 @@ export class ReaderView extends ItemView {
             const actions = tabs.createDiv({ cls: c("reader-panel-actions") });
             if (this.recallSpan()) panelAction(actions, "pencil-line", "reader_recall", () => this.startRecall(), scope).addClass(c("reader-recall-door"));
             if (sourcePath) panelAction(actions, "notebook-pen", "notebook_title", () => void openLibrary(this.app, undefined, sourcePath), scope);
-            if (sourcePath && this.source?.format === "pdf") this.shareDoor(actions, sourcePath, scope);
         }
         // Contents' own way out, at the end of its tabs (#777 FR-1).
         const close = this.panelCloseFor("reader_close_contents");
@@ -5208,6 +5259,7 @@ export class ReaderView extends ItemView {
         const body = this.chapterBody();
         const shown = Boolean(path && this.source && !this.ended && body);
         ribbon.toggleClass(c("reader-hidden"), !shown);
+        this.optionsButton?.toggleClass(c("reader-hidden"), !shown);
         if (!shown || !path || !body) return;
         const filled = this.bookmarksOnScreen(sourceBookmarks(this.plugin, path), body).length > 0;
         if (!this.ribbonLifting) ribbon.toggleClass(c("reader-ribbon--filled"), filled);

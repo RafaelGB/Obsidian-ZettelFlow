@@ -52,3 +52,13 @@ describe("a footnote opened at its mark stays inside the Reader (#840, walked in
         expect(pop).toContain("width: min(26rem, calc(100% - var(--size-4-8)));");
     });
 });
+
+describe("a highlight on a printed page never veils its words (#842, the owner's walk)", () => {
+    const INK = readFileSync(join(__dirname, "..", "..", "src", "styles", "components", "ink.scss"), "utf8");
+    it("multiplies the marks' whole layer over the page, so the type stays as dark as printed", () => {
+        const at = INK.indexOf(".zettelkasten-flow__reader-ink-pagemarks {");
+        const layer = INK.slice(at, INK.indexOf("}", at));
+        expect(layer).toContain("z-index: 1;");
+        expect(layer).toContain("mix-blend-mode: multiply;");
+    });
+});

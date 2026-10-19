@@ -371,6 +371,10 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     height: var(--zf-page-h, 100%);
     pointer-events: none;
     z-index: 1;
+    /* The layer is its own stack (z-index): a mark's blend inside it meets nothing. So the layer itself
+       multiplies over the page as drawn — the paper takes the colour, the type stays as dark as printed
+       (#842, the owner's walk: the marks had veiled the words). */
+    mix-blend-mode: multiply;
 }
 
 .zettelkasten-flow__reader-ink-pagemark {
@@ -381,9 +385,15 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     height: var(--zf-pm-h, 0);
     border-radius: var(--radius-s);
     background-color: var(--zf-ink-solid, var(--highlight-background, var(--text-highlight-bg)));
-    opacity: 0.38;
-    mix-blend-mode: multiply;
+    /* Multiplied with the page, a highlighter's strength never darkens the type under it. */
+    opacity: 0.55;
     transform-origin: left center;
+}
+
+/* Words being selected on a printed page (#842): the theme's own selection, until you choose. */
+.zettelkasten-flow__reader-ink-pagemark--selecting {
+    background-color: var(--text-selection);
+    opacity: 1;
 }
 
 /* Just made: the marker draws across the words from the side the stroke began — transform only. */

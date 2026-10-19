@@ -130,7 +130,7 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `reader-snapshot` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) · control in zettelflow-reader (`readerHighlights.ts`) |
 | `reader-listen` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) · control in zettelflow-reader (`readerHighlights.ts`) |
 | `reader-cite` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) · control in zettelflow-library (`libraryDetail.ts`) |
-| `reader-share-copy` | zettelflow-reader | 1 | control in zettelflow-reader (`readerHighlights.ts`) · control in zettelflow-reader (`ReaderView.ts`) · control in zettelflow-library (`libraryDetail.ts`) · control in zettelflow-library (`libraryNotebook.ts`) |
+| `reader-share-copy` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) · control in zettelflow-library (`libraryDetail.ts`) · control in zettelflow-library (`libraryNotebook.ts`) |
 | `chapter-pause` | zettelflow-reader | 1 | control in zettelflow-reader (`readerSurvivedLeaf.ts`) |
 | `chapter-recall` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) · control in zettelflow-reader (`readerSurvivedLeaf.ts`) |
 | `library` | zettelflow-library | 1 | ribbon → `open-library` · note menu (`LibraryComponent.ts`) · `open-library` |

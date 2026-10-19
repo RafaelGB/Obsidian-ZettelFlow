@@ -493,7 +493,6 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "cap_reader_share_copy",
         owner: "zettelflow-reader",
         doors: [
-            CONTROL("architecture/components/core/reader/readerHighlights.ts", "zettelflow-reader"),
             CONTROL("architecture/components/core/reader/ReaderView.ts", "zettelflow-reader"),
             CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library"),
             CONTROL("architecture/components/core/library/libraryNotebook.ts", "zettelflow-library"),

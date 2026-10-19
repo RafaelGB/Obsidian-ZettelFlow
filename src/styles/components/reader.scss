@@ -1713,6 +1713,19 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* Beside Alongside the ribbon keeps to the column's side of the panel, as the top line and its × do (#777 FR-2). */
+/* The Reader's options (#842): a quiet ⋯ just left of the bookmark, in the same band above the page. */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-options {
+    position: absolute;
+    top: calc(var(--size-4-3) + #{$safe-top});
+    right: calc(#{$safe-right} + var(--size-4-16) + var(--size-4-9));
+    z-index: 3;
+    color: var(--reader-faint, var(--text-faint));
+}
+
+.zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-options {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12) + var(--size-4-9));
+}
+
 .zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-ribbon {
     right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12));
 }

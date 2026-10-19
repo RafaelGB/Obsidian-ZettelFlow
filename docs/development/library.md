@@ -391,7 +391,9 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   Reading view follows the Reader's **Layout** — Scroll, Page or Spread
   ([pages or scroll](reader.md#pages-or-scroll)), and so does Page view.
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
-  whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
+  whose figures and tables matter. Select words on it with the mouse or the pen to highlight them —
+  the same four meanings, *Note* and *Copy* as in the reading view — and it is where the **pen**
+  draws on a PDF: on the page as printed, the only place a drawing can be handed back from.
   It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
   A figure or a table is kept with **Snapshot**, beside Page view in the bar: drag around it, and it
   becomes a note, a fleeting note or part of a note you have, with its page — see

@@ -1054,6 +1054,37 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         expect(m.store.writeInk).not.toHaveBeenCalled();
     });
 
+    it("selects words on a printed page with the pen put away, and keeps them only when you choose (#842)", async () => {
+        const m = await printed(PRINTED);
+        m.ink.closePalette(false);
+        // A drag across the first printed line, as a mouse makes it.
+        m.draw(printedLine(30, 300), { type: "mouse", target: m.slot });
+        await flush();
+        expect(m.slot.byClass("reader-ink-pagemark--selecting").length).toBeGreaterThan(0);
+        expect(m.store.write).not.toHaveBeenCalled();
+        // The selection's first row: the four meanings, Note, Copy.
+        const pop = m.root.byClass("reader-hl-pop")[0];
+        expect(pop).toBeDefined();
+        pop.byClass("reader-hl-meaning")[1].click();
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        const [, options] = m.store.write.mock.calls[0] as [string, any];
+        expect(options.locator).toEqual({ at: 2, label: "p. 3" });
+        expect(options.quote.exact).toContain("three says something");
+        expect(m.slot.byClass("reader-ink-pagemark--selecting")).toHaveLength(0);
+        expect(m.store.writeInk).not.toHaveBeenCalled();
+    });
+
+    it("lets go of a selection you do not keep: nothing is written", async () => {
+        const m = await printed(PRINTED);
+        m.ink.closePalette(false);
+        m.draw(printedLine(30, 300), { type: "mouse", target: m.slot });
+        await flush();
+        m.highlights.hidePopover();
+        expect(m.slot.byClass("reader-ink-pagemark--selecting")).toHaveLength(0);
+        expect(m.store.write).not.toHaveBeenCalled();
+    });
+
     it("keeps nothing for a highlighter stroke on a page with no text, a scan (AC-8, the empty state)", async () => {
         const m = await printed({ text: "", words: [], headings: [] });
         m.pick("highlighter");

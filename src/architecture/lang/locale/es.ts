@@ -3154,7 +3154,7 @@ export default {
     reader_source_count_section: 'Sección {0} / {1}',
     reader_source_scanned: 'Este PDF está hecho de imágenes, así que no hay texto que subrayar. Puedes leerlo y anotar al margen por página.',
     reader_source_note_page: 'Anotar esta página',
-    reader_source_page_hint: 'La vista de página conserva la maqueta original. Subraya en la vista de lectura.',
+    reader_source_page_hint: 'La vista de página conserva la maqueta original. Selecciona palabras para subrayarlas; el lápiz dibuja aquí.',
     reader_source_designed_hint: 'Esta página se muestra tal como se diseñó. Los subrayados y la búsqueda no están disponibles en las páginas diseñadas.',
     reader_source_designed_failed: 'No se pudo dibujar esta página.',
     // Vista de página, crecida (#767): zoom, disposiciones, giro, las páginas, los enlaces.
@@ -3186,6 +3186,7 @@ export default {
     reader_pv_link_in: 'Enlace dentro del documento',
     // #842: compartir una copia de un PDF con tus notas.
     reader_share_copy: 'Compartir una copia con tus notas',
+    reader_options: 'Opciones',
     reader_share_intro: 'Un PDF nuevo junto al original, con tus subrayados y notas. El original no cambia.',
     reader_share_highlights: '{0} subrayados',
     reader_share_highlights_one: '{0} subrayado',

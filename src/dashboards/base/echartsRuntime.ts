@@ -6,10 +6,13 @@
  */
 import { init, use } from "echarts/core";
 import { BarChart, HeatmapChart, LineChart, PieChart, ScatterChart } from "echarts/charts";
-import { GridComponent, LegendComponent, TooltipComponent, VisualMapComponent } from "echarts/components";
+import { GridComponent, LegendPlainComponent, TooltipComponent, VisualMapContinuousComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 
-// Register only what the shipped panel types need (tree-shaking — never the whole library).
+// Register only what the shipped panel types need (tree-shaking — never the whole library). The legend
+// and the visual map are their plain and continuous variants alone (#834): no panel sets a scrolling
+// legend or a piecewise map. A panel that needs `legend: { type: "scroll" }`, or `pieces` /
+// `categories` / `splitNumber` on a visual map, registers that variant in the same change.
 use([
     BarChart,
     LineChart,
@@ -18,8 +21,8 @@ use([
     HeatmapChart,
     GridComponent,
     TooltipComponent,
-    LegendComponent,
-    VisualMapComponent,
+    LegendPlainComponent,
+    VisualMapContinuousComponent,
     CanvasRenderer,
 ]);
 

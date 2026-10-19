@@ -1,5 +1,5 @@
 import { TFile, type App, type Component } from "obsidian";
-import { sourceFormat, type SourceFormat } from "application/library/sourceMeta";
+import { sourceFormat, type KnownPdf, type SourceFormat } from "application/library/sourceMeta";
 import type { CropBox, PageInk } from "application/library/pdfCrop";
 import type { SpreadView } from "application/library/epubFixedLayout";
 import type { PageText } from "application/library/pdfWords";
@@ -164,6 +164,8 @@ export interface SourceDocument {
     hasPageView: boolean;
     /** The view a PDF reads best in, read off its first pages (#813 FR-20, FR-21). */
     suggestedView?: SourceView;
+    /** Whether a PDF is typewritten (#837 FR-6), as read off its first pages: the Library keeps it (#851). */
+    typewritten?: boolean;
     /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
     direction?: "ltr" | "rtl";
     /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */
@@ -197,13 +199,14 @@ export interface SourceDocument {
 
 /**
  * Open a PDF, an EPUB or an article for reading. Throws when the file is not one, or cannot be read.
- * `imageOnly` is what the shelf already knows of a PDF, so a known scan is not sampled again.
+ * `known` is what the Library already read off this copy of a PDF (#851), so its first pages are not
+ * read again — or only that it is a scan.
  */
-export async function openSourceDocument(app: App, path: string, imageOnly?: boolean): Promise<SourceDocument> {
+export async function openSourceDocument(app: App, path: string, known?: KnownPdf): Promise<SourceDocument> {
     const format = sourceFormat(path);
     const file = app.vault.getAbstractFileByPath(path);
     if (!readsAsSource(path) || !(file instanceof TFile)) throw new Error(`not a source: ${path}`);
-    if (format === "pdf") return openPdfSource(app, file, imageOnly);
+    if (format === "pdf") return openPdfSource(app, file, known);
     if (format === "epub") return openEpubSource(app, file);
     return openArticleSource(app, file);
 }

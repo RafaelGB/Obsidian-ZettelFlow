@@ -37,7 +37,7 @@ import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type Alongs
 import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
 import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
-import { sourceFormat } from "application/library/sourceMeta";
+import { knownPdf, sourceFormat } from "application/library/sourceMeta";
 import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { chapterText, offsetAt, pointAt, readableText, readableWithMap, unwrapMark, wrapSpan, type NodeLike } from "./readerMarks";
@@ -951,7 +951,8 @@ export class ReaderView extends ItemView {
             this.sourceTooLarge = false;
             const generation = ++this.sourceGeneration;
             try {
-                const doc = await openSourceDocument(this.app, path, sourceMetaOf(this.plugin, path)?.imageOnly);
+                // What the Library read off this copy already is not read again (#851 FR-2).
+                const doc = await openSourceDocument(this.app, path, file instanceof TFile ? knownPdf(sourceMetaOf(this.plugin, path), file.stat.size, file.stat.mtime) : undefined);
                 if (generation !== this.sourceGeneration || this.sourcePath !== path) {
                     doc.close();
                     return;

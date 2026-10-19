@@ -459,7 +459,8 @@ an iPad (#767):
   it reads best in: a form, a poster or a page of figures — where most of what its first pages hold
   are short fragments, or there is little text at all — opens **as printed**; prose opens reflowed.
   The Reader decides from the text of the first three pages, once per copy of the file (a new copy is
-  sampled again), and keeps it beside the paper's place — the PDF itself is never written. **The view
+  sampled again), and keeps it beside the paper's place — the PDF itself is never written. Opening a
+  copy it has read already reads none of those pages again (#851). **The view
   you choose wins from then on**: turn Page view on or off (**V**, or its button) and the paper opens
   that way next time. A tab you left open opens as you left it.
 
@@ -491,6 +492,12 @@ an iPad (#767):
   pages far away are let go, so a 600-page PDF scrolls without the app holding 600 pictures. A page not
   drawn yet is a blank sheet with its number, and its picture fades in. A fling draws nothing until it
   slows, so it keeps its frames.
+- **Drawn ahead of you** (#851). Once the pages on screen are drawn, and no thumbnail is waiting, the
+  next two pages in the direction you are reading are drawn too — down the paper, or back up it — so a
+  page of photographs is already there when you reach it. A page's first drawing is mostly decoding its
+  pictures, which no lower resolution makes cheaper; drawing it early does. Nothing ahead is drawn
+  while you zoom or fling, and no more pages are held than before: the two kept either side of the
+  window are the ones drawn ahead.
 - **Kept with the paper.** The zoom (or the fit), Down or Across and the turned pages are kept beside
   its place, in plugin data. The PDF is never written.
 

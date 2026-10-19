@@ -228,6 +228,33 @@ describe("a source too large for the device (#750)", () => {
     });
 });
 
+describe("a PDF opens without reading its first pages again (#851 FR-2, AC-3, AC-4)", () => {
+    beforeEach(() => resetReaderWorkspace());
+    afterAll(() => __setPdfJs(null));
+
+    const known = (mtime: number) => ({ library: { "Papers/cap.pdf": { size: 10, mtime, chapters: 3, suggestedView: "reading", typewritten: false } } });
+
+    it("reads no page's text but the one it draws, when the Library remembers this copy", async () => {
+        const { calls, content } = await open(0, {}, PAPER, known(20));
+        await settle(() => content.byClass("reader-source-body").length > 0);
+        expect(calls.textReads).toEqual([1]);
+    });
+
+    it("samples a copy it does not know as before, and remembers what it read", async () => {
+        const { calls, host } = await open(0, {}, PAPER, known(99));
+        expect(calls.textReads.slice(0, 3)).toEqual([1, 2, 3]);
+        await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.mtime === 20);
+        expect((host.settings.library as any)["Papers/cap.pdf"]).toMatchObject({ size: 10, mtime: 20, suggestedView: "reading", typewritten: false });
+    });
+
+    it("samples once more a copy remembered before it kept whether it is typewritten", async () => {
+        const { calls, host } = await open(0, {}, PAPER, { library: { "Papers/cap.pdf": { size: 10, mtime: 20, chapters: 3, suggestedView: "reading" } } });
+        expect(calls.textReads.slice(0, 3)).toEqual([1, 2, 3]);
+        await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.typewritten === false);
+        expect((host.settings.library as any)["Papers/cap.pdf"].typewritten).toBe(false);
+    });
+});
+
 describe("a PDF's printed pages, behind the source seam (#767)", () => {
     afterAll(() => __setPdfJs(null));
 

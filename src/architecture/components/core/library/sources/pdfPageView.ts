@@ -60,6 +60,24 @@ export function heldRange(near: readonly number[], keep = KEEP_AROUND): { lo: nu
     return { lo: Math.min(...near) - keep, hi: Math.max(...near) + keep };
 }
 
+/**
+ * The pages drawn **ahead of you** while nothing else is (#851 FR-1): the next `n` past the window in
+ * the direction you move, never more than `KEEP_AROUND` — the pages already kept around the window, so
+ * no more pictures are ever held than before. A page's first drawing is its pictures' decode, which
+ * is slow on a page of photographs; drawn before it is reached, it is simply there.
+ */
+export function aheadOf(near: readonly number[], count: number, dir: 1 | -1, n = KEEP_AROUND): number[] {
+    if (near.length === 0) return [];
+    const edge = dir > 0 ? Math.max(...near) : Math.min(...near);
+    const pages: number[] = [];
+    for (let i = 1; i <= Math.min(n, KEEP_AROUND); i++) {
+        const page = edge + dir * i;
+        if (page < 0 || page >= count) break;
+        pages.push(page);
+    }
+    return pages;
+}
+
 /** Room around the run and between its pages, in CSS pixels (the 4-grid's 16). */
 export const RUN_PAD = 16;
 export const RUN_GAP = 16;

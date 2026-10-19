@@ -31,6 +31,7 @@ import {
     ZOOM_MAX,
     ZOOM_MIN,
     ZOOM_STEP,
+    aheadOf,
     clampZoom,
     drawSize,
     heldRange,
@@ -134,6 +135,8 @@ interface Drawn {
     /** The part of the page it holds (#769), as drawn at its turn: the whole page uncropped. */
     frame: CropBox;
     page: number;
+    /** Drawn ahead (#851), before its slot was made: its slot is told when it is first shown. */
+    unseen?: boolean;
 }
 
 interface SlotView {
@@ -168,6 +171,8 @@ interface Pending {
     scale: number;
     rotation: number;
     frame: CropBox;
+    /** A page drawn ahead of you (#851), not yet near the screen. */
+    ahead: boolean;
 }
 
 interface ThumbRequest {
@@ -212,6 +217,10 @@ export class PdfPageRun {
     private lastPinchAt = 0;
     private lastReshape = 0;
     private lastScroll = { top: 0, left: 0, at: 0 };
+    /** The way you are reading (#851): down the paper, or back up it — what is drawn ahead follows it. */
+    private heading: 1 | -1 = 1;
+    /** The first page of the view last on show, in Page and Spread: a turn back reads back. */
+    private shownFirst = -1;
     private flingTimer: number | undefined;
     private flinging = false;
     private waits = 0;
@@ -948,6 +957,7 @@ export class PdfPageRun {
             }
         }
         this.askSizes(near);
+        this.headFor(layout, scroll, across);
         // A fling is the platform's (FR-19): pages flying past are not drawn — a drawing paints on the
         // main thread and would cost the fling its frames. They are drawn once the scroll slows.
         const now = Date.now();
@@ -989,6 +999,11 @@ export class PdfPageRun {
             if (drawn) {
                 el.appendChild(drawn.picture);
                 this.linksFor(view);
+                // Drawn ahead (#851): its slot is told now, as if it had just been drawn.
+                if (drawn.unseen) {
+                    drawn.unseen = false;
+                    this.host.onDrawn?.(slot.page, drawn.picture);
+                }
             }
         }
         view.el.setCssProps({ "--zf-slot-x": px(slot.x), "--zf-slot-y": px(slot.y), "--zf-slot-w": px(slot.w), "--zf-slot-h": px(slot.h), ...this.wholePageProps(slot.page) });
@@ -1121,7 +1136,8 @@ export class PdfPageRun {
         if (running) {
             const slot = near.find((s) => s.page === running.page);
             // A page that left the screen, or whose turn changed, is let go (FR-14).
-            if (!slot || running.rotation !== this.rotationOf(running.page) || !sameBox(running.frame, this.shownFrame(running.page))) {
+            const kept = slot ?? (running.ahead ? this.aheadSlots().find((s) => s.page === running.page) : undefined);
+            if (!kept || running.rotation !== this.rotationOf(running.page) || !sameBox(running.frame, this.shownFrame(running.page))) {
                 running.task.cancel();
                 release(running.picture);
                 this.pending = null;
@@ -1138,10 +1154,47 @@ export class PdfPageRun {
             this.drawPage(next);
             return;
         }
-        this.drawNextThumb();
+        // A thumbnail asked for comes before a page nobody is looking at yet.
+        while (this.thumbs.length > 0 && this.thumbs[0].cancelled) this.thumbs.shift();
+        if (this.thumbs.length > 0) {
+            this.drawNextThumb();
+            return;
+        }
+        const ahead = this.aheadSlots().find((slot) => this.needsDrawing(slot));
+        if (ahead) this.drawPage(ahead, true);
     }
 
-    private drawPage(slot: Slot): void {
+    /** Which way you are reading: the scroll's last move in Scroll, the last turn in Page and Spread. */
+    private headFor(layout: ReaderLayout, scroll: { top: number; left: number }, across: boolean): void {
+        if (layout === "scroll") {
+            const moved = across ? scroll.left - this.lastScroll.left : scroll.top - this.lastScroll.top;
+            if (Math.abs(moved) >= 1) this.heading = moved > 0 ? 1 : -1;
+            return;
+        }
+        const first = this.layoutNow.pages[0] ?? -1;
+        if (this.shownFirst >= 0 && first !== this.shownFirst) this.heading = first > this.shownFirst ? 1 : -1;
+        this.shownFirst = first;
+    }
+
+    /**
+     * The pages to draw ahead of you (#851 FR-1), each with the slot it will have: in Scroll its own;
+     * in Page and Spread the next view is not laid out yet, so it is sized at the scale of the view on show.
+     */
+    private aheadSlots(): Slot[] {
+        // A designed page is elements, mounted once (#771): there is no decode to get ahead of.
+        if (this.designed()) return [];
+        const pages = aheadOf([...this.slots.keys()], this.pages.count, this.heading);
+        if (this.host.layout() === "scroll") return pages.map((page) => this.slotOf(page)).filter((slot): slot is Slot => Boolean(slot));
+        const shown = this.layoutNow.slots[0];
+        if (!shown) return [];
+        const k = shown.w / Math.max(1e-6, this.boxOf(shown.page).width);
+        return pages.map((page) => {
+            const box = this.boxOf(page);
+            return { page, x: 0, y: 0, w: Math.max(1, Math.floor(box.width * k)), h: Math.max(1, Math.floor(box.height * k)) };
+        });
+    }
+
+    private drawPage(slot: Slot, ahead = false): void {
         const page = slot.page;
         const rotation = this.rotationOf(page);
         const scale = this.wantedScale(slot);
@@ -1162,7 +1215,7 @@ export class PdfPageRun {
             picture = canvas;
             task = render(page, canvas, { scale, rotation, ...(frame === WHOLE_PAGE ? {} : { frame }) });
         } else return;
-        const pending: Pending = { page, task, picture, scale, rotation, frame };
+        const pending: Pending = { page, task, picture, scale, rotation, frame, ahead };
         this.pending = pending;
         void task.promise
             .then(() => {
@@ -1187,8 +1240,8 @@ export class PdfPageRun {
     /** A drawing is in: it takes its slot's place — the first one fades in, a sharper one just replaces. */
     private takeDrawing(pending: Pending): void {
         const previous = this.drawn.get(pending.page);
-        this.drawn.set(pending.page, { picture: pending.picture, scale: pending.scale, rotation: pending.rotation, frame: pending.frame, page: pending.page });
         const view = this.slots.get(pending.page);
+        this.drawn.set(pending.page, { picture: pending.picture, scale: pending.scale, rotation: pending.rotation, frame: pending.frame, page: pending.page, ...(view ? {} : { unseen: true }) });
         if (!view) {
             if (previous) release(previous.picture);
             return;

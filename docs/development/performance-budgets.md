@@ -243,6 +243,21 @@ the first page, and a later one only for a new face (a page of math). A page who
 waits for nothing. The owner's ceiling is +10 ms median: this sits on it, and is the number to watch.
 The reflow itself, formats included, is `library.pdf.reflow.page` above.
 
+**Page view, ahead of you (#851).** On a page of photographs, its first drawing is mostly the decode
+of its pictures in pdf.js's worker: 40–140 ms with the CPU throttled 4×, against 6–60 ms to draw the
+same decoded page again, sharper. So Page view now draws the next two pages in the direction you read
+once the screen is drawn. Measured 2026-10-19 in the same instance, scrolling a screen every 250 ms,
+two rounds per build. The figure is how long a page arriving on screen stays blank (p90):
+
+| Paper | Before | Ahead | CPU |
+|---|---|---|---|
+| *Earth as Art* (NASA, 172 full-page photographs, 11.3 MB) | 97–113 ms | 32–53 ms | 4× |
+| A 30-page vendor manual (a logo on every page, tables, screenshots) | 240–245 ms | 26–29 ms | 4× |
+| Either, unthrottled | 9 ms | 3–4 ms | 1× |
+
+No more pictures are held than before. Opening a copy the Library has read already no longer reads
+its first three pages again; that saves 60–140 ms on the manual, unthrottled.
+
 Frames are not budgeted here: how smooth a motion is, frame by frame, is [the motion audit](motion-audit.md) (#826).
 
 ## What these numbers do not include

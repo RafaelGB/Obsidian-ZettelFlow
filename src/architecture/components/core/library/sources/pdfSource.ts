@@ -4,7 +4,7 @@ import { t } from "architecture/lang";
 import { IMAGE_ONLY_SAMPLE, isImageOnly, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
 import { linkBlocks, pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
-import { languageTag } from "application/library/sourceMeta";
+import { languageTag, type KnownPdf } from "application/library/sourceMeta";
 import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/library/pdfCrop";
 import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage, type PdfTextItem } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
@@ -199,7 +199,7 @@ function sectionOf(toc: readonly SourceTocEntry[], page: number): string | undef
  * figures matter; it is read-only. A page with no text — a figure, or every page of a scan — is
  * drawn as its picture either way.
  */
-export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: boolean): Promise<SourceDocument> {
+export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Promise<SourceDocument> {
     const doc = await openPdf(app, file);
     const info: Record<string, unknown> = (await doc.getMetadata().catch(() => ({ info: {} }))).info ?? {};
     const toc = await outlineOf(doc);
@@ -210,12 +210,13 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         // Its identity is its index (#751 P1); its print page, the paper's own label or its number.
         return { label: t("reader_source_page", labels?.[i] ?? String(i + 1)), key: `page:${i}`, page: labels?.[i] ?? String(i + 1), ...(section ? { section } : {}) };
     });
-    let imageOnly = imageOnlyKnown ?? false;
-    // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in.
+    // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in —
+    // and once only (#851 FR-2): a copy the Library has read already is not read again.
+    const remembered = known?.typewritten !== undefined;
     const samples: string[] = [];
     const shapes: PageBlock[][] = [];
     const sampled: TextRun[][] = [];
-    for (let n = 1; n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
+    for (let n = 1; !remembered && n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
         const content = await (await doc.getPage(n)).getTextContent();
         const items = content.items.filter(isTextItem);
         samples.push(items.map((item) => item.str).join(""));
@@ -224,12 +225,12 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         sampled.push(items.map((item) => runOf(item, content.styles ?? {})));
     }
     // A typewritten paper reads as prose (#837 FR-6): its body face decides, not one page of code.
-    const typewritten = isTypewritten(sampled);
+    const typewritten = known?.typewritten ?? isTypewritten(sampled);
     // Bold and italic, from each font's real name, read once per font (#839).
     const fonts = faceReader(file.path);
     // The shelf may have sampled it already: a scan is known before its first page is drawn.
-    if (imageOnlyKnown === undefined) imageOnly = isImageOnly(samples);
-    const suggestedView = imageOnly ? undefined : suggestPdfView(shapes);
+    const imageOnly = known?.imageOnly ?? isImageOnly(samples);
+    const suggestedView = imageOnly ? undefined : remembered ? known.suggestedView : suggestPdfView(shapes);
 
     const drawPicture = async (index: number, body: HTMLElement, component: Component): Promise<void> => {
         const page = await doc.getPage(index + 1);
@@ -281,6 +282,7 @@ export async function openPdfSource(app: App, file: TFile, imageOnlyKnown?: bool
         toc,
         imageOnly,
         hasPageView: !imageOnly,
+        typewritten,
         ...(suggestedView ? { suggestedView } : {}),
         async draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter> {
             if (view === "page" || imageOnly) {

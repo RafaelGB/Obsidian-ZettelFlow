@@ -285,7 +285,7 @@ export class ReaderPager {
             if (runs.length === 0) return null;
             const total = runs.reduce((sum, run) => sum + run.getBoundingClientRect().height, 0);
             if (runs.length === 1 && total <= pageHeight) return null;
-            const lines = runs.flatMap((run) => (Array.from(run.children) as HTMLElement[]).map((line) => line.getBoundingClientRect().height));
+            const lines = runs.flatMap((run) => Array.from(run.children).map((line) => line.getBoundingClientRect().height));
             // Where the listing begins: its own first box, wherever it sits — in a figure, a list, first.
             const first = pre.getClientRects?.()[0];
             const used = first ? Math.max(0, first.top - top) : 0;

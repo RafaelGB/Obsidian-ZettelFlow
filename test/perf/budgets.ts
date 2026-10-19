@@ -468,8 +468,12 @@ export const BUDGETS = {
         // 3,158 → 3,175 (epic #850): Page view drawn ahead and opened without re-sampling (#851), a designed
         // document's print and the note under a page (#852), its furniture (#853) and its islands of print —
         // tables, figures and separators (#854): +16.4 KB, no new dependency. 3,172.1 KB.
-        limit: 3_175,
-        measured: "3,172.1 KB",
+        // 3,175 → 3,133 (quick wins, 3.8.1): the book's file actions (#856) +1.5 KB; then main.js written as
+        // UTF-8 (#835) -6.3 KB, only the ECharts variants the panels use (#834) -14.2 KB, and
+        // json-stable-stringify's polyfills replaced by a local port (#833) -23.4 KB. 3,130.8 KB; the
+        // ceiling closes at its measure plus 2 KB, so the bytes saved stay saved.
+        limit: 3_133,
+        measured: "3,130.8 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

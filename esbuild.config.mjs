@@ -124,6 +124,8 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	minify: prod ? true : false,
+	// Written as UTF-8 (#835): the locales' accents and dashes are characters, not escapes (Obsidian reads UTF-8).
+	charset: "utf8",
 	treeShaking: true,
 	outfile: "dist/main.js",
 	loader: {
@@ -134,6 +136,8 @@ const context = await esbuild.context({
 const styles = await esbuild.context({
     entryPoints: ["src/styles/main.scss"],
     bundle: true,
+    // The release stylesheet is minified (#835): Obsidian reads it on every load. Dev stays readable.
+    minify: prod,
     outfile: "dist/styles.css",
     plugins: [sassPlugin(), ...(vaultMode ? [vaultDeployPlugin] : [])],
 });

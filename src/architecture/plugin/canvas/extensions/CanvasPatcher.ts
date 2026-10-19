@@ -5,7 +5,7 @@ import PatchHelper from "./utils/PatchHelper";
 import { CanvasPatchStatus } from "./utils/CanvasPatchStatus";
 import { log } from "architecture";
 import { t } from "architecture/lang";
-import JSONSS from "json-stable-stringify"
+import { stableStringify } from "./stableStringify"
 import JSONC from "tiny-jsonc"
 
 export default class CanvasPatcher {
@@ -93,12 +93,13 @@ export default class CanvasPatcher {
                     const canvasData = this.canvas.getData()
 
                     try {
-                        const stringified = JSONSS(canvasData, { space: 2 })
-                        if (stringified === undefined) throw new Error('Failed to stringify canvas data using json-stable-stringify')
+                        // The keys in a stable order, as json-stable-stringify wrote them — its local port (#833).
+                        const stringified = stableStringify(canvasData, { space: 2 })
+                        if (stringified === undefined) throw new Error('Failed to stringify canvas data with stable keys')
 
                         return stringified
                     } catch (e) {
-                        log.error('Failed to stringify canvas data using json-stable-stringify:', e)
+                        log.error('Failed to stringify canvas data with stable keys:', e)
 
                         try {
                             return JSON.stringify(canvasData, null, 2)

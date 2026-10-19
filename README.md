@@ -48,7 +48,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 ## 📚 Read like a book — the Reader and your Library
 
-**Right-click any note → _Read from here_.** The Reader takes the window and walks you through the note and the notes around it, one chapter at a time — no MOC needed. **Your Library** puts your PDFs, EPUBs and Web Clipper articles on one shelf, beside the reading paths you saved, and opens them in the same Reader. What you mark lands in **Think**, never in the book; **Esc** gives your workspace back exactly as it was.
+**Right-click any note → _Read from here_.** The Reader takes the window and walks you through the note and the notes around it, one chapter at a time — no MOC needed. **Your Library** puts your PDFs, EPUBs and Web Clipper articles on one shelf, beside the reading paths you saved, and opens them in the same Reader. What you mark lands in **Think**, never in the book — and a PDF you marked can be handed back as a copy with your notes on it. **Esc** gives your workspace back exactly as it was.
 
 <p align="center">
   <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/"><img src="docs/resources/readme/reader-hero.svg" width="100%" alt="The Reader: the Library shelf, a book open as a two-page spread, a sentence highlighted, a question written in the margin, the thought landing in Think, your notes Alongside the page, and Listen reading aloud."></a>
@@ -72,7 +72,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 </tr>
 </table>
 
-<p align="center"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/"><b>The Reader →</b></a> &nbsp;·&nbsp; <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/"><b>Your library →</b></a> &nbsp;·&nbsp; <sub>Nothing is imported or uploaded, and your book files are never modified.</sub></p>
+<p align="center"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/reader/"><b>The Reader →</b></a> &nbsp;·&nbsp; <a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/library/"><b>Your library →</b></a> &nbsp;·&nbsp; <sub>Nothing is imported or uploaded, and your book files are never modified; a shared copy is a new file beside them.</sub></p>
 
 ---
 

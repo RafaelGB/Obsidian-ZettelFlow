@@ -1,4 +1,4 @@
-import type { App, Component } from "obsidian";
+import { setTooltip, type App, type Component } from "obsidian";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
 import { detailSentenceParts, type DetailPart, type ShelfItem } from "application/library/shelf";
@@ -23,6 +23,8 @@ export interface DetailParts {
     produced?: (parent: HTMLElement, settled: (hasContent: boolean) => void) => void;
     /** *Cite this book* (#768 FR-1): the cite panel, grown from the button; absent for a saved path. */
     cite?: (from: HTMLElement) => void;
+    /** *Share a copy with your notes* (#842), for a PDF: whether anything is marked, and the sheet. */
+    share?: { available: () => Promise<boolean>; open: (from: HTMLElement) => void };
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -104,6 +106,22 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
     if (parts.cite && item.kind !== "path") {
         const cite = actions.createEl("button", { attr: { type: "button", "data-zf-cite": "" }, text: t("shelf_cite_book") });
         scope.registerDomEvent(cite, "click", () => parts.cite?.(cite));
+    }
+    // A PDF you marked, handed back as a copy with your notes (#842): disabled, saying why, while nothing is marked.
+    if (parts.share) {
+        const share = actions.createEl("button", { attr: { type: "button", disabled: "true", "data-zf-share": "" }, text: t("reader_share_copy") });
+        const door = parts.share;
+        void door
+            .available()
+            .catch(() => false)
+            .then((yes) => {
+                if (!yes) {
+                    setTooltip(share, t("reader_share_empty"));
+                    return;
+                }
+                share.removeAttribute("disabled");
+                scope.registerDomEvent(share, "click", () => door.open(share));
+            });
     }
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());

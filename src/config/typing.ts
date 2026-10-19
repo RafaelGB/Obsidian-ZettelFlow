@@ -165,6 +165,13 @@ export interface ZettelFlowSettings {
      */
     citeForm?: "markdown" | "inline" | "key" | "bibtex" | "csl";
     /**
+     * The name a shared copy's comments are signed with (#842 FR-6): typed in the sheet itself and
+     * remembered from it (§XIII) — never a settings row. Empty signs nothing.
+     */
+    shareAuthor?: string;
+    /** Whether a shared copy carries your pen (#843): remembered from the sheet, on until you turn it off. */
+    sharePen?: boolean;
+    /**
      * Look up and Translate (#766, epic #741) — the settings' *Reading* section: the folder your
      * StarDict dictionaries are in (never written), the languages set for a dictionary that declares
      * none (by its path without extension), and the language *Translate* translates into (`""` is

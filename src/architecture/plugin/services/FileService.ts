@@ -149,6 +149,25 @@ export class FileService {
     }
 
     /**
+     * Create a **binary** file only where nothing is (#842 FR-14): a shared copy of a PDF is never
+     * written over anything. `null` when the path is taken — or taken a moment later, as Obsidian's own
+     * create refuses it — and the vault is then not touched. The creation is recorded, so Undo trashes it.
+     */
+    public static async createBinaryFileOnce(path: string, data: ArrayBuffer): Promise<TFile | null> {
+        if (ObsidianApi.vault().getAbstractFileByPath(path)) return null;
+        try {
+            const created = await ObsidianApi.vault().createBinary(path, data);
+            FileService.recordCreation(path);
+            return created;
+        } catch (error) {
+            // Taken a moment later: another name. Anything else — a full disk, a name the system refuses — is the error.
+            if (ObsidianApi.vault().getAbstractFileByPath(path)) return null;
+            log.error(`[FileService] could not create ${path}: ${error instanceof Error ? error.message : String(error)}`);
+            throw error;
+        }
+    }
+
+    /**
      * Deliberately **not** recorded (#453): taking a deletion back would mean keeping the note's
      * body, which is the one thing the write record refuses to do. Obsidian's own trash is the
      * recovery path, and it already holds the file.

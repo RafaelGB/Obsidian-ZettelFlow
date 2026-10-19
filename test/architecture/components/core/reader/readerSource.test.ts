@@ -107,7 +107,7 @@ describe("a PDF in the Reader (#681)", () => {
     it("draws the page as it was laid out in page view — read-only, and says where to highlight", async () => {
         const { content, view } = await open(1, { layout: "page" });
         expect(content.byClass("reader-pv-run")).toHaveLength(1);
-        expect(content.oneByClass("reader-source-hint").textContent).toContain("Highlight in the reading view.");
+        expect(content.oneByClass("reader-source-hint").textContent).toContain("Select words to highlight them; the pen draws here.");
         expect(view.getState()).toMatchObject({ layout: "page" });
         // V, or the hint's button, goes back to the reading view.
         press(content as never, "v");

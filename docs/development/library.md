@@ -391,7 +391,9 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   Reading view follows the Reader's **Layout** — Scroll, Page or Spread
   ([pages or scroll](reader.md#pages-or-scroll)), and so does Page view.
 - **Page view** (the bar's **Page view**, or **V**) draws the page as it was laid out, for a paper
-  whose figures and tables matter. It is read-only, and it says so: *highlight in the reading view*.
+  whose figures and tables matter. Select words on it with the mouse or the pen to highlight them —
+  the same four meanings, *Note* and *Copy* as in the reading view — and it is where the **pen**
+  draws on a PDF: on the page as printed, the only place a drawing can be handed back from.
   It zooms, scrolls, turns and rotates its pages, and its links work — see [Page view](#page-view).
   A figure or a table is kept with **Snapshot**, beside Page view in the bar: drag around it, and it
   becomes a note, a fleeting note or part of a note you have, with its page — see
@@ -407,6 +409,44 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   and the desk's *Resume reading* all open it there. Reaching the last page marks it read.
 - **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
   **See it in the library** or **Read it again**.
+
+### What a page keeps
+
+The reading view rebuilds more than paragraphs: the formats a paper is set in come back, read off the
+page itself. Only the clear cases are taken; when in doubt a block stays a paragraph, as before.
+
+![A PDF page as printed beside the same page in the reading view: the heading, bold and italic, a footnote marker raised, inline code, a bulleted and a numbered list with hanging markers, a listing in its own box with its indentation, a block quote, a link and the footnote at the foot](../resources/library/pdf-formats.svg)
+
+- **Code keeps its lines.** Lines set in a monospace face read as one listing, with their
+  indentation, in the same box as a book's code ([code in technical books](reader.md#code-in-technical-books)):
+  whole on its page, *Code lines* in the Type panel, and kept to Think as a fenced block. A name in a
+  sentence set in monospace reads as inline code. No language is guessed, so a PDF's code is not
+  coloured. A paper typed entirely in a typewriter face reads as prose.
+- **Lists keep their items.** Each item starts its own line, its marker hanging in the margin as
+  printed — the page's own `•`, `1.` or `a)`, never renumbered — and a line set under an item's words
+  goes on with it. A nested item sits further in. Only a clear list is a list: a bullet, or two
+  numbered (or dashed) lines in a row, in sequence; a lone *1. Introduction* stays what it was.
+- **Bold and italic** come back where they stand out: a defined term, a book's title, an emphasis.
+  They are read off the name of the font each word is set in (*Times-Bold*, *MinionPro-It*, the faces
+  LaTeX uses), so a PDF that names its fonts plainly shows nothing. A heading, or a paragraph set
+  wholly in one face, is left as it is — that is its font, not an emphasis.
+- **Footnotes and quotes.** A small mark raised after a word reads as a footnote marker, and the
+  small text at the foot of the page that starts with that mark reads as its footnote — still where it
+  was printed, set apart from the text. Click the marker and the footnote opens over the page, as a
+  book's does ([links, detours and context](reader.md#links-detours-and-context)). A footer that starts
+  with a page number is not a footnote: its mark must be raised somewhere on the page. Two lines or
+  more set in from both margins, at one place, read as a block quote.
+- **Hand it back with your notes.** A PDF's Notebook offers **Share a copy with your notes**, beside
+  *Export as a reading note*: a new PDF beside the original with your highlights and notes on it
+  ([hand back a marked copy](reader.md#hand-back-a-marked-copy)).
+- **Links you can follow.** The words under a link are a link, the same words Page view links. A
+  citation or a *see section 3* goes to its page, with the way back on the trail; a link out of the
+  paper shows its address with **Copy link**, and is never opened.
+
+**The page's text never changes.** A format only cuts the page into blocks and marks words inside
+them — every character stays where it was. A highlight made before a paper read its formats is found
+where it was, in both views, and Page view indexes exactly the text the reading view draws. The one
+exception is inside a listing, whose lines are lines: each starts on its own, with its indentation.
 
 ### Page view
 

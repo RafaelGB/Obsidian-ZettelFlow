@@ -152,3 +152,26 @@
     --table-border-color: var(--background-modifier-border);
     --blockquote-border-color: var(--interactive-accent);
 }
+
+/*
+ * A panel grown from the control that asked for it (#768 Cite, #842 Share): no backdrop, placed by
+ * the custom properties its owner writes, growing from that point. The theme's colours only.
+ */
+@mixin floating-panel {
+    position: absolute;
+    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    box-sizing: border-box;
+    width: min(30rem, calc(100% - var(--size-4-8)));
+    padding: var(--size-4-3) var(--size-4-4);
+    background-color: var(--reader-surface, var(--background-primary));
+    color: var(--reader-fg, var(--text-normal));
+    border: var(--border-width) solid var(--reader-line, var(--background-modifier-border));
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    font-size: var(--font-ui-small);
+    line-height: 1.5;
+}

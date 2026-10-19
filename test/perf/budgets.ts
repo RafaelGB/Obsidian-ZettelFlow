@@ -362,10 +362,22 @@ export const BUDGETS = {
         because:
             "the shelf is rebuilt when the Library comes back into view and on every keystroke of its search; 500 sources is a serious reading life (#675 L8)",
     },
+    "reader.share.place.500": {
+        name: "place 500 highlights over 50 printed pages for a shared copy, with their comments' holes",
+        limit: 50,
+        measured: "9.5 ms",
+        because: "it runs once when you make the copy, between Make the copy and the file; a paper marked all over must still be a moment (#842)",
+    },
+    "reader.share.fill.20mb": {
+        name: "fill 100 comment holes in place in a 20 MB copy, never decoding it",
+        limit: 100,
+        measured: "1.2 ms",
+        because: "a scanned book is tens of megabytes: its holes are found by bytes, after the original's own, in one pass each (#842)",
+    },
     "library.pdf.reflow.page": {
-        name: "reflow a dense two-column PDF page (961 runs) into paragraphs",
+        name: "reflow a dense two-column PDF page (961 runs) into paragraphs, its code, lists, markers and footnotes included (#837, #838, #840)",
         limit: 30,
-        measured: "7.5 ms",
+        measured: "11.1 ms",
         because:
             "it runs on every page turn in a PDF, between the key and the words; a page must be on screen well within a blink (#681, L8)",
     },
@@ -420,8 +432,27 @@ export const BUDGETS = {
         // epic used 15 of its 20 KB.
         // #817's wizard preview brought main to 3,114.2 KB without this line moving; #828's doors add 0.5 KB:
         // 3,114.7 KB — 0.3 KB under the ceiling, so the next feature needs a deliberate raise.
-        limit: 3_115,
-        measured: "3,114.7 KB",
+        // 3,115 → 3,140 (#836, owner, 2026-10-18): one raise for the epic — the formats a PDF page keeps and
+        // the copy you hand back with your notes. No PDF library: the copy is written by Obsidian's own pdf.js.
+        // F1 code in a PDF (#837) +3.3 KB — the listing is #824's, its lines read off pdf.js's own styles.
+        // F2 lists (#838) +2.6 KB — the five markers, the chain of two, nesting by place, the hanging item.
+        // F3 bold and italic (#839) +1.6 KB — a face read off its font's real name, once per font.
+        // F4 footnotes and quotes (#840) +2.4 KB — the raised marker, the foot zone, the set-in quote, and the
+        // marker opening its note through #718's pop (0.4 KB of it).
+        // F5 links (#841) +1.7 KB — the words under each link, found by Page view's own boxes; Page view's
+        // pop for a link out, the Reader's own jump for a link in.
+        // 3,140 → 3,150 (#842): the shared copy adds 18.5 KB, over the 10 KB its plan guessed — the sheet,
+        // its run and its checks 12.3 KB, its 30 strings in two languages 4.7 KB, the doors 1.5 KB. Looked for
+        // something to subtract first: the PDF is written by Obsidian's own pdf.js (no library: pdf-lib alone
+        // is ~400 KB), and Cite and Share now share one floating panel (readerFloat), 1 KB back. The ceiling
+        // moves to the epic's end measure plus a little; #833–#835 would take 44 KB off the bundle.
+        // E2 your pen on the copy (#843) +4.7 KB — strokes mapped to the page's own space at its turn, curves
+        // raised to the cubics pdf.js draws, the sheet's toggle and its six strings. The epic: +34.8 KB in all,
+        // and the ceiling closes at its measure plus 2 KB: 3,150 → 3,152 (review fixes: 3,150.2 KB; the owner's doors: 3,151.4 KB).
+        // 3,152 → 3,158 (#842, the owner's walk): on a PDF the pen draws on the printed page, where words can now
+        // be selected and highlighted too, and the share moved into a quiet ⋯ menu — +4.2 KB: 3,155.6 KB.
+        limit: 3_158,
+        measured: "3,155.7 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

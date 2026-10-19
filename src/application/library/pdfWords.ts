@@ -13,7 +13,7 @@
  * and a stroke over it stays ink — never a highlight of the wrong words (#746 Risk 4).
  */
 
-import { reflowPage, runOf, type PageBlock } from "./pdfText";
+import { reflowPage, runOf, type InlineSpan, type PageBlock, type PdfStyles, type ReflowOptions } from "./pdfText";
 
 /** A pdf.js text item, as far as words need it. */
 export interface PdfWordItem {
@@ -21,6 +21,14 @@ export interface PdfWordItem {
     transform: number[];
     width: number;
     height?: number;
+    fontName?: string;
+}
+
+/** How the page's text was reflowed (#837): the same faces and options the Reading view drew it with. */
+export interface PageWordsOptions extends ReflowOptions {
+    styles?: PdfStyles;
+    /** The page's blocks, already reflowed by the reading view (#841): read as they are, not again. */
+    blocks?: readonly PageBlock[];
 }
 
 /** A word on a printed page: where it is (fractions of the page) and where it is in the page's text. */
@@ -124,8 +132,9 @@ function wordAround(text: string, start: number, end: number, edges: ReadonlySet
  * The words of a page: their boxes as fractions of the page as drawn, and their offsets in the text
  * the Reading view shows. An image-only page (or one that is a figure) has none.
  */
-export function pageWordsOf(items: readonly PdfWordItem[], page: PageGeometry): PageText {
-    const blocks: PageBlock[] = reflowPage(items.map((item) => runOf(item)));
+export function pageWordsOf(items: readonly PdfWordItem[], page: PageGeometry, options: PageWordsOptions = {}): PageText {
+    const { styles, blocks: drawn, ...reflow } = options;
+    const blocks: readonly PageBlock[] = drawn ?? reflowPage(items.map((item) => runOf(item, styles)), reflow);
     const headings: { at: number; text: string }[] = [];
     const edges = new Set<number>();
     let text = "";
@@ -186,4 +195,58 @@ export function pageHeadingAt(page: PageText, offset: number): string | undefine
         found = heading.text.trim() || found;
     }
     return found;
+}
+
+/** A link on a printed page (#841): where it is, as fractions of the page, and where it goes. */
+export interface PageLink {
+    rect: { x: number; y: number; w: number; h: number };
+    url?: string;
+    dest?: unknown;
+}
+
+/**
+ * **A page's links, over its words** (#841): a word is a link's when the middle of its box is inside
+ * the link's rectangle, so the reading view links the very words Page view does. Each block gains a
+ * `link` span over the words a link covers; a word already in a footnote's link stays that. The text
+ * is never touched.
+ */
+export function linkBlocks(blocks: readonly PageBlock[], page: PageText, links: readonly PageLink[]): PageBlock[] {
+    if (links.length === 0 || page.words.length === 0) return [...blocks];
+    // Where each block starts in the page's text: its blocks joined with nothing between them.
+    const starts: number[] = [];
+    let at = 0;
+    for (const block of blocks) {
+        starts.push(at);
+        at += block.text.length;
+    }
+    const out = blocks.map((block) => ({ ...block, spans: [...(block.spans ?? [])] }));
+    links.forEach((link) => {
+        const to = link.url ? { url: link.url } : link.dest !== undefined && link.dest !== null ? { dest: link.dest } : null;
+        if (!to) return;
+        const { x, y, w, h } = link.rect;
+        // The span this link last grew in each block: its next word a space away joins it.
+        const grown = new Map<number, InlineSpan>();
+        for (const word of page.words) {
+            const cx = word.left + word.width / 2;
+            const cy = word.top + word.height / 2;
+            if (cx < x || cx > x + w || cy < y || cy > y + h) continue;
+            let index = starts.length - 1;
+            while (index > 0 && starts[index] > word.start) index--;
+            const block = out[index];
+            const start = word.start - starts[index];
+            const end = Math.min(word.end - starts[index], block.text.length);
+            if (start < 0 || end <= start || block.kind === "listing") continue;
+            const last = grown.get(index);
+            if (last && block.text.slice(last.end, start).trim() === "") {
+                last.end = Math.max(last.end, end);
+                continue;
+            }
+            // A word already linked — a footnote's marker — stays that link.
+            if (block.spans.some((span) => span.kind === "link" && span.start < end && span.end > start)) continue;
+            const span: InlineSpan = { kind: "link", start, end, to };
+            block.spans.push(span);
+            grown.set(index, span);
+        }
+    });
+    return out.map(({ spans, ...block }) => (spans.length > 0 ? { ...block, spans: spans.sort((p, q) => p.start - q.start) } : block));
 }

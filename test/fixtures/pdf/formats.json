@@ -1,0 +1,34 @@
+{
+ "width": 612,
+ "height": 792,
+ "fonts": {"FR":"Times-Roman","FB":"Times-Bold","FI":"Times-Italic","FC":"Courier"},
+ "pages": [
+  {
+   "ops": [
+    {"font":"FB","size":20,"x":72,"y":740,"str":"Chapter 1. Formats in a paper"},
+    {"font":"FR","size":11,"x":72,"y":704,"str":"This paragraph has a "},
+    {"font":"FB","size":11,"x":180.57,"y":704,"str":"bold term"},
+    {"font":"FR","size":11,"x":227.1,"y":704,"str":" and an "},
+    {"font":"FI","size":11,"x":268.46,"y":704,"str":"italic phrase"},
+    {"font":"FR","size":11,"x":335.67,"y":704,"str":" inside it, and a note"},
+    {"font":"FR","size":7,"x":449.41,"y":708,"str":"1"},
+    {"font":"FR","size":11,"x":452.7,"y":704,"str":"."},
+    {"font":"FR","size":11,"x":72,"y":689,"str":"It continues on a second line with inline "},
+    {"font":"FC","size":11,"x":289.14,"y":689,"str":"parseConfig()"},
+    {"font":"FR","size":11,"x":374.94,"y":689,"str":" code in it."},
+    {"font":"FR","size":11,"x":72,"y":664,"str":"• First item of a list"},
+    {"font":"FR","size":11,"x":72,"y":649,"str":"• Second item of a list"},
+    {"font":"FR","size":11,"x":72,"y":634,"str":"1. A numbered item"},
+    {"font":"FR","size":11,"x":72,"y":619,"str":"2. Another numbered item"},
+    {"font":"FC","size":10,"x":72,"y":594,"str":"function greet(name) {"},
+    {"font":"FC","size":10,"x":72,"y":581,"str":"    return 'Hello ' + name;"},
+    {"font":"FC","size":10,"x":72,"y":568,"str":"}"},
+    {"font":"FR","size":11,"x":110,"y":545,"str":"A quoted passage set in from both margins, as a"},
+    {"font":"FR","size":11,"x":110,"y":530,"str":"block quote would be in an essay, with a second line."},
+    {"font":"FR","size":11,"x":72,"y":505,"str":"See example.org for more."},
+    {"font":"FR","size":8,"x":72,"y":90,"str":"1 The footnote text, small, at the foot of the page."}
+   ],
+   "links": [{"rect":[90,503,150,515],"url":"https://example.org"}]
+  }
+ ]
+}

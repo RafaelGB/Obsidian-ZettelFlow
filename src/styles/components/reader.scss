@@ -1713,6 +1713,19 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* Beside Alongside the ribbon keeps to the column's side of the panel, as the top line and its × do (#777 FR-2). */
+/* The Reader's options (#842): a quiet ⋯ just left of the bookmark, in the same band above the page. */
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-options {
+    position: absolute;
+    top: calc(var(--size-4-3) + #{$safe-top});
+    right: calc(#{$safe-right} + var(--size-4-16) + var(--size-4-9));
+    z-index: 3;
+    color: var(--reader-faint, var(--text-faint));
+}
+
+.zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-options {
+    right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12) + var(--size-4-9));
+}
+
 .zettelkasten-flow__reader--drawer button.zettelkasten-flow__reader-ribbon {
     right: calc(#{$safe-right} + var(--zf-drawer-w) + var(--size-4-6) + var(--size-4-12));
 }
@@ -1953,7 +1966,8 @@ button.zettelkasten-flow__reader-search-result {
 /* A footnote read in place (#718): it floats under its mark and grows from it. */
 .zettelkasten-flow__reader-note-pop {
     position: absolute;
-    left: var(--zf-note-x, 50%);
+    /* Centred on its mark, but never past the Reader's edge: a mark at a line's start is common (#840). */
+    left: clamp(calc(min(13rem, 50% - var(--size-4-4)) + var(--size-4-4)), var(--zf-note-x, 50%), calc(100% - min(13rem, 50% - var(--size-4-4)) - var(--size-4-4)));
     top: var(--zf-note-y, 50%);
     transform: translate(-50%, var(--size-4-2));
     transform-origin: top center;
@@ -4115,6 +4129,47 @@ button.zettelkasten-flow__reader-hl-layer {
 
     kbd {
         @include key-cap;
+    }
+}
+
+/* ── A PDF's formats (epic #836) ───────────────────────────────────────────────────────────────────
+   The reading view rebuilds what a paper was set in. A list's marker is the page's own characters,
+   hanging in the margin (#838): never a counter the stylesheet draws, so it is never drawn twice. */
+.zettelkasten-flow__reader-source-body {
+    .zettelkasten-flow__reader-pdf-list {
+        list-style: none;
+        padding-inline-start: 0;
+    }
+
+    .zettelkasten-flow__reader-pdf-item {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        column-gap: var(--size-4-2);
+
+        > :not(.zettelkasten-flow__reader-pdf-marker) {
+            grid-column: 2;
+        }
+    }
+
+    .zettelkasten-flow__reader-pdf-marker {
+        color: var(--text-muted);
+    }
+
+    /* A footnote's marker (#840): raised, never opening its line. */
+    sup {
+        line-height: 0;
+    }
+
+    /* A footnote, small where it was printed; the first of them set apart from the text above. */
+    .zettelkasten-flow__reader-pdf-footnote {
+        font-size: var(--font-smaller);
+        color: var(--reader-muted);
+    }
+
+    :not(.zettelkasten-flow__reader-pdf-footnote) + .zettelkasten-flow__reader-pdf-footnote {
+        margin-top: var(--size-4-4);
+        padding-top: var(--size-4-2);
+        border-top: var(--border-width) solid var(--reader-line);
     }
 }
 

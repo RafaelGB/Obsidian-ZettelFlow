@@ -234,6 +234,15 @@ layouts each time. Now the listings are read as they are (a short one by its box
 only when their cut changes, which brought relayout back to 25 ms. The column model needed a fix too:
 it had counted the chapter turn's sheet, a copy of the page beside the stage, as a change to the page.
 
+**A PDF page's fonts (#839).** Bold and italic are read off each font's real name, which pdf.js only
+knows once the page's operator list has loaded the font. So a page whose fonts are new waits for that
+list beside its text. Measured 2026-10-18 in the same instance, on a dense paper (*Attention is all
+you need*, arXiv 1706.03762, pages 1, 3, 5 and 7, three rounds): text alone **29.7 ms**, text beside its
+operator list **40.4 ms**, median. That is **+10.7 ms** on a page that brings a font not seen before:
+the first page, and a later one only for a new face (a page of math). A page whose fonts are known
+waits for nothing. The owner's ceiling is +10 ms median: this sits on it, and is the number to watch.
+The reflow itself, formats included, is `library.pdf.reflow.page` above.
+
 Frames are not budgeted here: how smooth a motion is, frame by frame, is [the motion audit](motion-audit.md) (#826).
 
 ## What these numbers do not include

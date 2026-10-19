@@ -9,24 +9,9 @@
  * transform and opacity, and none of them plays under reduced motion.
  */
 .zettelkasten-flow__reader-cite {
-    position: absolute;
+    @include floating-panel;
     left: var(--zf-cite-x, var(--size-4-4));
     top: var(--zf-cite-y, var(--size-4-4));
-    transform-origin: var(--zf-origin-x, 50%) var(--zf-origin-y, 0);
-    z-index: 7;
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-4-2);
-    box-sizing: border-box;
-    width: min(30rem, calc(100% - var(--size-4-8)));
-    padding: var(--size-4-3) var(--size-4-4);
-    background-color: var(--reader-surface, var(--background-primary));
-    color: var(--reader-fg, var(--text-normal));
-    border: var(--border-width) solid var(--reader-line, var(--background-modifier-border));
-    border-radius: var(--radius-m);
-    box-shadow: var(--shadow-s);
-    font-size: var(--font-ui-small);
-    line-height: 1.5;
 }
 
 /* In the Library it floats over the book's detail, which sits over the shelf. */

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
-import { TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
+import { Menu, TFile, WorkspaceLeaf, __setPdfJs } from "obsidian";
 import { DomNode, flush, settle } from "../../../../support/dashboardDom";
 import { press } from "../../../../support/readerKeys";
 import { makePdfJs, prose, type FakePage } from "../../../../support/fakePdf";
@@ -672,5 +672,75 @@ describe("links in the paper (#767 FR-11, FR-12, AC-7)", () => {
         expect(content.byClass("reader-pv-link")).toHaveLength(0);
         pressMod(view, "=");
         expect(zoomButton(content).textContent).toBe("125%");
+    });
+});
+
+/** A PDF's links in the reading view (#841): the same two links Page view draws, on the words under them. */
+describe("links in a PDF's reading view (#841)", () => {
+    const linked = () => paper({ 0: { runs: [...prose(["See the references for the proofs of it all."], { top: 606 }), ...prose(["And the DOI is the paper's own address."], { top: 566 })] } });
+    const body = (content: DomNode) => content.oneByClass("reader-stage").oneByClass("reader-source-body");
+
+    it("shows a link out of the paper with Copy link, and never follows it", async () => {
+        const { content, app } = await open(0, {}, linked(), { layout: "reading" });
+        const out = body(content).find((el) => el.getAttribute("data-zf-url") !== null) as DomNode;
+        expect(out.textContent).toContain("DOI");
+        body(content).fire("click", { target: out });
+        expect(content.oneByClass("reader-pv-outlink").oneByClass("reader-pv-outlink-url").textContent).toBe("https://doi.org/10.1145/564585.564601");
+        expect(app.workspace.openLinkText).not.toHaveBeenCalled();
+    });
+
+    it("follows a link into the paper to its page, with a way back", async () => {
+        const { content } = await open(0, {}, linked(), { layout: "reading" });
+        const into = body(content).find((el) => el.getAttribute("data-zf-dest") !== null) as DomNode;
+        expect(into.textContent).toContain("references");
+        body(content).fire("click", { target: into });
+        await settle(() => barLabel(content) === "Page 8 / 8");
+        expect(barLabel(content)).toBe("Page 8 / 8");
+    });
+});
+
+/** Share a copy with your notes (#842): in the Reader's options, the quiet ⋯ beside the bookmark. */
+describe("sharing a marked PDF from the Reader's options (#842)", () => {
+    const options = (content: DomNode) => content.oneByClass("reader-options");
+    const marked = [{ id: "h1", at: 1, text: "", links: [], about: PATH, quote: { exact: "consistency in a network", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } }];
+
+    it("offers it, disabled and saying why, while nothing in the PDF is marked", async () => {
+        const { content } = await open(0, {}, undefined, { layout: "reading" });
+        options(content).click();
+        await flush();
+        const item = (Menu as any).last.item("Nothing marked in this PDF yet, so there's nothing to share.");
+        expect(item.disabled).toBe(true);
+        expect((Menu as any).last.item("Notebook")).toBeDefined();
+    });
+
+    it("reads what is marked as it opens, and grows the sheet from the ⋯", async () => {
+        const { content, store } = await open(0, {}, undefined, { layout: "reading" });
+        (store.highlightsAbout as jest.Mock<any>).mockImplementation(async () => marked);
+        options(content).click();
+        await flush();
+        const item = (Menu as any).last.item("Share a copy with your notes");
+        expect(item.disabled).toBe(false);
+        item.click();
+        await flush();
+        expect(content.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
+    });
+
+    it("draws no share door in the margin or at the head of Contents any more", async () => {
+        const { content } = await open(0, {}, undefined, { layout: "reading" });
+        contents(content);
+        await flush();
+        expect(content.byClass("reader-share-door")).toHaveLength(0);
+        expect(content.byClass("reader-share-list-door")).toHaveLength(0);
+    });
+});
+
+/** On a PDF the pen draws on the page as printed (#842): the only place a drawing is handed back from. */
+describe("the pen on a PDF goes to the printed page (#842)", () => {
+    it("takes you to Page view when you take up the pen in the reading view", async () => {
+        const { content, view } = await open(0, {}, undefined, { layout: "reading" });
+        expect((view as any).sourceView).toBe("reading");
+        content.oneByClass("reader-ink-button").click();
+        await settle(() => content.byClass("reader-pv-run").length > 0);
+        expect((view as any).sourceView).toBe("page");
     });
 });

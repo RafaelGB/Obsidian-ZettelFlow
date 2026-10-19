@@ -109,6 +109,8 @@ export interface InkHighlighter {
     erase(thought: Thought): Promise<boolean>;
     unerase(thought: Thought): Promise<HTMLElement[] | null>;
     offerSpan(span: TextSpan, rect: { left: number; top: number; width: number; height?: number }, onClose?: () => void): boolean;
+    /** Words selected on a printed page (#842): the selection's first row, kept through `keep`. */
+    offerPassage?(text: string, rect: { left: number; top: number; width: number; height?: number }, keep: (meaning: HighlightMeaning, note: string) => void, onClose?: () => void): void;
     say(key: LocaleKey, actions?: StatusAction[], onClose?: () => void): void;
     hidePopover(): void;
     hideStatus(): void;
@@ -378,6 +380,8 @@ export class ReaderInk {
     private readonly grouping = new InkGrouping<LiveInk>();
     private idleTimer: number | undefined;
     private live: LiveInk | null = null;
+    /** Words being selected on a printed page with the palette closed (#842): where it began, what it covers. */
+    private selecting: { pointer: number; index: number; from: number; span: TextSpan | null; rects: HTMLElement[] } | null = null;
     private livePointer: number | null = null;
     private queued: InkPoint[] = [];
     private frameAsked = false;
@@ -955,10 +959,14 @@ export class ReaderInk {
     private pageRects(layer: HTMLElement, text: PageText, span: TextSpan, meaning: HighlightMeaning, fresh?: "ltr" | "rtl"): HTMLElement[] {
         const words = text.words.filter((w) => w.start < span.end && w.end > span.start);
         const height = words.length ? words.reduce((sum, w) => sum + w.height, 0) / words.length : 0;
+        // A letter's place is the run's width shared evenly (#746): half a letter more each side, so a
+        // proportional face's wide letter is never cut at the edge of its mark.
+        const letters = words.reduce((sum, w) => sum + Math.max(1, w.end - w.start), 0);
+        const pad = letters ? words.reduce((sum, w) => sum + w.width, 0) / letters / 2 : 0;
         const rects: HTMLElement[] = [];
         for (const line of linesOf(words, height)) {
-            const left = Math.min(...line.words.map((w) => w.left));
-            const right = Math.max(...line.words.map((w) => w.left + w.width));
+            const left = Math.max(0, Math.min(...line.words.map((w) => w.left)) - pad);
+            const right = Math.min(1, Math.max(...line.words.map((w) => w.left + w.width)) + pad);
             const top = Math.min(...line.words.map((w) => w.top));
             const bottom = Math.max(...line.words.map((w) => w.top + w.height));
             const rect = layer.createDiv({
@@ -1002,6 +1010,8 @@ export class ReaderInk {
         // a proposal's Accept — with the pen as with the mouse. Without this, ink captured the pointer
         // and the click went to the stage.
         if (isControl(event.target)) return false;
+        // A printed page you read with the pen put away: the mouse or the pen selects its words (#842).
+        if (!this.open && type !== "touch" && (event.button ?? 0) === 0 && this.beginPageSelect(event)) return true;
         if (type === "touch") this.watchFinger(event);
         const route = routePointer({ type, paletteOpen: this.open, labSet: Boolean(this.store.folder()), penDown: this.penDown, lastPenUpAt: this.lastPenUpAt, now: this.now() });
         if (route === "pass") return false;
@@ -1036,6 +1046,10 @@ export class ReaderInk {
 
     /** A move of a pointer ink has claimed. */
     move(event: PointerEvent): boolean {
+        if (this.selecting && this.selecting.pointer === event.pointerId) {
+            this.extendPageSelect(event);
+            return true;
+        }
         if (event.pointerType === "touch") this.trackFinger(event);
         if (this.rejected.has(event.pointerId)) return true;
         if (this.erasing && this.erasing.pointer === event.pointerId) {
@@ -1056,6 +1070,11 @@ export class ReaderInk {
 
     /** The pointer lifted. */
     up(event: PointerEvent): boolean {
+        if (this.selecting && this.selecting.pointer === event.pointerId) {
+            this.extendPageSelect(event);
+            this.endPageSelect();
+            return true;
+        }
         if (event.pointerType === "touch") this.liftFinger(event);
         if (this.rejected.delete(event.pointerId)) return true;
         if (this.erasing && this.erasing.pointer === event.pointerId) {
@@ -1107,6 +1126,108 @@ export class ReaderInk {
     private pointOf(event: PointerEvent, live: LiveInk): InkPoint {
         const [x, y] = live.surface.local(event.clientX, event.clientY);
         return { x, y, p: typeof event.pressure === "number" ? event.pressure : 0.5, tilt: altitudeOf(event), t: Math.max(0, (event.timeStamp ?? 0) - live.startedAt) };
+    }
+
+    // ── selecting words on a printed page (#842) ────────────────────────────────
+
+    /** The word of a printed page under a point on screen, by its place in the page's text. */
+    private pageWordAt(index: number, x: number, y: number, nearest: boolean): number | null {
+        const entry = this.slots.get(index);
+        const text = this.pageTexts.get(index);
+        if (!entry || !text || text.words.length === 0) return null;
+        const box = this.pageRect(entry);
+        const fx = (x - box.left) / Math.max(1, box.width);
+        const fy = (y - box.top) / Math.max(1, box.height);
+        let best: number | null = null;
+        let distance = Infinity;
+        text.words.forEach((word, i) => {
+            const dx = fx < word.left ? word.left - fx : fx > word.left + word.width ? fx - word.left - word.width : 0;
+            const dy = fy < word.top ? word.top - fy : fy > word.top + word.height ? fy - word.top - word.height : 0;
+            const d = dx + dy * 4;
+            if (d < distance) {
+                distance = d;
+                best = i;
+            }
+        });
+        // To begin, the pointer must be on a word; to go on, the nearest one will do.
+        return nearest || distance === 0 ? best : null;
+    }
+
+    /** A press on a printed page's words, the palette closed: a selection begins (#842). */
+    private beginPageSelect(event: PointerEvent): boolean {
+        if (!this.chapter?.run || !this.view.highlights?.()?.offerPassage) return false;
+        const slot = (event.target as HTMLElement | null)?.closest?.(`.${c("reader-pv-slot")}`) as HTMLElement | null;
+        const index = Number(slot?.getAttribute("data-page"));
+        if (!slot || !Number.isInteger(index)) return false;
+        const from = this.pageWordAt(index, event.clientX, event.clientY, false);
+        if (from === null) return false;
+        event.preventDefault?.();
+        this.capture(event);
+        this.view.highlights?.()?.hidePopover();
+        this.selecting = { pointer: event.pointerId, index, from, span: null, rects: [] };
+        this.extendPageSelect(event);
+        return true;
+    }
+
+    /** The selection follows the pointer, word by word, drawn as the page's own marks are. */
+    private extendPageSelect(event: PointerEvent): void {
+        const sel = this.selecting;
+        const text = sel ? this.pageTexts.get(sel.index) : null;
+        const marks = sel ? this.pageMarks.get(sel.index) : null;
+        if (!sel || !text || !marks) return;
+        const to = this.pageWordAt(sel.index, event.clientX, event.clientY, true) ?? sel.from;
+        const [a, b] = sel.from <= to ? [sel.from, to] : [to, sel.from];
+        const span = { start: text.words[a].start, end: text.words[b].end };
+        if (sel.span && sel.span.start === span.start && sel.span.end === span.end) return;
+        sel.span = span;
+        sel.rects.forEach((rect) => rect.remove());
+        sel.rects = this.pageRects(marks.layer, text, span, "idea");
+        sel.rects.forEach((rect) => rect.addClass(c("reader-ink-pagemark--selecting")));
+    }
+
+    /** The pointer lifts: the words selected are offered as a selection's are; nothing is kept until you choose. */
+    private endPageSelect(): void {
+        const sel = this.selecting;
+        this.selecting = null;
+        const engine = this.view.highlights?.() ?? null;
+        const text = sel ? this.pageTexts.get(sel.index) : null;
+        const marks = sel ? this.pageMarks.get(sel.index) : null;
+        const made = sel?.span && text ? quoteAt(text.text, sel.span.start, sel.span.end) : null;
+        if (!sel || !engine?.offerPassage || !text || !marks || !made || sel.rects.length === 0) {
+            sel?.rects.forEach((rect) => rect.remove());
+            return;
+        }
+        const boxes = sel.rects.map((rect) => rect.getBoundingClientRect());
+        const left = Math.min(...boxes.map((r) => r.left));
+        const top = Math.min(...boxes.map((r) => r.top));
+        const rect = { left, top, width: Math.max(...boxes.map((r) => r.right)) - left, height: Math.max(...boxes.map((r) => r.bottom)) - top };
+        const heading = pageHeadingAt(text, made.span.start);
+        const quote: ThoughtQuote = { ...made.quote, ...(heading ? { heading } : {}) };
+        const index = sel.index;
+        const locator: ThoughtLocator = this.view.pageLocator?.(index) ?? { at: index, label: this.view.pageLabel?.(index) ?? "" };
+        let kept = false;
+        engine.offerPassage(
+            made.quote.exact,
+            rect,
+            (meaning, note) => {
+                kept = true;
+                sel.rects.forEach((mark) => mark.remove());
+                const rects = this.pageRects(marks.layer, text, made.span, meaning, "ltr");
+                void engine.keepPassage(locator, quote, { meaning, note, origin: "selection" }).then((thought) => {
+                    if (!thought) {
+                        rects.forEach((mark) => mark.remove());
+                        return;
+                    }
+                    rects.forEach((mark) => mark.setAttribute("data-hl", thought.id));
+                    marks.marks.set(thought.id, rects);
+                    this.runInk?.highlights.push(thought);
+                    this.view.drawn?.();
+                });
+            },
+            () => {
+                if (!kept) sel.rects.forEach((mark) => mark.remove());
+            }
+        );
     }
 
     /** Where a pointer writes: on a printed page under it in Page view, else on the chapter's page. */

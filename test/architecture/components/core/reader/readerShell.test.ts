@@ -230,10 +230,10 @@ describe("the reader writes no note (#667 R2)", () => {
         });
     }
 
-    it("reaches no writer anywhere under its module, but the export, the recall and the snapshot you press (#672, #760, #763)", () => {
+    it("reaches no writer anywhere under its module, but the export, the recall, the snapshot and the shared copy you press (#672, #760, #763, #842)", () => {
         const dir = join(ROOT, "src/architecture/components/core/reader");
         // The named writers, and nothing else: each is pressed for, create-only and recorded.
-        const named = ["readerExport.ts", "readerRecallNote.ts", "readerSnapshotSave.ts"].map((f) => join(dir, f));
+        const named = ["readerExport.ts", "readerRecallNote.ts", "readerSnapshotSave.ts", "readerShare.ts", "readerShareRun.ts"].map((f) => join(dir, f));
         for (const f of sources(dir)) {
             if (named.includes(f)) continue;
             const src = readFileSync(f, "utf8");
@@ -255,6 +255,16 @@ describe("the reader writes no note (#667 R2)", () => {
         // What toggles it is imported by the layers alone — Recall (#760) goes through MarkVisibility.
         const toggling = sources(dir).filter((f) => /\b(putAway|liftInk|fadeOwn)\(/.test(readFileSync(f, "utf8")));
         expect(toggling.map(rel).sort()).toEqual(["reader/readerInkLift.ts", "reader/readerLayers.ts"]);
+    });
+
+    it("shares a copy create-only: a binary create that never writes over anything, in a recorded batch (#842)", () => {
+        const sheet = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerShare.ts"), "utf8");
+        const run = readFileSync(join(ROOT, "src/architecture/components/core/reader/readerShareRun.ts"), "utf8");
+        expect(sheet).toContain("FileService.createBinaryFileOnce(");
+        expect(run).toContain("withWriteBatch(");
+        for (const writer of ["writeBinaryFile", "modifyBinary", ".modify(", ".process(", "processFrontMatter", ".append(", "vault.create"]) {
+            expect({ writer, found: sheet.includes(writer) || run.includes(writer) }).toEqual({ writer, found: false });
+        }
     });
 
     it("exports create-only, through FileService, in a recorded batch (#672)", () => {

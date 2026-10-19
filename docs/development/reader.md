@@ -1176,6 +1176,50 @@ below the last line, still counts.
 - **Your story shows it.** In [This note](this-note.md), a highlight appears in the story as a thought
   with its passage quoted.
 
+## Hand back a marked copy
+
+You read someone's PDF to give them feedback: you highlight it and write notes in its margin. The
+person who sent it needs a PDF back, not your vault. **Share a copy with your notes** writes one —
+a new file beside the original, with your marks on it, readable in Acrobat, Preview, a browser or
+Obsidian itself. **The original is only read**, never written.
+
+![Share a copy with your notes: a paper as you marked it in the Reader, the sheet that says what goes on the copy and makes it, and the copy open in another reader with a yellow and a blue highlight, a note as its comment signed Rafa, and a margin note on the first page](../resources/reader/share-copy.svg)
+
+- **Where.** In the Reader's options — the quiet **⋯** beside the bookmark, and the tab's own *More
+  options* — for a PDF. In the Library, in the PDF's detail beside *Notebook* and *Cite*, and in its
+  **Notebook** beside *Export as a reading note*. While nothing in the PDF is marked it is there,
+  disabled, saying so; what it offers is read as you open it.
+- **What goes on it.**
+    - Each highlight, over its words on the printed page, in its meaning's colour: an idea yellow,
+      a question blue, a quote green, a discussion purple. The colours are fixed, since the copy is read
+      outside your theme.
+    - The note you wrote on a highlight, as **its comment** — what Acrobat and Preview show beside it.
+    - A note you wrote on a page with no passage, as a text note in that page's wider margin (or its
+      top corner, on a page with no room or no words to measure, such as a scan).
+    - Every layer goes — reading, reflection, research — whatever you are showing.
+    - **Your pen**, when *Include your pen* is on (it is, until you turn it off): what you drew on the
+      printed page, and the ink notes you kept from it, as ink on the copy — in its colours, at the
+      width you drew, where Page view shows it, your turn of the page included. On a PDF **the pen
+      draws on the page as printed**: take it up in the reading view and the Reader moves to Page view,
+      where you can also select words to highlight them. A PDF marked only with the pen can be handed
+      back too. Ink drawn beside the reflowed text before this has no place on a printed page, so it
+      stays behind and the sheet counts it; the pen's pressure shading is lost, since a PDF's ink has
+      one width. If an ink note cannot be read, the whole pen stays off and the sheet says so.
+- **Your name on the comments.** Type it in the sheet, or leave it empty and nothing is signed. It
+  is remembered for next time, in the sheet itself; there is no setting for it.
+- **The sheet says what goes before anything is written**: *3 highlights · 1 with a note · 1 margin
+  note*, and the new file's name — `paper (annotated).pdf`, or `paper (annotated) 2.pdf` when one is
+  there already. Nothing is ever written over another file.
+- **Checked before it is saved.** The copy is written by Obsidian's own pdf.js, read back, and saved
+  only if it says what was written: the original's bytes first, each highlight with its comment and
+  your name. If any check fails, nothing is saved and the sheet says so. A protected PDF gets no copy.
+- **What stays off.** Ink drawn beside the reflowed text, an answer the Reader proposed and you
+  accepted, and a highlight whose words can no longer be found on its page — counted, never guessed.
+- **After.** *Show in folder* on a desktop, ready to attach to an email; *Open* on a phone or a tablet.
+  **Undo** sends the copy to the trash, and so does **Ctrl/⌘+Z** while the Reader is open.
+- **Only what you mark is read.** The share reads just the pages with a mark, in its own document,
+  so the page you are reading never moves; on a 2 MB paper the copy took about half a second.
+
 ## Layers, and read it clean
 
 A book read twice carries two readings on top of each other: what struck you the first time, what
@@ -1706,6 +1750,9 @@ A technical book's code reads as code: in your theme's code colours, whole lines
 - **Kept code stays code.** Highlight lines of a listing and keep them: the thought records that the
   passage is code and its language, Think shows it in monospace, and a note made from it holds a
   fenced block (` ```python `) with its lines and indentation as they were.
+- **A PDF's code too.** In a PDF's reading view, lines set in a monospace face become the same
+  listing, uncoloured, since a PDF names no language
+  ([what a page keeps](library.md#what-a-page-keeps)).
 
 Two things worth knowing:
 - **An element's `lang` is never a hint.** It names a human language (`cs` is Czech, not C#), and it

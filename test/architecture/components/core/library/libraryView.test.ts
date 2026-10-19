@@ -377,3 +377,59 @@ describe("what it produced, across a trip to the Reader (#752 FR-9)", () => {
         }
     });
 });
+
+/** Share a copy with your notes (#842 FR-20, FR-21): in a PDF's notebook, beside the export, and only there. */
+describe("sharing a marked PDF from its notebook (#842)", () => {
+    const PAPER = "Papers/cap.pdf";
+    const BOOK = "Books/Thinking, Fast and Slow.epub";
+    const marked = [{ id: "h1", at: 1, text: "Why?", links: [], about: PAPER, quote: { exact: "a web service cannot be consistent", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } }] as unknown as Thought[];
+
+    async function notebook(path: string, thoughts: Thought[]) {
+        const m = mount([BOOK, PAPER], { library });
+        const store = { highlightsAbout: jest.fn(async () => thoughts) };
+        const view = new LibraryView(new WorkspaceLeaf(m.app, m.content), m.host, { store });
+        await view.setState({ notebook: path }, {} as never);
+        await view.onOpen();
+        await flush();
+        return { ...m, view };
+    }
+
+    it("offers it for a PDF, beside the export, and opens the sheet that says what goes on the copy", async () => {
+        const { content } = await notebook(PAPER, marked);
+        const share = content.byText("Share a copy with your notes")!;
+        expect(share.getAttribute("disabled")).toBeNull();
+        share.click();
+        expect(content.oneByClass("reader-share").getAttribute("aria-label")).toBe("Share a copy with your notes");
+        expect(content.oneByClass("reader-share-counts").textContent).toBe("1 highlight · 1 with a note");
+        expect(content.oneByClass("reader-share-where").textContent).toBe("New file: cap (annotated).pdf");
+    });
+
+    it("is disabled, and says why, while nothing in the PDF is marked", async () => {
+        const { content } = await notebook(PAPER, []);
+        expect(content.byText("Share a copy with your notes")!.getAttribute("disabled")).not.toBeNull();
+    });
+
+    it("is not offered for an EPUB", async () => {
+        const { content } = await notebook(BOOK, marked);
+        expect(content.byText("Share a copy with your notes")).toBeUndefined();
+    });
+});
+
+describe("sharing a marked PDF from its detail (#842, the owner's door)", () => {
+    const PAPER = "Papers/cap.pdf";
+    const marked = [{ id: "h1", at: 1, text: "", links: [], about: PAPER, quote: { exact: "a web service cannot be consistent", prefix: "", suffix: "" }, locator: { at: 0, label: "p. 1" } }] as unknown as Thought[];
+
+    it("offers it beside Notebook and Cite, for a PDF with marks, and grows the sheet from it", async () => {
+        const m = mount([PAPER], { library });
+        const view = new LibraryView(new WorkspaceLeaf(m.app, m.content), m.host, { store: { highlightsAbout: jest.fn(async () => marked) } });
+        await view.onOpen();
+        await view.setState({ detail: PAPER }, {} as never);
+        await flush();
+        const share = m.content.find((el) => el.getAttribute("data-zf-share") !== null)!;
+        expect(share.textContent).toBe("Share a copy with your notes");
+        expect(share.getAttribute("disabled")).toBeNull();
+        share.click();
+        await flush();
+        expect(m.content.oneByClass("reader-share-counts").textContent).toBe("1 highlight");
+    });
+});

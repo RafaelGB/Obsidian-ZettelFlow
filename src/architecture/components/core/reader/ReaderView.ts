@@ -1,4 +1,4 @@
-import {
+import { Menu,
     Component,
     ItemView,
     Keymap,
@@ -104,6 +104,9 @@ import { ReaderLookup, type LookupDeps, type LookupView } from "./readerLookup";
 import { armChapterWait } from "./readerWaiting";
 import { measure, stopwatch } from "architecture/monitoring/measure";
 import { CitePanel } from "./readerCite";
+import { SharePanel, hasMarks } from "./readerShare";
+import { penOf, type SharePen } from "application/reader/share/shareInk";
+import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { citeFormOf, type CiteForm, type MissingField } from "application/library/citation";
 import { citeSourceOf } from "architecture/components/core/library/libraryCite";
 import { SittingClock, chapterEnds, endingAt, shouldPause, spanOf, touchedNotes, wasSkip, type ChapterSpan } from "./readerSurvived";
@@ -465,6 +468,10 @@ export class ReaderView extends ItemView {
     private lookup: ReaderLookup | null = null;
     /** *Cite* (#768): the panel grown from the popover or the highlight, gone on Esc, a click or a turn. */
     private citePanel: CitePanel | null = null;
+    /** *Share a copy with your notes* (#842): a PDF's marks, handed back as a new PDF. */
+    private sharePanel: SharePanel | null = null;
+    /** The ⋯ beside the bookmark (#842). */
+    private optionsButton: HTMLElement | null = null;
     /** *Snapshot* (#763): the mode that turns a drag on Page view into a capture, and its card. */
     private snapshot: ReaderSnapshot | null = null;
     /** Its door in the bar: shown in Page view, pressed while the mode is on. */
@@ -1057,6 +1064,11 @@ export class ReaderView extends ItemView {
         this.dropRun();
     }
 
+    /** Whether this is a PDF read reflowed, whose pen belongs on its printed page (#842). */
+    private penOnPrintedPage(): boolean {
+        return Boolean(this.source?.format === "pdf" && this.source.hasPageView && this.sourceView === "reading");
+    }
+
     /** Page view ↔ reading view, for a PDF (#681). The place is kept. */
     private toggleView(): void {
         if (!this.source?.hasPageView) return;
@@ -1143,6 +1155,20 @@ export class ReaderView extends ItemView {
             saveForm: (form) => this.saveCiteForm(form),
             addIt: (file, field) => this.addCiteField(file, field),
         });
+        this.sharePanel = new SharePanel({
+            app: this.app,
+            host: () => this.root,
+            author: () => this.plugin?.settings?.shareAuthor ?? "",
+            saveAuthor: (name) => this.saveShareAuthor(name),
+            pen: () => this.plugin?.settings?.sharePen !== false,
+            savePen: (include) => {
+                const plugin = this.plugin;
+                if (!plugin?.settings || plugin.settings.sharePen === include) return;
+                plugin.settings.sharePen = include;
+                void plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not save: ${String(error)}`));
+            },
+            undoWith: (undo) => this.ledgerUndo(undo),
+        });
         if (this.alongside.wasOpen() && !this.panel) this.panel = "context";
         // A thought written in the thinking space is in the cache a moment later: the marks are read then (#755).
         const thoughtChanged = this.app.metadataCache.on?.("changed", (file: TFile) => {
@@ -1201,6 +1227,9 @@ export class ReaderView extends ItemView {
         // A citation on screen goes with the Reader: it never wrote anything (#768 FR-7).
         this.citePanel?.dispose();
         this.citePanel = null;
+        // A copy being made goes with the Reader, unwritten: Cancel is the same (#842 FR-16).
+        this.sharePanel?.dispose();
+        this.sharePanel = null;
         // A capture not yet kept goes with the Reader: nothing written (#763 AC-3).
         this.snapshot?.dispose();
         this.snapshot = null;
@@ -1272,6 +1301,14 @@ export class ReaderView extends ItemView {
         setIcon(ribbon.createSpan({ cls: c("reader-ribbon-mark") }), "bookmark");
         this.registerDomEvent(ribbon, "click", () => void this.toggleBookmark());
         this.ribbon = ribbon;
+        // The Reader's options, beside the bookmark (#842): quiet, and read when opened.
+        const options = root.createEl("button", {
+            cls: ["clickable-icon", c("reader-options"), c("reader-hidden")].join(" "),
+            attr: { type: "button", "aria-label": t("reader_options") },
+        });
+        setIcon(options, "more-horizontal");
+        this.registerDomEvent(options, "click", () => void this.openOptions(options));
+        this.optionsButton = options;
 
         const stage = root.createDiv({ cls: c("reader-stage") });
         // A selection popover belongs to the words it floats over; scrolling them away puts it away.
@@ -1306,7 +1343,12 @@ export class ReaderView extends ItemView {
                 layerForNew: () => this.layerTarget(),
                 drawn: () => this.syncLayers(),
                 // One pointer owner at a time (#763): the palette opening leaves Snapshot.
-                opened: () => this.snapshot?.leave(),
+                opened: () => {
+                    this.snapshot?.leave();
+                    // On a PDF the pen draws on the page as printed (#842): the only place a drawing can be
+                    // handed back from. Asked for in the reading view, the camera goes to Page view.
+                    if (this.penOnPrintedPage()) this.toggleView();
+                },
             },
             this.inkDeps
         );
@@ -2970,6 +3012,9 @@ export class ReaderView extends ItemView {
 
     private async renderSourceChapter(): Promise<void> {
         if (!this.els || !this.path || !this.sourcePath) return;
+        // A PDF's reading view draws no ink of its own (#842): the pen is put away here, and comes back
+        // when you take it up again — on the printed page.
+        if (this.penOnPrintedPage() && this.ink?.isOpen()) this.ink.closePalette(false);
         const generation = ++this.generation;
         // From the open to the first page laid out (#825 B1): a book's flowing chapters only, and an
         // open another overtakes, or that never draws, records nothing.
@@ -2980,8 +3025,10 @@ export class ReaderView extends ItemView {
         const index = this.index;
         this.visited.add(`${path}#${index}`);
         this.closePeek();
-        // Another chapter: a citation of the one before goes, as on a page turn (#768 FR-10).
+        // Another chapter: a citation of the one before goes, as on a page turn (#768 FR-10) — and the
+        // shared copy's sheet, a run under way cancelled before anything is written (#842).
         this.citePanel?.close();
+        this.sharePanel?.close();
         this.highlights?.reset();
         this.chapter?.unload();
         const component = new Component();
@@ -3184,6 +3231,18 @@ export class ReaderView extends ItemView {
         if (!link) return;
         event.preventDefault();
         event.stopPropagation();
+        // A PDF's link in the reading view (#841): out of the paper it is shown, never followed (L1);
+        // into it, the page it names, with a way back — as Page view's own links do.
+        const url = link.getAttribute("data-zf-url");
+        if (url) {
+            this.openOutLink(url, link);
+            return;
+        }
+        const dest = link.getAttribute("data-zf-dest");
+        if (dest !== null) {
+            void this.followDest(dest);
+            return;
+        }
         const href = link.getAttribute("data-zf-href");
         const resolved = href ? this.source?.resolveLink?.(this.index, href) : null;
         if (!resolved) return;
@@ -3198,6 +3257,18 @@ export class ReaderView extends ItemView {
             return;
         }
         this.jumpTo(resolved.chapter, resolved.fragment, "link");
+    }
+
+    /** A place in the paper a reading-view link names (#841), resolved as Page view resolves it. */
+    private async followDest(dest: string): Promise<void> {
+        const generation = this.generation;
+        let target: { page: number } | null = null;
+        try {
+            target = (await this.source?.pages?.destination(JSON.parse(dest) as unknown)) ?? null;
+        } catch (error) {
+            log.debug(`[Reader] a link in the paper cannot be followed: ${String(error)}`);
+        }
+        if (target && generation === this.generation) this.jumpTo(target.page, undefined, "link");
     }
 
     /** The note a footnote mark points at, in this chapter or another one (endnotes). */
@@ -4120,6 +4191,7 @@ export class ReaderView extends ItemView {
         this.lookup?.close();
         // So does the cite panel (#768 FR-10): Esc, a click outside, a page turn.
         this.citePanel?.close();
+        this.sharePanel?.close();
         this.notePop?.remove();
         this.notePop = null;
         this.notePopScope?.unload();
@@ -4600,6 +4672,85 @@ export class ReaderView extends ItemView {
                 from,
             });
         };
+    }
+
+    /**
+     * *Share a copy with your notes* (#842 FR-20), at the head of Contents beside Recall and Notebook —
+     * for a PDF only, and disabled with its reason while nothing in it is marked (FR-21).
+     */
+    /** What is marked in a PDF (#842, #843): the thoughts about it, and the book's page ink — read only. */
+    private async markedIn(path: string): Promise<{ thoughts: Thought[]; pen: SharePen }> {
+        const thoughts = await (this.highlightDeps.store ?? ThoughtStore.getInstance()).highlightsAbout(path);
+        const ink = await PageInkStore.getInstance()
+            .load(path)
+            .catch(() => null);
+        return { thoughts, pen: penOf(ink, thoughts) };
+    }
+
+    /**
+     * The Reader's options (#842): a quiet ⋯ beside the bookmark, read when it is opened — so what it
+     * offers is what is true now. *Share a copy with your notes* for a PDF, disabled while nothing is
+     * marked; and the source's notebook.
+     */
+    private async openOptions(from: HTMLElement): Promise<void> {
+        const path = this.sourcePath;
+        if (!path) return;
+        const menu = new Menu();
+        this.fillOptions(menu, path, from, this.source?.format === "pdf" ? await this.markedIn(path) : null);
+        const box = from.getBoundingClientRect();
+        menu.showAtPosition({ x: box.left, y: box.bottom });
+    }
+
+    /** The options, into Obsidian's own menu: the ⋯'s and the tab's. */
+    private fillOptions(menu: Menu, path: string, from: HTMLElement | null, marked: { thoughts: Thought[]; pen: SharePen } | null): void {
+        if (marked) {
+            const ready = hasMarks(marked.thoughts, marked.pen);
+            menu.addItem((item) =>
+                item
+                    .setTitle(t(ready ? "reader_share_copy" : "reader_share_empty"))
+                    .setIcon("file-output")
+                    .setDisabled(!ready)
+                    .onClick(() => {
+                        if (this.sourcePath !== path) return;
+                        const box = (from ?? this.ribbon ?? this.root)?.getBoundingClientRect();
+                        const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+                        this.sharePanel?.show({ path, thoughts: marked.thoughts, pen: marked.pen, turns, from: { left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width ?? 0, height: box?.height ?? 0 } });
+                    })
+            );
+        }
+        menu.addItem((item) =>
+            item
+                .setTitle(t("notebook_title"))
+                .setIcon("notebook-pen")
+                .onClick(() => void openLibrary(this.app, undefined, path))
+        );
+    }
+
+    /** The tab's own *More options* carries the Reader's too (#842). */
+    onPaneMenu(menu: Menu, source: string): void {
+        super.onPaneMenu(menu, source);
+        const path = this.sourcePath;
+        if (!path || this.source?.format !== "pdf") return;
+        // Obsidian draws the menu now: what is marked is read as it would be, without waiting.
+        menu.addItem((item) =>
+            item
+                .setTitle(t("reader_share_copy"))
+                .setIcon("file-output")
+                .onClick(() => void this.markedIn(path).then((marked) => {
+                    if (!hasMarks(marked.thoughts, marked.pen) || this.sourcePath !== path) return;
+                    const box = (this.ribbon ?? this.root)?.getBoundingClientRect();
+                    const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+                    this.sharePanel?.show({ path, thoughts: marked.thoughts, pen: marked.pen, turns, from: { left: box?.left ?? 0, top: box?.top ?? 0, width: box?.width ?? 0, height: box?.height ?? 0 } });
+                }))
+        );
+    }
+
+    /** The name a shared copy's comments are signed with (#842 FR-6), remembered from the sheet. */
+    private saveShareAuthor(name: string): void {
+        const plugin = this.plugin;
+        if (!plugin?.settings || plugin.settings.shareAuthor === name) return;
+        plugin.settings.shareAuthor = name;
+        void plugin.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Reader] could not save: ${String(error)}`));
     }
 
     /** The form chosen last (#768 FR-2), kept in the plugin's data. */
@@ -5108,6 +5259,7 @@ export class ReaderView extends ItemView {
         const body = this.chapterBody();
         const shown = Boolean(path && this.source && !this.ended && body);
         ribbon.toggleClass(c("reader-hidden"), !shown);
+        this.optionsButton?.toggleClass(c("reader-hidden"), !shown);
         if (!shown || !path || !body) return;
         const filled = this.bookmarksOnScreen(sourceBookmarks(this.plugin, path), body).length > 0;
         if (!this.ribbonLifting) ribbon.toggleClass(c("reader-ribbon--filled"), filled);

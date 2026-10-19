@@ -60,6 +60,11 @@ import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
+import { SharePanel, hasMarks } from "architecture/components/core/reader/readerShare";
+import type { Thought } from "application/thinking/thought";
+import { penOf, type SharePen } from "application/reader/share/shareInk";
+import { keptPageView } from "architecture/components/core/reader/readerSource";
+import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { citeFormOf } from "application/library/citation";
 import { citeSourceOf } from "./libraryCite";
 import type { KnowledgeIndex } from "architecture/knowledge";
@@ -186,6 +191,8 @@ export class LibraryView extends ItemView {
     private openField: { field: TextField; detail: string; until: number } | null = null;
     /** *Cite this book* (#768): the one cite panel, grown from the detail's button. */
     private citePanel: CitePanel | null = null;
+    /** *Share a copy with your notes* (#842), from a PDF's notebook. */
+    private sharePanel: SharePanel | null = null;
     /** The source whose notebook is open instead of the shelf (#721). */
     private notebook: string | null = null;
     /** The Library came back into view: the continue card breathes once (#724). */
@@ -236,6 +243,7 @@ export class LibraryView extends ItemView {
                 this.citePanel.close();
                 return false;
             }
+            if (this.sharePanel?.isOpen()) return false;
             if (!this.detail && this.notebook) {
                 this.closeNotebook();
                 return false;
@@ -375,6 +383,8 @@ export class LibraryView extends ItemView {
         this.detailScope?.unload();
         this.citePanel?.dispose();
         this.citePanel = null;
+        this.sharePanel?.dispose();
+        this.sharePanel = null;
         this.scrim?.remove();
         this.aside?.remove();
         this.contentEl.empty();
@@ -1255,6 +1265,7 @@ export class LibraryView extends ItemView {
             close: () => this.closeDetail(),
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
             cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
+            share: item.file && item.format === "pdf" && item.kind !== "path" ? this.shareDoorFor(item.file) : undefined,
             produced: (parent, settled) =>
                 renderProduced(parent, {
                     settled,
@@ -1365,6 +1376,8 @@ export class LibraryView extends ItemView {
     }
 
     private closeNotebook(): void {
+        // A copy being made from this notebook is cancelled before anything is written (#842).
+        this.sharePanel?.close();
         this.notebook = null;
         this.notebookScope?.unload();
         this.notebookScope = null;
@@ -1401,6 +1414,13 @@ export class LibraryView extends ItemView {
                 this.plugin.settings.readingNoteFolder = folder;
                 void this.plugin.saveSettings?.();
             },
+            share: (from, thoughts, pen) => this.shareCopy(path, from, thoughts, pen),
+            pen: async () => {
+                const ink = await PageInkStore.getInstance()
+                    .load(path)
+                    .catch(() => null);
+                return penOf(ink, await (this.deps.store ?? ThoughtStore.getInstance()).highlightsAbout(path));
+            },
         });
         return true;
     }
@@ -1433,6 +1453,49 @@ export class LibraryView extends ItemView {
         const r = from.getBoundingClientRect();
         const panel = this.citePanel.show({ source: citeSourceOf(this.app, file, format, item.title), file, from: { left: r.left, top: r.top, width: r.width, height: r.height } });
         panel?.addClass(c("reader-cite--library"));
+    }
+
+    /** The detail's door to a shared copy (#842): what is marked is read once, when the detail opens. */
+    private shareDoorFor(path: string): { available: () => Promise<boolean>; open: (from: HTMLElement) => void } {
+        const marked = (async () => {
+            const thoughts = await (this.deps.store ?? ThoughtStore.getInstance()).highlightsAbout(path);
+            const ink = await PageInkStore.getInstance()
+                .load(path)
+                .catch(() => null);
+            return { thoughts, pen: penOf(ink, thoughts) };
+        })();
+        return {
+            available: async () => {
+                const { thoughts, pen } = await marked;
+                return hasMarks(thoughts, pen);
+            },
+            open: (from) => void marked.then(({ thoughts, pen }) => this.shareCopy(path, from, thoughts, pen)),
+        };
+    }
+
+    /** *Share a copy with your notes* (#842 FR-20): the sheet, grown from the notebook's button. */
+    private shareCopy(path: string, from: HTMLElement, thoughts: Thought[], pen: SharePen | null): void {
+        this.sharePanel ??= new SharePanel({
+            app: this.app,
+            host: () => this.containerEl,
+            author: () => this.plugin?.settings?.shareAuthor ?? "",
+            saveAuthor: (name) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.shareAuthor === name) return;
+                settings.shareAuthor = name;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
+            pen: () => this.plugin?.settings?.sharePen !== false,
+            savePen: (include) => {
+                const settings = this.plugin?.settings;
+                if (!settings || settings.sharePen === include) return;
+                settings.sharePen = include;
+                void this.plugin?.saveSettings?.()?.catch?.((error: unknown) => log.error(`[Library] could not save: ${String(error)}`));
+            },
+        });
+        const r = from.getBoundingClientRect();
+        const turns = keptPageView(this.app, this.plugin, path).rotate ?? {};
+        this.sharePanel.show({ path, thoughts, ...(pen ? { pen } : {}), turns, from: { left: r.left, top: r.top, width: r.width, height: r.height } })?.addClass(c("reader-share--library"));
     }
 
     private closeDetail(): void {

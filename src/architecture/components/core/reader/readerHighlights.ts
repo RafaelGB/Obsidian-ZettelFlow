@@ -907,6 +907,38 @@ export class ReaderHighlights {
     }
 
     /**
+     * Words selected on a printed page in Page view (#842): the same first row a selection gets — the
+     * four meanings as dots, *Note*, *Copy* — kept through `keep`, the page's own write. Nothing is
+     * written until you choose; `onClose` when the popover goes, whatever took it.
+     */
+    offerPassage(text: string, rect: SelectionInfo["rect"], keep: (meaning: HighlightMeaning, note: string) => void, onClose?: () => void): void {
+        const pop = this.openPopover(rect, "select", true);
+        const row = pop.createDiv({ cls: [c("reader-hl-row"), c("reader-hl-first")] });
+        const dots = row.createDiv({ cls: c("reader-hl-meanings") });
+        for (const meaning of HIGHLIGHT_MEANINGS) {
+            this.meaningButton(dots, meaning, meaning === this.lastMeaning, () => {
+                this.hidePopover();
+                keep(meaning, "");
+            });
+        }
+        this.button(row, "reader_hl_note", true, () => {
+            const meaning = this.lastMeaning;
+            const editor = this.openPopover(rect, "editing", true);
+            this.noteForm(editor, "", (note) => {
+                this.hidePopover();
+                keep(meaning, note.trim());
+            });
+            this.place(editor, rect, true);
+        });
+        this.button(row, "reader_hl_copy", false, () => {
+            this.copy(this.view.host, text);
+            this.status("reader_hl_copied");
+        });
+        this.place(pop, rect, true);
+        this.popoverClosed = onClose ?? null;
+    }
+
+    /**
      * The selection popover over `found` (#720, #750, #811): a first row that is always the same — the
      * four meanings as dots, *Note*, *Copy*, *More* — a second row with what fits this much text, and
      * everything else behind *More*, in one order.

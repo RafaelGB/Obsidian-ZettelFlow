@@ -235,7 +235,7 @@ describe("a PDF opens without reading its first pages again (#851 FR-2, AC-3, AC
     beforeEach(() => resetReaderWorkspace());
     afterAll(() => __setPdfJs(null));
 
-    const known = (mtime: number) => ({ library: { "Papers/cap.pdf": { size: 10, mtime, chapters: 3, suggestedView: "reading", typewritten: false } } });
+    const known = (mtime: number) => ({ library: { "Papers/cap.pdf": { size: 10, mtime, chapters: 3, suggestedView: "reading", typewritten: false, furniture: [] } } });
 
     it("reads no page's text but the one it draws, when the Library remembers this copy", async () => {
         const { calls, content } = await open(0, {}, PAPER, known(20));
@@ -297,6 +297,30 @@ describe("a designed PDF opens as printed, and the reading view says what it lea
         const { content } = await open(0, { layout: "reading" });
         await flush();
         expect(note(content)).toBeUndefined();
+    });
+});
+
+describe("a PDF's running heads and footers are not its text (#853 AC-1)", () => {
+    beforeEach(() => resetReaderWorkspace());
+    afterAll(() => __setPdfJs(null));
+
+    const furnished = Array.from({ length: 8 }, (_, i) => ({
+        runs: [
+            { str: "Acme SMS API - Developer guide", x: 300, y: 760, size: 12 },
+            ...prose([`Page ${i + 1} explains how a message is sent to the platform,`, "and what it answers when the request is wrong."], { top: 600 }),
+            { str: `Confidencial — Página ${i + 1} de 8`, x: 72, y: 40, size: 8 },
+        ],
+    }));
+
+    it("leaves them out of every page, and the Library remembers them", async () => {
+        const { content, host } = await open(4, { layout: "reading" }, furnished);
+        await settle(() => content.byClass("reader-source-body").length > 0);
+        const text = content.oneByClass("reader-source-body").textContent;
+        expect(text).toContain("Page 5 explains how a message is sent");
+        expect(text).not.toContain("Acme SMS API - Developer");
+        expect(text).not.toContain("Página");
+        await settle(() => Boolean((host.settings.library as any)?.["Papers/cap.pdf"]?.furniture));
+        expect((host.settings.library as any)["Papers/cap.pdf"].furniture).toHaveLength(2);
     });
 });
 

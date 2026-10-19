@@ -442,6 +442,13 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
 - **Links you can follow.** The words under a link are a link, the same words Page view links. A
   citation or a *see section 3* goes to its page, with the way back on the trail; a link out of the
   paper shows its address with **Copy link**, and is never opened.
+- **No running heads or footers** (#853). A line printed at the top or foot of the page, page after
+  page — *Acme SMS API - Developer guide*, *Confidential … Page 14 of 30* — is the page's
+  furniture, not its text, and is left out, as a lone page number always was. It must come back at
+  the same height on three of the pages read when the paper first opens (its first three, and three
+  further in), its numbers taken as any number; a title at the top of one page is kept, and a line in
+  the middle of a page never is. Page view still shows it, as printed, and its word index leaves out
+  exactly what the reading view does. What was found is kept with the paper, so it is read once.
 - **What it leaves out, said** (#852). A reflowed page that had pictures or a ruled table on it says
   so in one quiet line under its label — *Leaves out 2 pictures, its tables and the page's layout* —
   with **Page view** beside it, which opens on the same page. Only what is true of that page is said:

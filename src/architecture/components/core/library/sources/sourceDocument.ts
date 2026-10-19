@@ -169,6 +169,8 @@ export interface SourceDocument {
     suggestedView?: SourceView;
     /** Whether a PDF is typewritten (#837 FR-6), as read off its first pages: the Library keeps it (#851). */
     typewritten?: boolean;
+    /** A PDF's furniture (#853): its running heads and footers, as `furnitureOf` keys — the Library keeps them. */
+    furniture?: string[];
     /** A book written right to left turns the other way (#753 FR-10). Left to right when absent. */
     direction?: "ltr" | "rtl";
     /** What the source is written in, when it says (#757): the column declares it, so it hyphenates by it. */

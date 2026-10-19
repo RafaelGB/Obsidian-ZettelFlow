@@ -100,6 +100,46 @@ export interface ReflowOptions {
      * decided on, so no format can move it.
      */
     plain?: boolean;
+    /**
+     * The document's furniture (#853): the lines its pages print at their top or foot, page after page
+     * — a running head, a footer, *Página 14 de 30* — as `furnitureOf` found them, and where this page
+     * sits (its box's bottom and height, in the runs' own space). They are left out.
+     */
+    furniture?: { keys: ReadonlySet<string>; bottom: number; height: number };
+}
+
+/** A page's top and foot, as a share of its height: where furniture is printed, and only there. */
+export const FURNITURE_ZONE = 0.12;
+/** Furniture is printed on at least this many pages of those read. */
+export const FURNITURE_PAGES = 3;
+
+/**
+ * A line as furniture would be known again (#853): which edge of the page, how far down it (to a
+ * fiftieth of the page), and its text with any number standing for every number — so the footer of
+ * page 14 is the footer of page 4. `null` for a line between the page's top and foot.
+ */
+function furnitureKey(line: { y: number; text: string }, bottom: number, height: number): string | null {
+    const at = (line.y - bottom) / Math.max(1, height);
+    const edge = at >= 1 - FURNITURE_ZONE ? "top" : at <= FURNITURE_ZONE ? "foot" : null;
+    if (!edge) return null;
+    const text = line.text.toLowerCase().replace(/\d+/g, "#").replace(/\s+/g, " ").trim();
+    return text ? `${edge}:${Math.round(at * 50)}:${text}` : null;
+}
+
+/**
+ * **The furniture of a document** (#853 FR-1): the lines at the top or foot of its pages that come
+ * back at the same height on at least three of the pages read. Fewer than three pages, and it has
+ * none; a line in the middle of a page never is (FR-3). Each line is a segment of its baseline, so a
+ * footer set in three cells is three keys.
+ */
+export function furnitureOf(pages: readonly { runs: readonly TextRun[]; bottom: number; height: number }[]): string[] {
+    if (pages.length < FURNITURE_PAGES) return [];
+    const seen = new Map<string, number>();
+    for (const page of pages) {
+        const keys = new Set(linesOf(page.runs).map((line) => furnitureKey(line, page.bottom, page.height)).filter((key): key is string => key !== null));
+        for (const key of keys) seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    return [...seen].filter(([, pages]) => pages >= FURNITURE_PAGES).map(([key]) => key);
 }
 
 interface Line {
@@ -634,7 +674,9 @@ function blocksOf(lines: readonly Line[], options: ReflowOptions = {}, marks: Re
 
 /** A page's runs as blocks — headings, paragraphs and the formats a page keeps — in reading order. */
 export function reflowPage(runs: readonly TextRun[], options: ReflowOptions = {}): PageBlock[] {
-    const lines = linesOf(runs);
+    const furniture = options.furniture;
+    // The page's furniture first, before the columns are read: a footer in cells is not a second column.
+    const lines = furniture?.keys.size ? linesOf(runs).filter((line) => !furniture.keys.has(furnitureKey(line, furniture.bottom, furniture.height) ?? "")) : linesOf(runs);
     // The marks raised in the page's text: what makes a small line at the foot a footnote (#840).
     const marks = new Set(options.plain ? [] : lines.flatMap((line) => [...(line.raised ?? [])].map((run) => run.str.trim())));
     const split = columnSplit(lines);

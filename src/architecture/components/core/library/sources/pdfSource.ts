@@ -1,7 +1,7 @@
 import type { App, Component, TFile } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { IMAGE_ONLY_SAMPLE, isImageOnly, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type TextRun } from "application/library/pdfText";
+import { IMAGE_ONLY_SAMPLE, furnitureOf, isImageOnly, isTypewritten, reflowPage, runOf, suggestPdfView, type PageBlock, type ReflowOptions, type TextRun } from "application/library/pdfText";
 import { linkBlocks, pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag, type KnownPdf } from "application/library/sourceMeta";
@@ -99,6 +99,24 @@ async function pagePrint(page: PdfPage, list: Promise<{ fnArray: ArrayLike<numbe
     return printOf(await list, ops, (rect) => convert(rect), viewport.width, viewport.height);
 }
 
+/** Where a page's runs sit (#853): its box's bottom and height in their own space. */
+function boxOf(page: PdfPage): { bottom: number; height: number } {
+    const v = page.view;
+    if (v && v.length === 4) return { bottom: Math.min(v[1], v[3]), height: Math.abs(v[3] - v[1]) };
+    return { bottom: 0, height: page.getViewport({ scale: 1, rotation: 0 }).height };
+}
+
+/** The document's furniture as a page's reflow takes it (#853): nothing when it has none. */
+function furnitureFor(page: PdfPage, keys: ReadonlySet<string>): Pick<ReflowOptions, "furniture"> {
+    return keys.size > 0 ? { furniture: { keys, ...boxOf(page) } } : {};
+}
+
+/** The pages read beside the first ones to find its furniture (#853): a quarter, half and three quarters in. */
+function furnitureSample(count: number): number[] {
+    const more = [0.25, 0.5, 0.75].map((share) => Math.floor(count * share) + 1);
+    return [...new Set(more)].filter((n) => n > IMAGE_ONLY_SAMPLE && n <= count);
+}
+
 /** A cancelled drawing is not a failure: a page that left the screen was let go on purpose. */
 function quietCancel(error: unknown): void {
     if (!/cancel/i.test(String(error))) throw error;
@@ -108,7 +126,7 @@ function quietCancel(error: unknown): void {
  * The printed pages of a PDF (#767): sizes read as they are asked for, its own labels, drawings that
  * can be let go, and its links — where they sit and where they go. pdf.js stays behind this seam.
  */
-function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null, typewritten = false): SourcePages {
+function pagesOf(doc: PdfDocument, first: { width: number; height: number }, labels: string[] | null, typewritten = false, furniture: ReadonlySet<string> = new Set()): SourcePages {
     const sizes = new Map<number, Promise<{ width: number; height: number }>>();
     const page = (index: number): Promise<PdfPage> => doc.getPage(index + 1);
     const turn = (p: PdfPage, rotation: number) => (((p.rotate ?? 0) + rotation) % 360 + 360) % 360;
@@ -198,7 +216,7 @@ function pagesOf(doc: PdfDocument, first: { width: number; height: number }, lab
                 if (!viewport.convertToViewportRectangle) return { text: "", words: [], headings: [] };
                 const toViewport = (rect: number[]) => viewport.convertToViewportRectangle!(rect);
                 // The same faces the Reading view drew the page with (#837): its text, character for character.
-                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport }, { styles: content.styles ?? {}, typewritten });
+                return pageWordsOf(content.items.filter(isTextItem), { width: viewport.width, height: viewport.height, toViewport }, { styles: content.styles ?? {}, typewritten, ...furnitureFor(p, furniture) });
             } catch (error) {
                 log.debug(`[Library] no words on page ${index + 1}: ${String(error)}`);
                 return { text: "", words: [], headings: [] };
@@ -247,11 +265,13 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     });
     // The first pages, read once (#813 FR-21): whether it is a scan, and the view it reads best in —
     // and once only (#851 FR-2): a copy the Library has read already is not read again.
-    const remembered = known?.typewritten !== undefined;
+    const remembered = known?.typewritten !== undefined && known.furniture !== undefined;
     const samples: string[] = [];
     const shapes: PageBlock[][] = [];
     const sampled: TextRun[][] = [];
     const prints: (PagePrint | null)[] = [];
+    // The pages its furniture is learned from (#853 FR-4): these, and a few further in.
+    const furnished: { runs: TextRun[]; bottom: number; height: number }[] = [];
     // The operators of the loaded pdf.js: what a page prints is read with them (#852).
     const ops = cropOpsOf(await pdfOps());
     const printsBy = Date.now() + PRINT_WAIT_MS;
@@ -266,6 +286,13 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
         // The view it suggests is read off the page as it always was (#837 FR-11): formats never move it.
         shapes.push(reflowPage(items.map((item) => runOf(item)), { plain: true }));
         sampled.push(items.map((item) => runOf(item, content.styles ?? {})));
+        furnished.push({ runs: items.map((item) => runOf(item)), ...boxOf(page) });
+    }
+    // A cover seldom has the running head: three pages further in say what comes back page after page.
+    for (const n of remembered || isImageOnly(samples) ? [] : furnitureSample(doc.numPages)) {
+        const page = await doc.getPage(n);
+        const items = (await page.getTextContent()).items.filter(isTextItem);
+        furnished.push({ runs: items.map((item) => runOf(item)), ...boxOf(page) });
     }
     // A typewritten paper reads as prose (#837 FR-6): its body face decides, not one page of code.
     const typewritten = known?.typewritten ?? isTypewritten(sampled);
@@ -274,6 +301,9 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     // The shelf may have sampled it already: a scan is known before its first page is drawn.
     const imageOnly = known?.imageOnly ?? isImageOnly(samples);
     const suggestedView = imageOnly ? undefined : remembered ? known.suggestedView : isDesigned(prints) ? "page" : suggestPdfView(shapes);
+    // Its running heads and footers, left out of the text in both views (#853).
+    const furniture = remembered ? (known.furniture ?? []) : imageOnly ? [] : furnitureOf(furnished);
+    const furnitureKeys = new Set(furniture);
 
     const drawPicture = async (index: number, body: HTMLElement, component: Component): Promise<void> => {
         const page = await doc.getPage(index + 1);
@@ -301,7 +331,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     };
 
     const firstBox = doc.numPages > 0 ? (await doc.getPage(1)).getViewport({ scale: 1 }) : { width: 612, height: 792 };
-    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten);
+    const pages = pagesOf(doc, { width: firstBox.width, height: firstBox.height }, labels, typewritten, furnitureKeys);
 
     const linked = async (page: PdfPage, index: number, items: PdfTextItem[], blocks: PageBlock[]): Promise<PageBlock[]> => {
         const links = await pages.links(index, 0);
@@ -326,6 +356,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
         imageOnly,
         hasPageView: !imageOnly,
         typewritten,
+        furniture,
         ...(suggestedView ? { suggestedView } : {}),
         async draw(index: number, body: HTMLElement, component: Component, view: SourceView): Promise<DrawnChapter> {
             if (view === "page" || imageOnly) {
@@ -344,7 +375,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
             const items = content.items.filter(isTextItem);
             // The fonts are read off the very list the page was asked for: pdf.js keeps one per page.
             const faces = await fonts.read(page, items, early ?? list);
-            const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten });
+            const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten, ...furnitureFor(page, furnitureKeys) });
             // Its links, over the very words Page view links (#841); a page with none does no more.
             const blocks = await linked(page, index, items, reflowed);
             const text = blocks.map((block) => block.text).join(" ");

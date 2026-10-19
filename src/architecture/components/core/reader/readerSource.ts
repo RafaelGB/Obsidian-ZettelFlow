@@ -105,7 +105,8 @@ export function rememberSourceFacts(app: App, host: ReaderHost | undefined, doc:
     if (!settings || !(file instanceof TFile)) return;
     const map = normalizeLibrary(settings.library);
     // A copy read before the first-view suggestion existed (#813) is given it once, too.
-    const missing = doc.suggestedView !== undefined && map[doc.path]?.suggestedView === undefined;
+    // And one read before it kept whether it is typewritten (#851): with it, opening reads no page again.
+    const missing = (doc.suggestedView !== undefined && map[doc.path]?.suggestedView === undefined) || (doc.typewritten !== undefined && map[doc.path]?.typewritten === undefined) || (doc.furniture !== undefined && map[doc.path]?.furniture === undefined);
     if (isFresh(map[doc.path], file.stat.size, file.stat.mtime) && !missing) return;
     settings.library = withFacts(
         map,
@@ -116,6 +117,8 @@ export function rememberSourceFacts(app: App, host: ReaderHost | undefined, doc:
             chapters: doc.chapters.length,
             ...(doc.imageOnly ? { imageOnly: true } : {}),
             ...(doc.suggestedView ? { suggestedView: doc.suggestedView } : {}),
+            ...(doc.typewritten !== undefined ? { typewritten: doc.typewritten } : {}),
+            ...(doc.furniture ? { furniture: doc.furniture } : {}),
         },
         file.stat.size,
         file.stat.mtime

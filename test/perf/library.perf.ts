@@ -16,6 +16,7 @@ import { parseXml } from "../support/miniXml";
 import { searchBook } from "architecture/components/core/reader/readerSearch";
 import { MAX_DRAWN, heldRange, mostOnScreen, runLayout, visibleWindow } from "architecture/components/core/library/sources/pdfPageView";
 import { cleanDesignedCss, designedCssBook, pairSpreads } from "application/library/epubFixedLayout";
+import { hasRuledTable, printOf } from "application/library/pdfPrint";
 import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
 import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
@@ -177,6 +178,36 @@ describe("the Library (#675)", () => {
         }
         const ms = best(5, () => reflowPage(runs));
         assertBudget("library.pdf.reflow.page", ms);
+    });
+
+    it("library.pdf.islands.page", () => {
+        // A page at its busiest for islands (#854): a 40-row table of five cells, a plot of 500 shapes
+        // and its gridlines, and 40 lines of prose — reflowed with its print.
+        const runs: TextRun[] = [];
+        for (let row = 0; row < 40; row++) {
+            for (const [k, x] of [72, 160, 230, 290, 380].entries()) runs.push({ str: k === 0 ? `▪ field${row}` : `▪ v${row}${k}`, x, y: 760 - row * 9, size: 8, width: 40 });
+        }
+        for (let line = 0; line < 40; line++) runs.push({ str: `A line of the page's prose, number ${line}, read as text after the table.`, x: 72, y: 380 - line * 9, size: 9, width: 400 });
+        const fnArray: number[] = [];
+        const argsArray: unknown[] = [];
+        const path = (box: number[]) => [PDFJS_OPS.fill, [new Float32Array([0, box[0], box[1], 1, box[2], box[3]])], new Float32Array(box)];
+        for (let i = 0; i < 500; i++) {
+            fnArray.push(PDFJS_OPS.constructPath);
+            argsArray.push(path([100 + (i % 50) * 8, 20 + Math.floor(i / 50) * 12, 106 + (i % 50) * 8, 34 + Math.floor(i / 50) * 12 + (i % 7)]));
+        }
+        for (const y of [40, 60, 80]) {
+            fnArray.push(PDFJS_OPS.constructPath);
+            argsArray.push(path([90, y, 520, y + 0.5]));
+        }
+        const toView = (rect: ArrayLike<number>) => [rect[0], 792 - rect[1], rect[2], 792 - rect[3]];
+        const print = printOf({ fnArray, argsArray }, cropOpsOf(PDFJS_OPS)!, toView, 612, 792);
+        const page = { left: 0, bottom: 0, width: 612, height: 792, print };
+        let blocks = reflowPage(runs, { page });
+        const ms = best(5, () => {
+            blocks = reflowPage(runs, { page });
+        });
+        if (!blocks.some((b) => b.island === "table") || !blocks.some((b) => b.island === "figure")) throw new Error("the islands were not found");
+        assertBudget("library.pdf.islands.page", ms);
     });
 
     it("library.epub.open.5mb", async () => {
@@ -375,5 +406,27 @@ describe("the Library (#675)", () => {
         });
         if (!frames || frames.right.x <= frames.left.x) throw new Error("the frames were not found");
         assertBudget("library.pdf.crop.frames", ms);
+    });
+
+    it("library.pdf.print.page", () => {
+        // A ruled page at its worst: 2,000 operators, a table drawn a cell border at a time (#852).
+        const ops = cropOpsOf(PDFJS_OPS)!;
+        const fnArray: number[] = [];
+        const argsArray: unknown[] = [];
+        const piece = (box: number[]) => [PDFJS_OPS.fill, [new Float32Array([0, box[0], box[1], 1, box[2], box[3]])], new Float32Array(box)];
+        // 500 cells, each its top border and its left one: 1,000 pieces, 2,000 operators.
+        for (let i = 0; i < 500; i++) {
+            const y = 700 - Math.floor(i / 10) * 12;
+            const x = 66 + (i % 10) * 48;
+            fnArray.push(PDFJS_OPS.save, PDFJS_OPS.constructPath, PDFJS_OPS.constructPath, PDFJS_OPS.restore);
+            argsArray.push(null, piece([x, y, x + 48, y + 1]), piece([x, y - 12, x + 1, y]), null);
+        }
+        const toView = (rect: ArrayLike<number>) => [rect[0], 792 - rect[1], rect[2], 792 - rect[3]];
+        let table = false;
+        const ms = best(5, () => {
+            for (let k = 0; k < 10; k++) table = hasRuledTable(printOf({ fnArray, argsArray }, ops, toView, 612, 792)!);
+        });
+        if (!table) throw new Error("the ruled table was not found");
+        assertBudget("library.pdf.print.page", ms / 10);
     });
 });

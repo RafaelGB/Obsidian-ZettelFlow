@@ -316,6 +316,20 @@ export const BUDGETS = {
         because:
             "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
     },
+    "library.pdf.islands.page": {
+        name: "reflow one PDF page with its islands: a 40-row table, a plot of 500 shapes, 40 lines of prose (#854)",
+        limit: 20,
+        measured: "5.2 ms",
+        because:
+            "it runs on the main thread once per page reflowed, between the page's text arriving and it being drawn; a turn must not get slower (#850 FR-4), and #839 set +10 ms as the owner's line",
+    },
+    "library.pdf.print.page": {
+        name: "read what one PDF page prints besides its text: 2,000 operators, a table ruled a cell border at a time (#852)",
+        limit: 4,
+        measured: "1.7 ms",
+        because:
+            "it runs on the main thread once per page reflowed, beside its text (the note under the page, #852 FR-2), and a turn must not get slower (#850 FR-4)",
+    },
     "reader.overview.600": {
         name: "build the overview of a 600-page paper, a 300-page comic and a 120-chapter book, and scroll each from first card to last",
         // ~4x the first measurement: the fake DOM's cost, not pixels; the held count is asserted beside it.
@@ -451,8 +465,11 @@ export const BUDGETS = {
         // and the ceiling closes at its measure plus 2 KB: 3,150 → 3,152 (review fixes: 3,150.2 KB; the owner's doors: 3,151.4 KB).
         // 3,152 → 3,158 (#842, the owner's walk): on a PDF the pen draws on the printed page, where words can now
         // be selected and highlighted too, and the share moved into a quiet ⋯ menu — +4.2 KB: 3,155.6 KB.
-        limit: 3_158,
-        measured: "3,155.7 KB",
+        // 3,158 → 3,175 (epic #850): Page view drawn ahead and opened without re-sampling (#851), a designed
+        // document's print and the note under a page (#852), its furniture (#853) and its islands of print —
+        // tables, figures and separators (#854): +16.4 KB, no new dependency. 3,172.1 KB.
+        limit: 3_175,
+        measured: "3,172.1 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

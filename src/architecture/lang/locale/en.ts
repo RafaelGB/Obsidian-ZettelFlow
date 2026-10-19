@@ -3156,6 +3156,10 @@ export default {
     reader_source_scanned: 'This PDF is made of images, so there is no text to highlight. You can read it, and note in the margin by page.',
     reader_source_note_page: 'Note this page',
     reader_source_page_hint: 'Page view keeps the page as it was laid out. Select words to highlight them; the pen draws here.',
+    reader_source_left_out: "Leaves out {0} and the page's layout.",
+    reader_source_left_out_pictures: '{0} pictures',
+    reader_source_left_out_pictures_one: '{0} picture',
+    reader_source_left_out_tables: 'its tables',
     reader_source_designed_hint: 'This page is shown as it was designed. Highlights and search are not available on designed pages.',
     reader_source_designed_failed: 'This page could not be drawn.',
     // Page view, grown up (#767): zoom, layouts, rotation, the pages, the links.

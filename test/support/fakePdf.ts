@@ -82,6 +82,8 @@ export function prose(lines: string[], options: { top?: number; size?: number; g
 export function makePdfJs(pdf: FakePdf) {
     const held: (() => void)[] = [];
     const heldOps: (() => void)[] = [];
+    // pdf.js keeps a page's operator list with the page once asked for: asked again, it is the same one.
+    const lists = new Map<number, Promise<unknown>>();
     const calls = {
         /** Operator lists asked for, by page number (#769). */
         opLists: [] as number[],
@@ -90,6 +92,8 @@ export function makePdfJs(pdf: FakePdf) {
         },
         getDocument: [] as any[],
         rendered: [] as number[],
+        /** Pages whose text was read, in order (#851): what opening a paper costs before its first page. */
+        textReads: [] as number[],
         renders: [] as FakeRender[],
         destroyed: 0,
         /** Let every held drawing finish. */
@@ -130,22 +134,32 @@ export function makePdfJs(pdf: FakePdf) {
                 },
             };
         };
+        const askList = (): Promise<unknown> => {
+            calls.opLists.push(n);
+            const list = spec.ops ?? { fnArray: [], argsArray: [] };
+            if (pdf.failOps) return Promise.reject(new Error("operator list failed"));
+            if (!pdf.holdOps) return Promise.resolve(list);
+            return new Promise((resolve) => heldOps.push(() => resolve(list)));
+        };
         return {
             pageNumber: n,
             rotate: own,
             getViewport: viewport,
             getAnnotations: async () => (spec.links ?? []).map((link) => ({ subtype: "Link", rect: link.rect, ...(link.url ? { url: link.url } : { dest: link.dest }) })),
-            getTextContent: async () => ({
-                items: spec.runs.map((r) => ({
-                    str: r.str,
-                    transform: [r.size ?? 10, 0, 0, r.size ?? 10, r.x, r.y],
-                    width: r.width ?? r.str.length * (r.size ?? 10) * 0.5,
-                    height: r.size ?? 10,
-                    hasEOL: r.hasEOL ?? false,
-                    ...(r.font ? { fontName: r.font } : {}),
-                })),
-                ...(spec.styles ? { styles: spec.styles } : {}),
-            }),
+            getTextContent: async () => {
+                calls.textReads.push(n);
+                return {
+                    items: spec.runs.map((r) => ({
+                        str: r.str,
+                        transform: [r.size ?? 10, 0, 0, r.size ?? 10, r.x, r.y],
+                        width: r.width ?? r.str.length * (r.size ?? 10) * 0.5,
+                        height: r.size ?? 10,
+                        hasEOL: r.hasEOL ?? false,
+                        ...(r.font ? { fontName: r.font } : {}),
+                    })),
+                    ...(spec.styles ? { styles: spec.styles } : {}),
+                };
+            },
             render: (options: any) => {
                 calls.rendered.push(n);
                 const vp = options?.viewport ?? {};
@@ -172,11 +186,11 @@ export function makePdfJs(pdf: FakePdf) {
                 };
             },
             getOperatorList: () => {
-                calls.opLists.push(n);
-                const list = spec.ops ?? { fnArray: [], argsArray: [] };
-                if (pdf.failOps) return Promise.reject(new Error("operator list failed"));
-                if (!pdf.holdOps) return Promise.resolve(list);
-                return new Promise((resolve) => heldOps.push(() => resolve(list)));
+                const kept = lists.get(n);
+                if (kept) return kept;
+                const asked = askList();
+                lists.set(n, asked);
+                return asked;
             },
             cleanup: () => undefined,
             commonObjs: {

@@ -417,6 +417,8 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
 
 ![A PDF page as printed beside the same page in the reading view: the heading, bold and italic, a footnote marker raised, inline code, a bulleted and a numbered list with hanging markers, a listing in its own box with its indentation, a block quote, a link and the footnote at the foot](../resources/library/pdf-formats.svg)
 
+![A designed PDF page as printed beside the same page in the reading view: the running head and footer are left out, the parameters table and the plot are shown as printed in their place, the page's rule is a separator, and the caption reads as text](../resources/library/pdf-islands.svg)
+
 - **Code keeps its lines.** Lines set in a monospace face read as one listing, with their
   indentation, in the same box as a book's code ([code in technical books](reader.md#code-in-technical-books)):
   whole on its page, *Code lines* in the Type panel, and kept to Think as a fenced block. A name in a
@@ -442,6 +444,34 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
 - **Links you can follow.** The words under a link are a link, the same words Page view links. A
   citation or a *see section 3* goes to its page, with the way back on the trail; a link out of the
   paper shows its address with **Copy link**, and is never opened.
+- **Tables and figures as printed** (#854). What is not running text is not rebuilt: it is shown as
+  the page prints it, cropped from the page, in its place in the reading — the way the state of the art
+  reads a paper. A **table** is found by its shape: three rows or more of three cells or more that start
+  on the same columns, a wrapped cell's further lines with their row, one column short (an id, a type);
+  a ruled table takes its rules, and the header set under its top rule. A **figure** is a picture of 8 %
+  of the page or more, or that much of drawn shapes (a plot is vector paths): its gridlines, its title
+  and its axis labels come with it, and its caption stays text. A logo is never one. The crop stops
+  short of a line of text that runs past its sides, so no word is cut in two. Every word of an island
+  is still the page's — kept under it, out of sight — so search, highlights and Page view find it.
+  It holds its place at its final shape, so nothing moves when its picture arrives, and is drawn once
+  it nears the screen; a page turned back to draws it from what was kept. Its tables are no longer
+  read as two columns, so the text after one reads after it.
+- **A rule is a separator.** A long line the page draws between two blocks of text is drawn as the
+  theme's own separator — not the box a manual draws round its code, which the listing already has,
+  and not a footer's line.
+- **No running heads or footers** (#853). A line printed at the top or foot of the page, page after
+  page — *Acme SMS API - Developer guide*, *Confidential … Page 14 of 30* — is the page's
+  furniture, not its text, and is left out, as a lone page number always was. It must come back at
+  the same height on three of the pages read when the paper first opens (its first three, and three
+  further in), its numbers taken as any number; a title at the top of one page is kept, and a line in
+  the middle of a page never is. Page view still shows it, as printed, and its word index leaves out
+  exactly what the reading view does. What was found is kept with the paper, so it is read once.
+- **What it leaves out, said** (#852). A reflowed page that had pictures or a ruled table on it says
+  so in one quiet line under its label — *Leaves out 2 pictures, its tables and the page's layout* —
+  with **Page view** beside it, which opens on the same page. Only what is true of that page is said:
+  an icon is not a picture, a frame drawn around a screenshot is the screenshot's, and a page of prose
+  says nothing. It is read off the page's own operators, the list pdf.js already makes for its fonts,
+  and the next page's is read before you turn to it.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found
@@ -459,7 +489,11 @@ an iPad (#767):
   it reads best in: a form, a poster or a page of figures — where most of what its first pages hold
   are short fragments, or there is little text at all — opens **as printed**; prose opens reflowed.
   The Reader decides from the text of the first three pages, once per copy of the file (a new copy is
-  sampled again), and keeps it beside the paper's place — the PDF itself is never written. **The view
+  sampled again), and keeps it beside the paper's place — the PDF itself is never written. Opening a
+  copy it has read already reads none of those pages again (#851). A **designed document** opens as
+  printed too (#852): one with the same picture in the same place on most of its first pages (a
+  letterhead, a vendor's logo), or a page that is mostly one picture (a cover). A ruled table alone
+  does not make a document designed — papers have them too. **The view
   you choose wins from then on**: turn Page view on or off (**V**, or its button) and the paper opens
   that way next time. A tab you left open opens as you left it.
 
@@ -491,6 +525,12 @@ an iPad (#767):
   pages far away are let go, so a 600-page PDF scrolls without the app holding 600 pictures. A page not
   drawn yet is a blank sheet with its number, and its picture fades in. A fling draws nothing until it
   slows, so it keeps its frames.
+- **Drawn ahead of you** (#851). Once the pages on screen are drawn, and no thumbnail is waiting, the
+  next two pages in the direction you are reading are drawn too — down the paper, or back up it — so a
+  page of photographs is already there when you reach it. A page's first drawing is mostly decoding its
+  pictures, which no lower resolution makes cheaper; drawing it early does. Nothing ahead is drawn
+  while you zoom or fling, and no more pages are held than before: the two kept either side of the
+  window are the ones drawn ahead.
 - **Kept with the paper.** The zoom (or the fit), Down or Across and the turned pages are kept beside
   its place, in plugin data. The PDF is never written.
 

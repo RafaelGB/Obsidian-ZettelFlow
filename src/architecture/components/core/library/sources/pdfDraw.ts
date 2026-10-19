@@ -105,6 +105,28 @@ function drawFootnote(into: HTMLElement, block: PageBlock): HTMLElement {
     return note;
 }
 
+/** How much larger than printed an island may be drawn: a small figure is not blown up to the column. */
+const ISLAND_GROWTH = 1.5;
+
+/**
+ * An island of print (#854 FR-3, FR-4): a figure holding its place at its final shape — so nothing
+ * under it moves when its picture arrives — and its words, kept under it out of sight, so the page's
+ * text is still all there. Its picture is drawn by the source once it nears the screen.
+ */
+function drawIsland(into: HTMLElement, block: PageBlock): void {
+    const box = block.box;
+    if (!box) return;
+    const figure = into.createEl("figure", {
+        cls: [c("reader-pdf-island"), c(`reader-pdf-island--${block.island ?? "figure"}`)],
+        attr: { "data-zf-island": [box.x, box.y, box.w, box.h].map((n) => Math.round(n * 100000) / 100000).join(",") },
+    });
+    figure.setCssProps({
+        "--zf-island-aspect": String(Math.round((1 / Math.max(1e-6, block.aspect ?? 1)) * 10000) / 10000),
+        "--zf-island-w": `${Math.round((block.points ?? 600) * ISLAND_GROWTH)}px`,
+    });
+    figure.createDiv({ cls: c("reader-pdf-island-text") }).appendText(block.text);
+}
+
 /** Draw a page's blocks into `into`, in order. */
 export function drawBlocks(into: HTMLElement, blocks: readonly PageBlock[]): void {
     let open: OpenList[] = [];
@@ -128,6 +150,8 @@ export function drawBlocks(into: HTMLElement, blocks: readonly PageBlock[]): voi
         } else if (block.kind === "footnote") holder = { kind: "footnote", el: drawFootnote(into, block) };
         else if (block.kind === "heading") into.createEl("h2").appendText(block.text);
         else if (block.kind === "listing") into.createEl("pre").createEl("code").appendText(block.text);
+        else if (block.kind === "island") drawIsland(into, block);
+        else if (block.kind === "rule") into.createEl("hr", { cls: c("reader-pdf-rule") });
         else words(into.createEl("p"), block);
     }
 }

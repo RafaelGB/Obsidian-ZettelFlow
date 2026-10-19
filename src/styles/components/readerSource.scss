@@ -170,6 +170,11 @@
     background-color: color-mix(in srgb, var(--reader-fg) 5%, transparent);
 }
 
+/* A page that leaves nothing out says nothing (#852): no empty strip where its line would be. */
+.zettelkasten-flow__reader-source-hint.zettelkasten-flow__reader-hidden {
+    display: none;
+}
+
 .zettelkasten-flow__reader .zettelkasten-flow__reader-source-banner-action,
 .zettelkasten-flow__reader .zettelkasten-flow__reader-source-hint-action {
     flex: none;

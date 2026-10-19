@@ -136,6 +136,15 @@ function boxThrough(m: Matrix, x1: number, y1: number, x2: number, y2: number): 
  */
 export function marksOf(fnArray: ArrayLike<number>, argsArray: ArrayLike<unknown>, ops: CropOps): PdfRect[] | "unknown" {
     const out: PdfRect[] = [];
+    return paintedOf(fnArray, argsArray, ops, (rect) => out.push(rect)) ? out : "unknown";
+}
+
+/**
+ * The interpreter `marksOf` reads a page with, for whoever needs to know **what** each mark is (#852):
+ * `visit` is told each mark's box in PDF space, and whether it is a picture or a painted path. False
+ * when the page holds something it does not recognise — the marks told so far are then not the page's.
+ */
+export function paintedOf(fnArray: ArrayLike<number>, argsArray: ArrayLike<unknown>, ops: CropOps, visit: (rect: PdfRect, picture: boolean) => void): boolean {
     const stack: Matrix[] = [];
     let ctm: Matrix = IDENTITY;
     const unknownOps = new Set([ops.shadingFill, ops.paintImageXObjectRepeat, ops.paintImageMaskXObjectRepeat, ops.paintImageMaskXObjectGroup].filter(finite));
@@ -146,30 +155,30 @@ export function marksOf(fnArray: ArrayLike<number>, argsArray: ArrayLike<unknown
         if (fn === ops.save) stack.push(ctm);
         else if (fn === ops.restore) ctm = stack.pop() ?? IDENTITY;
         else if (fn === ops.transform) {
-            if (!isMatrix(args)) return "unknown";
+            if (!isMatrix(args)) return false;
             ctm = compose(ctm, args);
         } else if (fn === ops.paintFormXObjectBegin) {
             stack.push(ctm);
             const matrix = Array.isArray(args) ? (args[0] as unknown) : null;
             if (matrix !== null && matrix !== undefined) {
-                if (!isMatrix(matrix)) return "unknown";
+                if (!isMatrix(matrix)) return false;
                 ctm = compose(ctm, matrix);
             }
         } else if (fn === ops.paintFormXObjectEnd) ctm = stack.pop() ?? IDENTITY;
         else if (fn === ops.constructPath) {
             // pdf.js 5.3: [paint op, [path data], minMax] — the box is the third.
-            if (!Array.isArray(args) || args.length < 3 || !finite(args[0])) return "unknown";
+            if (!Array.isArray(args) || args.length < 3 || !finite(args[0])) return false;
             const box = args[2] as ArrayLike<number> | null;
-            if (!box || typeof box !== "object" || box.length !== 4) return "unknown";
+            if (!box || typeof box !== "object" || box.length !== 4) return false;
             if (args[0] === ops.endPath) continue; // a clip, or nothing: not printed
             const [x1, y1, x2, y2] = [box[0], box[1], box[2], box[3]];
             // An empty path keeps pdf.js's starting box (INF, -INF): nothing drawn.
             if (![x1, y1, x2, y2].every(finite)) continue;
-            out.push(boxThrough(ctm, x1, y1, x2, y2));
-        } else if (images.has(fn)) out.push(boxThrough(ctm, 0, 0, 1, 1));
-        else if (unknownOps.has(fn)) return "unknown";
+            visit(boxThrough(ctm, x1, y1, x2, y2), false);
+        } else if (images.has(fn)) visit(boxThrough(ctm, 0, 0, 1, 1), true);
+        else if (unknownOps.has(fn)) return false;
     }
-    return out;
+    return true;
 }
 
 /** A text run's box in PDF space: along its direction by its width, up by its height, a descent below. */

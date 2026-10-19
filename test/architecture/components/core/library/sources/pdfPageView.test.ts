@@ -4,6 +4,7 @@ import {
     MAX_DRAWN,
     RUN_GAP,
     RUN_PAD,
+    aheadOf,
     clampZoom,
     drawSize,
     focalScroll,
@@ -206,5 +207,23 @@ describe("a landscape page at Fit width (#767 walk)", () => {
         expect(fit.width).toBe(800);
         const zoomed = runLayout(boxes, { layout: "scroll", across: false, scale: 768 / 612, view });
         expect(zoomed.slots[1].w).toBeGreaterThan(768);
+    });
+});
+
+describe("the pages drawn ahead of you (#851 FR-1)", () => {
+    it("takes the next two pages past the window, in the direction you move", () => {
+        expect(aheadOf([2, 3], 10, 1)).toEqual([4, 5]);
+        expect(aheadOf([5, 6], 10, -1)).toEqual([4, 3]);
+    });
+
+    it("stops at the ends of the paper", () => {
+        expect(aheadOf([8], 10, 1)).toEqual([9]);
+        expect(aheadOf([9], 10, 1)).toEqual([]);
+        expect(aheadOf([0, 1], 10, -1)).toEqual([]);
+        expect(aheadOf([], 10, 1)).toEqual([]);
+    });
+
+    it("stays inside the pages already kept around the window", () => {
+        expect(aheadOf([2], 10, 1, 9)).toHaveLength(2);
     });
 });

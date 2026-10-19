@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 import { Component, TFile, __setPdfJs } from "obsidian";
-import { DomNode } from "../../../../support/dashboardDom";
+import { DomNode, flush, settle } from "../../../../support/dashboardDom";
 import { withTextNodes } from "../../../../support/domText";
 import { makePdfJs, prose, run, type FakePage } from "../../../../support/fakePdf";
 import { FORMATS, formatsPage } from "../../../../support/pdfFormats";
+import { image, opList } from "../../../../support/pdfPrintPaper";
 import { openPdfSource } from "architecture/components/core/library/sources/pdfSource";
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import { noteExcerpt } from "architecture/components/core/reader/readerJumps";
@@ -127,14 +128,18 @@ describe("bold and italic, drawn (#839)", () => {
         expect(chapterText(plain.body)).toBe(chapterText(styled.body));
     });
 
-    it("reads each font once: a later page with the same fonts waits for nothing (FR-6)", async () => {
+    it("reads each font once, off the list each page is asked for once — the next one before you turn (FR-6, #852)", async () => {
         const { lib, calls } = makePdfJs({ pages: [formatsFake(), formatsFake(), { ...formatsFake(), runs: [{ str: "A face not seen before", x: 72, y: 700, size: 10, font: "FX" }] }], fonts: { ...FORMATS.fonts, FX: "Garamond-Italic" } });
         __setPdfJs(lib);
         const paper = new TFile();
         paper.path = "Papers/two.pdf";
         const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
-        for (const index of [0, 1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
-        expect(calls.opLists).toEqual([1, 3]);
+        // Opening read the first pages' print (#852 FR-1): each page's list is asked for once, and kept.
+        const opened = [...calls.opLists];
+        expect(opened).toEqual([1, 2, 3]);
+        await doc.draw(0, new DomNode("div") as never, new Component(), "reading");
+        for (const index of [1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
+        expect(calls.opLists).toEqual(opened);
     });
 });
 
@@ -191,5 +196,119 @@ describe("links in the reading view (#841)", () => {
         const { body } = await drawn([{ ...formatsFake(), links: [] }]);
         expect(body.findAll((el: any) => el.getAttribute?.("data-zf-url"))).toEqual([]);
         expect(body.findAll((el: any) => el.tagName === "A").map((el: any) => el.getAttribute("data-zf-href"))).toEqual(["#zf-pdf-note-1"]);
+    });
+});
+
+describe("islands of print, drawn (#854 FR-3, FR-4, AC-2, AC-5)", () => {
+    const PAGE: FakePage = {
+        runs: [
+            ...prose(["The paragraph above the figure reads as it always did, a full line long."], { top: 720 }),
+            run("Figure 1. The caption under it stays text.", 72, 300, 10, true),
+            ...prose(["And the paragraph after the caption goes on, as text, as before."], { top: 270 }),
+        ],
+        ops: opList(image(72, 320, 468, 360)),
+    };
+    const figures = (body: any) => body.findAll((el: any) => el.hasClass("zettelkasten-flow__reader-pdf-island"));
+    // A canvas that can be drawn on, as the run's tests give one: pdf.js is asked to draw only then.
+    const proto = DomNode.prototype as any;
+    beforeAll(() => {
+        proto.getContext = () => ({ drawImage: () => undefined });
+    });
+    afterAll(() => {
+        delete proto.getContext;
+    });
+
+    it("draws a figure in its place, at its final shape, its words kept under it", async () => {
+        const { body } = await drawn([PAGE]);
+        const [figure] = figures(body);
+        expect(figure).toBeDefined();
+        expect(Number(figure.cssProps["--zf-island-aspect"])).toBeGreaterThan(1);
+        expect(figure.find((el: any) => el.hasClass("zettelkasten-flow__reader-pdf-island-text"))).toBeDefined();
+        // In reading order: the paragraph, the figure, its caption.
+        const order = body.children.map((el: any) => el.tagName);
+        expect(order).toEqual(["P", "FIGURE", "P", "P"]);
+    });
+
+    it("draws the crop of the page that holds it, and nothing else of the page", async () => {
+        const { lib, calls } = makePdfJs({ pages: [PAGE] });
+        __setPdfJs(lib);
+        const paper = new TFile();
+        paper.path = "Papers/fig.pdf";
+        const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
+        const body = new DomNode("div");
+        await doc.draw(0, body as never, new Component(), "reading");
+        await settle(() => calls.renders.length > 0);
+        const crop = calls.renders[0];
+        // The viewport is moved to the figure's corner: the crop, not the page.
+        expect(crop.offsetX).toBeLessThan(0);
+        expect(crop.offsetY).toBeLessThan(0);
+    });
+
+    it("never keeps a drawing let go: a page turned away mid-drawing draws its island again (review, #854)", async () => {
+        const { lib, calls } = makePdfJs({ pages: [PAGE], holdRenders: true });
+        __setPdfJs(lib);
+        const paper = new TFile();
+        paper.path = "Papers/turned.pdf";
+        const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
+        const first = new Component();
+        first.load();
+        await doc.draw(0, new DomNode("div") as never, first, "reading");
+        await settle(() => calls.renders.length === 1);
+        // Turned away before it finished: the drawing is cancelled, and resolves.
+        first.unload();
+        calls.release();
+        await flush();
+        const again = new DomNode("div");
+        await doc.draw(0, again as never, new Component(), "reading");
+        await settle(() => calls.renders.length === 2);
+        expect(calls.renders).toHaveLength(2);
+        expect(again.findAll((el: any) => el.hasClass("zettelkasten-flow__reader-pdf-island--drawn"))).toHaveLength(0);
+    });
+
+    it("waits until the island nears the screen, and draws it again from what it kept (AC-5)", async () => {
+        const watched: { cb: (entries: { isIntersecting: boolean; target: unknown }[]) => void; targets: unknown[] }[] = [];
+        const g = globalThis as any;
+        const hadWindow = "window" in g;
+        g.window ??= g;
+        const before = g.IntersectionObserver;
+        g.IntersectionObserver = class {
+            targets: unknown[] = [];
+            constructor(cb: (entries: { isIntersecting: boolean; target: unknown }[]) => void) {
+                watched.push({ cb, targets: this.targets });
+            }
+            observe(target: unknown) {
+                this.targets.push(target);
+            }
+            unobserve() {}
+            disconnect() {}
+        };
+        try {
+            const { lib, calls } = makePdfJs({ pages: [PAGE] });
+            __setPdfJs(lib);
+            const paper = new TFile();
+            paper.path = "Papers/lazy.pdf";
+            const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
+            const draw = async () => {
+                const body = new DomNode("div");
+                await doc.draw(0, body as never, new Component(), "reading");
+                await flush();
+                return body;
+            };
+            const shown = await draw();
+            expect(calls.renders).toHaveLength(0);
+            const near = watched[watched.length - 1];
+            near.cb(near.targets.map((target) => ({ isIntersecting: true, target })));
+            await settle(() => calls.renders.length === 1);
+            // The page turned away (the Reader empties it) and back: the island is drawn from what was kept.
+            shown.remove();
+            await draw();
+            const again = watched[watched.length - 1];
+            again.cb(again.targets.map((target) => ({ isIntersecting: true, target })));
+            await flush();
+            expect(calls.renders).toHaveLength(1);
+        } finally {
+            g.IntersectionObserver = before;
+            if (!hadWindow) delete g.window;
+        }
     });
 });

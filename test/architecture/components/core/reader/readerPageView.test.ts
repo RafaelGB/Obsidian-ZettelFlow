@@ -166,7 +166,8 @@ describe("Page view opens at the width of the screen, and zooms (#767 FR-1, FR-2
         expect(zoomButton(content).hasClass(cls("reader-hidden"))).toBe(false);
         expect(zoomButton(content).textContent).toBe("100%");
         await settle(() => calls.renders.length >= 1);
-        expect(new Set(calls.renders.map((r) => r.page))).toEqual(new Set([1]));
+        // The page on screen first; the pages after it are drawn ahead (#851).
+        expect(calls.renders[0].page).toBe(1);
     });
 
     it("follows a Ctrl+wheel at once and redraws nothing until it stops; then the pages on screen, sharp", async () => {
@@ -355,6 +356,74 @@ describe("pages arrive quietly, and scrolling is the platform's (#767 FR-19, FR-
         for (let i = 0; i < 12; i++) wheel(stage, 400);
         await wait(300);
         expect(content.oneByClass("reader-panel").hasClass(cls("reader-panel--open"))).toBe(false);
+    });
+});
+
+describe("Page view draws ahead of you (#851 FR-1, AC-1, AC-2)", () => {
+    beforeEach(() => resetReaderWorkspace());
+
+    /** The pages drawn, as the Reader counts them (pdf.js counts from 1), and not let go. */
+    const drawnPages = (calls: { renders: { page: number; cancelled: boolean }[] }) => calls.renders.filter((r) => !r.cancelled).map((r) => r.page - 1);
+
+    it("draws the next two pages once the screen is drawn, and not one more", async () => {
+        const { calls } = await open();
+        await settle(() => calls.renders.length >= 3);
+        await flush();
+        expect(drawnPages(calls)).toEqual([0, 1, 2]);
+    });
+
+    it("draws ahead in the direction you scroll — up, the pages above", async () => {
+        const { content, stage, calls } = await open(0, {}, Array.from({ length: 10 }, (_, i) => text(i + 1)));
+        const height = Number(slots(content)[0].cssProps["--zf-slot-h"].replace("px", ""));
+        stage.scrollTop = 16 + 6 * (height + 16);
+        stage.fire("scroll");
+        // A jump is a fling: drawn once it settles.
+        await wait(200);
+        await flush();
+        const down = drawnPages(calls);
+        expect(down).toContain(6);
+        expect(down).toContain(7);
+        calls.renders.length = 0;
+        stage.scrollTop = 16 + 5 * (height + 16);
+        stage.fire("scroll");
+        // A jump is a fling: drawn once it settles.
+        await wait(200);
+        await flush();
+        // Page 6 (index 5) is on screen now; ahead of you, going up, are 5 and 4 (indices 4 and 3).
+        const up = drawnPages(calls);
+        expect(up).toContain(4);
+        expect(up).toContain(3);
+        expect(up).not.toContain(9);
+    });
+
+    it("draws nothing ahead while a gesture runs", async () => {
+        const { stage, calls } = await open(0, {}, undefined, { hold: true });
+        // The page on screen is still drawing; then the fingers begin.
+        for (let i = 0; i < 3; i++) wheel(stage, -40);
+        calls.release();
+        await flush();
+        expect(calls.renders.filter((r) => r.page > 1)).toHaveLength(0);
+    });
+
+    it("shows a page drawn ahead at once when it comes on screen, without a fade", async () => {
+        const undo = reducedMotion(false);
+        const record = recordAnimations();
+        try {
+            const { content, stage, calls } = await open();
+            await settle(() => calls.renders.length >= 3);
+            await flush();
+            record.animations.length = 0;
+            const height = Number(slots(content)[0].cssProps["--zf-slot-h"].replace("px", ""));
+            stage.scrollTop = 16 + 1 * (height + 16);
+            stage.fire("scroll");
+            await wait(40);
+            const second = slots(content).find((slot) => slot.getAttribute("data-page") === "1")!;
+            expect(second.byClass("reader-pv-canvas")).toHaveLength(1);
+            expect(record.animations.some((a) => a.keyframes.some((frame) => "opacity" in frame) && a.options.duration === MOTION.fast)).toBe(false);
+        } finally {
+            record.stop();
+            undo();
+        }
     });
 });
 

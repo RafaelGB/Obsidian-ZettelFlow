@@ -205,12 +205,16 @@ describe("the paper is measured once, then the camera moves in (#769 FR-9, FR-10
             const before = pointAtMiddle(content, stage);
             const props = slots(content).map((slot) => JSON.stringify(slot.cssProps));
             typePanel(content);
+            // Opening read its first pages' print already (#852): pdf.js keeps those lists, and they are not asked again.
+            const opened = new Set(calls.opLists);
             cropSwitch(content)!.click();
-            await settle(() => calls.opLists.length >= 12);
+            await settle(() => new Set(calls.opLists).size >= 12);
             // Measuring: the switch says so, every sampled page is read, and nothing moved.
             expect(cropSwitch(content)!.getAttribute("aria-busy")).toBe("true");
             expect(content.byText("Measuring the margins…")).toBeDefined();
             expect(new Set(calls.opLists)).toEqual(new Set(Array.from({ length: 12 }, (_, i) => i + 1)));
+            expect(calls.opLists).toHaveLength(12);
+            expect(opened.size).toBeGreaterThan(0);
             expect(slots(content).map((slot) => JSON.stringify(slot.cssProps))).toEqual(props);
             expect(cameraMoves(record.animations)).toHaveLength(0);
             const fromBox = { left: before.slot.x - stage.scrollLeft, top: before.slot.y - stage.scrollTop, width: before.slot.w, height: before.slot.h };

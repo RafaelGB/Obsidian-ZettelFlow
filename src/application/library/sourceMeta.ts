@@ -52,11 +52,22 @@ export interface SourceMeta {
      * file — sampled again when the file changes, as its other facts are.
      */
     suggestedView?: "page" | "reading";
+    /**
+     * Whether a PDF is typewritten (#837 FR-6), read off the same pages. Kept as `false` too (#851): with
+     * it, everything opening needs from the first pages is known, and they are not read again.
+     */
+    typewritten?: boolean;
+    /** A PDF's furniture (#853): the running heads and footers read off the same pages, left out of its text. */
+    furniture?: string[];
     /** The view you chose for it by turning Page view on or off (#813 FR-22): always wins. */
     chosenView?: "page" | "reading";
 }
 
 export type LibraryMeta = Record<string, SourceMeta>;
+
+/** A document's furniture is a few lines (#853): more is not furniture, and the map stays small. */
+const FURNITURE_MAX = 24;
+const FURNITURE_KEY_MAX = 240;
 
 /** How many sources are remembered; the least recently touched is forgotten first. */
 export const LIBRARY_LIMIT = 2000;
@@ -116,6 +127,8 @@ export function normalizeLibrary(raw: unknown): LibraryMeta {
         const view = normalizePageView(v.view);
         if (Object.keys(view).length > 0) meta.view = view;
         if (v.suggestedView === "page" || v.suggestedView === "reading") meta.suggestedView = v.suggestedView;
+        if (typeof v.typewritten === "boolean") meta.typewritten = v.typewritten;
+        if (Array.isArray(v.furniture)) meta.furniture = v.furniture.filter((key): key is string => typeof key === "string" && key.length <= FURNITURE_KEY_MAX).slice(0, FURNITURE_MAX);
         if (v.chosenView === "page" || v.chosenView === "reading") meta.chosenView = v.chosenView;
         out[path] = meta;
     }
@@ -135,6 +148,28 @@ export interface SourceFacts {
     imageOnly?: boolean;
     /** A PDF's suggested first view (#813 FR-20), from its sampled pages. */
     suggestedView?: "page" | "reading";
+    /** Whether a PDF is typewritten (#837 FR-6), from the same pages (#851). */
+    typewritten?: boolean;
+    /** Its furniture (#853). */
+    furniture?: string[];
+}
+
+/** What opening a PDF reads off its first pages (#851 FR-2): handed back, they are not read again. */
+export interface KnownPdf {
+    imageOnly?: boolean;
+    typewritten?: boolean;
+    furniture?: string[];
+    suggestedView?: "page" | "reading";
+}
+
+/**
+ * What the Library already read off this very copy of a PDF (#851 FR-2), or only whether it is a scan
+ * when that is all it knows — a copy read before `typewritten` was kept is sampled once more.
+ */
+export function knownPdf(meta: SourceMeta | undefined, size: number, mtime: number): KnownPdf | undefined {
+    if (!meta) return undefined;
+    if (!isFresh(meta, size, mtime) || meta.typewritten === undefined || meta.furniture === undefined) return meta.imageOnly ? { imageOnly: true } : undefined;
+    return { imageOnly: meta.imageOnly === true, typewritten: meta.typewritten, furniture: meta.furniture, ...(meta.suggestedView ? { suggestedView: meta.suggestedView } : {}) };
 }
 
 /** Keep what was read from a file, with its fingerprint. Your place in it is kept. */
@@ -156,6 +191,8 @@ export function withFacts(map: LibraryMeta, path: string, facts: SourceFacts, si
     if (previous?.view) next.view = previous.view;
     // The suggestion is this copy's; your own choice of view is yours and outlives a new copy (#813).
     if (facts.suggestedView) next.suggestedView = facts.suggestedView;
+    if (facts.typewritten !== undefined) next.typewritten = facts.typewritten;
+    if (facts.furniture) next.furniture = facts.furniture.slice(0, FURNITURE_MAX);
     if (previous?.chosenView) next.chosenView = previous.chosenView;
     return prune({ ...map, [path]: next });
 }

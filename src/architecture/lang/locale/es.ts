@@ -3155,6 +3155,10 @@ export default {
     reader_source_scanned: 'Este PDF está hecho de imágenes, así que no hay texto que subrayar. Puedes leerlo y anotar al margen por página.',
     reader_source_note_page: 'Anotar esta página',
     reader_source_page_hint: 'La vista de página conserva la maqueta original. Selecciona palabras para subrayarlas; el lápiz dibuja aquí.',
+    reader_source_left_out: 'Omite {0} y la maqueta de la página.',
+    reader_source_left_out_pictures: '{0} imágenes',
+    reader_source_left_out_pictures_one: '{0} imagen',
+    reader_source_left_out_tables: 'sus tablas',
     reader_source_designed_hint: 'Esta página se muestra tal como se diseñó. Los subrayados y la búsqueda no están disponibles en las páginas diseñadas.',
     reader_source_designed_failed: 'No se pudo dibujar esta página.',
     // Vista de página, crecida (#767): zoom, disposiciones, giro, las páginas, los enlaces.

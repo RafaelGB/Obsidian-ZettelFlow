@@ -316,6 +316,13 @@ export const BUDGETS = {
         because:
             "it runs on the main thread between turning Crop margins on and the camera move (#769 FR-10); it must stay well under the move's own 400 ms (pdf.js parses the pages on its worker, outside this)",
     },
+    "library.pdf.print.page": {
+        name: "read what one PDF page prints besides its text: 2,000 operators, a table ruled a cell border at a time (#852)",
+        limit: 4,
+        measured: "1.7 ms",
+        because:
+            "it runs on the main thread once per page reflowed, beside its text (the note under the page, #852 FR-2), and a turn must not get slower (#850 FR-4)",
+    },
     "reader.overview.600": {
         name: "build the overview of a 600-page paper, a 300-page comic and a 120-chapter book, and scroll each from first card to last",
         // ~4x the first measurement: the fake DOM's cost, not pixels; the held count is asserted beside it.

@@ -5,7 +5,8 @@ import { IMAGE_ONLY_SAMPLE, isImageOnly, isTypewritten, reflowPage, runOf, sugge
 import { linkBlocks, pageWordsOf, type PageText } from "application/library/pdfWords";
 import { titleFromName } from "application/library/shelf";
 import { languageTag, type KnownPdf } from "application/library/sourceMeta";
-import { cropOpsOf, measurePage, type CropBox, type PageInk } from "application/library/pdfCrop";
+import { cropOpsOf, measurePage, type CropBox, type CropOps, type PageInk } from "application/library/pdfCrop";
+import { isDesigned, leftOutOf, printOf, type PagePrint } from "application/library/pdfPrint";
 import { declared, isTextItem, openPdf, pdfOps, type PdfDocument, type PdfOutlineNode, type PdfPage, type PdfTextItem } from "./pdfjs";
 import type { DrawnChapter, SourceDocument, SourcePageLink, SourcePages, SourcePageTask, SourceView, SourceTocEntry } from "./sourceDocument";
 import { resolveDest, shareDown } from "./pdfPageView";
@@ -62,6 +63,40 @@ async function labelsOf(doc: PdfDocument): Promise<string[] | null> {
 /** A canvas's 2D context — absent where the platform cannot draw one. */
 function contextOf(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
     return (canvas as Partial<HTMLCanvasElement>).getContext?.("2d") ?? null;
+}
+
+/** A page's operator list, or `null` where pdf.js cannot give one. pdf.js keeps it with the page. */
+function listOf(page: PdfPage): Promise<{ fnArray: ArrayLike<number>; argsArray: ArrayLike<unknown> } | null> {
+    return page.getOperatorList?.().catch((error: unknown) => {
+        log.debug(`[Library] no operator list for a page: ${String(error)}`);
+        return null;
+    }) ?? Promise.resolve(null);
+}
+
+/**
+ * How long opening waits for the sampled pages' print, all of them (#852): a page of photographs
+ * decodes them to give its operators, and a first open is not held for that — past it, a page says nothing.
+ */
+const PRINT_WAIT_MS = 400;
+
+/** `promise`, or `null` once `ms` have gone by without it. */
+function within<T>(promise: Promise<T | null>, ms: number): Promise<T | null> {
+    return new Promise((resolve) => {
+        const timer = window.setTimeout(() => resolve(null), ms);
+        const done = (value: T | null) => {
+            window.clearTimeout(timer);
+            resolve(value);
+        };
+        void promise.then(done, () => done(null));
+    });
+}
+
+/** What a page prints besides its text (#852), from its operator list: `null` when it cannot be told. */
+async function pagePrint(page: PdfPage, list: Promise<{ fnArray: ArrayLike<number>; argsArray: ArrayLike<unknown> } | null>, ops: CropOps | null): Promise<PagePrint | null> {
+    const viewport = page.getViewport({ scale: 1, rotation: (((page.rotate ?? 0) % 360) + 360) % 360 });
+    const convert = viewport.convertToViewportRectangle?.bind(viewport);
+    if (!convert || !ops) return null;
+    return printOf(await list, ops, (rect) => convert(rect), viewport.width, viewport.height);
 }
 
 /** A cancelled drawing is not a failure: a page that left the screen was let go on purpose. */
@@ -216,8 +251,16 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     const samples: string[] = [];
     const shapes: PageBlock[][] = [];
     const sampled: TextRun[][] = [];
+    const prints: (PagePrint | null)[] = [];
+    // The operators of the loaded pdf.js: what a page prints is read with them (#852).
+    const ops = cropOpsOf(await pdfOps());
+    const printsBy = Date.now() + PRINT_WAIT_MS;
     for (let n = 1; !remembered && n <= Math.min(IMAGE_ONLY_SAMPLE, doc.numPages); n++) {
-        const content = await (await doc.getPage(n)).getTextContent();
+        const page = await doc.getPage(n);
+        const content = await page.getTextContent();
+        // Then what it prints: a logo on page after page is a designed document (#852 FR-1). A page
+        // with no text is a picture — a scan's — and its operators are never asked for.
+        if (known?.imageOnly !== true && content.items.some((item) => isTextItem(item) && item.str.trim())) prints.push(await within(pagePrint(page, listOf(page), ops), Math.max(0, printsBy - Date.now())));
         const items = content.items.filter(isTextItem);
         samples.push(items.map((item) => item.str).join(""));
         // The view it suggests is read off the page as it always was (#837 FR-11): formats never move it.
@@ -230,7 +273,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
     const fonts = faceReader(file.path);
     // The shelf may have sampled it already: a scan is known before its first page is drawn.
     const imageOnly = known?.imageOnly ?? isImageOnly(samples);
-    const suggestedView = imageOnly ? undefined : remembered ? known.suggestedView : suggestPdfView(shapes);
+    const suggestedView = imageOnly ? undefined : remembered ? known.suggestedView : isDesigned(prints) ? "page" : suggestPdfView(shapes);
 
     const drawPicture = async (index: number, body: HTMLElement, component: Component): Promise<void> => {
         const page = await doc.getPage(index + 1);
@@ -292,10 +335,15 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
             const page = await doc.getPage(index + 1);
             // The first page reads its fonts beside its text; a later one only for a font not seen yet.
             const early = fonts.early(page);
+            // What it prints besides its text, to say what the reading view leaves out (#852 FR-2).
+            const list = listOf(page);
+            // And the next page's, read now so a turn does not wait for it: pdf.js keeps it with the page.
+            if (index + 1 < doc.numPages) void doc.getPage(index + 2).then(listOf, () => null);
             const content = await page.getTextContent();
             const styles = content.styles ?? {};
             const items = content.items.filter(isTextItem);
-            const faces = await fonts.read(page, items, early);
+            // The fonts are read off the very list the page was asked for: pdf.js keeps one per page.
+            const faces = await fonts.read(page, items, early ?? list);
             const reflowed = reflowPage(items.map((item) => runOf(item, styles, faces)), { typewritten });
             // Its links, over the very words Page view links (#841); a page with none does no more.
             const blocks = await linked(page, index, items, reflowed);
@@ -305,9 +353,11 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
                 await drawPicture(index, body, component);
                 return { words: 0, picture: true };
             }
+            const leftOut = leftOutOf(await pagePrint(page, list, ops));
+            const said = leftOut ? { leftOut } : {};
             if (plainBlocks(blocks)) {
                 drawBlocks(body, blocks);
-                return { words: text.split(/\s+/).filter(Boolean).length, picture: false };
+                return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...said };
             }
             // A page with formats is built aside and put on the page whole (#837 AC-M1): a listing is
             // never seen as a run-on paragraph first.
@@ -316,7 +366,7 @@ export async function openPdfSource(app: App, file: TFile, known?: KnownPdf): Pr
             const listings = into.querySelector("pre") ? colourListings(into, null) : 0;
             // Only elements stand at the top of a drawn page: its blocks, moved whole.
             for (const child of Array.from(into.children)) body.appendChild(child);
-            return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...(listings > 0 ? { listings } : {}) };
+            return { words: text.split(/\s+/).filter(Boolean).length, picture: false, ...said, ...(listings > 0 ? { listings } : {}) };
         },
         resolveLink(fromChapter: number, href: string) {
             // A footnote's marker, to its note on the same page (#840 FR-7): the only link the reading

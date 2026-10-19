@@ -442,6 +442,12 @@ page itself. Only the clear cases are taken; when in doubt a block stays a parag
 - **Links you can follow.** The words under a link are a link, the same words Page view links. A
   citation or a *see section 3* goes to its page, with the way back on the trail; a link out of the
   paper shows its address with **Copy link**, and is never opened.
+- **What it leaves out, said** (#852). A reflowed page that had pictures or a ruled table on it says
+  so in one quiet line under its label — *Leaves out 2 pictures, its tables and the page's layout* —
+  with **Page view** beside it, which opens on the same page. Only what is true of that page is said:
+  an icon is not a picture, a frame drawn around a screenshot is the screenshot's, and a page of prose
+  says nothing. It is read off the page's own operators, the list pdf.js already makes for its fonts,
+  and the next page's is read before you turn to it.
 
 **The page's text never changes.** A format only cuts the page into blocks and marks words inside
 them — every character stays where it was. A highlight made before a paper read its formats is found
@@ -460,7 +466,10 @@ an iPad (#767):
   are short fragments, or there is little text at all — opens **as printed**; prose opens reflowed.
   The Reader decides from the text of the first three pages, once per copy of the file (a new copy is
   sampled again), and keeps it beside the paper's place — the PDF itself is never written. Opening a
-  copy it has read already reads none of those pages again (#851). **The view
+  copy it has read already reads none of those pages again (#851). A **designed document** opens as
+  printed too (#852): one with the same picture in the same place on most of its first pages (a
+  letterhead, a vendor's logo), or a page that is mostly one picture (a cover). A ruled table alone
+  does not make a document designed — papers have them too. **The view
   you choose wins from then on**: turn Page view on or off (**V**, or its button) and the paper opens
   that way next time. A tab you left open opens as you left it.
 

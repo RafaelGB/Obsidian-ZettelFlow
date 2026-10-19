@@ -38,6 +38,7 @@ import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace
 import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
 import { knownPdf, sourceFormat } from "application/library/sourceMeta";
+import type { LeftOut } from "application/library/pdfPrint";
 import { readingMotion } from "./readingMotion";
 import { matchesIn, searchBook, type SearchResult } from "./readerSearch";
 import { chapterText, offsetAt, pointAt, readableText, readableWithMap, unwrapMark, wrapSpan, type NodeLike } from "./readerMarks";
@@ -3077,6 +3078,9 @@ export class ReaderView extends ItemView {
             const back = hint.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_reading_view") });
             component.registerDomEvent(back, "click", () => this.toggleView());
         }
+        // What a printed page reflowed leaves out, said under it once it is drawn (#852 FR-2).
+        const leftOutNote =
+            doc?.format === "pdf" && !doc.imageOnly && !asRun ? page.createDiv({ cls: [c("reader-source-hint"), c("reader-source-leftout"), c("reader-hidden")], attr: { role: "note" } }) : null;
         const body = page.createDiv({
             cls: ["markdown-rendered", c("reader-body"), c("reader-source-body"), c(`reader-source-body--${doc?.format ?? "pdf"}`)].join(" "),
         });
@@ -3120,6 +3124,7 @@ export class ReaderView extends ItemView {
             const drawn = await doc.draw(index, body, component, this.sourceView);
             picture = drawn.picture;
             pageMarks = drawn.pageMarks ?? [];
+            if (leftOutNote && drawn.leftOut) this.sayLeftOut(leftOutNote, drawn.leftOut, component);
             // The column says what it is written in, so it hyphenates by the book's rules (#757 FR-6).
             this.pageLanguage = readingLanguage({ format: doc.format, bookLanguage: doc.language, chapterLanguage: drawn.language });
             if (this.pageLanguage) body.setAttribute("lang", this.pageLanguage);
@@ -3342,6 +3347,23 @@ export class ReaderView extends ItemView {
     }
 
     /** The one quiet line a designed page says (#771 FR-8), in the manner of Page view's hint. */
+    /**
+     * The quiet line under a reflowed PDF page (#852 FR-2): its pictures and its ruled tables, and the
+     * page's layout, are what the reading view leaves out — and Page view, one tap away, keeps them.
+     * Only what is true of this page is said; a page that leaves nothing out says nothing.
+     */
+    private sayLeftOut(note: HTMLElement, leftOut: LeftOut, component: Component): void {
+        const parts = [
+            ...(leftOut.pictures > 0 ? [tCount(leftOut.pictures, "reader_source_left_out_pictures", String(leftOut.pictures))] : []),
+            ...(leftOut.tables ? [t("reader_source_left_out_tables")] : []),
+        ];
+        if (parts.length === 0) return;
+        note.createSpan({ text: t("reader_source_left_out", parts.join(", ")) });
+        const button = note.createEl("button", { cls: c("reader-source-hint-action"), attr: { type: "button" }, text: t("reader_source_page_view") });
+        component.registerDomEvent(button, "click", () => this.toggleView());
+        note.removeClass(c("reader-hidden"));
+    }
+
     private designedHint(page: HTMLElement): HTMLElement {
         this.designedHintShown = true;
         const hint = page.createDiv({ cls: [c("reader-source-hint"), c("reader-designed-hint")], attr: { role: "note" } });

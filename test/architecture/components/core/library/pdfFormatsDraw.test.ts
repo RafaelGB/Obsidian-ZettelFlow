@@ -127,14 +127,18 @@ describe("bold and italic, drawn (#839)", () => {
         expect(chapterText(plain.body)).toBe(chapterText(styled.body));
     });
 
-    it("reads each font once: a later page with the same fonts waits for nothing (FR-6)", async () => {
+    it("reads each font once, off the list each page is asked for once — the next one before you turn (FR-6, #852)", async () => {
         const { lib, calls } = makePdfJs({ pages: [formatsFake(), formatsFake(), { ...formatsFake(), runs: [{ str: "A face not seen before", x: 72, y: 700, size: 10, font: "FX" }] }], fonts: { ...FORMATS.fonts, FX: "Garamond-Italic" } });
         __setPdfJs(lib);
         const paper = new TFile();
         paper.path = "Papers/two.pdf";
         const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
-        for (const index of [0, 1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
-        expect(calls.opLists).toEqual([1, 3]);
+        // Opening read the first pages' print (#852 FR-1): each page's list is asked for once, and kept.
+        const opened = [...calls.opLists];
+        expect(opened).toEqual([1, 2, 3]);
+        await doc.draw(0, new DomNode("div") as never, new Component(), "reading");
+        for (const index of [1, 2]) await doc.draw(index, new DomNode("div") as never, new Component(), "reading");
+        expect(calls.opLists).toEqual(opened);
     });
 });
 

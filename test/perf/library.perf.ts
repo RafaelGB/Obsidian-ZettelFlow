@@ -16,6 +16,7 @@ import { parseXml } from "../support/miniXml";
 import { searchBook } from "architecture/components/core/reader/readerSearch";
 import { MAX_DRAWN, heldRange, mostOnScreen, runLayout, visibleWindow } from "architecture/components/core/library/sources/pdfPageView";
 import { cleanDesignedCss, designedCssBook, pairSpreads } from "application/library/epubFixedLayout";
+import { hasRuledTable, printOf } from "application/library/pdfPrint";
 import { cropOpsOf, inkOf, measurePage, paperFrames } from "application/library/pdfCrop";
 import { PDFJS_OPS } from "../support/pdfCropPaper";
 import { BUDGETS, checkBudget, describeBudget, type BudgetKey } from "./budgets";
@@ -375,5 +376,27 @@ describe("the Library (#675)", () => {
         });
         if (!frames || frames.right.x <= frames.left.x) throw new Error("the frames were not found");
         assertBudget("library.pdf.crop.frames", ms);
+    });
+
+    it("library.pdf.print.page", () => {
+        // A ruled page at its worst: 2,000 operators, a table drawn a cell border at a time (#852).
+        const ops = cropOpsOf(PDFJS_OPS)!;
+        const fnArray: number[] = [];
+        const argsArray: unknown[] = [];
+        const piece = (box: number[]) => [PDFJS_OPS.fill, [new Float32Array([0, box[0], box[1], 1, box[2], box[3]])], new Float32Array(box)];
+        // 500 cells, each its top border and its left one: 1,000 pieces, 2,000 operators.
+        for (let i = 0; i < 500; i++) {
+            const y = 700 - Math.floor(i / 10) * 12;
+            const x = 66 + (i % 10) * 48;
+            fnArray.push(PDFJS_OPS.save, PDFJS_OPS.constructPath, PDFJS_OPS.constructPath, PDFJS_OPS.restore);
+            argsArray.push(null, piece([x, y, x + 48, y + 1]), piece([x, y - 12, x + 1, y]), null);
+        }
+        const toView = (rect: ArrayLike<number>) => [rect[0], 792 - rect[1], rect[2], 792 - rect[3]];
+        let table = false;
+        const ms = best(5, () => {
+            for (let k = 0; k < 10; k++) table = hasRuledTable(printOf({ fnArray, argsArray }, ops, toView, 612, 792)!);
+        });
+        if (!table) throw new Error("the ruled table was not found");
+        assertBudget("library.pdf.print.page", ms / 10);
     });
 });

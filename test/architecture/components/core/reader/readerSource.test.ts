@@ -4,6 +4,7 @@ import { DomNode, flush, settle } from "../../../../support/dashboardDom";
 import { place } from "../../../../support/readerPlace";
 import { press } from "../../../../support/readerKeys";
 import { makePdfJs, prose } from "../../../../support/fakePdf";
+import { LOGO, grid, image, opList } from "../../../../support/pdfPrintPaper";
 import { ReaderView } from "architecture/components/core/reader/ReaderView";
 import { parseReaderState } from "architecture/components/core/reader/readerContract";
 import { resetReaderWorkspace } from "architecture/components/core/reader/openReader";
@@ -14,6 +15,8 @@ import type { HighlightStore } from "architecture/components/core/reader/readerH
 import type { Thought } from "application/thinking/thought";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const cls = (name: string) => `zettelkasten-flow__${name}`;
+
 function file(path: string): TFile {
     const f = new TFile();
     f.path = path;
@@ -252,6 +255,48 @@ describe("a PDF opens without reading its first pages again (#851 FR-2, AC-3, AC
         expect(calls.textReads.slice(0, 3)).toEqual([1, 2, 3]);
         await settle(() => (host.settings.library as any)?.["Papers/cap.pdf"]?.typewritten === false);
         expect((host.settings.library as any)["Papers/cap.pdf"].typewritten).toBe(false);
+    });
+});
+
+describe("a designed PDF opens as printed, and the reading view says what it leaves out (#852)", () => {
+    beforeEach(() => resetReaderWorkspace());
+    afterAll(() => __setPdfJs(null));
+
+    const withOps = (...lists: (ReturnType<typeof opList> | undefined)[]) => PAPER.map((page, i) => (lists[i] ? { ...page, ops: lists[i] } : page));
+    const note = (content: DomNode) => content.byClass("reader-source-leftout").find((el) => !el.hasClass(cls("reader-hidden")));
+
+    it("opens a document with its logo on every page in Page view (AC-1)", async () => {
+        const { view } = await open(0, {}, withOps(opList(LOGO), opList(LOGO), opList(LOGO)));
+        expect((view as any).sourceView).toBe("page");
+    });
+
+    it("opens a paper with a figure on one page reflowed, as before (AC-1)", async () => {
+        const { view } = await open(0, {}, withOps(undefined, opList(image(72, 300, 400, 250))));
+        expect((view as any).sourceView).toBe("reading");
+    });
+
+    it("says under a reflowed page what it leaves out, and takes you to Page view on the same page (AC-2)", async () => {
+        // In Page, the view on show is the page asked for: the fake DOM has no scroll to say it.
+        const { content, view } = await open(1, { layout: "reading" }, withOps(undefined, opList(LOGO, image(100, 100, 400, 300))), { readerPrefs: { layout: "page" } });
+        await settle(() => Boolean(note(content)));
+        expect(note(content)!.find((el) => el.tag === "span")!.textContent).toBe("Leaves out 2 pictures and the page's layout.");
+        const button = note(content)!.find((el) => el.tag === "button")!;
+        expect(button.textContent).toBe("Page view");
+        button.click();
+        await settle(() => (view as any).sourceView === "page" && place(content) === "Page 2 / 3");
+        expect(place(content)).toBe("Page 2 / 3");
+    });
+
+    it("names a ruled table too, and counts one picture as one", async () => {
+        const { content } = await open(0, { layout: "reading" }, withOps(opList(LOGO, grid(500, 4, 3))));
+        await settle(() => Boolean(note(content)));
+        expect(note(content)!.find((el) => el.tag === "span")!.textContent).toBe("Leaves out 1 picture, its tables and the page's layout.");
+    });
+
+    it("says nothing on a page that leaves nothing out (AC-3)", async () => {
+        const { content } = await open(0, { layout: "reading" });
+        await flush();
+        expect(note(content)).toBeUndefined();
     });
 });
 

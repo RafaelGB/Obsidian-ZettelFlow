@@ -1,5 +1,6 @@
 import { TFile, type App, type Component } from "obsidian";
 import { sourceFormat, type KnownPdf, type SourceFormat } from "application/library/sourceMeta";
+import type { LeftOut } from "application/library/pdfPrint";
 import type { CropBox, PageInk } from "application/library/pdfCrop";
 import type { SpreadView } from "application/library/epubFixedLayout";
 import type { PageText } from "application/library/pdfWords";
@@ -77,6 +78,8 @@ export interface DrawnChapter {
     cover?: boolean;
     /** How many listings of code the chapter has (#824): the *Code lines* row appears for them. */
     listings?: number;
+    /** What a PDF page reflowed leaves out of its print (#852 FR-2): said in one quiet line under it. */
+    leftOut?: LeftOut;
 }
 
 /** A link on a printed page (#767 FR-11, FR-12): where it sits on the page, as shares of it, and where it goes. */

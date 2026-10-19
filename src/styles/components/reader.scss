@@ -4184,8 +4184,9 @@ button.zettelkasten-flow__reader-hl-layer {
      */
     .zettelkasten-flow__reader-pdf-island {
         position: relative;
-        width: min(100%, var(--zf-island-w, 100%));
-        max-height: 85vh;
+        // Its width caps its height too — never past the page it is on, nor the screen — so its shape
+        // is kept and nothing is squashed or cut across two pages.
+        width: min(100%, var(--zf-island-w, 100%), calc(min(85vh, var(--zf-page-h, 85vh)) * var(--zf-island-aspect, 1.5)));
         aspect-ratio: var(--zf-island-aspect, 1.5);
         margin: var(--size-4-4) auto;
         border-radius: var(--radius-s);

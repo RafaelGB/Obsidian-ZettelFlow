@@ -244,6 +244,27 @@ describe("islands of print, drawn (#854 FR-3, FR-4, AC-2, AC-5)", () => {
         expect(crop.offsetY).toBeLessThan(0);
     });
 
+    it("never keeps a drawing let go: a page turned away mid-drawing draws its island again (review, #854)", async () => {
+        const { lib, calls } = makePdfJs({ pages: [PAGE], holdRenders: true });
+        __setPdfJs(lib);
+        const paper = new TFile();
+        paper.path = "Papers/turned.pdf";
+        const doc = await openPdfSource({ vault: { readBinary: async () => new ArrayBuffer(4), getAbstractFileByPath: () => paper } } as never, paper);
+        const first = new Component();
+        first.load();
+        await doc.draw(0, new DomNode("div") as never, first, "reading");
+        await settle(() => calls.renders.length === 1);
+        // Turned away before it finished: the drawing is cancelled, and resolves.
+        first.unload();
+        calls.release();
+        await flush();
+        const again = new DomNode("div");
+        await doc.draw(0, again as never, new Component(), "reading");
+        await settle(() => calls.renders.length === 2);
+        expect(calls.renders).toHaveLength(2);
+        expect(again.findAll((el: any) => el.hasClass("zettelkasten-flow__reader-pdf-island--drawn"))).toHaveLength(0);
+    });
+
     it("waits until the island nears the screen, and draws it again from what it kept (AC-5)", async () => {
         const watched: { cb: (entries: { isIntersecting: boolean; target: unknown }[]) => void; targets: unknown[] }[] = [];
         const g = globalThis as any;
@@ -273,12 +294,13 @@ describe("islands of print, drawn (#854 FR-3, FR-4, AC-2, AC-5)", () => {
                 await flush();
                 return body;
             };
-            await draw();
+            const shown = await draw();
             expect(calls.renders).toHaveLength(0);
             const near = watched[watched.length - 1];
             near.cb(near.targets.map((target) => ({ isIntersecting: true, target })));
             await settle(() => calls.renders.length === 1);
-            // The page turned away and back: the island is drawn from what was kept, not by pdf.js again.
+            // The page turned away (the Reader empties it) and back: the island is drawn from what was kept.
+            shown.remove();
             await draw();
             const again = watched[watched.length - 1];
             again.cb(again.targets.map((target) => ({ isIntersecting: true, target })));

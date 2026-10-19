@@ -3346,7 +3346,6 @@ export class ReaderView extends ItemView {
         return this.runMode() && Boolean(this.pageRun) && this.runLayout() === "scroll";
     }
 
-    /** The one quiet line a designed page says (#771 FR-8), in the manner of Page view's hint. */
     /**
      * The quiet line under a reflowed PDF page (#852 FR-2): its pictures and its ruled tables, and the
      * page's layout, are what the reading view leaves out — and Page view, one tap away, keeps them.
@@ -3364,6 +3363,7 @@ export class ReaderView extends ItemView {
         note.removeClass(c("reader-hidden"));
     }
 
+    /** The one quiet line a designed page says (#771 FR-8), in the manner of Page view's hint. */
     private designedHint(page: HTMLElement): HTMLElement {
         this.designedHintShown = true;
         const hint = page.createDiv({ cls: [c("reader-source-hint"), c("reader-designed-hint")], attr: { role: "note" } });

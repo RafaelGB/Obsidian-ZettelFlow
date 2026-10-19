@@ -956,8 +956,10 @@ export class PdfPageRun {
                 this.host.onPage(most);
             }
         }
-        this.askSizes(near);
         this.headFor(layout, scroll, across);
+        // The pages drawn ahead are sized first too, so they are drawn at the scale they will be shown at.
+        const ahead = aheadOf(near.map((slot) => slot.page), this.pages.count, this.heading).map((page) => this.slotOf(page) ?? { page, x: 0, y: 0, w: 0, h: 0 });
+        this.askSizes([...near, ...ahead]);
         // A fling is the platform's (FR-19): pages flying past are not drawn — a drawing paints on the
         // main thread and would cost the fling its frames. They are drawn once the scroll slows.
         const now = Date.now();

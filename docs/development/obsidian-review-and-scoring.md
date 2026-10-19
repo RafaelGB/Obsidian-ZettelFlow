@@ -95,10 +95,15 @@ plugin guidelines behind them) into the categories that drive the score.
 | Normalise paths | — | Wrap user paths with `normalizePath()`. |
 | No hardcoded config dir | `hardcoded-config-path` | Use `vault.configDir`, not a literal `.obsidian`. |
 
-One call outside the public API is used on purpose, for a manual reviewer to find here: *Share a copy
-with your notes* (#842) offers **Show in folder** through `app.showInFolder(path)`, the call Obsidian's
-own file explorer makes for *Show in system explorer*. It is feature-checked and desktop-only; where it
-is absent, *Open* is the action and nothing else changes.
+Three calls outside the public API are used on purpose, for a manual reviewer to find here. They are
+the ones Obsidian's own file explorer makes, each feature-checked, and where one is absent its item is
+simply not offered:
+- *Share a copy with your notes* (#842) offers **Show in folder** through `app.showInFolder(path)`,
+  desktop only; without it, *Open* is the action.
+- A book's menu in the Library (#856) offers **Open in default app** (`app.openWithDefaultApp(path)`),
+  **Reveal file in navigation** (the core file explorer's `revealInFolder(file)`, reached through
+  `app.internalPlugins.getEnabledPluginById("file-explorer")`) and **Show in system explorer**
+  (`app.showInFolder(path)`, desktop only).
 
 ### 3.5 Styling
 

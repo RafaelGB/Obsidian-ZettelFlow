@@ -89,8 +89,15 @@ function show(menu: Menu, at: MouseEvent | HTMLElement): void {
     menu.showAtPosition({ x: rect?.left ?? 0, y: rect?.bottom ?? 0 });
 }
 
-/** The book's menu: *Details*, and *Move to shelf…* for what can move. */
-export function bookMenu(at: MouseEvent | HTMLElement, actions: { details: () => void; move?: () => MoveChoice[]; choose: (target: ShelfTarget) => void }): void {
+/** Obsidian's own actions on a book's file (#856), each present only where it can work. */
+export interface BookFileActions {
+    open?: () => void;
+    reveal?: () => void;
+    show?: () => void;
+}
+
+/** The book's menu: *Details*, *Move to shelf…* for what can move, and its file's own actions (#856). */
+export function bookMenu(at: MouseEvent | HTMLElement, actions: { details: () => void; move?: () => MoveChoice[]; choose: (target: ShelfTarget) => void; file?: BookFileActions }): void {
     const menu = new Menu();
     menu.addItem((item) => item.setTitle(t("shelf_details")).setIcon("info").onClick(actions.details));
     const move = actions.move;
@@ -102,6 +109,12 @@ export function bookMenu(at: MouseEvent | HTMLElement, actions: { details: () =>
                 .onClick(() => moveMenu(at, move(), actions.choose))
         );
     }
+    // The file itself, in Obsidian's words and order: the system's app, the file explorer, the system's.
+    const { open, reveal, show: inSystem } = actions.file ?? {};
+    if (open || reveal || inSystem) menu.addSeparator();
+    if (open) menu.addItem((item) => item.setTitle(t("shelf_open_default_app")).setIcon("arrow-up-right").onClick(open));
+    if (reveal) menu.addItem((item) => item.setTitle(t("shelf_reveal_file")).setIcon("folder-open").onClick(reveal));
+    if (inSystem) menu.addItem((item) => item.setTitle(t("shelf_show_in_system")).setIcon("folder").onClick(inSystem));
     show(menu, at);
 }
 

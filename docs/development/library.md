@@ -100,7 +100,11 @@ blind-stamped frame, its title in a serif and its author in italic, said once. C
 they come into view, along a shelf too.
 
 **⋯** on a book opens its menu: **Details**, and **Move to shelf…** (see
-[Your shelves](#your-shelves)). A right click opens the same menu.
+[Your shelves](#your-shelves)). Under them are the file's own actions, in Obsidian's words (#856):
+**Open in default app**, **Reveal file in navigation** (it is shown and selected in the file explorer)
+and **Show in system explorer**. Each appears only where it can work: the last on desktop only,
+*Reveal* while the core file explorer is on, and none for a reading path. A right click opens the same
+menu.
 
 **Arrivals.** A file that arrives while the Library is open settles onto its shelf — a touch smaller
 and clear, to itself — and the books beside it make room; nothing moves when the Library is first

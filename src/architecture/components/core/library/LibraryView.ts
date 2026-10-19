@@ -1,4 +1,4 @@
-import { Component, ItemView, Scope, Setting, TFile, moment as obsidianMoment, setIcon, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
+import { Component, ItemView, Platform, Scope, Setting, TFile, moment as obsidianMoment, setIcon, type App, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import type MomentFn from "moment";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
@@ -37,7 +37,7 @@ import {
 } from "application/library/shelves";
 import { applyShelfWrites, realShelfWritePort, type ShelfStep, type ShelfWritePort } from "./libraryShelfWrites";
 import { statusOnOpen } from "application/library/bookNote";
-import { bookMenu, nameField, ownMark, reservedShelfNames, shelfMenu, type MoveChoice } from "./libraryShelves";
+import { bookMenu, nameField, ownMark, reservedShelfNames, shelfMenu, type BookFileActions, type MoveChoice } from "./libraryShelves";
 import { draggable, dropTarget, type DragHooks } from "./libraryDrag";
 import { motionWelcome } from "architecture/components/core/reader/readerMotion";
 import { isFresh, normalizeLibrary, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
@@ -795,7 +795,28 @@ export class LibraryView extends ItemView {
             details: () => this.openDetail(item.id),
             ...(movable ? { move: () => this.moveChoices(item) } : {}),
             choose: (target) => void this.moveBook(item, target),
+            ...(item.kind !== "path" && item.file ? { file: this.fileActions(item.file) } : {}),
         });
+    }
+
+    /**
+     * Obsidian's own actions on a book's file (#856), reached through the app as its file explorer does —
+     * each only where it can work: the system explorer on desktop, *Reveal* with the file explorer on.
+     */
+    private fileActions(path: string): BookFileActions {
+        const app = this.app as App & {
+            openWithDefaultApp?: (path: string) => void;
+            showInFolder?: (path: string) => void;
+            internalPlugins?: { getEnabledPluginById?: (id: string) => { revealInFolder?: (file: TFile) => void } | null };
+        };
+        const file = app.vault.getAbstractFileByPath(path);
+        if (!(file instanceof TFile)) return {};
+        const explorer = app.internalPlugins?.getEnabledPluginById?.("file-explorer");
+        return {
+            ...(typeof app.openWithDefaultApp === "function" ? { open: () => app.openWithDefaultApp?.(file.path) } : {}),
+            ...(typeof explorer?.revealInFolder === "function" ? { reveal: () => explorer.revealInFolder?.(file) } : {}),
+            ...(!Platform.isMobile && typeof app.showInFolder === "function" ? { show: () => app.showInFolder?.(file.path) } : {}),
+        };
     }
 
     /** Covers or spines: the setting's one value (#819 FR-8), covers until you choose. */

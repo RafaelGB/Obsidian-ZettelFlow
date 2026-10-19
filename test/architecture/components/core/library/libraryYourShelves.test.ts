@@ -3,6 +3,8 @@ import { describe, it, expect, jest } from "@jest/globals";
 import { Menu, TFile, WorkspaceLeaf } from "obsidian";
 import { DomNode, flush } from "../../../../support/dashboardDom";
 import { LibraryView } from "architecture/components/core/library/LibraryView";
+import { bookMenu } from "architecture/components/core/library/libraryShelves";
+import { withPlatform, IPAD } from "../../../../support/platform";
 
 const openReader = jest.fn();
 jest.mock("architecture/components/core/reader/openReader", () => ({ openReader: (...args: unknown[]) => openReader(...args) }));
@@ -30,11 +32,16 @@ const library = {
     [FRESH]: { size: 10, mtime: 20, title: "Fresh", chapters: 9 },
 };
 
-function mount(notes: Record<string, Record<string, unknown>> = {}, settings: Record<string, unknown> = {}, extra: string[] = []) {
+function mount(notes: Record<string, Record<string, unknown>> = {}, settings: Record<string, unknown> = {}, extra: string[] = [], options: { explorer?: boolean } = {}) {
     const sources = [BOOK, PAPER, FRESH, ...extra].map(file);
     const markdown = Object.keys(notes).map(file);
     const on = () => ({});
+    // Obsidian's own file actions (#856): the system's app, its file manager, and the core file explorer.
+    const explorer = { revealInFolder: jest.fn() };
     const app = {
+        openWithDefaultApp: jest.fn(),
+        showInFolder: jest.fn(),
+        internalPlugins: { getEnabledPluginById: (id: string) => (id === "file-explorer" && options.explorer !== false ? explorer : null) },
         workspace: { requestSaveLayout: jest.fn(), openLinkText: jest.fn(), getActiveFile: () => null, getLastOpenFiles: () => [], on },
         vault: {
             getFiles: () => [...sources, ...markdown],
@@ -58,7 +65,7 @@ function mount(notes: Record<string, Record<string, unknown>> = {}, settings: Re
     const content = new DomNode();
     const host = { settings: { library, ...settings }, saveSettings: jest.fn(async () => undefined) };
     const view = new LibraryView(new WorkspaceLeaf(app, content), host, { shelves: { port: port as never }, details: { suggest: () => undefined } });
-    return { view, content, host, port };
+    return { view, content, host, port, app, explorer };
 }
 
 const stands = (content: DomNode) => content.byClass("shelf-bay").map((bay) => [bay.attrs["data-zf-shelf"], bay.byClass("shelf-book").map((el) => el.attrs["data-shelf-id"])]);
@@ -104,7 +111,7 @@ describe("Move to shelf… (#821 AC-18, AC-19, FR-16)", () => {
         const { view, content } = mount({}, { libraryShelves: ["Para releer"] });
         await view.onOpen();
         book(content, FRESH).oneByClass("shelf-more").click();
-        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details", "Move to shelf…"]);
+        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details", "Move to shelf…", "Open in default app", "Reveal file in navigation", "Show in system explorer"]);
         Menu.last!.item("Move to shelf…").click();
         expect(Menu.last!.items.map((item) => [item.title, item.checked])).toEqual([
             ["Reading", false],
@@ -300,5 +307,38 @@ describe("Want to read, then opened (#822 AC-12..AC-15)", () => {
         expect(port.edit).not.toHaveBeenCalled();
         expect(other.port.edit).not.toHaveBeenCalled();
         expect(other.port.create).not.toHaveBeenCalled();
+    });
+});
+
+describe("a book's file, from its menu (#856)", () => {
+    it("opens it in the system's app, reveals it in the file explorer and shows it in the system's — Obsidian's own actions (AC-1)", async () => {
+        const { view, content, app, explorer } = mount();
+        await view.onOpen();
+        book(content, FRESH).oneByClass("shelf-more").click();
+        expect(Menu.last!.separators).toBe(1);
+        Menu.last!.item("Open in default app").click();
+        expect(app.openWithDefaultApp).toHaveBeenCalledWith(FRESH);
+        book(content, FRESH).oneByClass("shelf-more").click();
+        Menu.last!.item("Reveal file in navigation").click();
+        expect((explorer.revealInFolder.mock.calls[0] as any[])[0].path).toBe(FRESH);
+        book(content, FRESH).oneByClass("shelf-more").click();
+        Menu.last!.item("Show in system explorer").click();
+        expect(app.showInFolder).toHaveBeenCalledWith(FRESH);
+    });
+
+    it("offers only what can work: no system explorer on a phone or an iPad, no reveal with the file explorer off (AC-2)", async () => {
+        const { view, content } = mount({}, {}, [], { explorer: false });
+        await view.onOpen();
+        withPlatform(IPAD, () => book(content, FRESH).oneByClass("shelf-more").click());
+        const titles = Menu.last!.items.map((item) => item.title);
+        expect(titles).toContain("Open in default app");
+        expect(titles).not.toContain("Show in system explorer");
+        expect(titles).not.toContain("Reveal file in navigation");
+    });
+
+    it("offers none of them for what is not a file, such as a reading path (AC-3)", () => {
+        bookMenu({ clientX: 0, clientY: 0 } as MouseEvent, { details: () => undefined, choose: () => undefined });
+        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details"]);
+        expect(Menu.last!.separators).toBe(0);
     });
 });

@@ -146,7 +146,9 @@ describe("a side panel closes from the panel (#777)", () => {
         const paper = await openPaper();
         barButton(paper.content, "Contents").click();
         const tabsClose = closeIn(paper.content, "Close contents");
-        expect(tabsClose.parent.hasClass("zettelkasten-flow__reader-tabs")).toBe(true);
+        // In the book's head, at the end of its row, above the tabs (#861 FR-2).
+        expect(tabsClose.parent.hasClass("zettelkasten-flow__reader-contents-head")).toBe(true);
+        expect(tabsClose.parent.children.at(-1)).toBe(tabsClose);
         tabsClose.click();
         expect(isOpen(paper.content)).toBe(false);
     });

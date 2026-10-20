@@ -472,8 +472,13 @@ export const BUDGETS = {
         // UTF-8 (#835) -6.3 KB, only the ECharts variants the panels use (#834) -14.2 KB, and
         // json-stable-stringify's polyfills replaced by a local port (#833) -23.4 KB. 3,130.8 KB; the
         // ceiling closes at its measure plus 2 KB, so the bytes saved stay saved.
-        limit: 3_133,
-        measured: "3,130.8 KB",
+        // 3,133 → 3,143 (#861): Contents with the book's shape adds 10.2 KB — the pure shape (parts, sections,
+        // matter, numbers, pages, Find), the panel that draws it, the cards and the timeline. Looked for
+        // something to subtract first: the cover is the Library's own cache (no read, no new reader), the
+        // marks, the states and the jumps are #812's and #718's, and the old depth rules and second label
+        // are gone. No dependency. 3,141.0 KB; the ceiling closes at its measure plus 2 KB.
+        limit: 3_143,
+        measured: "3,141.0 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

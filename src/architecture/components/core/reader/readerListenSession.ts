@@ -10,10 +10,14 @@ import {
     sentenceWatchdogMs,
     sentencesWithin,
     splitSentences,
+    voiceEntries,
+    voiceOffer,
     type ListenParagraph,
     type ListenPrefs,
     type Sentence,
+    type VoiceEntry,
     type VoiceLike,
+    type VoiceOffer,
 } from "./readerListen";
 import type { NodeLike } from "./readerMarks";
 
@@ -158,6 +162,21 @@ export class ListenSession {
 
     voice(): VoiceLike | null {
         return chooseVoice(this.port.engine.getVoices?.() ?? [], this.view.lang(), this.view.prefs().voice);
+    }
+
+    /** The voices at hand (#863): the reading language's, the default marked, and yours. */
+    offer(): VoiceOffer<VoiceLike> {
+        return voiceOffer(this.port.engine.getVoices?.() ?? [], this.view.lang(), this.view.prefs().voice);
+    }
+
+    /** Every voice of the device, named with its language, for *Other languages…* (#863). */
+    entries(uiLang: string, query?: string): VoiceEntry<VoiceLike>[] {
+        return voiceEntries(this.port.engine.getVoices?.() ?? [], this.view.lang(), uiLang, query);
+    }
+
+    /** A voice chosen: the default one forgets your choice, so the voice follows each book's language again. */
+    chooseVoice(voiceURI: string): void {
+        this.choose({ voice: this.offer().auto?.voiceURI === voiceURI ? undefined : voiceURI });
     }
 
     /**

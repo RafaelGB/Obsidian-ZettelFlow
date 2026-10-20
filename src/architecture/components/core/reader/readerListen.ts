@@ -76,11 +76,81 @@ export function chooseVoice<V extends VoiceLike>(voices: readonly V[], lang: str
     return preferDefault(local);
 }
 
-/** The voices the bar's list offers: on-device ones, the book's language first, then by name. */
-export function voiceChoices<V extends VoiceLike>(voices: readonly V[], lang: string | null | undefined): V[] {
-    const local = localVoices(voices);
+/** A voice's own name, without the language some engines append (*Microsoft Zira - English (…)*). */
+export function voiceName(voice: VoiceLike): string {
+    return voice.name.replace(/\s+-\s+.*$/, "");
+}
+
+/** Each voice once — a name twice in one language is one voice, the system's default if it is one. */
+function onceEach<V extends VoiceLike>(voices: readonly V[]): V[] {
+    const kept = new Map<string, V>();
+    for (const voice of voices) {
+        const key = `${voiceName(voice)}|${voice.lang.toLowerCase().replace("_", "-")}`;
+        const had = kept.get(key);
+        if (!had || (voice.default && !had.default)) kept.set(key, voice);
+    }
+    return [...kept.values()];
+}
+
+/** What the bar and the menu offer as the voice (#863). */
+export interface VoiceOffer<V extends VoiceLike> {
+    /** The voice that reads when you have chosen none: shown *(default)*. */
+    auto: V | null;
+    /** The voice that reads now: yours, or the default. */
+    current: V | null;
+    /** The reading language's voices, the default first, then by name — and yours, from another language. */
+    near: V[];
+    /** Whether the device has voices in other languages, behind *Other languages…*. */
+    more: boolean;
+}
+
+/**
+ * The voices offered at hand (#863): only the reading language's — iPadOS has eight voices that exist
+ * once per language, so the whole list ran to hundreds of repeated names. The rest are a search away.
+ */
+export function voiceOffer<V extends VoiceLike>(voices: readonly V[], lang: string | null | undefined, remembered?: string): VoiceOffer<V> {
+    const local = onceEach(localVoices(voices));
+    const auto = chooseVoice(local, lang);
+    const current = chooseVoice(local, lang, remembered);
+    const target = lang ?? auto?.lang;
+    const same = target ? local.filter((voice) => primary(voice.lang) === primary(target)) : [];
+    const rest = same.filter((voice) => voice !== auto && voice !== current).sort((a, b) => voiceName(a).localeCompare(voiceName(b)));
+    const near = [...(auto ? [auto] : []), ...(current && current !== auto ? [current] : []), ...rest];
+    return { auto, current, near, more: local.some((voice) => !near.includes(voice)) };
+}
+
+/** A language as Obsidian's language says it: `es-ES` → *Español (España)*; the tag where it cannot. */
+export function languageName(tag: string, uiLang: string): string {
+    const clean = tag.replace("_", "-");
+    try {
+        const name = new Intl.DisplayNames([uiLang, "en"], { type: "language", languageDisplay: "standard" }).of(clean);
+        if (name && name !== clean) return name.charAt(0).toLocaleUpperCase(uiLang) + name.slice(1);
+    } catch {
+        // An engine without `Intl.DisplayNames`, or a tag it refuses: the tag itself.
+    }
+    return clean;
+}
+
+/** A voice in the search: its name and its language, in Obsidian's language. */
+export interface VoiceEntry<V extends VoiceLike> {
+    voice: V;
+    name: string;
+    language: string;
+}
+
+const folded = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+/**
+ * Every voice of the device, for *Other languages…* (#863): each with its language named, the reading
+ * language first, then by language and name; `query` matches a name, a language or its tag, accents aside.
+ */
+export function voiceEntries<V extends VoiceLike>(voices: readonly V[], lang: string | null | undefined, uiLang: string, query = ""): VoiceEntry<V>[] {
+    const q = folded(query.trim());
     const rank = (voice: V) => (lang && primary(voice.lang) === primary(lang) ? 0 : 1);
-    return [...local].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+    return onceEach(localVoices(voices))
+        .map((voice) => ({ voice, name: voiceName(voice), language: languageName(voice.lang, uiLang) }))
+        .filter((entry) => !q || [entry.name, entry.language, entry.voice.lang].some((text) => folded(text).includes(q)))
+        .sort((a, b) => rank(a.voice) - rank(b.voice) || a.language.localeCompare(b.language) || a.name.localeCompare(b.name));
 }
 
 // ── sentences ───────────────────────────────────────────────────────────────

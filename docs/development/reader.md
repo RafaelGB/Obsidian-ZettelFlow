@@ -931,7 +931,16 @@ only those the engine marks as speaking **on the device** are offered — a voic
 (`localService: false`) is never used, not even as a fallback, so **no text leaves the device** and
 listening works the same with the network off. The book's language picks the voice: its
 [book's note](library.md)'s `language`, else the book's own (an EPUB's `dc:language`, a chapter's
-`lang`), else an article's `lang`, else the system's default. Where the API is missing, or the device
+`lang`), else an article's `lang`, else **Obsidian's own language**.
+
+**Only the reading language's voices are at hand.** A device lists a great many voices — an iPad has
+the same handful of names once per language, so the whole list ran to dozens of repeated names. The
+Listen menu and the bar's voice list offer only the voices of the language being read, the one that
+reads unless you choose marked **(default)** and listed first. A voice you chose from another language
+stays at hand, its language named (*Eddy · French (France)*). **Other languages…** opens a search over
+every voice of the device, each with its language named in Obsidian's language — type a name or a
+language (*french*, *español*, accents aside) or a tag (*en-GB*). Choosing the *(default)* voice forgets
+your choice, so the voice goes back to following each book's language. Where the API is missing, or the device
 has no voice of its own, **Listen is not offered** at all. Some engines list their natural voices as
 remote (macOS may, for Siri's); those are left out, honestly, rather than used.
 

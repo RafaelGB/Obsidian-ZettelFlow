@@ -6339,16 +6339,16 @@ export class ReaderView extends ItemView {
         // A scanned PDF has no text to read: the button says so, and does nothing (FR-8).
         if (!session || !this.listenAvailable()) return;
         this.listenLang = this.readingLang();
-        openListenMenu(event, { session, start: (mode) => this.startListening(mode), lang: () => this.listenLang });
+        openListenMenu(event, { app: this.app, session, start: (mode) => this.startListening(mode), lang: () => this.listenLang });
     }
 
     /**
      * The language the voice reads in (FR-2): the book's note's `language` (#743), the book's own or
-     * its chapter's (#757), an article's `lang`; else none, and the device's default voice reads.
+     * its chapter's (#757), an article's `lang`; else Obsidian's own language (#863).
      */
     private readingLang(): string | null {
         const noted = this.sourcePath ? languageTag(bookNoteOf(this.app, this.sourcePath)?.details.language) : undefined;
-        return noted ?? this.pageLanguage ?? languageTag(this.source?.language) ?? null;
+        return noted ?? this.pageLanguage ?? languageTag(this.source?.language) ?? languageTag(getLanguage()) ?? null;
     }
 
     /** Begin reading aloud (FR-1): *From here*, *This chapter*, or the selected words. */
@@ -6399,7 +6399,7 @@ export class ReaderView extends ItemView {
                 const scope = new Component();
                 scope.load();
                 this.listenScope = scope;
-                this.listenBar = new ListenBar(root, { session, owner: scope, mark: () => void this.listenMark(), lang: () => this.listenLang });
+                this.listenBar = new ListenBar(root, { app: this.app, session, owner: scope, mark: () => void this.listenMark(), lang: () => this.listenLang });
             } else this.listenBar.update();
         } else if (this.listenBar) {
             this.listenBar.remove();

@@ -416,7 +416,7 @@ describe("listen, over the Reader (#765)", () => {
         const m = await open([], { speech: new FakeSpeech([remote, hazel, george]), stored: { voice: "George", rate: 1.5 } });
         listenButton(m.content)!.click({});
         const titles = (Menu as any).last.items.map((item: any) => item.title);
-        expect(titles).toEqual(["From here", "This chapter", "Voice", "George", "Hazel"]);
+        expect(titles).toEqual(["From here", "This chapter", "Voice", "Hazel (default)", "George"]);
         expect(titles).not.toContain("Cloud");
         (Menu as any).last.item("From here").click();
         expect(m.speech.speaking!.voice?.name).toBe("George");
@@ -428,7 +428,32 @@ describe("listen, over the Reader (#765)", () => {
         expect(m.app.saveLocalStorage).toHaveBeenCalledWith(LISTEN_STORAGE_KEY, { voice: "George", rate: 2 });
         expect(m.speech.speaking!.rate).toBe(2);
         const voice = bar(m.content)!.oneByClass("reader-listen-voice") as any;
-        expect(voice.children.map((o: DomNode) => o.textContent)).toEqual(["George", "Hazel"]);
+        expect(voice.children.map((o: DomNode) => o.textContent)).toEqual(["Hazel (default)", "George"]);
+        // The default one forgets your choice: the voice follows each book's language again (#863).
+        voice.value = hazel.voiceURI;
+        voice.fire("change");
+        expect(m.app.saveLocalStorage).toHaveBeenLastCalledWith(LISTEN_STORAGE_KEY, { voice: undefined, rate: 2 });
+        expect(m.speech.speaking!.voice?.name).toBe("Hazel");
+    });
+
+    it("keeps other languages' voices behind Other languages…, found by name or language (#863)", async () => {
+        const hazel = FakeSpeech.voice({ name: "Hazel", lang: "en-GB", default: true });
+        const eddyEn = FakeSpeech.voice({ name: "Eddy", voiceURI: "eddy-en", lang: "en-US", default: false });
+        const eddyFr = FakeSpeech.voice({ name: "Eddy", voiceURI: "eddy-fr", lang: "fr-FR", default: false });
+        const eddyDe = FakeSpeech.voice({ name: "Eddy", voiceURI: "eddy-de", lang: "de-DE", default: false });
+        const m = await open([], { speech: new FakeSpeech([hazel, eddyEn, eddyFr, eddyDe]) });
+        listenButton(m.content)!.click({});
+        const titles = (Menu as any).last.items.map((item: any) => item.title);
+        expect(titles).toEqual(["From here", "This chapter", "Voice", "Hazel (default)", "Eddy", "Other languages…"]);
+        (Menu as any).last.item("From here").click();
+        const voice = bar(m.content)!.oneByClass("reader-listen-voice") as any;
+        expect(voice.children.map((o: DomNode) => o.textContent)).toEqual(["Hazel (default)", "Eddy", "Other languages…"]);
+        const session = (m.view as any).listen;
+        expect(session.entries("en", "french").map((entry: any) => entry.voice.voiceURI)).toEqual(["eddy-fr"]);
+        session.chooseVoice("eddy-fr");
+        expect(m.speech.speaking!.voice?.voiceURI).toBe("eddy-fr");
+        // Your voice from another language stays at hand, its language named.
+        expect(voice.children.map((o: DomNode) => o.textContent)).toEqual(["Hazel (default)", "Eddy · French (France)", "Eddy", "Other languages…"]);
     });
 
     it("says on iPad and iPhone that listening stops when the screen locks (FR-7)", async () => {

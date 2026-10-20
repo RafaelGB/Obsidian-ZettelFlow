@@ -1,8 +1,8 @@
-import { Menu, Platform, setIcon, setTooltip, type Component } from "obsidian";
+import { Menu, Platform, SuggestModal, getLanguage, setIcon, setTooltip, type App, type Component } from "obsidian";
 import { c } from "architecture";
 import { t } from "architecture/lang";
 import { MOTION, motionWelcome } from "./readerMotion";
-import { LISTEN_RATES, rateLabel, voiceChoices } from "./readerListen";
+import { LISTEN_RATES, languageName, rateLabel, voiceName, type VoiceEntry, type VoiceLike, type VoiceOffer } from "./readerListen";
 import type { ListenMode, ListenSession } from "./readerListenSession";
 
 type LocaleKey = Parameters<typeof t>[0];
@@ -14,10 +14,52 @@ type LocaleKey = Parameters<typeof t>[0];
  * 8 px with a fade as it comes and sinks as it goes (FR-13); under reduced motion it is simply there.
  */
 
-/** How many voices the menu lists: those in the book's language first. The bar's list has them all. */
+/** How many voices the menu lists, of the reading language's; the rest are in *Other languages…*. */
 const MENU_VOICES = 6;
 
+/** The bar's list item that opens the search, not a voice. */
+const MORE = "zettelflow:other-languages";
+
+/**
+ * A voice as the lists say it (#863): its own name, *(default)* on the one that reads unless you choose,
+ * and its language when it is not the reading language's.
+ */
+function voiceLabel(voice: VoiceLike, offer: VoiceOffer<VoiceLike>, lang: string | null): string {
+    const name = voiceName(voice);
+    if (voice === offer.auto) return t("reader_listen_default", name);
+    const target = lang ?? offer.auto?.lang;
+    const foreign = !target || voice.lang.toLowerCase().split(/[-_]/)[0] !== target.toLowerCase().split(/[-_]/)[0];
+    return foreign ? `${name} · ${languageName(voice.lang, getLanguage())}` : name;
+}
+
+/** *Other languages…* (#863): every voice of the device, found by its name or its language. */
+export class VoiceSearchModal extends SuggestModal<VoiceEntry<VoiceLike>> {
+    constructor(
+        app: App,
+        private readonly session: ListenSession
+    ) {
+        super(app);
+        this.setPlaceholder(t("reader_listen_voice_search"));
+    }
+
+    getSuggestions(query: string): VoiceEntry<VoiceLike>[] {
+        return this.session.entries(getLanguage(), query);
+    }
+
+    renderSuggestion(entry: VoiceEntry<VoiceLike>, el: HTMLElement): void {
+        const offer = this.session.offer();
+        const name = entry.voice === offer.auto ? t("reader_listen_default", entry.name) : entry.name;
+        el.createDiv({ text: entry.voice === offer.current ? `✓ ${name}` : name });
+        el.createEl("small", { text: entry.language });
+    }
+
+    onChooseSuggestion(entry: VoiceEntry<VoiceLike>): void {
+        this.session.chooseVoice(entry.voice.voiceURI);
+    }
+}
+
 export interface ListenMenuDeps {
+    app: App;
     session: ListenSession;
     /** Begin *From here* or *This chapter*. */
     start(mode: Exclude<ListenMode, "selection">): void;
@@ -39,17 +81,25 @@ export function openListenMenu(event: MouseEvent, deps: ListenMenuDeps): Menu {
             .setIcon("list-start")
             .onClick(() => deps.start("chapter"))
     );
-    const voices = voiceChoices(deps.session.voices(), deps.lang()).slice(0, MENU_VOICES);
-    const current = deps.session.voice();
-    if (voices.length > 1) {
+    const offer = deps.session.offer();
+    const voices = offer.near.slice(0, MENU_VOICES);
+    if (voices.length > 1 || offer.more) {
         menu.addSeparator();
         menu.addItem((item) => item.setTitle(t("reader_listen_voice")).setIcon("audio-lines").setDisabled(true));
         for (const voice of voices) {
             menu.addItem((item) =>
                 item
-                    .setTitle(voice.name)
-                    .setChecked(voice.voiceURI === current?.voiceURI)
-                    .onClick(() => deps.session.choose({ voice: voice.voiceURI }))
+                    .setTitle(voiceLabel(voice, offer, deps.lang()))
+                    .setChecked(voice.voiceURI === offer.current?.voiceURI)
+                    .onClick(() => deps.session.chooseVoice(voice.voiceURI))
+            );
+        }
+        if (offer.more || offer.near.length > voices.length) {
+            menu.addItem((item) =>
+                item
+                    .setTitle(t("reader_listen_other_languages"))
+                    .setIcon("languages")
+                    .onClick(() => new VoiceSearchModal(deps.app, deps.session).open())
             );
         }
     }
@@ -63,6 +113,7 @@ export function openListenMenu(event: MouseEvent, deps: ListenMenuDeps): Menu {
 }
 
 export interface ListenBarDeps {
+    app: App;
     session: ListenSession;
     /** Keep the sentence being read as a highlight (FR-6). */
     mark(): void;
@@ -79,6 +130,8 @@ export class ListenBar {
     private readonly rate: HTMLSelectElement;
     private readonly voice: HTMLSelectElement;
     private leaving = false;
+    /** The voice list as drawn: it is drawn again only when it changes. */
+    private voicesKey = "";
 
     constructor(
         host: HTMLElement,
@@ -94,9 +147,12 @@ export class ListenBar {
         for (const rate of LISTEN_RATES) this.rate.createEl("option", { text: rateLabel(rate), attr: { value: String(rate) } });
         deps.owner.registerDomEvent(this.rate, "change", () => session.choose({ rate: Number(this.rate.value) }));
         this.voice = bar.createEl("select", { cls: ["dropdown", c("reader-listen-voice")].join(" "), attr: { "aria-label": t("reader_listen_voice") } });
-        // The voice's own name, without the language the engine appends (*Microsoft Zira - English (…)*).
-        for (const voice of voiceChoices(session.voices(), deps.lang())) this.voice.createEl("option", { text: voice.name.replace(/\s+-\s+.*$/, ""), attr: { value: voice.voiceURI, title: voice.name } });
-        deps.owner.registerDomEvent(this.voice, "change", () => session.choose({ voice: this.voice.value }));
+        deps.owner.registerDomEvent(this.voice, "change", () => {
+            if (this.voice.value !== MORE) return session.chooseVoice(this.voice.value);
+            // *Other languages…* opens the search; the list keeps the voice that reads until you pick one.
+            this.voice.value = session.voice()?.voiceURI ?? "";
+            new VoiceSearchModal(deps.app, session).open();
+        });
         const mark = bar.createEl("button", { cls: c("reader-listen-mark"), attr: { type: "button" } });
         setIcon(mark.createSpan({ cls: c("reader-listen-mark-icon") }), "highlighter");
         mark.createSpan({ text: t("reader_listen_mark") });
@@ -132,8 +188,23 @@ export class ListenBar {
         this.line.toggleClass(c("reader-hidden"), !session.hasFailed());
         const prefs = this.rateValue();
         if (this.rate.value !== prefs) this.rate.value = prefs;
-        const voice = session.voice()?.voiceURI;
-        if (voice && this.voice.value !== voice) this.voice.value = voice;
+        this.fillVoices();
+    }
+
+    /** The voice list (#863): the reading language's voices, the default marked, then *Other languages…*. */
+    private fillVoices(): void {
+        const offer = this.deps.session.offer();
+        const lang = this.deps.lang();
+        const options = offer.near.map((voice) => ({ value: voice.voiceURI, text: voiceLabel(voice, offer, lang), title: voice.name }));
+        if (offer.more) options.push({ value: MORE, text: t("reader_listen_other_languages"), title: "" });
+        const key = options.map((option) => `${option.value}\u0000${option.text}`).join("\u0001");
+        if (key !== this.voicesKey) {
+            this.voicesKey = key;
+            this.voice.empty();
+            for (const option of options) this.voice.createEl("option", { text: option.text, attr: { value: option.value, ...(option.title ? { title: option.title } : {}) } });
+        }
+        const current = offer.current?.voiceURI;
+        if (current && this.voice.value !== current) this.voice.value = current;
     }
 
     /** Away it goes (FR-13): it sinks as it fades; at once under reduced motion. */

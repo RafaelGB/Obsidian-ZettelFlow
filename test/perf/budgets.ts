@@ -477,8 +477,11 @@ export const BUDGETS = {
         // something to subtract first: the cover is the Library's own cache (no read, no new reader), the
         // marks, the states and the jumps are #812's and #718's, and the old depth rules and second label
         // are gone. No dependency. 3,141.0 KB; the ceiling closes at its measure plus 2 KB.
-        limit: 3_143,
-        measured: "3,141.0 KB",
+        // 3,143 → 3,146 (#863): Listen's voices add 2.8 KB — only the reading language's at hand, the default
+        // marked, a search over the rest with each language named by `Intl.DisplayNames` (no table of language
+        // names shipped). 3,143.8 KB; the ceiling closes at its measure plus 2 KB.
+        limit: 3_146,
+        measured: "3,143.8 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

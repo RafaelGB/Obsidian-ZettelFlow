@@ -13,7 +13,9 @@ import {
     sentencesOf,
     sentencesWithin,
     splitSentences,
-    voiceChoices,
+    languageName,
+    voiceEntries,
+    voiceOffer,
     type VoiceLike,
 } from "architecture/components/core/reader/readerListen";
 import { chapterText, type NodeLike } from "architecture/components/core/reader/readerMarks";
@@ -108,7 +110,8 @@ describe("the voice (AC-2)", () => {
         expect(chooseVoice([remote, es], "en-GB")).toBe(es);
         expect(chooseVoice([remote, gb], "en-GB", remote.voiceURI)).toBe(gb);
         expect(localVoices([remote, gb, us])).toEqual([gb, us]);
-        expect(voiceChoices([remote, gb, es], "es")).toEqual([es, gb]);
+        expect(voiceOffer([remote, gb, es], "es").near).toEqual([es]);
+        expect(voiceEntries([remote, gb], "en", "en").map((entry) => entry.voice)).toEqual([gb]);
     });
 
     it("prefers the voice you chose, while the device still has it", () => {
@@ -127,6 +130,39 @@ describe("the voice (AC-2)", () => {
         expect(chooseVoice([es, us], "fr")).toBe(us);
         expect(chooseVoice([es, gb], null)).toBe(es);
         expect(chooseVoice([], "en")).toBeNull();
+    });
+
+    it("offers only the reading language's voices at hand, the default first and marked (#863)", () => {
+        // iPadOS: the same novelty names once per language.
+        const eddyEs = voice({ voiceURI: "eddy-es", name: "Eddy", lang: "es-ES" });
+        const eddyFr = voice({ voiceURI: "eddy-fr", name: "Eddy", lang: "fr-FR" });
+        const eddyUs = voice({ voiceURI: "eddy-us", name: "Eddy", lang: "en-US" });
+        const monica = voice({ voiceURI: "monica", name: "Mónica", lang: "es-ES", default: true });
+        const twice = voice({ voiceURI: "monica-2", name: "Mónica", lang: "es-ES" });
+        const all = [eddyUs, eddyEs, eddyFr, twice, monica, us];
+        const offer = voiceOffer(all, "es");
+        expect(offer.auto).toBe(monica);
+        expect(offer.current).toBe(monica);
+        expect(offer.near).toEqual([monica, eddyEs]);
+        expect(offer.more).toBe(true);
+        // Your voice from another language stays at hand, after the default.
+        expect(voiceOffer(all, "es", "eddy-fr").near).toEqual([monica, eddyFr, eddyEs]);
+        // No book language: the default voice's language.
+        expect(voiceOffer([us, gb, es], null).near).toEqual([us, gb]);
+        expect(voiceOffer([gb], "en").more).toBe(false);
+    });
+
+    it("names each voice's language and finds a voice by name or language, accents aside (#863)", () => {
+        const eddyEs = voice({ voiceURI: "eddy-es", name: "Eddy", lang: "es-ES" });
+        const amelie = voice({ voiceURI: "amelie", name: "Amélie", lang: "fr-CA" });
+        expect(languageName("es-ES", "es")).toBe("Español (España)");
+        expect(languageName("fr_CA", "en")).toBe("French (Canada)");
+        expect(languageName("zz-not-a-tag-at-all-x", "en")).toBe("zz-not-a-tag-at-all-x");
+        const entries = voiceEntries([amelie, gb, eddyEs], "es", "es");
+        expect(entries.map((entry) => entry.voice)).toEqual([eddyEs, amelie, gb]);
+        expect(voiceEntries([amelie, gb, eddyEs], "es", "es", "espanol").map((entry) => entry.voice)).toEqual([eddyEs]);
+        expect(voiceEntries([amelie, gb, eddyEs], "es", "en", "amelie").map((entry) => entry.voice)).toEqual([amelie]);
+        expect(voiceEntries([amelie, gb, eddyEs], "es", "en", "en-gb").map((entry) => entry.voice)).toEqual([gb]);
     });
 
     it("keeps a speed and a voice safely, and says a speed as a number", () => {

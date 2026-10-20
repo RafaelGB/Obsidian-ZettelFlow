@@ -4321,20 +4321,26 @@ export class ReaderView extends ItemView {
     }
 
     /**
-     * Where the top of the screen is in a reflowed chapter, and where each heading the contents name
-     * is (#861 FR-12): what tells the section you are in.
+     * Where the reading line is in a reflowed chapter, and where each heading the contents name sits
+     * against it (#861 FR-12): what tells the section you are in. Measured on screen, so a heading on
+     * a page still to come in *Page* layout is after it, and one on a page gone by is before it.
      */
     private readingPosition(): ReadingPosition | undefined {
+        const stage = this.els?.stage;
         const body = this.chapterBody();
-        const anchor = body ? (this.pager?.firstVisible() ?? null) : null;
-        const top = body && anchor ? this.offsetOfAnchor(body, anchor) : null;
-        if (!body || top === null) return undefined;
+        if (!stage || !body) return undefined;
+        const box = stage.getBoundingClientRect();
+        if (box.height <= 0) return undefined;
         return {
-            top,
+            top: box.top + box.height * READING_LINE,
             offsetOf: (fragment) => {
                 const id = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(fragment) : fragment.replace(/["\\]/g, "");
                 const el = body.querySelector(`[data-zf-id="${id}"]`);
-                return el ? offsetAt(body as unknown as NodeLike, el as unknown as NodeLike, 0) : null;
+                if (!el) return null;
+                const at = el.getBoundingClientRect();
+                if (at.left >= box.right) return Number.POSITIVE_INFINITY;
+                if (at.right <= box.left) return Number.NEGATIVE_INFINITY;
+                return at.top;
             },
         };
     }

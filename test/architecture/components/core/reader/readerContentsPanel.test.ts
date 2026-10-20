@@ -159,6 +159,14 @@ describe("Contents with the book's shape (#861)", () => {
         expect(content.byClass("reader-toc-role")).toHaveLength(0);
     });
 
+    it("on a part's own title page, says you're here on the part's band, never on the chapter before it", async () => {
+        const { content } = await open(4);
+        const band = bands(content)[2];
+        expect(band.getAttribute("aria-current")).toBe("step");
+        expect(band.oneByClass("reader-toc-band-here").textContent).toMatch(/^You're here/);
+        expect(content.byClass("reader-toc-row").filter((r) => r.getAttribute("aria-current") !== null)).toHaveLength(0);
+    });
+
     it("opens the matter you are in", async () => {
         const { content } = await open(0);
         expect(bands(content)[0].getAttribute("aria-expanded")).toBe("true");

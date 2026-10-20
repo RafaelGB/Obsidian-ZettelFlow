@@ -44,6 +44,8 @@ export interface ContentsGroup {
     title: string;
     /** What its folding is remembered by while the source stays open. */
     key: string;
+    /** A part's own page — its title page — when it points at one. */
+    chapter?: number;
     rows: ContentsRow[];
 }
 
@@ -139,7 +141,7 @@ export function contentsShape(input: ShapeInput): ContentsGroup[] {
     const groups: ContentsGroup[] = [];
     roots.forEach((node, i) => {
         if (parts[i]) {
-            groups.push({ kind: "part", title: node.entry.title.trim(), key: `part:${i}`, rows: node.children.map((child) => rowOf(child, input.locator)) });
+            groups.push({ kind: "part", title: node.entry.title.trim(), key: `part:${i}`, chapter: node.entry.chapter, rows: node.children.map((child) => rowOf(child, input.locator)) });
             return;
         }
         const kind: ContentsGroupKind = i < first ? "front" : i > last ? "back" : "loose";
@@ -157,12 +159,13 @@ export function entryCount(groups: readonly ContentsGroup[]): number {
 }
 
 /**
- * The row you are in (FR-12): the chapter on screen's own row, else the last row before it — as a
- * part's title page sits before its first chapter. `null` before the first entry.
+ * The row you are in (FR-12): the chapter on screen's own row; on a part's own title page, the part
+ * itself (`row: -1`); else the last row before it. `null` before the first entry.
  */
 export function currentRow(groups: readonly ContentsGroup[], chapter: number): { group: number; row: number } | null {
     let before: { group: number; row: number } | null = null;
     for (let g = 0; g < groups.length; g++) {
+        if (groups[g].kind === "part" && groups[g].chapter === chapter && !groups[g].rows.some((row) => row.chapter === chapter)) return { group: g, row: -1 };
         for (let r = 0; r < groups[g].rows.length; r++) {
             const at = groups[g].rows[r].chapter;
             if (at === chapter) return { group: g, row: r };
@@ -172,7 +175,7 @@ export function currentRow(groups: readonly ContentsGroup[], chapter: number): {
     return before;
 }
 
-/** Where the line at the top of the screen is, and where each of the chapter's headings is. */
+/** Where the reading line is, and where each of the chapter's headings is, on one axis. */
 export interface ReadingPosition {
     top: number;
     offsetOf(fragment: string): number | null;
@@ -180,7 +183,7 @@ export interface ReadingPosition {
 
 /**
  * The section you are in, under the row you are in (FR-12), or `-1`: the last one starting on or
- * before the page — or, inside a reflowed chapter, the last heading above the top of the screen.
+ * before the page — or, inside a reflowed chapter, the last heading at or above the reading line.
  * A heading inside the chapter is never guessed without the page's layout.
  */
 export function currentSection(row: ContentsRow, chapter: number, position?: ReadingPosition): number {

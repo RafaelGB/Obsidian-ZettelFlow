@@ -66,7 +66,9 @@ export function drawContents(host: HTMLElement, input: ContentsList): HTMLElemen
     }
     const list = host.createDiv({ cls: c("reader-toc-list") });
     const here = currentRow(input.shape, input.chapter);
-    const hereRow = here ? input.shape[here.group].rows[here.row] : null;
+    const hereRow = here && here.row >= 0 ? input.shape[here.group].rows[here.row] : null;
+    // On a part's own title page, the part is where you are (FR-12).
+    const herePart = here && here.row < 0 ? input.shape[here.group].key : null;
     const isHere = (row: ContentsRow) => !!hereRow && row.chapter === hereRow.chapter && row.title === hereRow.title && row.fragment === hereRow.fragment;
     const hereSection = hereRow ? currentSection(hereRow, input.chapter, input.position) : -1;
 
@@ -77,7 +79,7 @@ export function drawContents(host: HTMLElement, input: ContentsList): HTMLElemen
             list.createDiv({ cls: c("reader-empty"), text: t("reader_toc_find_none", query.trim()) });
             return;
         }
-        for (const group of groups) drawGroup(list, group, query !== "", input, isHere, hereSection, draw);
+        for (const group of groups) drawGroup(list, group, query !== "", input, isHere, hereSection, draw, group.key === herePart);
         const marked = input.marked();
         if (marked.size > 0) markContents(list, marked);
     };
@@ -102,17 +104,22 @@ function drawGroup(
     input: ContentsList,
     isHere: (row: ContentsRow) => boolean,
     hereSection: number,
-    redraw: () => void
+    redraw: () => void,
+    herePart = false
 ): void {
     const section = list.createEl("section", { cls: [c("reader-toc-group"), c(`reader-toc-group--${group.kind}`)] });
     const holdsHere = group.rows.some(isHere);
     // A part is open, and front and back matter folded, unless you are in them (FR-7, FR-8).
     const open = group.kind === "loose" || finding || (input.open.get(group.key) ?? (group.kind === "part" || holdsHere));
     if (group.kind !== "loose") {
-        const band = section.createEl("button", { cls: c("reader-toc-band"), attr: { type: "button", "aria-expanded": String(open) } });
+        const band = section.createEl("button", {
+            cls: [c("reader-toc-band"), ...(herePart ? [c("reader-toc-band--current")] : [])],
+            attr: { type: "button", "aria-expanded": String(open), ...(herePart ? { "aria-current": "step" } : {}) },
+        });
         setIcon(band.createSpan({ cls: c("reader-toc-band-chevron"), attr: { "aria-hidden": "true" } }), "chevron-right");
         band.createSpan({ cls: c("reader-toc-band-name"), text: group.kind === "part" ? group.title : t(group.kind === "front" ? "reader_toc_front" : "reader_toc_back") });
         band.createSpan({ cls: c("reader-toc-band-rule"), attr: { "aria-hidden": "true" } });
+        if (herePart) band.createSpan({ cls: c("reader-toc-band-here"), text: input.here });
         input.scope.registerDomEvent(band, "click", () => {
             if (finding) return;
             input.open.set(group.key, !open);

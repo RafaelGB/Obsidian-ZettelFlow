@@ -160,8 +160,8 @@ describe("where you are in it (#861 FR-12)", () => {
         const shape = contentsShape({ reflowed: true, toc: NOVEL });
         expect(currentRow(shape, 6)).toEqual({ group: 2, row: 0 });
         expect(currentRow(shape, 1)).toEqual({ group: 0, row: 1 });
-        // A part's own title page is before its first chapter: the row before it.
-        expect(currentRow(shape, 5)).toEqual({ group: 1, row: 1 });
+        // On a part's own title page, the part itself is where you are.
+        expect(currentRow(shape, 5)).toEqual({ group: 2, row: -1 });
         expect(currentRow(contentsShape({ reflowed: false, toc: GUIDE }), 70)).toEqual({ group: 2, row: 0 });
     });
 

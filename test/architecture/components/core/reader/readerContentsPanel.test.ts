@@ -255,6 +255,38 @@ describe("Contents with the book's shape (#861)", () => {
         ]);
     });
 
+    it("groups bookmarks under the parts they are in, as cards (FR-18)", async () => {
+        const m = mount(RIVERS);
+        m.host.settings.library = {
+            [PATH]: {
+                size: 10,
+                mtime: 20,
+                chapter: 5,
+                chapters: 8,
+                title: "The Shape of Rivers",
+                bookmarks: [
+                    { chapter: 2, offset: 0, at: 1, quote: { exact: "Chapter 2 text." } },
+                    { chapter: 5, offset: 0, at: 2, quote: { exact: "Bends." } },
+                    { chapter: 6, offset: 0, at: 3, quote: { exact: "Flood." } },
+                ],
+            },
+        };
+        await m.view.setState({ source: PATH, chapter: 5 }, {} as never);
+        await m.view.onOpen();
+        await settle(() => m.content.byClass("reader-next").length > 0);
+        (m.view as any).source.toc = TOC;
+        bar(m.content, "Contents").click();
+        m.content.byClass("reader-tab").find((b) => b.textContent === "Bookmarks")!.click();
+        const list = m.content.oneByClass("reader-tab-list");
+        expect(list.children.map((el) => (el.hasClass("zettelkasten-flow__reader-mark-group") ? `# ${el.textContent}` : "card"))).toEqual([
+            "# Part One · Headwaters",
+            "card",
+            "# Part Two · The middle course",
+            "card",
+            "card",
+        ]);
+    });
+
     describe("Find in contents (FR-16)", () => {
         const LONG = Array.from({ length: 30 }, (_, i) => ({ title: i === 12 ? "Évora and the water" : `Chapter about stone ${i}`, chapter: Math.min(i, 7), depth: 0 }));
 

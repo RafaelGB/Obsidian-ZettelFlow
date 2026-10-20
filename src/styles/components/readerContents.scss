@@ -494,7 +494,194 @@ mark.zettelkasten-flow__reader-toc-hit {
     margin: var(--size-4-6) var(--size-4-4);
 }
 
+
+/* ── Bookmarks: cards of their first words, under their parts (FR-18) ─── */
+.zettelkasten-flow__reader-mark-group {
+    padding: var(--size-4-3) var(--size-2-1) var(--size-4-1);
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.zettelkasten-flow__reader-mark-row {
+    position: relative;
+    margin: var(--size-4-1) 0;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-mark-go {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--size-4-1);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-3) var(--size-4-8) var(--size-4-2) var(--size-4-4);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: var(--radius-m);
+    box-shadow: none;
+    background-color: color-mix(in srgb, var(--reader-fg) 3%, transparent);
+    color: var(--reader-fg);
+    font-weight: var(--font-normal);
+    text-align: start;
+    white-space: normal;
+    cursor: pointer;
+
+    /* The ribbon's own edge, so a card reads as a bookmark at a glance. */
+    &::before {
+        content: "";
+        position: absolute;
+        left: calc(-1 * var(--border-width));
+        top: var(--size-4-3);
+        width: var(--size-2-2);
+        height: var(--size-4-4);
+        border-radius: 0 var(--radius-s) var(--radius-s) 0;
+        background-color: var(--interactive-accent);
+    }
+
+    &:hover {
+        border-color: var(--background-modifier-border-hover);
+        background-color: color-mix(in srgb, var(--reader-fg) 6%, transparent);
+    }
+}
+
+.zettelkasten-flow__reader-mark-snippet {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-family: var(--reader-font);
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-normal);
+}
+
+.zettelkasten-flow__reader-mark-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--size-4-2);
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__reader-mark-when::before {
+    content: "·";
+    margin-right: var(--size-4-2);
+}
+
+.zettelkasten-flow__reader .zettelkasten-flow__reader-mark-remove {
+    position: absolute;
+    top: var(--size-4-1);
+    right: var(--size-4-1);
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__reader-mark-row:hover .zettelkasten-flow__reader-mark-remove,
+.zettelkasten-flow__reader-mark-row:focus-within .zettelkasten-flow__reader-mark-remove {
+    opacity: 1;
+}
+
+/* A touch screen has no hover: the way to remove one is always there. */
+@media (hover: none) {
+    .zettelkasten-flow__reader .zettelkasten-flow__reader-mark-remove {
+        opacity: 1;
+    }
+}
+
+/* ── Where you've been: a timeline, newest first (FR-19) ──────────────── */
+.zettelkasten-flow__reader-trail {
+    display: flex;
+    flex-direction: column;
+    padding: var(--size-4-2) 0;
+}
+
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-trail-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--size-4-6) minmax(0, 1fr);
+    align-items: start;
+    justify-content: stretch;
+    gap: 0 var(--size-4-3);
+    width: 100%;
+    height: auto;
+    padding: var(--size-4-2);
+    border: none;
+    border-radius: var(--radius-s);
+    box-shadow: none;
+    background: none;
+    color: var(--reader-fg);
+    font-weight: var(--font-normal);
+    text-align: start;
+    white-space: normal;
+    cursor: pointer;
+
+    /* The line through the nodes, from the first to the last. */
+    &::before {
+        content: "";
+        position: absolute;
+        left: calc(var(--size-4-2) + var(--size-4-3));
+        top: 0;
+        bottom: 0;
+        width: var(--border-width);
+        background-color: var(--reader-line);
+    }
+
+    &:first-child::before {
+        top: var(--size-4-5);
+    }
+
+    &:last-child::before {
+        bottom: calc(100% - var(--size-4-5));
+    }
+
+    &:hover {
+        background-color: var(--background-modifier-hover);
+    }
+}
+
+.zettelkasten-flow__reader-trail-node {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-4-6);
+    height: var(--size-4-6);
+    border: var(--border-width) solid var(--reader-line);
+    border-radius: 50%;
+    background-color: var(--reader-surface);
+    color: var(--reader-muted);
+
+    svg {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__reader-trail-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    min-width: 0;
+    padding-top: var(--size-2-1);
+}
+
+.zettelkasten-flow__reader-trail-where {
+    font-family: var(--reader-font);
+    font-size: var(--font-ui-medium);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__reader-trail-reason {
+    color: var(--reader-faint);
+    font-size: var(--font-ui-smaller);
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__reader .zettelkasten-flow__reader-mark-remove,
     .zettelkasten-flow__reader-toc-band-chevron svg,
     .zettelkasten-flow__reader-toc-caret svg {
         transition: none;

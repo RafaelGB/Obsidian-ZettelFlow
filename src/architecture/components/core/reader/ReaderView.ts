@@ -98,7 +98,7 @@ import { ReaderScrubber, scrubberModel } from "./readerScrubber";
 import { pageShape } from "./readerPages";
 import { renderTypePanel, snapshotMarkers, zoomLabel } from "./readerTypePanel";
 import { panelAction, panelClose, panelHead, type PanelClose } from "./readerPanelHead";
-import { contentsShape, type ReadingPosition } from "./readerContents";
+import { contentsShape, currentRow, type ContentsGroup, type ReadingPosition } from "./readerContents";
 import { drawContents, drawContentsHead, markContents } from "./readerContentsPanel";
 import { cachedCover } from "architecture/components/core/library/libraryCovers";
 import { PdfPageRun } from "./readerPageRun";
@@ -313,6 +313,17 @@ const TRAIL_KEY: Record<TrailReason, LocaleKey> = {
     bookmark: "reader_trail_bookmark",
     passage: "reader_trail_passage",
     scrubber: "reader_trail_scrubber",
+};
+
+/** What took you away, as its node on *Where you've been* draws it (#861 FR-19). */
+const TRAIL_ICON: Record<TrailReason, string> = {
+    link: "link",
+    contents: "list",
+    search: "search",
+    note: "asterisk",
+    bookmark: "bookmark",
+    passage: "quote",
+    scrubber: "move-horizontal",
 };
 
 /** How long the *not found in this edition* line stays before it leaves (#751 FR-14). */
@@ -4266,16 +4277,8 @@ export class ReaderView extends ItemView {
         const sourcePath = this.sourcePath;
         const read = sourcePath ? chaptersRead(this.plugin, sourcePath) : new Set<number>();
         const seen = new Set(this.seenWords.keys());
-        const outlined = doc.toc.length > 0;
-        const entries = outlined ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
-        // A paper's pages are where its entries are (#861 FR-10); a reflowed book has none to say.
         const paged = doc.format === "pdf";
-        const shape = contentsShape({
-            reflowed: !paged,
-            flat: doc.format === "article",
-            toc: entries,
-            ...(paged && outlined ? { locator: (i: number) => doc.pages?.label(i) ?? doc.chapters[i]?.page ?? String(i + 1) } : {}),
-        });
+        const shape = this.sourceShape(doc);
         const minutes = this.minutesLeftNow;
         drawContents(host, {
             shape,
@@ -4300,6 +4303,20 @@ export class ReaderView extends ItemView {
             this.contentsMarks = { path: sourcePath, at: new Set(marks.map((mark) => mark.at)) };
             const panel = this.els?.panel;
             if (panel && this.panel === "contents") markContents(panel, this.contentsMarks.at);
+        });
+    }
+
+    /** The source's contents as their shape (#861): its own outline, or its pages when it has none. */
+    private sourceShape(doc: SourceDocument): ContentsGroup[] {
+        const outlined = doc.toc.length > 0;
+        const entries = outlined ? doc.toc : doc.chapters.map((chapter, i) => ({ title: chapter.label, chapter: i, depth: 0 }));
+        // A paper's pages are where its entries are (#861 FR-10); a reflowed book has none to say.
+        const paged = doc.format === "pdf";
+        return contentsShape({
+            reflowed: !paged,
+            flat: doc.format === "article",
+            toc: entries,
+            ...(paged && outlined ? { locator: (i: number) => doc.pages?.label(i) ?? doc.chapters[i]?.page ?? String(i + 1) } : {}),
         });
     }
 
@@ -5229,7 +5246,10 @@ export class ReaderView extends ItemView {
         this.renderPanel();
     }
 
-    /** The book's bookmarks in reading order: where, the first words, when (FR-4); each removable. */
+    /**
+     * The book's bookmarks in reading order (FR-4), under the parts they are in (#861 FR-18): each a
+     * card of its first words, then where and when; each removable.
+     */
     private renderBookmarks(list: HTMLElement): void {
         const path = this.sourcePath;
         const marks = path ? inReadingOrder(sourceBookmarks(this.plugin, path)) : [];
@@ -5237,14 +5257,27 @@ export class ReaderView extends ItemView {
             list.createDiv({ cls: c("reader-empty"), text: t("reader_bookmarks_empty") });
             return;
         }
+        const shape = this.source ? this.sourceShape(this.source) : [];
+        const parted = shape.some((group) => group.kind === "part");
         const now = Date.now();
+        let group: string | null = null;
         for (const bookmark of marks) {
+            if (parted) {
+                const at = currentRow(shape, bookmark.chapter);
+                const kind = at ? shape[at.group] : null;
+                const name = !kind || kind.kind === "loose" ? "" : kind.kind === "part" ? kind.title : t(kind.kind === "front" ? "reader_toc_front" : "reader_toc_back");
+                if (name !== group) {
+                    group = name;
+                    if (name) list.createDiv({ cls: c("reader-mark-group"), text: name });
+                }
+            }
             const row = list.createDiv({ cls: c("reader-mark-row") });
             const go = row.createEl("button", { cls: c("reader-mark-go"), attr: { type: "button" } });
-            go.createSpan({ cls: c("reader-mark-where"), text: this.sourceLabel(bookmark.chapter) });
             const snippet = bookmarkSnippet(bookmark);
             if (snippet) go.createSpan({ cls: c("reader-mark-snippet"), text: snippet });
-            go.createSpan({ cls: c("reader-mark-when"), text: now - bookmark.at < NOW_MS ? t("reader_bookmark_now") : relativeLabel(bookmark.at, now) });
+            const meta = go.createSpan({ cls: c("reader-mark-meta") });
+            meta.createSpan({ cls: c("reader-mark-where"), text: this.sourceLabel(bookmark.chapter) });
+            meta.createSpan({ cls: c("reader-mark-when"), text: now - bookmark.at < NOW_MS ? t("reader_bookmark_now") : relativeLabel(bookmark.at, now) });
             this.panelScope?.registerDomEvent(go, "click", () => this.goToBookmark(bookmark));
             const remove = row.createEl("button", {
                 cls: ["clickable-icon", c("reader-mark-remove")].join(" "),
@@ -5255,17 +5288,20 @@ export class ReaderView extends ItemView {
         }
     }
 
-    /** Where you've been, newest first, each with what took you away (FR-7). */
+    /** Where you've been, newest first (FR-7): a timeline, each place with what took you away (#861 FR-19). */
     private renderTrail(list: HTMLElement): void {
         const entries = this.trail.list();
         if (entries.length === 0) {
             list.createDiv({ cls: c("reader-empty"), text: t("reader_trail_empty") });
             return;
         }
+        const line = list.createDiv({ cls: c("reader-trail") });
         entries.forEach((entry, i) => {
-            const row = list.createEl("button", { cls: c("reader-trail-row"), attr: { type: "button" } });
-            row.createSpan({ cls: c("reader-trail-reason"), text: t(TRAIL_KEY[entry.reason]) });
-            row.createSpan({ cls: c("reader-trail-where"), text: entry.label });
+            const row = line.createEl("button", { cls: c("reader-trail-row"), attr: { type: "button" } });
+            setIcon(row.createSpan({ cls: c("reader-trail-node"), attr: { "aria-hidden": "true" } }), TRAIL_ICON[entry.reason]);
+            const text = row.createSpan({ cls: c("reader-trail-text") });
+            text.createSpan({ cls: c("reader-trail-where"), text: entry.label });
+            text.createSpan({ cls: c("reader-trail-reason"), text: t(TRAIL_KEY[entry.reason]) });
             this.panelScope?.registerDomEvent(row, "click", () => this.backTo(i));
         });
     }

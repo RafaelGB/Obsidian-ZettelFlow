@@ -266,6 +266,10 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
             expect(m.content.oneByClass("reader-mark-snippet").textContent).toMatch(/^Chapter 1 paragraph 2 holds/);
             expect(m.content.oneByClass("reader-mark-snippet").textContent!.length).toBeLessThanOrEqual(80);
             expect(m.content.oneByClass("reader-mark-when").textContent).toBe("now");
+            // A card: its first words, then where and when under them (#861 FR-18) — no part to group under.
+            const card = m.content.oneByClass("reader-mark-go");
+            expect(card.children.map((el) => [...el.classes][0])).toEqual(["zettelkasten-flow__reader-mark-snippet", "zettelkasten-flow__reader-mark-meta"]);
+            expect(m.content.byClass("reader-mark-group")).toHaveLength(0);
             m.content.oneByClass("reader-mark-go").click();
             await drawn(m.content, 1);
             // Landed on the bookmarked line: block 2.
@@ -357,6 +361,10 @@ describe("bookmarks, and the trail of where you have been (#761)", () => {
             openTab(m.content, "Where you've been");
             expect(reasons(m.content)).toEqual(["Before a bookmark", "Before a footnote", "Before Contents", "Before a link"]);
             expect(rows(m.content, "reader-trail-where").map((r) => r.textContent)).toEqual(["3 · Part 3", "1 · Part 1", "3 · Part 3", "1 · Part 1"]);
+            // A timeline (#861 FR-19): a node for each place, the place above what took you away.
+            const trail = m.content.byClass("reader-trail-row");
+            expect(trail.every((row) => row.byClass("reader-trail-node").length === 1)).toBe(true);
+            expect(trail[0].oneByClass("reader-trail-text").children.map((el) => [...el.classes][0])).toEqual(["zettelkasten-flow__reader-trail-where", "zettelkasten-flow__reader-trail-reason"]);
         });
 
         it("a search leaves its place once, in the same chapter and in another", async () => {

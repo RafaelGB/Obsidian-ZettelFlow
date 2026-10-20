@@ -1777,56 +1777,6 @@ button.zettelkasten-flow__reader-next-button {
     animation: zf-reader-fade $motion-fast $ease-out both;
 }
 
-.zettelkasten-flow__reader-mark-row {
-    display: flex;
-    align-items: center;
-    gap: var(--size-4-1);
-}
-
-.zettelkasten-flow__reader button.zettelkasten-flow__reader-mark-go,
-.zettelkasten-flow__reader button.zettelkasten-flow__reader-trail-row {
-    display: flex;
-    flex: 1;
-    flex-wrap: wrap;
-    align-items: baseline;
-    /* Obsidian's tablet buttons centre and embolden their label: a row reads from the start. */
-    justify-content: flex-start;
-    font-weight: var(--font-normal);
-    gap: var(--size-4-1) var(--size-4-3);
-    min-width: 0;
-    height: auto;
-    padding: var(--size-4-2);
-    border: none;
-    box-shadow: none;
-    background: none;
-    border-radius: var(--radius-s);
-    color: var(--reader-fg);
-    text-align: start;
-    cursor: pointer;
-
-    &:hover {
-        background-color: var(--background-modifier-hover);
-    }
-}
-
-.zettelkasten-flow__reader-mark-where,
-.zettelkasten-flow__reader-trail-where,
-.zettelkasten-flow__reader-mark-when {
-    color: var(--reader-faint);
-    font-size: var(--font-ui-smaller);
-}
-
-.zettelkasten-flow__reader-mark-snippet {
-    flex: 1 1 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.zettelkasten-flow__reader-trail-reason {
-    flex: 1;
-}
-
 /* A panel's head actions (#812 FR-11): Recall and the notebook beside the tabs, before the ×. */
 .zettelkasten-flow__reader-panel-actions {
     display: inline-flex;

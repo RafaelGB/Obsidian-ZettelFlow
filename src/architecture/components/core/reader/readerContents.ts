@@ -51,6 +51,8 @@ export interface ShapeInput {
     /** A reflowed book (an EPUB's spine items): its parts are read from where their chapters lie. */
     reflowed: boolean;
     toc: readonly ContentsEntry[];
+    /** Every entry its own row, as an article's headings are (FR-20): no bands, no sections. */
+    flat?: boolean;
     /** The page a chapter starts on, in a source that has pages. */
     locator?: (chapter: number) => string | undefined;
 }
@@ -127,7 +129,7 @@ function located(locator: ShapeInput["locator"], chapter: number): { locator?: s
  * sub-entries when the outline runs three levels deep. With no part there is one loose list.
  */
 export function contentsShape(input: ShapeInput): ContentsGroup[] {
-    const roots = treeOf(input.toc);
+    const roots = input.flat ? input.toc.map((entry) => ({ entry, children: [] })) : treeOf(input.toc);
     const deep = !input.reflowed && Math.max(0, ...roots.map(height)) >= 3;
     const isPart = (node: Node) => node.children.length > 0 && (input.reflowed ? descendants(node).some((d) => d.entry.chapter !== node.entry.chapter) : deep);
     const parts = roots.map(isPart);
@@ -143,7 +145,7 @@ export function contentsShape(input: ShapeInput): ContentsGroup[] {
         const kind: ContentsGroupKind = i < first ? "front" : i > last ? "back" : "loose";
         const previous = groups[groups.length - 1];
         // Loose entries next to each other share one group; between two parts they sit without a band.
-        if (previous && previous.kind === kind && kind !== "part") previous.rows.push(rowOf(node, input.locator));
+        if (previous && previous.kind === kind) previous.rows.push(rowOf(node, input.locator));
         else groups.push({ kind, title: "", key: kind === "loose" ? `loose:${i}` : kind, rows: [rowOf(node, input.locator)] });
     });
     return groups;

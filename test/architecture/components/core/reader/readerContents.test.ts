@@ -122,6 +122,13 @@ describe("the shape of a book's contents (#861 FR-5, FR-8, FR-11)", () => {
         ]);
     });
 
+    it("keeps an article's headings each its own row, as before (FR-20)", () => {
+        const shape = contentsShape({ reflowed: true, flat: true, toc: NOVEL });
+        expect(shape).toHaveLength(1);
+        expect(shape[0].rows).toHaveLength(NOVEL.length);
+        expect(shape[0].rows.every((r) => r.sections.length === 0)).toBe(true);
+    });
+
     it("draws a list with no contents as one row per chapter", () => {
         const shape = contentsShape({ reflowed: false, toc: [0, 1, 2].map((i) => ({ title: `Page ${i + 1}`, chapter: i, depth: 0 })) });
         expect(shape).toHaveLength(1);

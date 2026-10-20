@@ -181,11 +181,13 @@ describe("an EPUB in the Reader (#682)", () => {
     it("offers the book's contents, and keeps the place for the Library", async () => {
         const { content, host } = await open();
         content.byClass("reader-bar-button").find((el) => el.getAttribute("aria-label") === "Contents")?.click();
-        expect(content.byClass("reader-toc-name").map((el) => el.textContent)).toEqual([
-            "1 · The characters of the story",
-            "2 · Attention and effort",
-            "3 · The lazy controller",
+        // The title's own number in a column of its own, the title after it (#861 FR-9).
+        expect(content.byClass("reader-toc-row").map((row) => [row.oneByClass("reader-toc-num").textContent, row.oneByClass("reader-toc-name").textContent])).toEqual([
+            ["1", "The characters of the story"],
+            ["2", "Attention and effort"],
+            ["3", "The lazy controller"],
         ]);
+        expect(content.byClass("reader-toc-row")[0].getAttribute("aria-label")).toMatch(/^1 The characters of the story · /);
         content.byClass("reader-toc-row")[1].click();
         await settle(() => place(content) === "Chapter 2 / 3");
         expect((host.settings.library as any)["Books/tfs.epub"]).toMatchObject({ chapter: 1, chapters: 3, title: "Thinking, Fast and Slow" });

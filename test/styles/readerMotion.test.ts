@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerContents.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss"];
 const SCRIPTS = [
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),

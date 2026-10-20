@@ -153,11 +153,40 @@ drawer has that side.
 is open, the first press closes the sheet, as Esc does. The bar's button of the open panel shows as
 pressed, so the way back is always where you opened it.
 
-**Contents is places.** The list holds the chapters and nothing else. Each one says, quietly, how
-far it is read — a filled dot for read, a half one for the chapter you are in or one you opened this
-sitting, a hollow one for not yet — and a small mark where you marked something, the same mark for
-one highlight or twelve. No row counts anything. It opens scrolled to where you are. **Recall this
-chapter** (the pencil) and the book's **Notebook** are the two icons in its head, before the ×.
+**Contents is places, with the book's shape.** The list holds the book's places and nothing else,
+drawn the way the book is built:
+
+![Contents with the book's shape: a book with its parts as bands and the reading rail, a paper with its numbers and pages, and Find in a long book's contents](../resources/reader/contents.svg)
+
+- **The book in the head.** Its cover (the one the Library drew this session, or a plain tile), its
+  title and its author. **Recall this chapter** (the pencil), the book's **Notebook** and the × sit
+  at the end of the head; the tabs — *Contents · Bookmarks · Where you've been* — are on a line of
+  their own, the chosen one underlined. There is no progress bar here: the Reader's bar already says
+  how far you are.
+- **Parts are bands.** A part of the book is a small uppercase band with a hairline over its
+  chapters; it stays at the top of the list while its chapters pass, and a click folds it. What comes
+  before the first part is folded under *Front matter*, what comes after the last under *Back
+  matter* — unless you are in it. In a PDF or a paper, the outline's top level is its parts only when
+  it runs three levels deep. Folding is remembered while the book stays open.
+- **The reading rail.** Every chapter has a node on one vertical line: filled for read, half for the
+  chapter you are in or one you opened this sitting, hollow for not yet; the line is solid where you
+  have read. Never a number, never a percentage. A small mark sits beside a chapter where you marked
+  something — the same mark for one highlight or twelve.
+- **Numbers, titles, pages.** A title's own number (*7*, *3.2*, *A.1*) stands in a column of its
+  own, the title after it in the Reader's font. In a PDF or a paper each entry ends with the page it
+  starts on, a dotted leader running to it, as a printed contents page.
+- **Sections under their chapter.** A chapter's sub-entries hang under it, smaller; they are folded
+  behind a caret, except under the chapter you are in, where the one you are reading — the last
+  heading at or above the reading line, or the last one starting on your page — is lit. The caret
+  never leaves the page; a click on a row or a section jumps there.
+- **You're here.** The chapter you are in is tinted, with an accent edge and *You're here* under its
+  title — with the minutes left in it, when the bar would say them. On a part's own title page the
+  part's band says it. The list opens scrolled to it.
+- **Find in contents.** Contents of 24 entries or more (counting sections) has a field above the
+  list. Typing keeps the chapters and sections whose titles hold the words — whatever the case and
+  the accents — marks the match, and opens what it needs to show them; nothing found says so in one
+  line. Clearing it puts the folding back. **↑** and **↓** move between rows and bands; **Enter**
+  goes.
 
 **One progress signal.** Where you are is said once, in the bar. Above the text there is no count:
 the line there names the chapter, and says nothing when the chapter opens with its own heading or
@@ -1018,14 +1047,16 @@ themselves.
   a PDF's Page view a bookmark is its page.
 - **Contents · Bookmarks · Where you've been.** The Contents panel has three tabs; the
   [overview](#the-overview) is a panel of its own. **Bookmarks** lists
-  the book's bookmarks in reading order: the chapter or page, the first words of the line and when it
-  was made (*now*, *2 days ago*); tap one to go there, or remove it in place. Neither tab counts
+  the book's bookmarks in reading order, under the parts they are in: each a card of the first words
+  of the line, then the chapter or page and when it was made (*now*, *2 days ago*); tap one to go
+  there, or remove it in place with its × (on hover, or always on a touch screen). Neither tab counts
   anything.
 - **Where you've been.** Before any jump the Reader remembers where you were, and why you left: a
   link in the book (*Before a link*), a Contents entry, a search (once per search, in any chapter),
   *Go to note* in a footnote, a bookmark, and a passage opened from Think or *This note* while the book
-  is open (*Before an opened passage*). The list is newest first; tap a row to go back there, and it
-  leaves the trail.
+  is open (*Before an opened passage*). The list is a timeline, newest first: each place
+  on a line of nodes, an icon for what took you away, the place above the reason. Tap one to go back
+  there, and it leaves the trail.
 - **One trail.** The back pill, **Alt+←** and, on a touch screen, two fingers swept right walk the
   same trail one step at a time. An ordinary page or chapter turn puts the pill away but keeps the
   trail. It lives for the reading in progress and is forgotten when you close the book (the last

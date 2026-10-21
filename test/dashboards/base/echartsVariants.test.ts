@@ -38,4 +38,8 @@ function drawAll(): Drawn {
         const missing = Object.values(drawn).flatMap((panel) => panel.warnings.filter((said) => /not imported|use\(\w*(Legend|VisualMap)/i.test(said)));
         expect(missing).toEqual([]);
     });
+
+    it("says nothing at all — the grid contains its labels the ECharts 6 way (#858)", () => {
+        expect(Object.values(drawn).flatMap((panel) => panel.warnings)).toEqual([]);
+    });
 });

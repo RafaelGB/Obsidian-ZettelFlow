@@ -8,7 +8,10 @@ import {
     landOn,
     localCam,
     onto,
+    placeIn,
     pushIn,
+    rememberedShelf,
+    samePlace,
     shotIncoming,
     type Box,
 } from "architecture/components/core/reader/readerShot";
@@ -77,5 +80,33 @@ describe("the camera of one continuous shot (#734)", () => {
         expect(beginCloseShot(still, still, still, "B/b.epub", () => (left = true))).toBe(false);
         // The caller leaves on its own when there is no shot: the shot never leaves for it.
         expect(left).toBe(false);
+    });
+});
+
+/**
+ * The close shot moves at once (#829): the opening shot measured where the cover was, and the shelf
+ * keeps its scroll and order — so the camera films toward that place without waiting for the Library.
+ */
+describe("the close shot films toward the remembered shelf (#829)", () => {
+    const memory = { bookId: "B/b.epub", size: { width: 1400, height: 900 } };
+
+    it("remembers only the book it opened, in a window of the same size (AC-1)", () => {
+        expect(rememberedShelf(memory, "B/b.epub", { width: 1400, height: 900 })).toBe(memory);
+        expect(rememberedShelf(memory, "B/other.epub", { width: 1400, height: 900 })).toBeNull();
+        expect(rememberedShelf(memory, "B/b.epub", { width: 1200, height: 900 })).toBeNull();
+        expect(rememberedShelf(null, "B/b.epub", { width: 1400, height: 900 })).toBeNull();
+    });
+
+    it("finds the cover where it was within 2 px, and nowhere else (AC-2)", () => {
+        expect(samePlace(cover, { ...cover, left: cover.left + 1.5, top: cover.top - 2 })).toBe(true);
+        expect(samePlace(cover, { ...cover, left: cover.left + 3 })).toBe(false);
+        expect(samePlace(cover, { ...cover, width: cover.width + 4 })).toBe(false);
+    });
+
+    it("reads the cover's place inside the Library, whatever camera films the Library", () => {
+        // The same cover and frame scaled and moved together: the place inside the frame is the same.
+        const cam = { s: 1.7, x: -220, y: 35 };
+        close(placeIn(onto(cam, cover), onto(cam, frame), frame.width), placeIn(cover, frame, frame.width));
+        close(placeIn(cover, frame, frame.width), { left: 300, top: 220, width: 120, height: 180 });
     });
 });

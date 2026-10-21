@@ -41,7 +41,7 @@ export function buildHeatmapMatrixOption(
     return {
         backgroundColor: "transparent",
         textStyle: { color: theme.text },
-        grid: { left: 8, right: 16, top: 24, bottom: 32, containLabel: true },
+        grid: { left: 8, right: 16, top: 24, bottom: 32, outerBoundsMode: "same", outerBoundsContain: "axisLabel" },
         tooltip: { position: "top" },
         xAxis: {
             type: "category",

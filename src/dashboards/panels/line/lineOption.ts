@@ -37,7 +37,7 @@ export function buildLineOption(
     return {
         backgroundColor: "transparent",
         textStyle: { color: theme.text },
-        grid: { left: 8, right: 16, top: 24, bottom: 8, containLabel: true },
+        grid: { left: 8, right: 16, top: 24, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "axisLabel" },
         tooltip: { trigger: "axis" },
         legend: seriesFields.length > 1 ? { textStyle: { color: theme.axis } } : undefined,
         xAxis: {

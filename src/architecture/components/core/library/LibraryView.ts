@@ -58,6 +58,7 @@ import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
+import { folderClashText } from "./libraryFolders";
 import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
 import { SharePanel, hasMarks } from "architecture/components/core/reader/readerShare";
@@ -868,6 +869,8 @@ export class LibraryView extends ItemView {
                     this.refresh();
                 },
                 placeholder: ARTICLES_DEFAULT,
+                // Never the archive's folder, nor inside or around it (#865 FR-4).
+                check: (value) => folderClashText(settings, "articles", value),
             });
             const input = line.querySelector?.<HTMLInputElement>("input");
             input?.focus?.();

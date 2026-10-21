@@ -68,6 +68,26 @@ export function articleResolver(articles: readonly ShelfArticle[]): (ref: string
     return (ref) => (paths.has(ref) ? ref : paths.has(`${ref}.md`) ? `${ref}.md` : null);
 }
 
+/**
+ * What lies in a folder the archive keeps (#865 FR-12): its PDFs and EPUBs and its articles, as shelf
+ * items — however they got there. From the vault's list and the metadata cache, never a file read.
+ */
+export function gatherArchived(app: App, host: LibraryHost | null, folder: string): ShelfItem[] {
+    if (!folder) return [];
+    const prefix = `${folder}/`;
+    return buildShelf({
+        sources: sourceFiles(app)
+            .filter((file) => file.path.startsWith(prefix))
+            .map((file) => ({ path: file.path, basename: file.name, ...(file.stat?.ctime ? { added: file.stat.ctime } : {}) })),
+        articles: gatherArticles(app, folder),
+        meta: normalizeLibrary(host?.settings?.library),
+        saved: [],
+        highlights: new Map(),
+        born: new Map(),
+        notes: gatherBookNotes(app),
+    });
+}
+
 export function gatherShelf(app: App, host: LibraryHost | null): Shelf {
     const settings = host?.settings;
     const meta = normalizeLibrary(settings?.library);

@@ -429,3 +429,55 @@
         width: var(--size-4-18);
     }
 }
+
+/* A folder field's line (#865 FR-3): what the value means, or why it cannot be taken — in the
+   theme's own error colour, never a toast. */
+.zettelkasten-flow__settings-folder-message {
+    margin-top: var(--size-4-1);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__settings-folder-message--invalid {
+    color: var(--text-error);
+}
+
+/* The archive moved (#865 FR-5): what is still in the old folder, and the two answers, under the row. */
+.zettelkasten-flow__settings-archive-row.setting-item {
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__settings-archive-offer {
+    flex: 1 0 100%;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__settings-archive-offer-box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    margin-top: var(--size-4-2);
+    padding: var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__settings-archive-offer-note {
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__settings-archive-offer-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-1);
+}

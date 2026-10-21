@@ -135,6 +135,21 @@ describe("articles saved with Web Clipper, on the shelf (#744)", () => {
         expect(drawn.searches[0].value).toBe("Clippings");
     });
 
+    it("refuses the archive's folder there too (#865 FR-4, AC-9)", async () => {
+        const settings: Setting[] = [];
+        __captureSettings((setting) => settings.push(setting));
+        const { view, content, host } = mount({ articlesFolder: "Web", libraryArchiveFolder: "Put away" });
+        await view.onOpen();
+        chips(content)[3].click();
+        content.oneByClass("shelf-articles-change").click();
+        const field = settings[settings.length - 1] as any;
+        field.searches[0].type("Put away/clips");
+        field.searches[0].inputEl.fire("keydown", { key: "Enter" });
+        await flush();
+        expect(host.settings.articlesFolder).toBe("Web");
+        expect(host.saveSettings).not.toHaveBeenCalled();
+    });
+
     it("turns articles off when the folder is emptied", async () => {
         const { view, content } = mount({ articlesFolder: "" });
         await view.onOpen();

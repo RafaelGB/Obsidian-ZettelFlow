@@ -1,7 +1,7 @@
 import { getLanguage, type Setting, type SettingDefinitionItem } from "obsidian";
 import type ZettelFlow from "main";
-import { c } from "architecture";
-import { t } from "architecture/lang";
+import { c, log, ObsidianApi } from "architecture";
+import { t, tCount } from "architecture/lang";
 import { rowContainer } from "architecture/components/settings/settingContainer";
 import { DictionaryShelf, type DictionaryFiles, type DictionaryInfo } from "architecture/plugin/library/DictionaryShelf";
 import { languageName } from "architecture/components/core/reader/readerLanguage";
@@ -9,6 +9,13 @@ import { validLanguage } from "application/library/stardict/languages";
 import { DEFAULT_DICTIONARIES_FOLDER, dictionarySettings, translateChoices, type DictionarySettings } from "application/library/dictionarySettings";
 import { DEFAULT_SETTINGS } from "config/typing";
 import { addFolderField } from "./folderField";
+import type { ShelfItem } from "application/library/shelf";
+import { ARCHIVE_DEFAULT, archiveFolderOf, leaveOffer } from "application/library/archive";
+import { articlesFolder } from "application/library/article";
+import { gatherArchived } from "architecture/components/core/library/libraryShelf";
+import { folderClashText } from "architecture/components/core/library/libraryFolders";
+import type { LibraryHost } from "architecture/components/core/library/libraryHost";
+import { forgetArchive, moveArchive, realArchivePort } from "architecture/plugin/library/archiveWrites";
 import { normalizeReaderPrefs } from "architecture/components/core/reader/readerPrefs";
 import {
     CHAPTER_MOTIONS,
@@ -37,6 +44,65 @@ export const BOOK_NOTES_DEFAULT = DEFAULT_SETTINGS.bookNotesFolder ?? "Library";
 /** Where articles come from until you choose (#744): Web Clipper's own folder. */
 export const ARTICLES_FOLDER_DEFAULT = DEFAULT_SETTINGS.articlesFolder ?? "Clippings";
 
+/** What the archive's row needs of the vault (#865 FR-5): what lies in a folder, and the two answers. */
+export interface ArchiveSettingsDeps {
+    archivedIn(folder: string): ShelfItem[];
+    move(items: readonly ShelfItem[], to: string): Promise<void>;
+    forget(items: readonly ShelfItem[]): Promise<void>;
+}
+
+const realArchiveDeps = (plugin: Pick<ZettelFlow, "settings" | "saveSettings">): ArchiveSettingsDeps => ({
+    archivedIn: (folder) => {
+        try {
+            return gatherArchived(ObsidianApi.globalApp(), plugin as LibraryHost, folder);
+        } catch (error) {
+            log.debug(`[Library] the archive could not be read: ${String(error)}`);
+            return [];
+        }
+    },
+    move: async (items, to) => {
+        await moveArchive(items, to, realArchivePort, plugin);
+    },
+    forget: (items) => forgetArchive(items.flatMap((item) => (item.file ? [item.file] : [])), plugin),
+});
+
+/**
+ * The archive folder changed while things were in the old one (#865 FR-5): say what is there — books
+ * and papers, and articles, apart — what *Leave them* means for each, and offer both answers inline.
+ */
+function drawArchiveOffer(host: HTMLElement, old: string, to: string, items: readonly ShelfItem[], deps: ArchiveSettingsDeps): void {
+    host.empty();
+    const { sources, articles } = leaveOffer(items);
+    if (sources + articles === 0 || !to) return;
+    const box = host.createDiv({ cls: c("settings-archive-offer-box") });
+    const counts = [
+        ...(sources > 0 ? [tCount(sources, "settings_archive_offer_sources", String(sources))] : []),
+        ...(articles > 0 ? [tCount(articles, "settings_archive_offer_articles", String(articles))] : []),
+    ];
+    box.createDiv({ text: t("settings_archive_offer_lead", old, counts.join(" · ")) });
+    if (sources > 0) box.createDiv({ cls: c("settings-archive-offer-note"), text: t("settings_archive_offer_leave_sources") });
+    if (articles > 0) box.createDiv({ cls: c("settings-archive-offer-note"), text: t("settings_archive_offer_leave_articles", old) });
+    const row = box.createDiv({ cls: c("settings-archive-offer-row") });
+    const said = (text: string) => {
+        host.empty();
+        host.createDiv({ cls: c("settings-archive-offer-box"), text });
+    };
+    const move = row.createEl("button", { cls: "mod-cta", text: t("settings_archive_offer_move", to), attr: { type: "button" } });
+    move.addEventListener("click", () => {
+        void deps
+            .move(items, to)
+            .then(() => said(t("settings_archive_offer_moved", to)))
+            .catch((error: unknown) => {
+                log.error(`[Library] the archive could not move to ${to}: ${String(error)}`);
+                said(t("settings_archive_offer_failed"));
+            });
+    });
+    const leave = row.createEl("button", { text: t("settings_archive_offer_leave"), attr: { type: "button" } });
+    leave.addEventListener("click", () => {
+        void deps.forget(items).then(() => said(t("settings_archive_offer_left", old)));
+    });
+}
+
 /**
  * **Reading** (#732, epic #729): how a book opens from the Library and how one chapter gives way to
  * the next. Reduced motion still wins over both — the section's purpose line says so.
@@ -55,8 +121,12 @@ export function readingSettingsGroup(
     /** After the articles folder changes (#744): an open Library shows the shelf it now makes. */
     articlesChanged: () => void = () => undefined,
     /** After *Library shows books as* changes (#819): an open Library turns its books. */
-    bookViewChanged: () => void = articlesChanged
+    bookViewChanged: () => void = articlesChanged,
+    /** After the archive folder changes (#865): an open Library shows its cabinet, and the pointer follows. */
+    archiveChanged: () => void = articlesChanged,
+    archiveDeps: ArchiveSettingsDeps = realArchiveDeps(plugin)
 ): SettingDefinitionItem {
+    const clash = (self: "bookNotes" | "articles" | "archive") => (value: string) => folderClashText(plugin.settings, self, value);
     const save = async (change: Partial<ReadingMotion>) => {
         plugin.settings.readingMotion = { ...readingMotion(plugin.settings.readingMotion), ...change };
         await plugin.saveSettings();
@@ -134,6 +204,7 @@ export function readingSettingsGroup(
                             bookNotesChanged();
                         },
                         placeholder: BOOK_NOTES_DEFAULT,
+                        check: clash("bookNotes"),
                     });
                     setting.addExtraButton((button) =>
                         button
@@ -160,12 +231,47 @@ export function readingSettingsGroup(
                             articlesChanged();
                         },
                         placeholder: ARTICLES_FOLDER_DEFAULT,
+                        check: clash("articles"),
                     });
                     setting.addExtraButton((button) =>
                         button
                             .setIcon("rotate-ccw")
                             .setTooltip(t("reset_to_default"))
                             .onClick(() => commit(ARTICLES_FOLDER_DEFAULT))
+                    );
+                },
+            },
+            {
+                // The archive (#865 FR-1–FR-5): its own folder, never one of the others nor around one.
+                name: t("settings_reading_archive_name"),
+                desc: t("settings_reading_archive_desc"),
+                render: (setting: Setting) => {
+                    setting.settingEl.addClass(c("settings-folder-wide"), c("settings-archive-row"));
+                    const offer = rowContainer(setting, "settings-archive-offer");
+                    const read = () => archiveFolderOf(plugin.settings.libraryArchiveFolder);
+                    let left: { old: string; items: ShelfItem[] } | null = null;
+                    const commit = addFolderField(setting, {
+                        read,
+                        accept: (value) => {
+                            const old = read();
+                            left = { old, items: archiveDeps.archivedIn(old) };
+                            plugin.settings.libraryArchiveFolder = articlesFolder(value);
+                            return true;
+                        },
+                        saved: async () => {
+                            await plugin.saveSettings();
+                            archiveChanged();
+                            if (left) drawArchiveOffer(offer, left.old, read(), left.items, archiveDeps);
+                        },
+                        placeholder: ARCHIVE_DEFAULT,
+                        check: clash("archive"),
+                        hint: (value) => (articlesFolder(value) ? null : t("settings_reading_archive_off")),
+                    });
+                    setting.addExtraButton((button) =>
+                        button
+                            .setIcon("rotate-ccw")
+                            .setTooltip(t("reset_to_default"))
+                            .onClick(() => commit(ARCHIVE_DEFAULT))
                     );
                 },
             },
@@ -298,6 +404,7 @@ export function dictionariesSettingsGroup(plugin: Pick<ZettelFlow, "settings" | 
                             deps.onFolder?.();
                         },
                         placeholder: DEFAULT_DICTIONARIES_FOLDER,
+                        check: (value) => folderClashText(plugin.settings, "dictionaries", value),
                     });
                     setting.addExtraButton((button) =>
                         button

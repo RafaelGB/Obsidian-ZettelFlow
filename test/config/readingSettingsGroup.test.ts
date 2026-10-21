@@ -58,7 +58,7 @@ describe("how a book opens and a chapter turns (#732)", () => {
     it("offers both choices in the Reading section and saves what you pick", async () => {
         const host = plugin({ open: "shot", chapter: "leaf" });
         const group = readingSettingsGroup(host as never) as { items: SettingGroupItem[] };
-        expect(group.items).toHaveLength(6);
+        expect(group.items).toHaveLength(7);
 
         const open = renderRow(group.items[0]);
         expect(open.options.map(([key]) => key)).toEqual(["shot", "instant"]);

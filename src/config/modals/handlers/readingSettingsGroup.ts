@@ -14,7 +14,6 @@ import { ARCHIVE_DEFAULT, archiveFolderOf, leaveOffer } from "application/librar
 import { articlesFolder } from "application/library/article";
 import { gatherArchived } from "architecture/components/core/library/libraryShelf";
 import { folderClashText } from "architecture/components/core/library/libraryFolders";
-import type { LibraryHost } from "architecture/components/core/library/libraryHost";
 import { forgetArchive, moveArchive, realArchivePort } from "architecture/plugin/library/archiveWrites";
 import { normalizeReaderPrefs } from "architecture/components/core/reader/readerPrefs";
 import {
@@ -54,7 +53,7 @@ export interface ArchiveSettingsDeps {
 const realArchiveDeps = (plugin: Pick<ZettelFlow, "settings" | "saveSettings">): ArchiveSettingsDeps => ({
     archivedIn: (folder) => {
         try {
-            return gatherArchived(ObsidianApi.globalApp(), plugin as LibraryHost, folder);
+            return gatherArchived(ObsidianApi.globalApp(), plugin, folder);
         } catch (error) {
             log.debug(`[Library] the archive could not be read: ${String(error)}`);
             return [];

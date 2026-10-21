@@ -59,6 +59,11 @@ import { LIBRARY_VIEW, type LibraryHost } from "./libraryHost";
 import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { folderClashText } from "./libraryFolders";
+import { renderCabinet, type ArchiveLine } from "./libraryArchive";
+import { archivable, archiveFolderOf, archivedMatches, normalizeArchiveRecords, type Drawer } from "application/library/archive";
+import { archiveItem, realArchivePort, returnItem, type ArchiveHost, type ArchivePort } from "architecture/plugin/library/archiveWrites";
+import { undoBatch } from "architecture/plugin/writes/undoNotice";
+import { MOTION, fly } from "architecture/components/core/reader/readerMotion";
 import { gatherProduced, renderProduced } from "./libraryProduced";
 import { CitePanel } from "architecture/components/core/reader/readerCite";
 import { SharePanel, hasMarks } from "architecture/components/core/reader/readerShare";
@@ -169,6 +174,11 @@ export class LibraryView extends ItemView {
     private bayTargets = new WeakMap<HTMLElement, ShelfTarget>();
     /** The line that says what a shelf change did, with its Undo (#821 FR-16) — never a toast. */
     private shelfMessage: { text: string; until: number; batch?: string; names?: string[]; failed?: boolean } | null = null;
+    /** The archive (#865): the drawer pulled out, and the lines by the cabinet and in the drawer. */
+    private drawer: { drawer: Drawer; search: string } | null = null;
+    private archiveLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
+    private drawerLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
+    private cabinet: HTMLElement | null = null;
     /** The bar that stays, and the shelves under it (#819): where a result starts. */
     private bar: HTMLElement | null = null;
     private shelfHost: HTMLElement | null = null;
@@ -202,7 +212,7 @@ export class LibraryView extends ItemView {
     private pendingScroll: number | null = null;
     private notebookFilter: NotebookFilter = { meaning: null, withNotes: false };
     private notebookScope: Component | null = null;
-    private shelf: Shelf = { items: [], born: new Map(), meta: {}, notes: new Map() };
+    private shelf: Shelf = { items: [], born: new Map(), meta: {}, notes: new Map(), archived: [] };
     private root: HTMLElement | null = null;
     private body: HTMLElement | null = null;
     private aside: HTMLElement | null = null;
@@ -225,6 +235,8 @@ export class LibraryView extends ItemView {
             /** Your shelves' writes and the shelf under a finger (#821). */
             shelves?: { port?: ShelfWritePort; bayAt?: DragHooks["bayAt"] };
             produced?: { store?: Pick<ThoughtStore, "thoughtsAbout">; index?: Pick<KnowledgeIndex, "status" | "getModel"> };
+            /** The archive's moves and their undo (#865). */
+            archive?: { port?: ArchivePort; undo?: (batch: string) => Promise<unknown> };
         } = {}
     ) {
         super(leaf);
@@ -420,9 +432,9 @@ export class LibraryView extends ItemView {
         if (this.detail && !(keepDetail && showing)) this.openDetail(this.detail);
     }
 
-    /** Whether a path is in the articles folder (#744). */
+    /** Whether a path is in the articles folder (#744) — or in the archive, where an archived article lies (#865). */
     private inArticles(path: string): boolean {
-        return inFolder(path, articlesFolderOf(this.plugin));
+        return inFolder(path, articlesFolderOf(this.plugin)) || inFolder(path, this.archiveFolder());
     }
 
     private scheduleRefresh(keepDetail = false): void {
@@ -455,6 +467,7 @@ export class LibraryView extends ItemView {
             const titles = head.createDiv({ cls: c("shelf-titles") });
             titles.createEl("h1", { cls: c("shelf-heading"), text: t("shelf_title") });
             this.renderEmpty(body, scope);
+            if (this.shelf.archived.length > 0) this.renderArchive(body, scope, null);
             return;
         }
 
@@ -777,10 +790,12 @@ export class LibraryView extends ItemView {
     private dragHooks(): DragHooks {
         return {
             canDrop: (item, bay) => {
+                if (bay === this.cabinet) return archivable(item) && this.archiveFolder() !== "";
                 const target = this.bayTargets.get(bay);
                 return Boolean(target && canMoveTo(item, target));
             },
             drop: (item, bay) => {
+                if (bay === this.cabinet) return void this.archiveBook(item, null);
                 const target = this.bayTargets.get(bay);
                 if (target) void this.moveBook(item, target);
             },
@@ -797,6 +812,7 @@ export class LibraryView extends ItemView {
             ...(movable ? { move: () => this.moveChoices(item) } : {}),
             choose: (target) => void this.moveBook(item, target),
             ...(item.kind !== "path" && item.file ? { file: this.fileActions(item.file) } : {}),
+            ...(archivable(item) && this.archiveFolder() ? { archive: () => void this.archiveBook(item, this.faceOf(item.id)) } : {}),
         });
     }
 
@@ -818,6 +834,198 @@ export class LibraryView extends ItemView {
             ...(typeof explorer?.revealInFolder === "function" ? { reveal: () => explorer.revealInFolder?.(file) } : {}),
             ...(!Platform.isMobile && typeof app.showInFolder === "function" ? { show: () => app.showInFolder?.(file.path) } : {}),
         };
+    }
+
+    // ── the archive (#865) ───────────────────────────────────────────────────
+
+    /** The archive's folder, as the setting holds it; `""` while the archive is off. */
+    private archiveFolder(): string {
+        return archiveFolderOf(this.plugin?.settings?.libraryArchiveFolder);
+    }
+
+    private archivePort(): ArchivePort {
+        return this.deps.archive?.port ?? realArchivePort;
+    }
+
+    private archiveHost(): ArchiveHost | null {
+        const plugin = this.plugin;
+        const settings = plugin?.settings;
+        if (!settings) return null;
+        return {
+            settings,
+            saveSettings: async () => {
+                await plugin.saveSettings?.();
+            },
+        };
+    }
+
+    /** A book's face on the shelf — what flies into the cabinet. */
+    private faceOf(id: string): HTMLElement | null {
+        const book = [...(this.body?.querySelectorAll<HTMLElement>(`.${c("shelf-book")}`) ?? [])].find((el) => el.getAttribute(FLIP_KEY) === id);
+        return book?.querySelector<HTMLElement>(`.${c("shelf-book-open")}`) ?? book ?? null;
+    }
+
+    /**
+     * Put a book away (#865 FR-8, FR-17, FR-18): one recorded move, shown at once — off its shelf and
+     * into its drawer before the vault's events catch up — the book flown into the cabinet, and the
+     * line beside it with Undo. A failure says so there, and nothing has moved.
+     */
+    private async archiveBook(item: ShelfItem, from: HTMLElement | null): Promise<void> {
+        const folder = this.archiveFolder();
+        const host = this.archiveHost();
+        if (!folder || !host || !archivable(item)) return;
+        const start = from?.getBoundingClientRect?.() ?? null;
+        const ghost = from && start && start.width > 0 && motionWelcome(from) ? (from.cloneNode(true) as HTMLElement) : null;
+        let move: Awaited<ReturnType<typeof archiveItem>>;
+        try {
+            move = await archiveItem(item, folder, this.archivePort(), host);
+        } catch (error) {
+            log.error(`[Library] could not archive ${item.id}: ${String(error)}`);
+            this.archiveLine = { text: t("shelf_archive_failed"), until: Date.now() + UNDO_LINE_MS, failed: true };
+            this.render();
+            return;
+        }
+        this.shelf.items = this.shelf.items.filter((candidate) => candidate.id !== item.id);
+        this.shelf.archived = [...this.shelf.archived, { ...item, id: move.to, file: move.to, ...(item.kind === "article" ? { note: move.to } : {}) }];
+        this.archiveLine = { text: t("shelf_archived", item.title), until: Date.now() + UNDO_LINE_MS, ...(move.batch ? { batch: move.batch } : {}) };
+        if (this.body) flipMove(this.body, () => this.render());
+        else this.render();
+        this.intoCabinet(start, ghost);
+    }
+
+    /** The cabinet brought into sight, the book flown into it, and the cabinet taking it (FR-17). */
+    private intoCabinet(start: DOMRect | null, ghost: HTMLElement | null): void {
+        const cabinet = this.cabinet;
+        if (!cabinet) return;
+        cabinet.scrollIntoView?.({ block: "nearest" });
+        const bump = () => {
+            const bumped = this.cabinet;
+            bumped?.addClass(c("shelf-cabinet--bump"));
+            window.setTimeout(() => bumped?.removeClass(c("shelf-cabinet--bump")), MOTION.cover);
+        };
+        const to = cabinet.getBoundingClientRect?.();
+        if (!ghost || !start || !to || !(to.width > 0)) return bump();
+        // A picture of the book, not a button: never focused, never announced.
+        ghost.setAttribute("aria-hidden", "true");
+        ghost.setAttribute("inert", "");
+        ghost.addClass(c("shelf-archive-ghost"));
+        const width = Math.min(start.width, to.width / 3);
+        const height = start.height * (width / start.width);
+        const target = { left: to.left + (to.width - width) / 2, top: to.top + to.height / 4 - height / 2, width, height };
+        fly(this.containerEl, ghost, start, target, { duration: MOTION.cover, onLanded: bump });
+    }
+
+    /** Take a book back to its shelf (#865 FR-20): the card leaves, a line in the drawer says where it went. */
+    private async returnBook(item: ShelfItem, card: HTMLElement): Promise<void> {
+        const host = this.archiveHost();
+        if (!host) return;
+        let move: Awaited<ReturnType<typeof returnItem>>;
+        try {
+            move = await returnItem(item, articlesFolderOf(this.plugin), this.archivePort(), host);
+        } catch (error) {
+            log.error(`[Library] could not return ${item.id}: ${String(error)}`);
+            this.drawerLine = { text: t("shelf_archive_return_failed"), until: Date.now() + UNDO_LINE_MS, failed: true };
+            this.render();
+            return;
+        }
+        if (!move) return;
+        const { to, batch } = move;
+        const leave = () => {
+            this.shelf.archived = this.shelf.archived.filter((candidate) => candidate.id !== item.id);
+            this.shelf.items = [...this.shelf.items, { ...item, id: to, file: to, ...(item.kind === "article" ? { note: to } : {}) }];
+            const folder = to.includes("/") ? `${to.slice(0, to.lastIndexOf("/"))}/` : t("shelf_archive_vault_root");
+            this.drawerLine = { text: t("shelf_archive_returned", folder), until: Date.now() + UNDO_LINE_MS, ...(batch ? { batch } : {}) };
+            this.render();
+        };
+        if (!motionWelcome(card)) return leave();
+        card.addClass(c("shelf-archive-card--leaving"));
+        window.setTimeout(leave, MOTION.base);
+    }
+
+    /** Undo the last archive, or the last return: the batch taken back, the shelf read again. */
+    private async undoArchive(which: "archiveLine" | "drawerLine"): Promise<void> {
+        const line = this[which];
+        if (!line?.batch) return;
+        this[which] = null;
+        try {
+            await (this.deps.archive?.undo ?? undoBatch)(line.batch);
+        } catch (error) {
+            log.error(`[Library] could not undo the archive: ${String(error)}`);
+        }
+        this[which] = { text: t("shelf_details_undone"), until: Date.now() + UNDO_LINE_MS };
+        this.refresh();
+    }
+
+    /** Open an archived book in the Reader, straight from its card: it stays archived (FR-20). */
+    private openArchived(item: ShelfItem): void {
+        const back = { filter: this.filter, sort: this.sort, scroll: this.contentEl.scrollTop };
+        if (!openShelfItem(this.app, item, this.plugin ?? null, {}, { leaf: this.leaf, back })) log.warn(`[Library] could not open ${item.id}`);
+    }
+
+    /** *N more in the archive* under the bar while a search finds something put away (#865 FR-14). */
+    private renderArchiveMatches(host: HTMLElement, scope: Component): void {
+        if (!this.archiveFolder()) return;
+        const { count, first } = archivedMatches(this.shelf.archived, this.search);
+        if (count === 0 || !first) return;
+        const line = host.createDiv({ cls: c("shelf-archive-more"), attr: { role: "status" } });
+        line.createSpan({ text: tCount(count, "shelf_archive_more", String(count)) });
+        const look = line.createEl("button", { cls: c("shelf-archive-look"), attr: { type: "button" }, text: t("shelf_archive_look") });
+        scope.registerDomEvent(look, "click", () => {
+            this.drawer = { drawer: first, search: this.search.trim() };
+            this.drawerLine = null;
+            this.render();
+            this.cabinet?.scrollIntoView?.({ block: "start" });
+        });
+    }
+
+    /** The cabinet at the end of the stacks, and the drawer that is out (#865 FR-15, FR-19). */
+    private renderArchive(host: HTMLElement, scope: Component, hooks: DragHooks | null): void {
+        this.cabinet = null;
+        const folder = this.archiveFolder();
+        if (!folder) {
+            this.drawer = null;
+            return;
+        }
+        const line = (which: "archiveLine" | "drawerLine"): ArchiveLine | null => {
+            const kept = this[which];
+            if (!kept || kept.until < Date.now()) {
+                this[which] = null;
+                return null;
+            }
+            return { text: kept.text, ...(kept.failed ? { failed: true } : {}), ...(kept.batch ? { undo: () => void this.undoArchive(which) } : {}) };
+        };
+        const cabinet = renderCabinet(
+            host,
+            {
+                archived: this.shelf.archived,
+                records: normalizeArchiveRecords(this.plugin?.settings?.libraryArchive),
+                folder,
+                open: this.drawer,
+                articlesOn: articlesFolderOf(this.plugin) !== "",
+                line: line("archiveLine"),
+                drawerLine: line("drawerLine"),
+            },
+            {
+                toggle: (drawer) => {
+                    this.drawer = this.drawer?.drawer === drawer ? null : { drawer, search: "" };
+                    this.drawerLine = null;
+                    this.render();
+                    this.cabinet?.parentElement?.querySelector<HTMLElement>(`.${c("shelf-archive-tray")}`)?.scrollIntoView?.({ block: "nearest" });
+                },
+                close: () => {
+                    this.drawer = null;
+                    this.render();
+                },
+                search: (text) => {
+                    if (this.drawer) this.drawer.search = text;
+                },
+                returnItem: (item, card) => void this.returnBook(item, card),
+                open: (item) => this.openArchived(item),
+            },
+            scope
+        );
+        this.cabinet = cabinet;
+        if (hooks) dropTarget(cabinet, hooks, scope);
     }
 
     /** Covers or spines: the setting's one value (#819 FR-8), covers until you choose. */
@@ -921,9 +1129,11 @@ export class LibraryView extends ItemView {
         this.drawnBooks = new Set(this.shelf.items.map((item) => item.id));
         const tip = host.createDiv({ cls: c("shelf-tip"), attr: { "aria-hidden": "true" } });
         this.tip = tip;
+        this.renderArchiveMatches(host, scope);
         if (desk.length === 0 && shelves.length === 0) {
             // No articles yet: the line under the chip already says where they come from (#744).
             if (this.filter !== "articles" || this.search.trim()) host.createDiv({ cls: c("shelf-no-match"), text: t("shelf_no_match", this.search.trim()) });
+            this.renderArchive(host, scope, hooks);
             return;
         }
         if (desk.length > 0) {
@@ -992,6 +1202,8 @@ export class LibraryView extends ItemView {
                 { passive: true }
             );
         }
+        // At the end of the stacks, the cabinet (#865 FR-15).
+        this.renderArchive(host, scope, hooks);
     }
 
     /**
@@ -1290,6 +1502,10 @@ export class LibraryView extends ItemView {
             notebook: item.file ? () => this.openNotebook(item.file!) : undefined,
             cite: item.file && item.kind !== "path" ? (from) => this.citeBook(item, from) : undefined,
             share: item.file && item.format === "pdf" && item.kind !== "path" ? this.shareDoorFor(item.file) : undefined,
+            archive: archivable(item) && this.archiveFolder() ? () => {
+                this.closeDetail();
+                void this.archiveBook(item, this.faceOf(item.id));
+            } : undefined,
             produced: (parent, settled) =>
                 renderProduced(parent, {
                     settled,

@@ -97,7 +97,10 @@ export interface BookFileActions {
 }
 
 /** The book's menu: *Details*, *Move to shelf…* for what can move, and its file's own actions (#856). */
-export function bookMenu(at: MouseEvent | HTMLElement, actions: { details: () => void; move?: () => MoveChoice[]; choose: (target: ShelfTarget) => void; file?: BookFileActions }): void {
+export function bookMenu(
+    at: MouseEvent | HTMLElement,
+    actions: { details: () => void; move?: () => MoveChoice[]; choose: (target: ShelfTarget) => void; file?: BookFileActions; archive?: () => void }
+): void {
     const menu = new Menu();
     menu.addItem((item) => item.setTitle(t("shelf_details")).setIcon("info").onClick(actions.details));
     const move = actions.move;
@@ -115,6 +118,12 @@ export function bookMenu(at: MouseEvent | HTMLElement, actions: { details: () =>
     if (open) menu.addItem((item) => item.setTitle(t("shelf_open_default_app")).setIcon("arrow-up-right").onClick(open));
     if (reveal) menu.addItem((item) => item.setTitle(t("shelf_reveal_file")).setIcon("folder-open").onClick(reveal));
     if (inSystem) menu.addItem((item) => item.setTitle(t("shelf_show_in_system")).setIcon("folder").onClick(inSystem));
+    // Put away in the cabinet (#865 FR-16), apart from the moves.
+    const archive = actions.archive;
+    if (archive) {
+        menu.addSeparator();
+        menu.addItem((item) => item.setTitle(t("shelf_menu_archive")).setIcon("archive").onClick(archive));
+    }
     show(menu, at);
 }
 

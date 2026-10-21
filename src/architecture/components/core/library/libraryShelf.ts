@@ -7,6 +7,7 @@ import { buildShelf, type ShelfArticle, type ShelfItem } from "application/libra
 import { ARTICLES_DEFAULT, articleAdded, articleFields, articlesFolder, isArticle } from "application/library/article";
 import type { BookNoteEntry } from "application/library/bookNote";
 import { normalizeLibrary, sourceFormat, type LibraryMeta } from "application/library/sourceMeta";
+import { archiveFolderOf, splitArchived } from "application/library/archive";
 import { normalizeSaved } from "architecture/components/core/reader/readerSaved";
 import { normalizeResume, readingKey, resumeOf } from "architecture/components/core/reader/readerResume";
 import type { LibraryHost } from "./libraryHost";
@@ -25,6 +26,8 @@ export interface Shelf {
     meta: LibraryMeta;
     /** The book notes (#743), by the source each links to. */
     notes: Map<string, BookNoteEntry>;
+    /** What lies in the archive (#865): on no shelf, in no count, in the cabinet's drawers. */
+    archived: ShelfItem[];
 }
 
 /** Every PDF and EPUB in the vault. */
@@ -107,10 +110,12 @@ export function gatherShelf(app: App, host: LibraryHost | null): Shelf {
     const notes = gatherBookNotes(app);
     // A book's note is the book, never a note born from it (#743 FR-12).
     const bookNotes = new Set([...notes.values()].map((note) => note.path));
-    const articles = gatherArticles(app, articlesFolderOf(host));
+    // An archived article lies outside the articles folder (#865): it is read from the archive too.
+    const archive = archiveFolderOf(settings?.libraryArchiveFolder);
+    const articles = [...gatherArticles(app, articlesFolderOf(host)), ...gatherArticles(app, archive)];
     const index = KnowledgeIndex.getInstance();
     const born = index.status === "ready" ? notesBornFrom(index.getModel().all(), bookNotes, articleResolver(articles)) : new Map<string, string[]>();
-    const items = buildShelf({
+    const all = buildShelf({
         sources: sourceFiles(app).map((file) => ({ path: file.path, basename: file.name, ...(file.stat?.ctime ? { added: file.stat.ctime } : {}) })),
         articles,
         meta,
@@ -120,5 +125,6 @@ export function gatherShelf(app: App, host: LibraryHost | null): Shelf {
         born: bornCounts(born),
         notes,
     });
-    return { items, born, meta, notes };
+    const { shelf: items, archived } = splitArchived(all, archive);
+    return { items, born, meta, notes, archived };
 }

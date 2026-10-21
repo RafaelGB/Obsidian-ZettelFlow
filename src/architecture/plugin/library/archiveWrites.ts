@@ -43,7 +43,8 @@ export const realArchivePort: ArchivePort = {
         const cache = ObsidianApi.metadataCache();
         const resolve = (link: string) => cache.getFirstLinkpathDest(link, file.path)?.path ?? null;
         // What the cache already says Obsidian updated is not written again.
-        const cached = cache.getFileCache(file)?.frontmatter?.[BOOK_LINK_KEY];
+        const frontmatter: Record<string, unknown> | undefined = cache.getFileCache(file)?.frontmatter;
+        const cached = frontmatter?.[BOOK_LINK_KEY];
         if (relinkBook(cached, to, resolve) === null) return;
         await FrontmatterService.instance(file).update((frontmatter) => {
             const next = relinkBook(frontmatter[BOOK_LINK_KEY], to, resolve);
@@ -87,7 +88,7 @@ export async function archiveItem(item: ShelfItem, archive: string, port: Archiv
     const from = item.file;
     const file = from ? port.file(from) : null;
     if (!from || !file || !archive || item.kind === "path") throw new Error(`[Library] cannot archive ${item.id}`);
-    const to = archiveTarget(from, archive, port.exists);
+    const to = archiveTarget(from, archive, (path) => port.exists(path));
     let batch: string | undefined;
     await withWriteBatch({ kind: "manual", ref: "library-archive", label: from }, async () => {
         batch = currentWriteBatch();
@@ -106,7 +107,7 @@ export async function returnItem(item: ShelfItem, articles: string, port: Archiv
     const file = from ? port.file(from) : null;
     if (!from || !file) throw new Error(`[Library] cannot return ${item.id}`);
     const record = normalizeArchiveRecords(host.settings.libraryArchive)[from];
-    const to = returnTarget(from, item.kind, record, { articles, folderExists: port.folderExists, exists: port.exists });
+    const to = returnTarget(from, item.kind, record, { articles, folderExists: (folder) => port.folderExists(folder), exists: (path) => port.exists(path) });
     if (!to) return null;
     let batch: string | undefined;
     await withWriteBatch({ kind: "manual", ref: "library-archive", label: from }, async () => {
@@ -136,7 +137,7 @@ export async function moveArchive(items: readonly ShelfItem[], to: string, port:
             for (const item of items) {
                 const file = item.file ? port.file(item.file) : null;
                 if (!file || !item.file) continue;
-                const target = archiveTarget(item.file, to, port.exists);
+                const target = archiveTarget(item.file, to, (path) => port.exists(path));
                 await moveWithNote(port, item, file, target);
                 moves.push({ from: item.file, to: target });
             }

@@ -111,7 +111,7 @@ describe("Move to shelf… (#821 AC-18, AC-19, FR-16)", () => {
         const { view, content } = mount({}, { libraryShelves: ["Para releer"] });
         await view.onOpen();
         book(content, FRESH).oneByClass("shelf-more").click();
-        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details", "Move to shelf…", "Open in default app", "Reveal file in navigation", "Show in system explorer"]);
+        expect(Menu.last!.items.map((item) => item.title)).toEqual(["Details", "Move to shelf…", "Open in default app", "Reveal file in navigation", "Show in system explorer", "Archive"]);
         Menu.last!.item("Move to shelf…").click();
         expect(Menu.last!.items.map((item) => [item.title, item.checked])).toEqual([
             ["Reading", false],
@@ -315,7 +315,7 @@ describe("a book's file, from its menu (#856)", () => {
         const { view, content, app, explorer } = mount();
         await view.onOpen();
         book(content, FRESH).oneByClass("shelf-more").click();
-        expect(Menu.last!.separators).toBe(1);
+        expect(Menu.last!.separators).toBe(2);
         Menu.last!.item("Open in default app").click();
         expect(app.openWithDefaultApp).toHaveBeenCalledWith(FRESH);
         book(content, FRESH).oneByClass("shelf-more").click();

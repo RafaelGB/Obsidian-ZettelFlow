@@ -201,6 +201,18 @@ export interface ZettelFlowSettings {
      */
     libraryShelves?: string[];
     /**
+     * The Library's archive (#865): the folder what you put away is moved into — its own, never one of
+     * the Library's other folders, nor inside or around one. `Library archive` until you choose; empty
+     * turns the archive off. Read through `archiveFolderOf()`.
+     */
+    libraryArchiveFolder?: string;
+    /**
+     * Where each archived thing came from and when it was put away (#865 FR-10), by its path in the
+     * archive. Mechanical, written only by archiving, returning and their undo. Read through
+     * `normalizeArchiveRecords()`.
+     */
+    libraryArchive?: Record<string, { from: string; at: number }>;
+    /**
      * Readings you saved at the end of a path (#672): a name, how they were chosen, the note they
      * started from and their chapters in order. Reopened from the chooser and Home — never a note.
      */
@@ -498,6 +510,7 @@ export const DEFAULT_SETTINGS: Partial<ZettelFlowSettings> = {
     dictionaries: { folder: "Dictionaries", languages: {}, translateInto: "" }, // nothing found until you add one (#766).
     bookNotesFolder: "Library", // a book's note lands here, made only with the first one (#743).
     articlesFolder: "Clippings", // Web Clipper's own folder: its clippings are articles on the shelf (#744).
+    libraryArchiveFolder: "Library archive", // the archive is on: put away, never lost (#865).
     readerSaved: [], // nothing saved until you save a path at its end (#672).
     library: {}, // nothing known until a source is on the shelf (#680).
     exploreThinkFirst: false, // Off until you ask for it (#576): the pause is offered, never imposed.

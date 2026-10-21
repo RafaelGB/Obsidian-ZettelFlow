@@ -6,10 +6,11 @@ import { PageInkStore } from "architecture/plugin/thinking/PageInkStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { ARTICLES_DEFAULT, articlesFolder } from "application/library/article";
 import { followSettings, isFollowedSource, type FollowedSettings } from "application/library/renameFollow";
+import { archiveFolderOf } from "application/library/archive";
 
 /** What the follow needs of the plugin: its settings, and the one serialized way to save them. */
 export interface RenameFollowHost {
-    settings: FollowedSettings & { articlesFolder?: string };
+    settings: FollowedSettings & { articlesFolder?: string; libraryArchiveFolder?: string };
     saveSettings(): Promise<void>;
 }
 
@@ -61,12 +62,13 @@ export class SourceRenameFollow {
         const host = this.host;
         if (!host || from === to) return;
         const raw = host.settings.articlesFolder;
-        if (!isFollowedSource(from, to, articlesFolder(raw === undefined ? ARTICLES_DEFAULT : raw))) return;
+        const archive = archiveFolderOf(host.settings.libraryArchiveFolder);
+        if (!isFollowedSource(from, to, articlesFolder(raw === undefined ? ARTICLES_DEFAULT : raw), archive)) return;
         const thoughts = ThoughtStore.getInstance();
         const ink = PageInkStore.getInstance();
         const hasThoughts = thoughts.aboutFiles(from).length > 0;
         const hasInk = ink.has(from);
-        const change = followSettings(host.settings, from, to);
+        const change = followSettings(host.settings, from, to, archive);
         // Nothing of yours is keyed by it: no file, no plugin data (FR-3).
         if (!hasThoughts && !hasInk && !change.changed) return;
 
@@ -93,10 +95,11 @@ export class SourceRenameFollow {
         }
         if (change.changed) {
             const settings = host.settings;
-            const before = { library: settings.library, readerLayers: settings.readerLayers, readerResume: settings.readerResume };
+            const before = { library: settings.library, readerLayers: settings.readerLayers, readerResume: settings.readerResume, libraryArchive: settings.libraryArchive };
             if (change.library) settings.library = change.library;
             if (change.readerLayers) settings.readerLayers = change.readerLayers;
             if (change.readerResume) settings.readerResume = change.readerResume;
+            if (change.libraryArchive) settings.libraryArchive = change.libraryArchive;
             try {
                 await host.saveSettings();
             } catch (error) {

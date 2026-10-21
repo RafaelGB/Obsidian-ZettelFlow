@@ -59,3 +59,18 @@ describe("which renames are a source's (#810 FR-1, AC-8)", () => {
         expect(isFollowedSource("a/x.png", "a/y.png", "Clippings")).toBe(false);
     });
 });
+
+describe("the archive in a rename (#865 FR-10)", () => {
+    it("follows an article moved inside the archive, or out of it", () => {
+        expect(isFollowedSource("Library archive/a.md", "Library archive/b.md", "Clippings", "Library archive")).toBe(true);
+        expect(isFollowedSource("Library archive/a.md", "Notes/a.md", "Clippings", "Library archive")).toBe(true);
+        expect(isFollowedSource("Notes/a.md", "Notes/b.md", "Clippings", "Library archive")).toBe(false);
+    });
+    it("re-keys an archived thing's record inside the archive, and forgets it when it leaves", () => {
+        const libraryArchive = { "Library archive/x.pdf": { from: "Books/x.pdf", at: 3 } };
+        const inside = followSettings({ libraryArchive }, "Library archive/x.pdf", "Library archive/y.pdf", "Library archive");
+        expect(inside.changed && inside.libraryArchive).toEqual({ "Library archive/y.pdf": { from: "Books/x.pdf", at: 3 } });
+        const out = followSettings({ libraryArchive }, "Library archive/x.pdf", "Books/x.pdf", "Library archive");
+        expect(out.changed && out.libraryArchive).toEqual({});
+    });
+});

@@ -1,5 +1,6 @@
 import { inFolder } from "application/library/article";
 import { renameSource, sourceFormat, type LibraryMeta } from "application/library/sourceMeta";
+import { followArchiveRecord, type ArchiveRecords } from "application/library/archive";
 
 /**
  * **What follows a source's rename** (#810 FR-1) — pure, over the plugin data keyed by a path.
@@ -14,16 +15,21 @@ export interface FollowedSettings {
     library?: LibraryMeta;
     readerLayers?: Record<string, unknown>;
     readerResume?: Record<string, unknown>;
+    /** Where each archived thing came from (#865 FR-10), by its path in the archive. */
+    libraryArchive?: ArchiveRecords;
 }
 
 /** What a rename changes in it: nothing (`changed: false`), or the maps to write back. */
 export type FollowedChange = { changed: false } | ({ changed: true } & FollowedSettings);
 
-/** Whether a rename is a source's (#810 FR-1): a PDF, an EPUB, or an article in the articles folder. */
-export function isFollowedSource(from: string, to: string, articles: string): boolean {
+/**
+ * Whether a rename is a source's (#810 FR-1): a PDF, an EPUB, or an article in the articles folder —
+ * or in the archive (#865), where an archived article lies.
+ */
+export function isFollowedSource(from: string, to: string, articles: string, archive = ""): boolean {
     if (sourceFormat(from) || sourceFormat(to)) return true;
     const md = (path: string) => path.toLowerCase().endsWith(".md");
-    return md(to) && (inFolder(from, articles) || inFolder(to, articles));
+    return md(to) && [articles, archive].some((folder) => inFolder(from, folder) || inFolder(to, folder));
 }
 
 /** A map with `from`'s entry under `to` — or the map itself when `from` is not in it. */
@@ -70,16 +76,21 @@ export function reaboutText(content: string, from: string, to: string): string |
     return changed ? lines.join("\n") : null;
 }
 
-/** What `from` → `to` changes in the plugin data (#810 FR-1, FR-3): nothing for a book with no state. */
-export function followSettings(settings: FollowedSettings, from: string, to: string): FollowedChange {
+/**
+ * What `from` → `to` changes in the plugin data (#810 FR-1, FR-3): nothing for a book with no state.
+ * An archived thing's record follows it inside the archive and is forgotten when it leaves (#865 FR-10).
+ */
+export function followSettings(settings: FollowedSettings, from: string, to: string, archive = ""): FollowedChange {
     const library = settings.library ? renameSource(settings.library, from, to) : settings.library;
     const readerLayers = moved(settings.readerLayers, from, to);
     const readerResume = movedResume(settings.readerResume, from, to);
-    if (library === settings.library && readerLayers === settings.readerLayers && readerResume === settings.readerResume) return { changed: false };
+    const libraryArchive = settings.libraryArchive ? followArchiveRecord(settings.libraryArchive, from, to, archive) : settings.libraryArchive;
+    if (library === settings.library && readerLayers === settings.readerLayers && readerResume === settings.readerResume && libraryArchive === settings.libraryArchive) return { changed: false };
     return {
         changed: true,
         ...(library ? { library } : {}),
         ...(readerLayers ? { readerLayers } : {}),
         ...(readerResume ? { readerResume } : {}),
+        ...(libraryArchive ? { libraryArchive } : {}),
     };
 }

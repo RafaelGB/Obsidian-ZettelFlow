@@ -252,6 +252,12 @@ function haystack(item: ShelfItem): string {
     return fold([item.title, item.author ?? "", item.series ?? "", ...(item.collections ?? [])].join(" "));
 }
 
+/** Whether the search finds an item (#865 FR-14): the shelf's own reading, for the archive's drawers. */
+export function matchesSearch(item: ShelfItem, search: string): boolean {
+    const needle = fold(search.trim());
+    return !needle || haystack(item).includes(needle);
+}
+
 /** The shelf as asked for: one filter, a status, a collection, a search, one order. */
 export function viewShelf(items: readonly ShelfItem[], query: ShelfQuery): ShelfItem[] {
     const needle = fold(query.search.trim());

@@ -228,3 +228,18 @@ describe("a search that finds something put away (#865 FR-14, AC-3)", () => {
         expect(content.byClass("shelf-archive-more")).toHaveLength(0);
     });
 });
+
+describe("Undo says what it did (#865 review)", () => {
+    it("says there was nothing to undo when the batch could not be taken back", async () => {
+        const { view, content, undo } = mount();
+        undo.mockImplementation(async () => ({ hadWork: false, done: 0, failed: [] }) as never);
+        await view.onOpen();
+        book(content, PAPER).oneByClass("shelf-more").click();
+        Menu.last!.item("Archive").click();
+        await flush();
+        content.oneByClass("shelf-archive-side").oneByClass("shelf-message-undo").click();
+        await flush();
+        const line = content.oneByClass("shelf-archive-side").oneByClass("shelf-archive-line");
+        expect(line.hasClass("zettelkasten-flow__shelf-archive-line--failed")).toBe(true);
+    });
+});

@@ -4,6 +4,7 @@ import {
     archivable,
     archiveFolderOf,
     archiveTarget,
+    bookLinkResolver,
     archivedMatches,
     drawerCards,
     drawerCounts,
@@ -136,5 +137,19 @@ describe("the record follows the file (#865 FR-10)", () => {
 describe("what Leave them leaves (#865 FR-5, AC-11)", () => {
     it("counts books and papers apart from articles", () => {
         expect(leaveOffer([item({}), item({ kind: "paper" }), item({ kind: "article" })])).toEqual({ sources: 2, articles: 1 });
+    });
+});
+
+describe("where a book note's link leads (#865 FR-24, found in a real vault)", () => {
+    const resolve = bookLinkResolver((path) => (path === "Books/x.pdf" ? path : null), (link) => (link === "x.pdf" ? "Books/x.pdf" : "Books/x.pdf"));
+    it("takes a path that names a folder only as that exact path", () => {
+        expect(resolve("Books/x.pdf")).toBe("Books/x.pdf");
+        // Obsidian would find it by name; the note would show a path the book left.
+        expect(resolve("Library archive/x.pdf")).toBeNull();
+        expect(relinkBook("[[Library archive/x.pdf]]", "Books/x.pdf", resolve)).toBe("[[Books/x.pdf]]");
+    });
+    it("leaves a bare name to Obsidian", () => {
+        expect(resolve("x.pdf")).toBe("Books/x.pdf");
+        expect(relinkBook("[[x.pdf]]", "Books/x.pdf", resolve)).toBeNull();
     });
 });

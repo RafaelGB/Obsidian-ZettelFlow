@@ -1614,7 +1614,8 @@ button.zettelkasten-flow__shelf-articles-change {
     --shelf-cab: color-mix(in srgb, var(--text-normal) 10%, var(--shelf-plank));
     --shelf-cab-face: color-mix(in srgb, var(--background-primary) 18%, var(--shelf-plank));
     --shelf-steel: color-mix(in srgb, var(--text-normal) 35%, var(--background-secondary));
-    --shelf-card: color-mix(in srgb, var(--color-yellow) 12%, var(--background-primary));
+    // A step off the page towards the text: lighter than the tray in a dark theme, darker in a light one.
+    --shelf-card: color-mix(in srgb, var(--color-yellow) 10%, color-mix(in srgb, var(--text-normal) 9%, var(--background-primary)));
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: end;
@@ -1884,7 +1885,7 @@ button.zettelkasten-flow__shelf-articles-change {
 
 .zettelkasten-flow__shelf-archive-card-meta,
 .zettelkasten-flow__shelf-archive-card-why {
-    color: var(--text-faint);
+    color: var(--text-muted);
     font-size: var(--font-ui-smaller);
 }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { TFile } from "obsidian";
-import { archiveItem, forgetArchive, moveArchive, returnItem, type ArchiveHost, type ArchivePort } from "architecture/plugin/library/archiveWrites";
+import { archiveItem, forgetArchive, moveArchive, restoreRecord, returnItem, type ArchiveHost, type ArchivePort } from "architecture/plugin/library/archiveWrites";
 import { currentWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import type { ShelfItem } from "application/library/shelf";
 
@@ -120,5 +120,31 @@ describe("Move them and Leave them (#865 FR-5, AC-11)", () => {
         await forgetArchive(["Library archive/x.pdf"], h);
         expect(h.settings.libraryArchive).toEqual({});
         expect(h.saved).toBe(1);
+    });
+});
+
+describe("only a failed move fails the archive (#865 review)", () => {
+    it("keeps the move and the record when the note could not be relinked, or the record not saved", async () => {
+        const { port, paths } = fakeVault(["Books/x.pdf"], ["Library archive"]);
+        port.relink = async () => {
+            throw new Error("locked");
+        };
+        const h = host();
+        h.saveSettings = async () => {
+            throw new Error("disk full");
+        };
+        const out = await archiveItem(book("Books/x.pdf", { note: "Library/X.md" }), "Library archive", port, h, 5);
+        expect(out.to).toBe("Library archive/x.pdf");
+        expect(paths.has("Library archive/x.pdf")).toBe(true);
+        expect(h.settings.libraryArchive).toEqual({ "Library archive/x.pdf": { from: "Books/x.pdf", at: 5 } });
+    });
+
+    it("hands back what a return forgot, so its Undo can give it back", async () => {
+        const { port } = fakeVault(["Library archive/x.pdf"], ["Library archive", "Books"]);
+        const h = host({ "Library archive/x.pdf": { from: "Books/x.pdf", at: 1 } });
+        const out = await returnItem(book("Library archive/x.pdf"), "Clippings", port, h);
+        expect(out?.record).toEqual({ from: "Books/x.pdf", at: 1 });
+        await restoreRecord("Library archive/x.pdf", out!.record!, h);
+        expect(h.settings.libraryArchive).toEqual({ "Library archive/x.pdf": { from: "Books/x.pdf", at: 1 } });
     });
 });

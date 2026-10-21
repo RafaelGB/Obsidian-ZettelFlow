@@ -74,3 +74,11 @@ describe("the archive in a rename (#865 FR-10)", () => {
         expect(out.changed && out.libraryArchive).toEqual({});
     });
 });
+
+describe("a stale copy never overwrites a fresh record (#865 review)", () => {
+    it("leaves the archive map out of a change that did not touch it", () => {
+        const out = followSettings({ library: { "Books/a.epub": meta }, libraryArchive: { "Library archive/x.pdf": { from: "B/x.pdf", at: 1 } } }, "Books/a.epub", "Library archive/a.epub", "Library archive");
+        expect(out.changed).toBe(true);
+        expect(out.changed && "libraryArchive" in out).toBe(false);
+    });
+});

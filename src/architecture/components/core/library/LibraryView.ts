@@ -60,8 +60,8 @@ import { openShelfItem, type OpenAt } from "./libraryOpen";
 import { articlesFolderOf, gatherArticles, gatherShelf, type Shelf } from "./libraryShelf";
 import { folderClashText } from "./libraryFolders";
 import { renderCabinet, type ArchiveLine } from "./libraryArchive";
-import { archivable, archiveFolderOf, archivedMatches, normalizeArchiveRecords, type Drawer } from "application/library/archive";
-import { archiveItem, realArchivePort, returnItem, type ArchiveHost, type ArchivePort } from "architecture/plugin/library/archiveWrites";
+import { archivable, archiveFolderOf, archivedMatches, normalizeArchiveRecords, type ArchiveRecord, type Drawer } from "application/library/archive";
+import { archiveItem, realArchivePort, restoreRecord, returnItem, type ArchiveHost, type ArchivePort } from "architecture/plugin/library/archiveWrites";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { MOTION, fly } from "architecture/components/core/reader/readerMotion";
 import { gatherProduced, renderProduced } from "./libraryProduced";
@@ -177,7 +177,7 @@ export class LibraryView extends ItemView {
     /** The archive (#865): the drawer pulled out, and the lines by the cabinet and in the drawer. */
     private drawer: { drawer: Drawer; search: string } | null = null;
     private archiveLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
-    private drawerLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
+    private drawerLine: { text: string; until: number; batch?: string; failed?: boolean; restore?: { path: string; record: ArchiveRecord } } | null = null;
     private cabinet: HTMLElement | null = null;
     /** The shelves scrolling to meet a carried book (#865 FR-16). */
     private readonly edge = new EdgeScroller(() => (this.root ? this.contentEl : null));
@@ -405,6 +405,8 @@ export class LibraryView extends ItemView {
         this.aside?.remove();
         this.contentEl.empty();
         this.root = null;
+        this.body = null;
+        this.cabinet = null;
     }
 
     /**
@@ -937,10 +939,16 @@ export class LibraryView extends ItemView {
         if (!move) return;
         const { to, batch } = move;
         const leave = () => {
+            if (!this.root) return;
             this.shelf.archived = this.shelf.archived.filter((candidate) => candidate.id !== item.id);
             this.shelf.items = [...this.shelf.items, { ...item, id: to, file: to, ...(item.kind === "article" ? { note: to } : {}) }];
             const folder = to.includes("/") ? `${to.slice(0, to.lastIndexOf("/"))}/` : t("shelf_archive_vault_root");
-            this.drawerLine = { text: t("shelf_archive_returned", folder), until: Date.now() + UNDO_LINE_MS, ...(batch ? { batch } : {}) };
+            this.drawerLine = {
+                text: t("shelf_archive_returned", folder),
+                until: Date.now() + UNDO_LINE_MS,
+                ...(batch ? { batch } : {}),
+                ...(move.record && item.file ? { restore: { path: item.file, record: move.record } } : {}),
+            };
             this.render();
         };
         if (!motionWelcome(card)) return leave();
@@ -950,15 +958,20 @@ export class LibraryView extends ItemView {
 
     /** Undo the last archive, or the last return: the batch taken back, the shelf read again. */
     private async undoArchive(which: "archiveLine" | "drawerLine"): Promise<void> {
-        const line = this[which];
+        const line: { batch?: string; restore?: { path: string; record: ArchiveRecord } } | null = this[which];
         if (!line?.batch) return;
         this[which] = null;
+        let undone = false;
         try {
-            await (this.deps.archive?.undo ?? undoBatch)(line.batch);
+            const result = (await (this.deps.archive?.undo ?? undoBatch)(line.batch)) as { hadWork?: boolean; failed?: string[] } | undefined;
+            undone = result?.hadWork !== false && (result?.failed?.length ?? 0) === 0;
         } catch (error) {
             log.error(`[Library] could not undo the archive: ${String(error)}`);
         }
-        this[which] = { text: t("shelf_details_undone"), until: Date.now() + UNDO_LINE_MS };
+        // A return undone puts the item back in the archive: what was known of it comes back too.
+        const host = this.archiveHost();
+        if (undone && line.restore && host) await restoreRecord(line.restore.path, line.restore.record, host);
+        this[which] = undone ? { text: t("shelf_details_undone"), until: Date.now() + UNDO_LINE_MS } : { text: t("changes_nothing_to_undo"), until: Date.now() + UNDO_LINE_MS, failed: true };
         this.refresh();
     }
 

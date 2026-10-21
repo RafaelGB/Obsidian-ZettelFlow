@@ -50,7 +50,8 @@ export function addFolderField(setting: Setting, spec: FolderFieldSpec): (raw: s
             }
             message.setText(text ?? "");
             message.toggleClass(c("settings-folder-message--invalid"), refusal !== null);
-            search?.inputEl.toggleAttribute?.("aria-invalid", refusal !== null);
+            if (refusal !== null) search?.inputEl.setAttribute?.("aria-invalid", "true");
+            else search?.inputEl.removeAttribute?.("aria-invalid");
         }
         return refusal;
     };

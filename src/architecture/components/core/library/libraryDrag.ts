@@ -80,7 +80,9 @@ export class EdgeScroller {
         const box = el.getBoundingClientRect();
         const step = edgeScrollStep(this.y, box.top, box.bottom);
         if (step === 0) return;
+        const before = el.scrollTop;
         el.scrollTop += step;
+        if (el.scrollTop === before) return;
         this.frame = (el.win ?? window).requestAnimationFrame(this.tick);
     };
 }

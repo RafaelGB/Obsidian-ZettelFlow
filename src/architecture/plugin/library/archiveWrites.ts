@@ -1,10 +1,10 @@
 import { TFile, TFolder } from "obsidian";
-import { ObsidianApi } from "architecture";
+import { log, ObsidianApi } from "architecture";
 import { FileService } from "architecture/plugin/services/FileService";
 import { FrontmatterService } from "architecture/plugin/services/FrontmatterService";
 import { currentWriteBatch, withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
 import { BOOK_LINK_KEY } from "application/library/bookNote";
-import { archiveTarget, normalizeArchiveRecords, relinkBook, returnTarget, type ArchiveRecords } from "application/library/archive";
+import { archiveTarget, bookLinkResolver, normalizeArchiveRecords, relinkBook, returnTarget, type ArchiveRecord, type ArchiveRecords } from "application/library/archive";
 import type { ShelfItem } from "application/library/shelf";
 
 /**
@@ -41,7 +41,13 @@ export const realArchivePort: ArchivePort = {
         const file = ObsidianApi.vault().getAbstractFileByPath(note);
         if (!(file instanceof TFile)) return;
         const cache = ObsidianApi.metadataCache();
-        const resolve = (link: string) => cache.getFirstLinkpathDest(link, file.path)?.path ?? null;
+        const resolve = bookLinkResolver(
+            (path) => {
+                const exact = ObsidianApi.vault().getAbstractFileByPath(path);
+                return exact instanceof TFile ? exact.path : null;
+            },
+            (link) => cache.getFirstLinkpathDest(link, file.path)?.path ?? null
+        );
         // What the cache already says Obsidian updated is not written again.
         const frontmatter: Record<string, unknown> | undefined = cache.getFileCache(file)?.frontmatter;
         const cached = frontmatter?.[BOOK_LINK_KEY];
@@ -63,6 +69,8 @@ export interface ArchiveHost {
 export interface ArchiveMove {
     batch: string | undefined;
     to: string;
+    /** What was remembered of it before the move (a return), so an Undo can give it back. */
+    record?: ArchiveRecord;
 }
 
 async function ensureFolder(port: ArchivePort, folder: string): Promise<void> {
@@ -70,17 +78,37 @@ async function ensureFolder(port: ArchivePort, folder: string): Promise<void> {
     await port.createFolder(folder);
 }
 
-/** Move one file, and keep its book note pointing at it. */
+/**
+ * Move one file, and keep its book note pointing at it. Only the move can fail the archive: a link that
+ * could not be rewritten is said in the log, and the file has moved.
+ */
 async function moveWithNote(port: ArchivePort, item: Pick<ShelfItem, "kind" | "note">, file: TFile, to: string): Promise<void> {
     await port.move(file, to);
-    if (item.note && item.kind !== "article") await port.relink(item.note, to);
+    if (!item.note || item.kind === "article") return;
+    try {
+        await port.relink(item.note, to);
+    } catch (error) {
+        log.error(`[Library] the note ${item.note} could not be pointed at ${to}: ${String(error)}`);
+    }
 }
 
+/** Remember what changed; a save that fails is said in the log — the move it follows is done. */
 async function saveRecords(host: ArchiveHost, change: (records: ArchiveRecords) => void): Promise<void> {
     const records = normalizeArchiveRecords(host.settings.libraryArchive);
     change(records);
     host.settings.libraryArchive = records;
-    await host.saveSettings();
+    try {
+        await host.saveSettings();
+    } catch (error) {
+        log.error(`[Library] the archive's records could not be saved: ${String(error)}`);
+    }
+}
+
+/** Give back what was remembered of an item a return took out of the archive, when the return is undone. */
+export async function restoreRecord(path: string, record: ArchiveRecord, host: ArchiveHost): Promise<void> {
+    await saveRecords(host, (records) => {
+        records[path] = record;
+    });
 }
 
 /** Put an item away (FR-8–FR-10). Throws when the move fails; nothing is remembered then. */
@@ -118,7 +146,7 @@ export async function returnItem(item: ShelfItem, articles: string, port: Archiv
     await saveRecords(host, (records) => {
         delete records[from];
     });
-    return { batch, to };
+    return { batch, to, ...(record ? { record } : {}) };
 }
 
 /**

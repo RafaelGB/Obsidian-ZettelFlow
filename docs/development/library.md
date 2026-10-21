@@ -197,8 +197,9 @@ waits in a drawer until you take it back.
 
 **What archiving does.** It **moves the file** into the archive folder — one recorded write, taken
 back by **Undo** or in *What ZettelFlow changed* — and never changes it. The book's note stays where it
-is and keeps pointing at the book: if Obsidian did not update its `book` link (with *Automatically
-update internal links* off), ZettelFlow rewrites that one property in the same write. Your place,
+is and keeps pointing at the book: with *Automatically update internal links* off, Obsidian asks
+whether to update the links — and whatever you answer, if the note's `book` link no longer names where
+the book is, ZettelFlow rewrites that one property in the same write. Your place,
 bookmarks, layers, highlights and shelves follow the file there and back. Anything you drop into the
 archive folder by hand is archived too; its card says it does not know where it came from.
 

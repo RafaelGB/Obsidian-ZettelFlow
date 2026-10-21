@@ -186,6 +186,15 @@ export function relinkBook(value: unknown, to: string, resolve: (link: string) =
 }
 
 /**
+ * Where a book note's link leads, for {@link relinkBook}: a link that names a folder must name the
+ * exact path the book is at — Obsidian would still find it by its name alone, and the note would show a
+ * path the book left (found in a real vault, #865). A bare name is Obsidian's to resolve.
+ */
+export function bookLinkResolver(exact: (path: string) => string | null, byName: (link: string) => string | null): (link: string) => string | null {
+    return (link) => exact(link) ?? (link.includes("/") ? null : byName(link));
+}
+
+/**
  * The records after `from` → `to` (FR-10): re-keyed while it stays in the archive, forgotten when it
  * leaves. The same map when nothing changes.
  */

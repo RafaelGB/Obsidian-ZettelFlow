@@ -91,6 +91,6 @@ export function followSettings(settings: FollowedSettings, from: string, to: str
         ...(library ? { library } : {}),
         ...(readerLayers ? { readerLayers } : {}),
         ...(readerResume ? { readerResume } : {}),
-        ...(libraryArchive ? { libraryArchive } : {}),
+        ...(libraryArchive && libraryArchive !== settings.libraryArchive ? { libraryArchive } : {}),
     };
 }

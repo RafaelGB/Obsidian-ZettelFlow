@@ -87,7 +87,14 @@ function drawArchiveOffer(host: HTMLElement, old: string, to: string, items: rea
         host.createDiv({ cls: c("settings-archive-offer-box"), text });
     };
     const move = row.createEl("button", { cls: "mod-cta", text: t("settings_archive_offer_move", to), attr: { type: "button" } });
+    const leave = row.createEl("button", { text: t("settings_archive_offer_leave"), attr: { type: "button" } });
+    // One answer: both are put away the moment either is given.
+    const answered = () => {
+        move.setAttr("disabled", "true");
+        leave.setAttr("disabled", "true");
+    };
     move.addEventListener("click", () => {
+        answered();
         void deps
             .move(items, to)
             .then(() => said(t("settings_archive_offer_moved", to)))
@@ -96,9 +103,15 @@ function drawArchiveOffer(host: HTMLElement, old: string, to: string, items: rea
                 said(t("settings_archive_offer_failed"));
             });
     });
-    const leave = row.createEl("button", { text: t("settings_archive_offer_leave"), attr: { type: "button" } });
     leave.addEventListener("click", () => {
-        void deps.forget(items).then(() => said(t("settings_archive_offer_left", old)));
+        answered();
+        void deps
+            .forget(items)
+            .then(() => said(t("settings_archive_offer_left", old)))
+            .catch((error: unknown) => {
+                log.error(`[Library] the archive's records could not be forgotten: ${String(error)}`);
+                said(t("settings_archive_offer_failed"));
+            });
     });
 }
 

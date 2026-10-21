@@ -199,10 +199,13 @@ describe("the doors to the archive (#865 FR-16, FR-18, AC-8, AC-12)", () => {
         const path = content.byClass("shelf-book").find((el) => el.attrs["data-shelf-id"] === "path:p1");
         expect(path?.attrs.draggable).toBeUndefined();
         book(content, PAPER).fire("dragstart", { dataTransfer });
+        // Carried: the cabinet says it will take it, and its cue line shows.
+        expect(content.oneByClass("shelf").hasClass("zettelkasten-flow__shelf--carrying")).toBe(true);
         expect(cabinet.fire("dragover", { dataTransfer }).defaultPrevented).toBe(true);
         cabinet.fire("drop", { dataTransfer });
         await flush();
         expect(moves).toEqual([[PAPER, "Library archive/Rivers.pdf"]]);
+        expect(content.oneByClass("shelf").hasClass("zettelkasten-flow__shelf--carrying")).toBe(false);
     });
 });
 

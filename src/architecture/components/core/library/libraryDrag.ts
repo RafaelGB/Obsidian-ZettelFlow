@@ -26,6 +26,63 @@ export interface DragHooks {
     bayAt?: (x: number, y: number) => HTMLElement | null;
     /** Where the lifted copy is drawn: over the shelves. */
     layer: () => HTMLElement | null;
+    /** A book is carried, or no longer (`null`): the cabinet says it will take it (#865 FR-16). */
+    carrying?: (item: ShelfItem | null) => void;
+    /** Near the scroller's edge the shelves scroll to meet the book (#865 FR-16, AC-19). */
+    edge?: Pick<EdgeScroller, "move" | "stop">;
+}
+
+/** How deep the edge zone is, and how far one frame scrolls at the very edge. */
+export const EDGE_ZONE_PX = 72;
+export const EDGE_MAX_STEP_PX = 18;
+
+/**
+ * How far the shelves scroll this frame for a pointer at `y` in a scroller from `top` to `bottom`
+ * (#865 AC-19): nothing outside the edge zones, down near the bottom, up near the top — faster the
+ * nearer the edge. Pure.
+ */
+export function edgeScrollStep(y: number, top: number, bottom: number): number {
+    const zone = Math.min(EDGE_ZONE_PX, (bottom - top) / 4);
+    if (!(zone > 0)) return 0;
+    const depth = (into: number) => Math.ceil(EDGE_MAX_STEP_PX * Math.min(1, Math.max(0, into) / zone));
+    if (y > bottom - zone) return depth(y - (bottom - zone));
+    if (y < top + zone) return -depth(top + zone - y);
+    return 0;
+}
+
+/**
+ * The shelves scrolling under a carried book (#865 FR-16): one frame loop, which runs while the pointer
+ * is in an edge zone — a finger held still there keeps scrolling — and stops when it leaves the zone
+ * or the book is let go. Writes nothing.
+ */
+export class EdgeScroller {
+    private y: number | null = null;
+    private frame = 0;
+
+    constructor(private readonly scroller: () => HTMLElement | null) {}
+
+    public move(y: number): void {
+        this.y = y;
+        if (!this.frame) this.tick();
+    }
+
+    public stop(): void {
+        this.y = null;
+        const win = this.scroller()?.win ?? window;
+        if (this.frame) win.cancelAnimationFrame?.(this.frame);
+        this.frame = 0;
+    }
+
+    private readonly tick = (): void => {
+        this.frame = 0;
+        const el = this.scroller();
+        if (!el || this.y === null) return;
+        const box = el.getBoundingClientRect();
+        const step = edgeScrollStep(this.y, box.top, box.bottom);
+        if (step === 0) return;
+        el.scrollTop += step;
+        this.frame = (el.win ?? window).requestAnimationFrame(this.tick);
+    };
 }
 
 const BAY = "[data-zf-drop]";
@@ -69,6 +126,9 @@ export function dropTarget(bay: HTMLElement, hooks: DragHooks, scope: Component)
         if (!item || !hooks.canDrop(item, bay)) return;
         event.preventDefault();
         dragging = null;
+        // A drop that redraws the shelf takes the dragged book away, and its dragend with it.
+        hooks.edge?.stop();
+        hooks.carrying?.(null);
         // The drop may redraw the shelf and take the dragged book away: its frames end here.
         nativeMeter?.end("drop");
         nativeMeter = null;
@@ -87,16 +147,23 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
         nativeMeter?.end();
         nativeMeter = meterGesture("shelf-drag:native", "tracked", book.win);
         nativeMeter.moved();
+        hooks.carrying?.(item);
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/plain", item.title);
             event.dataTransfer.setDragImage?.(cover, 0, 0);
         }
     });
+    // The pointer, while the book is dragged: near an edge the shelves scroll to meet it.
+    scope.registerDomEvent(book, "drag", (event: DragEvent) => {
+        if (event.clientY) hooks.edge?.move(event.clientY);
+    });
     scope.registerDomEvent(book, "dragend", () => {
         nativeMeter?.end();
         nativeMeter = null;
         dragging = null;
+        hooks.edge?.stop();
+        hooks.carrying?.(null);
         book.removeClass(LIFTED);
         light(book.closest(`.${c("shelf-shelf-host")}`), null);
     });
@@ -114,6 +181,8 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
         if (lifted) {
             lifted.ghost?.remove();
             light(book.closest(`.${c("shelf-shelf-host")}`), null);
+            hooks.edge?.stop();
+            hooks.carrying?.(null);
         }
         lifted = null;
         book.removeClass(LIFTED);
@@ -134,6 +203,7 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
                 ghost.setCssProps({ "--zf-ghost-x": `${start.x}px`, "--zf-ghost-y": `${start.y}px` });
             }
             lifted = { ghost, bay: null };
+            hooks.carrying?.(item);
             meter = meterGesture("shelf-drag", "tracked", book.win);
             book.setPointerCapture?.(start.id);
         }, LONG_PRESS_MS);
@@ -147,6 +217,7 @@ export function draggable(book: HTMLElement, cover: HTMLElement, item: ShelfItem
             return;
         }
         meter?.moved();
+        hooks.edge?.move(event.clientY);
         lifted.ghost?.setCssProps({ "--zf-ghost-x": `${event.clientX}px`, "--zf-ghost-y": `${event.clientY}px` });
         const bay = bayAt(event.clientX, event.clientY);
         lifted.bay = bay && hooks.canDrop(item, bay) ? bay : null;

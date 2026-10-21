@@ -38,7 +38,7 @@ import {
 import { applyShelfWrites, realShelfWritePort, type ShelfStep, type ShelfWritePort } from "./libraryShelfWrites";
 import { statusOnOpen } from "application/library/bookNote";
 import { bookMenu, nameField, ownMark, reservedShelfNames, shelfMenu, type BookFileActions, type MoveChoice } from "./libraryShelves";
-import { draggable, dropTarget, type DragHooks } from "./libraryDrag";
+import { EdgeScroller, draggable, dropTarget, type DragHooks } from "./libraryDrag";
 import { motionWelcome } from "architecture/components/core/reader/readerMotion";
 import { isFresh, normalizeLibrary, sourceFormat, withFacts, type LibraryMeta } from "application/library/sourceMeta";
 import { readFrom } from "architecture/components/core/reader/readingChooser";
@@ -179,6 +179,8 @@ export class LibraryView extends ItemView {
     private archiveLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
     private drawerLine: { text: string; until: number; batch?: string; failed?: boolean } | null = null;
     private cabinet: HTMLElement | null = null;
+    /** The shelves scrolling to meet a carried book (#865 FR-16). */
+    private readonly edge = new EdgeScroller(() => (this.root ? this.contentEl : null));
     /** The bar that stays, and the shelves under it (#819): where a result starts. */
     private bar: HTMLElement | null = null;
     private shelfHost: HTMLElement | null = null;
@@ -388,6 +390,7 @@ export class LibraryView extends ItemView {
 
     async onClose(): Promise<void> {
         window.clearTimeout(this.refreshTimer);
+        this.edge.stop();
         if (this.saveTimer !== undefined) {
             window.clearTimeout(this.saveTimer);
             void this.plugin?.saveSettings?.();
@@ -801,6 +804,9 @@ export class LibraryView extends ItemView {
             },
             ...(this.deps.shelves?.bayAt ? { bayAt: this.deps.shelves.bayAt } : {}),
             layer: () => this.root,
+            // The cabinet says it will take a book that can be archived, and its cue line shows (#865).
+            carrying: (item) => this.root?.toggleClass(c("shelf--carrying"), Boolean(item && archivable(item) && this.cabinet)),
+            edge: this.edge,
         };
     }
 

@@ -362,6 +362,29 @@ export function layShelves(items: readonly ShelfItem[], query: ShelfQuery, own: 
     return { desk, shelves };
 }
 
+/** Where a book stands in a layout: on the desk, or which shelf — and how far along it. */
+function standing(layout: ShelfLayout, id: string): string | null {
+    const desk = layout.desk.findIndex((item) => item.id === id);
+    if (desk >= 0) return `desk:${desk}`;
+    for (const row of layout.shelves) {
+        const at = row.items.findIndex((item) => item.id === id);
+        if (at >= 0) return `${row.key}:${at}`;
+    }
+    return null;
+}
+
+/**
+ * Whether opening book `id` now leaves it where it stands (#829): read `now`, given the status the
+ * open sets, it is laid out in the same place. The close shot films toward that place at once — and
+ * waits for the Library to draw the book when it has moved (the top of the desk, a new status).
+ */
+export function staysOnOpen(items: readonly ShelfItem[], query: ShelfQuery, own: readonly string[], id: string, now: number, status?: ShelfItem["status"]): boolean {
+    const before = standing(layShelves(items, query, own), id);
+    if (!before) return false;
+    const opened = items.map((item) => (item.id === id ? { ...item, lastRead: now, ...(status ? { status } : {}) } : item));
+    return standing(layShelves(opened, query, own), id) === before;
+}
+
 /** How the Library shows its books (#819, #820): covers, or spines on the shelf. */
 export type BookView = "covers" | "spines";
 export const BOOK_VIEWS: readonly BookView[] = ["covers", "spines"];

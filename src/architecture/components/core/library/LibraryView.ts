@@ -11,6 +11,7 @@ import {
     layShelves,
     shelfCounts,
     statusCounts,
+    staysOnOpen,
     titleFromName,
     type BookView,
     type ShelfFilter,
@@ -1455,7 +1456,10 @@ export class LibraryView extends ItemView {
         // Want to read, then opened (#822): Reading, written once — only from the Library's own doors.
         void this.settleStatusOnOpen(item);
         // One continuous shot (#734): the camera moves into the cover you clicked while the Reader opens.
-        const shot = Boolean(from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot" && beginOpenShot(this.containerEl, from));
+        // Its place is remembered only when the open leaves it there (#829): the way back then moves at once.
+        const query = { filter: this.filter, sort: this.sort, search: this.search, status: this.status, collection: this.collection };
+        const stays = () => staysOnOpen(this.shelf.items, query, this.ownNames(), item.id, Date.now(), statusOnOpen(item.details, Boolean(item.collections?.length))?.status ?? undefined);
+        const shot = Boolean(from && readingMotion(this.plugin?.settings?.readingMotion).open === "shot" && beginOpenShot(this.containerEl, from, stays()));
         // Read in this leaf (#733): the shelf, as it is now, is where the Reader comes back to.
         const back = { filter: this.filter, sort: this.sort, ...(this.status !== "all" ? { status: this.status } : {}), ...(this.collection ? { shelf: this.collection } : {}), scroll: this.contentEl.scrollTop, focus: item.id };
         const token = ++this.openToken;

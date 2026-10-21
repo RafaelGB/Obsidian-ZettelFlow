@@ -53,6 +53,33 @@ export function landOn(page: Box, column: Box): Cam {
     return { s, x: column.left - page.left * s, y: column.top - page.top * s };
 }
 
+/**
+ * A box's place inside a view, in the units of a view `width` wide: the same whatever camera films
+ * the view, since a camera scales and moves the box and the view together (#829).
+ */
+export function placeIn(box: Box, view: Box, width: number): Box {
+    const k = view.width > 0 ? width / view.width : 1;
+    return { left: (box.left - view.left) * k, top: (box.top - view.top) * k, width: box.width * k, height: box.height * k };
+}
+
+/** Two boxes in the same place, give or take `tolerance` px on every edge (#829 FR-3). */
+export function samePlace(a: Box, b: Box, tolerance = 2): boolean {
+    const near = (x: number, y: number) => Math.abs(x - y) <= tolerance;
+    return near(a.left, b.left) && near(a.top, b.top) && near(a.left + a.width, b.left + b.width) && near(a.top + a.height, b.top + b.height);
+}
+
+/** What the opening shot saw of the shelf, for the book it opened (#829 FR-1). */
+export interface ShelfMemory {
+    bookId: string;
+    size: { width: number; height: number };
+}
+
+/** The memory for this book, in a window of this size — or none: then the close shot waits (FR-5). */
+export function rememberedShelf<T extends ShelfMemory>(memory: T | null, bookId: string, size: { width: number; height: number }): T | null {
+    if (!memory || memory.bookId !== bookId) return null;
+    return memory.size.width === size.width && memory.size.height === size.height ? memory : null;
+}
+
 /** The camera as a transform. */
 export function camCss(cam: Cam): string {
     const r = (n: number) => Math.round(n * 1000) / 1000;
@@ -169,6 +196,10 @@ interface Shot {
 
 let open: Shot | null = null;
 
+/** The shelf as the last opening shot saw it (#829): the cover's box, the Library's frame, the cover. */
+/** `leaf` is the box of the leaf that holds the Library: what the close shot films, since it outlives the view. */
+let shelf: (ShelfMemory & { book: Box; frame: Box; leaf: Box; front: HTMLElement; win: Window }) | null = null;
+
 /** Any key or click jumps the shot to its end: motion never stands between you and the page. */
 function armSkip(win: Window, skip: () => void): () => void {
     const handler = () => skip();
@@ -221,9 +252,10 @@ function endOpen(shot: Shot): void {
 /**
  * **Push in** (stage one of the opening): the moment a book is clicked, the camera moves into it
  * while the Reader opens underneath. `view` is the Library's own view element, filmed as it is.
- * Returns whether the shot began; the Reader lands it (`landOpenShot`).
+ * Returns whether the shot began; the Reader lands it (`landOpenShot`). `remember`: the open leaves the
+ * book where it stands, so the close shot may film toward this place at once (#829).
  */
-export function beginOpenShot(view: HTMLElement, cover: HTMLElement): boolean {
+export function beginOpenShot(view: HTMLElement, cover: HTMLElement, remember = false): boolean {
     if (open) endOpen(open);
     if (!motionWelcome(cover)) return false;
     const book = rectOf(cover);
@@ -246,6 +278,11 @@ export function beginOpenShot(view: HTMLElement, cover: HTMLElement): boolean {
     scrolled.forEach((source, i) => {
         if (copies[i]) copies[i].scrollTop = source.scrollTop;
     });
+    // Where the book sits on the shelf, for the close shot to film toward at once (#829 FR-1): the
+    // Library comes back with the same filter, order and scroll.
+    const bookId = remember ? cover.getAttribute("data-zf-book") : null;
+    const leafBox = rectOf(view.closest(".workspace-leaf") ?? view);
+    shelf = bookId ? { bookId, size: { width: win.innerWidth, height: win.innerHeight }, book, frame, leaf: leafBox, front: cover.cloneNode(true) as HTMLElement, win } : null;
     const push = pushIn(book, frame);
     const animation = rig.camera.animate([{ transform: camCss(STILL) }, { transform: camCss(push) }], {
         duration: MOTION.shotPush,
@@ -336,6 +373,9 @@ export async function landOpenShot(readerRoot: HTMLElement, stage: HTMLElement, 
  * Library (`leave`), and once your book is on the shelf again the camera pulls out from the page to
  * it: the cover closes, the shelf comes back around it. A book the shelf no longer shows (filtered
  * out, gone) just lets the page go. Returns whether it plays; the caller leaves either way.
+ *
+ * A book opened from the shelf in this window, at this size, is not waited for (#829): the opening
+ * shot remembered where its cover was, and the camera moves toward it in the same frame.
  */
 export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page: HTMLElement, bookId: string, leave: () => void): boolean {
     if (!bookId || !motionWelcome(readerRoot)) return false;
@@ -369,35 +409,30 @@ export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page
         stopSkip();
         removeRig(rig);
     };
-    leave();
-    void (async () => {
-        const cover = await coverOnShelf(doc, win, bookId);
-        if (!cover || skipped) {
-            const fade = rig.root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" });
-            animations = [fade];
-            if (skipped) fade.finish();
-            await settled(animations);
-            return done();
-        }
-        const view = cover.closest<HTMLElement>(".workspace-leaf-content") ?? cover;
-        const book = rectOf(cover);
-        const frame = rectOf(view);
+    // The leaf outlives the view it shows: the Library is filmed through it while it is still drawing.
+    const memory = rememberedShelf(shelf, bookId, { width: win.innerWidth, height: win.innerHeight });
+    const leaf = memory && memory.win === win ? readerRoot.closest<HTMLElement>(".workspace-leaf") : null;
+    // A memory is good for one return: the next opening measures the shelf again.
+    shelf = null;
+    /**
+     * The camera pulls out from the page to `book` on the shelf, the Library filmed through `view`,
+     * whose own top-left is `origin` once the shot has ended.
+     */
+    const film = (front: HTMLElement, book: Box, frame: Box, view: HTMLElement, origin: Box): Animation[] => {
         const push = pushIn(book, frame);
         const land = compose(landOn(onto(push, book), column), push);
         // Rebuild the book at the shelf's size, filmed from where the page is: the same picture.
         boxVars(rig.book, book);
         rig.book.setCssProps({ "--zf-shot-depth": px(book.height * 4) });
         rig.inner.setCssProps({ "--zf-shot-k": String(book.width / Math.max(1, column.width)) });
-        const front = cover.cloneNode(true) as HTMLElement;
         front.addClass(c("shot-front"));
         rig.lid.prepend(front);
         rig.lid.removeClass(c("shot-lid--waiting"));
         rig.edge.removeClass(c("shot-edge--waiting"));
-        cover.addClass(c("shelf-cover--in-shot"));
         backdrop.remove();
         const timing = { duration: MOTION.shotClose, fill: "forwards" as const };
-        const viewBox = { left: frame.left, top: frame.top };
-        animations = [
+        const viewBox = { left: origin.left, top: origin.top };
+        return [
             rig.camera.animate([{ transform: camCss(land) }, { transform: camCss(push), offset: 0.55 }, { transform: camCss(STILL) }], { ...timing, easing: DOLLY }),
             view.animate(
                 [{ transform: camCss(localCam(land, viewBox)) }, { transform: camCss(localCam(push, viewBox)), offset: 0.55 }, { transform: camCss(STILL) }],
@@ -411,6 +446,52 @@ export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page
             rig.wash.animate([{ opacity: 1 }, { opacity: 1, offset: 0.1 }, { opacity: 0, offset: 0.4 }, { opacity: 0 }], timing),
             rig.edge.animate([{ opacity: 0 }, { opacity: 1, offset: 0.35 }, { opacity: 1 }], timing),
         ];
+    };
+    const fadeAway = async () => {
+        const fade = rig.root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MOTION.base, easing: MOTION.ease, fill: "forwards" });
+        animations = [fade];
+        if (skipped) fade.finish();
+        await settled(animations);
+    };
+    leave();
+    if (memory && leaf) {
+        // Remembered (#829 FR-2): the camera moves in this frame, toward where the cover will be once
+        // the Library is drawn and the sidebars are back — it does not wait for either.
+        animations = film(memory.front.cloneNode(true) as HTMLElement, memory.book, memory.frame, leaf, memory.leaf);
+        if (skipped) finishAll(animations);
+        const shot = animations;
+        void (async () => {
+            let ended = false;
+            const over = Promise.race([settled(shot), wait(win, MOTION.shotPatience)]).then(() => (ended = true));
+            // The real cover, once drawn and still: under the filmed book if it is where it was (FR-3).
+            // Read inside the leaf, in the remembered leaf's units: the camera filming the leaf does not move it.
+            const cover = await stillCover(doc, win, bookId, (card) => placeIn(rectOf(card), rectOf(leaf), memory.leaf.width), () => ended);
+            const there = cover ? samePlace(cover.place, placeIn(memory.book, memory.leaf, memory.leaf.width)) : true;
+            if (cover && there) cover.el.addClass(c("shelf-cover--in-shot"));
+            if (!there) {
+                // The shelf changed meanwhile (FR-4): let go, never land on a wrong place.
+                for (const animation of shot) animation.cancel();
+                await fadeAway();
+                return done();
+            }
+            await over;
+            for (const animation of shot) animation.cancel();
+            cover?.el.removeClass(c("shelf-cover--in-shot"));
+            done();
+        })();
+        return true;
+    }
+    void (async () => {
+        const started = Date.now();
+        const cover = (await stillCover(doc, win, bookId, rectOf, () => Date.now() - started >= MOTION.shotPatience))?.el;
+        if (!cover || skipped) {
+            await fadeAway();
+            return done();
+        }
+        const view = cover.closest<HTMLElement>(".workspace-leaf-content") ?? cover;
+        const frame = rectOf(view);
+        animations = film(cover.cloneNode(true) as HTMLElement, rectOf(cover), frame, view, frame);
+        cover.addClass(c("shelf-cover--in-shot"));
         if (skipped) finishAll(animations);
         await Promise.race([settled(animations), wait(win, MOTION.shotPatience)]);
         for (const animation of animations) animation.cancel();
@@ -421,23 +502,21 @@ export function beginCloseShot(readerRoot: HTMLElement, stage: HTMLElement, page
 }
 
 /**
- * The book's cover on the shelf, once the Library has drawn it and the sidebars have finished
- * coming back: its place has stopped moving for two frames. Gives up after a moment.
+ * The book's cover on the shelf, once the Library has drawn it and the sidebars have finished coming
+ * back: its place, as `measure` reads it, has stopped moving for two frames. None once `ended`.
  */
-async function coverOnShelf(doc: Document, win: Window, bookId: string): Promise<HTMLElement | null> {
+async function stillCover(doc: Document, win: Window, bookId: string, measure: (card: HTMLElement) => Box, ended: () => boolean): Promise<{ el: HTMLElement; place: Box } | null> {
     const frame = () => new Promise<void>((resolve) => win.requestAnimationFrame(() => resolve()));
-    const started = Date.now();
-    let last = "";
+    let last: Box | null = null;
     let still = 0;
-    while (Date.now() - started < MOTION.shotPatience) {
+    while (!ended()) {
         await frame();
         const card = Array.from(doc.querySelectorAll<HTMLElement>(`[data-zf-book]`)).find((el) => el.dataset.zfBook === bookId);
         if (!card) continue;
-        const box = rectOf(card);
-        const key = `${Math.round(box.left)},${Math.round(box.top)},${Math.round(box.width)}`;
-        still = key === last && box.width > 0 ? still + 1 : 0;
-        last = key;
-        if (still >= 2) return card;
+        const place = measure(card);
+        still = last && place.width > 0 && samePlace(place, last, 0.5) ? still + 1 : 0;
+        last = place;
+        if (still >= 2) return { el: card, place };
     }
     return null;
 }

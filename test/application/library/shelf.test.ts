@@ -8,7 +8,9 @@ import {
     layShelves,
     shelfCounts,
     statusCounts,
+    staysOnOpen,
     titleFromName,
+    type ShelfItem,
     type ShelfQuery,
     viewShelf,
     type ShelfInputs,
@@ -440,5 +442,30 @@ describe("the detail's one sentence (#822 AC-2, AC-3)", () => {
         // A path: no notes born, and opened only once it has a place.
         expect(detailSentenceParts({ ...base, kind: "path", lastRead: 9, born: 2 })).toEqual([]);
         expect(detailSentenceParts({ ...base, kind: "path", lastRead: 9, place: 0, progress: 0.5 })).toEqual([{ kind: "read", percent: 50 }]);
+    });
+});
+
+describe("whether opening a book leaves it where it stands (#829)", () => {
+    const book = (id: string, extra: Partial<ShelfItem> = {}): ShelfItem => ({ id, kind: "book", format: "epub", title: id, progress: 0.3, highlights: 0, born: 0, lastRead: 0, ...extra });
+    const query = { filter: "all" as const, sort: "recent" as const, search: "" };
+    const now = 10_000;
+    const shelf = [book("a", { lastRead: 9000 }), book("b", { lastRead: 8000 }), book("c"), book("d", { status: "to-read" })];
+
+    it("the book on top of the desk stays on top", () => {
+        expect(staysOnOpen(shelf, query, [], "a", now)).toBe(true);
+    });
+
+    it("the second book on the desk moves to the top, and a shelved one onto the desk", () => {
+        expect(staysOnOpen(shelf, query, [], "b", now)).toBe(false);
+        expect(staysOnOpen(shelf, query, [], "c", now)).toBe(false);
+    });
+
+    it("a status the open sets moves the book too", () => {
+        expect(staysOnOpen(shelf, { ...query, status: "to-read" }, [], "d", now, "reading")).toBe(false);
+        expect(staysOnOpen(shelf, { ...query, status: "to-read" }, [], "d", now)).toBe(true);
+    });
+
+    it("an unknown book is not remembered", () => {
+        expect(staysOnOpen(shelf, query, [], "zz", now)).toBe(false);
     });
 });

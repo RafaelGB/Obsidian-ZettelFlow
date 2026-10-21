@@ -1606,3 +1606,347 @@ button.zettelkasten-flow__shelf-articles-change {
         text-decoration: underline;
     }
 }
+
+/* ── the archive (#865): a filing cabinet at the end of the stacks ─────────────────────────────── */
+/* The plank's own wood, a shade darker; steel for the pulls; the index card a warm paper — every one
+   of them a mix of the theme's colours, so a dark theme gets a dark cabinet. */
+.zettelkasten-flow__shelf-archive {
+    --shelf-cab: color-mix(in srgb, var(--text-normal) 10%, var(--shelf-plank));
+    --shelf-cab-face: color-mix(in srgb, var(--background-primary) 18%, var(--shelf-plank));
+    --shelf-steel: color-mix(in srgb, var(--text-normal) 35%, var(--background-secondary));
+    // A step off the page towards the text: lighter than the tray in a dark theme, darker in a light one.
+    --shelf-card: color-mix(in srgb, var(--color-yellow) 10%, color-mix(in srgb, var(--text-normal) 9%, var(--background-primary)));
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: var(--size-4-4) var(--size-4-8);
+    margin-top: var(--size-4-12);
+    padding-bottom: var(--size-4-12);
+}
+
+.zettelkasten-flow__shelf-cabinet {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+    width: 14rem;
+    padding: var(--size-4-2) var(--size-4-2) var(--size-4-3);
+    border-radius: var(--radius-s) var(--radius-s) var(--size-2-1) var(--size-2-1);
+    background: linear-gradient(180deg, var(--shelf-cab), color-mix(in srgb, var(--text-normal) 8%, var(--shelf-cab)));
+    box-shadow: 0 var(--size-4-3) var(--size-4-5) calc(-1 * var(--size-4-3)) rgba(0, 0, 0, 0.35);
+    transition: box-shadow $motion-fast $ease-out, transform $motion-base $ease-out;
+}
+
+/* A book carried towards it: the cabinet says it will take it; over it, more strongly. */
+.zettelkasten-flow__shelf--carrying .zettelkasten-flow__shelf-cabinet {
+    box-shadow: 0 0 0 var(--size-2-1) color-mix(in srgb, var(--interactive-accent) 45%, transparent);
+}
+
+.zettelkasten-flow__shelf-cabinet.zettelkasten-flow__shelf-bay--drop {
+    box-shadow: 0 0 0 var(--size-2-2) var(--interactive-accent);
+    transform: scale(1.03);
+}
+
+.zettelkasten-flow__shelf-cabinet--bump {
+    animation: zf-cabinet-bump $motion-cover $ease-out;
+}
+
+@keyframes zf-cabinet-bump {
+    30% {
+        transform: translateY(var(--size-2-1)) scale(0.985);
+    }
+
+    100% {
+        transform: none;
+    }
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-drawer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 3.75rem;
+    padding: 0 var(--size-4-3);
+    border: none;
+    border-radius: var(--size-2-1);
+    background: linear-gradient(180deg, var(--shelf-cab-face), color-mix(in srgb, var(--text-normal) 6%, var(--shelf-cab-face)));
+    box-shadow: inset 0 var(--border-width) 0 color-mix(in srgb, var(--background-primary) 30%, transparent), 0 var(--size-2-1) var(--size-2-2) rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    transition: transform $motion-base $ease-out, box-shadow $motion-fast $ease-out;
+
+    &:hover,
+    &:focus-visible {
+        transform: translateY(var(--size-2-1)) scale(1.015);
+    }
+
+    &.is-active {
+        transform: translateY(var(--size-2-2)) scale(1.03);
+        box-shadow: inset 0 0 0 var(--size-2-1) var(--interactive-accent), 0 var(--size-4-2) var(--size-4-3) calc(-1 * var(--size-2-2)) rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* The card-holder on the drawer's face: a small frame holding its name and what it holds. */
+.zettelkasten-flow__shelf-drawer-holder {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 6rem;
+    padding: var(--size-2-1) var(--size-4-2);
+    border: var(--border-width) solid var(--shelf-steel);
+    border-radius: var(--size-2-1);
+    background-color: var(--shelf-card);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    line-height: var(--line-height-tight);
+}
+
+.zettelkasten-flow__shelf-drawer-count {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__shelf-drawer--empty .zettelkasten-flow__shelf-drawer-holder {
+    opacity: 0.6;
+}
+
+.zettelkasten-flow__shelf-drawer-pull {
+    width: 2.75rem;
+    height: var(--size-4-3);
+    border-radius: var(--radius-s);
+    background: linear-gradient(180deg, var(--shelf-steel), color-mix(in srgb, var(--text-normal) 25%, var(--shelf-steel)));
+}
+
+.zettelkasten-flow__shelf-archive-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    align-self: center;
+    max-width: 30rem;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__shelf-archive-heading {
+    margin: 0;
+    color: var(--text-normal);
+    font-size: var(--font-ui-large);
+}
+
+.zettelkasten-flow__shelf-archive-folder {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--size-4-1);
+    color: var(--text-faint);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-archive-folder-icon {
+    display: inline-flex;
+}
+
+/* The cue a carried book reads: only while one is carried. */
+.zettelkasten-flow__shelf-archive-cue {
+    color: var(--interactive-accent);
+    font-style: italic;
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+}
+
+.zettelkasten-flow__shelf--carrying .zettelkasten-flow__shelf-archive-cue {
+    opacity: 1;
+}
+
+.zettelkasten-flow__shelf-archive-line,
+.zettelkasten-flow__shelf-archive-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+}
+
+.zettelkasten-flow__shelf-archive-line--failed {
+    color: var(--text-error);
+}
+
+.zettelkasten-flow__shelf-archive-more {
+    margin: var(--size-4-3) 0 0;
+}
+
+/* The drawer pulled out under the cabinet: the camera stays, the drawer comes to it. */
+.zettelkasten-flow__shelf-archive-tray {
+    grid-column: 1 / -1;
+    padding: var(--size-4-4) var(--size-4-5) var(--size-4-5);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--shelf-cab-face) 45%, var(--shelf-wall)), var(--shelf-wall));
+    box-shadow: inset 0 var(--size-4-3) var(--size-4-4) calc(-1 * var(--size-4-3)) rgba(0, 0, 0, 0.3);
+    animation: zf-tray-out $motion-cover $ease-out;
+    transform-origin: top center;
+}
+
+@keyframes zf-tray-out {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-4-4))) scaleY(0.92);
+    }
+}
+
+.zettelkasten-flow__shelf-archive-tray-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2) var(--size-4-3);
+    margin-bottom: var(--size-4-3);
+}
+
+.zettelkasten-flow__shelf-archive-tray-title {
+    margin: 0 var(--size-4-2) 0 0;
+    font-size: var(--font-ui-medium);
+}
+
+.zettelkasten-flow__shelf-archive-search {
+    width: 15rem;
+    max-width: 100%;
+}
+
+.zettelkasten-flow__shelf-archive-close {
+    margin-left: auto;
+}
+
+.zettelkasten-flow__shelf-archive-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--size-4-3);
+}
+
+/* An index card: ruled paper, a red line under the title, a tab with the format. */
+.zettelkasten-flow__shelf-archive-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+    padding: var(--size-4-3) var(--size-4-3) var(--size-4-2);
+    border-radius: var(--size-2-1);
+    background-color: var(--shelf-card);
+    background-image:
+        linear-gradient(transparent 1.7rem, color-mix(in srgb, var(--color-red) 40%, transparent) 1.7rem, color-mix(in srgb, var(--color-red) 40%, transparent) calc(1.7rem + var(--border-width)), transparent calc(1.7rem + var(--border-width))),
+        repeating-linear-gradient(transparent 0 1.2rem, color-mix(in srgb, var(--color-blue) 12%, transparent) 1.2rem calc(1.2rem + var(--border-width)));
+    box-shadow: 0 var(--border-width) var(--size-2-1) rgba(0, 0, 0, 0.15), 0 var(--size-2-2) var(--size-4-3) calc(-1 * var(--size-2-3)) rgba(0, 0, 0, 0.3);
+    color: var(--text-normal);
+    animation: zf-card-in $motion-base $ease-out backwards;
+    animation-delay: calc(var(--zf-card-index, 0) * 40ms);
+}
+
+@keyframes zf-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-4-2)));
+    }
+}
+
+.zettelkasten-flow__shelf-archive-card--leaving {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--size-4-8))) scale(0.92);
+    transition: opacity $motion-base $ease-out, transform $motion-base $ease-out;
+}
+
+.zettelkasten-flow__shelf-archive-card-tab {
+    position: absolute;
+    top: calc(-1 * var(--size-2-3));
+    right: var(--size-4-4);
+    padding: 0 var(--size-4-2);
+    border-radius: var(--size-2-1) var(--size-2-1) 0 0;
+    background-color: color-mix(in srgb, var(--interactive-accent) 70%, var(--shelf-card));
+    color: var(--text-on-accent);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0.04em;
+}
+
+.zettelkasten-flow__shelf-archive-card-title {
+    margin: 0;
+    overflow: hidden;
+    font-size: var(--font-ui-small);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__shelf-archive-card-who {
+    margin-top: var(--size-2-2);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-archive-card-meta,
+.zettelkasten-flow__shelf-archive-card-why {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__shelf-archive-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4-3);
+    margin-top: var(--size-4-1);
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-look,
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-card-action {
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    color: var(--text-accent);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    cursor: pointer;
+}
+
+.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-card-action--quiet {
+    color: var(--text-muted);
+    font-weight: var(--font-normal);
+}
+
+.zettelkasten-flow__shelf-archive-empty {
+    padding: var(--size-4-3) var(--size-4-1);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.zettelkasten-flow__motion-ghost.zettelkasten-flow__shelf-archive-ghost {
+    z-index: var(--layer-popover);
+}
+
+@container (max-width: 40rem) {
+    .zettelkasten-flow__shelf-archive {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+    }
+
+    .zettelkasten-flow__shelf-archive-side {
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__shelf-cabinet,
+    .zettelkasten-flow__shelf .zettelkasten-flow__shelf-drawer,
+    .zettelkasten-flow__shelf-archive-card--leaving,
+    .zettelkasten-flow__shelf-archive-cue {
+        transition: none;
+    }
+
+    .zettelkasten-flow__shelf-cabinet--bump,
+    .zettelkasten-flow__shelf-archive-tray,
+    .zettelkasten-flow__shelf-archive-card {
+        animation: none;
+    }
+}

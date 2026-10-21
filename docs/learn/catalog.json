@@ -3319,6 +3319,27 @@
     },
     {
       "name": {
+        "en": "The archive",
+        "es": "El archivo"
+      },
+      "line": {
+        "en": "Put away the books, papers and articles you no longer need: off the shelves and the search, back in one click.",
+        "es": "Guarda los libros, artículos y recortes que ya no necesitas: fuera de las estanterías y de la búsqueda, de vuelta con un clic."
+      },
+      "door": {
+        "en": "Library › drag a book onto the cabinet, or a book's ⋯ › Archive",
+        "es": "Biblioteca › arrastra un libro al archivador, o el ⋯ de un libro › Archivar"
+      },
+      "group": {
+        "en": "Read",
+        "es": "Leer"
+      },
+      "doc": "development/library.md",
+      "tutorial": "library",
+      "capability": "library-archive"
+    },
+    {
+      "name": {
         "en": "Write in the margin",
         "es": "Escribir en el margen"
       },

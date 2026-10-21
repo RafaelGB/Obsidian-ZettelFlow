@@ -47,3 +47,13 @@ describe("normalizeLoadedSettings (#795)", () => {
         expect(normalizeLoadedSettings(data, DEFAULT_SETTINGS).settings.ribbonCanvas).toBe("flows/mine.canvas");
     });
 });
+
+describe("the Library's archive at load (#865 AC-20)", () => {
+    it("is on for a vault that never set it, and stays off once emptied", () => {
+        const upgrading = JSON.parse(JSON.stringify(normalizeLoadedSettings(null, DEFAULT_SETTINGS).settings));
+        delete upgrading.libraryArchiveFolder;
+        expect(normalizeLoadedSettings(upgrading, DEFAULT_SETTINGS).settings.libraryArchiveFolder).toBe("Library archive");
+        const emptied = { ...upgrading, libraryArchiveFolder: "" };
+        expect(normalizeLoadedSettings(emptied, DEFAULT_SETTINGS).settings.libraryArchiveFolder).toBe("");
+    });
+});

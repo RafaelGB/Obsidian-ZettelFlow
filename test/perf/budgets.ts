@@ -480,8 +480,14 @@ export const BUDGETS = {
         // 3,143 → 3,146 (#863): Listen's voices add 2.8 KB — only the reading language's at hand, the default
         // marked, a search over the rest with each language named by `Intl.DisplayNames` (no table of language
         // names shipped). 3,143.8 KB; the ceiling closes at its measure plus 2 KB.
-        limit: 3_146,
-        measured: "3,143.8 KB",
+        // 3,146 → 3,173 (#865): the Library's archive adds 27.1 KB — its pure rules (clashes, where a file goes
+        // and comes back, the record that follows it), the recorded moves, the cabinet and its drawers, the
+        // Archive folder row and its move offer, the edge scroll, and about seventy strings in two languages.
+        // Looked for something to subtract first: the drawers reuse the shelf's chips and search, the flight is
+        // the Reader's fly(), the undo is the write record's, the folder field gained a check instead of a second
+        // field, and nothing reads a file. No dependency. 3,170.9 KB; the ceiling closes at its measure plus 2 KB.
+        limit: 3_173,
+        measured: "3,170.9 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

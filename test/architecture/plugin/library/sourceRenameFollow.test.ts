@@ -306,3 +306,13 @@ describe("a follow that fails says so once, and loses nothing (#810 FR-6, AC-7)"
         expect(seen).toEqual([`${BOOK}→${MOVED}`]);
     });
 });
+
+describe("an archived thing's record follows it (#865 FR-10)", () => {
+    it("is forgotten when it is moved out of the archive by hand, and re-keyed by a rename inside", async () => {
+        settings.libraryArchiveFolder = "Library archive";
+        settings.libraryArchive = { "Library archive/a.pdf": { from: "Books/a.pdf", at: 1 }, "Library archive/b.md": { from: "Clippings/b.md", at: 2 } };
+        await follow("Library archive/a.pdf", "Elsewhere/a.pdf");
+        await follow("Library archive/b.md", "Library archive/c.md");
+        expect(settings.libraryArchive).toEqual({ "Library archive/c.md": { from: "Clippings/b.md", at: 2 } });
+    });
+});

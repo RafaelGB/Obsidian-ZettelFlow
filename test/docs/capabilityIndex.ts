@@ -135,6 +135,7 @@ const READER: Record<CapabilityId, ReaderEntry> = {
     "chapter-recall": { summary: "put the chapter and your marks away, write what it argued from memory, then see what you marked — nothing compared or scored; keep your words as a note that cites the book.", page: "../development/reader.md#recall" },
     library: { summary: "your PDFs, EPUBs and saved reading paths on one shelf — read them in the Reader, highlight, and crystallize what you mark into notes that cite the page.", page: "../development/library.md" },
     "library-shelves": { summary: "shelves of your own in the Library — make one, drag a book onto it (or long-press on an iPad), filter by it; one write per change, with an Undo.", page: "../development/library.md#your-shelves" },
+    "library-archive": { summary: "a filing cabinet at the end of the stacks — drag a book onto it, or Archive from its menu, and it moves to its own folder, off the shelves and the search, until you open a drawer and return it.", page: "../development/library.md#the-archive" },
     "highlights-review": { summary: "what you marked in the Reader comes back a few at a time — still think so, changed your mind, or let it go.", page: "../development/highlights-review.md" },
     "think-about": { summary: "open a thread about a note without writing to it.", page: "../architecture/thought-lab.md" },
     "claim-door": { summary: "say in one sentence what a note claims.", page: "../development/claim-returns.md" },

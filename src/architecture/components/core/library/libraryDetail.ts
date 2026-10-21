@@ -25,6 +25,8 @@ export interface DetailParts {
     cite?: (from: HTMLElement) => void;
     /** *Share a copy with your notes* (#842), for a PDF: whether anything is marked, and the sheet. */
     share?: { available: () => Promise<boolean>; open: (from: HTMLElement) => void };
+    /** *Archive* (#865 FR-16): put it away in the cabinet; absent for a saved path and while the archive is off. */
+    archive?: () => void;
 }
 
 /** One group of highlights: a chapter of a book, a page of a paper, a note of a path. */
@@ -122,6 +124,11 @@ export function renderDetail(aside: HTMLElement, item: ShelfItem, parts: DetailP
                 share.removeAttribute("disabled");
                 scope.registerDomEvent(share, "click", () => door.open(share));
             });
+    }
+    if (parts.archive) {
+        const archive = actions.createEl("button", { attr: { type: "button", "data-zf-archive": "" }, text: t("shelf_menu_archive") });
+        const put = parts.archive;
+        scope.registerDomEvent(archive, "click", () => put());
     }
     const close = actions.createEl("button", { attr: { type: "button" }, text: t("shelf_close") });
     scope.registerDomEvent(close, "click", () => parts.close());

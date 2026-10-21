@@ -18,6 +18,10 @@ export interface LibraryHost extends ReaderHost {
         libraryBookView?: "covers" | "spines";
         /** The shelves you made (#821), even empty ones; read through `normalizeShelfNames`. */
         libraryShelves?: unknown;
+        /** The archive's folder (#865): `Library archive` until you choose; empty turns it off. */
+        libraryArchiveFolder?: string;
+        /** Where each archived thing came from (#865); read through `normalizeArchiveRecords`. */
+        libraryArchive?: Record<string, { from: string; at: number }>;
     };
 }
 

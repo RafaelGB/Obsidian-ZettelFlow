@@ -11,6 +11,7 @@ import { speedSettingsItems } from "./speedSettingsItems";
 import { frameMeterSettingsItems } from "./frameMeterSettingsItems";
 import { addFolderField } from "./folderField";
 import { dictionarySettings } from "application/library/dictionarySettings";
+import { archiveFolderOf } from "application/library/archive";
 
 type LocaleKey = Parameters<typeof t>[0];
 
@@ -140,7 +141,7 @@ export function foldersSettingsGroup(
      * The folders edited elsewhere, shown here with a way there — one setting, one editor: the
      * dictionaries (#766 FR-2) and the book notes (#743 FR-6.4), both under Reading.
      */
-    elsewhere: { dictionaries?: FolderPointer; bookNotes?: FolderPointer } = {}
+    elsewhere: { dictionaries?: FolderPointer; bookNotes?: FolderPointer; archive?: FolderPointer } = {}
 ): SettingDefinitionItem {
     return {
         type: "group",
@@ -191,6 +192,15 @@ export function foldersSettingsGroup(
                     aliasKey: "settings_reading_book_notes_name",
                     path: () => plugin.settings.bookNotesFolder || DEFAULT_SETTINGS.bookNotesFolder || "",
                 }, elsewhere.bookNotes)]
+                : []),
+            ...(elsewhere.archive
+                ? [pointerCell({
+                    nameKey: "settings_folders_archive_name",
+                    descKey: "settings_folders_archive_desc",
+                    goKey: "settings_folders_archive_go",
+                    aliasKey: "settings_reading_archive_name",
+                    path: () => archiveFolderOf(plugin.settings.libraryArchiveFolder),
+                }, elsewhere.archive)]
                 : []),
         ],
     };

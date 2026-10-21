@@ -139,8 +139,12 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                 plugin,
                 () => this.bookNotesPointer?.(),
                 // An open Library shows the shelf the new articles folder makes (#744 AC-7).
+                () => this.refreshLibraries(),
+                () => this.refreshLibraries(),
+                // The archive (#865): an open Library shows its cabinet, and the folders grid follows.
                 () => {
-                    for (const leaf of this.app.workspace.getLeavesOfType(LIBRARY_VIEW)) (leaf.view as { refresh?: () => void }).refresh?.();
+                    this.refreshLibraries();
+                    this.archivePointer?.();
                 }
             ),
             // Look up and Translate (#766): your dictionaries folder, what is in it, the target language.
@@ -186,6 +190,10 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
                 bookNotes: {
                     go: () => this.goToFolderRow("settings-book-notes-row", "reading"),
                     onPointer: (refresh) => (this.bookNotesPointer = refresh),
+                },
+                archive: {
+                    go: () => this.goToFolderRow("settings-archive-row", "reading"),
+                    onPointer: (refresh) => (this.archivePointer = refresh),
                 },
             }),
             scriptsLoggingGroup(advanced),
@@ -315,6 +323,13 @@ export class ZettelFlowSettingsTab extends PluginSettingTab {
     private dictionariesPointer: (() => void) | null = null;
     /** The Book notes folder's pointer in the folders grid, redrawn when Reading changes it (#743). */
     private bookNotesPointer: (() => void) | null = null;
+    /** The folders grid's archive cell, redrawn when the archive folder changes under Reading (#865). */
+    private archivePointer: (() => void) | null = null;
+
+    /** Every open Library shows the shelf the settings now make. */
+    private refreshLibraries(): void {
+        for (const leaf of this.app.workspace.getLeavesOfType(LIBRARY_VIEW)) (leaf.view as { refresh?: () => void }).refresh?.();
+    }
     /** The one correction a section jump may still make once the pop-out has settled (#766 walk). */
     private revealFix: number | undefined;
     /** The property-hooks React root, kept across re-renders of its row. */

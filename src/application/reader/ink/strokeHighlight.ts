@@ -9,7 +9,7 @@
  * `strokeMetrics`.
  */
 
-import type { TextSpan } from "application/thinking/quoteAnchor";
+import { continuesSpan, type TextSpan } from "application/thinking/quoteAnchor";
 import type { WordBox } from "./inkAnchor";
 
 /** A stroke takes the line whose middle is nearest, within this many line heights — never two. */
@@ -146,12 +146,10 @@ export function bandWords<W extends WordBox>(points: readonly StrokePoint[], wor
 
 /**
  * Whether a highlight stroke continues the last one (FR-5): drawn within `EXTEND_WINDOW_MS`, and on
- * words contiguous with it — nothing but whitespace between them in the text, either way round, or
- * overlapping. A sentence that wraps is one highlight.
+ * words that continue it (`continuesSpan`: overlapping, or only whitespace and punctuation between).
+ * A sentence that wraps is one highlight.
  */
 export function extendsHighlight(last: { span: TextSpan; at: number } | null, span: TextSpan, text: string, now: number): boolean {
     if (!last || now - last.at > EXTEND_WINDOW_MS) return false;
-    if (span.start <= last.span.end && span.end >= last.span.start) return true;
-    const gap = span.start >= last.span.end ? text.slice(last.span.end, span.start) : text.slice(span.end, last.span.start);
-    return /^\s*$/.test(gap);
+    return continuesSpan(last.span, span, text);
 }

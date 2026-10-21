@@ -2721,6 +2721,7 @@ export default {
     reader_hl_save: 'Guardar',
     reader_hl_cancel: 'Cancelar',
     reader_hl_saved: 'Subrayado. Guardado en Pensar.',
+    reader_hl_grown: 'Añadido al mismo subrayado en Pensar.',
     reader_hl_undo: 'Deshacer',
     reader_hl_removed: 'Subrayado quitado.',
     reader_hl_no_note: 'Sin nota todavía.',

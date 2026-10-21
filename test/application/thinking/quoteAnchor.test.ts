@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { anchorAll, anchorQuote, quoteAt, type TextQuote } from "application/thinking/quoteAnchor";
+import { anchorAll, anchorQuote, continuesSpan, quoteAt, type TextQuote } from "application/thinking/quoteAnchor";
 
 const TEXT =
     "Event sourcing stores changes, not state. The balance is what the events add up to. " +
@@ -91,5 +91,26 @@ describe("anchorAll: every highlight is drawn or listed, none dropped (#671)", (
         expect(anchored.map((a) => a.id)).toEqual(["1"]);
         expect(anchored[0].span.start).toBe(TEXT.indexOf("stores changes"));
         expect(detached.map((d) => d.id)).toEqual(["2"]);
+    });
+});
+
+describe("continuesSpan: one passage marked in several goes (#868 FR-5)", () => {
+    const first = { start: 0, end: TEXT.indexOf(", not") }; // "Event sourcing stores changes"
+
+    it("continues across nothing but whitespace and punctuation, either way round", () => {
+        const next = { start: TEXT.indexOf("not state"), end: TEXT.indexOf(" The balance") };
+        expect(continuesSpan(first, next, TEXT)).toBe(true);
+        expect(continuesSpan(next, first, TEXT)).toBe(true);
+        const sentence = { start: TEXT.indexOf("The balance"), end: TEXT.indexOf(" Later") };
+        expect(continuesSpan({ start: 0, end: TEXT.indexOf(" The") - 1 }, sentence, TEXT)).toBe(true);
+    });
+
+    it("continues what it overlaps", () => {
+        expect(continuesSpan(first, { start: 6, end: 45 }, TEXT)).toBe(true);
+    });
+
+    it("does not continue across a word, or a long run of punctuation", () => {
+        expect(continuesSpan(first, { start: TEXT.indexOf("state"), end: TEXT.indexOf(" The") }, TEXT)).toBe(false);
+        expect(continuesSpan({ start: 0, end: 2 }, { start: 11, end: 13 }, "ab.........cd")).toBe(false);
     });
 });

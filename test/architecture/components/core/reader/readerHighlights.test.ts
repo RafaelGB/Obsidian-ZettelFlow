@@ -843,3 +843,79 @@ describe("a highlight of code, its edges (#824 review)", () => {
         expect(m.highlights.quoteFor(start, text.indexOf("prose") + 5)!.quote.code).toBeUndefined();
     });
 });
+
+describe("one passage marked in several goes is one highlight (#868)", () => {
+    const keepAs = async (m: ReturnType<typeof mount>, words: string, label = "Idea") => {
+        m.select(words);
+        m.body.fire("mouseup");
+        m.button(label).click();
+        await flush();
+    };
+
+    it("grows the highlight kept last when the next words continue it (AC-1)", async () => {
+        const m = mount();
+        await m.attach();
+        await keepAs(m, "stores changes");
+        await keepAs(m, "not state.");
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        const grown = m.store.save.mock.calls[0][0] as Thought;
+        expect(grown.id).toBe("hl-1");
+        expect(grown.quote?.exact).toBe("stores changes, not state.");
+        expect(m.highlights.items()).toHaveLength(1);
+        expect(m.host.textContent).toContain("Added to the same highlight in Think.");
+    });
+
+    it("keeps a highlight of its own with another meaning (AC-2)", async () => {
+        const m = mount();
+        await m.attach();
+        await keepAs(m, "stores changes");
+        await keepAs(m, "not state.", "Question");
+        expect(m.store.write).toHaveBeenCalledTimes(2);
+        expect(m.store.save).not.toHaveBeenCalled();
+    });
+
+    it("Undo takes back only the added words (AC-3)", async () => {
+        const m = mount();
+        await m.attach();
+        await keepAs(m, "stores changes");
+        await keepAs(m, "not state.");
+        m.button("Undo").click();
+        await flush();
+        const back = m.store.save.mock.calls[1][0] as Thought;
+        expect(back.quote?.exact).toBe("stores changes");
+        expect(m.highlights.items()[0].quote?.exact).toBe("stores changes");
+    });
+
+    it("never grows a highlight from an earlier reading (AC-4)", async () => {
+        const m = mount([thought("old", { exact: "stores changes", prefix: "Event sourcing ", suffix: ", not state." })]);
+        await m.attach();
+        await keepAs(m, "not state.");
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).not.toHaveBeenCalled();
+    });
+
+    it("a note on the words that continue it is added to the highlight's note (FR-2)", async () => {
+        const m = mount();
+        await m.attach();
+        await keepAs(m, "stores changes");
+        m.select("not state.");
+        m.body.fire("mouseup");
+        m.button("Note").click();
+        (m.host.find((el) => el.tag === "textarea") as DomNode).value = "why it matters";
+        m.button("Save").click();
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        const grown = m.store.save.mock.calls[0][0] as Thought;
+        expect(grown.quote?.exact).toBe("stores changes, not state.");
+        expect(grown.text).toBe("why it matters");
+    });
+
+    it("words with others between them are a highlight of their own (FR-3)", async () => {
+        const m = mount();
+        await m.attach();
+        await keepAs(m, "Event sourcing");
+        await keepAs(m, "not state.");
+        expect(m.store.write).toHaveBeenCalledTimes(2);
+    });
+});

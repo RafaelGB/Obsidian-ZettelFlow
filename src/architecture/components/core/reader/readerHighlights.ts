@@ -1,7 +1,7 @@
 import { Component, setTooltip, type App } from "obsidian";
 import { c, log } from "architecture";
 import { t } from "architecture/lang";
-import { anchorAll, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
+import { anchorAll, continuesSpan, quoteAt, type TextSpan } from "application/thinking/quoteAnchor";
 import { isInk, type Thought, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
@@ -367,6 +367,8 @@ export class ReaderHighlights {
     private reanchoring: Thought | null = null;
     /** The state's line, above the page: what is being re-anchored, and *Cancel*. */
     private reanchorLine: HTMLElement | null = null;
+    /** The highlight a selection kept last in this reading (#868): the next words may continue it. */
+    private lastKept: string | null = null;
     /** The meaning you chose last (#720): what H keeps and what *Note* uses. */
     private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
     /** The margin shows one meaning only, when you asked it to (#720). */
@@ -443,6 +445,7 @@ export class ReaderHighlights {
         this.pageNotes = [];
         this.component = component;
         this.margin = margin;
+        this.lastKept = null;
         this.anchored = [];
         this.tints.clear();
         this.detached = [];
@@ -520,6 +523,7 @@ export class ReaderHighlights {
         this.locator = null;
         this.pageMarks = [];
         this.pageNotes = [];
+        this.lastKept = null;
         this.anchored = [];
         this.tints.clear();
         this.detached = [];
@@ -1314,7 +1318,31 @@ export class ReaderHighlights {
     // ── writes (all of them thoughts, never the note) ────────────────────────
 
     private async keep(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, note: string, meaning: HighlightMeaning = this.lastMeaning): Promise<void> {
-        await this.keepSpan(span, quote, { note, meaning, origin: "selection", clear: () => selection.clear() });
+        // One passage marked in several goes is one highlight (#868): the words that continue the one
+        // kept last grow it, as a stroke grows a stroke (#746 FR-5).
+        const last = this.continued(span, meaning);
+        if (last) {
+            this.clearPending();
+            const actions = (next: Thought): StatusAction[] => [{ key: "reader_hl_undo", run: () => void this.unextend(next, last), thought: next }];
+            if (await this.extend(last, span, { note, origin: "selection", actions, clear: () => selection.clear() })) return;
+        }
+        const made = await this.keepSpan(span, quote, { note, meaning, origin: "selection", clear: () => selection.clear() });
+        if (made) this.lastKept = made.id;
+    }
+
+    /**
+     * The highlight a selection continues (#868 FR-1, FR-3): the one kept last in this reading, still
+     * on the page, of the same meaning and layer, whose words these words continue. None otherwise.
+     */
+    private continued(span: TextSpan, meaning: HighlightMeaning): Thought | null {
+        const body = this.body;
+        const entry = this.lastKept ? this.anchored.find((candidate) => candidate.thought.id === this.lastKept) : undefined;
+        const thought = entry?.thought;
+        if (!body || !thought?.quote || meaningOf(thought) !== meaning) return null;
+        if (layerOf(thought) !== (this.view.layerForNew?.() ?? DEFAULT_LAYER)) return null;
+        const text = chapterText(body);
+        const old = anchorAll(text, [{ thought, quote: thought.quote }]).anchored[0]?.span;
+        return old && continuesSpan(old, span, text) ? thought : null;
     }
 
     /**
@@ -1427,7 +1455,7 @@ export class ReaderHighlights {
      * Grow a highlight onto contiguous words (#746 FR-5): one recorded update of its quote, and marks
      * for the added words only — they sweep, the earlier ones stay as they are (FR-13).
      */
-    async extend(thought: Thought, span: TextSpan, options: Pick<KeepOptions, "direction" | "actions"> = {}): Promise<Thought | undefined> {
+    async extend(thought: Thought, span: TextSpan, options: Pick<KeepOptions, "direction" | "actions" | "note" | "origin" | "clear"> = {}): Promise<Thought | undefined> {
         const body = this.body;
         const entry = this.anchored.find((candidate) => candidate.thought.id === thought.id);
         if (!body || !entry || !thought.quote) return undefined;
@@ -1439,7 +1467,10 @@ export class ReaderHighlights {
         if (!found) return undefined;
         const locator = this.locator;
         const quote = locator && !found.quote.heading && locator.label ? { ...found.quote, heading: locator.label } : found.quote;
-        const next: Thought = { ...thought, quote };
+        // A note on the added words joins the highlight's own, on a line of its own (#868 FR-2).
+        const note = options.note?.trim() ?? "";
+        const had = thought.text.trim();
+        const next: Thought = { ...thought, quote, ...(note ? { text: had ? `${had}\n${note}` : note } : {}) };
         const meaning = meaningOf(thought);
         // What the added words cover of an equation or a drawing is tinted on its own key, so taking
         // the extension back takes only that tint (#770).
@@ -1460,13 +1491,17 @@ export class ReaderHighlights {
             this.status("reader_hl_failed");
             return undefined;
         }
+        options.clear?.();
+        if (note && !had) this.noted++;
         this.decorate(next, added);
         entry.thought = next;
         entry.marks.push(...added);
         this.extensions.set(next, { marks: added, tint });
         this.renderMargin();
         this.view.onChange();
-        this.status(HIGHLIGHTED[meaning], options.actions?.(next) ?? [], true);
+        // A selection's answer stays by the words; a stroke's sits low, clear of the hand (#746).
+        const selection = options.origin === "selection";
+        this.status(selection ? "reader_hl_grown" : HIGHLIGHTED[meaning], options.actions?.(next) ?? [], !selection);
         return next;
     }
 

@@ -29,3 +29,15 @@ describe("a picked thought stays visibly picked (#596)", () => {
         expect(rule).toContain("opacity: 1");
     });
 });
+
+describe("a card's actions are seen by a finger (#868 FR-6, AC-6)", () => {
+    it("shows the action row on a device without hover", () => {
+        const start = SCSS.search(/^\.zettelkasten-flow__lab-actions \{/m);
+        const rule = SCSS.slice(start, SCSS.indexOf("\n}", start));
+        expect(rule).toMatch(/@media \(hover: none\) \{\s*opacity: 1;/);
+    });
+
+    it("lets a long press pick the card", () => {
+        expect(LAB).toContain("pressToPick(box, this, { pick: () => this.togglePick(thought.id)");
+    });
+});

@@ -236,6 +236,14 @@
     .zettelkasten-flow__lab-card:focus-within & {
         opacity: 1;
     }
+
+    /*
+     * A finger has no hover, and a tapped button takes no focus in WebKit (#868): on a touch screen
+     * the row was there but invisible, and its first tap went to an emulated hover. Always shown.
+     */
+    @media (hover: none) {
+        opacity: 1;
+    }
 }
 
 .zettelkasten-flow__lab-icon {
@@ -255,6 +263,11 @@
     &:hover {
         background: var(--background-modifier-hover);
         color: var(--text-normal);
+    }
+
+    /* Read at arm's length, never brightened by a hover (#868). */
+    @media (hover: none) {
+        color: var(--text-muted);
     }
 
     .svg-icon {

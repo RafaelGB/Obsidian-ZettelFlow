@@ -11,6 +11,7 @@ import { ModeHeader } from "architecture/components/core/surface/ModeHeader";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { isInk, linkThoughts, thoughtPath, type ReaderMoveId, type ResponseKind, type Thought } from "application/thinking/thought";
 import { renderInkCard } from "./labInkCard";
+import { pressToPick } from "./labPress";
 import { InkReadingController } from "architecture/components/core/reader/readerInkReading";
 import { flattenThread, threadThoughts, type ThoughtNode } from "application/thinking/thread";
 import { searchThreads, isEmptyQuery, type LabQuery } from "application/thinking/labSearch";
@@ -983,6 +984,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
         // Picked stays visibly picked — a persistent card class, not gated behind hover (#596).
         if (this.selected.has(thought.id)) box.addClass(c("lab-selected"));
+        // A finger picks by holding the card, then by tapping while anything is picked (#868).
+        pressToPick(box, this, { pick: () => this.togglePick(thought.id), picking: () => this.selected.size > 0 });
 
         // Colour distinguishes what a thought *is* to the one above it, never who is right.
         const response = thought.respondsTo;

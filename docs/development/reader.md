@@ -1183,6 +1183,15 @@ below the last line, still counts.
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the
   thought's text. Open Think on that note and the passage is there, quoted above what you wrote, with
   **Open in the Reader** to come back to the exact place.
+- **One passage, one highlight — however many goes it takes.** Mark a sentence, then the next one,
+  then the end of the paragraph, and it is still **one** thought in Think, with the whole passage in
+  it (#868). The words you select grow the highlight you kept last in this reading when they
+  **continue** it — overlapping it, or with nothing but spaces and punctuation between — and you keep
+  them with the same meaning and layer. Only the new words sweep; the line says *Added to the same
+  highlight in Think.* and its **Undo** takes back just those words. A note written on them is added
+  to the highlight's note, on a line of its own. Words elsewhere, another meaning, another chapter, or
+  a highlight from an earlier reading each make a highlight of their own. The highlighter pen grows a
+  stroke by the same rule, within four seconds.
 - **The note is never touched.** Nothing is added to it: no marker, no block id, no property. The
   highlight is found again every time you read, by looking for the same words and the words around
   them, so it survives edits elsewhere in the note.

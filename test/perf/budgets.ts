@@ -486,7 +486,11 @@ export const BUDGETS = {
         // Looked for something to subtract first: the drawers reuse the shelf's chips and search, the flight is
         // the Reader's fly(), the undo is the write record's, the folder field gained a check instead of a second
         // field, and nothing reads a file. No dependency. 3,170.9 KB; the ceiling closes at its measure plus 2 KB.
-        limit: 3_173,
+        // 3,173 → 3,176 (#868): a selection that continues the last highlight grows it (0.9 KB with the press
+        // that picks a thought in Think). Subtracted first: the selection and the pen now share one contiguity
+        // rule, the growth is the pen's own extend(), and the press is the Reader's numbers. No dependency.
+        // 3,173.8 KB; the ceiling closes at its measure plus 2 KB.
+        limit: 3_176,
         measured: "3,170.9 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",

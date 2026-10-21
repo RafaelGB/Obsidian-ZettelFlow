@@ -2722,6 +2722,7 @@ export default {
     reader_hl_save: 'Save',
     reader_hl_cancel: 'Cancel',
     reader_hl_saved: 'Highlighted. Kept in Think.',
+    reader_hl_grown: 'Added to the same highlight in Think.',
     reader_hl_undo: 'Undo',
     reader_hl_removed: 'Highlight removed.',
     reader_hl_no_note: 'No note yet.',

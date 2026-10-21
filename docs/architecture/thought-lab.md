@@ -249,6 +249,12 @@ When you **pick** thoughts (to crystallize them together), the selection stays v
 — a standing accent, not something you see only while the pointer is over it (#596). You can see
 what you have gathered before you act on it.
 
+On a touch screen (#868) a card's actions are always shown — a finger has no hover, and they used to
+be there but invisible, with the first tap spent on an emulated hover. **Hold a card** (half a
+second, without moving) to pick it; while anything is picked, **a tap on a card** picks or unpicks it,
+as a phone's lists do. A tap on its text, its buttons or its links still does what it always did. A
+mouse keeps the checkbox.
+
 ### Leaving must never cost a sentence
 
 Writing saves on a short debounce, on blur, and on close. A refuge that loses what you typed

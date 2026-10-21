@@ -27,6 +27,20 @@ export interface TextSpan {
     end: number;
 }
 
+/** The longest gap of whitespace and punctuation a passage marked in several goes may leave (#868). */
+const CONTINUE_GAP = 6;
+
+/**
+ * Whether `next` continues `last` (#746 FR-5, #868 FR-5): it overlaps it, or nothing but whitespace
+ * and punctuation lies between them, either way round — the full stop a selection stopped short of,
+ * the line break of a sentence that wraps. The pen and a selection grow a highlight by this one rule.
+ */
+export function continuesSpan(last: TextSpan, next: TextSpan, text: string): boolean {
+    if (next.start <= last.end && next.end >= last.start) return true;
+    const gap = next.start >= last.end ? text.slice(last.end, next.start) : text.slice(next.end, last.start);
+    return gap.length <= CONTINUE_GAP && /^[\s\p{P}]*$/u.test(gap);
+}
+
 /**
  * The quote for `[start, end)` of `text`, with its context. Leading and trailing whitespace of the
  * selection is left out of `exact` (a double-click often grabs the space after a word), and the

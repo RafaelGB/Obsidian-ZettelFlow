@@ -135,6 +135,7 @@ export const CAPABILITIES = [
     "chapter-recall",
     "library",
     "library-shelves",
+    "library-archive",
     "highlights-review",
     "claim-door",
     "claim-return",
@@ -528,6 +529,17 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "shelf_move_to",
         owner: "zettelflow-library",
         doors: [CONTROL("architecture/components/core/library/libraryShelves.ts", "zettelflow-library"), CONTROL("architecture/components/core/library/LibraryView.ts", "zettelflow-library")],
+    },
+    "library-archive": {
+        // The archive (#865): a filing cabinet at the end of the stacks. A book dragged onto it, Archive in
+        // its menu or its detail moves it into its own folder; a drawer opened there gives it back.
+        nameKey: "shelf_archive",
+        owner: "zettelflow-library",
+        doors: [
+            CONTROL("architecture/components/core/library/libraryArchive.ts", "zettelflow-library"),
+            CONTROL("architecture/components/core/library/libraryShelves.ts", "zettelflow-library"),
+            CONTROL("architecture/components/core/library/libraryDetail.ts", "zettelflow-library"),
+        ],
     },
     "highlights-review": {
         // A few things you marked (#678, epic #674): the Reader's highlights come back on a fixed,

@@ -1,5 +1,5 @@
 ---
-description: Your Library — the PDFs and EPUBs already in your vault, the articles you clip with Web Clipper and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never modified.
+description: Your Library — the PDFs and EPUBs already in your vault, the articles you clip with Web Clipper and the reading paths you saved, on one shelf, with what came of each one, and a note of its own for each book. Local only; your book files are never changed — archiving only moves one.
 ---
 
 # Your Library
@@ -168,6 +168,48 @@ Every change — one book, or a shelf renamed across forty notes — is **one re
 sits on a line in the bar (*Moved to Clásicos · Undo*) for half a minute, and *What ZettelFlow
 changed* lists it too. A write that fails says so on that line and moves nothing. The book is
 carried to its new shelf by a translate; under reduced motion it is simply there.
+
+## The archive { #the-archive }
+
+**Put away, never lost.** A framework manual three versions old, a report read once, an article
+clipped years ago: the Library keeps a **filing cabinet** at the end of the stacks for what no longer
+earns shelf space. What you archive leaves the shelves, the counts in the chips and the search — and
+waits in a drawer until you take it back.
+
+![The Library's archive: at the end of the stacks a filing cabinet with three drawers — Books, Papers, Articles — and a book flying off its shelf into it; beside it, how many things are put away, the folder it uses and Archived with Undo; below, the Books drawer pulled out into index cards with Return to shelf and Open](../resources/library/archive.svg)
+
+- **Archive a book, paper or article** three ways, wherever you already are: **drag** it onto the
+  cabinet (on an iPad, press and hold, then drag — near the bottom edge the shelves scroll down to
+  meet the cabinet), **⋯ → Archive** in its menu, or **Archive** in its detail. While a book is
+  carried the cabinet says it will take it — *Drop it in the cabinet to archive it*. The book flies
+  into the cabinet (under reduced motion it is simply gone from the shelf), and a line beside the
+  cabinet says *Archived “…”* with **Undo**. A saved reading path is never archived.
+- **Open a drawer.** Click **Books**, **Papers** or **Articles** on the cabinet: the drawer unfolds
+  below it, in the same view, into index cards — the title, who wrote it (or the site), the format,
+  the day it was archived and the folder it was in. The drawer has its own search and chips to switch
+  drawers; **Close the drawer** (or click it again) pushes it back.
+- **Return to shelf** moves the file back where it came from — the vault root if that folder is gone,
+  a free name if its own is taken; an article goes back inside the articles folder, so it is an
+  article on the shelf again. **Open** reads it in the Reader straight from the archive; it stays
+  archived.
+- **A search** that finds something put away says so under the bar — *1 more in the archive* —
+  with **Look in the archive**, which opens that drawer with your search in it.
+
+**What archiving does.** It **moves the file** into the archive folder — one recorded write, taken
+back by **Undo** or in *What ZettelFlow changed* — and never changes it. The book's note stays where it
+is and keeps pointing at the book: if Obsidian did not update its `book` link (with *Automatically
+update internal links* off), ZettelFlow rewrites that one property in the same write. Your place,
+bookmarks, layers, highlights and shelves follow the file there and back. Anything you drop into the
+archive folder by hand is archived too; its card says it does not know where it came from.
+
+**The archive folder** is set in **Settings → Reading → Archive folder** — `Library archive` until you
+choose. It must be a folder of its own: it cannot be, sit inside, or hold the Book notes, Articles or
+Dictionaries folder, and those refuse the archive's folder the same way; the field says why while you
+type and keeps the last valid folder. **Empty turns the archive off**: no cabinet, no *Archive* in
+any menu, and what is in the old folder is an ordinary folder again. Change the folder while things
+are archived and the row offers, in place, to **move them** to the new one or **leave them** — books
+and papers left behind go back on the shelves; articles stay there as ordinary notes, outside the
+Library. Where each archived thing came from is kept in the plugin's settings (`libraryArchive`).
 
 ## A source in detail
 
@@ -727,7 +769,7 @@ note exists — see
 
 ## What it keeps, and where
 
-**Your book files are never modified.** Not a byte of a PDF or an EPUB is written: no annotation
+**Your book files are never changed.** Not a byte of a PDF or an EPUB is written: no annotation
 layer, nothing next to it. When you say something about a book, it gets an ordinary note in your
 Book notes folder ([A book's note](#a-books-note)) — the only thing the Library ever writes, and only
 then. What the Library remembers about a source is kept in the plugin's settings:
@@ -805,7 +847,8 @@ before. See [Every note goes back to its paragraph](reader.md#every-note-goes-ba
 | `npx jest test/application/library/article test/application/library/passageToNote test/architecture/components/core/library/libraryArticles test/architecture/components/core/reader/readerArticle` | what an article is, its fields and sections, its kind and count; the *Articles* chip and *Change* writing the same setting as Settings → Reading; an article opened with the shot from its drawn cover; a clipping in the Reader, the note never written; its status written alone into its own frontmatter; a book that arrives settling onto its shelf, nothing at the first draw, reduced motion |
 | `npx jest test/config/readingSettingsGroup test/config/settings/bookNotesFolder` | *Library shows books as* — Covers until you choose, the same value as the bar's switch; the *Book notes folder* and *Articles folder* rows |
 | `npx jest test/application/library/produced test/architecture/components/core/library/libraryProduced` | what a book produced: the six lists, each item opening what it names, nothing written; the section unseen until it has something, the rise in turn, reduced motion |
-| `npx jest test/architecture/plugin/library/sourceRenameFollow` | a renamed book keeps its place, bookmarks, layers, ink and thoughts (#810) |
+| `npx jest test/architecture/plugin/library/sourceRenameFollow` | a renamed book keeps its place, bookmarks, layers, ink and thoughts (#810); an archived thing's record follows a rename inside the archive and is forgotten when it leaves (#865) |
+| `npx jest test/application/library/archive test/architecture/plugin/library/archiveWrites test/architecture/components/core/library/libraryArchive test/architecture/components/core/library/libraryDrag test/config/settings/archiveFolder` | the archive (#865): which folders clash; where a file goes and comes back, never over another; the book note's link rewritten only when it no longer finds the book, in the same batch; the cabinet, its drawers and cards, its three doors, *1 more in the archive*; the edge scroll while a book is carried; the *Archive folder* row, its refusals and the move offer |
 | `npx jest test/styles` | every colour of the shelves, planks, cloth, ribbon and drop light is the theme's; the grid; only transform and opacity move, nothing under reduced motion |
 | `npx jest test/application/library/pdfText test/architecture/components/core/reader/readerSource test/application/library/epubSanitize test/architecture/components/core/reader/readerEpub test/architecture/components/core/reader/readerHighlights test/architecture/components/core/library/sources/pdfPageView test/architecture/components/core/reader/readerPageView test/application/library/pdfCrop test/architecture/components/core/reader/readerCrop test/application/library/epubPackage test/application/library/epubFixedLayout test/architecture/components/core/reader/readerDesigned` | reading a PDF (reflow, Page view, crop, a scan) and an EPUB (the sanitizer, equations and drawings, designed pages) — see the sections above |
 | `npm run test:perf -- library` | the shelf of 500 sources and 200 articles builds, lays out its desk and shelves, filters and searches in budget; the PDF and EPUB budgets |
@@ -855,8 +898,18 @@ not):
     scan's banner, an EPUB with its contents, equations and drawings, a clipping read in the Reader, a
     fixed-layout comic's spreads — see the sections above. Closing each plays the camera back onto
     its place on its shelf, even far along a shelf that scrolls.
-14. **Reduced motion.** With reduced motion on, every move above happens at once: no lift, no glide,
-    no rising card motion — the same result.
-15. **Negative.** Compare each source file before and after (size and modification date): unchanged.
-    Opening, reading and highlighting created no note; only a move, a status or a field you changed
-    did, each listed in *What ZettelFlow changed*. No toast appeared for any of it.
+14. **The archive.** At the end of the stacks: a cabinet, *Books — empty*, *Papers — empty*,
+    *Articles — empty*, *Nothing put away yet.* Drag a paper onto it: the cabinet lights, the cue
+    reads *Drop it in the cabinet to archive it*; drop it. The paper flies in, *Papers* reads *1 item*,
+    *Archived “…” · Undo* beside the cabinet, and the file is in `Library archive/`. **Undo**: it is
+    back on its shelf and in its folder. **⋯ → Archive** on a book, then search its title: no book on
+    the shelves, *1 more in the archive · Look in the archive*, which opens the *Books* drawer holding
+    one card — *was in …/*. **Return to shelf**: it stands where it stood, its ribbon unchanged. In
+    **Settings → Reading → Archive folder** type `Library`: refused, saying it is the Book notes
+    folder; leave the field — `Library archive` is kept. Empty it: the cabinet is gone.
+15. **Reduced motion.** With reduced motion on, every move above happens at once: no lift, no glide,
+    no rising card motion, no flight into the cabinet — the same result.
+16. **Negative.** Compare each source file before and after (size and modification date): unchanged —
+    archiving only moved one. Opening, reading and highlighting created no note; only a move, a status
+    or a field you changed did, each listed in *What ZettelFlow changed*. No toast appeared for any of
+    it.

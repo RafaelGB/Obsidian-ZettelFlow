@@ -71,7 +71,7 @@ export function setFrameMeter(enabled: boolean): void {
     if (enabled === on) return;
     on = enabled;
     if (enabled) return;
-    for (const stop of [...running]) stop();
+    for (const stop of running) stop();
     running.clear();
     for (const [win, entry] of listening) for (const name of INPUTS) win.removeEventListener(name, entry.listener, { capture: true });
     listening.clear();

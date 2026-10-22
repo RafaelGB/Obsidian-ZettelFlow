@@ -218,7 +218,8 @@ export class ReaderVaultMoves implements ProposalOwner {
 
     /** Every card goes with no verdict: the panel closed, the Reader closed (FR-12, AC-7). */
     dismissAll(): void {
-        for (const group of [...this.groups]) group.dismiss();
+        // A copy: each dismissal splices its group out of the list being walked.
+        for (const group of this.groups.slice()) group.dismiss();
     }
 
     dispose(): void {
@@ -334,7 +335,7 @@ export class ReaderVaultMoves implements ProposalOwner {
                 if (group.gone) return;
                 group.gone = true;
                 // A dismissal is not a judgement (FR-9, AC-7): each card goes with no verdict.
-                for (const card of [...group.cards]) card.dismiss();
+                for (const card of group.cards) card.dismiss();
                 this.drop(group);
             },
         };

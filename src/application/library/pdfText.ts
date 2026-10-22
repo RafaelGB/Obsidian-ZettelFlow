@@ -366,7 +366,7 @@ export function faceOf(name: string | undefined): { bold?: true; italic?: true }
     const style = bare.slice(cut + 1);
     return {
         ...(/bold|black|heavy|semibold|demi|^medi/i.test(style) ? { bold: true as const } : {}),
-        ...(/ital|oblique/i.test(style) || /It$/.test(style) ? { italic: true as const } : {}),
+        ...(/ital|oblique/i.test(style) || style.endsWith("It") ? { italic: true as const } : {}),
     };
 }
 

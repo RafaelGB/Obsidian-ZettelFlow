@@ -490,8 +490,11 @@ export const BUDGETS = {
         // that picks a thought in Think). Subtracted first: the selection and the pen now share one contiguity
         // rule, the growth is the pen's own extend(), and the press is the Reader's numbers. No dependency.
         // 3,173.8 KB; the ceiling closes at its measure plus 2 KB.
-        limit: 3_176,
-        measured: "3,170.9 KB",
+        // 3,176 → 3,178 (#873): ECharts 6's axis containment (#858) and the React/uuid patch bumps brought main
+        // to 3,175.7 KB without this line moving; a highlight's popover going when you look away (outside press,
+        // a second tap, an Esc no Scope took) adds 0.5 KB. No dependency. 3,176.2 KB; measure plus 2 KB.
+        limit: 3_178,
+        measured: "3,176.2 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

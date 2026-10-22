@@ -15,21 +15,7 @@
     container-type: inline-size;
 }
 
-.zettelkasten-flow__family-view {
-    animation: zf-family-enter 0.45s ease-out both;
-}
-
-@keyframes zf-family-enter {
-    from {
-        opacity: 0;
-        transform: translateY(var(--size-4-2));
-    }
-
-    to {
-        opacity: 1;
-        transform: none;
-    }
-}
+// No whole-mode entrance (#875): a mode arrives by the camera moving to it — a fade-in is a cut (§XVI).
 
 @container (max-width: 34rem) {
     .zettelkasten-flow__family-page {
@@ -189,7 +175,6 @@ button.zettelkasten-flow__family-card:not(.clickable-icon) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .zettelkasten-flow__family-view,
     .zettelkasten-flow__family-composer.zettelkasten-flow__is-kept {
         animation: none;
     }

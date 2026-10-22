@@ -41,7 +41,8 @@ export class HomeSurfaceView extends ModeHostView {
                 );
             case "home":
             default:
-                return new HomeModeRenderer(container, this.app);
+                // Home's doors open their mode in this tab, as one shot (#875).
+                return new HomeModeRenderer(container, this.app, (to, payload, origin, from) => void this.travelByDoor(to, payload, origin, from));
         }
     }
 }

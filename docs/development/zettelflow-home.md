@@ -45,6 +45,33 @@ index is being built, the greeting and the composer are already there.
 
 ![Came back today: a passage you marked, answered in place with the review's five answers, the stack behind it, and a claim of yours next](../resources/home/came-back.svg)
 
+## One set, one camera (#875)
+
+![Home, Cultivate and Think side by side as one strip; the camera moves along it; the Last thought card flies into its place in Think's list and One idea to tend onto Cultivate's stage, with Home and Esc bringing each back](../resources/home/one-set.svg)
+
+Home, Cultivate and Think are not three pages that replace each other: they sit **side by side, in
+the order of the mode bar**, and moving between them is the camera moving along that set
+(§XVI, *never cut, move the camera*).
+
+- **The mode bar pans.** Choose *Think* from *Home* and the camera travels right, past Cultivate,
+  the line under the tabs travelling with it. Nothing fades in: the place you chose arrives from the
+  side it lives on.
+- **Two cards are doors that become their place**, in one gesture with the pan:
+    - **Last thought** flies into its own entry in Think's list, which says it arrived.
+    - **One idea to tend** (*Spend five minutes with it*) flies onto Cultivate's stage.
+- **The way back is the same shot, reversed.** After a door, Cultivate and Think show **← Home** in
+  their header, and **Esc** does the same — unless you are typing, a menu is open, or the mode is
+  using Esc itself (Think, while it is taking a source away). The card flies back to where it came
+  from, in a Home drawn afresh. Moving by the bar forgets the way back: it is never a history.
+- **Some things open in their own tab, as always.** *Last note* opens the note, the glimpse and
+  *Your questions* open **Explore**, and *Reading* keeps its own shot into the Reader. A link from
+  elsewhere, or a restored workspace, lands on its mode with no shot at all.
+- **Never in the way.** Any key or press during a shot jumps it to its end and does nothing else;
+  under reduced motion every move is instant, and you are still in the same place.
+
+Only one mode is built at rest. The one you go to is built — and has drawn what the card lands on —
+before the camera moves, and the one you left goes when the shot lands.
+
 ## What left Home, and where it went (#703)
 
 Home used to be a dashboard: a *you've been thinking for N days* counter, a *what to do next* list,
@@ -78,4 +105,6 @@ somewhere better:
 `dueHighlights`). The shared shapes live in `architecture/components/core/family/` (the page, the
 eyebrow, the keyboard hints and the composer); the stack is `CameBackStack` over the pure
 `cameBackOrder`; the glimpse is `HomeGlimpse` over the pure `glimpseOf`/`drawGlimpse`, gated by a
-performance budget (`view.home.glimpse.frame.10k`, under 2 ms a frame).
+performance budget (`view.home.glimpse.frame.10k`, under 2 ms a frame). The set (#875) is the
+surface host's — `ModeHostView.travel()` over the pure `modeSet` and the shared `CameraPan` — see
+[A surface as a set](../architecture/surfaces.md#a-surface-as-a-set-875).

@@ -1,4 +1,5 @@
 import { Component, type KeymapEventHandler, type Scope } from "obsidian";
+import type { HeaderAction } from "./ModeHeader";
 
 /**
  * A **mode renderer** (#272) — one retired view's rendering, extracted verbatim so a {@link ModeHostView}
@@ -9,8 +10,35 @@ import { Component, type KeymapEventHandler, type Scope } from "obsidian";
 export abstract class KnowledgeModeRenderer extends Component {
     private readonly scopes = new Map<string, Component>();
 
+    /**
+     * The way back to the card that opened this mode (#875 FR-13), set by the host before it mounts a
+     * mode reached through a door. A mode that has a header draws it as plain navigation — never a
+     * second primary (#577). `null` when the mode was reached any other way.
+     */
+    backTo: HeaderAction | null = null;
+
     constructor(protected readonly container: HTMLElement) {
         super();
+    }
+
+    /** Resolves once the mode has drawn what a door can land on (#875: the camera waits for it). */
+    ready(): Promise<void> {
+        return Promise.resolve();
+    }
+
+    /** Where a door's card lands in this mode, given what the door carried — or `null` for a plain pan. */
+    landing(_payload: Record<string, unknown> | undefined): HTMLElement | null {
+        return null;
+    }
+
+    /** The card has landed on `_el`: say which one arrived. */
+    landed(_el: HTMLElement): void {
+        // Nothing by default.
+    }
+
+    /** Whether this mode is using Esc right now, so the set leaves it alone (#875 FR-12). */
+    claimsEscape(): boolean {
+        return false;
     }
 
     /**

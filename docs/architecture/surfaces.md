@@ -123,6 +123,28 @@ Obsidian's side panels are collapsed, with no breakpoint and no script. The reti
 The *Ask your graph* door is an **icon-only `nav()`** variant of `ModeHeader` (icon + tooltip +
 `aria-label`, no visible label) — a fixed door where you already are, never a second `primary()`.
 
+## A surface as a set (#875)
+
+A surface marked `continuous` in the registry — today only **Home** — is **one set**: its modes sit
+side by side in one strip, in tab order, and the host moves a camera along it.
+
+- **`travel()`** is the one way between modes, replacing the old empty-and-rebuild. It builds the
+  destination in its own pane, waits for the renderer's **`ready()`** (capped by the shot's patience),
+  then pans with the shared **`CameraPan`** (the Community's room pan, #798 — one pan, not two) and
+  lets the mode it left go when the shot lands. **One renderer at rest, two during a shot.**
+- **A door** (`travelByDoor`) carries a payload and the card you pressed. The destination's
+  **`landing(payload)`** says where the card lands — or `null`, for a plain pan — and the card flies
+  there with the Reader's `fly()` on the pan's own beat; **`landed(el)`** marks it.
+- **The way back** is the reverse shot to the card, once: the host sets the renderer's **`backTo`**,
+  drawn as header **navigation** (`nav()`), never a second primary (#577), and takes **Esc** on the
+  view's scope only when nothing else wants it — no text box, no menu, and the mode's
+  **`claimsEscape()`** false. The pure rules (`panPlan`, `shotPlan`, the `doors` reducer,
+  `escapeIsFree`, `centeredScrollTop`) are `surface/modeSet.ts`.
+- **No shot for a link.** A deep link, a restored layout or `refresh()` lands instantly; every
+  surface that is not `continuous` (Health, Explore) travels instantly too, as it always switched.
+- **The camera is never knocked sideways**: the set's viewport clips (`overflow: clip`) and a landing
+  is scrolled to by number, never `scrollIntoView`.
+
 ## Open as tabs
 
 Surfaces open as normal **main-area tabs** (`getLeaf('tab')`), not only in the right sidebar — so you

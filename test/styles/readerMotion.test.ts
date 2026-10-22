@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerContents.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss", "components/labSource.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerContents.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss", "components/labSource.scss", "components/surface.scss"];
 const SCRIPTS = [
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),
@@ -11,6 +11,8 @@ const SCRIPTS = [
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library"),
     // Think, filtered by source (#874): the chip's flight, the cards leaving and closing up.
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "lab"),
+    // Home, Cultivate and Think as one set (#875): the pan and the door's flight.
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "surface"),
 ];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);

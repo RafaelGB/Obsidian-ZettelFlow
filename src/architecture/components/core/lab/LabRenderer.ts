@@ -416,6 +416,40 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.thoughts = [];
         }
         this.render();
+        this.settle();
+    }
+
+    // ── the set (#875): Think as a place a door lands in ──────────────────────
+
+    private settle: () => void = () => undefined;
+    private readonly settled = new Promise<void>((resolve) => (this.settle = resolve));
+
+    /** Ready once the first read of the lab is on screen — what a door's card can land on. */
+    ready(): Promise<void> {
+        return this.settled;
+    }
+
+    /**
+     * Where *Last thought* lands (#875 FR-7): that thought's card, with the window grown to hold it
+     * even if it sits further down — appended, never a redraw.
+     */
+    landing(payload: Record<string, unknown> | undefined): HTMLElement | null {
+        const id = payload?.thought;
+        if (typeof id !== "string") return null;
+        const index = this.roots.findIndex((node) => flattenThread(node).some((thought) => thought.id === id));
+        if (index < 0) return null;
+        while (this.shown <= index && this.shown < this.roots.length) this.growList();
+        return this.cards.get(id) ?? null;
+    }
+
+    landed(el: HTMLElement): void {
+        el.addClass(c("lab-arrived"));
+        (this.container.win ?? window).setTimeout(() => el.removeClass(c("lab-arrived")), 1200);
+    }
+
+    /** Esc is Think's while it closes the picker or takes the sources away (#874 FR-8). */
+    claimsEscape(): boolean {
+        return Boolean(this.picker?.isOpen()) || this.sources.picked.length > 0;
     }
 
     /**
@@ -473,6 +507,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
                 this.render();
             },
         });
+        // The way back to the card that opened Think (#875): plain navigation, never a second primary.
+        if (this.backTo) bar.nav(this.backTo);
         bar.secondary({
             label: t("lab_legend_open"),
             icon: "help-circle",

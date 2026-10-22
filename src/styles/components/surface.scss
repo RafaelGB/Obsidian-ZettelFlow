@@ -35,7 +35,7 @@
         // One family (#702): the active mode is underlined in the accent, the way Think reads —
         // not a filled pill. The underline grows in, and stops moving under reduced motion.
         box-shadow: inset 0 0 0 0 var(--interactive-accent);
-        transition: color 0.2s ease, box-shadow 0.3s ease;
+        transition: box-shadow 0.3s ease;
 
         &.zettelkasten-flow__surface-mode-tab--active {
             background-color: transparent;
@@ -49,6 +49,73 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
+    }
+
+    // ── one set, one camera (#875) ──────────────────────────────────────────
+    // The modes side by side in one strip; the camera is the strip's translation. `clip`, not
+    // `hidden`: a pane's scrollIntoView can never move the set sideways under the camera.
+    .zettelkasten-flow__surface-set {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: clip;
+    }
+
+    .zettelkasten-flow__surface-strip {
+        display: flex;
+        height: 100%;
+        transform: translateX(calc(var(--zf-surface-at, 0) * -100%));
+    }
+
+    .zettelkasten-flow__surface-pane {
+        flex: 0 0 100%;
+        min-width: 0;
+        height: 100%;
+
+        // A pane the camera is not on is not painted; nothing in it runs its own motion meanwhile.
+        &.is-away {
+            visibility: hidden;
+
+            * {
+                animation-play-state: paused;
+            }
+        }
+    }
+
+    // The line under the tabs that travels with the camera, in the accent the tabs already use.
+    .zettelkasten-flow__surface-mode-ink {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: var(--zf-surface-ind-w, 0);
+        height: var(--size-2-1);
+        border-radius: var(--radius-s);
+        background-color: var(--interactive-accent);
+        transform: translateX(var(--zf-surface-ind-x, 0));
+        transform-origin: left center;
+        pointer-events: none;
+
+        &.is-away {
+            opacity: 0;
+        }
+    }
+
+    // A card on its way in: the real one waits, unseen, for the copy flying onto it.
+    .zettelkasten-flow__is-in-shot {
+        visibility: hidden;
+    }
+}
+
+// The set's root frames the flight; on a set, the travelling line replaces the tab's own underline.
+.zettelkasten-flow__surface--set {
+    position: relative;
+
+    .zettelkasten-flow__surface-modes {
+        position: sticky;
+    }
+
+    .zettelkasten-flow__surface-mode-tab.zettelkasten-flow__surface-mode-tab--active {
+        box-shadow: none;
     }
 }
 

@@ -21,7 +21,8 @@ export interface KeyHint {
  * tightens in a sidebar, entering with the same motion (reduced-motion safe, in the stylesheet).
  */
 export function familyPage(container: HTMLElement, mode: "home" | "cultivate" | "think"): HTMLElement {
-    return container.createDiv({ cls: [c("family-page"), c("family-view"), c(`family-page--${mode}`)] });
+    // No entrance of its own (#875): a mode arrives by the camera moving to it, never by fading in.
+    return container.createDiv({ cls: [c("family-page"), c(`family-page--${mode}`)] });
 }
 
 /** The quiet label over a section: an icon and a few words, never a heading that shouts. */

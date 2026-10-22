@@ -38,7 +38,9 @@ own gestures frame by frame and judges each one with `frameVerdict`:
 - page drag, turning or springing back;
 - chapter turn, in each motion (*leaf*, *flow*, *stack*), by the clock or held under a finger;
 - shelf drag;
-- the opening and closing shots, interrupted or not.
+- the opening and closing shots, interrupted or not;
+- Home's set (#875), `home-pan`: the camera across Home, Cultivate and Think, with a door's card
+  flying in the same gesture, interrupted or not.
 
 It shows one line per gesture. It is **off by default** and lasts the session only. **Off, it costs
 nothing**: every gesture gets the same do-nothing handle, with no frame callback and no listener

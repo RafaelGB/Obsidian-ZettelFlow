@@ -454,7 +454,8 @@ it was. (Opened from anywhere else — a note, Home, Think — the Reader keeps 
   **Open in the Reader** lands on that page.
 - **Resume.** The Library remembers the page you were on; the shelf's **Resume**, the PDF's own menu
   and the desk's *Resume reading* all open it there. Reaching the last page marks it read.
-- **The end** of a paper says what the reading added up to, and offers **Think on what you marked**,
+- **The end** of a paper says what the reading added up to, and offers **Think on what you marked**
+  (Think, already filtered to this paper and in its order — [Thinking by source](../architecture/thought-lab.md#thinking-by-source-874)),
   **See it in the library** or **Read it again**.
 
 ### What a page keeps

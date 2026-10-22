@@ -50,6 +50,7 @@ import { normalizeSaved, saveReading, savedId } from "./readerSaved";
 import { readFrom } from "./readingChooser";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
 import { activateSurface } from "architecture/plugin/services/ViewActivation";
+import { thinkOnSource } from "architecture/components/core/lab/thinkOnSource";
 import { normalizeResume, readingKey, recordResume } from "./readerResume";
 import type { ReaderHost } from "./readerHost";
 import { adoptHeldSides, coverApp, deepCover, exitReader, heldSides, originLandsAt, restoreWorkspace } from "./openReader";
@@ -4391,7 +4392,8 @@ export class ReaderView extends ItemView {
                     },
                     think: () => {
                         exitReader(this.app, this.leaf, this.back);
-                        void activateSurface(this.app, "zettelflow-home", "lab", { about: path });
+                        // Think on what you marked (#874 FR-6): already on this source, in reading order.
+                        thinkOnSource(this.app, path);
                     },
                     again: () => this.show(0),
                 },

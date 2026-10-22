@@ -1,0 +1,406 @@
+@use '../utils/mixins' as *;
+@use '../utils/variables' as *;
+@use '../utils/motion' as *;
+
+/*
+ * Thinking by source (#874): one more chip in Think's find bar, a picker of the sources your thoughts
+ * came from, the order a book is read in, and a spine of where you thought. The theme's colours, the
+ * 4-grid, and nothing that counts.
+ */
+
+// The ghosts of a filter change are placed in the Lab's own space, so the Lab is their frame.
+.zettelkasten-flow__lab {
+    position: relative;
+}
+
+/* ── From… and the source chips in the find bar ───────────────────────────── */
+
+.zettelkasten-flow__lab-source-chips {
+    display: contents;
+}
+
+// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
+button.zettelkasten-flow__lab-source-chip {
+    @include chip;
+    @include chip-clickable;
+    @include chip-active;
+    max-width: 16rem;
+
+    .zettelkasten-flow__lab-source-icon .svg-icon {
+        width: var(--icon-xs);
+        height: var(--icon-xs);
+    }
+}
+
+.zettelkasten-flow__lab-source-chip-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__lab-source-chip--landing {
+    visibility: hidden;
+}
+
+// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
+button.zettelkasten-flow__lab-source-toggle {
+    @include chip;
+    @include chip-clickable;
+    border-style: dashed;
+
+    &.is-active {
+        border-style: solid;
+        color: var(--text-normal);
+    }
+}
+
+/* ── the picker: recent first, by kind, never a count ─────────────────────── */
+
+.zettelkasten-flow__lab-filter {
+    position: relative;
+    flex-wrap: wrap;
+}
+
+.zettelkasten-flow__lab-source-picker {
+    position: absolute;
+    top: calc(100% - var(--size-4-2));
+    right: 0;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-1);
+    width: min(22rem, 100%);
+    max-height: 22rem;
+    padding: var(--size-4-2);
+    background-color: var(--background-primary);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-s);
+    transform-origin: top right;
+}
+
+.zettelkasten-flow__lab-source-picker--in {
+    animation: zf-lab-source-drop $motion-fast $ease-out;
+}
+
+@keyframes zf-lab-source-drop {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-4-1)));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.zettelkasten-flow__lab-source-find {
+    width: 100%;
+}
+
+.zettelkasten-flow__lab-source-rows {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.zettelkasten-flow__lab-source-label {
+    padding: var(--size-4-1) var(--size-4-2) var(--size-2-1);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
+button.zettelkasten-flow__lab-source-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    width: 100%;
+    padding: var(--size-4-1) var(--size-4-2);
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: var(--radius-s);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    text-align: start;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background-color: var(--background-modifier-hover);
+    }
+
+    &.is-active {
+        color: var(--text-accent);
+    }
+}
+
+.zettelkasten-flow__lab-source-icon {
+    display: inline-flex;
+    color: var(--text-faint);
+
+    .svg-icon {
+        width: var(--icon-s);
+        height: var(--icon-s);
+    }
+}
+
+.zettelkasten-flow__lab-source-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.zettelkasten-flow__lab-source-when {
+    display: inline-flex;
+    flex: none;
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__lab-source-empty {
+    @include empty-state;
+}
+
+/* ── one source: its header, and how it reads ─────────────────────────────── */
+
+.zettelkasten-flow__lab-source-region {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-2);
+
+    &:empty {
+        display: none;
+    }
+}
+
+.zettelkasten-flow__lab-source-head {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-3);
+}
+
+.zettelkasten-flow__lab-source-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--size-4-8);
+    height: var(--size-4-12);
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background-color: var(--background-secondary);
+    border: var(--border-width) solid var(--background-modifier-border);
+    color: var(--text-faint);
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.zettelkasten-flow__lab-source-said {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.zettelkasten-flow__lab-source-title {
+    font-weight: var(--font-semibold);
+    overflow-wrap: anywhere;
+}
+
+.zettelkasten-flow__lab-source-sub {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.zettelkasten-flow__lab-source-open {
+    flex: none;
+}
+
+.zettelkasten-flow__lab-order {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── the list's heads in reading order: a source, a place, or no place ────── */
+
+.zettelkasten-flow__lab-list-head {
+    grid-column: 1 / -1;
+    padding-top: var(--size-4-2);
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    letter-spacing: 0.02em;
+}
+
+.zettelkasten-flow__lab-list-head--source {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    margin-top: var(--size-4-2);
+    padding-top: var(--size-4-3);
+    border-top: var(--border-width) solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-semibold);
+    letter-spacing: 0;
+
+    &:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+}
+
+.zettelkasten-flow__lab-list-head-sub {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    font-weight: var(--font-normal);
+}
+
+/* ── the from-line: a door to the source ──────────────────────────────────── */
+
+// A door that reads as the words it always was, until you point at it.
+button.zettelkasten-flow__lab-from {
+    @include text-link-button;
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--text-accent);
+    }
+}
+
+/* ── the spine: where you thought, with no number anywhere ────────────────── */
+
+.zettelkasten-flow__lab-has-spine {
+    padding-inline-end: var(--size-4-8);
+}
+
+.zettelkasten-flow__lab-spine-dock {
+    position: sticky;
+    top: var(--size-4-4);
+    z-index: 2;
+    height: 0;
+}
+
+.zettelkasten-flow__lab-spine {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--size-4-6);
+    height: min(60vh, 24rem);
+}
+
+.zettelkasten-flow__lab-spine-line {
+    position: absolute;
+    inset: 0 auto 0 50%;
+    width: var(--border-width);
+    background-color: var(--background-modifier-border);
+}
+
+// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
+button.zettelkasten-flow__lab-spine-tick {
+    position: absolute;
+    // Centred on its place, so the last place sits on the rail's end, not past it.
+    top: calc(var(--zf-spine-at, 0%) - var(--size-2-1) / 2);
+    left: calc(-1 * var(--size-4-2));
+    width: var(--size-4-4);
+    height: var(--size-2-1);
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: var(--radius-s);
+    background-color: var(--interactive-accent);
+    opacity: 0.8;
+    cursor: pointer;
+    transition: transform $motion-fast $ease-out, opacity $motion-fast $ease-out;
+
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+        transform: scaleX(1.5);
+    }
+}
+
+// The card a tick brought into view says so once: a ring whose opacity is all that moves.
+.zettelkasten-flow__lab-card.zettelkasten-flow__lab-source-flash {
+    position: relative;
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset: calc(-1 * var(--size-2-1));
+        border: var(--border-width) solid var(--interactive-accent);
+        border-radius: var(--radius-m);
+        pointer-events: none;
+        animation: zf-lab-source-flash 1200ms $ease-out forwards;
+    }
+}
+
+@keyframes zf-lab-source-flash {
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* ── the shot's ghosts ────────────────────────────────────────────────────── */
+
+// A card leaving does not replay its own arrival while it goes.
+.zettelkasten-flow__lab-source-ghost .zettelkasten-flow__lab-card,
+.zettelkasten-flow__lab-source-ghost.zettelkasten-flow__lab-card {
+    animation: none;
+}
+
+.zettelkasten-flow__lab-source-ghost {
+    position: absolute;
+    left: var(--zf-ghost-x);
+    top: var(--zf-ghost-y);
+    width: var(--zf-ghost-w);
+    height: var(--zf-ghost-h);
+    margin: 0;
+    z-index: 6;
+    pointer-events: none;
+    transform-origin: top left;
+}
+
+// The name as it was on the card: the card's own small type, never the Lab's root size.
+.zettelkasten-flow__lab-source-ghost.zettelkasten-flow__lab-source-chip-ghost {
+    width: auto;
+    height: auto;
+    color: var(--text-accent);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .zettelkasten-flow__lab-source-picker--in,
+    .zettelkasten-flow__lab-source-chip-ghost,
+    .zettelkasten-flow__lab-source-ghost,
+    .zettelkasten-flow__lab-spine-tick,
+    .zettelkasten-flow__lab-card.zettelkasten-flow__lab-source-flash::after {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* A finger has no hover: the picker opens under the bar, never clipped on a phone. */
+@media (hover: none) and (max-width: 40rem) {
+    .zettelkasten-flow__lab-source-picker {
+        position: static;
+        width: 100%;
+    }
+}

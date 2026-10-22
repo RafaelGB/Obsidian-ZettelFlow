@@ -5,7 +5,7 @@ import { anchorAll, continuesSpan, quoteAt, type TextSpan } from "application/th
 import { isInk, type Thought, type ThoughtLocator, type ThoughtQuote } from "application/thinking/thought";
 import { ThoughtStore } from "architecture/plugin/thinking/ThoughtStore";
 import { withWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
-import { activateSurface } from "architecture/plugin/services/ViewActivation";
+import { thinkOnSource } from "architecture/components/core/lab/thinkOnSource";
 import { chapterText, paragraphsAround, pointAt, textNodes, unwrapMark, wrapSpan } from "./readerMarks";
 import { listingLanguage } from "./readerCode";
 import { crystallizeHighlight } from "architecture/components/core/library/crystallizeHighlight";
@@ -284,8 +284,9 @@ function newMarkIn(body: HTMLElement | null, id: string): HTMLElement {
     return mark;
 }
 
+/** *Open in Think* (#874 FR-6): Think, already on this source, in reading order. */
 function openInThink(app: App, notePath: string): void {
-    void activateSurface(app, "zettelflow-home", "lab", { about: notePath });
+    thinkOnSource(app, notePath);
 }
 
 function copyText(body: HTMLElement, text: string): void {

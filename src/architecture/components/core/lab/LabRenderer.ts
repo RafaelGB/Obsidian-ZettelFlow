@@ -1,6 +1,6 @@
 import { displayName } from "application/library/displayName";
 import { meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
-import { App, moment as obsidianMoment, setIcon, setTooltip } from "obsidian";
+import { App, moment as obsidianMoment, setIcon, setTooltip, TFile } from "obsidian";
 import type MomentFn from "moment";
 import { openReader } from "architecture/components/core/reader/openReader";
 import { placeOf, serializePlace } from "application/library/provenance";
@@ -38,6 +38,29 @@ import { JudgementLog } from "architecture/plugin/judgement/JudgementLog";
 import { drawCollision, type Collision, type CollisionDistance } from "architecture/knowledge/state";
 import { dueHighlights } from "application/thinking/highlightReview";
 import { openReview } from "architecture/components/core/review/ReviewModal";
+import { normalizeLibrary } from "application/library/sourceMeta";
+import {
+    clearSources,
+    composerSubject,
+    dropLastSource,
+    dropSource,
+    labSources,
+    noSources,
+    pickSource,
+    readingOrder,
+    setOrder,
+    sourceKind,
+    spinePositions,
+    threadPlace,
+    type LabSource,
+    type SourceFilter,
+    type SourceHead,
+    type SourceOrder,
+} from "application/thinking/labSource";
+import { cachedCover } from "architecture/components/core/library/libraryCovers";
+import { SOURCE_ICON, SourcePicker } from "./labSourcePicker";
+import { renderListHead, renderSourceHead, renderSpine } from "./labSourceHead";
+import { LAB_KEY, playSourceShot, type SourceShot } from "./labSourceShot";
 
 /** The Reader moves a thought can be accepted from, as Think names them (#756). A literal map for the locale guardrail. */
 const MADE_BY_KEY: Partial<Record<ReaderMoveId, Parameters<typeof t>[0]>> = {
@@ -64,6 +87,9 @@ type LocaleKey = Parameters<typeof t>[0];
 
 /** How long after you stop typing an **existing** thought is written back to its file. */
 const EDIT_SAVE_AFTER_MS = 600;
+
+/** How long a card a spine tick brought into view keeps its ring — the `zf-lab-source-flash` keyframes. */
+const LAB_FLASH_MS = 1200;
 
 /**
  * **The Thought Lab** (#467, epic #465) — a mode of the Home surface.
@@ -144,6 +170,30 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private activeMeaning: HighlightMeaning | null = null;
     /** The find input, so `/` can focus it (#596). */
     private findInputEl: HTMLInputElement | undefined;
+    /**
+     * The sources you picked (#874), in the order you picked them, and how they read. View state: it
+     * lives as long as the view, like the tag chips.
+     */
+    private sources: SourceFilter = noSources();
+    /** The find bar, its source chips, its *Clear*, and the picker it holds (#874). */
+    private findBarEl: HTMLElement | undefined;
+    private sourceChipsEl: HTMLElement | undefined;
+    private clearEl: HTMLElement | undefined;
+    private fromEl: HTMLElement | undefined;
+    private picker: SourcePicker | undefined;
+    /** The one-source header and the order control, refilled when the sources change. */
+    private sourceRegionEl: HTMLElement | undefined;
+    /** Where the spine sits beside the list. */
+    private spineDockEl: HTMLElement | undefined;
+    /** The heads to draw before each root, in reading order — keyed by the root's index. */
+    private heads = new Map<number, SourceHead[]>();
+    /** The filter change in flight, so the next input can jump it to its end (MF-9). */
+    private shot: SourceShot | null = null;
+    /** The flash a spine tick leaves on its card, so a second press restarts it rather than cutting it. */
+    private flashTimer: number | undefined;
+    /** The sources and the Library's metadata, read once per change — not once per head, chip or row. */
+    private sourcesCache: LabSource[] | null = null;
+    private libraryCache: ReturnType<typeof normalizeLibrary> | null = null;
     /** The set-aside region, kept as one element so the find bar can refresh it without a full redraw. */
     private asideEl: HTMLElement | undefined;
     /** Threads you have folded away. View state: it survives a redraw, not a restart. */
@@ -194,9 +244,16 @@ export class LabRenderer extends KnowledgeModeRenderer {
          *
          * Consumed once. A frame that outlived its thought would silently mislabel the next one.
          */
-        private frame?: string
+        private frame?: string,
+        /**
+         * The source to show, when you arrived from the Reader (#874 FR-6): Think opens already
+         * filtered to it, in reading order. Not a subject — take the chip away and the next thought
+         * is about nothing.
+         */
+        source?: string
     ) {
         super(container);
+        if (source) this.sources = pickSource(noSources(), source);
     }
 
     onload(): void {
@@ -204,6 +261,15 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(this.container, "keydown", (event: KeyboardEvent) => this.onKey(event));
         // Infinite scroll: the container is the scroller, and the window grows as you near the foot.
         this.registerDomEvent(this.container, "scroll", () => this.onScroll());
+        // Any input during a filter's shot jumps it to its end (#874 MF-9).
+        this.registerDomEvent(this.container, "pointerdown", () => this.shot?.finish(), { capture: true });
+        // A press outside the source picker closes it (#874 FR-5) — on this view's own document.
+        this.registerDomEvent(this.container.ownerDocument, "pointerdown", (event: PointerEvent) => {
+            const target = event.target instanceof Node ? event.target : null;
+            if (!this.picker?.isOpen() || this.picker.contains(target) || (target && this.fromEl?.contains(target))) return;
+            this.picker.close();
+            this.fromEl?.removeClass("is-active");
+        });
         void this.readLab();
     }
 
@@ -217,6 +283,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const target = event.target;
         const writing =
             target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement;
+        this.shot?.finish();
         if (writing && event.key !== "Escape") return;
         if (event.metaKey || event.ctrlKey || event.altKey) return;
 
@@ -233,7 +300,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
             return;
         }
         if (move === "leave") {
+            // Nearest first (#874 FR-8): the picker, then the text box you are in, then the sources.
+            if (this.picker?.isOpen()) {
+                this.closePicker();
+                return;
+            }
             const active = this.container.ownerDocument.activeElement;
+            const writing = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
+            if (!writing && this.sources.picked.length > 0) {
+                this.changeSources(clearSources(this.sources), { reverse: true });
+                return;
+            }
             if (active instanceof HTMLElement) active.blur();
             return;
         }
@@ -363,6 +440,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
     }
 
     private render(): void {
+        this.forgetSources();
         const host = this.container;
         this.scrollTop = host.scrollTop || this.scrollTop;
         host.empty();
@@ -435,7 +513,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         // The banner names *the* note a thread came from. A collision has two, and the panel above
         // is already showing both — a banner naming one of them would be a third, wrong, answer.
-        if (this.about && !this.colliding) {
+        // With a source picked, its chip (and the header) already say it once (#874 FR-15).
+        if (this.about && !this.colliding && this.sources.picked.length === 0) {
             const banner = host.createDiv({ cls: c("lab-about-banner") });
             setIcon(banner.createSpan({ cls: c("lab-subject-icon") }), "file-text");
             banner.createSpan({
@@ -455,6 +534,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.renderFindBar(host);
         // The other way into time: a calendar to jump to a day, a month, a year (#596). Off by default.
         if (this.calendarOpen) this.renderCalendar(host);
+        // One source picked: what it is, and how it reads (#874 FR-9, FR-12).
+        this.sourceRegionEl = host.createDiv({ cls: c("lab-source-region") });
+        this.paintSourceRegion();
+        // The spine sits beside the list, and stays in view as you scroll it (#874 FR-13).
+        this.spineDockEl = host.createDiv({ cls: c("lab-spine-dock") });
 
         // Threads, not a pile sorted by clock: a counterpoint belongs under what it answers. The list
         // is a window on them, newest first, that grows as you scroll — never the whole pile at once.
@@ -526,7 +610,11 @@ export class LabRenderer extends KnowledgeModeRenderer {
      */
     private renderFindBar(host: HTMLElement): void {
         const bar = host.createDiv({ cls: c("lab-filter") });
+        this.findBarEl = bar;
         setIcon(bar.createSpan({ cls: c("lab-filter-icon") }), "search");
+        // The sources you picked, in the order you picked them (#874 FR-7).
+        this.sourceChipsEl = bar.createSpan({ cls: c("lab-source-chips") });
+        this.fillSourceChips();
         const input = bar.createEl("input", {
             type: "text",
             cls: c("lab-filter-input"),
@@ -540,6 +628,12 @@ export class LabRenderer extends KnowledgeModeRenderer {
             this.filter = input.value;
             this.shown = LAB_PAGE;
             this.renderList();
+        });
+        // Backspace in an empty field takes the last source away, as a tag field does (#874 FR-7).
+        this.registerDomEvent(input, "keydown", (event: KeyboardEvent) => {
+            if (event.key !== "Backspace" || input.value !== "" || this.sources.picked.length === 0) return;
+            event.preventDefault();
+            this.changeSources(dropLastSource(this.sources), { reverse: true });
         });
         for (const tag of this.activeTags) {
             const chip = bar.createEl("button", {
@@ -565,15 +659,28 @@ export class LabRenderer extends KnowledgeModeRenderer {
             setIcon(chip.createSpan({ cls: c("lab-tag-remove") }), "x");
             this.registerDomEvent(chip, "click", () => this.toggleMeaning(meaning));
         }
-        if (this.filter || this.activeTags.size > 0 || this.activeMeaning) {
-            this.ghostAction(bar, t("lab_filter_clear"), "x", () => {
-                this.filter = "";
-                this.activeTags.clear();
-                this.activeMeaning = null;
-                this.shown = LAB_PAGE;
-                this.render();
-            });
-        }
+        // From… (#874 FR-5): the sources your thoughts came from, always here, never a count.
+        const from = bar.createEl("button", {
+            cls: c("lab-source-toggle"),
+            attr: { type: "button", "aria-label": t("lab_source_from_label"), "aria-haspopup": "dialog" },
+        });
+        setIcon(from.createSpan({ cls: c("lab-source-icon") }), "library");
+        from.createSpan({ text: t("lab_source_from") });
+        this.fromEl = from;
+        this.placeClear();
+        this.picker = new SourcePicker(bar, {
+            sources: () => this.sourceList(),
+            picked: () => this.sources.picked,
+            toggle: (path, row) => {
+                if (this.sources.picked.includes(path)) this.changeSources(dropSource(this.sources, path), { reverse: true });
+                else this.changeSources(pickSource(this.sources, path), { from: row });
+            },
+            when: (at) => moment(at).fromNow(),
+        });
+        this.registerDomEvent(from, "click", () => {
+            this.picker?.toggleOpen();
+            from.toggleClass("is-active", Boolean(this.picker?.isOpen()));
+        });
         // The calendar toggle: the other way into time, tucked at the end of the find bar.
         const cal = bar.createEl("button", {
             cls: ["clickable-icon", c("lab-cal-toggle")].join(" "),
@@ -584,13 +691,237 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.registerDomEvent(cal, "click", () => this.toggleCalendar());
     }
 
-    /** The current find query, from the text box and the active tag chips. */
+    /**
+     * *Clear*, when there is something to clear — the text, the tags, the meaning and the sources
+     * together. Placed again when the sources change, so it is there exactly when it can do something.
+     */
+    private placeClear(): void {
+        this.clearEl?.remove();
+        this.clearEl = undefined;
+        const bar = this.findBarEl;
+        if (!bar || !(this.filter || this.activeTags.size > 0 || this.activeMeaning || this.sources.picked.length > 0)) return;
+        this.ghostAction(bar, t("lab_filter_clear"), "x", () => {
+            this.filter = "";
+            this.activeTags.clear();
+            this.activeMeaning = null;
+            this.sources = clearSources(this.sources);
+            this.shown = LAB_PAGE;
+            this.render();
+        });
+        const clear = bar.lastElementChild;
+        if (!(clear instanceof HTMLElement)) return;
+        this.clearEl = clear;
+        // Before From… and the calendar, where it always was.
+        if (this.fromEl) bar.insertBefore(clear, this.fromEl);
+    }
+
+    /** The current find query, from the text box, the active tag chips and the sources (#874). */
     private query(): LabQuery {
         return {
             text: this.filter,
             ...(this.activeTags.size > 0 ? { tags: [...this.activeTags] } : {}),
             ...(this.activeMeaning ? { meaning: this.activeMeaning } : {}),
+            ...(this.sources.picked.length > 0 ? { sources: this.sources.picked } : {}),
         };
+    }
+
+    // ── thinking by source (#874) ─────────────────────────────────────────────
+
+    /** Every source a thought here is about, recent first — from the thoughts in memory only. */
+    private sourceList(): LabSource[] {
+        this.sourcesCache ??= labSources(this.thoughts, ObsidianApi.getOwnPlugin()?.settings.library);
+        return this.sourcesCache;
+    }
+
+    private sourceNamed(path: string): LabSource {
+        const library = ObsidianApi.getOwnPlugin()?.settings.library;
+        return this.sourceList().find((source) => source.path === path) ?? { path, kind: sourceKind(path), name: displayName(path, library), newest: 0 };
+    }
+
+    private libraryEntry(path: string) {
+        this.libraryCache ??= normalizeLibrary(ObsidianApi.getOwnPlugin()?.settings.library);
+        return this.libraryCache[path];
+    }
+
+    /** The thoughts or the Library changed: the sources are read again the next time they are asked for. */
+    private forgetSources(): void {
+        this.sourcesCache = null;
+        this.libraryCache = null;
+    }
+
+    /** One chip per picked source: its kind, its name, and a ✕ (#874 FR-7). */
+    private fillSourceChips(): void {
+        const host = this.sourceChipsEl;
+        if (!host) return;
+        host.empty();
+        // A scope per redrawn part, so each draw's listeners go with it (#639 review).
+        const listeners = this.scope("lab-source-chips");
+        for (const path of this.sources.picked) {
+            const source = this.sourceNamed(path);
+            const chip = host.createEl("button", {
+                cls: c("lab-source-chip"),
+                attr: { type: "button", "aria-label": t("lab_source_remove", source.name), "data-source": path },
+            });
+            setIcon(chip.createSpan({ cls: c("lab-source-icon") }), SOURCE_ICON[source.kind]);
+            chip.createSpan({ cls: c("lab-source-chip-name"), text: source.name });
+            setIcon(chip.createSpan({ cls: c("lab-tag-remove") }), "x");
+            listeners.registerDomEvent(chip, "click", () => this.changeSources(dropSource(this.sources, path), { reverse: true }));
+        }
+    }
+
+    /** Add a source from a card's from-line — its name flies into the find bar (#874 FR-4, MF-1). */
+    private addSource(path: string, from: HTMLElement): void {
+        if (this.sources.picked.includes(path)) return;
+        this.changeSources(pickSource(this.sources, path), { from });
+    }
+
+    private setSourceOrder(order: SourceOrder): void {
+        if (this.sources.order === order) return;
+        this.changeSources(setOrder(this.sources, order), {});
+    }
+
+    private closePicker(): void {
+        this.picker?.close();
+        this.fromEl?.removeClass("is-active");
+        // Back on the control it came from, so the next Esc does not fall through to the sources.
+        this.fromEl?.focus();
+    }
+
+    /**
+     * The sources changed: refill the chips, the header, the list and the spine **in place**, inside
+     * one shot (#874 MF-1–MF-8) — never a full redraw, which would hand the cursor to the composer.
+     * The list starts at its first page, and scrolls back only as far as the find bar needs.
+     */
+    private changeSources(next: SourceFilter, how: { from?: HTMLElement; reverse?: boolean }): void {
+        this.shot?.finish();
+        this.sources = next;
+        this.shown = LAB_PAGE;
+        const change = () => {
+            this.fillSourceChips();
+            this.placeClear();
+            this.paintSourceRegion();
+            this.renderList();
+            this.picker?.paint();
+            this.composerEl?.setAttribute("placeholder", this.composerPlaceholder());
+            // Inside the change, so the shot measures where things land after the view settles — and
+            // only this view's own scroller moves, only as far as the find bar needs (MF-8).
+            const bar = this.findBarEl;
+            if (bar && this.container.scrollTop > bar.offsetTop) this.container.scrollTop = bar.offsetTop;
+        };
+        const list = this.listEl;
+        const added = how.from ? next.picked[next.picked.length - 1] : undefined;
+        const land = () =>
+            (Array.from(this.sourceChipsEl?.children ?? []).find((chip) => chip.getAttribute("data-source") === added) as HTMLElement | undefined) ?? null;
+        if (!list) change();
+        else
+            this.shot = playSourceShot(this.container, list, change, {
+                ...(how.reverse ? { reverse: true } : {}),
+                ...(how.from && added ? { chip: { from: how.from, land } } : {}),
+            });
+    }
+
+    /** With one source, what it is; with any, how it reads (#874 FR-9, FR-12). */
+    private paintSourceRegion(): void {
+        const region = this.sourceRegionEl;
+        if (!region) return;
+        region.empty();
+        const listeners = this.scope("lab-source-region");
+        const picked = this.sources.picked;
+        if (picked.length === 0) return;
+        if (picked.length === 1) {
+            const source = this.sourceNamed(picked[0]);
+            const file = this.app.vault.getAbstractFileByPath(source.path);
+            const entry = this.libraryEntry(source.path);
+            renderSourceHead(region, source, {
+                ...(entry?.author ? { author: entry.author } : {}),
+                // Only the cover the Library already drew this session: drawing the header reads nothing.
+                cover: file instanceof TFile ? (cachedCover(file)?.url ?? null) : null,
+                gone: !file,
+                open: (from) => {
+                    if (source.kind === "note") void this.app.workspace.openLinkText(source.path, "", false);
+                    else void openReader(this.app, { seed: source.path, from });
+                },
+                listen: (el, run) => listeners.registerDomEvent(el, "click", run),
+            });
+        }
+        const order = region.createDiv({ cls: c("lab-order"), attr: { role: "radiogroup", "aria-label": t("lab_order_label") } });
+        const options: [SourceOrder, LocaleKey][] = [
+            ["reading", "lab_order_reading"],
+            ["newest", "lab_order_newest"],
+        ];
+        for (const [value, key] of options) {
+            const on = this.sources.order === value;
+            const button = order.createEl("button", {
+                cls: [c("lab-tag-chip"), ...(on ? ["is-active"] : [])].join(" "),
+                text: t(key),
+                attr: { type: "button", role: "radio", "aria-checked": on ? "true" : "false", "data-order": value },
+            });
+            listeners.registerDomEvent(button, "click", () => this.setSourceOrder(value));
+        }
+    }
+
+    /** Whether the list reads in the source's order right now. */
+    private readingInOrder(): boolean {
+        return this.sources.picked.length > 0 && this.sources.order === "reading";
+    }
+
+    /**
+     * The spine (#874 FR-13): one book or PDF, in reading order, with at least one thread that has a
+     * place. A tick for a thread not yet in the window grows the window by appending, never a redraw.
+     */
+    private paintSpine(): void {
+        const dock = this.spineDockEl;
+        if (!dock) return;
+        dock.empty();
+        const listeners = this.scope("lab-spine");
+        const picked = this.sources.picked;
+        const source = picked.length === 1 ? picked[0] : undefined;
+        const entries: { id: string; place: NonNullable<ReturnType<typeof threadPlace>> }[] = [];
+        if (source !== undefined && sourceKind(source) !== "note" && this.readingInOrder()) {
+            for (const node of this.roots) {
+                const place = threadPlace(node, source);
+                if (place) entries.push({ id: node.thought.id, place });
+            }
+        }
+        this.listEl?.toggleClass(c("lab-has-spine"), entries.length > 0);
+        if (!source || entries.length === 0) return;
+        renderSpine(dock, spinePositions(entries, this.libraryEntry(source)?.chapters), {
+            name: this.sourceNamed(source).name,
+            tick: (id) => this.showThread(id),
+            listen: (el, run) => listeners.registerDomEvent(el, "click", run),
+        });
+    }
+
+    /** Bring a thread into the window if it is not yet there, scroll to it, and say which one it is. */
+    private showThread(id: string): void {
+        const index = this.roots.findIndex((node) => node.thought.id === id);
+        if (index < 0) return;
+        while (this.shown <= index && this.shown < this.roots.length) this.growList();
+        const card = this.cards.get(id);
+        if (!card) return;
+        const calm = this.container.win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+        card.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
+        // Once, and again from the start if you press another tick before it is over.
+        const win = this.container.win ?? window;
+        if (this.flashTimer !== undefined) win.clearTimeout(this.flashTimer);
+        for (const other of this.cards.values()) other.removeClass(c("lab-source-flash"));
+        void card.offsetWidth;
+        card.addClass(c("lab-source-flash"));
+        this.flashTimer = win.setTimeout(() => card.removeClass(c("lab-source-flash")), LAB_FLASH_MS);
+    }
+
+    /**
+     * A card's from-line (#874 FR-4, FR-18): the door to its source — *only this source*, or *add this
+     * source* — or, when the source is already picked, plain words. Read in the source's order, it says
+     * only where in it the thought sits: the heads already say which source.
+     */
+    private fromLine(parent: HTMLElement, path: string, text: string, place?: string): HTMLElement | null {
+        if (this.readingInOrder()) return place ? parent.createSpan({ cls: c("lab-from-place"), text: place }) : null;
+        if (this.sources.picked.includes(path)) return parent.createSpan({ text });
+        const door = parent.createEl("button", { cls: c("lab-from"), text, attr: { type: "button", "data-source": path } });
+        setTooltip(door, this.sources.picked.length > 0 ? t("lab_source_add") : t("lab_source_only"));
+        this.registerDomEvent(door, "click", () => this.addSource(path, door));
+        return door;
     }
 
     /** Show only highlights of this meaning, or everything again (clicked from a card's chip, #720). */
@@ -611,6 +942,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /** Redraw only the results, so typing in the find bar never touches the box you are typing in. */
     private renderList(): void {
         this.paintList();
+        this.paintSpine();
         // Keep the set-aside matches in step with the query, without disturbing the find input.
         if (this.asideEl) {
             this.asideEl.empty();
@@ -632,7 +964,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.sentinelEl = undefined;
         const open = this.thoughts.filter((thought) => !isIncubated(thought));
         const query = this.query();
-        this.roots = searchThreads(threadThoughts(open), query);
+        const found = searchThreads(threadThoughts(open), query);
+        // Reading order is a separate step you chose (#874 FR-10, FR-16), applied before the window —
+        // so the window, its foot and the viewport fill work over it unchanged. The find never reorders.
+        if (this.readingInOrder()) {
+            const ordered = readingOrder(found, this.sources.picked);
+            this.roots = ordered.roots;
+            this.heads = ordered.heads;
+        } else {
+            this.roots = found;
+            this.heads = new Map();
+        }
         if (this.roots.length === 0) {
             list.createDiv({
                 cls: c("lab-blank"),
@@ -640,7 +982,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
             });
         }
         const { items, hasMore } = windowOf(this.roots, this.shown);
-        for (const node of items) this.renderNode(list, node);
+        items.forEach((_node, index) => this.renderRow(list, index));
         if (hasMore) this.addSentinel(list);
         if (this.focused && this.cards.has(this.focused)) this.focus(this.focused);
         // If the first window does not fill the view, grow until it does — otherwise a tall screen
@@ -663,8 +1005,23 @@ export class LabRenderer extends KnowledgeModeRenderer {
         this.shown = grow(this.shown, this.roots.length);
         this.sentinelEl?.remove();
         this.sentinelEl = undefined;
-        for (const node of this.roots.slice(previous, this.shown)) this.renderNode(list, node);
+        for (let index = previous; index < this.shown; index++) this.renderRow(list, index);
         if (this.shown < this.roots.length) this.addSentinel(list);
+    }
+
+    /**
+     * One root of the window, with whatever heads read before it (#874 FR-10) — the one place both the
+     * first page and every page after it draw a row, so a head is never lost or doubled at a page's edge.
+     */
+    private renderRow(list: HTMLElement, index: number): void {
+        const node = this.roots[index];
+        if (!node) return;
+        for (const head of this.heads.get(index) ?? []) {
+            if (head.kind === "source") renderListHead(list, head, this.sourceNamed(head.source), this.libraryEntry(head.source)?.author);
+            else renderListHead(list, head, undefined);
+        }
+        const thread = this.renderNode(list, node);
+        thread.setAttribute(LAB_KEY, node.thought.id);
     }
 
     /**
@@ -712,7 +1069,9 @@ export class LabRenderer extends KnowledgeModeRenderer {
     private renderCalendar(host: HTMLElement): void {
         const open = this.thoughts.filter((thought) => !isIncubated(thought));
         const roots = searchThreads(threadThoughts(open), this.query());
-        const times = roots.map((node) => node.thought.at);
+        // With a source picked, every thought of the narrowed set marks its day — a reply from that
+        // book included — so a day is never dotted that a click cannot reach (#874 FR-17).
+        const times = this.sources.picked.length > 0 ? roots.flatMap(flattenThread).map((thought) => thought.at) : roots.map((node) => node.thought.at);
 
         const panel = host.createDiv({ cls: c("lab-cal") });
         const head = panel.createDiv({ cls: c("lab-cal-head") });
@@ -803,11 +1162,17 @@ export class LabRenderer extends KnowledgeModeRenderer {
      * its own is not clickable, so this always finds one.
      */
     private jumpToDay(key: string): void {
-        const index = this.roots.findIndex((node) => dayKey(node.thought.at) === key);
+        // With a source picked, the first card in display order that holds a thought from that day.
+        const bySource = this.sources.picked.length > 0;
+        const index = bySource
+            ? this.roots.findIndex((node) => flattenThread(node).some((thought) => dayKey(thought.at) === key))
+            : this.roots.findIndex((node) => dayKey(node.thought.at) === key);
         if (index < 0) return;
         this.shown = ensureIndexShown(this.shown, index);
         this.calendarOpen = false;
-        const target = this.roots[index].thought.id;
+        const target = bySource
+            ? (flattenThread(this.roots[index]).find((thought) => dayKey(thought.at) === key)?.id ?? this.roots[index].thought.id)
+            : this.roots[index].thought.id;
         this.render();
         window.setTimeout(() => this.scrollTo(target), 0);
     }
@@ -866,7 +1231,10 @@ export class LabRenderer extends KnowledgeModeRenderer {
 
         // Inherited, so a thread keeps the context you arrived with — including the answers
         // you write to your own thoughts an hour later.
-        const subject = relation ? this.subjectOf(relation.to) ?? this.about : this.about;
+        // A new thought is about the one source you picked (#874 FR-14) — never one of several, and a
+        // collision's pair still wins.
+        const fresh = this.colliding && this.about ? this.about : composerSubject(this.sources.picked, this.about);
+        const subject = relation ? this.subjectOf(relation.to) ?? fresh : fresh;
         // A collision's answer is about **both** notes, and a response inherits both, so a thread
         // that came out of one keeps the pair it came from (#567).
         const alsoSubject = relation ? this.alsoSubjectOf(relation.to) ?? this.alsoAbout : this.alsoAbout;
@@ -903,6 +1271,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         }
         this.clearCommitFailure();
         this.thoughts.push(made);
+        this.forgetSources();
         // The gesture, written down (#492). A fork *is* a branch and a challenge *is* a challenge
         // — the Lab has always called them moves, and now it keeps them. Recorded here rather
         // than in `arm()` because arming only opens the composer: the move is the thing you did,
@@ -936,6 +1305,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         // A new top-level thought is a thread of one, and inserting it needs no reflow — which is
         // what keeps the common case free of a redraw.
         const thread = this.renderNode(this.listEl, { thought: made, children: [], depth: 0 });
+        thread.setAttribute(LAB_KEY, made.id);
         this.listEl.prepend(thread);
     }
 
@@ -980,7 +1350,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         const box = list.createDiv({ cls: c("lab-card") });
         this.cards.set(thought.id, box);
         // Only on the thread's root: repeating it on every answer would be noise.
-        if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about);
+        // A highlight, a move's answer and ink say their place on their own from-line, below.
+        if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about, thought.quote || isInk(thought) ? undefined : thought.locator?.label);
         if (this.connecting === thought.id) box.addClass(c("lab-connecting"));
         // Picked stays visibly picked — a persistent card class, not gated behind hover (#596).
         if (this.selected.has(thought.id)) box.addClass(c("lab-selected"));
@@ -1137,26 +1508,23 @@ export class LabRenderer extends KnowledgeModeRenderer {
     /**
      * The note this thread is about (#473).
      *
-     * Named and openable, not shown: the Lab is where you think, and turning it into a reading
-     * surface would put the note back at the centre of a place that exists for the thought.
+     * Named, not shown: the Lab is where you think, and turning it into a reading surface would put
+     * the note back at the centre of a place that exists for the thought. The name is a **door to
+     * the source** (#874 FR-4): *only this source*. Opening the note moved to the source's header,
+     * one click further and never doubled — the names-the-note-rather-than-shows-it rule holds.
      */
-    private renderSubject(box: HTMLElement, path: string): void {
+    private renderSubject(box: HTMLElement, path: string, place?: string): void {
+        // Read in the source's order, the heads already say which source — only the place is left.
+        if (this.readingInOrder() && !place) return;
         const row = box.createDiv({ cls: c("lab-subject") });
-        setIcon(row.createSpan({ cls: c("lab-subject-icon") }), "file-text");
+        setIcon(row.createSpan({ cls: c("lab-subject-icon") }), SOURCE_ICON[sourceKind(path)]);
         const gone = !this.app.vault.getAbstractFileByPath(path);
         const name = displayName(path, ObsidianApi.getOwnPlugin()?.settings.library);
-        const label = row.createSpan({
-            cls: c("lab-subject-name"),
-            text: gone ? t("lab_about_gone", name) : t("lab_about", name),
-        });
         if (gone) {
-            label.addClass(c("lab-subject-gone"));
+            row.createSpan({ cls: [c("lab-subject-name"), c("lab-subject-gone")].join(" "), text: t("lab_about_gone", name) });
             return;
         }
-        setTooltip(label, t("lab_about_open"));
-        this.registerDomEvent(label, "click", () => {
-            void this.app.workspace.openLinkText(path, "", false);
-        });
+        this.fromLine(row, path, t("lab_about", name), place)?.addClass(c("lab-subject-name"));
     }
 
     /**
@@ -1184,7 +1552,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         chip.createSpan({ text: t(LAB_MEANING_LABEL[meaning]) });
         this.registerDomEvent(chip, "click", () => this.toggleMeaning(meaning));
         const name = displayName(about, ObsidianApi.getOwnPlugin()?.settings.library);
-        meta.createSpan({ text: t("lab_highlight_from", quote.heading ? `${name} › ${quote.heading}` : name) });
+        this.fromLine(meta, about, t("lab_highlight_from", quote.heading ? `${name} › ${quote.heading}` : name), thought.locator?.label);
         if (!this.app.vault.getAbstractFileByPath(about)) return;
         const open = meta.createEl("button", {
             cls: c("lab-quote-open"),
@@ -1200,7 +1568,7 @@ export class LabRenderer extends KnowledgeModeRenderer {
         block.createEl("blockquote", { cls: c("lab-quote-text"), text: quote.exact });
         const meta = block.createDiv({ cls: c("lab-quote-meta") });
         const name = displayName(about, ObsidianApi.getOwnPlugin()?.settings.library);
-        meta.createSpan({ text: t("lab_move_from", quote.heading ? `${name} › ${quote.heading}` : name) });
+        this.fromLine(meta, about, t("lab_move_from", quote.heading ? `${name} › ${quote.heading}` : name), thought.locator?.label);
         if (thought.alsoAbout) meta.createSpan({ text: t("reader_ink_also_about", (thought.alsoAbout.split("/").pop() ?? thought.alsoAbout).replace(/\.md$/i, "")) });
         const place = placeOf(thought);
         if (!place || !this.app.vault.getAbstractFileByPath(about)) return;
@@ -1219,6 +1587,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
         renderInkCard(box, thought, {
             drawing: (ink) => ThoughtStore.getInstance().drawingOf(ink),
             name: displayName(about, ObsidianApi.getOwnPlugin()?.settings.library),
+            // The source's name is a door to it (#874 FR-4), like every other card's from-line.
+            source: (meta: HTMLElement, name: string) => void this.fromLine(meta, about, name, thought.locator?.label),
             ...(reachable ? { open: (from: HTMLElement) => void openReader(this.app, { seed: about, highlight: thought.id, from }) } : {}),
             listen: (el, run) => this.registerDomEvent(el, "click", run),
             // Read as text (#748): the same chip, gate and card as in the Reader's margin.
@@ -1360,6 +1730,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
      */
     private composerPlaceholder(): string {
         const verb = this.frame ? MOVE_VERBS.find((entry) => entry.verb === this.frame) : undefined;
+        // One source picked: the box invites a thought about it (#874 FR-14).
+        if ((!verb || !this.about) && this.sources.picked.length === 1) return t("lab_source_placeholder", this.sourceNamed(this.sources.picked[0]).name);
         if (!verb || !this.about) return t("lab_new_thought");
         const name = (this.about.split("/").pop() ?? this.about).replace(/\.md$/i, "");
         return t("lab_framed_placeholder", t(verb.labelKey as Parameters<typeof t>[0]), name);

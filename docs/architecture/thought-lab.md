@@ -615,10 +615,11 @@ writer at all — a bridge that dirties your vault is a bridge nobody crosses tw
 
 ### The subject is named, not shown
 
-The thread's root says which note it is about and opens it on a click. It does not render the
-note's content: that would make the Lab a reading surface, and put the note back at the centre of
-a place that exists for the thought. A subject that has since been deleted says so, and the
-thread is still yours.
+The thread's root says which note it is about. It does not render the note's content: that would
+make the Lab a reading surface, and put the note back at the centre of a place that exists for the
+thought. Since #874 a click on the name shows **only that source**, and the note opens from the
+source's header ([Thinking by source](#thinking-by-source-874)) — one click further, never doubled.
+A subject that has since been deleted says so, and the thread is still yours.
 
 ### Going back where you came from (#474)
 
@@ -734,7 +735,8 @@ that does three things.
 
 - **It searches what you wrote.** Free text runs over the thought's **body**, the inline `#tags`
   inside it, and the **subject note's name** when the thread came from one — so *the thing about
-  that note* is findable by the note.
+  that note* is findable by the note. And it narrows to the books, PDFs and notes you pick with
+  **From…** or a card's *from* line ([Thinking by source](#thinking-by-source-874)).
 - **`#tags`, written inline, become chips.** A `#idea` in the body of a thought shows as a chip on
   the card; clicking it adds it to the find bar as an **active filter**, and a thought must carry
   **all** the active tags to show. The tags are parsed back out of the body on every render —
@@ -781,6 +783,54 @@ keystroke). So the list is now a **window**.
 The #469 guardrail reaches all of it: the window exposes `hasMore` and no remaining count, the foot
 renders no total, the calendar cells carry a dot and never a tally, and the strings the window and
 calendar added are scanned for the vocabulary of a queue.
+
+### Thinking by source (#874)
+
+![Think read by one book: its chip in the find bar beside From…, the book's header with Open in the Reader, In reading order chosen, the thoughts under chapter heads in the book's order, and a spine with a tick where each thought sits](../resources/home/think-by-source.svg)
+
+What the Reader pours into Think — highlights, margin notes, ink, the answers to its moves — is all
+tied to a book, a PDF or a note. Think can now be read **one source at a time, in the source's
+order**: everything you thought while reading *that* book, chapter by chapter, the way you read it.
+
+- **Three doors, all where you already are.**
+    - **A card's *from* line** — *about X*, *Highlighted in X*, *From X*, an ink note's source — is a
+      door: *Only this source*. With a source already picked it reads *Add this source*.
+    - **From…** in the find bar opens the sources your thoughts came from: recent first, each with
+      its kind (book, PDF, note) and a quiet *when*, with a field that narrows them by name. A row
+      toggles its source and the picker stays open, so two books are two clicks. It never says how
+      many thoughts a source holds.
+    - **Arriving from the Reader** — *Open in Think* on a highlight, *Think on what you marked* at a
+      source's end — opens Think **already filtered** to it, in reading order. Every other arrival
+      (*Think about this note*, a move on a note) keeps the *Thinking about X* line as before.
+- **Several at once.** Each picked source is a chip in the find bar, in the order you picked it.
+  Sources are **OR** between them and **AND** with the text, the tags, the meaning and the calendar —
+  one query, which the set-aside room follows too. A thread from a source is shown whole.
+- **In reading order, by default.** Whenever a source is picked, the list reads the source's way:
+  the picked sources one after another, a head before each; inside a book or a PDF by chapter (then
+  print page), oldest first at the same place, the threads tied to no place last; a note by date.
+  *Newest* is the order of the rest of Think. Reading order is a **separate step you chose**, applied
+  before the window — the find itself still never reorders or ranks (#469).
+- **One source picked** draws its header — the cover the Library already drew this session, or a
+  plain tile; its name; *Book*, *PDF* or the note's folder — and the one way to it, *Open in the
+  Reader* or *Open the note*. That is where opening a note lives now: the *from* line is the filter.
+  A new thought you write is **about** that source; with two or more sources picked it is about
+  nothing in particular, never one of them chosen for you.
+- **The spine.** One book or PDF, in reading order: a rail beside the list with a tick where each
+  thread sits — where you thought, and how close together — with **no number on it**. A tick brings
+  its card into view, growing the window if it is further down, and the card says so once.
+- **Taking a source away**: ✕ on its chip, **Backspace** in the empty find field (the last one), or
+  **Esc** — nearest first: the picker, then the text box you are in, then the sources. *Clear*
+  clears them with the rest.
+- **One continuous shot (§XVI).** The source's name lifts off the line you touched and becomes the
+  chip; the cards the filter leaves out slide off to the side; the ones that stay close up into their
+  places. Taking a source away plays it backwards. `transform` and `opacity` only, any input jumps it
+  to its end, and under reduced motion the list simply changes.
+
+With a source picked the calendar marks every day its thoughts were written, and a click on a day
+goes to the first card in the list holding a thought from it. The pure parts — the sources, reading
+order, the spine — are `application/thinking/labSource.ts`; the #469 guardrail scans them, the picker
+and the new strings for anything that counts, and `lab.thread.500` times a lab read by two sources at
+0.63 ms per keystroke.
 
 ## What is not here yet
 

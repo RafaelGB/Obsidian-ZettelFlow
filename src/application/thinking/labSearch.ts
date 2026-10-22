@@ -25,6 +25,11 @@ export interface LabQuery {
     kind?: ThoughtKind;
     /** Restrict to highlights that mean this (#720); a plain thought never matches. */
     meaning?: HighlightMeaning;
+    /**
+     * Restrict to thoughts **from** one of these sources (#874): a book, a PDF or a note the thought
+     * is about — its subject or its collision's second subject. OR between them, AND with the rest.
+     */
+    sources?: readonly string[];
 }
 
 export function kindOf(thought: Thought): ThoughtKind {
@@ -41,7 +46,13 @@ function haystack(thought: Thought): string {
 }
 
 export function isEmptyQuery(query: LabQuery): boolean {
-    return !normalise(query.text ?? "") && !(query.tags && query.tags.length > 0) && !query.kind && !query.meaning;
+    return (
+        !normalise(query.text ?? "") &&
+        !(query.tags && query.tags.length > 0) &&
+        !query.kind &&
+        !query.meaning &&
+        !(query.sources && query.sources.length > 0)
+    );
 }
 
 export function matchesThought(thought: Thought, query: LabQuery): boolean {
@@ -53,6 +64,10 @@ export function matchesThought(thought: Thought, query: LabQuery): boolean {
     }
     if (query.kind && kindOf(thought) !== query.kind) return false;
     if (query.meaning && !(isHighlight(thought) && meaningOf(thought) === query.meaning)) return false;
+    if (query.sources && query.sources.length > 0) {
+        const picked = query.sources;
+        if (!(thought.about && picked.includes(thought.about)) && !(thought.alsoAbout && picked.includes(thought.alsoAbout))) return false;
+    }
     return true;
 }
 

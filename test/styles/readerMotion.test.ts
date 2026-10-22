@@ -3,12 +3,14 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const STYLES = join(__dirname, "..", "..", "src", "styles");
-const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerContents.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss"];
+const SHEETS = ["components/reader.scss", "components/readerSource.scss", "components/readerContents.scss", "components/readerDesigned.scss", "components/shelf.scss", "components/ink.scss", "components/readerSurvived.scss", "components/readerRecall.scss", "components/readerListen.scss", "components/readerCite.scss", "components/labSource.scss"];
 const SCRIPTS = [
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "reader"),
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library", "sources"),
     // The Library's own motion (#743): a book's Details, a card changing row, a chip dropping in.
     join(__dirname, "..", "..", "src", "architecture", "components", "core", "library"),
+    // Think, filtered by source (#874): the chip's flight, the cards leaving and closing up.
+    join(__dirname, "..", "..", "src", "architecture", "components", "core", "lab"),
 ];
 /** What a scripted keyframe may name besides a property: where it sits, and how it eases. */
 const KEYFRAME_FIELDS = new Set(["offset", "easing", "composite"]);

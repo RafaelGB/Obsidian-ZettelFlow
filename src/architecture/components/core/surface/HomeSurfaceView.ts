@@ -35,7 +35,9 @@ export class HomeSurfaceView extends ModeHostView {
                     container,
                     this.app,
                     typeof state?.about === "string" ? state.about : undefined,
-                    typeof state?.frame === "string" ? state.frame : undefined
+                    typeof state?.frame === "string" ? state.frame : undefined,
+                    // The Reader's two doors arrive on a source, already filtered (#874 FR-6).
+                    typeof state?.source === "string" ? state.source : undefined
                 );
             case "home":
             default:

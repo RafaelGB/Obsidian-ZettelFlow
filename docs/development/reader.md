@@ -1179,7 +1179,8 @@ below the last line, still counts.
   **Open in Think** and **Delete**; its **More** holds *Claim*, *Link to an idea*, *Crystallize into a
   note*, *Cite*, its layer and the Think group. It goes the moment you look away: a click or a tap
   outside it, a second tap on the same highlight, **Esc** (even while another tab has the keys), or a
-  scroll. A note you are writing in it stays put. With more than one meaning in a chapter, the margin can show one meaning at a
+  scroll. A note you are writing in it stays put. *Open in Think* opens Think already filtered to
+  this source, in reading order ([Thinking by source](../architecture/thought-lab.md#thinking-by-source-874)). With more than one meaning in a chapter, the margin can show one meaning at a
   time. A highlight made before meanings existed reads as an idea.
 - **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the

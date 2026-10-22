@@ -20,6 +20,8 @@ import { dueClaims } from "architecture/knowledge/review/dueClaims";
 import { drawCollision } from "architecture/knowledge/map/drawCollision";
 import { newThought, type Thought } from "application/thinking/thought";
 import { filterThreads, threadThoughts } from "application/thinking/thread";
+import { searchThreads } from "application/thinking/labSearch";
+import { readingOrder } from "application/thinking/labSource";
 import { noteNeighbourhood } from "architecture/knowledge/state/neighbourhood";
 import { layoutNeighbourhood } from "architecture/components/core/noteCompanion/neighbourhoodLayout";
 
@@ -319,6 +321,41 @@ describe("a lab that has grown", () => {
             thoughts.length
         );
         // Per keystroke, which is what the number has to mean for it to be honest.
+        assertBudget("lab.thread.500", ms / 20);
+    });
+
+    it("lab.thread.500, read by source (#874)", () => {
+        // Five hundred thoughts across twelve sources, two of them picked, read in their order: the
+        // find, then the reading order, on every keystroke — the same budget, because it is the same
+        // gesture from where you sit.
+        const sources = Array.from({ length: 12 }, (_unused, index) => (index % 3 === 0 ? `Notes/source ${index}.md` : `Books/source ${index}.epub`));
+        const thoughts: Thought[] = [];
+        for (let root = 0; root < 100; root++) {
+            const id = `r${root}`;
+            const about = sources[root % 12];
+            thoughts.push(newThought({ text: `a thought about topic ${root % 17}`, id, at: root * 1000, about, locator: { at: root % 9, label: `Ch. ${(root % 9) + 1}` } }));
+            for (let answer = 0; answer < 4; answer++) {
+                thoughts.push(
+                    newThought({
+                        text: `an answer ${answer} concerning topic ${root % 17}`,
+                        id: `${id}-${answer}`,
+                        at: root * 1000 + answer + 1,
+                        about,
+                        respondsTo: { to: id, as: answer % 2 === 0 ? "fork" : "challenge" },
+                    })
+                );
+            }
+        }
+        const picked = [sources[1], sources[3]];
+        const ms = timed(
+            "canvas.scan",
+            () => {
+                for (let round = 0; round < 20; round++) {
+                    readingOrder(searchThreads(threadThoughts(thoughts), { text: `topic ${round % 17}`, sources: picked }), picked);
+                }
+            },
+            thoughts.length
+        );
         assertBudget("lab.thread.500", ms / 20);
     });
 });

@@ -76,19 +76,28 @@ describe("crossing writes nothing (#473)", () => {
 
 describe("a thread keeps the context you arrived with (#473)", () => {
     it("inherits the subject onto every thought written in the visit", () => {
-        expect(LAB).toContain("const subject = relation ? this.subjectOf(relation.to) ?? this.about : this.about;");
+        // A response inherits its thread's subject; a new thought gets the one you arrived with — or,
+        // with exactly one source picked, that source (#874 FR-14).
+        expect(LAB).toContain("const subject = relation ? this.subjectOf(relation.to) ?? fresh : fresh;");
+        expect(LAB).toContain("composerSubject(this.sources.picked, this.about)");
     });
 
     it("names the subject on the thread's root, and not on every answer", () => {
-        expect(LAB).toContain("if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about);");
+        expect(LAB).toContain("if (thought.about && !thought.respondsTo) this.renderSubject(box, thought.about,");
     });
 
     it("names the note rather than showing it", () => {
         // Showing the note would make the Lab a reading surface, which puts the note back at the
         // centre of a place that exists for the thought.
+        // Since #874 the name is a door to the source, and opening the note lives in the source's
+        // header — one way to open it, never doubled, and still never a read of the note.
         const subject = LAB.slice(LAB.indexOf("private renderSubject"), LAB.indexOf("private renderLinks"));
-        expect(subject).toContain("openLinkText(path");
+        expect(subject).toContain("this.fromLine(row, path");
         expect(subject.includes("cachedRead")).toBe(false);
+        const region = LAB.slice(LAB.indexOf("private paintSourceRegion"), LAB.indexOf("private readingInOrder"));
+        expect(region).toContain("openLinkText(source.path");
+        const head = readFileSync(join(__dirname, "..", "..", "..", "src", "architecture", "components", "core", "lab", "labSourceHead.ts"), "utf8");
+        for (const read of ["cachedRead", "vault.read", "readCover"]) expect({ read, used: head.includes(read) }).toEqual({ read, used: false });
     });
 
     it("says when the note it was about is gone, and stays usable", () => {

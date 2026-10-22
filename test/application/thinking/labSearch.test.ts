@@ -87,3 +87,43 @@ describe("labSearch — handwriting, once read (#748 AC-8)", () => {
         expect(matchesThought({ ...ink, text: "" }, { text: "ship early" })).toBe(false);
     });
 });
+
+describe("labSearch — narrowed to the sources you picked (#874 FR-3, AC-3, AC-6)", () => {
+    const BOOK = "Books/Thinking in Systems.epub";
+    const PDF = "Papers/metrics-paper.pdf";
+    const NOTE = "Notes/Stocks and flows.md";
+
+    it("is OR between the sources and AND with the text and the tags", () => {
+        const thoughts = [
+            t({ id: "book-yes", at: 6, about: BOOK, text: "a loop with a delay #idea" }),
+            t({ id: "pdf-yes", at: 5, about: PDF, text: "the loop they reward #idea" }),
+            t({ id: "note-no", at: 4, about: NOTE, text: "a loop in the note #idea" }),
+            t({ id: "book-no-tag", at: 3, about: BOOK, text: "another loop" }),
+            t({ id: "pdf-no-text", at: 2, about: PDF, text: "a stock #idea" }),
+        ];
+        const found = searchThreads(threadThoughts(thoughts), { sources: [BOOK, PDF], text: "loop", tags: ["idea"] });
+        expect(found.map((node) => node.thought.id)).toEqual(["book-yes", "pdf-yes"]);
+    });
+
+    it("counts a collision's second subject as one of its sources", () => {
+        const thought = t({ id: "c", text: "both at once", about: BOOK, alsoAbout: NOTE });
+        expect(matchesThought(thought, { sources: [NOTE] })).toBe(true);
+        expect(matchesThought(thought, { sources: [PDF] })).toBe(false);
+    });
+
+    it("never reorders: the threads come out in the order they went in", () => {
+        const roots = threadThoughts([
+            t({ id: "1", at: 1, about: PDF, text: "x" }),
+            t({ id: "2", at: 9, about: BOOK, text: "x" }),
+            t({ id: "3", at: 5, about: PDF, text: "x" }),
+        ]);
+        const found = searchThreads(roots, { sources: [PDF, BOOK] });
+        expect(found.map((node) => node.thought.id)).toEqual(roots.map((node) => node.thought.id));
+    });
+
+    it("is not an empty query while a source is picked", () => {
+        const roots = threadThoughts([t({ id: "free", text: "no subject" }), t({ id: "b", text: "y", about: BOOK })]);
+        expect(searchThreads(roots, { sources: [BOOK] }).map((node) => node.thought.id)).toEqual(["b"]);
+        expect(searchThreads(roots, { sources: [] })).toHaveLength(2);
+    });
+});

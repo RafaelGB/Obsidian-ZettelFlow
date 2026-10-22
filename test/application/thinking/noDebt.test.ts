@@ -259,3 +259,66 @@ describe("time is a window, not a backlog (#596)", () => {
         }
     });
 });
+
+/**
+ * Thinking by source stays a lens (#874).
+ *
+ * A list of sources is the shape most likely to grow a number: "Thinking in Systems (34)" is one
+ * keystroke away, and a source list sorted by how much you thought about each is a leaderboard. It
+ * may be neither. A source is a name and a time; the picker narrows, it never reports.
+ */
+describe("thinking by source stays a lens (#874)", () => {
+    const EN_SRC = readFileSync(join(SRC, "architecture", "lang", "locale", "en.ts"), "utf8");
+    const SOURCE = withoutComments(readFileSync(join(SRC, "application", "thinking", "labSource.ts"), "utf8"));
+    const SEARCH = withoutComments(readFileSync(join(SRC, "application", "thinking", "labSearch.ts"), "utf8"));
+    const PICKER = withoutComments(
+        readFileSync(join(SRC, "architecture", "components", "core", "lab", "labSourcePicker.ts"), "utf8")
+    );
+
+    it("orders by a place or a time, and never by how much", () => {
+        for (const word of ["rank", "score", "relevance", "weight", "count", "tally"]) {
+            expect({ word, used: new RegExp(word, "i").test(SOURCE) }).toEqual({ word, used: false });
+        }
+    });
+
+    it("keeps the find itself free of any ordering — reading order is its own, chosen step", () => {
+        expect(SEARCH.includes(".sort(")).toBe(false);
+    });
+
+    it("never writes a number into the picker", () => {
+        expect(PICKER).not.toMatch(/String\(/);
+        expect(PICKER).not.toMatch(/text:\s*[^,}]*\.length/);
+        expect(PICKER).not.toMatch(/\.size\b/);
+    });
+
+    it("uses no count or queue word in the strings it added", () => {
+        const keys = [
+            "lab_source_from",
+            "lab_source_from_label",
+            "lab_source_find",
+            "lab_source_recent",
+            "lab_source_empty",
+            "lab_source_none_match",
+            "lab_order_label",
+            "lab_order_reading",
+            "lab_order_newest",
+            "lab_source_only",
+            "lab_source_add",
+            "lab_source_remove",
+            "lab_source_placeholder",
+            "lab_source_no_place",
+            "lab_source_spine",
+            "lab_source_kind_book",
+            "lab_source_kind_pdf",
+        ];
+        const queueish =
+            /\b(pending|overdue|waiting|remaining|unprocessed|backlog|inbox|count|total|promising|stale|should|most|top)\b/i;
+        const debt = /\d|\{1\}/;
+        for (const key of keys) {
+            const match = new RegExp(`${key}: '([^']*)'`).exec(EN_SRC);
+            expect({ key, found: match !== null }).toEqual({ key, found: true });
+            expect({ key, queueish: queueish.test(match?.[1] ?? "") }).toEqual({ key, queueish: false });
+            expect({ key, numbered: debt.test((match?.[1] ?? "").replace("{0}", "")) }).toEqual({ key, numbered: false });
+        }
+    });
+});

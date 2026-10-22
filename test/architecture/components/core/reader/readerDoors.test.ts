@@ -114,3 +114,22 @@ describe("every door into the Reader carries its origin (#828)", () => {
         expect(calls[0].request).toMatchObject({ seed: "a.md", kind: "argument", chapter: 0, from: card, connected: true });
     });
 });
+
+/** The Reader's two doors into Think land on the source, already filtered (#874 FR-6, AC-12). */
+describe("Open in Think and Think on what you marked land filtered (#874)", () => {
+    it("both go through the one door, which passes a source and never a subject", () => {
+        const door = read("architecture/components/core/lab/thinkOnSource.ts");
+        expect(door).toContain('activateSurface(app, "zettelflow-home", "lab", { source: path })');
+        expect(door).not.toContain("about:");
+        const highlights = read("architecture/components/core/reader/readerHighlights.ts");
+        expect(highlights).toContain("thinkOnSource(app, notePath)");
+        expect(highlights).not.toContain('"lab", { about');
+        const view = read("architecture/components/core/reader/ReaderView.ts");
+        expect(view).toContain("thinkOnSource(this.app, path)");
+        expect(view).not.toContain('"lab", { about');
+    });
+
+    it("is read by Home as a source, the fifth argument Think takes", () => {
+        expect(read("architecture/components/core/surface/HomeSurfaceView.ts")).toContain('typeof state?.source === "string" ? state.source : undefined');
+    });
+});

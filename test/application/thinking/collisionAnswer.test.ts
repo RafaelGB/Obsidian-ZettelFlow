@@ -116,7 +116,7 @@ describe("the pair arms the composer, and writing is the act (#567)", () => {
     });
 
     it("does not name one note when two are on screen", () => {
-        expect(LAB).toContain("if (this.about && !this.colliding)");
+        expect(LAB).toContain("if (this.about && !this.colliding && this.sources.picked.length === 0)");
     });
 
     it("touches neither note", () => {

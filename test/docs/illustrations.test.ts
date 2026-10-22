@@ -36,6 +36,8 @@ const ILLUSTRATIONS: [svg: string, page: string][] = [
     ["library/pdf-formats.svg", "development/library.md"],
     // #842: a marked PDF handed back as a copy with your notes.
     ["reader/share-copy.svg", "development/reader.md"],
+    // #874: Think read by one source, in the book's order, with its spine.
+    ["home/think-by-source.svg", "architecture/thought-lab.md"],
 ];
 
 describe("the docs illustrations (#800 D12)", () => {

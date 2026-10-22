@@ -16,6 +16,8 @@ export function renderInkCard(
         drawing: (thought: Thought) => Promise<string | undefined>;
         /** The source's name, as the shelf shows it. */
         name: string;
+        /** Draws the name instead, as a door to its source (#874 FR-4). */
+        source?: (meta: HTMLElement, name: string) => void;
         /** Back to the very spot in the Reader, when the source is still there. */
         /** Open it in the Reader, from the button that was clicked (#828: the origin flies). */
         open?: (from: HTMLElement) => void;
@@ -30,7 +32,8 @@ export function renderInkCard(
     parts.chip?.(block);
     const meta = block.createDiv({ cls: c("lab-quote-meta") });
     meta.createSpan({ cls: c("lab-ink-label"), text: t("lab_ink_label") });
-    meta.createSpan({ text: parts.name });
+    if (parts.source) parts.source(meta, parts.name);
+    else meta.createSpan({ text: parts.name });
     if (parts.open) {
         const open = meta.createEl("button", { cls: c("lab-quote-open"), text: t("lab_highlight_open_reader"), attr: { type: "button" } });
         const openFrom = parts.open;

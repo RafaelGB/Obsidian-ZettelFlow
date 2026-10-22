@@ -242,7 +242,7 @@ export const BUDGETS = {
     "lab.thread.500": {
         name: "thread and filter a lab of 500 thoughts",
         limit: 8,
-        measured: "0.65 ms per keystroke",
+        measured: "0.65 ms per keystroke; 0.63 ms read by source, two picked (#874)",
         because:
             "the cost of the Lab succeeding: filtering has to feel like typing, not like searching",
     },
@@ -493,8 +493,14 @@ export const BUDGETS = {
         // 3,176 → 3,178 (#873): ECharts 6's axis containment (#858) and the React/uuid patch bumps brought main
         // to 3,175.7 KB without this line moving; a highlight's popover going when you look away (outside press,
         // a second tap, an Esc no Scope took) adds 0.5 KB. No dependency. 3,176.2 KB; measure plus 2 KB.
-        limit: 3_178,
-        measured: "3,176.2 KB",
+        // 3,178 → 3,196 (#874): Think filtered by source adds 17.6 KB — the pure sources and reading order,
+        // the From… picker, the chips, the one-source header, the spine, the shot, and seventeen strings in
+        // two languages. Subtracted first: the chip's flight is the Reader's flightTransform, the cover the
+        // Library's in-session cache (no read), Esc stays the one `leave` move, the find stays the one query,
+        // and opening the note moved from every card to the header rather than being doubled. No dependency.
+        // 3,193.8 KB; measure plus 2 KB.
+        limit: 3_196,
+        measured: "3,193.8 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

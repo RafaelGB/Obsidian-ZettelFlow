@@ -267,4 +267,68 @@ describe("a highlight's own popover (#811 D1, AC-17)", () => {
         expect(rowLabels(m.pop(), "reader-hl-more-list")).toEqual(["Claim", "Link to an idea", "Crystallize into a note", "Cite", "Reading", "Reflection", "Research"]);
         expect(rowLabels(m.pop(), "reader-hl-think")).toEqual(["Contradict", "Connect"]);
     });
+
+    /** Not only a scroll takes it away: you look away from it, as from any popover. */
+    describe("goes when you look away", () => {
+        const noted = { ...marked, text: "Stocks are memory." } as Thought;
+        const open = async () => {
+            const m = mount({ marks: [noted] });
+            const doc = new DomNode();
+            (m.body as FakeEl & { ownerDocument: unknown }).ownerDocument = doc;
+            await m.attach();
+            const mark = m.body.all("mark")[0];
+            mark.fire("click");
+            expect(m.highlights.hasPopover()).toBe(true);
+            return { ...m, doc, mark };
+        };
+
+        it("closes on a click or a tap anywhere outside it", async () => {
+            for (const pointerType of ["mouse", "touch", "pen"]) {
+                const m = await open();
+                m.doc.fire("pointerdown", { pointerType, target: new DomNode() });
+                expect(m.highlights.hasPopover()).toBe(false);
+            }
+        });
+
+        it("stays for a press inside it, so its buttons still work", async () => {
+            const m = await open();
+            m.doc.fire("pointerdown", { target: m.button("Open in Think") });
+            expect(m.highlights.hasPopover()).toBe(true);
+        });
+
+        it("closes on a second tap on its own highlight, rather than opening again", async () => {
+            const m = await open();
+            m.doc.fire("pointerdown", { pointerType: "touch", target: m.mark });
+            expect(m.highlights.hasPopover()).toBe(true);
+            m.mark.fire("click");
+            expect(m.highlights.hasPopover()).toBe(false);
+        });
+
+        it("closes on Esc the Reader's own keys did not take (its tab not the active one)", async () => {
+            const m = await open();
+            const esc = m.doc.fire("keydown", { key: "Escape" });
+            expect(m.highlights.hasPopover()).toBe(false);
+            expect(esc.defaultPrevented).toBe(true);
+        });
+
+        it("leaves an Esc the Reader already took alone: one step per key, never two", async () => {
+            const m = await open();
+            m.doc.fire("keydown", { key: "Escape", defaultPrevented: true });
+            expect(m.highlights.hasPopover()).toBe(true);
+        });
+
+        it("keeps a note being written: a stray tap does not throw the draft away", async () => {
+            const m = await open();
+            m.button("Edit note").click();
+            m.doc.fire("pointerdown", { pointerType: "touch", target: new DomNode() });
+            expect(m.highlights.hasPopover()).toBe(true);
+        });
+
+        it("listens to nothing once it has gone", async () => {
+            const m = await open();
+            m.doc.fire("pointerdown", { target: new DomNode() });
+            expect(m.doc.listeners.pointerdown?.length ?? 0).toBe(1); // the chapter's own pointer reader
+            expect(m.doc.listeners.keydown?.length ?? 0).toBe(0);
+        });
+    });
 });

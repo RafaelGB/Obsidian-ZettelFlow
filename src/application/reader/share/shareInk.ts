@@ -65,7 +65,7 @@ export function inkPayloads(drawing: PageDrawing, view: PageBox, turn: number, a
     const k = W / PAGE_EMS;
     const at = (x: number, y: number) => pdfPointOf(view, turn, drawing.place.px * W + x * k, drawing.place.py * H + y * k);
     const out: Record<string, unknown>[] = [];
-    for (const colour of [...new Set(drawing.strokes.map((stroke) => stroke.colour))]) {
+    for (const colour of new Set(drawing.strokes.map((stroke) => stroke.colour))) {
         const strokes = drawing.strokes.filter((stroke) => stroke.colour === colour && stroke.points.length > 0);
         if (strokes.length === 0) continue;
         const lines: Float32Array[] = [];

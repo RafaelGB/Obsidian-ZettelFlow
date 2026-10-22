@@ -101,7 +101,7 @@ export class ReaderAiQueue {
     /** The Reader closed: every pending result is discarded, and nothing queued is sent. */
     dispose(): void {
         this.disposed = true;
-        for (const job of [...this.live.values()]) this.cancel(job);
+        for (const job of this.live.values()) this.cancel(job);
         this.waiting.length = 0;
     }
 

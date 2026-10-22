@@ -499,8 +499,14 @@ export const BUDGETS = {
         // Library's in-session cache (no read), Esc stays the one `leave` move, the find stays the one query,
         // and opening the note moved from every card to the header rather than being doubled. No dependency.
         // 3,193.8 KB; measure plus 2 KB.
-        limit: 3_196,
-        measured: "3,193.8 KB",
+        // 3,196 → 3,203 (#875): Home, Cultivate and Think as one set adds 6.5 KB — the pure set (the camera's
+        // way, the shot a move gets, the one way back, Esc), the set host that builds the destination before
+        // the camera moves, the door's flight, and the three modes' landings. Subtracted first: one pan shared
+        // with the Community (CameraPan, its implementation gone from communityPan), the empty-and-rebuild
+        // switch replaced by travel() rather than kept beside it, the whole-mode fade deleted, and the flight
+        // is the Reader's fly(). No new string, no dependency. 3,200.4 KB; measure plus 2 KB.
+        limit: 3_203,
+        measured: "3,200.4 KB",
         because:
             "the graph engine replaced three.js and 3d-force-graph — 1 MB, 31 % of the plugin (3,251 KB before #693) — with its own WebGL2 renderer; this ceiling is what fails the build if a WebGL library comes back",
     },

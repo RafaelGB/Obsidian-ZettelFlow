@@ -38,6 +38,8 @@ const ILLUSTRATIONS: [svg: string, page: string][] = [
     ["reader/share-copy.svg", "development/reader.md"],
     // #874: Think read by one source, in the book's order, with its spine.
     ["home/think-by-source.svg", "architecture/thought-lab.md"],
+    // #875: Home, Cultivate and Think as one set, and the two doors.
+    ["home/one-set.svg", "development/zettelflow-home.md"],
 ];
 
 describe("the docs illustrations (#800 D12)", () => {

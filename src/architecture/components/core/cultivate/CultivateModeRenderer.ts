@@ -104,6 +104,16 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         return this.plugin.app;
     }
 
+    /**
+     * Where *One idea to tend* lands (#875 FR-8): the stage card — only when it is that idea. Another
+     * idea on the stage is a plain pan: a card never lands on something it is not.
+     */
+    landing(payload: Record<string, unknown> | undefined): HTMLElement | null {
+        const target = payload?.target;
+        if (typeof target !== "string" || this.session?.path !== target) return null;
+        return this.container.querySelector<HTMLElement>(`.${c("cultivate-target")}`);
+    }
+
     onload(): void {
         if (this.inquiryMode) this.mountInquiry();
         const debounced = () => {
@@ -208,6 +218,8 @@ export class CultivateModeRenderer extends KnowledgeModeRenderer {
         // which now lives at the end of the stage strip as *From a question of mine…*).
         const bar = new ModeHeader(header, (el, type, handler) => this.registerDomEvent(el, type, handler));
         bar.primary({ label: t("cultivate_another"), icon: "arrow-right", onClick: () => this.anotherIdea() });
+        // The way back to the card that opened Cultivate (#875): plain navigation, never a second primary.
+        if (this.backTo) bar.nav(this.backTo);
         // The exit for the case this surface cannot serve (#473). Cultivate offers "write the
         // counterpoint"; when you do not know it yet, there was nowhere to go. Taking this door
         // writes nothing — leaving a question unanswered is not an edit.

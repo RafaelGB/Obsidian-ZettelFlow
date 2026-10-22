@@ -5,6 +5,7 @@ import { c, log, ObsidianApi } from "architecture";
 import { displayName } from "application/library/displayName";
 import { t, tCount } from "architecture/lang";
 import { activateSurface } from "architecture/plugin";
+import type { DoorOrigin } from "architecture/components/core/surface/modeSet";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { KnowledgeIndex, STATE_LABEL_KEY, type KnowledgeModel } from "architecture/knowledge";
 import {
@@ -88,13 +89,37 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
     private model: KnowledgeModel | null = null;
     private debounceTimer: number | undefined;
 
-    constructor(container: HTMLElement, private readonly app: App) {
+    /** Resolves once Home has drawn what a door can land on: its cards, the last thought's included. */
+    private settled: Promise<void>;
+    private settle: () => void = () => undefined;
+
+    constructor(
+        container: HTMLElement,
+        private readonly app: App,
+        /**
+         * Open a mode **in this tab**, the card flying into the place it opens (#875). Absent when
+         * Home is drawn outside its set — then the card opens the mode as it always did.
+         */
+        private readonly door?: (to: string, payload: Record<string, unknown>, origin: DoorOrigin, from: HTMLElement) => void
+    ) {
         super(container);
+        this.settled = new Promise<void>((resolve) => (this.settle = resolve));
     }
 
     onload(): void {
         this.registerVaultListeners();
         this.recompute();
+    }
+
+    ready(): Promise<void> {
+        return this.settled;
+    }
+
+    /** The way back lands on the card that was the door (#875 FR-13), in this freshly drawn Home. */
+    landing(payload: Record<string, unknown> | undefined): HTMLElement | null {
+        const door = payload?.door;
+        if (door !== "last-thought" && door !== "idea-to-tend") return null;
+        return this.container.querySelector<HTMLElement>(`[data-zf-door="${door}"]`);
     }
 
     onunload(): void {
@@ -176,7 +201,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             log.error(`[ZettelFlowHome] recompute failed: ${error instanceof Error ? error.message : "unknown error"}`);
         }
         this.render();
-        void this.readLastThought();
+        void this.readLastThought().finally(() => this.settle());
     }
 
     private resetModel(): void {
@@ -343,9 +368,13 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
             const line = thought.about
                 ? t("home_left_thought_about", displayName(thought.about, ObsidianApi.getOwnPlugin()?.settings.library))
                 : t("home_left_thought_line", moment(thought.at).fromNow());
-            this.card(row, "lightbulb", t("home_left_thought"), title, line, () =>
-                void activateSurface(this.app, "zettelflow-home", "lab", thought.about ? { about: thought.about } : undefined)
-            );
+            const subject = thought.about ? { about: thought.about } : {};
+            const card = this.card(row, "lightbulb", t("home_left_thought"), title, line, (event) => {
+                // In this tab, the card flying into its place in Think's list (#875); elsewhere, Think opens.
+                if (this.door) this.door("lab", { ...subject, thought: thought.id }, "last-thought", event.currentTarget as HTMLElement);
+                else void activateSurface(this.app, "zettelflow-home", "lab", thought.about ? subject : undefined);
+            });
+            card.setAttribute("data-zf-door", "last-thought");
         }
     }
 
@@ -383,7 +412,7 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         if (!idea) return;
         const section = page.createDiv({ cls: c("home-section") });
         eyebrow(section, "sprout", t("home_idea_to_tend"));
-        const invite = section.createDiv({ cls: c("home-invite") });
+        const invite = section.createDiv({ cls: c("home-invite"), attr: { "data-zf-door": "idea-to-tend" } });
         setIcon(invite.createDiv({ cls: c("home-invite-icon") }), "sprout");
         const words = invite.createDiv({ cls: c("home-invite-words") });
         const quote = words.createDiv({
@@ -399,9 +428,11 @@ export class HomeModeRenderer extends KnowledgeModeRenderer {
         const go = invite.createEl("button", { cls: "mod-cta", attr: { type: "button" } });
         go.createSpan({ text: t("home_idea_go") });
         setIcon(go.createSpan({ cls: c("home-invite-go") }), "arrow-right");
-        this.registerDomEvent(go, "click", () =>
-            void activateSurface(this.app, "zettelflow-home", "cultivate", { target: idea.path })
-        );
+        this.registerDomEvent(go, "click", () => {
+            // The idea flies onto Cultivate's stage (#875); outside the set, Cultivate opens on it.
+            if (this.door) this.door("cultivate", { target: idea.path }, "idea-to-tend", invite);
+            else void activateSurface(this.app, "zettelflow-home", "cultivate", { target: idea.path });
+        });
     }
 
     /** Your questions (#703): the queries you pinned, each a chip that asks it again in Explore. */

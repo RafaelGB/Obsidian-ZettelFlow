@@ -37,12 +37,18 @@ export interface Surface {
     titleKey: string;
     /** The modes, in display order; the first is the default. */
     modes: SurfaceMode[];
+    /**
+     * The modes are **one set** the camera moves across (#875): switching is a pan, a door flies its
+     * card into its place. Home only — every other surface switches in place, as it always did.
+     */
+    continuous?: true;
 }
 
 export const SURFACES: readonly Surface[] = [
     {
         viewType: "zettelflow-home",
         titleKey: "surface_home_title",
+        continuous: true,
         modes: [
             { id: "home", sourceView: "zettelflow-home", labelKey: "surface_mode_home" },
             { id: "cultivate", labelKey: "surface_mode_cultivate" },

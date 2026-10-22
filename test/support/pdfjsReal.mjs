@@ -1,6 +1,8 @@
 // The real pdf.js, out of jest's process (#842): jest cannot load pdf.js's ES modules, so a suite runs
-// this with `node` and talks to it in JSON. It is the published build closest to the one Obsidian 1.14.4
-// ships (5.3.31 against 5.3.34), a devDependency only: nothing under src/ ever imports it.
+// this with `node` and talks to it in JSON. A devDependency only: nothing under src/ ever imports it.
+// It was pinned to 5.3.31, the published build closest to Obsidian 1.14.4's own (5.3.34); it now runs on
+// 6.x, because every 5.x from 5.6.83 carries GHSA-hq66-cqwq-w95j (script run on opening a hostile PDF) —
+// the round trip is checked against a newer pdf.js than the app's, never an older, vulnerable one.
 //
 //   node test/support/pdfjsReal.mjs <request.json>   →   prints one line, `@@zf <json>`
 //
@@ -22,9 +24,10 @@ const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
 const request = JSON.parse(readFileSync(process.argv[2], "utf8"));
 const bytes = new Uint8Array(Buffer.from(request.pdf, "base64"));
-const open = (data) => pdfjs.getDocument({ data, isEvalSupported: false, verbosity: 0 }).promise;
+// pdf.js 6 destroys the loading task, not the document proxy.
+const task = pdfjs.getDocument({ data: bytes.slice(), isEvalSupported: false, verbosity: 0 });
 const out = {};
-const doc = await open(bytes.slice());
+const doc = await task.promise;
 try {
     if (request.op === "pages") {
         out.pages = [];
@@ -51,6 +54,6 @@ try {
         }
     }
 } finally {
-    await doc.destroy();
+    await task.destroy();
 }
 process.stdout.write(`@@zf ${JSON.stringify(out)}\n`);

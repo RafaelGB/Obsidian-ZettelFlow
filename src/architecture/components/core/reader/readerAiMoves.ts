@@ -232,7 +232,7 @@ export class ReaderAiMoves implements ProposalOwner {
     dispose(): void {
         this.disposed = true;
         this.queue.dispose();
-        for (const card of [...this.cards]) card.handle.dismiss();
+        for (const card of this.cards) card.handle.dismiss();
     }
 
     // ── a move ───────────────────────────────────────────────────────────────

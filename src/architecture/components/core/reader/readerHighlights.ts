@@ -356,6 +356,8 @@ export class ReaderHighlights {
     private tints = new Map<string, HTMLElement[]>();
     /** The listeners of the popover on screen, gone with it. */
     private popoverScope: Component | null = null;
+    /** Which highlight the open *mark* popover belongs to (see `openMarkId`). */
+    private markOpen: string | null = null;
     /** The listeners of the margin's rows, replaced when it redraws. */
     private marginScope: Component | null = null;
     private statusTimer: number | undefined;
@@ -1772,7 +1774,9 @@ export class ReaderHighlights {
                 // Inside a link the mark wins: its popover, not the link's peek or navigation.
                 event.preventDefault();
                 event.stopPropagation();
-                this.openMark(thought.id, mark);
+                // A second tap on the highlight that is open puts it away.
+                if (this.openMarkId === thought.id) this.hidePopover();
+                else this.openMark(thought.id, mark);
             });
         }
         return marks;
@@ -1897,6 +1901,36 @@ export class ReaderHighlights {
             think: passage,
         });
         this.place(pop, { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, touchPointer({ pointerType: this.pointer }));
+        this.awayFromMark(id, entry.marks);
+    }
+
+    /** The highlight whose popover is open, while it is. */
+    private get openMarkId(): string | null {
+        return this.popover?.hasClass(c("reader-hl-pop--mark")) ? this.markOpen : null;
+    }
+
+    /**
+     * A highlight's popover goes when you look away from it, not only on a scroll: a click or a tap
+     * outside it, and an Esc the Reader's own keys did not take — its tab not the active one, so its
+     * Scope never heard it. Obsidian's keymap runs first (window, capture) and marks what it took, so
+     * an Esc is never two steps. A press on its own highlight is left to that highlight's click.
+     */
+    private awayFromMark(id: string, marks: HTMLElement[]): void {
+        const doc = this.body?.ownerDocument;
+        const pop = this.popover;
+        const scope = this.popoverScope;
+        this.markOpen = id;
+        if (!doc || !pop || !scope) return;
+        scope.registerDomEvent(doc, "pointerdown", (event: PointerEvent) => {
+            const target = event.target as Node | null;
+            if (!target || pop.contains(target) || marks.some((mark) => mark === target || mark.contains?.(target))) return;
+            this.hidePopover();
+        }, { capture: true });
+        scope.registerDomEvent(doc, "keydown", (event: KeyboardEvent) => {
+            if (event.key !== "Escape" || event.defaultPrevented) return;
+            event.preventDefault();
+            this.escapePopover();
+        });
     }
 
     /**

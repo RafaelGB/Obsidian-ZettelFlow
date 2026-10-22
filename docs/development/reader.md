@@ -1177,7 +1177,9 @@ below the last line, still counts.
   passage takes it; **H** keeps the next one with the meaning you used last. Click a highlight to
   change its meaning: its popover has the same dots (its own marked), **Edit note** and **More**, then
   **Open in Think** and **Delete**; its **More** holds *Claim*, *Link to an idea*, *Crystallize into a
-  note*, *Cite*, its layer and the Think group. With more than one meaning in a chapter, the margin can show one meaning at a
+  note*, *Cite*, its layer and the Think group. It goes the moment you look away: a click or a tap
+  outside it, a second tap on the same highlight, **Esc** (even while another tab has the keys), or a
+  scroll. A note you are writing in it stays put. With more than one meaning in a chapter, the margin can show one meaning at a
   time. A highlight made before meanings existed reads as an idea.
 - **A highlight is a thought.** It lands in [Think](../architecture/thought-lab.md), about the note
   you were reading, carrying the passage you picked and the heading it sat under. Your note is the

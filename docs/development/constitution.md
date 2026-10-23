@@ -1,26 +1,28 @@
 # ZettelFlow constitution
 
-The **non-negotiables** every spec, plan and change must honor. This is the top gate of the
-[Spec-Driven Development pipeline](spec-driven-development.md): a `spec.md` or `plan.md` that violates a principle
-is rejected at review, not at merge. It restates — it does not replace — the conventions in
+The **non-negotiables** every story and change must honor. This is the top gate of
+[augmented coding](augmented-coding.md): a story or a pairing step that violates a principle
+is rejected when it is reviewed, not at merge. It restates — it does not replace — the conventions in
 [`CLAUDE.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/CLAUDE.md) and the scoring rules in
 [Obsidian review & scoring](obsidian-review-and-scoring.md).
 
-Amend this file only through a spec of its own (`specs/NNNN-constitution-*/`). Keep it short; if a
+Amend this file only through a story of its own. Keep it short; if a
 rule needs a paragraph of nuance, link the doc that owns it.
 
 ## I. The score is a release gate, not a nice-to-have
 
 Obsidian runs an automated review on every version and publishes a 1–100 quality score. No change
-may **lower** it. Every plan states which `eslint-plugin-obsidianmd` rules it could trip and how it
-avoids them. `npm run lint:obsidian` is the ground truth; a change that adds new violations is not
+may **lower** it. A story that could trip an `eslint-plugin-obsidianmd` rule says so in its
+acceptance criteria. `npm run lint:obsidian` is the ground truth; a change that adds new violations is not
 Done.
 
 ## II. Test-first (TDD is the implementation contract)
 
 Behavior changes and bug fixes land with a test that failed before the change and passes after
-(the `tdd` skill). No new unit of pure logic ships without a test. The blocking guardrails
-(`npm run verify` = typecheck + oxlint + jest) are green before every commit.
+(the `pair` and `tdd` skills): one test, red, then the least code that turns it green. No new unit
+of pure logic ships without a test. A committed test is never edited, skipped or deleted to get
+green — changing a test is its own step, decided by the navigator. The blocking guardrails
+(`npm run verify` = typecheck + oxlint + jest) are green before every push.
 
 ## III. Go through the facades
 
@@ -57,13 +59,14 @@ it in the same change. No hidden telemetry, no remote code execution, no auto-up
 ## VIII. Documentation ships with the change
 
 When a change alters behavior or a public surface, the matching `docs/` page (and `mkdocs.yml`
-nav) is updated in the **same** change. Specs and their status live under `specs/`.
+nav) is updated in the **same** change. Stories and their status live in GitHub Issues.
 
-## IX. Small, conventional, single-branch
+## IX. Small, conventional, one story per branch
 
-Conventional Commits (`feat(scope):`, `fix:`, `docs:`), no AI co-author trailer. Work on one
-`feature/*` branch; each commit is a coherent advance that leaves `verify` green so CI passes at
-every commit. Commits **reference** the issue (`(#N)`); they do **not** close it.
+Conventional Commits (`feat(scope):`, `fix:`, `docs:`), no AI co-author trailer. A story is one
+branch and one pull request, a vertical slice that works when it merges. Every step the navigator
+accepts is a commit, with its tests green; the PR is squash-merged, so `main` reads one commit per
+story. Commits **reference** the issue (`(#N)`); they do **not** close it.
 
 ## X. Issues close on merge, never from a feature branch
 
@@ -71,8 +74,8 @@ An issue is Done only when its fix is on `main`. Close issues through the **pull
 merges the branch — put `Closes #N` (one per addressed issue) in the **PR body**, so merging to
 `main` closes them automatically. Never `gh issue close` from a feature branch and never rely on a
 commit message to close an issue (feature-branch commits don't trigger auto-close, and closing
-before merge marks work shipped that isn't). The stage-5 "issue closed" gate means "listed in the
-PR's `Closes` set", realised when the PR merges.
+before merge marks work shipped that isn't). "Issue closed" means "listed in the PR's `Closes`
+set", realised when the PR merges.
 
 ## XI. Consolidation over expansion — the transformation gate
 
@@ -135,7 +138,7 @@ dialog. It is the opposite of the *operational* friction removed by the
 
 ## XIV. A change ships with a way to see it work
 
-Every spec ends with a **`How to verify`** section, and it is the last one for a reason: a change
+Every refined story ends with a **`How to verify`** section, and it is the last one for a reason: a change
 whose outcome cannot be *seen* has not been described. It carries two halves.
 
 - **Automated** — a *command → the criteria it proves* table. `npm run verify` is the floor, not the
@@ -148,7 +151,7 @@ whose outcome cannot be *seen* has not been described. It carries two halves.
 Three consequences a reviewer can check on a diff:
 
 - **Every acceptance criterion has a prover.** Automated, or a numbered step. An AC nobody can check
-  is not an AC, and the plan stage maps each one either way.
+  is not an AC, and the story names its prover when it is refined.
 - **Manual is a decision, not a default.** A step that stays manual names the reason in one clause.
   This repo accepts four: a WebGL scene, a camera flight, an Obsidian view lifecycle, a real vault's
   shape. It does not accept "hard to test" — and a manual step that turns out to be automatable

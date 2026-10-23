@@ -150,7 +150,7 @@ One list of sections, each with a title and a count, collapsible, in a fixed ord
 | Section | What it lists | Computed by |
 |---|---|---|
 | **In tension** | notes that contradict it | the [evidence map](evidence-map.md) |
-| **Supports** | notes that support it, and the sourced evidence (claim · source) | the evidence map |
+| **Supports** | notes that support it, and the sourced evidence — one row per claim, every source it cites (claim · source · source) | the evidence map |
 | **Gaps** | its unsourced claims and open questions | the evidence map |
 | **Near and forgotten** | nearby notes you have not revisited and do not link with, with the reason | [connection resurfacing](connection-resurfacing.md) |
 

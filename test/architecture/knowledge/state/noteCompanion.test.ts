@@ -99,9 +99,13 @@ describe("companionSections (#640 FR-11/12/13)", () => {
         expect(tension).toEqual({ id: "tension", count: 1, notes: map.contradicts });
         expect(supports).toEqual({
             id: "supports",
-            count: map.supports.length + map.evidence.length,
+            count: map.supports.length + 3,
             notes: map.supports,
-            evidence: map.evidence,
+            evidence: [
+                { note: "focus.md", claim: "also sourced", sources: [{ ref: "Book A", kind: "text" }, { ref: "Book B", kind: "text" }] },
+                { note: "focus.md", claim: "focus sourced", sources: [{ ref: "Book A", kind: "text" }] },
+                { note: "sup_out.md", claim: "sup evidence", sources: [{ ref: "[[Ref Note]]", kind: "link" }] },
+            ],
         });
         expect(gaps).toEqual({
             id: "gaps",
@@ -110,6 +114,12 @@ describe("companionSections (#640 FR-11/12/13)", () => {
             openQuestions: map.gaps.openQuestions,
         });
         expect(near).toEqual({ id: "nearby", count: 2, rows: nearby });
+    });
+
+    it("counts a claim with two sources once, its sources together (not one row per source)", () => {
+        const supports = companionSections(map, []).sections.find((section) => section.id === "supports");
+        const claims = supports && supports.id === "supports" ? supports.evidence.map((entry) => entry.claim) : [];
+        expect(claims.filter((claim) => claim === "also sourced")).toHaveLength(1);
     });
 
     it("folds the empty sections into one list instead of drawing them", () => {

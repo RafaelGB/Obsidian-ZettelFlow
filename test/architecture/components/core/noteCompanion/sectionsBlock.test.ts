@@ -123,6 +123,20 @@ describe("the counted sections (#640 FR-11..16, AC-6)", () => {
         expect(gaps.textContent).toContain("Why");
     });
 
+    it("draws a claim with two sources as one row naming both", () => {
+        const { host, block, ctx } = setup();
+        const evidence = [
+            { note: "A.md", claim: "the claim", source: { ref: "Book A", kind: "text" as const } },
+            { note: "A.md", claim: "the claim", source: { ref: "Book B", kind: "text" as const } },
+        ];
+        block.update(ctx({ ...model(), sections: companionSections({ ...map, evidence }, nearby) }));
+        const supports = host.byClass("note-companion-section").find((section) => section.getAttribute("data-section") === "supports")!;
+        const rows = supports.byClass("note-companion-claim");
+        expect(rows).toHaveLength(1);
+        expect(rows[0].textContent).toBe("the claim · Book A · Book B");
+        expect(summaries(host)).toContain("Supports · 1");
+    });
+
     it("shows why a note is near", () => {
         const { host } = setup();
         expect(host.oneByClass("note-companion-row-reason").textContent).toContain("#pkm");

@@ -1,4 +1,5 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
+import type { Source } from "architecture/knowledge/model/Idea";
 import { isNoteNeighbour } from "./neighbourhood";
 import type { EvidenceEntry, EvidenceMap, UnsourcedClaim } from "architecture/knowledge/synthesis/evidenceMap";
 import {
@@ -90,7 +91,7 @@ export interface NearbyRow<R = unknown> {
 
 export type CompanionSection<R = unknown> =
     | { id: "tension"; count: number; notes: string[] }
-    | { id: "supports"; count: number; notes: string[]; evidence: EvidenceEntry[] }
+    | { id: "supports"; count: number; notes: string[]; evidence: SourcedClaim[] }
     | { id: "gaps"; count: number; unsourcedClaims: UnsourcedClaim[]; openQuestions: string[] }
     | { id: "nearby"; count: number; rows: readonly NearbyRow<R>[] };
 
@@ -101,19 +102,42 @@ export interface CompanionSections<R = unknown> {
     folded: CompanionSectionId[];
 }
 
+/** A sourced claim as the companion shows it: once, with every source it cites. */
+export interface SourcedClaim {
+    note: string;
+    claim: string;
+    sources: Source[];
+}
+
+/**
+ * The evidence map lists one entry per (claim, source) — right for a query, wrong for a reader: a
+ * claim citing two sources would be drawn and counted twice. One row per claim, its sources together.
+ */
+function sourcedClaims(evidence: readonly EvidenceEntry[]): SourcedClaim[] {
+    const byClaim = new Map<string, SourcedClaim>();
+    for (const entry of evidence) {
+        const key = `${entry.note}\u0000${entry.claim}`;
+        const claim = byClaim.get(key);
+        if (claim) claim.sources.push(entry.source);
+        else byClaim.set(key, { note: entry.note, claim: entry.claim, sources: [entry.source] });
+    }
+    return [...byClaim.values()];
+}
+
 /**
  * The sections around a note, built from the **same** evidence map and resurface ranking the old
  * Timeline mode mounted (FR-12): this re-shapes their output and computes nothing new.
  * Sourced evidence sits inside *Supports* — a source supports a claim.
  */
 export function companionSections<R>(map: EvidenceMap | null, nearby: readonly NearbyRow<R>[]): CompanionSections<R> {
+    const evidence = sourcedClaims(map?.evidence ?? []);
     const all: CompanionSection<R>[] = [
         { id: "tension", count: map?.contradicts.length ?? 0, notes: map?.contradicts ?? [] },
         {
             id: "supports",
-            count: (map?.supports.length ?? 0) + (map?.evidence.length ?? 0),
+            count: (map?.supports.length ?? 0) + evidence.length,
             notes: map?.supports ?? [],
-            evidence: map?.evidence ?? [],
+            evidence,
         },
         {
             id: "gaps",

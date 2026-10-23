@@ -151,7 +151,9 @@ export class SectionsBlock extends CompanionBlock {
                     for (const entry of section.evidence) {
                         const row = body.createDiv({ cls: c("note-companion-claim") });
                         row.createSpan({ text: entry.claim });
-                        row.createSpan({ cls: c("note-companion-row-reason"), text: ` · ${entry.source.ref}` });
+                        for (const source of entry.sources) {
+                            row.createSpan({ cls: c("note-companion-row-reason"), text: ` · ${source.ref}` });
+                        }
                     }
                 }
                 break;

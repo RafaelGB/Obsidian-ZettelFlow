@@ -276,7 +276,7 @@ nav:
           - Testing & guardrails: development/testing-and-guardrails.md
           - Performance budgets: development/performance-budgets.md
           - Motion audit (frames): development/motion-audit.md
-          - Spec-driven development: development/spec-driven-development.md
+          - Augmented coding: development/augmented-coding.md
           - Constitution: development/constitution.md
           - Styling (the user's theme wins): development/obsidian-styling.md
           - Obsidian review & scoring: development/obsidian-review-and-scoring.md

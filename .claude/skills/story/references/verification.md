@@ -1,9 +1,9 @@
-# The verification script (required in every spec)
+# The verification script (required in every story)
 
-Every ZettelFlow spec ends with a **`## How to verify`** section: the automated proofs, and a
+Every refined ZettelFlow story ends with a **`## How to verify`** section: the automated proofs, and a
 **hand-walkable script** someone who has never read the code can follow to see the change work.
 
-It is the last section on purpose. A spec that cannot say how its outcome is *seen* has not
+It is the last section on purpose. A story that cannot say how its outcome is *seen* has not
 finished describing the outcome.
 
 ## Why it exists
@@ -14,7 +14,7 @@ and a green `npm run verify` proves the projection, never the pixel. The gap bet
 returns 14" and "I can see the 14 on my screen" is where regressions live.
 
 So: **automate what can be automated, and write the rest down as a script a human runs.** Both
-halves are part of the spec, not a follow-up.
+halves are part of the story, not a follow-up.
 
 ## The shape
 
@@ -67,12 +67,12 @@ unchanged). Say how the tester checks it.
 7. **The negative is a step** whenever the change touches the vault or the model: §XII means an
    interpretive output must not be written, and §XIII means the form must be able to author it.
    "Open the note; it is byte-identical" is a verification step.
-8. **Numbers, where the spec measured any.** If the spec claims *14 gaps on the reference vault*,
+8. **Numbers, where the story measured any.** If the story claims *14 gaps on the reference vault*,
    the script says where the tester reads that 14 back.
 
 ## For an epic
 
 An epic's `## How to verify` is the **end-to-end walkthrough of the finished capability** — the
 single sitting that shows the whole thing working, in the order a user would meet it. Each
-sub-issue carries its own narrower script for its own slice. If the epic's walkthrough cannot be
-written, the sub-issues do not add up to a capability.
+story carries its own narrower script for its own slice. If the epic's walkthrough cannot be
+written, the stories do not add up to a capability.

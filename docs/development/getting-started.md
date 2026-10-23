@@ -101,4 +101,4 @@ Pushing to `main` triggers `.github/workflows/documentation.yml` which deploys t
 
 ## AI harness (Claude Code)
 
-The repo ships a Claude Code harness (`CLAUDE.md` + `.claude/`). It encodes the architecture, conventions, and Obsidian-specific skills. See [Spec-driven development](spec-driven-development.md) for the full SDD pipeline and [Contributing & conventions](contributing-and-conventions.md) for how skills fit the day-to-day workflow.
+The repo ships a Claude Code harness (`CLAUDE.md` + `.claude/`). It encodes the architecture, conventions, and Obsidian-specific skills. See [Augmented coding](augmented-coding.md) for how we build (backlog → story → pair) and [Contributing & conventions](contributing-and-conventions.md) for how skills fit the day-to-day workflow.

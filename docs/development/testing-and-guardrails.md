@@ -142,7 +142,7 @@ guardrails under `test/docs/` keep them honest:
 | `readmeCeiling.test.ts` | the README stays **≤200 lines · ≤3,500 words · ≤25 rows in any table** — a **ratcheting** ceiling (like `themeGrid.test.ts`; the numbers may only go down) |
 | `readmeNames.ts` + `readmeNamesKept.test.ts` | the **84** capability names the README carried at `2f6198f5` (frozen, extracted in Node so an astral-plane emoji bullet is not dropped) still occur in `README.md` or under `docs/**` — nothing shipped disappears |
 | `frontDoor.test.ts` | the four practice loops are named and linked on the README's first screen; `docs/index.md` carries no second inventory; every relative link resolves; no shipped work is called *proposed*; the privacy disclosure is intact (`privacyBullets.ts`) |
-| `placementRule.test.ts` | `CLAUDE.md` and the `implement` skill route a capability by **door rank**, and neither says *"add a row to the Features table"* |
+| `placementRule.test.ts` | `CLAUDE.md` and the `pair` skill route a capability by **door rank**, and neither says *"add a row to the Features table"* |
 | `capabilityIndex.test.ts` | the reader-facing [Everything it does](../reference/capabilities.md) page equals its generator and names every capability |
 
 That page is a **third generated artefact** — a second rendering of `CAPABILITIES`, keyed by door
@@ -189,12 +189,12 @@ Treat each closed score issue as an opportunity to add the tests that lock in th
 ## The verification script (§XIV)
 
 Jest proves the projection; it never proves the pixel. Most of what ships here is a projection
-**drawn in a view** — a lens, a chip, a hull, a camera flight — so every spec ends with a
+**drawn in a view** — a lens, a chip, a hull, a camera flight — so every refined story ends with a
 **`How to verify`** section holding both halves of the proof: an automated *command → criteria*
 table, and a numbered script a person walks in a real vault (`npm run dev:vault`).
 
 The rules live in
-[`.claude/skills/specify/references/verification.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/.claude/skills/specify/references/verification.md)
+[`.claude/skills/story/references/verification.md`](https://github.com/RafaelGB/Obsidian-ZettelFlow/blob/main/.claude/skills/story/references/verification.md)
 and the invariant is [constitution §XIV](constitution.md). In short:
 
 - Every acceptance criterion has a prover — a command, or a numbered manual step.

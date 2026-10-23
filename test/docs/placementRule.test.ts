@@ -17,7 +17,7 @@ const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8").replace(CRLF
 
 const FILES = [
     { name: "CLAUDE.md", text: read("CLAUDE.md") },
-    { name: ".claude/skills/implement/SKILL.md", text: read(".claude/skills/implement/SKILL.md") },
+    { name: ".claude/skills/pair/SKILL.md", text: read(".claude/skills/pair/SKILL.md") },
 ];
 
 /** The three routes, keyed by door rank, that must appear in both files. */

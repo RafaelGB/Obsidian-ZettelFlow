@@ -78,7 +78,7 @@ push to `main`.
   (it is skipped for docs/system/test-only commits). The **full** rules — commitlint over the PR's
   commits, and `oxlint` over all of `src` — run in **CI** and on `pre-push` (`npm run verify`).
   **Do not add a `Co-Authored-By: Claude` (or any AI) trailer to commit messages.**
-- **Branches:** work on `feature/*`; open PRs into `main`. Only commit/push when asked.
+- **Branches:** one `feature/<N>-<slug>` (or `fix/…`) branch per story; open PRs into `main`, squash-merged.
 - **Imports:** bare-specifier aliases via `tsconfig` `baseUrl: src` — `architecture`, `config`,
   `actions`, `application`, `hooks`, `zettelkasten`, `starters`. No `paths` map.
 - **Logging:** use `log` from `architecture`, never bare `console.*`.
@@ -103,8 +103,9 @@ push to `main`.
   supported on purpose: compose two phrases.
 - **State:** Zustand only for the note-builder wizard; everything else is a `getInstance()`
   singleton.
-- **Tests (TDD):** write a failing test first under `test/` (mirrors `src/`); `typecheck` +
-  `oxlint` + `jest` are blocking via the `pre-push` hook and CI. See the `tdd` skill and
+- **Tests (TDD):** write a failing test first under `test/` (mirrors `src/`), one at a time while
+  pairing; `typecheck` + `oxlint` + `jest` are blocking via the `pre-push` hook and CI. See the
+  `pair` and `tdd` skills and
   [testing & guardrails](docs/development/testing-and-guardrails.md).
 
 ## Obsidian quality & scoring (important)
@@ -138,48 +139,49 @@ release, run the **`obsidian-plugin-quality`** skill; for PRs, use the
 
 Full list + roadmap: [`docs/development/project-health-and-roadmap.md`](docs/development/project-health-and-roadmap.md).
 
-## How we work: Spec-Driven Development (SDD)
+## How we work: augmented coding (AI pair programming)
 
-Non-trivial changes are built **spec-first**: intent → spec in the **GitHub issue body** → plan
-comment → tasks comment → code test-first → reviewed against the Obsidian score.
-
-**Everything lives in GitHub Issues** — the spec is the issue body; the plan and task checklist
-are issue comments. No local `specs/` directory.
-
-The invariants are in [`docs/development/constitution.md`](docs/development/constitution.md) and the
-narrative is [`docs/development/spec-driven-development.md`](docs/development/spec-driven-development.md).
+We build by **augmented coding** (Kent Beck): the AI is a pair programmer, the work moves in small
+test-guided steps, and the user stays in charge. No up-front spec → plan → tasks pipeline — that
+was waterfall with extra documents. Instead:
 
 ```
-constitution → /specify → /plan → /tasks → /implement → verify & review → Done
-   invariants   issue body  comment  comment   code+tests   score audit + reviewer
+backlog  →  story  →  pair  →  merged slice  →  back to the backlog
+one-line    ACs + tests    test → red → green → review → commit
+stories     in order       (AI drives, the user navigates)
 ```
 
-| Stage | Skill | Owner agent | Produces |
+| Step | Skill | Produces | Lives in |
 |---|---|---|---|
-| Specify | `specify` | `spec-author` | Issue body (spec) |
-| Plan / Tasks | `plan`, `tasks` | `implementation-planner` | Issue comments (plan + task checklist) |
-| Implement | `implement` (+ `tdd`) | main assistant | code, tests, commits |
-| Verify & review | `obsidian-plugin-quality` | `obsidian-plugin-reviewer` | review findings |
+| Backlog | `backlog` | one-line user stories, each a **vertical slice** of working value | one GitHub issue per story (`story` label; an `epic` issue orders them) |
+| Story | `story` | acceptance criteria, tests in order, out of scope, How to verify — **no technical design** | the story's issue body, written just before it is built |
+| Pair | `pair` (+ `tdd`) | one test at a time, a commit per accepted step, refactor only when asked | a branch per story, one PR, squash-merged |
+| Review | `obsidian-plugin-quality` + `obsidian-plugin-reviewer` | score and guideline findings on the diff | before the PR merges |
 
-A tiny, no-behavior change may skip to `/implement`; anything touching behavior, a public surface,
-UI text, or the score runs the full flow. Start with the **`sdd`** skill for the map.
+**While pairing you are the driver, the user is the navigator.** Write only the next test, the
+least code that passes it, then **stop and show** the step; commit it when the user accepts.
+Don't build what the current test doesn't need, don't refactor unasked (propose it), and stop and
+say so on any of the **three alarms**: a loop (same failure twice), an addition nobody asked for,
+or a test you would have to edit, skip or delete to get green — never do that. The user may say
+*"run N"* to chain N steps before you stop. A one-line bug may go straight to `pair` with its
+reproduction as test 1.
+
+The invariants are in [`docs/development/constitution.md`](docs/development/constitution.md); the
+narrative is [`docs/development/augmented-coding.md`](docs/development/augmented-coding.md).
 
 ## Harness contents (`.claude/`)
 
 This harness is committed (only `.claude/settings.local.json` is git-ignored). It provides:
 
 - **Skills** (`.claude/skills/`):
-  - `sdd` — the Spec-Driven Development pipeline map (start here for any non-trivial change).
-  - `specify` / `plan` / `tasks` / `implement` — the four SDD stage workflows.
+  - `backlog` / `story` / `pair` — the three steps of augmented coding.
+  - `tdd` — the test mechanics (jest, alias mappings, the Obsidian mock).
   - `obsidian-plugin-quality` — audit against the Obsidian review/score; use before release.
-  - `tdd` — the test-first workflow (jest, alias mappings, the Obsidian mock).
   - `new-action` — scaffold a new action (the 4-file pattern + registration + docs).
   - `release` — the release checklist (version bump, `versions.json`, tag, artifacts).
 - **Agents** (`.claude/agents/`):
-  - `spec-author` — writes the spec into the GitHub issue body (SDD stage 1).
-  - `implementation-planner` — posts the plan + task checklist as issue comments (SDD stages 2–3).
   - `obsidian-plugin-reviewer` — reviews a diff against the Obsidian guidelines and reports
-    file-anchored findings (SDD stage 5).
+    file-anchored findings.
 
 ## Working agreements
 
@@ -202,19 +204,19 @@ This harness is committed (only `.claude/settings.local.json` is git-ignored). I
 - Prefer editing existing patterns over inventing new ones — actions, settings handlers, and
   modals each have an established shape; match it.
 - **Every change ships with a way to see it work ([constitution §XIV](docs/development/constitution.md)).**
-  Every spec ends with a **`How to verify`** section: an automated *command → criteria proved* table,
+  Every refined story ends with a **`How to verify`** section: an automated *command → criteria proved* table,
   plus a numbered script a tester (or you) can walk in a real vault — preconditions, one observable
   expectation per step, the empty state, and the negative (nothing written, no layout change).
   Automate by default; a step that stays manual names its reason (WebGL scene · camera flight · view
   lifecycle · a real vault's shape). Finishing an implementation includes **walking the script** and
   fixing it where it drifted. Rules:
-  [`.claude/skills/specify/references/verification.md`](.claude/skills/specify/references/verification.md).
+  [`.claude/skills/story/references/verification.md`](.claude/skills/story/references/verification.md).
 - **Docs are a blocking exit criterion for every implementation.** When you finish a feature or
   fix, before committing, run a docs audit: does any page under `docs/` need to reflect the
   change? New feature → update or create a doc page. New action → `docs/actions/<Name>.md`.
   New config option → update the relevant architecture page. Changed behaviour → update the
   matching page. Pure refactor → confirm in the PR description that no doc change is needed. The
-  `implement` skill exit step encodes the full checklist.
+  `pair` skill's "story is done" step encodes the full checklist.
 - When you change behavior or a public surface, update the matching page under `docs/` (and the
   `mkdocs.yml` nav) in the same change.
 - **A capability is placed by its door rank, never appended to a list (adoption is a first-class

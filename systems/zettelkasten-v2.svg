@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1246" viewBox="0 0 1200 1246" role="img" aria-label="Zettelkasten v2 — the system's canvas flow: 4 steps">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="1246" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">Zettelkasten v2</text>
+<rect x="267.0" y="28" width="82" height="28" rx="14" fill="#e9973f" fill-opacity="0.18" stroke="#e9973f" stroke-width="1.5"/>
+<text x="308.0" y="47" fill="#e9973f" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">medium</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">4 steps · 1 branch point</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">The slip-box, drawn as a flow: one capture that asks what kind of note this is and branches to a fleeting, literature</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">or permanent note — each a phased step with its own prompts and a scaffolded body, cross-checked and maturity-scored…</text>
+<rect x="24" y="138" width="1152" height="1072.0" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="1070.0" rx="11" fill="url(#dots)"/>
+<g transform="translate(90.0,150.0) scale(1.0000) translate(630,370)">
+<path d="M-220,110.0 C-120.0,110.0 -120.0,-170.0 -24,-170.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-222.79999999999995" y="-185.0" width="176.79999999999998" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-134.39999999999998" y="-165.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A fleeting thought</text>
+<path d="M-220,110.0 C-120.0,110.0 -120.0,155.0 -24,155.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-179.8" y="140.0" width="133.8" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-112.9" y="160.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">From a source</text>
+<path d="M-220,110.0 C-120.0,110.0 -120.0,474.0 -24,474.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-162.6" y="459.0" width="116.6" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-104.3" y="479.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">My own idea</text>
+<rect x="-560" y="-20" width="340" height="260" rx="12" fill="#262626" stroke="#fb464c" stroke-width="3"/>
+<path d="M-560,-8 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#fb464c" fill-opacity="0.16"/>
+<text x="-544" y="11" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Capture a Zettel</text>
+<rect x="-284" y="-7" width="50" height="22" rx="11" fill="#7f6df2"/>
+<text x="-259" y="9" fill="#fff" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">ROOT</text>
+<text x="-544" y="50" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">capture · → Zettelkasten</text>
+<circle cx="-539" cy="71" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="76" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Title<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-539" cy="93" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="98" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">The thought<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-539" cy="115" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="120" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">What kind of note is th…<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<circle cx="-539" cy="137" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="142" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tags<tspan fill="#5c5f66" font-size="12.5">  tags</tspan></text>
+<circle cx="-539" cy="159" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="164" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Zettel id<tspan fill="#5c5f66" font-size="12.5">  zettel-id · automatic</tspan></text>
+<rect x="-20" y="-300" width="340" height="260" rx="12" fill="#262626" stroke="#fb464c" stroke-width="3"/>
+<path d="M-20,-288 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#fb464c" fill-opacity="0.16"/>
+<text x="-4" y="-269" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Fleeting note</text>
+<text x="-4" y="-230" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">capture · → Zettelkasten/Fleeting</text>
+<circle cx="1" cy="-209" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-204" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Anything to add?<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="-76" x2="304" y2="-76" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="-58" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Detect orphan</text>
+<rect x="-20" y="20" width="340" height="270" rx="12" fill="#262626" stroke="#e0de71" stroke-width="3"/>
+<path d="M-20,32 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#e0de71" fill-opacity="0.16"/>
+<text x="-4" y="51" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Literature note</text>
+<text x="-4" y="90" fill="#e0de71" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">process · → Zettelkasten/Literature</text>
+<circle cx="1" cy="111" r="3.5" fill="#8b8e94"/>
+<text x="12" y="116" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Author<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="133" r="3.5" fill="#8b8e94"/>
+<text x="12" y="138" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Source title<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="155" r="3.5" fill="#8b8e94"/>
+<text x="12" y="160" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Link or reference<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="177" r="3.5" fill="#8b8e94"/>
+<text x="12" y="182" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">In your own words<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="199" r="3.5" fill="#8b8e94"/>
+<text x="12" y="204" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Your take<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="234" x2="304" y2="234" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="252" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Extract claims,</text>
+<text x="-4" y="272" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">Calculate maturity</text>
+<rect x="-20" y="340" width="340" height="268" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-20,352 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-4" y="371" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Permanent note</text>
+<text x="-4" y="410" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → Zettelkasten/Permanent</text>
+<circle cx="1" cy="431" r="3.5" fill="#8b8e94"/>
+<text x="12" y="436" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">The claim<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="453" r="3.5" fill="#8b8e94"/>
+<text x="12" y="458" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Why it matters<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="475" r="3.5" fill="#8b8e94"/>
+<text x="12" y="480" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Connections<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="497" r="3.5" fill="#8b8e94"/>
+<text x="12" y="502" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">How settled is this?<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<line x1="-4" y1="532" x2="304" y2="532" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="550" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Calculate</text>
+<text x="-4" y="570" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">maturity, Find contradiction, Find unanswered</text>
+<text x="-4" y="590" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">question</text>
+</g>
+<text x="32" y="1230" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Think, in the family: the same composer as Home, the find bar beside the calendar, thoughts grouped by day with their verbs on hover — fork, challenge, connect, set aside, crystallize and throw away — and a marked passage with its accent edge">
+<rect x="0" y="0" width="1200" height="820" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="750" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c" stroke="none" stroke-width="0" opacity="1"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f" stroke="none" stroke-width="0" opacity="1"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e" stroke="none" stroke-width="0" opacity="1"/>
+<text x="600.0" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="72" y="98" fill="#6c6e75" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Home</text>
+<text x="136" y="98" fill="#6c6e75" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Cultivate</text>
+<text x="240" y="98" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start">Think</text>
+<rect x="236" y="106" width="48" height="2.5" rx="1.2" fill="#8a5cf5"/>
+<line x1="56" y1="110" x2="1144" y2="110" stroke="#2e2e33" stroke-width="1"/>
+<text x="110" y="150" fill="#a3a5ab" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">Write what you are thinking. None of this is a note, and none of it has to become one.</text>
+<rect x="110" y="168" width="980" height="104" rx="12" fill="#1e1e22" stroke="#2e2e33" stroke-width="1.5" />
+<text x="128" y="206" fill="#5f6168" font-family="Georgia, serif" font-size="18" font-weight="400" text-anchor="start">What are you thinking?</text>
+<text x="128" y="256" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Ctrl+Enter, or click away, to keep it.</text>
+<text x="126" y="310" fill="#6c6e75" font-family="sans-serif" font-size="16" font-weight="400" text-anchor="start">⌕</text>
+<text x="148" y="310" fill="#5f6168" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Find a thought, or #tag</text>
+<line x1="146" y1="318" x2="1040" y2="318" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="1054" y="296" width="36" height="26" rx="6" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="1072" y="314" fill="#6c6e75" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">▦</text>
+<text x="110" y="356" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">TODAY</text>
+<line x1="160" y1="352" x2="1090" y2="352" stroke="#2e2e33" stroke-width="1"/>
+<rect x="110" y="366" width="980" height="82" rx="12" fill="#222226" stroke="none" stroke-width="0" />
+<text x="126" y="396" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="400" text-anchor="start">Maybe consensus is not expensive — maybe it is only expensive when you</text>
+<text x="126" y="420" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="400" text-anchor="start">need it to be fast.</text>
+<text x="126" y="440" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">11:42 · about Consensus is cheaper than it looks · #systems</text>
+<text x="870" y="392" fill="#6c6e75" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">⑂</text>
+<text x="904" y="392" fill="#6c6e75" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">⚔</text>
+<text x="938" y="392" fill="#6c6e75" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">🔗</text>
+<text x="972" y="392" fill="#6c6e75" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">⏸</text>
+<text x="1006" y="392" fill="#6c6e75" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">◆</text>
+<text x="1040" y="392" fill="#fb464c" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">🗑</text>
+<text x="900" y="414" fill="#6c6e75" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="middle">fork · challenge · connect · set aside · crystallize · throw away</text>
+<line x1="132" y1="458" x2="132" y2="520" stroke="#3a3a3a" stroke-width="2"/>
+<text x="146" y="478" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">⚔ argues with the thought above</text>
+<text x="146" y="502" fill="#dcddde" font-family="Georgia, serif" font-size="16" font-weight="400" text-anchor="start">That only holds if leader election is rare. In flaky networks it isn’t.</text>
+<text x="110" y="556" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">YESTERDAY</text>
+<line x1="190" y1="552" x2="1090" y2="552" stroke="#2e2e33" stroke-width="1"/>
+<text x="126" y="584" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Highlighted in Make It Stick · p. 31</text>
+<rect x="126" y="594" width="3" height="26" rx="1.5" fill="#e9973f" stroke="none" stroke-width="0" />
+<text x="140" y="612" fill="#a3a5ab" font-family="Georgia, serif" font-size="15.5" font-weight="400" text-anchor="start">Retrieval practice makes learning stick, even when it feels slower.</text>
+<text x="126" y="642" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="400" text-anchor="start">This is the whole argument against rereading.</text>
+<rect x="110" y="666" width="980" height="46" rx="12" fill="none" stroke="#3a3a3a" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="130" y="694" fill="#a3a5ab" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">🗑  Thrown away. It is in your trash. ·</text>
+<text x="368" y="694" fill="#8a5cf5" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Put it back</text>
+<rect x="110" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="119.0" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">/</text>
+<text x="134" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">find</text>
+<rect x="178.8" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="187.8" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">j</text>
+<rect x="200.8" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="209.8" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">k</text>
+<text x="224.8" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">move</text>
+<rect x="269.6" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="278.6" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">f</text>
+<text x="293.6" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">fork</text>
+<rect x="338.40000000000003" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="347.40000000000003" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">c</text>
+<text x="362.40000000000003" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">challenge</text>
+<rect x="438.20000000000005" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="447.20000000000005" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">a</text>
+<text x="462.20000000000005" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">set aside</text>
+<rect x="538.0" y="739" width="50" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="563.0" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">Shift</text>
+<rect x="592.0" y="739" width="18" height="18" rx="4" fill="#232327" stroke="#3a3a3a" stroke-width="1" />
+<text x="601.0" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">D</text>
+<text x="616.0" y="752" fill="#6c6e75" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">throw away</text>
+</svg>

@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Moves answered by your vault. Left: a book in the Reader, a sentence naming the planning fallacy selected, and its popover below it: four meaning dots, Note, Copy and More; a second row with Claim, Link to an idea and Cite; and More open, with Read aloud and, last, the Think group with Contradict and Connect. A dashed arc shows the answer flying out of the Contradict button into the top of Alongside on the right. There the answer reads Proposed. Nothing is written until you decide., Contradict · from your vault, the passage, and one candidate, Ship early, saying Ship early contradicts Planning fallacy, which this passage names, with Accept, Modify and Reject. Below it the six lenses and Alongside's cards, and at the bottom From this reading, with Tension with Ship early. Underneath: Accept writes one thought in Think, Modify makes the line yours, Reject is not related for this chapter, and no AI is asked.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">MOVES ANSWERED BY YOUR VAULT — NO AI</text>
+
+<!-- ── the book ───────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="1120" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">THINKING, FAST AND SLOW · 2 · THE OUTSIDE VIEW</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="160">We had never once asked how long such books take, and</text>
+<text x="96" y="186">the plan stood in for the history of every project like ours.</text>
+</g>
+<!-- the selection -->
+<rect x="92" y="216" width="520" height="54" rx="4" fill="#a99cf5" fill-opacity="0.22"/>
+<g font-family="serif" font-size="17" fill="#dcddde">
+<text x="96" y="236">This is the planning fallacy, or the planning bias as some</text>
+<text x="96" y="262">call it: plans that are close to best-case scenarios.</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="470">Optimism is the engine of capitalism, and the source of</text>
+<text x="96" y="496">most of its failures. The outside view is the cure that</text>
+<text x="96" y="522">nobody wants to take.</text>
+<text x="96" y="562">An unbiased appreciation of uncertainty is a cornerstone</text>
+<text x="96" y="588">of rationality — but it is not what people want.</text>
+</g>
+
+<!-- the popover under the selection: More open, the Think group last (#811) -->
+<g font-family="sans-serif">
+<rect x="130" y="286" width="440" height="166" rx="10" fill="#26262c" stroke="#45454d"/>
+<g font-size="12">
+<circle cx="152" cy="313" r="10" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<circle cx="152" cy="313" r="6" fill="#e0a351"/>
+<circle cx="176" cy="313" r="6" fill="#4a9dff"/>
+<circle cx="200" cy="313" r="6" fill="#44cf6e"/>
+<circle cx="224" cy="313" r="6" fill="#a882ff"/>
+<rect x="242" y="300" width="56" height="26" rx="6" fill="#7f6df2"/>
+<text x="270" y="317" fill="#ffffff" text-anchor="middle">Note</text>
+<rect x="304" y="300" width="54" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="331" y="317" fill="#b3b5ba" text-anchor="middle">Copy</text>
+<rect x="364" y="300" width="58" height="26" rx="6" fill="#33303f" stroke="#a99cf5"/>
+<text x="393" y="317" fill="#dcddde" text-anchor="middle">More</text>
+<rect x="146" y="336" width="58" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="175" y="353" fill="#b3b5ba" text-anchor="middle">Claim</text>
+<rect x="210" y="336" width="112" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="266" y="353" fill="#b3b5ba" text-anchor="middle">Link to an idea</text>
+<rect x="328" y="336" width="48" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="352" y="353" fill="#b3b5ba" text-anchor="middle">Cite</text>
+</g>
+<path d="M 146 374 h 408" stroke="#3a3a3a"/>
+<rect x="146" y="384" width="86" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="189" y="401" fill="#b3b5ba" font-size="12" text-anchor="middle">Read aloud</text>
+<text x="148" y="437" fill="#5f6168" font-size="11">Think</text>
+<rect x="190" y="418" width="94" height="28" rx="6" fill="#33303f" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="237" y="437" fill="#dcddde" font-size="12" text-anchor="middle">Contradict</text>
+<rect x="292" y="418" width="80" height="28" rx="6" fill="none" stroke="#45454d"/>
+<text x="332" y="437" fill="#b3b5ba" font-size="12" text-anchor="middle">Connect</text>
+</g>
+
+<!-- the flight: born from the button -->
+<path d="M 284 424 C 420 340, 560 170, 712 150" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M 712 150 l -12 -5 l 3 6 l -3 6 z" fill="#a99cf5"/>
+<text x="590" y="174" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle" transform="rotate(-16 590 174)">one 250 ms flight</text>
+
+<!-- ── Alongside ──────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="700" y="96" width="440" height="560" rx="12" fill="#232328" stroke="#3a3a3a"/>
+<text x="724" y="126" fill="#8b8e94" font-size="11" font-weight="600" letter-spacing="1.2">ALONGSIDE</text>
+<text x="812" y="126" fill="#b3b5ba" font-size="12">Near your selection</text>
+
+<!-- the answer, at the top -->
+<rect x="716" y="140" width="408" height="250" rx="10" fill="#2a2a31" stroke="#a99cf5" stroke-opacity="0.6"/>
+<text x="732" y="164" fill="#8b8e94" font-size="12">Proposed. Nothing is written until you decide.</text>
+<text x="1104" y="164" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<text x="732" y="188" fill="#5f6168" font-size="10" letter-spacing="1">CONTRADICT · FROM YOUR VAULT</text>
+<path d="M 734 200 v 30" stroke="#45454d" stroke-width="2"/>
+<text x="744" y="212" fill="#b3b5ba" font-family="serif" font-size="13" font-style="italic">This is the planning fallacy, or the planning</text>
+<text x="744" y="228" fill="#b3b5ba" font-family="serif" font-size="13" font-style="italic">bias as some call it…</text>
+
+<!-- one candidate: the Reader's proposal card -->
+<rect x="732" y="244" width="376" height="130" rx="8" fill="#1b1b1f" stroke="#45454d"/>
+<text x="748" y="270" fill="#dcddde" font-size="13" font-weight="600">Ship early</text>
+<text x="748" y="292" fill="#b3b5ba" font-size="12">Ship early contradicts Planning fallacy,</text>
+<text x="748" y="308" fill="#b3b5ba" font-size="12">which this passage names.</text>
+<g font-size="12">
+<rect x="748" y="328" width="68" height="28" rx="6" fill="#7f6df2"/>
+<text x="782" y="347" fill="#ffffff" text-anchor="middle">Accept</text>
+<rect x="824" y="328" width="68" height="28" rx="6" fill="none" stroke="#45454d"/>
+<text x="858" y="347" fill="#b3b5ba" text-anchor="middle">Modify</text>
+<rect x="900" y="328" width="64" height="28" rx="6" fill="none" stroke="#45454d"/>
+<text x="932" y="347" fill="#b3b5ba" text-anchor="middle">Reject</text>
+</g>
+
+<!-- Alongside as it always is, under the answer -->
+<g font-size="11" fill="#b3b5ba">
+<rect x="722" y="406" width="38" height="22" rx="11" fill="#a99cf5"/>
+<text x="741" y="421" fill="#141416" text-anchor="middle">All</text>
+<rect x="766" y="406" width="88" height="22" rx="11" fill="none" stroke="#45454d"/>
+<text x="810" y="421" text-anchor="middle">Connections</text>
+<rect x="860" y="406" width="104" height="22" rx="11" fill="none" stroke="#45454d"/>
+<text x="912" y="421" text-anchor="middle">Contradictions</text>
+<rect x="970" y="406" width="76" height="22" rx="11" fill="none" stroke="#45454d"/>
+<text x="1008" y="421" text-anchor="middle">Questions</text>
+</g>
+<rect x="716" y="440" width="408" height="56" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="732" y="462" fill="#5f6168" font-size="10" letter-spacing="1">CONNECTIONS</text>
+<text x="732" y="482" fill="#b3b5ba" font-size="12"><tspan fill="#dcddde" font-weight="600">Planning fallacy</tspan>  · Named in your selection</text>
+<rect x="716" y="504" width="408" height="56" rx="8" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="732" y="526" fill="#5f6168" font-size="10" letter-spacing="1">CONNECTIONS</text>
+<text x="732" y="546" fill="#b3b5ba" font-size="12"><tspan fill="#dcddde" font-weight="600">Reference-class forecasting</tspan>  · Linked from Planning fallacy</text>
+
+<!-- From this reading -->
+<path d="M 716 584 h 408" stroke="#3a3a3a"/>
+<text x="732" y="606" fill="#5f6168" font-size="10" letter-spacing="1">FROM THIS READING</text>
+<text x="732" y="628" fill="#dcddde" font-size="12">Tension with Ship early</text>
+<path d="M 1108 330 C 1180 420, 1180 560, 1112 620" fill="none" stroke="#5f6168" stroke-width="1.2" stroke-dasharray="3 4"/>
+<path d="M 1112 620 l 4 -11 l 3 8 z" fill="#5f6168"/>
+<text x="1100" y="628" fill="#5f6168" font-size="10" text-anchor="end">accepted, it folds down here</text>
+</g>
+
+<!-- ── what each verdict does ─────────────────────────────────────────── -->
+<g font-family="sans-serif" font-size="12" fill="#8b8e94">
+<text x="70" y="716"><tspan fill="#dcddde" font-weight="600">Accept</tspan> · one thought in Think, about the book and the note, quoting the passage</text>
+<text x="70" y="740"><tspan fill="#dcddde" font-weight="600">Modify</tspan> · the line is yours to rewrite — on Connect, pick another idea</text>
+<text x="660" y="716"><tspan fill="#dcddde" font-weight="600">Reject</tspan> · not related, for this chapter — nothing written</text>
+<text x="660" y="740"><tspan fill="#dcddde" font-weight="600">Esc</tspan> · nothing written, nothing recorded · no AI is asked</text>
+</g>
+</svg>

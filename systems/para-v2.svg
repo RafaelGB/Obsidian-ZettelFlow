@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1418" viewBox="0 0 1200 1418" role="img" aria-label="PARA v2 — the system's canvas flow: 5 steps">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="1418" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">PARA v2</text>
+<rect x="150.2" y="28" width="64" height="28" rx="14" fill="#fb464c" fill-opacity="0.18" stroke="#fb464c" stroke-width="1.5"/>
+<text x="182.2" y="47" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">hard</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">5 steps · 1 branch point</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">PARA, drawn as a flow: one classify step decides where an item belongs and branches to a Project, Area, Resource or</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">Archive note — each a phased step with its own prompts, dates and a scaffolded body, filed in its PARA folder and…</text>
+<rect x="24" y="138" width="1152" height="1244.0" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="1242.0" rx="11" fill="url(#dots)"/>
+<g transform="translate(90.0,150.0) scale(1.0000) translate(650,390)">
+<path d="M-240,160.0 C-140.0,160.0 -140.0,-200.0 -44,-200.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-148.2" y="-215.0" width="82.19999999999999" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-107.1" y="-195.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">Project</text>
+<path d="M-240,160.0 C-140.0,160.0 -140.0,80.0 -44,80.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-122.4" y="65.0" width="56.4" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-94.2" y="85.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">Area</text>
+<path d="M-240,160.0 C-140.0,160.0 -140.0,360.0 -44,360.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-156.8" y="345.0" width="90.8" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-111.4" y="365.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">Resource</text>
+<path d="M-240,160.0 C-140.0,160.0 -140.0,640.0 -44,640.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-148.2" y="625.0" width="82.19999999999999" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-107.1" y="645.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">Archive</text>
+<rect x="-580" y="40" width="340" height="240" rx="12" fill="#262626" stroke="#e9973f" stroke-width="3"/>
+<path d="M-580,52 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#e9973f" fill-opacity="0.16"/>
+<text x="-564" y="71" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Classify</text>
+<rect x="-304" y="53" width="50" height="22" rx="11" fill="#7f6df2"/>
+<text x="-279" y="69" fill="#fff" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">ROOT</text>
+<text x="-564" y="110" fill="#e9973f" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">classify · → PARA</text>
+<circle cx="-559" cy="131" r="3.5" fill="#8b8e94"/>
+<text x="-548" y="136" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Title<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-559" cy="153" r="3.5" fill="#8b8e94"/>
+<text x="-548" y="158" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">What is it?<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-559" cy="175" r="3.5" fill="#8b8e94"/>
+<text x="-548" y="180" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Where does it belong?<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<circle cx="-559" cy="197" r="3.5" fill="#8b8e94"/>
+<text x="-548" y="202" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tags<tspan fill="#5c5f66" font-size="12.5">  tags</tspan></text>
+<rect x="-40" y="-320" width="340" height="240" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-40,-308 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-24" y="-289" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Project</text>
+<text x="-24" y="-250" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → PARA/1 Projects</text>
+<circle cx="-19" cy="-229" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="-224" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Outcome<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="-207" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="-202" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Next actions<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="-185" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="-180" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Target date<tspan fill="#5c5f66" font-size="12.5">  calendar</tspan></text>
+<line x1="-24" y1="-136" x2="284" y2="-136" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-24" y="-118" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Calculate</text>
+<text x="-24" y="-98" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">maturity</text>
+<rect x="-40" y="-40" width="340" height="240" rx="12" fill="#262626" stroke="#a882ff" stroke-width="3"/>
+<path d="M-40,-28 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#a882ff" fill-opacity="0.16"/>
+<text x="-24" y="-9" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Area</text>
+<text x="-24" y="30" fill="#a882ff" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">consolidate · → PARA/2 Areas</text>
+<circle cx="-19" cy="51" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="56" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">The standard<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="73" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="78" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Review cadence<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<line x1="-24" y1="164" x2="284" y2="164" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-24" y="182" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related</text>
+<rect x="-40" y="240" width="340" height="240" rx="12" fill="#262626" stroke="#44cf6e" stroke-width="3"/>
+<path d="M-40,252 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#44cf6e" fill-opacity="0.16"/>
+<text x="-24" y="271" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Resource</text>
+<text x="-24" y="310" fill="#44cf6e" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">connect · → PARA/3 Resources</text>
+<circle cx="-19" cy="331" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="336" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Source<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="353" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="358" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Link<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="375" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="380" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Topic<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-24" y1="444" x2="284" y2="444" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-24" y="462" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Extract claims</text>
+<rect x="-40" y="520" width="340" height="240" rx="12" fill="#262626" stroke="#a882ff" stroke-width="3"/>
+<path d="M-40,532 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#a882ff" fill-opacity="0.16"/>
+<text x="-24" y="551" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Archive</text>
+<text x="-24" y="590" fill="#a882ff" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">review · → PARA/4 Archive</text>
+<circle cx="-19" cy="611" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="616" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Why archived?<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-19" cy="633" r="3.5" fill="#8b8e94"/>
+<text x="-8" y="638" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Archived on<tspan fill="#5c5f66" font-size="12.5">  calendar</tspan></text>
+<line x1="-24" y1="724" x2="284" y2="724" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-24" y="742" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Detect orphan</text>
+</g>
+<text x="32" y="1402" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

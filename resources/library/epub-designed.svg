@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="A comic's spread fitted in the Reader: two designed pages side by side with their panels and balloons in place, in the comic's own font; the quiet one-line hint above them; the Reader's bar below in your theme; and the next page waiting as a blank sheet of paper">
+<rect width="1200" height="820" fill="#141416"/>
+<rect x="30" y="20" width="1140" height="780" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="52" cy="40" r="5.5" fill="#fb464c" />
+<circle cx="70" cy="40" r="5.5" fill="#e9973f" />
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e" />
+<text x="600.0" y="45" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="31" y="61" width="1138" height="738" fill="#151517" />
+<text x="60" y="92" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.8">A SMALL COMIC  ·  OPEN STUDIO</text>
+<text x="1142" y="94" fill="#5f6168" font-family="sans-serif" font-size="20" text-anchor="middle">×</text>
+<rect x="31" y="61" width="380" height="3" fill="#7f6df2" />
+<rect x="300" y="108" width="600" height="32" rx="8" fill="#1f1f23" />
+<text x="600" y="129" fill="#8b8e94" font-family="sans-serif" font-size="12.5" text-anchor="middle">This page is shown as it was designed. Highlights and search are not available on designed pages.</text>
+<!-- the spread: two designed pages meeting at the spine -->
+<rect x="268" y="160" width="322" height="430" rx="3" fill="#fffaf0" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="610" y="160" width="322" height="430" rx="3" fill="#fffaf0" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="586" y="160" width="28" height="430" fill="#000000" fill-opacity="0.18"/>
+<g stroke="#111111" stroke-width="3">
+<rect x="282" y="174" width="140" height="190" rx="4" fill="#78beff"/>
+<rect x="434" y="174" width="142" height="190" rx="4" fill="#ffc83c"/>
+<rect x="282" y="376" width="294" height="200" rx="4" fill="#5ac05a"/>
+<rect x="624" y="174" width="294" height="150" rx="4" fill="#ffb07a"/>
+<rect x="624" y="336" width="140" height="240" rx="4" fill="#b39ddb"/>
+<rect x="776" y="336" width="142" height="240" rx="4" fill="#78beff"/>
+</g>
+<g stroke="#111111" stroke-width="2" fill="#ffffff">
+<ellipse cx="350" cy="206" rx="58" ry="20"/>
+<ellipse cx="505" cy="222" rx="60" ry="20"/>
+<ellipse cx="430" cy="440" rx="96" ry="22"/>
+<ellipse cx="740" cy="214" rx="86" ry="22"/>
+<ellipse cx="846" cy="380" rx="58" ry="20"/>
+</g>
+<g fill="#222222" font-family="Comic Sans MS, cursive" text-anchor="middle">
+<text x="350" y="211" font-size="13">Page 2: hello!</text>
+<text x="505" y="227" font-size="13">The sun is up.</text>
+<text x="430" y="445" font-size="14">And the grass is green.</text>
+<text x="740" y="219" font-size="14">Where does it go?</text>
+<text x="846" y="385" font-size="13">Over there!</text>
+</g>
+<rect x="284" y="548" width="290" height="26" fill="#ffeb3b" stroke="#111111" stroke-width="2"/>
+<text x="296" y="566" fill="#222222" font-family="Comic Sans MS, cursive" font-size="13">Page 2 — the end of the day.</text>
+<text x="600" y="612" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">Fit page · the book's own panels, colours and font, in a page of its own</text>
+<!-- the next page waits as paper -->
+<rect x="996" y="200" width="132" height="176" rx="3" fill="#202024" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="1062" y="292" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">p. 4</text>
+<text x="1062" y="400" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">the next page</text>
+<text x="1062" y="416" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">waits as paper,</text>
+<text x="1062" y="432" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">then fades in</text>
+<text x="132" y="380" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">nothing in it runs,</text>
+<text x="132" y="396" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">nothing is fetched;</text>
+<text x="132" y="412" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">its look stays inside</text>
+<text x="132" y="428" fill="#5f6168" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle">its page</text>
+<g fill="#3a3a3a"><circle cx="560" cy="676" r="3.5"/><circle cx="576" cy="676" r="3.5"/><rect x="588" y="672.5" width="22" height="7" rx="3.5" fill="#7f6df2"/><circle cx="622" cy="676" r="3.5"/><circle cx="638" cy="676" r="3.5"/></g>
+<!-- the Reader's bar, in your theme -->
+<rect x="350" y="716" width="500" height="46" rx="14" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1" />
+<text x="376" y="745" fill="#8b8e94" font-family="sans-serif" font-size="20" text-anchor="middle">‹</text>
+<text x="440" y="744" fill="#8b8e94" font-family="sans-serif" font-size="12.5" text-anchor="middle">Page 2 / 6</text>
+<rect x="490" y="737" width="120" height="4" rx="2" fill="#3a3a3a" />
+<rect x="490" y="737" width="40" height="4" rx="2" fill="#7f6df2" />
+<text x="664" y="744" fill="#5f6168" font-family="sans-serif" font-size="12" text-anchor="middle">3 minutes left</text>
+<text x="724" y="745" fill="#8b8e94" font-family="sans-serif" font-size="20" text-anchor="middle">›</text>
+<text x="790" y="744" fill="#8b8e94" font-family="sans-serif" font-size="13" text-anchor="middle">72%</text>
+</svg>

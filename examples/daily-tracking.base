@@ -1,0 +1,13 @@
+# Daily tracking — an example Base for a ZettelFlow dashboard (epic #622).
+# Point `inFolder` at your own journal folder, open the "Dashboard" view, then add the panels
+# described in docs/development/base-dashboards.md. Nothing here is written back to your notes.
+filters:
+  and:
+    - 'file.inFolder("Journal")'
+    - 'file.name != "readme"'
+formulas:
+  # Bubble size: a base of 1, a bonus when the day's goals were met, plus completed tasks.
+  productivitySize: 'if(goalsAchieved, 3, 1) + file.tasks.completed.length'
+views:
+  - type: zettelflow-dashboard
+    name: Daily dashboard

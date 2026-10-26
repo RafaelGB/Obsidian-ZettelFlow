@@ -91,7 +91,11 @@ versions define second. `test/styles/highlightTint.test.ts` fails the build on a
     - an **icon-only** button is a `clickable-icon` (rule 4), which leaves both rules;
     - any other button that sets its own padding or fill is written
       `button.zettelkasten-flow__x:not(.clickable-icon)` — Obsidian's own selector, the same weight,
-      and the plugin's stylesheet loads after it.
+      and the plugin's stylesheet loads after it. Raise **every** rule of the class (hover,
+      `is-active`, modifiers, reduced motion, container queries) so they keep their order;
+    - a class that is also on a `div` or `span` keeps its plain selector beside the button one;
+    - a hide class (`is-hidden`, `reader-hidden`) that should beat the raised `display` names the
+      button too: `.parent > button.is-hidden:not(.clickable-icon)` (#888).
 
    To see it without a device: `app.emulateMobile(true)` in the developer console reloads Obsidian
    as mobile, and a window at least 600px wide is `is-tablet`. `app.emulateMobile(false)` goes back.
@@ -132,8 +136,8 @@ block that draws its own border *and* radius without the mixin, and no second wa
 one is on*. Its siblings hold the colour (`themeColours.test.ts`, at zero outside the 3D graph),
 the grid (`themeGrid.test.ts`, a ratcheting per-file ceiling that may only go down — eight of
 them came down the day the vocabulary landed) and rule 8 (`tabletButtons.test.ts`: it compiles the
-stylesheet, finds the classes the code puts on a `<button>`, and holds Think at zero and every other
-partial under a ceiling that may only go down). `selectableText.test.ts` fails on a
+stylesheet, finds the classes the code puts on a `<button>`, and holds every partial at zero —
+the 137 findings outside Think came down view by view in #888). `selectableText.test.ts` fails on a
 `user-select: text` without its `-webkit-user-select: text` (#886): a desktop never notices, an iPad
 selects nothing.
 

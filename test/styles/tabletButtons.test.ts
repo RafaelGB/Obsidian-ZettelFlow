@@ -195,4 +195,83 @@ describe("a button keeps its own box on a tablet (#885)", () => {
     it("keeps every button in Think out from under Obsidian's tablet padding and button fill", () => {
         expect(losers(css, buttons).filter((line) => line.startsWith("lab-"))).toEqual([]);
     });
+
+    it("holds every other partial at or under its ceiling", () => {
+        const over: string[] = [];
+        for (const [file, found] of byPartial(losers(css, buttons))) {
+            const ceiling = CEILING[file] ?? 0;
+            if (found.length > ceiling) over.push(`${file}: ${found.length}, ceiling ${ceiling} — ${found.join("; ")}`);
+        }
+        // A button is `button.zettelkasten-flow__x:not(.clickable-icon)`, or a `clickable-icon` (#885).
+        expect(over).toEqual([]);
+    });
+
+    it("keeps the ceilings honest, so the ratchet cannot become a licence", () => {
+        const counts = byPartial(losers(css, buttons));
+        const slack = Object.entries(CEILING)
+            .filter(([file, ceiling]) => (counts.get(file)?.length ?? 0) < ceiling)
+            .map(([file, ceiling]) => `${file}: ${counts.get(file)?.length ?? 0} < ${ceiling} — lower the ceiling`);
+        expect(slack).toEqual([]);
+    });
 });
+
+/**
+ * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
+ * one. Think's partials are not here: they are held at zero above.
+ */
+const CEILING: Record<string, number> = {
+    "askGraph.scss": 3,
+    "baseDashboard.scss": 4,
+    "codeEditor.scss": 2,
+    "communityLearn.scss": 10,
+    "communitySystems.scss": 5,
+    "communityView.scss": 1,
+    "cultivate.scss": 9,
+    "family.scss": 1,
+    "historyView.scss": 2,
+    "home.scss": 2,
+    "ink.scss": 1,
+    "noteCompanion.scss": 15,
+    "noteNeighbourhood.scss": 3,
+    "noteStory.scss": 7,
+    "reader.scss": 17,
+    "readerCite.scss": 2,
+    "readerContents.scss": 2,
+    "readerEnd.scss": 9,
+    "readerListen.scss": 2,
+    "readerRecall.scss": 1,
+    "readerSource.scss": 2,
+    "readerSurvived.scss": 3,
+    "review.scss": 1,
+    "settingsScope.scss": 6,
+    "settingsShell.scss": 3,
+    "shelf.scss": 17,
+    "stepBuilder.scss": 2,
+    "tend.scss": 1,
+    "workflowCanvas.scss": 3,
+};
+
+function partials(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) partials(full, out);
+        else if (entry.endsWith(".scss")) out.push(full);
+    }
+    return out;
+}
+
+/** Each finding under the partial that styles its class most — where the fix will go. */
+function byPartial(found: string[]): Map<string, string[]> {
+    const files = partials(join(SRC, "styles")).map((file) => ({ name: file.split(/[\\/]/).pop() as string, text: readFileSync(file, "utf8") }));
+    const out = new Map<string, string[]>();
+    for (const line of found) {
+        const name = line.split(":")[0];
+        const pattern = new RegExp(`${PREFIX}${name}(?![\\w-])`, "g");
+        const home = files
+            .map((file) => ({ name: file.name, hits: (file.text.match(pattern) ?? []).length }))
+            .sort((a, b) => b.hits - a.hits)[0];
+        const file = home && home.hits > 0 ? home.name : "(unknown)";
+        out.set(file, [...(out.get(file) ?? []), line]);
+    }
+    return out;
+}

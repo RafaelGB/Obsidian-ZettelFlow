@@ -402,7 +402,8 @@ button.zettelkasten-flow__lab-action:not(.clickable-icon) {
     gap: var(--size-4-1) var(--size-4-3);
 }
 
-.zettelkasten-flow__crystallize .zettelkasten-flow__crystallize-source-open {
+// `button.`: under the modal's class that is (0,2,1), past the tablet's button padding (#885).
+.zettelkasten-flow__crystallize button.zettelkasten-flow__crystallize-source-open {
     @include text-link-button;
     font-size: var(--font-ui-smaller);
 }

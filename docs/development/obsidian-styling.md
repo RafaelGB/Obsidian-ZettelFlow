@@ -82,6 +82,19 @@ versions define second. `test/styles/highlightTint.test.ts` fails the build on a
 6. **Sentence case**, everywhere, in both locales.
 7. **A shape that exists twice is a mixin.** `src/styles/utils/mixins.scss` is where a chip, a card,
    a row, a hint and an empty state are defined once; a partial that redefines one is drift.
+8. **A button that draws its own box outranks Obsidian's two button rules** (#885). Obsidian paints
+   every `button:not(.clickable-icon)` with a fill and a shadow (0,1,1), and on a tablet,
+   `.is-tablet button:not(.clickable-icon)`, gives it `padding: var(--size-4-1) var(--size-4-5)`
+   (0,2,1). `button.zettelkasten-flow__x` clears the first and **not** the second: on an iPad,
+   Think's 26px icon buttons got 40px of padding and their icons vanished into a shaded blob, and no
+   desktop ever showed it. So:
+    - an **icon-only** button is a `clickable-icon` (rule 4), which leaves both rules;
+    - any other button that sets its own padding or fill is written
+      `button.zettelkasten-flow__x:not(.clickable-icon)` — Obsidian's own selector, the same weight,
+      and the plugin's stylesheet loads after it.
+
+   To see it without a device: `app.emulateMobile(true)` in the developer console reloads Obsidian
+   as mobile, and a window at least 600px wide is `is-tablet`. `app.emulateMobile(false)` goes back.
 
 ## The vocabulary (#546)
 
@@ -116,9 +129,11 @@ difference shows up in the diff instead of hiding in a re-declaration.
 
 `test/styles/styleVocabulary.test.ts` holds the line: no `border-radius: 999px` anywhere, no chip
 block that draws its own border *and* radius without the mixin, and no second way of saying *this
-one is on*. Its two siblings hold the colour (`themeColours.test.ts`, at zero outside the 3D graph)
-and the grid (`themeGrid.test.ts`, a ratcheting per-file ceiling that may only go down — eight of
-them came down the day the vocabulary landed).
+one is on*. Its siblings hold the colour (`themeColours.test.ts`, at zero outside the 3D graph),
+the grid (`themeGrid.test.ts`, a ratcheting per-file ceiling that may only go down — eight of
+them came down the day the vocabulary landed) and rule 8 (`tabletButtons.test.ts`: it compiles the
+stylesheet, finds the classes the code puts on a `<button>`, and holds Think at zero and every other
+partial under a ceiling that may only go down).
 
 ## Why this is a rule and not a preference
 

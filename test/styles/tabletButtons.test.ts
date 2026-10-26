@@ -218,6 +218,11 @@ describe("a button keeps its own box on a tablet (#885)", () => {
         expect(community.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 
+    it("keeps every button in Cultivate out from under them, the session you tend your ideas in (#888)", () => {
+        const cultivate = [...byPartial(losers(css, buttons))].filter(([file]) => /^cultivate/.test(file));
+        expect(cultivate.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
     it("holds every other partial at or under its ceiling", () => {
         const over: string[] = [];
         for (const [file, found] of byPartial(losers(css, buttons))) {
@@ -239,13 +244,12 @@ describe("a button keeps its own box on a tablet (#885)", () => {
 
 /**
  * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
- * one. Think's, the Reader's, the Library's, This note's and Community's partials are not here: they are held at zero above (#888).
+ * one. Think's, the Reader's, the Library's, This note's, Community's and Cultivate's partials are not here: they are held at zero above (#888).
  */
 const CEILING: Record<string, number> = {
     "askGraph.scss": 3,
     "baseDashboard.scss": 4,
     "codeEditor.scss": 2,
-    "cultivate.scss": 9,
     "family.scss": 1,
     "historyView.scss": 2,
     "home.scss": 2,

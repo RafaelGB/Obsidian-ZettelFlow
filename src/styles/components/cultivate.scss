@@ -154,7 +154,7 @@
     }
 }
 
-button.zettelkasten-flow__cultivate-strip-seg {
+button.zettelkasten-flow__cultivate-strip-seg:not(.clickable-icon) {
     flex: var(--zf-n, 1) 1 0;
     height: 100%;
     min-width: var(--size-4-1);
@@ -179,7 +179,7 @@ button.zettelkasten-flow__cultivate-strip-seg {
 .zettelkasten-flow__cultivate-stage--evergreen { --zf-stage: var(--zf-stage-evergreen); }
 .zettelkasten-flow__cultivate-stage--archived { --zf-stage: var(--zf-stage-archived); }
 
-.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-seg {
+.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-seg:not(.clickable-icon) {
     opacity: 0.3;
 
     &.is-active {
@@ -200,8 +200,8 @@ button.zettelkasten-flow__cultivate-strip-seg {
     flex: 1;
 }
 
-button.zettelkasten-flow__cultivate-strip-key,
-button.zettelkasten-flow__cultivate-strip-question {
+button.zettelkasten-flow__cultivate-strip-key:not(.clickable-icon),
+button.zettelkasten-flow__cultivate-strip-question:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
@@ -224,11 +224,11 @@ button.zettelkasten-flow__cultivate-strip-question {
     }
 }
 
-button.zettelkasten-flow__cultivate-strip-question {
+button.zettelkasten-flow__cultivate-strip-question:not(.clickable-icon) {
     color: var(--text-faint);
 }
 
-.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-key:not(.is-active) {
+.zettelkasten-flow__cultivate-strip--filtered button.zettelkasten-flow__cultivate-strip-key:not(.clickable-icon):not(.is-active) {
     opacity: 0.5;
 }
 
@@ -409,7 +409,7 @@ button.zettelkasten-flow__cultivate-strip-question {
     margin-top: var(--size-4-4);
 }
 
-button.zettelkasten-flow__cultivate-target-move {
+button.zettelkasten-flow__cultivate-target-move:not(.clickable-icon) {
     height: auto;
     padding: var(--size-4-1) var(--size-4-2);
     border: none;
@@ -433,7 +433,7 @@ button.zettelkasten-flow__cultivate-target-move {
     margin: var(--size-4-6) 0 var(--size-4-3);
 }
 
-button.zettelkasten-flow__cultivate-pill {
+button.zettelkasten-flow__cultivate-pill:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-2);
@@ -568,11 +568,11 @@ button.zettelkasten-flow__cultivate-pill {
 }
 
 // `button.` so these outweigh Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
-button.zettelkasten-flow__cultivate-candidate-btn,
+button.zettelkasten-flow__cultivate-candidate-btn:not(.clickable-icon),
 button.zettelkasten-flow__cultivate-candidate-verdict,
-button.zettelkasten-flow__cultivate-advance-btn,
-button.zettelkasten-flow__cultivate-advance-later,
-button.zettelkasten-flow__cultivate-input-btn {
+button.zettelkasten-flow__cultivate-advance-btn:not(.clickable-icon),
+button.zettelkasten-flow__cultivate-advance-later:not(.clickable-icon),
+button.zettelkasten-flow__cultivate-input-btn:not(.clickable-icon) {
     flex-shrink: 0;
     height: auto;
     padding: var(--size-4-1) var(--size-4-3);
@@ -592,7 +592,7 @@ button.zettelkasten-flow__cultivate-input-btn {
 }
 
 button.zettelkasten-flow__cultivate-candidate-verdict,
-button.zettelkasten-flow__cultivate-advance-later {
+button.zettelkasten-flow__cultivate-advance-later:not(.clickable-icon) {
     border-color: transparent;
 }
 
@@ -693,7 +693,7 @@ button.zettelkasten-flow__cultivate-advance-later {
         display: none;
     }
 
-    button.zettelkasten-flow__cultivate-strip-question {
+    button.zettelkasten-flow__cultivate-strip-question:not(.clickable-icon) {
         grid-column: 1 / -1;
         justify-self: start;
     }
@@ -714,8 +714,8 @@ button.zettelkasten-flow__cultivate-advance-later {
         animation: none;
     }
 
-    button.zettelkasten-flow__cultivate-strip-seg,
-    button.zettelkasten-flow__cultivate-pill {
+    button.zettelkasten-flow__cultivate-strip-seg:not(.clickable-icon),
+    button.zettelkasten-flow__cultivate-pill:not(.clickable-icon) {
         transition: none;
     }
 }

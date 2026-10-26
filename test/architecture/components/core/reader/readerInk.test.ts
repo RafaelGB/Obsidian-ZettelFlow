@@ -16,7 +16,6 @@ import { ReaderHighlights } from "architecture/components/core/reader/readerHigh
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
 import { currentWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
-import { EXTEND_WINDOW_MS } from "application/reader/ink/strokeHighlight";
 import type { WordBox } from "application/reader/ink/inkAnchor";
 import type { PageText } from "application/library/pdfWords";
 import { FakeEl } from "../../../../support/textDom";
@@ -895,17 +894,17 @@ describe("the highlighter (#746)", () => {
         expect(m.store.discard).not.toHaveBeenCalled();
     });
 
-    it("makes a second highlight when the next line comes too late (AC-5)", async () => {
+    it("still grows it when the next line comes a long while later: reading it first is no new thought (#887 AC-1)", async () => {
         const m = direct();
         m.pick("highlighter");
         await flush();
         m.draw(along(0));
         await flush();
-        clock += EXTEND_WINDOW_MS + 1;
+        clock += 60 * 60 * 1000;
         m.draw(along(1));
         await flush();
-        expect(m.store.write).toHaveBeenCalledTimes(2);
-        expect(m.store.save).not.toHaveBeenCalled();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
     });
 
     it("turns the stroke into the mark: the ink fades as the mark sweeps from where it began, before the write answers (FR-11, FR-12)", async () => {

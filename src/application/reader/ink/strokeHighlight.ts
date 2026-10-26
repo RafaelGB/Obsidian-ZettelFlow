@@ -10,12 +10,11 @@
  */
 
 import { continuesSpan, type TextSpan } from "application/thinking/quoteAnchor";
+import type { HighlightMeaning } from "application/thinking/highlightMeaning";
 import type { WordBox } from "./inkAnchor";
 
 /** A stroke takes the line whose middle is nearest, within this many line heights — never two. */
 export const LINE_BAND_LH = 0.75;
-/** A second stroke this soon after the first, on contiguous words, extends the same highlight (FR-5). */
-export const EXTEND_WINDOW_MS = 4000;
 
 export interface StrokePoint {
     x: number;
@@ -145,11 +144,11 @@ export function bandWords<W extends WordBox>(points: readonly StrokePoint[], wor
 }
 
 /**
- * Whether a highlight stroke continues the last one (FR-5): drawn within `EXTEND_WINDOW_MS`, and on
- * words that continue it (`continuesSpan`: overlapping, or only whitespace and punctuation between).
- * A sentence that wraps is one highlight.
+ * Whether a highlight stroke continues the last one (FR-5): with the same meaning, on words that
+ * continue it (`continuesSpan`: overlapping, or only whitespace and punctuation between). A sentence
+ * that wraps is one highlight, however long the reader took to reach the next line (#887).
  */
-export function extendsHighlight(last: { span: TextSpan; at: number } | null, span: TextSpan, text: string, now: number): boolean {
-    if (!last || now - last.at > EXTEND_WINDOW_MS) return false;
+export function extendsHighlight(last: { span: TextSpan; meaning: HighlightMeaning } | null, span: TextSpan, text: string, meaning: HighlightMeaning): boolean {
+    if (!last || last.meaning !== meaning) return false;
     return continuesSpan(last.span, span, text);
 }

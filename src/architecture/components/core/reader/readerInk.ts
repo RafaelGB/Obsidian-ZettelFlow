@@ -134,11 +134,11 @@ interface StrokeHighlight {
     previous?: LastStroke | null;
 }
 
-/** The last highlight a stroke made: the next line, drawn soon after on contiguous words, grows it. */
+/** The last highlight a stroke made: the next line, with its meaning, on contiguous words, grows it (#887). */
 interface LastStroke {
     result: Promise<Thought | undefined>;
     span: TextSpan;
-    at: number;
+    meaning: HighlightMeaning;
     surface: string;
     entry: StrokeHighlight;
 }
@@ -1430,11 +1430,12 @@ export class ReaderInk {
         const found = band ? engine.quoteFor(band.span.start, band.span.end) : null;
         if (!band || !found) return this.nothingUnder(live);
         const last = this.lastStroke;
-        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, this.now()) ? last : null;
+        const meaning = engine.currentMeaning();
+        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning) ? last : null;
         const entry = this.strokeEntry(live);
         if (extend) {
             // One highlight, grown (FR-5): one recorded update of the one thought.
-            const keep = () => engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+            const keep = () => engine.keepSpan(found.span, found.quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
             entry.result = extend.result.then(async (before) => {
                 // Nothing to grow any more (taken back, or its words gone): a highlight of its own.
                 if (!before) return keep();
@@ -1445,12 +1446,12 @@ export class ReaderInk {
                 return keep();
             });
         } else {
-            entry.result = engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+            entry.result = engine.keepSpan(found.span, found.quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
         }
         // The ink becomes the mark (FR-11): the marks are on the words now, and the stroke fades.
         this.fadeOut(live.el, MOTION.base);
         const union = extend ? { start: Math.min(extend.span.start, band.span.start), end: Math.max(extend.span.end, band.span.end) } : found.span;
-        this.remember(entry, union, live.surface.key);
+        this.remember(entry, union, live.surface.key, meaning);
         return true;
     }
 
@@ -1507,9 +1508,9 @@ export class ReaderInk {
     }
 
     /** Remember the last stroke highlight — at once, its thought to come — for the next line to grow it. */
-    private remember(entry: StrokeHighlight, span: TextSpan, surface: string): void {
+    private remember(entry: StrokeHighlight, span: TextSpan, surface: string, meaning: HighlightMeaning): void {
         entry.previous = this.lastStroke;
-        this.lastStroke = { result: entry.result, span, at: this.now(), surface, entry };
+        this.lastStroke = { result: entry.result, span, meaning, surface, entry };
     }
 
     /** What the status line offers (FR-7): *Undo*, and *Keep as ink*. */

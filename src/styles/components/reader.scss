@@ -1985,7 +1985,7 @@ button.zettelkasten-flow__reader-note-pop-go {
     box-shadow: var(--shadow-s);
     font-size: var(--font-ui-small);
     line-height: 1.55;
-    user-select: text;
+    @include selectable-text;
 }
 
 .zettelkasten-flow__reader-lookup-card--leaving {

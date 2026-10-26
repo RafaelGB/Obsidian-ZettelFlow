@@ -95,6 +95,13 @@
     font-size: $text-small;
 }
 
+/// **Text you can select** (#886), under Obsidian's `body { user-select: none }`. Both properties:
+/// iOS reads only the prefixed one, and the bundle adds no prefix.
+@mixin selectable-text {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
 /// A **key on a keyboard** (#824): the Reader's shortcuts panel and a book's own `kbd` — one shape.
 @mixin key-cap {
     min-width: var(--size-4-6);

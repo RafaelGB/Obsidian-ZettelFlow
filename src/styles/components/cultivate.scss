@@ -515,7 +515,7 @@ button.zettelkasten-flow__cultivate-pill {
     font-size: var(--font-text-size);
     line-height: 1.5;
     resize: vertical;
-    user-select: text;
+    @include selectable-text;
 }
 
 .zettelkasten-flow__cultivate-friction-actions {
@@ -605,7 +605,7 @@ button.zettelkasten-flow__cultivate-advance-later {
 .zettelkasten-flow__cultivate-input {
     flex: 1 1 auto;
     min-width: 0;
-    user-select: text;
+    @include selectable-text;
 }
 
 /* ── today with this idea ───────────────────────────────────────────────── */

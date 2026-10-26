@@ -108,7 +108,7 @@
     font-family: var(--font-text);
     font-size: var(--font-text-size);
     line-height: 1.5;
-    user-select: text;
+    @include selectable-text;
 
     &:focus,
     &:hover {

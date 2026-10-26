@@ -30,22 +30,28 @@ export interface TextSpan {
 /** The longest gap of whitespace and punctuation a passage marked in several goes may leave (#868). */
 const CONTINUE_GAP = 6;
 
+/** The most words a stroke may stop short of at a line's end, and start after at the next's (#887). */
+export const LINE_EDGE_WORDS = 3;
+
 /**
  * Whether `next` continues `last` (#746 FR-5, #868 FR-5): it overlaps it, or nothing but whitespace
  * and punctuation lies between them, either way round — the full stop a selection stopped short of,
  * the line break of a sentence that wraps. The pen and a selection grow a highlight by this one rule.
  *
  * Given where each line starts (`lineStarts`, offsets into `text`), the words between them may be
- * taken in too when the gap crosses exactly one line, inside one paragraph: a stroke stops a little
- * short of a line's last word and starts a little after the next line's first (#887 AC-2).
+ * taken in too when the gap crosses exactly one line, inside one paragraph, and leaves at most
+ * `LINE_EDGE_WORDS` on each side of it: a stroke stops a little short of a line's last word and
+ * starts a little after the next line's first (#887 AC-2).
  */
 export function continuesSpan(last: TextSpan, next: TextSpan, text: string, lineStarts: readonly number[] = []): boolean {
     if (next.start <= last.end && next.end >= last.start) return true;
     const [from, to] = next.start >= last.end ? [last.end, next.start] : [next.end, last.start];
     const gap = text.slice(from, to);
     if (gap.length <= CONTINUE_GAP && /^[\s\p{P}]*$/u.test(gap)) return true;
-    const crossed = lineStarts.filter((start) => start > from && start <= to).length;
-    return crossed === 1 && !/\n\s*\n/.test(gap);
+    const crossed = lineStarts.filter((start) => start > from && start <= to);
+    if (crossed.length !== 1 || /\n\s*\n/.test(gap)) return false;
+    const words = (part: string) => (part.match(/[\p{L}\p{N}]+/gu) ?? []).length;
+    return words(text.slice(from, crossed[0])) <= LINE_EDGE_WORDS && words(text.slice(crossed[0], to)) <= LINE_EDGE_WORDS;
 }
 
 /**

@@ -134,6 +134,16 @@ describe("continuesSpan at a line's end: the words a stroke stopped short of (#8
         expect(continuesSpan(at("the first", "line"), at("second", "on"), text)).toBe(false);
     });
 
+    it("takes in up to three words on each side of the line break, never a fourth", () => {
+        const long = "one two three four five six seven eight nine ten";
+        const starts = [0, long.indexOf("six")];
+        const span = (from: string, to: string) => ({ start: long.indexOf(from), end: long.indexOf(to) + to.length });
+        // "three four five" and "six seven eight" left out: three each side.
+        expect(continuesSpan(span("one", "two"), span("nine", "ten"), long, starts)).toBe(true);
+        // "two three four five" at the line's end: a fourth word is more than stopping short.
+        expect(continuesSpan(span("one", "one"), span("nine", "ten"), long, starts)).toBe(false);
+    });
+
     it("still splits across a paragraph, words between", () => {
         const two = "the first paragraph ends here\n\nthe second begins";
         const starts = [0, two.indexOf("the second")];

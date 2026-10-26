@@ -337,6 +337,16 @@ describe("highlighting with the mouse (#667)", () => {
         expect(rule![1]).toContain(".zettelkasten-flow__reader-body");
     });
 
+    it("gives it back to WebKit too, which reads only the prefixed property (#886)", () => {
+        // Obsidian's body is `user-select: none; -webkit-user-select: none`, and its own views give both
+        // back. iOS resolves selection from `-webkit-user-select`, so with the unprefixed rule alone a
+        // finger on an iPad selects nothing. esbuild adds no prefix: the stylesheet must say it.
+        const scss = readFileSync(join(ROOT, "src", "styles", "components", "reader.scss"), "utf8");
+        const rule = scss.match(/([^{}]*\.zettelkasten-flow__reader-body,[^{}]*)\{([^}]*)\}/);
+        expect(rule).not.toBeNull();
+        expect(rule![2]).toMatch(/(^|[\s;])-webkit-user-select:\s*text/);
+    });
+
     function chapter(): FakeEl {
         return new FakeEl("div", [new FakeEl("p", ["Event sourcing stores changes, not state."])]);
     }

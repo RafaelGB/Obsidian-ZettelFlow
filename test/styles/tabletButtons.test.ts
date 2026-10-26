@@ -203,6 +203,11 @@ describe("a button keeps its own box on a tablet (#885)", () => {
         expect(reader.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 
+    it("keeps every button in the Library out from under them, the shelves the Reader opens from (#888)", () => {
+        const library = [...byPartial(losers(css, buttons))].filter(([file]) => /^(shelf|library)/.test(file));
+        expect(library.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
     it("holds every other partial at or under its ceiling", () => {
         const over: string[] = [];
         for (const [file, found] of byPartial(losers(css, buttons))) {
@@ -224,7 +229,7 @@ describe("a button keeps its own box on a tablet (#885)", () => {
 
 /**
  * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
- * one. Think's and the Reader's partials are not here: they are held at zero above (#888).
+ * one. Think's, the Reader's and the Library's partials are not here: they are held at zero above (#888).
  */
 const CEILING: Record<string, number> = {
     "askGraph.scss": 3,
@@ -243,7 +248,6 @@ const CEILING: Record<string, number> = {
     "review.scss": 1,
     "settingsScope.scss": 6,
     "settingsShell.scss": 3,
-    "shelf.scss": 17,
     "stepBuilder.scss": 2,
     "tend.scss": 1,
     "workflowCanvas.scss": 3,

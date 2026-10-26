@@ -140,7 +140,7 @@
     background-color: var(--background-modifier-hover);
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-view-option {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-view-option:not(.clickable-icon) {
     padding: var(--size-2-2) var(--size-4-3);
     border: 0;
     border-radius: var(--radius-s);
@@ -177,7 +177,7 @@
     background-color: var(--background-modifier-border);
 }
 
-.zettelkasten-flow__shelf-filter {
+button.zettelkasten-flow__shelf-filter:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     gap: var(--size-4-2);
@@ -215,7 +215,7 @@
         scrollbar-width: none;
     }
 
-    .zettelkasten-flow__shelf-filter,
+    button.zettelkasten-flow__shelf-filter:not(.clickable-icon),
     .zettelkasten-flow__shelf-sort {
         flex: none;
     }
@@ -561,7 +561,7 @@
     }
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-book-open {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-book-open:not(.clickable-icon) {
     display: block;
     height: auto;
     padding: 0;
@@ -768,7 +768,7 @@
     }
 }
 
-.zettelkasten-flow__shelf-filter--own {
+button.zettelkasten-flow__shelf-filter--own:not(.clickable-icon) {
     gap: var(--size-4-1);
 
     &.is-active .zettelkasten-flow__shelf-own-mark {
@@ -776,7 +776,7 @@
     }
 }
 
-.zettelkasten-flow__shelf-filter--new {
+button.zettelkasten-flow__shelf-filter--new:not(.clickable-icon) {
     border-style: dashed;
     color: var(--text-faint);
 
@@ -815,7 +815,7 @@
     color: var(--text-error);
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-message-undo {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-message-undo:not(.clickable-icon) {
     height: auto;
     padding: var(--size-2-1) var(--size-4-2);
     font-size: var(--font-ui-small);
@@ -1115,8 +1115,8 @@
     display: none;
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-details-unfold,
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-details-unfold {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-details-unfold:not(.clickable-icon),
+.zettelkasten-flow__shelf-detail button.zettelkasten-flow__shelf-details-unfold:not(.clickable-icon) {
     grid-column: 1 / -1;
     justify-self: start;
     height: auto;
@@ -1152,7 +1152,7 @@
     flex-direction: column;
 }
 
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row {
+.zettelkasten-flow__shelf-detail button.zettelkasten-flow__shelf-produced-row:not(.clickable-icon) {
     @include row;
     justify-content: flex-start;
     gap: var(--size-4-2);
@@ -1174,7 +1174,7 @@
     }
 }
 
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-produced-row--passage {
+.zettelkasten-flow__shelf-detail button.zettelkasten-flow__shelf-produced-row--passage:not(.clickable-icon) {
     flex-wrap: wrap;
     color: var(--text-normal);
 }
@@ -1212,7 +1212,7 @@
     font-weight: var(--font-semibold);
 }
 
-.zettelkasten-flow__shelf-detail .zettelkasten-flow__shelf-highlight {
+.zettelkasten-flow__shelf-detail button.zettelkasten-flow__shelf-highlight:not(.clickable-icon) {
     display: block;
     width: 100%;
     height: auto;
@@ -1295,7 +1295,7 @@
     font-size: var(--font-ui-smaller);
 }
 
-button.zettelkasten-flow__notebook-back {
+button.zettelkasten-flow__notebook-back:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: var(--size-2-1);
@@ -1388,7 +1388,7 @@ button.zettelkasten-flow__notebook-back {
     flex: 1;
 }
 
-button.zettelkasten-flow__notebook-action {
+button.zettelkasten-flow__notebook-action:not(.clickable-icon) {
     height: auto;
     padding: 0;
     border: none;
@@ -1552,7 +1552,7 @@ button.zettelkasten-flow__notebook-action {
     font-size: var(--font-ui-smaller);
 }
 
-.zettelkasten-flow__shelf-details-add {
+button.zettelkasten-flow__shelf-details-add:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     border-style: dashed;
@@ -1589,9 +1589,9 @@ button.zettelkasten-flow__notebook-action {
 }
 
 /* As buttons, so they outrank Obsidian's own `button:not(.clickable-icon)` and read as the links they are. */
-button.zettelkasten-flow__shelf-details-undo,
-button.zettelkasten-flow__shelf-details-adopt,
-button.zettelkasten-flow__shelf-articles-change {
+button.zettelkasten-flow__shelf-details-undo:not(.clickable-icon),
+button.zettelkasten-flow__shelf-details-adopt:not(.clickable-icon),
+button.zettelkasten-flow__shelf-articles-change:not(.clickable-icon) {
     height: auto;
     padding: 0;
     border: none;
@@ -1661,7 +1661,7 @@ button.zettelkasten-flow__shelf-articles-change {
     }
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-drawer {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-drawer:not(.clickable-icon) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1896,8 +1896,8 @@ button.zettelkasten-flow__shelf-articles-change {
     margin-top: var(--size-4-1);
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-look,
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-card-action {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-archive-look:not(.clickable-icon),
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-archive-card-action:not(.clickable-icon) {
     height: auto;
     padding: 0;
     border: none;
@@ -1909,7 +1909,7 @@ button.zettelkasten-flow__shelf-articles-change {
     cursor: pointer;
 }
 
-.zettelkasten-flow__shelf .zettelkasten-flow__shelf-archive-card-action--quiet {
+.zettelkasten-flow__shelf button.zettelkasten-flow__shelf-archive-card-action--quiet:not(.clickable-icon) {
     color: var(--text-muted);
     font-weight: var(--font-normal);
 }
@@ -1938,7 +1938,7 @@ button.zettelkasten-flow__shelf-articles-change {
 
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__shelf-cabinet,
-    .zettelkasten-flow__shelf .zettelkasten-flow__shelf-drawer,
+    .zettelkasten-flow__shelf button.zettelkasten-flow__shelf-drawer:not(.clickable-icon),
     .zettelkasten-flow__shelf-archive-card--leaving,
     .zettelkasten-flow__shelf-archive-cue {
         transition: none;

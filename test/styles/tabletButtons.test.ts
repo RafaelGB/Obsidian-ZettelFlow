@@ -157,7 +157,9 @@ function losers(css: string, buttons: Map<string, boolean>): string[] {
         for (const selector of rule.selectors) {
             const last = subject(selector);
             if (STATE.test(last)) continue;
-            for (const match of last.matchAll(new RegExp(`\\.${PREFIX}([\\w-]+)`, "g"))) {
+            // A class inside `:not()` is what the element is not: `.x:not(.hidden)` styles `.x` (#888).
+            const own = last.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "");
+            for (const match of own.matchAll(new RegExp(`\\.${PREFIX}([\\w-]+)`, "g"))) {
                 const name = match[1];
                 if (buttons.get(name) !== false) continue;
                 const spec = specificity(selector);
@@ -196,60 +198,37 @@ describe("a button keeps its own box on a tablet (#885)", () => {
         expect(losers(css, buttons).filter((line) => line.startsWith("lab-"))).toEqual([]);
     });
 
-    it("holds every other partial at or under its ceiling", () => {
-        const over: string[] = [];
-        for (const [file, found] of byPartial(losers(css, buttons))) {
-            const ceiling = CEILING[file] ?? 0;
-            if (found.length > ceiling) over.push(`${file}: ${found.length}, ceiling ${ceiling} — ${found.join("; ")}`);
-        }
-        // A button is `button.zettelkasten-flow__x:not(.clickable-icon)`, or a `clickable-icon` (#885).
-        expect(over).toEqual([]);
+    it("keeps every button in the Reader out from under them too, the place an iPad is read on (#888)", () => {
+        const reader = [...byPartial(losers(css, buttons))].filter(([file]) => /^(reader|ink)/.test(file));
+        expect(reader.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 
-    it("keeps the ceilings honest, so the ratchet cannot become a licence", () => {
-        const counts = byPartial(losers(css, buttons));
-        const slack = Object.entries(CEILING)
-            .filter(([file, ceiling]) => (counts.get(file)?.length ?? 0) < ceiling)
-            .map(([file, ceiling]) => `${file}: ${counts.get(file)?.length ?? 0} < ${ceiling} — lower the ceiling`);
-        expect(slack).toEqual([]);
+    it("keeps every button in the Library out from under them, the shelves the Reader opens from (#888)", () => {
+        const library = [...byPartial(losers(css, buttons))].filter(([file]) => /^(shelf|library)/.test(file));
+        expect(library.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
+    it("keeps every button in This note out from under them, the companion beside what you read (#888)", () => {
+        const note = [...byPartial(losers(css, buttons))].filter(([file]) => /^note/.test(file));
+        expect(note.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
+    it("keeps every button in Community out from under them, where you learn and install a system (#888)", () => {
+        const community = [...byPartial(losers(css, buttons))].filter(([file]) => /^community/.test(file));
+        expect(community.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
+    it("keeps every button in Cultivate out from under them, the session you tend your ideas in (#888)", () => {
+        const cultivate = [...byPartial(losers(css, buttons))].filter(([file]) => /^cultivate/.test(file));
+        expect(cultivate.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
+    it("keeps every button in the plugin out from under them, wherever an iPad opens it (#888)", () => {
+        const everywhere = [...byPartial(losers(css, buttons))];
+        // A button is `button.zettelkasten-flow__x:not(.clickable-icon)`, or a `clickable-icon` (#885).
+        expect(everywhere.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 });
-
-/**
- * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
- * one. Think's partials are not here: they are held at zero above.
- */
-const CEILING: Record<string, number> = {
-    "askGraph.scss": 3,
-    "baseDashboard.scss": 4,
-    "codeEditor.scss": 2,
-    "communityLearn.scss": 10,
-    "communitySystems.scss": 5,
-    "communityView.scss": 1,
-    "cultivate.scss": 9,
-    "family.scss": 1,
-    "historyView.scss": 2,
-    "home.scss": 2,
-    "ink.scss": 1,
-    "noteCompanion.scss": 15,
-    "noteNeighbourhood.scss": 3,
-    "noteStory.scss": 7,
-    "reader.scss": 17,
-    "readerCite.scss": 2,
-    "readerContents.scss": 2,
-    "readerEnd.scss": 9,
-    "readerListen.scss": 2,
-    "readerRecall.scss": 1,
-    "readerSource.scss": 2,
-    "readerSurvived.scss": 3,
-    "review.scss": 1,
-    "settingsScope.scss": 6,
-    "settingsShell.scss": 3,
-    "shelf.scss": 17,
-    "stepBuilder.scss": 2,
-    "tend.scss": 1,
-    "workflowCanvas.scss": 3,
-};
 
 function partials(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {

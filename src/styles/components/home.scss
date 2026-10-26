@@ -272,7 +272,7 @@
 }
 
 // `button.` so the chip outweighs Obsidian's `button:not(.clickable-icon)` paint (app.css, 1.14).
-button.zettelkasten-flow__home-question-chip {
+button.zettelkasten-flow__home-question-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -301,7 +301,7 @@ button.zettelkasten-flow__home-question-chip {
     display: flex;
 }
 
-button.zettelkasten-flow__home-glimpse {
+button.zettelkasten-flow__home-glimpse:not(.clickable-icon) {
     position: relative;
     display: block;
     width: 100%;
@@ -351,7 +351,7 @@ button.zettelkasten-flow__home-glimpse {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    button.zettelkasten-flow__home-glimpse:hover {
+    button.zettelkasten-flow__home-glimpse:not(.clickable-icon):hover {
         transform: none;
     }
 }

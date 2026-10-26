@@ -135,7 +135,7 @@ textarea.zettelkasten-flow__reader-recall-box {
     font-size: var(--font-ui-small);
 }
 
-button.zettelkasten-flow__reader-recall-link {
+button.zettelkasten-flow__reader-recall-link:not(.clickable-icon) {
     @include text-link-button;
     font-size: var(--font-ui-small);
 }

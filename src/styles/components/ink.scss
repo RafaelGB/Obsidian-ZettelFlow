@@ -477,7 +477,7 @@ body:not(.is-mobile) .zettelkasten-flow__reader-stage--inking .zettelkasten-flow
 }
 
 /* Two classes: Obsidian's own `button:not(.clickable-icon)` would otherwise give it a button's fill. */
-.zettelkasten-flow__reader-ink-chip .zettelkasten-flow__reader-ink-chip-action {
+.zettelkasten-flow__reader-ink-chip button.zettelkasten-flow__reader-ink-chip-action:not(.clickable-icon) {
     background: none;
     border: none;
     box-shadow: none;

@@ -141,7 +141,7 @@
     color: var(--text-muted);
 }
 
-.zettelkasten-flow__step-builder-token {
+button.zettelkasten-flow__step-builder-token:not(.clickable-icon) {
     padding: 0 0.4rem;
     border-radius: var(--radius-s);
     font-family: var(--font-monospace);
@@ -259,7 +259,7 @@
 
 // `button.` on purpose: Obsidian's `button:not(.clickable-icon)` (0,1,1) would otherwise paint the
 // heading as a filled button with an input shadow.
-button.zettelkasten-flow__step-group-heading {
+button.zettelkasten-flow__step-group-heading:not(.clickable-icon) {
     display: flex;
     align-items: center;
     gap: $space-2;

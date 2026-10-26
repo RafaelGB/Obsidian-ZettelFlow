@@ -28,7 +28,7 @@
     gap: $space-2;
 }
 
-.zettelkasten-flow__reader-chooser-card {
+button.zettelkasten-flow__reader-chooser-card:not(.clickable-icon) {
     @include card;
     height: auto;
     align-items: flex-start;

@@ -63,14 +63,14 @@
     gap: $space-1;
 }
 
-.zettelkasten-flow__note-story-chip {
+button.zettelkasten-flow__note-story-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
     box-shadow: none;
 }
 
-.zettelkasten-flow__note-story-chip--active {
+button.zettelkasten-flow__note-story-chip--active:not(.clickable-icon) {
     @include chip-active;
 }
 
@@ -239,8 +239,8 @@
     color: $text-faint;
 }
 
-.zettelkasten-flow__note-story-forget,
-.zettelkasten-flow__note-story-fold {
+button.zettelkasten-flow__note-story-forget:not(.clickable-icon),
+button.zettelkasten-flow__note-story-fold:not(.clickable-icon) {
     align-self: flex-start;
     background: none;
     border: none;

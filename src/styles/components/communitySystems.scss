@@ -11,9 +11,11 @@
  */
 
 // A card a search leaves out, a group with none left, the list while a system is open. The grid's
-// own selector is named, so a card's `display` never outranks it.
+// own selector is named, so a card's `display` never outranks it — nor a card that is a button,
+// which weighs (0,3,1) against Obsidian's tablet padding (#888).
 .zettelkasten-flow__systems .is-hidden,
-.zettelkasten-flow__systems .zettelkasten-flow__systems-grid > .is-hidden {
+.zettelkasten-flow__systems .zettelkasten-flow__systems-grid > .is-hidden,
+.zettelkasten-flow__systems .zettelkasten-flow__systems-grid > button.is-hidden:not(.clickable-icon) {
     display: none;
 }
 
@@ -86,7 +88,9 @@
 }
 
 // ── a card: the drawing, the name, one line, the level ─────────────────────
-.zettelkasten-flow__systems-grid .zettelkasten-flow__system-card {
+// A card is a button and a loading skeleton is a div: both are named (#888).
+.zettelkasten-flow__systems-grid .zettelkasten-flow__system-card,
+.zettelkasten-flow__systems-grid button.zettelkasten-flow__system-card:not(.clickable-icon) {
     @include card;
     position: relative;
     // A button centres its contents; a card is read from its top-left, edge to edge.
@@ -243,7 +247,7 @@
     list-style: none;
 }
 
-.zettelkasten-flow__systems-loose .zettelkasten-flow__systems-piece {
+.zettelkasten-flow__systems-loose button.zettelkasten-flow__systems-piece:not(.clickable-icon) {
     @include row;
     width: 100%;
     height: auto;
@@ -387,7 +391,7 @@
     margin-bottom: $space-3;
 }
 
-.zettelkasten-flow__system-crumb .zettelkasten-flow__system-crumb-back {
+.zettelkasten-flow__system-crumb button.zettelkasten-flow__system-crumb-back:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: $space-1;
@@ -462,6 +466,7 @@
 
     .zettelkasten-flow__system-node,
     .zettelkasten-flow__systems-grid .zettelkasten-flow__system-card,
+    .zettelkasten-flow__systems-grid button.zettelkasten-flow__system-card:not(.clickable-icon),
     .zettelkasten-flow__systems-loose-icon {
         transition: none;
     }
@@ -546,7 +551,7 @@
     gap: $space-1;
 }
 
-.zettelkasten-flow__system-exits .zettelkasten-flow__system-exit {
+.zettelkasten-flow__system-exits button.zettelkasten-flow__system-exit:not(.clickable-icon) {
     display: flex;
     align-items: center;
     gap: $space-2;
@@ -621,7 +626,7 @@
     gap: $space-2;
 }
 
-.zettelkasten-flow__system-use .zettelkasten-flow__system-use-current {
+.zettelkasten-flow__system-use button.zettelkasten-flow__system-use-current:not(.clickable-icon) {
     display: flex;
     align-items: center;
     gap: $space-2;

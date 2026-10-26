@@ -41,7 +41,7 @@
     gap: var(--size-4-1);
 }
 
-button.zettelkasten-flow__reader-cite-form {
+button.zettelkasten-flow__reader-cite-form:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
 
@@ -73,7 +73,7 @@ button.zettelkasten-flow__reader-cite-form {
     font-size: var(--font-ui-smaller);
 }
 
-button.zettelkasten-flow__reader-cite-add {
+button.zettelkasten-flow__reader-cite-add:not(.clickable-icon) {
     @include text-link-button;
     font-size: inherit;
 }

@@ -121,7 +121,7 @@
     animation: zf-explore-rise 0.35s ease both;
 }
 
-.zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion {
+.zettelkasten-flow__explore button.zettelkasten-flow__explore-suggestion:not(.clickable-icon) {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -472,7 +472,7 @@
     gap: var(--size-4-1) var(--size-4-3);
 }
 
-.zettelkasten-flow__explore .zettelkasten-flow__explore-where-key {
+.zettelkasten-flow__explore button.zettelkasten-flow__explore-where-key:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-1);
@@ -508,7 +508,7 @@
 }
 
 // A value says how much of the answer it holds, as a fill behind its name.
-.zettelkasten-flow__explore .zettelkasten-flow__explore-facet-value {
+.zettelkasten-flow__explore button.zettelkasten-flow__explore-facet-value:not(.clickable-icon) {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -689,7 +689,7 @@
 @media (prefers-reduced-motion: reduce) {
     .zettelkasten-flow__explore .zettelkasten-flow__explore-stage,
     .zettelkasten-flow__explore .zettelkasten-flow__explore-card,
-    .zettelkasten-flow__explore .zettelkasten-flow__explore-suggestion,
+    .zettelkasten-flow__explore button.zettelkasten-flow__explore-suggestion:not(.clickable-icon),
     .zettelkasten-flow__explore .zettelkasten-flow__explore-saved-actions {
         transition: none;
     }

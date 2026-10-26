@@ -217,7 +217,7 @@ mark.zettelkasten-flow__reader-toc-hit {
 }
 
 /* ── a part: its band, at the top while its chapters pass (FR-6) ──────── */
-.zettelkasten-flow__reader .zettelkasten-flow__reader-toc-band {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-band:not(.clickable-icon) {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -469,7 +469,7 @@ mark.zettelkasten-flow__reader-toc-hit {
     padding-bottom: var(--size-4-1);
 }
 
-.zettelkasten-flow__reader .zettelkasten-flow__reader-toc-section {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-section:not(.clickable-icon) {
     display: flex;
     align-items: baseline;
     justify-content: flex-start;
@@ -511,7 +511,7 @@ mark.zettelkasten-flow__reader-toc-hit {
     border-left: var(--border-width) solid var(--reader-line);
 }
 
-.zettelkasten-flow__reader .zettelkasten-flow__reader-toc-section--current {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-toc-section--current:not(.clickable-icon) {
     color: var(--text-accent);
 
     .zettelkasten-flow__reader-toc-section-name {

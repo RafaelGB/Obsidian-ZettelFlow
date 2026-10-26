@@ -169,7 +169,7 @@
     font-size: var(--font-ui-small);
 }
 
-.zettelkasten-flow__undo-offer-button {
+button.zettelkasten-flow__undo-offer-button:not(.clickable-icon) {
     font-size: var(--font-ui-smaller);
     padding: 2px 10px;
     border-radius: 4px;

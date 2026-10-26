@@ -116,7 +116,7 @@
     border-bottom: $line-quiet;
 }
 
-button.zettelkasten-flow__canvas-dock-tab {
+button.zettelkasten-flow__canvas-dock-tab:not(.clickable-icon) {
     display: inline-flex;
     flex: 1 1 auto;
     align-items: center;
@@ -269,8 +269,10 @@ button.zettelkasten-flow__canvas-dock-tab {
     line-height: var(--line-height-normal);
 }
 
-button.zettelkasten-flow__flow-review-finding {
+// A button weighs Obsidian's tablet padding, (0,2,1): it keeps the finding's own (#888).
+button.zettelkasten-flow__flow-review-finding:not(.clickable-icon) {
     height: auto;
+    padding: $space-2;
     background: none;
     border: none;
     box-shadow: none;
@@ -386,7 +388,7 @@ button.zettelkasten-flow__flow-review-finding {
 }
 
 // An option is a thing you press: it looks pressable, and says where it leads.
-button.zettelkasten-flow__rehearsal-option {
+button.zettelkasten-flow__rehearsal-option:not(.clickable-icon) {
     display: flex;
     align-items: center;
     gap: $space-1;
@@ -542,7 +544,7 @@ button.zettelkasten-flow__rehearsal-option {
         animation: none;
     }
 
-    button.zettelkasten-flow__rehearsal-option {
+    button.zettelkasten-flow__rehearsal-option:not(.clickable-icon) {
         transition: none;
     }
 }

@@ -339,7 +339,7 @@
     margin-bottom: var(--size-4-2);
 }
 
-.zettelkasten-flow__base-dashboard-type-option {
+button.zettelkasten-flow__base-dashboard-type-option:not(.clickable-icon) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -355,12 +355,12 @@
     cursor: pointer;
 }
 
-.zettelkasten-flow__base-dashboard-type-option:hover {
+button.zettelkasten-flow__base-dashboard-type-option:not(.clickable-icon):hover {
     background-color: var(--background-modifier-hover);
     color: var(--text-normal);
 }
 
-.zettelkasten-flow__base-dashboard-type-option.is-active {
+button.zettelkasten-flow__base-dashboard-type-option:not(.clickable-icon).is-active {
     border-color: var(--background-modifier-border-focus);
     background-color: var(--background-modifier-active-hover);
     color: var(--text-normal);
@@ -393,7 +393,7 @@
     color: var(--text-normal);
 }
 
-.zettelkasten-flow__base-dashboard-pill-remove {
+button.zettelkasten-flow__base-dashboard-pill-remove:not(.clickable-icon) {
     padding: 0 var(--size-4-1);
     --icon-size: var(--icon-xs);
 }
@@ -518,7 +518,8 @@
     margin-top: var(--size-4-1);
 }
 
-.zettelkasten-flow__base-dashboard-field-chip {
+.zettelkasten-flow__base-dashboard-field-chip,
+button.zettelkasten-flow__base-dashboard-field-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -526,7 +527,8 @@
 }
 
 /* A field some notes lack — the case `?? default` is for. */
-.zettelkasten-flow__base-dashboard-field-chip.is-partial {
+.zettelkasten-flow__base-dashboard-field-chip.is-partial,
+button.zettelkasten-flow__base-dashboard-field-chip:not(.clickable-icon).is-partial {
     border-style: dashed;
 }
 

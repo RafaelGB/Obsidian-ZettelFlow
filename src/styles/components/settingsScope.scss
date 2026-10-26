@@ -110,7 +110,7 @@
 }
 
 /* `button.` outranks Obsidian's fixed button height, which clipped its label. */
-button.zettelkasten-flow__scope-add {
+button.zettelkasten-flow__scope-add:not(.clickable-icon) {
     @include row;
     align-self: flex-start;
     height: auto;
@@ -234,7 +234,7 @@ button.zettelkasten-flow__scope-add {
     gap: $space-1;
 }
 
-.zettelkasten-flow__scope-pick {
+button.zettelkasten-flow__scope-pick:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -267,7 +267,7 @@ button.zettelkasten-flow__scope-add {
     gap: $space-1;
 }
 
-.zettelkasten-flow__scope-name,
+button.zettelkasten-flow__scope-name:not(.clickable-icon),
 .zettelkasten-flow__scope-check {
     @include row;
     justify-content: space-between;
@@ -369,8 +369,8 @@ button.zettelkasten-flow__scope-left-out-toggle {
 }
 
 /* A link, not a button: `button.` outranks Obsidian's `button:not(.clickable-icon)` box. */
-button.zettelkasten-flow__scope-left-out-name,
-button.zettelkasten-flow__scope-left-out-more {
+button.zettelkasten-flow__scope-left-out-name:not(.clickable-icon),
+button.zettelkasten-flow__scope-left-out-more:not(.clickable-icon) {
     height: auto;
     padding: 0;
     border: none;
@@ -386,7 +386,7 @@ button.zettelkasten-flow__scope-left-out-more {
     }
 }
 
-button.zettelkasten-flow__scope-left-out-more {
+button.zettelkasten-flow__scope-left-out-more:not(.clickable-icon) {
     color: $text-quiet;
 }
 

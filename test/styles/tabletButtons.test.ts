@@ -223,43 +223,12 @@ describe("a button keeps its own box on a tablet (#885)", () => {
         expect(cultivate.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 
-    it("holds every other partial at or under its ceiling", () => {
-        const over: string[] = [];
-        for (const [file, found] of byPartial(losers(css, buttons))) {
-            const ceiling = CEILING[file] ?? 0;
-            if (found.length > ceiling) over.push(`${file}: ${found.length}, ceiling ${ceiling} — ${found.join("; ")}`);
-        }
+    it("keeps every button in the plugin out from under them, wherever an iPad opens it (#888)", () => {
+        const everywhere = [...byPartial(losers(css, buttons))];
         // A button is `button.zettelkasten-flow__x:not(.clickable-icon)`, or a `clickable-icon` (#885).
-        expect(over).toEqual([]);
-    });
-
-    it("keeps the ceilings honest, so the ratchet cannot become a licence", () => {
-        const counts = byPartial(losers(css, buttons));
-        const slack = Object.entries(CEILING)
-            .filter(([file, ceiling]) => (counts.get(file)?.length ?? 0) < ceiling)
-            .map(([file, ceiling]) => `${file}: ${counts.get(file)?.length ?? 0} < ${ceiling} — lower the ceiling`);
-        expect(slack).toEqual([]);
+        expect(everywhere.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
     });
 });
-
-/**
- * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
- * one. Think's, the Reader's, the Library's, This note's, Community's and Cultivate's partials are not here: they are held at zero above (#888).
- */
-const CEILING: Record<string, number> = {
-    "askGraph.scss": 3,
-    "baseDashboard.scss": 4,
-    "codeEditor.scss": 2,
-    "family.scss": 1,
-    "historyView.scss": 2,
-    "home.scss": 2,
-    "review.scss": 1,
-    "settingsScope.scss": 6,
-    "settingsShell.scss": 3,
-    "stepBuilder.scss": 2,
-    "tend.scss": 1,
-    "workflowCanvas.scss": 3,
-};
 
 function partials(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {

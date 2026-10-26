@@ -65,7 +65,7 @@
     gap: $space-1;
 }
 
-.zettelkasten-flow__tend-filter {
+button.zettelkasten-flow__tend-filter:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;

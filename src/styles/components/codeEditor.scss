@@ -123,13 +123,13 @@
     color: var(--text-muted);
 }
 
-.zettelkasten-flow__bindings-palette-item {
+button.zettelkasten-flow__bindings-palette-item:not(.clickable-icon) {
     @include chip;
     color: $text-plain;
     font-family: var(--font-monospace);
     cursor: pointer;
 }
 
-.zettelkasten-flow__bindings-palette-item:hover {
+button.zettelkasten-flow__bindings-palette-item:not(.clickable-icon):hover {
     border-color: var(--interactive-accent);
 }

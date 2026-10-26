@@ -118,7 +118,7 @@
     padding-bottom: $space-4;
 }
 
-.zettelkasten-flow__settings-glance-card {
+button.zettelkasten-flow__settings-glance-card:not(.clickable-icon) {
     @include card;
     align-items: flex-start;
     height: auto;
@@ -271,7 +271,7 @@
     }
 }
 
-.zettelkasten-flow__settings-nav-tab {
+button.zettelkasten-flow__settings-nav-tab:not(.clickable-icon) {
     @include row;
     flex: none;
     gap: $space-1;

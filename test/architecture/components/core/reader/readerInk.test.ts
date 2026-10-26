@@ -894,6 +894,20 @@ describe("the highlighter (#746)", () => {
         expect(m.store.discard).not.toHaveBeenCalled();
     });
 
+    it("grows it when the stroke stopped short of the line's last word, and takes that word in (#887 AC-2)", async () => {
+        const m = direct();
+        m.pick("highlighter");
+        await flush();
+        // Line one ends "… changes and not": the hand stops before "and" (middle 352) and "not".
+        m.draw(along(0, 90, 345));
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        expect((m.store.save.mock.calls[0] as [Thought])[0].quote?.exact).toContain("changes and not the state");
+    });
+
     it("still grows it when the next line comes a long while later: reading it first is no new thought (#887 AC-1)", async () => {
         const m = direct();
         m.pick("highlighter");

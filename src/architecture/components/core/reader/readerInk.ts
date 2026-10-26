@@ -1431,7 +1431,8 @@ export class ReaderInk {
         if (!band || !found) return this.nothingUnder(live);
         const last = this.lastStroke;
         const meaning = engine.currentMeaning();
-        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning) ? last : null;
+        const lineStarts = linesOf(near.words, linePx).map((line) => Math.min(...line.words.map((w) => w.start)));
+        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning, lineStarts) ? last : null;
         const entry = this.strokeEntry(live);
         if (extend) {
             // One highlight, grown (FR-5): one recorded update of the one thought.

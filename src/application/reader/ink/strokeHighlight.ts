@@ -146,9 +146,16 @@ export function bandWords<W extends WordBox>(points: readonly StrokePoint[], wor
 /**
  * Whether a highlight stroke continues the last one (FR-5): with the same meaning, on words that
  * continue it (`continuesSpan`: overlapping, or only whitespace and punctuation between). A sentence
- * that wraps is one highlight, however long the reader took to reach the next line (#887).
+ * that wraps is one highlight, however long the reader took to reach the next line (#887). Given where
+ * the lines start, the words a stroke stopped short of at a line's edge are taken in (#887 AC-2).
  */
-export function extendsHighlight(last: { span: TextSpan; meaning: HighlightMeaning } | null, span: TextSpan, text: string, meaning: HighlightMeaning): boolean {
+export function extendsHighlight(
+    last: { span: TextSpan; meaning: HighlightMeaning } | null,
+    span: TextSpan,
+    text: string,
+    meaning: HighlightMeaning,
+    lineStarts: readonly number[] = []
+): boolean {
     if (!last || last.meaning !== meaning) return false;
-    return continuesSpan(last.span, span, text);
+    return continuesSpan(last.span, span, text, lineStarts);
 }

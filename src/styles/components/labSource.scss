@@ -19,8 +19,8 @@
     display: contents;
 }
 
-// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
-button.zettelkasten-flow__lab-source-chip {
+// `button.…:not(.clickable-icon)` (0,2,1) outranks Obsidian's button box, the tablet's padding too (#885).
+button.zettelkasten-flow__lab-source-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     @include chip-active;
@@ -43,8 +43,8 @@ button.zettelkasten-flow__lab-source-chip {
     visibility: hidden;
 }
 
-// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
-button.zettelkasten-flow__lab-source-toggle {
+// `button.…:not(.clickable-icon)` (0,2,1) outranks Obsidian's button box, the tablet's padding too (#885).
+button.zettelkasten-flow__lab-source-toggle:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     border-style: dashed;
@@ -112,8 +112,8 @@ button.zettelkasten-flow__lab-source-toggle {
     font-size: var(--font-ui-smaller);
 }
 
-// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
-button.zettelkasten-flow__lab-source-row {
+// `button.…:not(.clickable-icon)` (0,2,1) outranks Obsidian's button box, the tablet's padding too (#885).
+button.zettelkasten-flow__lab-source-row:not(.clickable-icon) {
     display: flex;
     align-items: center;
     gap: var(--size-4-2);
@@ -267,7 +267,7 @@ button.zettelkasten-flow__lab-source-row {
 /* ── the from-line: a door to the source ──────────────────────────────────── */
 
 // A door that reads as the words it always was, until you point at it.
-button.zettelkasten-flow__lab-from {
+button.zettelkasten-flow__lab-from:not(.clickable-icon) {
     @include text-link-button;
     color: inherit;
     font-size: inherit;
@@ -307,8 +307,8 @@ button.zettelkasten-flow__lab-from {
     background-color: var(--background-modifier-border);
 }
 
-// `button.` outranks Obsidian's `button:not(.clickable-icon)` box, as the Lab's other links do.
-button.zettelkasten-flow__lab-spine-tick {
+// `button.…:not(.clickable-icon)` (0,2,1) outranks Obsidian's button box, the tablet's padding too (#885).
+button.zettelkasten-flow__lab-spine-tick:not(.clickable-icon) {
     position: absolute;
     // Centred on its place, so the last place sits on the rail's end, not past it.
     top: calc(var(--zf-spine-at, 0%) - var(--size-2-1) / 2);
@@ -390,7 +390,7 @@ button.zettelkasten-flow__lab-spine-tick {
     .zettelkasten-flow__lab-source-picker--in,
     .zettelkasten-flow__lab-source-chip-ghost,
     .zettelkasten-flow__lab-source-ghost,
-    .zettelkasten-flow__lab-spine-tick,
+    button.zettelkasten-flow__lab-spine-tick:not(.clickable-icon),
     .zettelkasten-flow__lab-card.zettelkasten-flow__lab-source-flash::after {
         animation: none;
         transition: none;

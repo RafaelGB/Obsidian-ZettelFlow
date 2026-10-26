@@ -2055,7 +2055,8 @@ export class LabRenderer extends KnowledgeModeRenderer {
     }
 
     private iconAction(host: HTMLElement, label: string, icon: string, onClick: () => void, move?: LabMove): void {
-        const button = host.createEl("button", { cls: c("lab-icon"), attr: { type: "button" } });
+        // `clickable-icon`: Obsidian's tablet button padding would otherwise crush the icon (#885).
+        const button = host.createEl("button", { cls: ["clickable-icon", c("lab-icon")].join(" "), attr: { type: "button" } });
         setIcon(button, icon);
         button.setAttribute("aria-label", label);
         // An icon is quick once you know it and opaque until you do, so it says what it does —

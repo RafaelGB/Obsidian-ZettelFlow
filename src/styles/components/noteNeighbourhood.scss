@@ -37,7 +37,7 @@
     background-color: $surface-hover;
 }
 
-.zettelkasten-flow__note-companion-toggle-option {
+button.zettelkasten-flow__note-companion-toggle-option:not(.clickable-icon) {
     height: auto;
     padding: $space-hair $space-2;
     border: none;
@@ -156,7 +156,7 @@
     font-style: italic;
 }
 
-.zettelkasten-flow__note-companion-more-links {
+button.zettelkasten-flow__note-companion-more-links:not(.clickable-icon) {
     align-self: flex-start;
     height: auto;
     padding: 0;

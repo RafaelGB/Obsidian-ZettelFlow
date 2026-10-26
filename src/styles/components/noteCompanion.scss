@@ -78,10 +78,10 @@
     @include row;
 }
 
-.zettelkasten-flow__note-companion-follow,
-.zettelkasten-flow__note-companion-last,
-.zettelkasten-flow__note-companion-undo,
-.zettelkasten-flow__note-companion-insert {
+button.zettelkasten-flow__note-companion-follow:not(.clickable-icon),
+button.zettelkasten-flow__note-companion-last:not(.clickable-icon),
+button.zettelkasten-flow__note-companion-undo:not(.clickable-icon),
+button.zettelkasten-flow__note-companion-insert:not(.clickable-icon) {
     background: none;
     border: none;
     box-shadow: none;
@@ -267,12 +267,12 @@ button.zettelkasten-flow__note-companion-vital {
 
 /* Text actions, not buttons — `button.` so they outrank Obsidian's `button:not(.clickable-icon)`,
    which gave *Another step* a button's box beside the real one. */
-button.zettelkasten-flow__note-next-another,
-button.zettelkasten-flow__note-next-cancel,
-button.zettelkasten-flow__note-next-choose,
-button.zettelkasten-flow__note-next-pick,
-button.zettelkasten-flow__note-next-undo,
-button.zettelkasten-flow__note-companion-step-next {
+button.zettelkasten-flow__note-next-another:not(.clickable-icon),
+button.zettelkasten-flow__note-next-cancel:not(.clickable-icon),
+button.zettelkasten-flow__note-next-choose:not(.clickable-icon),
+button.zettelkasten-flow__note-next-pick:not(.clickable-icon),
+button.zettelkasten-flow__note-next-undo:not(.clickable-icon),
+button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
     background: none;
     border: none;
     box-shadow: none;
@@ -287,14 +287,14 @@ button.zettelkasten-flow__note-companion-step-next {
     }
 }
 
-.zettelkasten-flow__note-next-another,
-.zettelkasten-flow__note-next-cancel {
+button.zettelkasten-flow__note-next-another:not(.clickable-icon),
+button.zettelkasten-flow__note-next-cancel:not(.clickable-icon) {
     color: $text-quiet;
 }
 
 /* The stepper's proposed step: a dashed outline in the accent says "you can go here" without
    competing with the filled pill that says "you are here". */
-.zettelkasten-flow__note-companion-step-next {
+button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: $space-1;
@@ -469,7 +469,7 @@ button.zettelkasten-flow__note-companion-step-next {
     color: var(--color-green);
 }
 
-.zettelkasten-flow__note-companion .zettelkasten-flow__note-companion-origin-source {
+.zettelkasten-flow__note-companion button.zettelkasten-flow__note-companion-origin-source:not(.clickable-icon) {
     @include text-link-button;
     font-size: $text-small;
 }

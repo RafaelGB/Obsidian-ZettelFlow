@@ -41,3 +41,17 @@ describe("a card's actions are seen by a finger (#868 FR-6, AC-6)", () => {
         expect(LAB).toContain("pressToPick(box, this, { pick: () => this.togglePick(thought.id)");
     });
 });
+
+/**
+ * A card's actions show their icons on a tablet (#885). Obsidian paints every
+ * `button:not(.clickable-icon)` with a fill and a shadow, and on `.is-tablet` gives it 20px of padding a
+ * side (0,2,1) — more than the 26px icon button has, so the icon collapsed into a shaded blob. An icon
+ * button is what Obsidian's own `clickable-icon` is for: it leaves both rules.
+ */
+describe("a card's actions show their icons on a tablet (#885)", () => {
+    it("builds each icon action as a clickable-icon", () => {
+        const start = LAB.indexOf("private iconAction(");
+        const body = LAB.slice(start, LAB.indexOf("\n    }", start));
+        expect(body).toMatch(/createEl\("button", \{ cls: \[\s*"clickable-icon",\s*c\("lab-icon"\)\s*\]\.join\(" "\)/);
+    });
+});

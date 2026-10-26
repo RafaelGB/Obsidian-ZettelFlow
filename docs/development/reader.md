@@ -1334,8 +1334,9 @@ what you choose to keep becomes a note.
   remembered on this device, so an iPad you write on stays ready to write.
 - **What draws.** A **pen** draws (an Apple Pencil, a Wacom or a Surface pen), and so does a
   **mouse**, so you can write a margin arrow at a desk. A **finger never draws**: it scrolls, turns the
-  page and taps exactly as it does with the palette closed. While the palette is open the mouse writes
-  instead of selecting words; close it to select again.
+  page, taps and **selects** exactly as it does with the palette closed — a long press still selects
+  words and opens the four meanings, while the Pencil beside it draws and highlights. On a desktop,
+  while the palette is open the mouse writes instead of selecting words; close it to select again.
 - **Your hand can rest on the glass.** While the pen is down, and for a moment after it lifts, a
   touch does nothing — no scroll, no turn, no tap.
 - **The line follows the nib.** Each movement is drawn in the next frame, the newest piece always

@@ -108,7 +108,7 @@ They are filled now, and nothing in them is a look of our own:
 | file | what it holds |
 |---|---|
 | `utils/variables.scss` | `$space-*`, `$radius-*`, `$line-quiet`, `$surface-*`, `$text-*`, `$accent-*` — **every one an alias for an Obsidian variable**. The name says which shape it is for; the value stays whatever the theme made it. |
-| `utils/mixins.scss` | the five shapes the audit counted: `chip` (+ `chip-active`, `chip-clickable`), `card`, `row`, `hint`, `empty-state`. |
+| `utils/mixins.scss` | the five shapes the audit counted: `chip` (+ `chip-active`, `chip-clickable`), `card`, `row`, `hint`, `empty-state` — and `selectable-text` (#886): text you can select under Obsidian's `body { user-select: none }`, with the `-webkit-` twin that iOS reads. |
 
 Two exceptions are named rather than hidden. `$radius-pill` is `1em` — no Obsidian variable
 expresses a pill, and `em` at least follows the font size the theme chose (`999px` in thirteen files
@@ -133,7 +133,9 @@ one is on*. Its siblings hold the colour (`themeColours.test.ts`, at zero outsid
 the grid (`themeGrid.test.ts`, a ratcheting per-file ceiling that may only go down — eight of
 them came down the day the vocabulary landed) and rule 8 (`tabletButtons.test.ts`: it compiles the
 stylesheet, finds the classes the code puts on a `<button>`, and holds Think at zero and every other
-partial under a ceiling that may only go down).
+partial under a ceiling that may only go down). `selectableText.test.ts` fails on a
+`user-select: text` without its `-webkit-user-select: text` (#886): a desktop never notices, an iPad
+selects nothing.
 
 ## Why this is a rule and not a preference
 

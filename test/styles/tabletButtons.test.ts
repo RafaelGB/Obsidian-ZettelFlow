@@ -157,7 +157,9 @@ function losers(css: string, buttons: Map<string, boolean>): string[] {
         for (const selector of rule.selectors) {
             const last = subject(selector);
             if (STATE.test(last)) continue;
-            for (const match of last.matchAll(new RegExp(`\\.${PREFIX}([\\w-]+)`, "g"))) {
+            // A class inside `:not()` is what the element is not: `.x:not(.hidden)` styles `.x` (#888).
+            const own = last.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "");
+            for (const match of own.matchAll(new RegExp(`\\.${PREFIX}([\\w-]+)`, "g"))) {
                 const name = match[1];
                 if (buttons.get(name) !== false) continue;
                 const spec = specificity(selector);
@@ -196,6 +198,11 @@ describe("a button keeps its own box on a tablet (#885)", () => {
         expect(losers(css, buttons).filter((line) => line.startsWith("lab-"))).toEqual([]);
     });
 
+    it("keeps every button in the Reader out from under them too, the place an iPad is read on (#888)", () => {
+        const reader = [...byPartial(losers(css, buttons))].filter(([file]) => /^(reader|ink)/.test(file));
+        expect(reader.flatMap(([file, found]) => found.map((line) => `${file}: ${line}`))).toEqual([]);
+    });
+
     it("holds every other partial at or under its ceiling", () => {
         const over: string[] = [];
         for (const [file, found] of byPartial(losers(css, buttons))) {
@@ -217,7 +224,7 @@ describe("a button keeps its own box on a tablet (#885)", () => {
 
 /**
  * What each partial held on 2026-10-26, outside Think. Lower these as buttons are fixed; never raise
- * one. Think's partials are not here: they are held at zero above.
+ * one. Think's and the Reader's partials are not here: they are held at zero above (#888).
  */
 const CEILING: Record<string, number> = {
     "askGraph.scss": 3,
@@ -230,18 +237,9 @@ const CEILING: Record<string, number> = {
     "family.scss": 1,
     "historyView.scss": 2,
     "home.scss": 2,
-    "ink.scss": 1,
     "noteCompanion.scss": 15,
     "noteNeighbourhood.scss": 3,
     "noteStory.scss": 7,
-    "reader.scss": 17,
-    "readerCite.scss": 2,
-    "readerContents.scss": 2,
-    "readerEnd.scss": 9,
-    "readerListen.scss": 2,
-    "readerRecall.scss": 1,
-    "readerSource.scss": 2,
-    "readerSurvived.scss": 3,
     "review.scss": 1,
     "settingsScope.scss": 6,
     "settingsShell.scss": 3,

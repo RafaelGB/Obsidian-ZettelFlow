@@ -65,8 +65,8 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     max-width: 12rem;
 }
 
-.zettelkasten-flow__reader-listen-mark,
-.zettelkasten-flow__reader-listen-back {
+button.zettelkasten-flow__reader-listen-mark:not(.clickable-icon),
+button.zettelkasten-flow__reader-listen-back:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: var(--size-4-1);
@@ -76,8 +76,10 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
     white-space: nowrap;
 }
 
-/* Hidden means hidden: its own display above must not win over the Reader's hidden class. */
-.zettelkasten-flow__reader-listen-bar > .zettelkasten-flow__reader-hidden {
+/* Hidden means hidden: its own display above must not win over the Reader's hidden class — and the
+   buttons above weigh (0,2,1) now, against Obsidian's tablet padding (#888). */
+.zettelkasten-flow__reader-listen-bar > .zettelkasten-flow__reader-hidden,
+.zettelkasten-flow__reader-listen-bar > button.zettelkasten-flow__reader-hidden:not(.clickable-icon) {
     display: none;
 }
 

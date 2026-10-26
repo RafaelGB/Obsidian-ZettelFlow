@@ -69,7 +69,7 @@
     }
 }
 
-button.zettelkasten-flow__reader-survived-pick {
+button.zettelkasten-flow__reader-survived-pick:not(.clickable-icon) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -115,7 +115,7 @@ button.zettelkasten-flow__reader-survived-pick {
     gap: var(--size-4-2);
 }
 
-button.zettelkasten-flow__reader-survived-note {
+button.zettelkasten-flow__reader-survived-note:not(.clickable-icon) {
     @include text-link-button;
     font-family: var(--reader-font);
 }
@@ -141,7 +141,7 @@ button.zettelkasten-flow__reader-survived-note {
     gap: var(--size-4-2);
 }
 
-button.zettelkasten-flow__reader-survived-quiet {
+button.zettelkasten-flow__reader-survived-quiet:not(.clickable-icon) {
     @include text-link-button;
     color: var(--reader-muted);
     font-size: var(--font-ui-small);

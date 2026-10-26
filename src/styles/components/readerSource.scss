@@ -175,8 +175,8 @@
     display: none;
 }
 
-.zettelkasten-flow__reader .zettelkasten-flow__reader-source-banner-action,
-.zettelkasten-flow__reader .zettelkasten-flow__reader-source-hint-action {
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-source-banner-action:not(.clickable-icon),
+.zettelkasten-flow__reader button.zettelkasten-flow__reader-source-hint-action:not(.clickable-icon) {
     flex: none;
     height: auto;
     padding: var(--size-2-2) var(--size-4-3);
@@ -317,12 +317,12 @@
 }
 
 /* The switch while the paper is measured (FR-10): it says it is working; nothing on the page moves. */
-.zettelkasten-flow__reader-pv-crop.is-busy {
+button.zettelkasten-flow__reader-pv-crop:not(.clickable-icon).is-busy {
     cursor: progress;
     opacity: 0.7;
 }
 
-.zettelkasten-flow__reader-pv-crop:disabled {
+button.zettelkasten-flow__reader-pv-crop:not(.clickable-icon):disabled {
     cursor: default;
     opacity: 0.5;
 }

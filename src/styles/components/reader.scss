@@ -404,7 +404,7 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
 
 /* `button.` so the reading theme's surface wins over Obsidian's `button:not(.clickable-icon)`:
    in sepia the button was the app's dark one, its text unreadable on it. */
-button.zettelkasten-flow__reader-next-button {
+button.zettelkasten-flow__reader-next-button:not(.clickable-icon) {
     display: inline-flex;
     align-items: baseline;
     gap: var(--size-4-2);
@@ -431,7 +431,7 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* At the end of the chapter, the way on lights up and lifts a little. */
-.zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
+.zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button:not(.clickable-icon) {
     border-color: var(--interactive-accent);
     box-shadow: var(--shadow-s);
     transform: translateY(calc(var(--size-2-1) * -1));
@@ -757,7 +757,7 @@ button.zettelkasten-flow__reader-next-button {
     gap: var(--size-4-1);
 }
 
-.zettelkasten-flow__reader-type-option {
+button.zettelkasten-flow__reader-type-option:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
 
@@ -793,7 +793,7 @@ button.zettelkasten-flow__reader-next-button {
 }
 
 /* The current answer's marker lies under its words, and slides to the next one you pick (FR-14). */
-.zettelkasten-flow__reader-type-seg .zettelkasten-flow__reader-type-option {
+.zettelkasten-flow__reader-type-seg button.zettelkasten-flow__reader-type-option:not(.clickable-icon) {
     position: relative;
     isolation: isolate;
 
@@ -963,7 +963,7 @@ button.zettelkasten-flow__reader-next-button {
     gap: var(--size-4-1);
 }
 
-.zettelkasten-flow__reader-alongside-lens {
+button.zettelkasten-flow__reader-alongside-lens:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     position: relative;
@@ -1581,8 +1581,20 @@ button.zettelkasten-flow__reader-next-button {
     }
 }
 
+/* On a tablet Obsidian's button rules outrank the pill's box (#888); only the box is raised, so the
+   deep-reading fades above keep their weight. */
+button.zettelkasten-flow__reader-detour-pill:not(.clickable-icon) {
+    padding: var(--size-4-1) var(--size-4-4);
+    background-color: var(--interactive-accent);
+    box-shadow: var(--shadow-s);
+
+    &:hover {
+        background-color: var(--interactive-accent-hover);
+    }
+}
+
 /* The way back from a jump inside a book (#718): the same pill, sliding in, fading by itself. */
-.zettelkasten-flow__reader-jump-pill {
+button.zettelkasten-flow__reader-jump-pill:not(.clickable-icon) {
     background-color: var(--reader-surface);
     color: var(--reader-fg);
     border: var(--border-width) solid var(--reader-line);
@@ -1852,7 +1864,7 @@ input.zettelkasten-flow__reader-search-input {
     }
 }
 
-button.zettelkasten-flow__reader-search-result {
+button.zettelkasten-flow__reader-search-result:not(.clickable-icon) {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -1948,7 +1960,7 @@ button.zettelkasten-flow__reader-search-result {
     }
 }
 
-button.zettelkasten-flow__reader-note-pop-go {
+button.zettelkasten-flow__reader-note-pop-go:not(.clickable-icon) {
     align-self: flex-start;
     height: auto;
     padding: 0;
@@ -2145,7 +2157,7 @@ button.zettelkasten-flow__reader-note-pop-go {
     gap: var(--size-4-2);
 }
 
-.zettelkasten-flow__reader-peek-action {
+button.zettelkasten-flow__reader-peek-action:not(.clickable-icon) {
     height: auto;
     padding: var(--size-4-1) var(--size-4-3);
     font-size: var(--font-ui-small);
@@ -2293,7 +2305,7 @@ mark.zettelkasten-flow__reader-highlight--new {
 }
 
 button.zettelkasten-flow__reader-hl-meaning,
-button.zettelkasten-flow__reader-hl-filter-chip {
+button.zettelkasten-flow__reader-hl-filter-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     gap: var(--size-4-1);
@@ -2884,6 +2896,14 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     box-shadow: none;
 }
 
+/* A highlight row is a button, and on a tablet Obsidian's button rules outrank the box above (#888).
+   Only the box is raised: the rows that are divs, and `--away`'s display, stay as they are. */
+button.zettelkasten-flow__reader-hl-item:not(.clickable-icon) {
+    padding: var(--size-4-2) var(--size-4-3);
+    background-color: var(--reader-surface);
+    box-shadow: none;
+}
+
 .zettelkasten-flow__reader-hl-item--detached {
     border-left-style: dashed;
     opacity: 0.85;
@@ -2934,7 +2954,7 @@ button.zettelkasten-flow__reader-hl-filter-chip {
     font-size: var(--font-ui-small);
 }
 
-.zettelkasten-flow__reader-hl-link {
+button.zettelkasten-flow__reader-hl-link:not(.clickable-icon) {
     align-self: flex-start;
     background: none;
     border: none;
@@ -3422,7 +3442,7 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-shortcuts-card,
     .zettelkasten-flow__reader-note-pop,
     .zettelkasten-flow__reader-lookup-card,
-    .zettelkasten-flow__reader-jump-pill,
+    button.zettelkasten-flow__reader-jump-pill:not(.clickable-icon),
     .zettelkasten-flow__reader-search,
     .zettelkasten-flow__reader-search-hit--current::after,
     .zettelkasten-flow__reader-hl-pop,
@@ -3481,12 +3501,12 @@ body.zettelkasten-flow__reader-deep-covers-app {
     .zettelkasten-flow__reader-dots,
     .zettelkasten-flow__reader-dot,
     .zettelkasten-flow__reader-hairline-fill,
-    button.zettelkasten-flow__reader-next-button,
+    button.zettelkasten-flow__reader-next-button:not(.clickable-icon),
     .zettelkasten-flow__reader--focus .zettelkasten-flow__reader-body > * {
         transition: none;
     }
 
-    .zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button {
+    .zettelkasten-flow__reader-next--arrived button.zettelkasten-flow__reader-next-button:not(.clickable-icon) {
         transform: none;
     }
 }
@@ -3621,7 +3641,7 @@ mark.zettelkasten-flow__reader-highlight.zettelkasten-flow__reader-highlight--aw
     margin-inline-end: var(--size-4-1);
 }
 
-button.zettelkasten-flow__reader-hl-layer {
+button.zettelkasten-flow__reader-hl-layer:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
 
@@ -3632,7 +3652,7 @@ button.zettelkasten-flow__reader-hl-layer {
 }
 
 /* Reading clean (FR-8): the detour pill's shape, quiet; under a detour's pill when both are up. */
-.zettelkasten-flow__reader-clean-pill {
+button.zettelkasten-flow__reader-clean-pill:not(.clickable-icon) {
     align-items: center;
     gap: var(--size-4-2);
     background-color: var(--reader-surface);
@@ -3645,11 +3665,11 @@ button.zettelkasten-flow__reader-hl-layer {
 }
 
 /* Shown, it lays its words out in a row; hidden, `reader-hidden` wins. */
-.zettelkasten-flow__reader-clean-pill:not(.zettelkasten-flow__reader-hidden) {
+button.zettelkasten-flow__reader-clean-pill:not(.clickable-icon):not(.zettelkasten-flow__reader-hidden) {
     display: inline-flex;
 }
 
-.zettelkasten-flow__reader-detour-pill:not(.zettelkasten-flow__reader-hidden) ~ .zettelkasten-flow__reader-clean-pill {
+.zettelkasten-flow__reader-detour-pill:not(.zettelkasten-flow__reader-hidden) ~ button.zettelkasten-flow__reader-clean-pill:not(.clickable-icon) {
     top: calc(var(--size-4-12) * 2 + #{$safe-top});
 }
 

@@ -94,11 +94,15 @@ $safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom));
 /* While the page takes ink, the mouse writes instead of selecting (FR-2). */
 .zettelkasten-flow__reader-stage--inking {
     cursor: crosshair;
+}
 
-    .zettelkasten-flow__reader-body {
-        user-select: none;
-        -webkit-user-select: none;
-    }
+/*
+ * The mouse only: on mobile the pen draws and a finger still selects (#790, #886). The palette's open
+ * state is remembered, so on an iPad this rule took the finger's selection in every session.
+ */
+body:not(.is-mobile) .zettelkasten-flow__reader-stage--inking .zettelkasten-flow__reader-body {
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .zettelkasten-flow__reader-stage--erasing {

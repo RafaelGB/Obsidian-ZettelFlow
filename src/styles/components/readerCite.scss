@@ -63,7 +63,7 @@ button.zettelkasten-flow__reader-cite-form {
     font-size: var(--font-ui-smaller);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-    user-select: text;
+    @include selectable-text;
 }
 
 /* What a form lacks: one quiet line, its height kept when there is nothing to say. */

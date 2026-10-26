@@ -64,7 +64,7 @@
     font-family: var(--reader-font);
     font-size: var(--reader-size);
     line-height: 1.6;
-    user-select: text;
+    @include selectable-text;
 }
 
 .zettelkasten-flow__review-meta {
@@ -76,7 +76,7 @@
     color: var(--reader-muted);
     font-family: var(--reader-font);
     font-style: italic;
-    user-select: text;
+    @include selectable-text;
 }
 
 .zettelkasten-flow__review-ask {

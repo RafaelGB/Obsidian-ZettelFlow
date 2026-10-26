@@ -80,6 +80,8 @@ $stage-inset: calc(var(--size-4-12) + #{$safe-top}) $safe-right calc(var(--size-
 .zettelkasten-flow__reader-peek-excerpt,
 .zettelkasten-flow__reader-hl-pop-note {
     user-select: text;
+    /* iOS reads only the prefixed property, which Obsidian's body also sets to none (#886). */
+    -webkit-user-select: text;
 }
 
 /* ── how far through the chapter: a hairline across the top ──────────── */
@@ -1983,7 +1985,7 @@ button.zettelkasten-flow__reader-note-pop-go {
     box-shadow: var(--shadow-s);
     font-size: var(--font-ui-small);
     line-height: 1.55;
-    user-select: text;
+    @include selectable-text;
 }
 
 .zettelkasten-flow__reader-lookup-card--leaving {

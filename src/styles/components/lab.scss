@@ -295,7 +295,7 @@
     color: var(--text-muted);
 }
 
-.zettelkasten-flow__lab-action {
+button.zettelkasten-flow__lab-action:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -597,7 +597,7 @@
     }
 }
 
-.zettelkasten-flow__lab-chip {
+button.zettelkasten-flow__lab-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     background-color: $surface-quiet;
@@ -632,7 +632,7 @@
     }
 }
 
-.zettelkasten-flow__lab-tag-chip {
+button.zettelkasten-flow__lab-tag-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     box-shadow: none;
@@ -806,7 +806,7 @@
 }
 
 /* Folding is about the thread, so it sits on the card rather than in the footer. */
-.zettelkasten-flow__lab-fold {
+button.zettelkasten-flow__lab-fold:not(.clickable-icon) {
     position: absolute;
     top: 6px;
     right: 6px;
@@ -840,7 +840,7 @@
 
 /* The window's foot: a quiet door to older thinking, and a click that brings it in — never a
    count of what is left (#596, #469). */
-.zettelkasten-flow__lab-more {
+button.zettelkasten-flow__lab-more:not(.clickable-icon) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -888,7 +888,7 @@
     margin-bottom: $space-2;
 }
 
-.zettelkasten-flow__lab-cal-title {
+button.zettelkasten-flow__lab-cal-title:not(.clickable-icon) {
     flex: 1;
     border: none;
     background: transparent;
@@ -919,7 +919,7 @@
     aspect-ratio: 1;
 }
 
-.zettelkasten-flow__lab-cal-day {
+button.zettelkasten-flow__lab-cal-day:not(.clickable-icon) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -965,7 +965,7 @@
     gap: $space-tight;
 }
 
-.zettelkasten-flow__lab-cal-month {
+button.zettelkasten-flow__lab-cal-month:not(.clickable-icon) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1040,7 +1040,7 @@
     --zf-ink-solid: var(--color-purple);
 }
 
-button.zettelkasten-flow__lab-meaning-chip {
+button.zettelkasten-flow__lab-meaning-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     flex: none;
@@ -1090,8 +1090,8 @@ button.zettelkasten-flow__lab-meaning-chip {
     }
 }
 
-/* A link, not a button: `button.` outranks Obsidian's `button:not(.clickable-icon)` box. */
-button.zettelkasten-flow__lab-quote-open {
+/* A link, not a button: `button.…:not(.clickable-icon)` (0,2,1) outranks Obsidian's button box, the tablet's padding too (#885). */
+button.zettelkasten-flow__lab-quote-open:not(.clickable-icon) {
     flex: none;
     background: none;
     border: none;

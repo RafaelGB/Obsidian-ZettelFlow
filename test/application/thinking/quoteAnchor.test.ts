@@ -114,3 +114,29 @@ describe("continuesSpan: one passage marked in several goes (#868 FR-5)", () => 
         expect(continuesSpan({ start: 0, end: 2 }, { start: 11, end: 13 }, "ab.........cd")).toBe(false);
     });
 });
+
+describe("continuesSpan at a line's end: the words a stroke stopped short of (#887 AC-2)", () => {
+    // One paragraph wrapped on three lines; each number is where a line starts.
+    const text = "the first line ends here and the second line goes on until the third";
+    const lineStarts = [0, text.indexOf("and"), text.indexOf("until")];
+    const at = (from: string, to: string) => ({ start: text.indexOf(from), end: text.indexOf(to) + to.length });
+
+    it("takes in the words left at the end of one line and the start of the next", () => {
+        // "ends here" left out at the end of line one, "and the" at the start of line two.
+        expect(continuesSpan(at("the first", "line"), at("second", "on"), text, lineStarts)).toBe(true);
+        // Either way round.
+        expect(continuesSpan(at("second", "on"), at("the first", "line"), text, lineStarts)).toBe(true);
+    });
+
+    it("still splits on a word skipped mid-line, a whole line skipped, or no lines given", () => {
+        expect(continuesSpan(at("the first", "first"), at("ends", "here"), text, lineStarts)).toBe(false);
+        expect(continuesSpan(at("the first", "here"), at("the third", "third"), text, lineStarts)).toBe(false);
+        expect(continuesSpan(at("the first", "line"), at("second", "on"), text)).toBe(false);
+    });
+
+    it("still splits across a paragraph, words between", () => {
+        const two = "the first paragraph ends here\n\nthe second begins";
+        const starts = [0, two.indexOf("the second")];
+        expect(continuesSpan({ start: 0, end: 19 }, { start: two.indexOf("second"), end: two.length }, two, starts)).toBe(false);
+    });
+});

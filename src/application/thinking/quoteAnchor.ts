@@ -34,11 +34,18 @@ const CONTINUE_GAP = 6;
  * Whether `next` continues `last` (#746 FR-5, #868 FR-5): it overlaps it, or nothing but whitespace
  * and punctuation lies between them, either way round — the full stop a selection stopped short of,
  * the line break of a sentence that wraps. The pen and a selection grow a highlight by this one rule.
+ *
+ * Given where each line starts (`lineStarts`, offsets into `text`), the words between them may be
+ * taken in too when the gap crosses exactly one line, inside one paragraph: a stroke stops a little
+ * short of a line's last word and starts a little after the next line's first (#887 AC-2).
  */
-export function continuesSpan(last: TextSpan, next: TextSpan, text: string): boolean {
+export function continuesSpan(last: TextSpan, next: TextSpan, text: string, lineStarts: readonly number[] = []): boolean {
     if (next.start <= last.end && next.end >= last.start) return true;
-    const gap = next.start >= last.end ? text.slice(last.end, next.start) : text.slice(next.end, last.start);
-    return gap.length <= CONTINUE_GAP && /^[\s\p{P}]*$/u.test(gap);
+    const [from, to] = next.start >= last.end ? [last.end, next.start] : [next.end, last.start];
+    const gap = text.slice(from, to);
+    if (gap.length <= CONTINUE_GAP && /^[\s\p{P}]*$/u.test(gap)) return true;
+    const crossed = lineStarts.filter((start) => start > from && start <= to).length;
+    return crossed === 1 && !/\n\s*\n/.test(gap);
 }
 
 /**

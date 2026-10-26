@@ -75,7 +75,7 @@
 
 /* Under the nav's class too: Obsidian's own `button:not(.clickable-icon)` would otherwise paint each
    tab as a raised button and hide the indicator sliding beneath. */
-.zettelkasten-flow__community-nav .zettelkasten-flow__community-nav-tab {
+.zettelkasten-flow__community-nav button.zettelkasten-flow__community-nav-tab:not(.clickable-icon) {
     position: relative;
     display: inline-flex;
     align-items: center;

@@ -90,7 +90,7 @@
     }
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-chip {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -176,7 +176,7 @@
     @include hint;
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-next-button {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-next-button:not(.clickable-icon) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -263,7 +263,9 @@
     gap: var(--size-4-3);
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-card {
+// A card is a button and a loading skeleton is a div: both are named (#888).
+.zettelkasten-flow__learn .zettelkasten-flow__learn-card,
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-card:not(.clickable-icon) {
     @include card;
     align-items: stretch;
     justify-content: flex-start;
@@ -409,7 +411,7 @@
     margin-bottom: $space-3;
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-group {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-group:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -426,7 +428,9 @@
     overflow: hidden;
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row {
+// A row with somewhere to go is a button, one without is a div: both are named (#888).
+.zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row,
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-ref-row:not(.clickable-icon) {
     display: grid;
     grid-template-columns: minmax(8rem, 13rem) minmax(0, 1fr) minmax(8rem, 15rem) var(--size-4-5);
     align-items: baseline;
@@ -449,7 +453,7 @@
     }
 }
 
-.zettelkasten-flow__learn button.zettelkasten-flow__learn-ref-row {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-ref-row:not(.clickable-icon) {
     cursor: pointer;
 
     &:hover {
@@ -475,7 +479,7 @@
     color: var(--text-accent);
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-show-all {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-show-all:not(.clickable-icon) {
     @include text-link-button;
     margin-top: $space-2;
 }
@@ -547,7 +551,7 @@
     font-size: var(--font-ui-small);
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-crumb-back {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-crumb-back:not(.clickable-icon) {
     display: inline-flex;
     align-items: center;
     gap: $space-1;
@@ -686,7 +690,7 @@
     list-style: none;
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-step {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-step:not(.clickable-icon) {
     display: grid;
     grid-template-columns: var(--size-4-6) minmax(0, 1fr);
     align-items: start;
@@ -795,7 +799,7 @@
     }
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-up-next {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-up-next:not(.clickable-icon) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -824,7 +828,7 @@
     gap: $space-2;
 }
 
-.zettelkasten-flow__learn .zettelkasten-flow__learn-related-chip {
+.zettelkasten-flow__learn button.zettelkasten-flow__learn-related-chip:not(.clickable-icon) {
     @include chip;
     @include chip-clickable;
     height: auto;
@@ -874,7 +878,8 @@
         position: relative;
     }
 
-    .zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row {
+    .zettelkasten-flow__learn .zettelkasten-flow__learn-ref-row,
+    .zettelkasten-flow__learn button.zettelkasten-flow__learn-ref-row:not(.clickable-icon) {
         grid-template-columns: minmax(0, 1fr);
         gap: $space-1;
     }

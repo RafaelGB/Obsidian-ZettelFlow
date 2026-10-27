@@ -1442,12 +1442,12 @@
         },
         {
           "title": {
-            "en": "Finish the next step in place",
-            "es": "Resuelve el siguiente paso ahí mismo"
+            "en": "Act on this note in place",
+            "es": "Actúa sobre esta nota ahí mismo"
           },
           "body": {
-            "en": "One card: Add a source, Connect, Mark an example or Move to the next state. Another step shows the next one. Nothing is written until you confirm, and it answers on one line with Undo for thirty seconds.",
-            "es": "Una tarjeta: Añadir una fuente, Conectar, Marcar un ejemplo o Pasar al siguiente estado. Otro paso enseña el siguiente. No se escribe nada hasta que confirmas, y responde en una línea con opción de deshacer durante treinta segundos."
+            "en": "The open steps, listed together: Add a source, Connect or Move to the next state, each with its fact. Nothing is written until you confirm, and it answers on one line with Undo for thirty seconds. Below, make a move, think about the note, say what it claims or cultivate it.",
+            "es": "Los pasos abiertos, juntos: Añadir una fuente, Conectar o Pasar al siguiente estado, cada uno con su hecho. No se escribe nada hasta que confirmas, y responde en una línea con opción de deshacer durante treinta segundos. Debajo, haz un movimiento, piensa sobre la nota, di lo que afirma o cultívala."
           },
           "image": "docs/resources/this-note/next-step.svg"
         },

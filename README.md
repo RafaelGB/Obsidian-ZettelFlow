@@ -103,7 +103,7 @@ Before any feature list, the things ZettelFlow asks you to **do** — each a sma
 
 <table>
 <tr>
-<td width="50%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/this-note/"><img src="docs/resources/this-note/companion.svg" alt="This note, docked in the right sidebar"></a><br><b>🧭 This note, beside every note</b><br><sub>A sidebar companion: where the note stands, what argues with it, what supports it, what it is missing — and its next step, finished in place.</sub></td>
+<td width="50%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/this-note/"><img src="docs/resources/this-note/companion.svg" alt="This note, docked in the right sidebar"></a><br><b>🧭 This note, beside every note</b><br><sub>A sidebar companion: where the note stands, what argues with it, what supports it, what it is missing — and what you can do to it, right there.</sub></td>
 <td width="50%" valign="top"><a href="https://rafaelgb.github.io/Obsidian-ZettelFlow/development/base-dashboards/"><img src="docs/resources/dashboards/dashboard-hero.svg" alt="A Base dashboard with stats, a bubble chart, tasks and a calendar"></a><br><b>📊 Dashboards for your vault</b><br><sub>Point an <a href="https://help.obsidian.md/bases">Obsidian Base</a> at a folder: stat, bar, line, pie, heatmap and calendar panels with no <code>dataviewjs</code> — a local Grafana.</sub></td>
 </tr>
 </table>

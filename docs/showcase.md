@@ -104,9 +104,9 @@ as it was and as it is now. It is built only from what was already recorded.
 ## This note — the companion beside every note
 
 **This note** docks in the right sidebar and follows the note you are reading: where it stands on
-its lifecycle, four plain counts, the **one next step** you can finish right there (add a source,
-connect, mark an example, move it on — each with an Undo), its **neighbourhood** as a small graph,
-what argues with it and what it is missing, and its **story** — every decision, move and thought,
+its lifecycle, four plain counts, the **actions on the note**, done right there (its open steps —
+add a source, connect, move it on, each with an Undo — and a move, a thought, its claim, Cultivate),
+its **neighbourhood** as a small graph, what argues with it and what it is missing, and its **story** — every decision, move and thought,
 month by month. Pin it to one note while you work in another. **Health › Tend** hands you notes that
 need attention, already open on their fix.
 

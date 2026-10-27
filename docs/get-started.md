@@ -81,7 +81,7 @@ There are four ways in. None of them needs the others, and you can switch betwee
        **Save progress**.
 
     Then open **This note** from the ribbon menu: the note you are reading gets a companion in the
-    right sidebar with its state, what argues with it, what it is missing and the one next step.
+    right sidebar with its state, what argues with it, what it is missing and what you can do to it.
 
     → [Cultivate an idea](development/cultivate.md) · [This note](development/this-note.md)
 

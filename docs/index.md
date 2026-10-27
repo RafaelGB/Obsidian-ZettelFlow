@@ -25,7 +25,7 @@ hide:
 
 **Most plugins help you _write_. ZettelFlow helps you _think_.** It turns a native Obsidian Canvas into a
 guided note-creation wizard, then sits beside every note it makes: where the note stands, what argues
-with it, what it is missing, and the one next step. Offline, AI optional, and nothing is written to
+with it, what it is missing, and what you can do to it. Offline, AI optional, and nothing is written to
 your vault that you did not decide.
 
 New here? The [README](https://github.com/RafaelGB/Obsidian-ZettelFlow#readme) is the front door — it
@@ -41,7 +41,7 @@ opens with the handful of things ZettelFlow *asks you to do*. This site is the *
 
     **This note, beside every note**
 
-    Where the note stands, four plain counts, what argues with it, and the one next step — finished in place.
+    Where the note stands, four plain counts, what argues with it, and what you can do to it — done in place.
 
     [:octicons-arrow-right-24: This note](development/this-note.md)
 

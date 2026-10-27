@@ -42,7 +42,7 @@ reaches your vault only when you accept it.
     **A companion beside every note**
 
     Where the note stands, what argues with it, what it is missing, its neighbourhood, its story,
-    and the one next step, which you can finish without leaving the sidebar.
+    and what you can do to it, without leaving the sidebar.
 
     [:octicons-arrow-right-24: This note](development/this-note.md)
 

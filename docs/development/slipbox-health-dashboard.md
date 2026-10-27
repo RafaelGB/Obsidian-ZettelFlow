@@ -31,7 +31,7 @@ state.
 | **Open question** | it asks a `question` nothing has answered yet | the *open question* debt category |
 
 Tend defines none of these itself: it reads `suggestNextMoves()` and the knowledge-debt categories
-as they are. So when a row says *No source*, the next-step card in This note is guaranteed to offer
+as they are. So when a row says *No source*, *Actions on this note* is guaranteed to offer
 *Add a source*. One consequence: a note whose only link points to itself counts as linked, because
 both of those functions count it.
 
@@ -55,8 +55,8 @@ on:
 
 | Issue | This note opens on |
 |---|---|
-| No source | the next-step card, on *Add a source* |
-| Links nowhere | the next-step card, on *Connect* |
+| No source | *Actions on this note*, on *Add a source* |
+| Links nowhere | *Actions on this note*, on *Connect* |
 | Nobody links it | *Near and forgotten* — the notes to link it from |
 | Open question | *Gaps*, where the question is listed |
 

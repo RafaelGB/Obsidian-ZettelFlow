@@ -370,8 +370,11 @@ export class ReaderHighlights {
     private reanchoring: Thought | null = null;
     /** The state's line, above the page: what is being re-anchored, and *Cancel*. */
     private reanchorLine: HTMLElement | null = null;
-    /** The highlight a selection kept last in this reading (#868): the next words may continue it. */
+    /** The highlight kept or grown last in this reading (#868), by a selection or a stroke alike
+     * (#887 AC-3): the next words may continue it. */
     private lastKept: string | null = null;
+    /** Who kept it: a stroke's the pen remembers itself, a selection's it asks for (#887). */
+    private lastKeptBy: HighlightOrigin | null = null;
     /** The meaning you chose last (#720): what H keeps and what *Note* uses. */
     private lastMeaning: HighlightMeaning = DEFAULT_MEANING;
     /** The margin shows one meaning only, when you asked it to (#720). */
@@ -449,6 +452,7 @@ export class ReaderHighlights {
         this.component = component;
         this.margin = margin;
         this.lastKept = null;
+        this.lastKeptBy = null;
         this.anchored = [];
         this.tints.clear();
         this.detached = [];
@@ -527,6 +531,7 @@ export class ReaderHighlights {
         this.pageMarks = [];
         this.pageNotes = [];
         this.lastKept = null;
+        this.lastKeptBy = null;
         this.anchored = [];
         this.tints.clear();
         this.detached = [];
@@ -1323,21 +1328,20 @@ export class ReaderHighlights {
     private async keep(selection: SelectionInfo, span: TextSpan, quote: ThoughtQuote, note: string, meaning: HighlightMeaning = this.lastMeaning): Promise<void> {
         // One passage marked in several goes is one highlight (#868): the words that continue the one
         // kept last grow it, as a stroke grows a stroke (#746 FR-5).
-        const last = this.continued(span, meaning);
+        const last = this.continued(span, meaning)?.thought;
         if (last) {
             this.clearPending();
             const actions = (next: Thought): StatusAction[] => [{ key: "reader_hl_undo", run: () => void this.unextend(next, last), thought: next }];
             if (await this.extend(last, span, { note, origin: "selection", actions, clear: () => selection.clear() })) return;
         }
-        const made = await this.keepSpan(span, quote, { note, meaning, origin: "selection", clear: () => selection.clear() });
-        if (made) this.lastKept = made.id;
+        await this.keepSpan(span, quote, { note, meaning, origin: "selection", clear: () => selection.clear() });
     }
 
     /**
      * The highlight a selection continues (#868 FR-1, FR-3): the one kept last in this reading, still
      * on the page, of the same meaning and layer, whose words these words continue. None otherwise.
      */
-    private continued(span: TextSpan, meaning: HighlightMeaning): Thought | null {
+    private continued(span: TextSpan, meaning: HighlightMeaning, lineStarts: readonly number[] = []): { thought: Thought; span: TextSpan } | null {
         const body = this.body;
         const entry = this.lastKept ? this.anchored.find((candidate) => candidate.thought.id === this.lastKept) : undefined;
         const thought = entry?.thought;
@@ -1345,7 +1349,15 @@ export class ReaderHighlights {
         if (layerOf(thought) !== (this.view.layerForNew?.() ?? DEFAULT_LAYER)) return null;
         const text = chapterText(body);
         const old = anchorAll(text, [{ thought, quote: thought.quote }]).anchored[0]?.span;
-        return old && continuesSpan(old, span, text) ? thought : null;
+        return old && continuesSpan(old, span, text, lineStarts) ? { thought, span: old } : null;
+    }
+
+    /**
+     * The highlight a stroke grows when a selection kept the last one (#887 AC-3): the pen remembers
+     * its own strokes, and asks here for a selection's. None when a stroke was last.
+     */
+    selectionToGrow(span: TextSpan, meaning: HighlightMeaning, lineStarts: readonly number[] = []): { thought: Thought; span: TextSpan } | null {
+        return this.lastKeptBy === "selection" ? this.continued(span, meaning, lineStarts) : null;
     }
 
     /**
@@ -1375,6 +1387,8 @@ export class ReaderHighlights {
             return undefined;
         }
         this.counted(options.note ?? "", meaning);
+        this.lastKept = made.id;
+        this.lastKeptBy = options.origin ?? null;
         options.clear?.();
         if (this.body !== body) return made; // the chapter turned while the thought was written
         this.clearPending(); // the real marks take its place
@@ -1495,6 +1509,8 @@ export class ReaderHighlights {
             return undefined;
         }
         options.clear?.();
+        this.lastKept = next.id;
+        this.lastKeptBy = options.origin ?? null;
         if (note && !had) this.noted++;
         this.decorate(next, added);
         entry.thought = next;

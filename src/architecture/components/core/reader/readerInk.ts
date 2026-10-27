@@ -100,7 +100,9 @@ export interface InkHighlighter {
     quoteFor(start: number, end: number): { span: TextSpan; quote: ThoughtQuote } | null;
     keepSpan(span: TextSpan, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
     keepPassage(locator: ThoughtLocator, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
-    extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions">): Promise<Thought | undefined>;
+    extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions" | "origin">): Promise<Thought | undefined>;
+    /** A selection's highlight these words continue, when a selection kept the last one (#887 AC-3). */
+    selectionToGrow?(span: TextSpan, meaning: HighlightMeaning, lineStarts?: readonly number[]): { thought: Thought; span: TextSpan } | null;
     unextend(grown: Thought, before: Thought): Promise<boolean>;
     takeBack(thought: Thought): Promise<boolean>;
     /** The eraser's and the lasso's part (#747): the marks on screen, an erase and its undo, a selection. */
@@ -1432,7 +1434,13 @@ export class ReaderInk {
         const last = this.lastStroke;
         const meaning = engine.currentMeaning();
         const lineStarts = linesOf(near.words, linePx).map((line) => Math.min(...line.words.map((w) => w.start)));
-        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning, lineStarts) ? last : null;
+        // One memory for the pen and a selection (#887 AC-3): a selection kept last is grown too.
+        const selected = engine.selectionToGrow?.(band.span, meaning, lineStarts);
+        const extend = selected
+            ? { result: Promise.resolve<Thought | undefined>(selected.thought), span: selected.span }
+            : last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning, lineStarts)
+              ? last
+              : null;
         const entry = this.strokeEntry(live);
         if (extend) {
             // One highlight, grown (FR-5): one recorded update of the one thought.
@@ -1441,7 +1449,7 @@ export class ReaderInk {
                 // Nothing to grow any more (taken back, or its words gone): a highlight of its own.
                 if (!before) return keep();
                 entry.before = before;
-                const grown = await engine.extend(before, band.span, { direction: metrics.direction, actions: () => this.strokeActions(entry) });
+                const grown = await engine.extend(before, band.span, { direction: metrics.direction, origin: "stroke", actions: () => this.strokeActions(entry) });
                 if (grown) return grown;
                 entry.before = undefined;
                 return keep();

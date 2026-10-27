@@ -606,6 +606,8 @@ const middle = (line: number) => TOP + line * LINE + 14;
 const along = (line: number, from = 90, to = 480) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: middle(line) + (k % 2 ? 1 : -1) }));
 
 function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean; pageLocator?: (index: number) => ThoughtLocator; pageInk?: PageInk } = {}) {
+    /** What is selected now, for a highlight kept by selection (H) beside the pen's (#887). */
+    let selected: { start: number; end: number } | null = null;
     const pageInk = fakePageInk(options.pageInk ?? null);
     const body = chapterEl();
     const text = chapterText(body as never);
@@ -649,7 +651,7 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
         { app: {} as never, host: root as never, owner, scrollTo: jest.fn(), onChange: jest.fn() },
         {
             store: store as never,
-            selection: () => null,
+            selection: () => (selected ? { ...selected, rect: { left: 0, top: 0, width: 0 }, clear: () => (selected = null) } : null),
             headingAt: () => undefined,
             makeMark: (id) => {
                 const mark = new FakeEl("mark");
@@ -694,7 +696,13 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
         drawings.set(id, renderInkSvg(TWO_STROKES));
         return thought;
     };
-    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, marks, status, button, pageInk, drawings, stored, release: () => release() };
+    /** Select a line's words and press H: a highlight kept by selection. */
+    const select = (line: number) => {
+        const on = words.filter((w) => w.top === TOP + line * LINE + 6);
+        selected = { start: on[0].start, end: on[on.length - 1].end };
+        highlights.highlightCurrent();
+    };
+    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, select, marks, status, button, pageInk, drawings, stored, release: () => release() };
 }
 
 /** The box of each line's run of the words a mark's text covers, as `getClientRects` gives them. */
@@ -906,6 +914,28 @@ describe("the highlighter (#746)", () => {
         expect(m.store.write).toHaveBeenCalledTimes(1);
         expect(m.store.save).toHaveBeenCalledTimes(1);
         expect((m.store.save.mock.calls[0] as [Thought])[0].quote?.exact).toContain("changes and not the state");
+    });
+
+    it("grows a highlight a selection kept, and a selection grows a stroke's: one memory for both (#887 AC-3)", async () => {
+        const m = direct();
+        m.select(0);
+        await flush();
+        m.pick("highlighter");
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+
+        const n = direct();
+        n.pick("highlighter");
+        await flush();
+        n.draw(along(0));
+        await flush();
+        n.select(1);
+        await flush();
+        expect(n.store.write).toHaveBeenCalledTimes(1);
+        expect(n.store.save).toHaveBeenCalledTimes(1);
     });
 
     it("still grows it when the next line comes a long while later: reading it first is no new thought (#887 AC-1)", async () => {

@@ -2211,7 +2211,7 @@ export default {
     note_companion_unlink_failed: 'Could not remove the link.',
     note_companion_link_failed: 'Could not add the link.',
     // This note — next step (#641)
-    note_next_eyebrow: 'Next step',
+    note_next_eyebrow: 'Actions on this note',
     note_next_counter: '{0} of {1}',
     note_next_another: 'Another step',
     note_next_why_source: 'Makes {0} claims with no source.',

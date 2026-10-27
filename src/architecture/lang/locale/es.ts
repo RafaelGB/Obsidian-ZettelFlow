@@ -2210,7 +2210,7 @@ export default {
     note_companion_unlink_failed: 'No se pudo quitar el enlace.',
     note_companion_link_failed: 'No se pudo añadir el enlace.',
     // This note — next step (#641)
-    note_next_eyebrow: 'Siguiente paso',
+    note_next_eyebrow: 'Acciones sobre esta nota',
     note_next_counter: '{0} de {1}',
     note_next_another: 'Otro paso',
     note_next_why_source: 'Hace {0} afirmaciones sin fuente.',

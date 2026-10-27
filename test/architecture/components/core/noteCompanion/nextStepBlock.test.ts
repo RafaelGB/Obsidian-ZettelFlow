@@ -77,7 +77,6 @@ afterEach(() => {
 describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
     it("says the fact, offers one primary action, and counts the moves (AC-1)", () => {
         const { host } = setup();
-        expect(text(host, "note-next-eyebrow")).toBe("Next step");
         expect(text(host, "note-next-why")).toBe("Makes 1 claim with no source.");
         expect(primary(host).textContent).toBe("Add a source");
         expect(primary(host).hasClass("mod-cta")).toBe(true);
@@ -108,6 +107,20 @@ describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
         expect(complete.host.byClass("note-next-primary")).toEqual([]);
         const absent = setup({ next: { kind: "absent" } });
         expect(absent.host.children).toEqual([]);
+    });
+});
+
+describe("actions on this note (#890)", () => {
+    it("is titled Actions on this note and offers no Mark an example, in any move's panel (AC-1, AC-2)", () => {
+        const { host } = setup();
+        expect(text(host, "note-next-eyebrow")).toBe("Actions on this note");
+        expect(host.oneByClass("note-next").attrs["aria-label"]).toBe("Actions on this note");
+        for (let i = 0; i < 3; i++) {
+            primary(host).click();
+            expect(host.oneByClass("note-next").textContent).not.toMatch(/example/i);
+            primary(host).click();
+            host.oneByClass("note-next-another").click();
+        }
     });
 });
 

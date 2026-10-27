@@ -121,6 +121,14 @@ describe("actions on this note (#890)", () => {
             host.oneByClass("note-next-another").click();
         }
     });
+
+    it("lands an old add-example hand-over on the first item, closed, without an error (AC-10)", () => {
+        const { host, block } = setup();
+        expect(() => block.reveal("next", "add-example")).not.toThrow();
+        expect(primary(host).textContent).toBe("Add a source");
+        expect(host.byClass("note-next-panel")).toEqual([]);
+        expect(host.oneByClass("note-next").hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
+    });
 });
 
 describe("each move, finished in place (#641 FR-10..13, AC-6..9)", () => {

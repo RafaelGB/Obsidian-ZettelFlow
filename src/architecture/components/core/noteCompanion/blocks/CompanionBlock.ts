@@ -12,6 +12,7 @@ import type {
 import type { ResurfaceReason } from "application/notes/resurfaceRanking";
 import type { HeaderAction } from "architecture/components/core/surface/ModeHeader";
 import type { CompanionFocus } from "../noteCompanionContract";
+import type { Wager } from "architecture/knowledge";
 
 /** Everything the companion draws about one note, built once per recompute. */
 export interface CompanionModel {
@@ -32,6 +33,8 @@ export interface CompanionModel {
     linksOut: string[];
     /** Its neighbours and the near notes the graph draws (#643); null when they could not be read. */
     neighbourhood: NoteNeighbourhood | null;
+    /** The first claim the note states, and its wager if it carries one (#890 Q5); absent if none. */
+    claim?: { text: string; wager?: Wager };
 }
 
 /** What is on screen: a note, the empty state, a note outside ZettelFlow, or the two moments before a note can be read. */

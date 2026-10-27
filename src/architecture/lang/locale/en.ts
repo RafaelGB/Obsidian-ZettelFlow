@@ -2213,6 +2213,8 @@ export default {
     // This note — next step (#641)
     note_next_eyebrow: 'Actions on this note',
     note_next_cultivate: 'Cultivate this note',
+    note_next_edit_claim: 'Edit what this note claims',
+    note_next_wager_by: 'You expect to know by {0}.',
     note_next_counter: '{0} of {1}',
     note_next_another: 'Another step',
     note_next_why_source: 'Makes {0} claims with no source.',

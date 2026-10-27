@@ -2212,6 +2212,8 @@ export default {
     // This note — next step (#641)
     note_next_eyebrow: 'Acciones sobre esta nota',
     note_next_cultivate: 'Cultivar esta nota',
+    note_next_edit_claim: 'Editar lo que afirma esta nota',
+    note_next_wager_by: 'Esperas saberlo el {0}.',
     note_next_counter: '{0} de {1}',
     note_next_another: 'Otro paso',
     note_next_why_source: 'Hace {0} afirmaciones sin fuente.',

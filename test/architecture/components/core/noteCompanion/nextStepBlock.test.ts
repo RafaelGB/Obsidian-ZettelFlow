@@ -159,6 +159,20 @@ describe("actions on this note (#890)", () => {
             expect(deps.cultivate).toHaveBeenCalledWith(expect.anything(), path);
         }
     });
+
+    it("shows a stated claim and its wager's day read-only, and the entry edits it (Q5)", () => {
+        const at = new Date(2026, 11, 1).getTime();
+        const { host, deps } = setup({ claim: { text: "Debt grows unseen", wager: { expectation: "A rewrite", at } } });
+        expect(text(host, "note-next-claim")).toBe("Debt grows unseen");
+        expect(text(host, "note-next-wager")).toBe("You expect to know by 2026-12-01.");
+        expect(host.oneByClass("note-next-claim").tag).not.toBe("input");
+        expect(host.findAll((el) => el.tag === "button" && el.text === "Say what this note claims")).toEqual([]);
+        host.findAll((el) => el.tag === "button" && el.text === "Edit what this note claims")[0].click();
+        expect(deps.openClaim).toHaveBeenCalledWith(expect.anything(), "zettel/A.md");
+
+        const none = setup();
+        expect(none.host.byClass("note-next-claim")).toEqual([]);
+    });
 });
 
 describe("each move, finished in place (#641 FR-10..13, AC-6..9)", () => {

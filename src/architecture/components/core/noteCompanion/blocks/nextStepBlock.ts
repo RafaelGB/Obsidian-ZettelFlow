@@ -1,7 +1,7 @@
 import type { App } from "obsidian";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
-import { STATE_LABEL_KEY, DEFAULT_STATE_PROPERTY } from "architecture/knowledge";
+import { STATE_LABEL_KEY, DEFAULT_STATE_PROPERTY, toDateInput } from "architecture/knowledge";
 import type { Judgement, NextMoveToken, NextStepFact } from "architecture/knowledge/state";
 import { UNDO_OFFER_MS } from "application/writes/undoOffer";
 import { linkNotes, type LinkResult } from "architecture/plugin/services/recordedLink";
@@ -330,6 +330,13 @@ export class NextStepBlock extends CompanionBlock {
 
     /** What ZettelFlow lets you do with this note, beside its open steps — quiet, never the primary. */
     private renderTools(card: HTMLElement, ctx: CompanionContext, model: CompanionModel): void {
+        // What it already claims, said as it stands: the box is where it changes, not here (Q5).
+        if (model.claim) {
+            card.createDiv({ cls: c("note-next-claim"), text: model.claim.text });
+            if (model.claim.wager) {
+                card.createDiv({ cls: c("note-next-wager"), text: t("note_next_wager_by", toDateInput(model.claim.wager.at)) });
+            }
+        }
         const tools = card.createDiv({ cls: c("note-next-tools") });
         const tool = (key: Parameters<typeof t>[0], run: () => void) => {
             const button = tools.createEl("button", { cls: c("note-next-tool"), text: t(key), attr: { type: "button" } });
@@ -342,7 +349,7 @@ export class NextStepBlock extends CompanionBlock {
             })
         );
         tool("command_think_about", () => this.deps.thinkAbout(ctx.app, model.path));
-        tool("claim_door_menu", () => this.deps.openClaim(ctx.app, model.path));
+        tool(model.claim ? "note_next_edit_claim" : "claim_door_menu", () => this.deps.openClaim(ctx.app, model.path));
         tool("note_next_cultivate", () => this.deps.cultivate(ctx.app, model.path));
     }
 

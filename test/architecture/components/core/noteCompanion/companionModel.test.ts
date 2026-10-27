@@ -22,6 +22,8 @@ jest.mock("architecture/components/core/resurface/resurfaceInputs", () => ({
 }));
 const scope: { excluded: string | null; status: string } = { excluded: null, status: "ready" };
 jest.mock("architecture/knowledge", () => ({
+    // The real reader: the model reads a note's wager through the barrel (#890 Q5).
+    wagerOf: (jest.requireActual("architecture/knowledge/claims") as { wagerOf: unknown }).wagerOf,
     KnowledgeIndex: {
         getInstance: () => ({
             status: scope.status,
@@ -112,5 +114,28 @@ describe("a note in an excluded folder is outside ZettelFlow (#688)", () => {
     it("leaves a note in scope exactly as it was", () => {
         scope.excluded = "Templates";
         expect(buildCompanionScreen(app(), subject).kind).toBe("note");
+    });
+});
+
+describe("the claim it states (#890 Q5)", () => {
+    function appWith(frontmatter: Record<string, unknown>) {
+        const file = new TFile();
+        file.path = "Hub.md";
+        file.extension = "md";
+        return {
+            vault: { getAbstractFileByPath: (path: string) => (path === "Hub.md" ? file : null) },
+            metadataCache: { getFileCache: () => ({ frontmatter }) },
+        } as never;
+    }
+
+    it("reads the first claim and its wager, and nothing when the note states none", () => {
+        const screen = buildCompanionScreen(appWith({ claim: ["Debt grows unseen", "Second"], expect: "A rewrite", by: "2026-12-01" }), subject);
+        if (screen.kind !== "note") throw new Error(screen.kind);
+        expect(screen.model.claim).toEqual({ text: "Debt grows unseen", wager: { expectation: "A rewrite", at: new Date(2026, 11, 1).getTime() } });
+
+        const plain = buildCompanionScreen(appWith({ claim: "Only this" }), subject);
+        if (plain.kind === "note") expect(plain.model.claim).toEqual({ text: "Only this" });
+        const none = buildCompanionScreen(appWith({}), subject);
+        if (none.kind === "note") expect(none.model.claim).toBeUndefined();
     });
 });

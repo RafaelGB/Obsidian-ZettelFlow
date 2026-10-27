@@ -250,8 +250,16 @@ button.zettelkasten-flow__note-companion-vital {
     letter-spacing: 0.06em;
 }
 
-.zettelkasten-flow__note-next-count {
-    @include hint;
+.zettelkasten-flow__note-next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+.zettelkasten-flow__note-next-step {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
 }
 
 .zettelkasten-flow__note-next-why {
@@ -266,8 +274,7 @@ button.zettelkasten-flow__note-companion-vital {
 }
 
 /* Text actions, not buttons — `button.` so they outrank Obsidian's `button:not(.clickable-icon)`,
-   which gave *Another step* a button's box beside the real one. */
-button.zettelkasten-flow__note-next-another:not(.clickable-icon),
+   which gave a text action a button's box beside the real one. */
 button.zettelkasten-flow__note-next-cancel:not(.clickable-icon),
 button.zettelkasten-flow__note-next-choose:not(.clickable-icon),
 button.zettelkasten-flow__note-next-pick:not(.clickable-icon),
@@ -287,7 +294,6 @@ button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
     }
 }
 
-button.zettelkasten-flow__note-next-another:not(.clickable-icon),
 button.zettelkasten-flow__note-next-cancel:not(.clickable-icon) {
     color: $text-quiet;
 }

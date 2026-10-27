@@ -22,7 +22,6 @@ import { activateSurface } from "architecture/plugin";
 import { flyOrigin } from "architecture/components/core/reader/openReader";
 import {
     INITIAL_NEXT_UI,
-    anotherMove,
     clampMove,
     closePanel,
     deepLink,
@@ -175,36 +174,32 @@ export class NextStepBlock extends CompanionBlock {
             this.renderStatus(card);
             return;
         }
-        if (moves.length > 1) {
-            head.createSpan({
-                cls: c("note-next-count"),
-                text: t("note_next_counter", String(this.ui.index + 1), String(moves.length)),
+        // The open steps, listed together (Q2): each says its fact and has its button; the one in
+        // hand is the section's primary, and its panel opens under it.
+        const list = card.createDiv({ cls: c("note-next-steps") });
+        moves.forEach((move, index) => {
+            const chosen = index === this.ui.index;
+            const row = list.createDiv({ cls: c("note-next-step") });
+            row.createDiv({ cls: c("note-next-why"), text: this.why(move) });
+            const actions = row.createDiv({ cls: c("note-next-actions") });
+            // One filled button in the section (AC-12): the step in hand, until its panel opens and
+            // the confirm inside takes it.
+            const button = actions.createEl("button", {
+                cls: [
+                    ...(chosen && !this.ui.open ? ["mod-cta"] : []),
+                    c("note-next-step-button"),
+                    ...(chosen ? [c("note-next-primary")] : []),
+                ].join(" "),
+                text: this.label(move),
+                attr: { type: "button", "aria-expanded": String(chosen && this.ui.open) },
             });
-        }
-
-        const move = moves[this.ui.index];
-        card.createDiv({ cls: c("note-next-why"), text: this.why(move) });
-
-        const actions = card.createDiv({ cls: c("note-next-actions") });
-        // One filled button in the section (AC-12): the step's, until its panel opens and the
-        // confirm inside takes it.
-        const primary = actions.createEl("button", {
-            cls: [...(this.ui.open ? [] : ["mod-cta"]), c("note-next-primary")].join(" "),
-            text: this.label(move),
-            attr: { type: "button", "aria-expanded": String(this.ui.open) },
+            this.on(button, "click", () =>
+                this.redraw((this.ui = chosen && this.ui.open ? closePanel(this.ui) : openPanel({ index, open: false })))
+            );
+            if (chosen && this.ui.open) this.renderPanel(row, ctx, model, move);
         });
-        this.on(primary, "click", () => this.redraw((this.ui = this.ui.open ? closePanel(this.ui) : openPanel(this.ui))));
-        if (moves.length > 1) {
-            const another = actions.createEl("button", {
-                cls: c("note-next-another"),
-                text: t("note_next_another"),
-                attr: { type: "button" },
-            });
-            this.on(another, "click", () => this.redraw((this.ui = anotherMove(this.ui, moves.length))));
-        }
 
-        if (this.ui.open) this.renderPanel(card, ctx, model, move);
-        else this.draft = "";
+        if (!this.ui.open) this.draft = "";
         this.renderTools(card, ctx, model);
         this.renderStatus(card);
         if (refocus) card.querySelector<HTMLInputElement>("input")?.focus();

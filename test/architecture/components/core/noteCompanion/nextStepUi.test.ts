@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import {
     INITIAL_NEXT_UI,
-    anotherMove,
     clampMove,
     closePanel,
     deepLink,
@@ -10,11 +9,6 @@ import {
 } from "architecture/components/core/noteCompanion/nextStepUi";
 
 describe("the next-step card's state (#641 FR-6/9/21)", () => {
-    it("steps to another move, wrapping, and closes the panel", () => {
-        expect(anotherMove({ index: 0, open: true }, 3)).toEqual({ index: 1, open: false });
-        expect(anotherMove({ index: 2, open: false }, 3)).toEqual({ index: 0, open: false });
-    });
-
     it("opens and closes the panel without moving", () => {
         expect(openPanel({ index: 1, open: false })).toEqual({ index: 1, open: true });
         expect(closePanel({ index: 1, open: true })).toEqual({ index: 1, open: false });

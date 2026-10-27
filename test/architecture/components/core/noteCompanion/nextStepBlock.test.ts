@@ -79,30 +79,11 @@ afterEach(() => {
 });
 
 describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
-    it("says the fact, offers one primary action, and counts the moves (AC-1)", () => {
+    it("says the fact and offers one primary action (AC-1)", () => {
         const { host } = setup();
         expect(text(host, "note-next-why")).toBe("Makes 1 claim with no source.");
         expect(primary(host).textContent).toBe("Add a source");
         expect(primary(host).hasClass("mod-cta")).toBe(true);
-        expect(text(host, "note-next-count")).toBe("1 of 3");
-    });
-
-    it("cycles through the moves without writing anything (AC-2)", () => {
-        const { host, deps } = setup();
-        const seen: string[] = [];
-        for (let i = 0; i < 3; i++) {
-            seen.push(primary(host).textContent);
-            host.oneByClass("note-next-another").click();
-        }
-        expect(seen).toEqual(["Add a source", "Connect", "Move to Literature"]);
-        expect(primary(host).textContent).toBe("Add a source");
-        for (const dep of Object.values(deps)) expect(dep).not.toHaveBeenCalled();
-    });
-
-    it("drops the counter and Another step for a single move (AC-3)", () => {
-        const { host } = setup({ next: { kind: "proposing", moves: [{ token: "connect" }] } });
-        expect(host.byClass("note-next-count")).toEqual([]);
-        expect(host.byClass("note-next-another")).toEqual([]);
     });
 
     it("says once that nothing is pending, and draws nothing for a note the model does not know (AC-4)", () => {
@@ -120,11 +101,29 @@ describe("actions on this note (#890)", () => {
         expect(text(host, "note-next-eyebrow")).toBe("Actions on this note");
         expect(host.oneByClass("note-next").attrs["aria-label"]).toBe("Actions on this note");
         for (let i = 0; i < 3; i++) {
-            primary(host).click();
+            host.byClass("note-next-step-button")[i].click();
+            expect(host.byClass("note-next-panel")).toHaveLength(1);
             expect(host.oneByClass("note-next").textContent).not.toMatch(/example/i);
-            primary(host).click();
-            host.oneByClass("note-next-another").click();
         }
+    });
+
+    it("lists the open steps together, each with its fact, the first one filled, and no carousel (Q2)", () => {
+        const { host, deps } = setup();
+        const whys = host.byClass("note-next-why").map((el) => el.textContent);
+        expect(whys).toHaveLength(3);
+        expect(whys[0]).toBe("Makes 1 claim with no source.");
+        expect(new Set(whys).size).toBe(3);
+        const steps = host.byClass("note-next-step-button");
+        expect(steps.map((el) => el.textContent)).toEqual(["Add a source", "Connect", "Move to Literature"]);
+        expect(host.findAll((el) => el.hasClass("mod-cta")).map((el) => el.textContent)).toEqual(["Add a source"]);
+        expect(host.byClass("note-next-count")).toEqual([]);
+        expect(host.byClass("note-next-another")).toEqual([]);
+
+        steps[1].click();
+        expect(host.byClass("note-next-panel")).toHaveLength(1);
+        expect(host.byClass("note-next-candidate")).toHaveLength(2);
+        expect(host.byClass("note-next-step-button").map((el) => el.attrs["aria-expanded"])).toEqual(["false", "true", "false"]);
+        for (const dep of Object.values(deps)) expect(dep).not.toHaveBeenCalled();
     });
 
     it("lands an old add-example hand-over on the first item, closed, without an error (AC-10)", () => {

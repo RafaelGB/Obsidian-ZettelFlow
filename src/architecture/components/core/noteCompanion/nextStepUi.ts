@@ -2,7 +2,7 @@ import type { NextMoveToken } from "architecture/knowledge/state";
 
 /**
  * What the next-step card has on screen (#641) — which move, and whether its panel is open. Pure,
- * so the rules (wrap around, start again after a write, land on a deep-linked move) are proved by
+ * so the rules (start again after a write, land on a deep-linked move) are proved by
  * tests rather than re-decided in click handlers.
  */
 export interface NextStepUi {
@@ -11,11 +11,6 @@ export interface NextStepUi {
 }
 
 export const INITIAL_NEXT_UI: NextStepUi = { index: 0, open: false };
-
-/** *Another step*: the next move, wrapping, with its panel closed (FR-6). */
-export function anotherMove(ui: NextStepUi, count: number): NextStepUi {
-    return { index: count > 0 ? (ui.index + 1) % count : 0, open: false };
-}
 
 export function openPanel(ui: NextStepUi): NextStepUi {
     return { ...ui, open: true };

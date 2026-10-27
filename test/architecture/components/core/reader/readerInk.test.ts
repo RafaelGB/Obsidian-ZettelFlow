@@ -938,6 +938,24 @@ describe("the highlighter (#746)", () => {
         expect(n.store.save).toHaveBeenCalledTimes(1);
     });
 
+    it("takes back only the stroke's words when it grew a selection's highlight, with Undo (#887 AC-6)", async () => {
+        const m = direct();
+        m.select(0);
+        await flush();
+        const kept = m.marks().length;
+        m.pick("highlighter");
+        await flush();
+        m.draw(along(1));
+        await flush();
+        m.button("Undo")!.click();
+        await flush();
+        expect(m.store.discard).not.toHaveBeenCalled();
+        expect(m.store.save).toHaveBeenCalledTimes(2);
+        expect((m.store.save.mock.calls[1] as [Thought])[0].quote?.exact).toBe((m.store.write.mock.calls[0] as [string, any])[1].quote.exact);
+        jest.runAllTimers();
+        expect(m.marks().filter((mark) => mark.isConnected !== false)).toHaveLength(kept);
+    });
+
     it("still grows it when the next line comes a long while later: reading it first is no new thought (#887 AC-1)", async () => {
         const m = direct();
         m.pick("highlighter");
@@ -1188,6 +1206,23 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         rec.finishAll();
         expect(m.store.discard).toHaveBeenCalledTimes(1);
         expect(m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected)).toHaveLength(0);
+    });
+
+    it("takes back only the line a grown passage gained, with Undo (#887 AC-6)", async () => {
+        const m = await printed(PRINTED);
+        m.pick("highlighter");
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        const first = (m.store.write.mock.calls[0] as [string, any])[1].quote.exact as string;
+        const before = m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected).length;
+        m.draw(printedLine().map((p) => ({ x: p.x, y: p.y + 0.03 * 520 })), { target: m.slot });
+        await flush();
+        m.button("Undo")!.click();
+        await flush();
+        rec.finishAll();
+        expect(m.store.discard).not.toHaveBeenCalled();
+        expect((m.store.save.mock.calls[1] as [Thought])[0].quote?.exact).toBe(first);
+        expect(m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected)).toHaveLength(before);
     });
 });
 

@@ -1573,7 +1573,11 @@ export class ReaderInk {
         const engine = this.view.highlights?.() ?? null;
         const thought = await entry.result;
         if (!engine || !thought) return true;
-        if (entry.before) return engine.unextend(thought, entry.before);
+        if (entry.before) {
+            if (!(await engine.unextend(thought, entry.before))) return false;
+            this.dropAddedPageMarks(entry, entry.before);
+            return true;
+        }
         if (!(await engine.takeBack(thought))) return false;
         this.dropPageMarks(entry, thought);
         return true;
@@ -1602,6 +1606,17 @@ export class ReaderInk {
             return;
         }
         if (kept) this.undoStack.push(this.drawnAction(live));
+    }
+
+    /** A grown passage taken back (#887 AC-6): only the line this stroke added goes; the passage stays as it was. */
+    private dropAddedPageMarks(entry: StrokeHighlight, before: Thought): void {
+        if (!entry.page) return;
+        const added = entry.page.marks;
+        const marks = this.pageMarks.get(entry.page.index)?.marks;
+        const kept = (marks?.get(before.id) ?? []).filter((rect) => !added.includes(rect));
+        marks?.set(before.id, kept);
+        if (this.runInk) this.runInk.highlights = this.runInk.highlights.map((t) => (t.id === before.id ? before : t));
+        for (const rect of added) this.fadeOut(rect);
     }
 
     private dropPageMarks(entry: StrokeHighlight, thought: Thought): void {

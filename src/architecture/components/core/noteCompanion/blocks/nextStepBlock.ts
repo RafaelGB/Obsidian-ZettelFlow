@@ -8,7 +8,6 @@ import { linkNotes, type LinkResult } from "architecture/plugin/services/recorde
 import {
     addSourceTo,
     advanceTo,
-    markExample,
     withdrawPromotion,
     type AdvanceResult,
     type StateSettingsHost,
@@ -40,7 +39,6 @@ import {
 export interface NextStepDeps {
     addSourceTo: (app: App, path: string, text: string) => Promise<LinkResult>;
     linkNotes: (app: App, path: string, target: string) => Promise<LinkResult>;
-    markExample: (app: App, path: string, target: string) => Promise<LinkResult>;
     advanceTo: (app: App, host: StateSettingsHost | undefined, path: string) => Promise<AdvanceResult>;
     withdrawPromotion: (judgement: Judgement) => void;
     undoBatch: (batch: string) => Promise<UndoResult>;
@@ -50,7 +48,6 @@ export interface NextStepDeps {
 const DEFAULT_DEPS: NextStepDeps = {
     addSourceTo,
     linkNotes,
-    markExample,
     advanceTo,
     withdrawPromotion,
     undoBatch,
@@ -61,7 +58,7 @@ const DEFAULT_DEPS: NextStepDeps = {
 type Status = { path: string } & (
     | {
           kind: "done";
-          token: NextMoveToken;
+          token: NextStepFact["token"];
           text: string;
           batch?: string;
           judgement?: Judgement;
@@ -71,13 +68,12 @@ type Status = { path: string } & (
           stillOpen?: boolean;
           at: number;
       }
-    | { kind: "undone" | "undo-failed" | "failed" | "already-example"; at: number }
+    | { kind: "undone" | "undo-failed" | "failed"; at: number }
 );
 
-const ICON_LABEL: Record<NextMoveToken, Parameters<typeof t>[0]> = {
+const ICON_LABEL: Record<NextStepFact["token"], Parameters<typeof t>[0]> = {
     "add-source": "note_next_do_source",
     connect: "note_next_do_connect",
-    "add-example": "note_next_do_example",
     "advance-state": "note_next_do_advance",
 };
 
@@ -216,8 +212,6 @@ export class NextStepBlock extends CompanionBlock {
                 return tCount(move.unsourced, "note_next_why_source", String(move.unsourced));
             case "connect":
                 return t("note_next_why_connect");
-            case "add-example":
-                return t("note_next_why_example");
             case "advance-state":
                 return t("note_next_why_advance", stateLabel(move.current));
         }
@@ -291,31 +285,6 @@ export class NextStepBlock extends CompanionBlock {
                 cancel(row);
                 return;
             }
-            case "add-example": {
-                const seen = new Set<string>();
-                for (const [labelKey, paths] of [
-                    ["note_next_links_out", move.linksOut],
-                    ["note_next_links_in", move.linksIn],
-                ] as const) {
-                    const fresh = paths.filter((path) => !seen.has(path));
-                    fresh.forEach((path) => seen.add(path));
-                    if (fresh.length === 0) continue;
-                    panel.createDiv({ cls: c("note-next-sublabel"), text: t(labelKey) });
-                    for (const path of fresh) {
-                        const line = panel.createDiv({ cls: c("note-next-candidate") });
-                        this.renderName(line, ctx, path);
-                        const mark = line.createEl("button", { cls: c("note-next-pick"), text: t("note_next_mark_example"), attr: { type: "button" } });
-                        marksWrite(mark);
-                        this.on(mark, "click", () =>
-                            void this.write("add-example", t("note_next_done_example", noteName(path)), () =>
-                                this.deps.markExample(ctx.app, model.path, path)
-                            )
-                        );
-                    }
-                }
-                cancel(panel.createDiv({ cls: c("note-next-actions") }));
-                return;
-            }
             case "advance-state": {
                 const property = this.host?.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
                 panel.createEl("p", {
@@ -346,7 +315,7 @@ export class NextStepBlock extends CompanionBlock {
         hoverPreview(ctx.app, name, path, ctx.owner);
     }
 
-    private async write(token: NextMoveToken, text: string, op: () => Promise<LinkResult | AdvanceResult>): Promise<void> {
+    private async write(token: NextStepFact["token"], text: string, op: () => Promise<LinkResult | AdvanceResult>): Promise<void> {
         const ctx = this.ctx;
         if (this.busy || !ctx || ctx.screen.kind !== "note") return;
         // Outside ZettelFlow since it was drawn (#688): write nothing, and redraw it as what it is.
@@ -362,10 +331,7 @@ export class NextStepBlock extends CompanionBlock {
             // Its turn among the companion's writes, so two never race on one note.
             const result = await queueCompanionWrite(op);
             if (!result.ok) this.status = { kind: "failed", path, at: Date.now() };
-            else if ("written" in result && result.written === false) {
-                // Nothing was written: the link already is an example. Say that, not "marked".
-                this.status = { kind: "already-example", path, at: Date.now() };
-            } else {
+            else {
                 this.status = {
                     kind: "done",
                     path,
@@ -425,7 +391,6 @@ export class NextStepBlock extends CompanionBlock {
                 failed: "note_next_failed",
                 undone: "note_next_undone",
                 "undo-failed": "note_next_undo_failed",
-                "already-example": "note_next_already_example",
             } as const;
             line.setText(t(key[status.kind]));
             return;

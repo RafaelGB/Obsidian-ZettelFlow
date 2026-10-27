@@ -40,7 +40,6 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
     const deps = {
         addSourceTo: jest.fn(async () => ({ ok: true, batch: "b1" })),
         linkNotes: jest.fn(async () => ({ ok: true, batch: "b2" })),
-        markExample: jest.fn(async () => ({ ok: true, batch: "b3" })),
         advanceTo: jest.fn(async () => ({ ok: true, batch: "b4", judgement: { at: 1 } as never, to: "literature" as const })),
         withdrawPromotion: jest.fn(),
         undoBatch: jest.fn(async () => ({ hadWork: true, done: 1, failed: [] as string[] })),
@@ -169,18 +168,6 @@ describe("each move, finished in place (#641 FR-10..13, AC-6..9)", () => {
         await flush();
         expect(deps.linkNotes).toHaveBeenCalledTimes(1);
         expect(deps.linkNotes).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", "far/D.md");
-    });
-
-    it("lists links out and links in as example candidates (Q3)", async () => {
-        const { host, deps } = setup({
-            next: { kind: "proposing", moves: [{ token: "add-example", linksOut: ["x/Out.md"], linksIn: ["x/In.md", "x/Out.md"] }] },
-        });
-        primary(host).click();
-        expect(host.byClass("note-next-sublabel").map((el) => el.textContent)).toEqual(["Links out", "Links in"]);
-        expect(host.byClass("note-next-name").map((el) => el.textContent)).toEqual(["Out", "In"]);
-        host.byClass("note-next-pick")[1].click();
-        await flush();
-        expect(deps.markExample).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", "x/In.md");
     });
 
     it("says what advancing writes, and advances on confirm", async () => {
@@ -335,18 +322,6 @@ describe("the card after the epic's review (#639)", () => {
         undo.click();
         await flush();
         expect(deps.undoBatch).toHaveBeenCalledTimes(1);
-    });
-
-    it("says a link is already an example instead of claiming it marked one", async () => {
-        const { host } = setup(
-            { next: { kind: "proposing", moves: [{ token: "add-example", linksOut: ["x/L.md"], linksIn: [] }] } },
-            { markExample: jest.fn(async () => ({ ok: true, written: false })) } as never
-        );
-        primary(host).click();
-        host.oneByClass("note-next-pick").click();
-        await flush();
-        expect(text(host, "note-next-status")).toBe("Already an example — nothing to write.");
-        expect(host.byClass("note-next-undo")).toEqual([]);
     });
 
     it("says the write failed when it throws, and offers no undo", async () => {

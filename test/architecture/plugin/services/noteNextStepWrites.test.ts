@@ -3,7 +3,6 @@ import * as obsidian from "obsidian";
 import {
     addSourceTo,
     advanceTo,
-    markExample,
     withdrawPromotion,
 } from "architecture/plugin/services/noteNextStepWrites";
 import { undoBatch } from "architecture/plugin/writes/undoNotice";
@@ -71,29 +70,6 @@ describe("the next-step writes (#641)", () => {
         expect(h.vault.frontmatterOf("a.md").source).toBe("Ahrens 2017");
     });
 
-    it("marks an example in the properties (AC-8)", async () => {
-        const h = wireHarness({
-            files: { "a.md": { frontmatter: {}, body: "A." }, "Ledger.md": { frontmatter: {}, body: "L." } },
-        });
-        const result = await markExample(h.app as never, "a.md", "Ledger.md");
-        expect(result.ok).toBe(true);
-        expect(h.vault.frontmatterOf("a.md").example).toBe("[[Ledger]]");
-        await undoBatch(result.batch!);
-        expect(h.vault.frontmatterOf("a.md").example).toBeUndefined();
-    });
-
-    it("leaves a plain-text example untouched and writes an inline field instead (AC-8)", async () => {
-        const h = wireHarness({
-            files: { "a.md": { frontmatter: { example: "some word" }, body: "A." }, "Ledger.md": { frontmatter: {}, body: "L." } },
-        });
-        const result = await markExample(h.app as never, "a.md", "Ledger.md");
-        expect(result.ok).toBe(true);
-        expect(h.vault.frontmatterOf("a.md").example).toBe("some word");
-        expect(h.vault.contentOf("a.md")).toContain("example:: [[Ledger]]");
-        await undoBatch(result.batch!);
-        expect(h.vault.contentOf("a.md")).not.toContain("example::");
-    });
-
     it("moves the note to Cultivate's proposed state and records one derived verdict (AC-9)", async () => {
         const record = judgements();
         const toasts = noToasts();
@@ -129,7 +105,6 @@ describe("the next-step writes (#641)", () => {
         const toasts = noToasts();
         const h = wireHarness({});
         await expect(addSourceTo(h.app as never, "gone.md", "x")).resolves.toEqual({ ok: false });
-        await expect(markExample(h.app as never, "gone.md", "b.md")).resolves.toEqual({ ok: false });
         await expect(advanceTo(h.app as never, h.plugin as never, "gone.md")).resolves.toEqual({ ok: false });
         expect(toasts.constructed).not.toHaveBeenCalled();
         expect(h.vault.entries.size).toBe(0);

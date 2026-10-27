@@ -1,7 +1,7 @@
 import type { KnowledgeModel } from "architecture/knowledge/model/KnowledgeModel";
 import { proposedNextState } from "architecture/knowledge/lifecycle/machine";
 import type { LifecycleState } from "architecture/knowledge/lifecycle/states";
-import { suggestNextMoves, type NextMoveToken } from "./nextMoveLogic";
+import { suggestNextMoves } from "./nextMoveLogic";
 import type { NearbyRow } from "./noteCompanion";
 
 /**
@@ -12,8 +12,6 @@ export type NextStepFact =
     /** The claims that cite nothing. */
     | { token: "add-source"; unsourced: number }
     | { token: "connect" }
-    /** The notes it is already linked with — the candidates for an example, both directions. */
-    | { token: "add-example"; linksOut: string[]; linksIn: string[] }
     /** Where the note is and the state it would move to (Cultivate's proposal, one home). */
     | { token: "advance-state"; current: string; proposed: LifecycleState | null };
 
@@ -24,19 +22,13 @@ export type NextStepCard =
     | { kind: "complete" }
     | { kind: "proposing"; moves: NextStepFact[] };
 
-function fact(model: KnowledgeModel, path: string, token: NextMoveToken): NextStepFact {
+function fact(model: KnowledgeModel, path: string, token: NextStepFact["token"]): NextStepFact {
     const idea = model.get(path)!;
     switch (token) {
         case "add-source":
             return { token, unsourced: idea.claims.filter((claim) => claim.sources.length === 0).length };
         case "connect":
             return { token };
-        case "add-example":
-            return {
-                token,
-                linksOut: model.outNeighbors(path).filter((other) => other !== path && model.get(other)),
-                linksIn: model.inNeighbors(path).filter((other) => other !== path && model.get(other)),
-            };
         case "advance-state":
             return { token, current: idea.state, proposed: proposedNextState(idea.state) };
     }
@@ -50,7 +42,9 @@ function fact(model: KnowledgeModel, path: string, token: NextMoveToken): NextSt
  */
 export function nextStepCard(model: KnowledgeModel, path: string): NextStepCard {
     if (!model.get(path)) return { kind: "absent" };
-    const tokens = suggestNextMoves(model, path).filter((token) => token !== "add-example");
+    const tokens = suggestNextMoves(model, path).filter(
+        (token): token is NextStepFact["token"] => token !== "add-example"
+    );
     if (tokens.length === 0) return { kind: "complete" };
     return { kind: "proposing", moves: tokens.map((token) => fact(model, path, token)) };
 }

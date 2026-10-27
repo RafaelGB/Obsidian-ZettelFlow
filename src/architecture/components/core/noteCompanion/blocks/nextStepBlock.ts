@@ -186,8 +186,10 @@ export class NextStepBlock extends CompanionBlock {
         card.createDiv({ cls: c("note-next-why"), text: this.why(move) });
 
         const actions = card.createDiv({ cls: c("note-next-actions") });
+        // One filled button in the section (AC-12): the step's, until its panel opens and the
+        // confirm inside takes it.
         const primary = actions.createEl("button", {
-            cls: ["mod-cta", c("note-next-primary")].join(" "),
+            cls: [...(this.ui.open ? [] : ["mod-cta"]), c("note-next-primary")].join(" "),
             text: this.label(move),
             attr: { type: "button", "aria-expanded": String(this.ui.open) },
         });

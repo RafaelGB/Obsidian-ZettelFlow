@@ -185,6 +185,18 @@ describe("actions on this note (#890)", () => {
         }
         expect(deps.flyFrom).toHaveBeenCalledTimes(3);
     });
+
+    it("hands the one filled button to the open panel's confirm, and takes it back on close (AC-12)", () => {
+        const { host } = setup({
+            next: { kind: "proposing", moves: [{ token: "advance-state", current: "fleeting", proposed: "literature" }] },
+        });
+        primary(host).click();
+        const filled = host.findAll((el) => el.hasClass("mod-cta"));
+        expect(filled).toHaveLength(1);
+        expect(filled[0].parent?.parent?.hasClass("zettelkasten-flow__note-next-panel")).toBe(true);
+        primary(host).click();
+        expect(host.findAll((el) => el.hasClass("mod-cta"))).toEqual([primary(host)]);
+    });
 });
 
 describe("each move, finished in place (#641 FR-10..13, AC-6..9)", () => {

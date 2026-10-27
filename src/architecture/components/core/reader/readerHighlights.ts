@@ -1524,6 +1524,26 @@ export class ReaderHighlights {
         return next;
     }
 
+    /**
+     * Grow a printed page's passage (#887 AC-4): its quote now covers the next line too. The marks
+     * are the pen's, on the page; this writes the one thought, as one update.
+     */
+    async extendPassage(thought: Thought, quote: ThoughtQuote, options: Pick<KeepOptions, "actions" | "origin"> = {}): Promise<Thought | undefined> {
+        const next: Thought = { ...thought, quote };
+        try {
+            await withWriteBatch({ kind: "manual", ref: "reader-highlight", label: thought.about ?? "" }, () => this.store.save(next));
+        } catch (error) {
+            log.error(`[Reader] could not extend a highlight: ${String(error)}`);
+            this.status("reader_hl_failed");
+            return undefined;
+        }
+        this.lastKept = next.id;
+        this.lastKeptBy = options.origin ?? null;
+        this.view.onChange();
+        this.status(HIGHLIGHTED[meaningOf(thought)], options.actions?.(next) ?? [], true);
+        return next;
+    }
+
     /** Take an extension back: the quote it had, and the added marks fade away (FR-14). */
     async unextend(grown: Thought, before: Thought): Promise<boolean> {
         try {

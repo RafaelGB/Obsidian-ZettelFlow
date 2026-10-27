@@ -1070,6 +1070,21 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         expect(m.page.byClass("reader-ink-layer").every((layer: any) => !layer.hasClass("theme-dark"))).toBe(true);
     });
 
+    it("grows one highlight down a printed page, line by line: one passage kept, then an update (#887 AC-4)", async () => {
+        const m = await printed(PRINTED);
+        m.pick("highlighter");
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        // The second printed line (top 0.23).
+        m.draw(printedLine().map((p) => ({ x: p.x, y: p.y + 0.03 * 520 })), { target: m.slot });
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        const grown = (m.store.save.mock.calls[0] as [Thought])[0];
+        expect(grown.quote?.exact).toBe(PRINTED.text);
+        expect(grown.locator?.at).toBe(2);
+    });
+
     it("cites a line of a printed page exactly: its key and its print page ride with it (#751 FR-5)", async () => {
         const m = await printed(PRINTED, (at) => ({ at, label: "p. iii", chapter: `page:${at}`, page: "iii" }));
         m.pick("highlighter");

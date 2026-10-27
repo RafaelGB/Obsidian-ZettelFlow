@@ -19,6 +19,7 @@ import { pickMoveOn, type SayMove } from "starters/zcomponents/MoveCommandsCompo
 import { thinkAbout } from "starters/zcomponents/ThinkAboutComponent";
 import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
 import { activateSurface } from "architecture/plugin";
+import { flyOrigin } from "architecture/components/core/reader/openReader";
 import {
     INITIAL_NEXT_UI,
     anotherMove,
@@ -55,6 +56,8 @@ export interface NextStepDeps {
     openClaim: (app: App, path: string) => void;
     /** Cultivate, targeted on the note. */
     cultivate: (app: App, path: string) => void;
+    /** What you pressed lifts toward where it opens — one continuous shot; instant under reduced motion (§XVI). */
+    flyFrom: (button: HTMLElement) => void;
 }
 
 const DEFAULT_DEPS: NextStepDeps = {
@@ -71,6 +74,7 @@ const DEFAULT_DEPS: NextStepDeps = {
         if (file) new ClaimDoorModal(app, file).open();
     },
     cultivate: (app, path) => void activateSurface(app, "zettelflow-home", "cultivate", { target: path }),
+    flyFrom: flyOrigin,
 };
 
 /** What answers a click — always about the note it was made on (`path`), never another. */
@@ -338,9 +342,12 @@ export class NextStepBlock extends CompanionBlock {
             }
         }
         const tools = card.createDiv({ cls: c("note-next-tools") });
-        const tool = (key: Parameters<typeof t>[0], run: () => void) => {
+        const tool = (key: Parameters<typeof t>[0], run: () => void, opens = false) => {
             const button = tools.createEl("button", { cls: c("note-next-tool"), text: t(key), attr: { type: "button" } });
-            this.on(button, "click", run);
+            this.on(button, "click", () => {
+                if (opens) this.deps.flyFrom(button);
+                run();
+            });
         };
         tool("move_pick_title", () =>
             this.deps.pickMove(ctx.app, model.path, (text) => {
@@ -348,9 +355,9 @@ export class NextStepBlock extends CompanionBlock {
                 this.redraw();
             })
         );
-        tool("command_think_about", () => this.deps.thinkAbout(ctx.app, model.path));
-        tool(model.claim ? "note_next_edit_claim" : "claim_door_menu", () => this.deps.openClaim(ctx.app, model.path));
-        tool("note_next_cultivate", () => this.deps.cultivate(ctx.app, model.path));
+        tool("command_think_about", () => this.deps.thinkAbout(ctx.app, model.path), true);
+        tool(model.claim ? "note_next_edit_claim" : "claim_door_menu", () => this.deps.openClaim(ctx.app, model.path), true);
+        tool("note_next_cultivate", () => this.deps.cultivate(ctx.app, model.path), true);
     }
 
     private connect(ctx: CompanionContext, model: CompanionModel, target: string): void {

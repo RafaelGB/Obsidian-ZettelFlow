@@ -48,6 +48,7 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
         thinkAbout: jest.fn(),
         openClaim: jest.fn(),
         cultivate: jest.fn(),
+        flyFrom: jest.fn(),
         ...depsOver,
     };
     const block = new NextStepBlock(host as never, { settings: { lifecycle: { stateProperty: "status" } } }, deps as never);
@@ -172,6 +173,17 @@ describe("actions on this note (#890)", () => {
 
         const none = setup();
         expect(none.host.byClass("note-next-claim")).toEqual([]);
+    });
+
+    it("keeps one filled button, and opens Think, the claim box and Cultivate from the pressed one (AC-12)", () => {
+        const { host, deps } = setup();
+        expect(host.findAll((el) => el.hasClass("mod-cta"))).toHaveLength(1);
+        for (const label of ["Think about this note", "Say what this note claims", "Cultivate this note"]) {
+            const button = host.findAll((el) => el.tag === "button" && el.text === label)[0];
+            button.click();
+            expect(deps.flyFrom).toHaveBeenLastCalledWith(button);
+        }
+        expect(deps.flyFrom).toHaveBeenCalledTimes(3);
     });
 });
 

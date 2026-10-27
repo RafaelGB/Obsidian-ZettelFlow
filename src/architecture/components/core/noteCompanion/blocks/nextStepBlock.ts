@@ -16,6 +16,9 @@ import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotic
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { InquiryNoteSuggest } from "architecture/components/core/cultivate/InquiryNoteSuggest";
 import { pickMoveOn, type SayMove } from "starters/zcomponents/MoveCommandsComponent";
+import { thinkAbout } from "starters/zcomponents/ThinkAboutComponent";
+import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
+import { activateSurface } from "architecture/plugin";
 import {
     INITIAL_NEXT_UI,
     anotherMove,
@@ -46,6 +49,12 @@ export interface NextStepDeps {
     pickNote: (app: App, onPick: (path: string) => void) => void;
     /** The move picker on the note; a move that only records answers through `say` (#890). */
     pickMove: (app: App, path: string, say: SayMove) => void;
+    /** Think with the note as the subject; writes nothing (#890). */
+    thinkAbout: (app: App, path: string) => void;
+    /** The claim box for the note — its sentence and the optional wager. */
+    openClaim: (app: App, path: string) => void;
+    /** Cultivate, targeted on the note. */
+    cultivate: (app: App, path: string) => void;
 }
 
 const DEFAULT_DEPS: NextStepDeps = {
@@ -56,6 +65,12 @@ const DEFAULT_DEPS: NextStepDeps = {
     undoBatch,
     pickNote: (app, onPick) => new InquiryNoteSuggest(app, onPick, t("note_next_choose_placeholder")).open(),
     pickMove: pickMoveOn,
+    thinkAbout: (app, path) => thinkAbout({ app }, path),
+    openClaim: (app, path) => {
+        const file = app.vault.getFileByPath(path);
+        if (file) new ClaimDoorModal(app, file).open();
+    },
+    cultivate: (app, path) => void activateSurface(app, "zettelflow-home", "cultivate", { target: path }),
 };
 
 /** What answers a click — always about the note it was made on (`path`), never another. */
@@ -316,13 +331,19 @@ export class NextStepBlock extends CompanionBlock {
     /** What ZettelFlow lets you do with this note, beside its open steps — quiet, never the primary. */
     private renderTools(card: HTMLElement, ctx: CompanionContext, model: CompanionModel): void {
         const tools = card.createDiv({ cls: c("note-next-tools") });
-        const move = tools.createEl("button", { cls: c("note-next-tool"), text: t("move_pick_title"), attr: { type: "button" } });
-        this.on(move, "click", () =>
+        const tool = (key: Parameters<typeof t>[0], run: () => void) => {
+            const button = tools.createEl("button", { cls: c("note-next-tool"), text: t(key), attr: { type: "button" } });
+            this.on(button, "click", run);
+        };
+        tool("move_pick_title", () =>
             this.deps.pickMove(ctx.app, model.path, (text) => {
                 this.status = { kind: "said", path: model.path, text, at: Date.now() };
                 this.redraw();
             })
         );
+        tool("command_think_about", () => this.deps.thinkAbout(ctx.app, model.path));
+        tool("claim_door_menu", () => this.deps.openClaim(ctx.app, model.path));
+        tool("note_next_cultivate", () => this.deps.cultivate(ctx.app, model.path));
     }
 
     private connect(ctx: CompanionContext, model: CompanionModel, target: string): void {

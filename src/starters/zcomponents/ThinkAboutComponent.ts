@@ -54,6 +54,6 @@ export class ThinkAboutComponent extends PluginComponent {
 }
 
 /** Open the Lab with this note as the thread's subject. Writes nothing to the note. */
-export function thinkAbout(plugin: ZettelFlow, path: string): void {
+export function thinkAbout(plugin: Pick<ZettelFlow, "app">, path: string): void {
     void activateSurface(plugin.app, "zettelflow-home", "lab", { about: path });
 }

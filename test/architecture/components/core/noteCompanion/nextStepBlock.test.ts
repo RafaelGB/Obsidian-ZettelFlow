@@ -45,6 +45,9 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
         undoBatch: jest.fn(async () => ({ hadWork: true, done: 1, failed: [] as string[] })),
         pickNote: jest.fn(),
         pickMove: jest.fn(),
+        thinkAbout: jest.fn(),
+        openClaim: jest.fn(),
+        cultivate: jest.fn(),
         ...depsOver,
     };
     const block = new NextStepBlock(host as never, { settings: { lifecycle: { stateProperty: "status" } } }, deps as never);
@@ -141,6 +144,20 @@ describe("actions on this note (#890)", () => {
         say("Set aside — A");
         expect(text(host, "note-next-status")).toBe("Set aside — A");
         expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+
+    it("opens Think, the claim box and Cultivate on the companion's note, the pinned one when pinned (AC-6..9)", () => {
+        for (const path of ["zettel/A.md", "pinned/P.md"]) {
+            const { host, deps } = setup({ path, next: { kind: "complete" } });
+            for (const label of ["Think about this note", "Say what this note claims", "Cultivate this note"]) {
+                const button = host.findAll((el) => el.tag === "button" && el.text === label)[0];
+                expect(button.hasClass("mod-cta")).toBe(false);
+                button.click();
+            }
+            expect(deps.thinkAbout).toHaveBeenCalledWith(expect.anything(), path);
+            expect(deps.openClaim).toHaveBeenCalledWith(expect.anything(), path);
+            expect(deps.cultivate).toHaveBeenCalledWith(expect.anything(), path);
+        }
     });
 });
 

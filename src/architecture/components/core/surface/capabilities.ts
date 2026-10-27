@@ -294,8 +294,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         ],
     },
     "next-step": {
-        // What to do with the note you are reading, finished where you are (#641): a control on the
-        // companion, the place you already are.
+        // *Actions on this note* (#641, #890): its open steps, finished where you are, and what
+        // ZettelFlow lets you do with it — a control on the companion, the place you already are.
         nameKey: "note_next_eyebrow",
         owner: NOTE,
         doors: [CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE)],
@@ -341,7 +341,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     cultivate: {
         nameKey: "surface_mode_cultivate",
         owner: HOME,
-        doors: [RIBBON("cultivate"), { kind: "surface", at: `${HOME}:cultivate` }, CMD("cultivate")],
+        // *Cultivate this note* in This note's actions (#890) targets the note you are reading.
+        doors: [RIBBON("cultivate"), { kind: "surface", at: `${HOME}:cultivate` }, CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE), CMD("cultivate")],
     },
     inquiry: {
         nameKey: "inquiry_title",
@@ -364,8 +365,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         nameKey: "collision_title",
         owner: HOME,
         doors: [
+            // Only from Think: the note's menu registers no collision entry (#890 Q7).
             CONTROL("architecture/components/core/lab/LabRenderer.ts", HOME),
-            NOTE_MENU("starters/zcomponents/MoveCommandsComponent.ts"),
         ],
     },
     moves: {
@@ -374,6 +375,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [
             NOTE_MENU("starters/zcomponents/MoveCommandsComponent.ts"),
             CONTROL("architecture/components/core/cultivate/CultivateModeRenderer.ts", HOME),
+            CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE),
         ],
     },
     reader: {
@@ -555,7 +557,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
     "think-about": {
         nameKey: "command_think_about",
         owner: HOME,
-        doors: [NOTE_MENU("starters/zcomponents/ThinkAboutComponent.ts"), CMD("think-about-this-note")],
+        doors: [NOTE_MENU("starters/zcomponents/ThinkAboutComponent.ts"), CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE), CMD("think-about-this-note")],
     },
     "claim-door": {
         nameKey: "claim_door_menu",
@@ -563,6 +565,8 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         doors: [
             NOTE_MENU("starters/zcomponents/ClaimDoorComponent.ts"),
             CONTROL("architecture/components/core/cultivate/CultivateModeRenderer.ts", HOME),
+            // Shown and edited in place in This note's actions (#890 Q5).
+            CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE),
         ],
     },
     "claim-return": {
@@ -577,6 +581,7 @@ export const CAPABILITY_DOORS: Record<CapabilityId, Capability> = {
         // menu first; the sequence a person lives is the other way round, and both are true.
         doors: [
             NOTE_MENU("starters/zcomponents/ClaimDoorComponent.ts"),
+            CONTROL(`${COMPANION}/blocks/nextStepBlock.ts`, NOTE),
             { kind: "recommendation", at: `${HOME}:home` },
         ],
     },

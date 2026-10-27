@@ -121,3 +121,19 @@ describe("guardrail B — every door resolves (#575)", () => {
         );
     });
 });
+
+describe("actions on this note (#890)", () => {
+    const companionControl = { kind: "object", at: "architecture/components/core/noteCompanion/blocks/nextStepBlock.ts", via: "control", host: "zettelflow-note" };
+
+    it("lists This note's section as a door of every capability it reaches (AC-1, door ranks)", () => {
+        for (const id of ["moves", "think-about", "claim-door", "wager", "cultivate"] as const) {
+            expect({ id, doors: CAPABILITY_DOORS[id].doors }).toEqual({ id, doors: expect.arrayContaining([companionControl]) });
+        }
+        expect(CAPABILITY_DOORS["next-step"].nameKey).toBe("note_next_eyebrow");
+        expect(enMap.note_next_eyebrow).toBe("Actions on this note");
+    });
+
+    it("claims no note-menu door for collision, which the note's menu never offers (Q7)", () => {
+        expect(CAPABILITY_DOORS.collision.doors.filter((door) => door.via === "menu")).toEqual([]);
+    });
+});

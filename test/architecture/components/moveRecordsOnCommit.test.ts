@@ -31,6 +31,16 @@ function code(source: string): string {
         .join("\n");
 }
 
+/** A top-level function's body, which ends at the first closing brace in column 0. */
+function functionBody(source: string, signature: string): string {
+    const at = source.indexOf(signature);
+    if (at === -1) return "";
+    const rest = source.slice(at);
+    const end = rest.indexOf("
+}");
+    return end === -1 ? rest : rest.slice(0, end);
+}
+
 function methodBody(source: string, signature: string): string {
     const at = source.indexOf(signature);
     if (at === -1) return "";
@@ -41,7 +51,7 @@ function methodBody(source: string, signature: string): string {
 
 describe("the gesture records nothing (#500)", () => {
     it("a framed verb opens the space and writes no move", () => {
-        const perform = methodBody(code(COMMANDS), "private perform(");
+        const perform = functionBody(code(COMMANDS), "export function performMove(");
         const opens = perform.slice(0, perform.indexOf("recordMoveOn"));
         expect(opens).toContain("activateSurface");
         expect(opens).not.toContain("MoveLog");
@@ -49,7 +59,7 @@ describe("the gesture records nothing (#500)", () => {
     });
 
     it("a verb that only records still records now — there is nothing else coming", () => {
-        expect(methodBody(code(COMMANDS), "private perform(")).toContain("recordMoveOn(verb, path);");
+        expect(functionBody(code(COMMANDS), "export function performMove(")).toContain("recordMoveOn(verb, path, say);");
     });
 });
 

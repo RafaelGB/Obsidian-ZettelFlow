@@ -1,4 +1,4 @@
-import { Menu, Notice, TFile } from "obsidian";
+import { Menu, Notice, TFile, type App } from "obsidian";
 import { PluginComponent } from "architecture";
 import { t } from "architecture/lang";
 import { effectOf, type MoveVerb } from "application/thinking/move";
@@ -10,6 +10,11 @@ import { splitNote } from "./AtomicitySplitComponent";
 import ZettelFlow from "main";
 
 type LocaleKey = Parameters<typeof t>[0];
+
+/** Where a recorded move is acknowledged: a Notice from a menu, a status line from a view (#890). */
+export type SayMove = (text: string) => void;
+
+const notice: SayMove = (text) => new Notice(text);
 
 /**
  * A move on a note (#493, epic #489).
@@ -96,45 +101,49 @@ export class MoveCommandsComponent extends PluginComponent {
             item
                 .setTitle(t("move_pick_title"))
                 .setIcon("brain")
-                .onClick(() => this.pick(path))
+                .onClick(() => pickMoveOn(this.plugin.app, path))
         );
     }
+}
 
-    private pick(path: string): void {
-        const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
-        new MovePicker(this.plugin.app, name, "note", (verb: MoveVerb) => this.perform(verb, path)).open();
-    }
+/**
+ * The picker on one note, and what choosing a verb does — one implementation for every door: the
+ * note's menu, and *Actions on this note* in This note (#890), which answers on its own line.
+ */
+export function pickMoveOn(app: App, path: string, say: SayMove = notice): void {
+    const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
+    new MovePicker(app, name, "note", (verb: MoveVerb) => performMove(app, verb, path, say)).open();
+}
 
-    /**
+/**
      * What choosing a verb does, which the vocabulary decides rather than this file (#498).
      *
      * A **framed** verb opens the thinking space about that note. It records nothing yet: a move
      * you did not make is not a move, and the space you opened and closed is not an act of
      * thinking (#500). A verb that only records has nothing else coming, so it records now.
      */
-    private perform(verb: MoveVerb, path: string): void {
-        const effect = effectOf(verb.verb, "note");
-        if (effect === "space") {
-            void activateSurface(this.plugin.app, "zettelflow-home", "lab", { about: path, frame: verb.verb });
-            return;
-        }
-        if (effect === "operation") {
-            // The one verb the product can actually perform: splitting a note at its headings
-            // invents nothing, it rearranges what you already wrote (#501). It records when the
-            // split completes, so a cancelled modal leaves no trace.
-            const file = this.plugin.app.vault.getAbstractFileByPath(path);
-            if (file instanceof TFile) void splitNote(this.plugin.app, file, () => recordMoveOn(verb, path));
-            return;
-        }
-        recordMoveOn(verb, path);
+export function performMove(app: App, verb: MoveVerb, path: string, say: SayMove = notice): void {
+    const effect = effectOf(verb.verb, "note");
+    if (effect === "space") {
+        void activateSurface(app, "zettelflow-home", "lab", { about: path, frame: verb.verb });
+        return;
     }
+    if (effect === "operation") {
+        // The one verb the product can actually perform: splitting a note at its headings
+        // invents nothing, it rearranges what you already wrote (#501). It records when the
+        // split completes, so a cancelled modal leaves no trace.
+        const file = app.vault.getAbstractFileByPath(path);
+        if (file instanceof TFile) void splitNote(app, file, () => recordMoveOn(verb, path, say));
+        return;
+    }
+    recordMoveOn(verb, path, say);
 }
 
 /**
  * Write the move down and say so. Acknowledged the moment it lands — a log that fills up silently
  * teaches you it is not there.
  */
-export function recordMoveOn(entry: MoveVerb, path: string): void {
+export function recordMoveOn(entry: MoveVerb, path: string, say: SayMove = notice): void {
     const log = MoveLog.getInstance();
     const history = log.forSubject(path);
     const from = history.length > 0 ? history[history.length - 1].id : undefined;
@@ -145,5 +154,5 @@ export function recordMoveOn(entry: MoveVerb, path: string): void {
         ...(from ? { from } : {}),
     });
     const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
-    new Notice(recorded ? t("move_recorded", t(entry.labelKey as LocaleKey), name) : t("move_not_recorded"));
+    say(recorded ? t("move_recorded", t(entry.labelKey as LocaleKey), name) : t("move_not_recorded"));
 }

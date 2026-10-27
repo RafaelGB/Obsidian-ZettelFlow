@@ -46,8 +46,8 @@ describe("one implementation, two doors (#501)", () => {
 
     it("acts on the note the move was made on, not on whatever is in the editor", () => {
         // A right-click in the file explorer must not split the note you are reading.
-        expect(code(COMMANDS)).toContain("this.plugin.app.vault.getAbstractFileByPath(path)");
-        expect(code(COMMANDS)).toContain("splitNote(this.plugin.app, file,");
+        expect(code(COMMANDS)).toContain("app.vault.getAbstractFileByPath(path)");
+        expect(code(COMMANDS)).toContain("splitNote(app, file,");
         const fn = code(COMPONENT).slice(code(COMPONENT).indexOf("export async function splitNote"));
         expect(fn).not.toContain("getActiveViewOfType");
     });
@@ -70,7 +70,7 @@ describe("it records a transformation, not an intention (#501)", () => {
     });
 
     it("hands the move in as the callback, so the recording is the split's own completion", () => {
-        expect(code(COMMANDS)).toContain("() => recordMoveOn(verb, path)");
+        expect(code(COMMANDS)).toContain("() => recordMoveOn(verb, path, say)");
     });
 });
 

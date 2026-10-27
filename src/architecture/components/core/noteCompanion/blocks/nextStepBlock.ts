@@ -15,6 +15,7 @@ import {
 import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotice";
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { InquiryNoteSuggest } from "architecture/components/core/cultivate/InquiryNoteSuggest";
+import { pickMoveOn, type SayMove } from "starters/zcomponents/MoveCommandsComponent";
 import {
     INITIAL_NEXT_UI,
     anotherMove,
@@ -43,6 +44,8 @@ export interface NextStepDeps {
     withdrawPromotion: (judgement: Judgement) => void;
     undoBatch: (batch: string) => Promise<UndoResult>;
     pickNote: (app: App, onPick: (path: string) => void) => void;
+    /** The move picker on the note; a move that only records answers through `say` (#890). */
+    pickMove: (app: App, path: string, say: SayMove) => void;
 }
 
 const DEFAULT_DEPS: NextStepDeps = {
@@ -52,6 +55,7 @@ const DEFAULT_DEPS: NextStepDeps = {
     withdrawPromotion,
     undoBatch,
     pickNote: (app, onPick) => new InquiryNoteSuggest(app, onPick, t("note_next_choose_placeholder")).open(),
+    pickMove: pickMoveOn,
 };
 
 /** What answers a click — always about the note it was made on (`path`), never another. */
@@ -69,6 +73,8 @@ type Status = { path: string } & (
           at: number;
       }
     | { kind: "undone" | "undo-failed" | "failed"; at: number }
+    /** A move recorded from *Make a move…*: said here, never as a toast (#546). */
+    | { kind: "said"; text: string; at: number }
 );
 
 const ICON_LABEL: Record<NextStepFact["token"], Parameters<typeof t>[0]> = {
@@ -146,6 +152,7 @@ export class NextStepBlock extends CompanionBlock {
 
         if (moves.length === 0) {
             card.createDiv({ cls: c("note-next-complete"), text: t("note_next_complete") });
+            this.renderTools(card, ctx, model);
             this.renderStatus(card);
             return;
         }
@@ -177,6 +184,7 @@ export class NextStepBlock extends CompanionBlock {
 
         if (this.ui.open) this.renderPanel(card, ctx, model, move);
         else this.draft = "";
+        this.renderTools(card, ctx, model);
         this.renderStatus(card);
         if (refocus) card.querySelector<HTMLInputElement>("input")?.focus();
     }
@@ -305,6 +313,18 @@ export class NextStepBlock extends CompanionBlock {
         }
     }
 
+    /** What ZettelFlow lets you do with this note, beside its open steps — quiet, never the primary. */
+    private renderTools(card: HTMLElement, ctx: CompanionContext, model: CompanionModel): void {
+        const tools = card.createDiv({ cls: c("note-next-tools") });
+        const move = tools.createEl("button", { cls: c("note-next-tool"), text: t("move_pick_title"), attr: { type: "button" } });
+        this.on(move, "click", () =>
+            this.deps.pickMove(ctx.app, model.path, (text) => {
+                this.status = { kind: "said", path: model.path, text, at: Date.now() };
+                this.redraw();
+            })
+        );
+    }
+
     private connect(ctx: CompanionContext, model: CompanionModel, target: string): void {
         void this.write("connect", t("note_next_done_link", noteName(target)), () => this.deps.linkNotes(ctx.app, model.path, target));
     }
@@ -386,6 +406,10 @@ export class NextStepBlock extends CompanionBlock {
         // In an idle pane nothing else would redraw it: the line goes when its window closes.
         this.later(UNDO_OFFER_MS - (Date.now() - status.at), () => this.redraw());
         const line = card.createDiv({ cls: c("note-next-status"), attr: { role: "status" } });
+        if (status.kind === "said") {
+            line.setText(status.text);
+            return;
+        }
         if (status.kind !== "done") {
             const key = {
                 failed: "note_next_failed",

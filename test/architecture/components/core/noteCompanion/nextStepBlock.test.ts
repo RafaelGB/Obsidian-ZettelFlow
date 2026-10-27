@@ -44,6 +44,7 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
         withdrawPromotion: jest.fn(),
         undoBatch: jest.fn(async () => ({ hadWork: true, done: 1, failed: [] as string[] })),
         pickNote: jest.fn(),
+        pickMove: jest.fn(),
         ...depsOver,
     };
     const block = new NextStepBlock(host as never, { settings: { lifecycle: { stateProperty: "status" } } }, deps as never);
@@ -128,6 +129,18 @@ describe("actions on this note (#890)", () => {
         expect(primary(host).textContent).toBe("Add a source");
         expect(host.byClass("note-next-panel")).toEqual([]);
         expect(host.oneByClass("note-next").hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
+    });
+
+    it("opens the move picker on the companion's note, and answers a recorded move inline (AC-5)", () => {
+        const { host, deps } = setup();
+        const make = host.findAll((el) => el.tag === "button" && el.text === "Make a move…")[0];
+        expect(make.hasClass("mod-cta")).toBe(false);
+        make.click();
+        expect(deps.pickMove).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", expect.any(Function));
+        const say = (deps.pickMove as jest.Mock).mock.calls[0][2] as (text: string) => void;
+        say("Set aside — A");
+        expect(text(host, "note-next-status")).toBe("Set aside — A");
+        expect(host.byClass("note-next-undo")).toEqual([]);
     });
 });
 

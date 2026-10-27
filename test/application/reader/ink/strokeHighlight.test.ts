@@ -1,10 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
-import { bandWords, extendsHighlight, strokeMetrics, EXTEND_WINDOW_MS, LINE_BAND_LH } from "application/reader/ink/strokeHighlight";
+import { bandWords, extendsHighlight, strokeMetrics, LINE_BAND_LH } from "application/reader/ink/strokeHighlight";
 import type { WordBox } from "application/reader/ink/inkAnchor";
 
 describe("a highlighter stroke, measured (#746)", () => {
-    it("has its band and its window as named constants", () => {
-        expect({ LINE_BAND_LH, EXTEND_WINDOW_MS }).toEqual({ LINE_BAND_LH: 0.75, EXTEND_WINDOW_MS: 4000 });
+    it("has its band as a named constant", () => {
+        expect({ LINE_BAND_LH }).toEqual({ LINE_BAND_LH: 0.75 });
     });
 
     it("measures direction, closure and the turns back", () => {
@@ -71,19 +71,20 @@ describe("the words it covers (#746 FR-2, AC-2)", () => {
     });
 });
 
-describe("several lines (#746 FR-5, AC-5)", () => {
+describe("several lines (#746 FR-5, #887 AC-1, AC-5)", () => {
     const text = "alpha beta gamma delta\nalpha beta gamma delta alpha";
-    const first = { span: { start: 0, end: 22 }, at: 1000 };
+    const first = { span: { start: 0, end: 22 }, meaning: "idea" as const };
 
-    it("extends with the next line drawn within the window, whitespace between", () => {
-        expect(extendsHighlight(first, { start: 23, end: 45 }, text, 1000 + EXTEND_WINDOW_MS)).toBe(true);
+    it("extends with the next line however long the reader took to get there, whitespace between", () => {
+        // An hour or a second: reading the next line before marking it is no new thought (#887).
+        expect(extendsHighlight(first, { start: 23, end: 45 }, text, "idea")).toBe(true);
         // The line above extends too.
-        expect(extendsHighlight({ span: { start: 23, end: 45 }, at: 1000 }, { start: 0, end: 22 }, text, 2000)).toBe(true);
+        expect(extendsHighlight({ span: { start: 23, end: 45 }, meaning: "idea" }, { start: 0, end: 22 }, text, "idea")).toBe(true);
     });
 
-    it("does not extend a millisecond late, across a word, or with nothing before it", () => {
-        expect(extendsHighlight(first, { start: 23, end: 45 }, text, 1000 + EXTEND_WINDOW_MS + 1)).toBe(false);
-        expect(extendsHighlight(first, { start: 29, end: 45 }, text, 1500)).toBe(false);
-        expect(extendsHighlight(null, { start: 23, end: 45 }, text, 1500)).toBe(false);
+    it("does not extend with another meaning, across a word, or with nothing before it", () => {
+        expect(extendsHighlight(first, { start: 23, end: 45 }, text, "question")).toBe(false);
+        expect(extendsHighlight(first, { start: 29, end: 45 }, text, "idea")).toBe(false);
+        expect(extendsHighlight(null, { start: 23, end: 45 }, text, "idea")).toBe(false);
     });
 });

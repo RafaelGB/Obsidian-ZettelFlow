@@ -1194,7 +1194,8 @@ below the last line, still counts.
   highlight in Think.* and its **Undo** takes back just those words. A note written on them is added
   to the highlight's note, on a line of its own. Words elsewhere, another meaning, another chapter, or
   a highlight from an earlier reading each make a highlight of their own. The highlighter pen grows a
-  stroke by the same rule, within four seconds.
+  highlight by the same rule and the same memory: a stroke after a selection grows it, and words
+  selected after a stroke grow the stroke's (#887).
 - **The note is never touched.** Nothing is added to it: no marker, no block id, no property. The
   highlight is found again every time you read, by looking for the same words and the words around
   them, so it survives edits elsewhere in the note.
@@ -1374,8 +1375,12 @@ mark: the ink fades while the marker sweeps across the words from the side you s
   no text it keeps nothing, and says *Nothing under the highlighter*.
 - **Its meaning.** The one **H** uses: the meaning you chose last, an *Idea* the first time. Click
   the highlight afterwards to change it, as for any highlight.
-- **Several lines.** Draw across the next line within a few seconds and the same highlight grows onto
-  it: a sentence that wraps is one highlight, saved as one update. Only the new words sweep.
+- **Several lines.** Draw across the next line and the same highlight grows onto it, however long you
+  took to read it first: a sentence that wraps is one highlight, saved as one update. Only the new
+  words sweep. A stroke that stopped short of a line's last words, or started after the next line's
+  first ones, takes them in (up to three on each side); a word skipped mid-line, a whole line
+  skipped, another paragraph or another meaning starts a highlight of its own. In Page view a printed
+  page grows the same way, line by line, and **Undo** takes back only the line just added (#887).
 - **The same highlight.** It is exactly the thought a selection makes: the same passage, the same
   place in the book, the same heading, in Think, in review and in the notebook.
 - **The way back.** A quiet line says *Highlighted as an idea. Kept in Think.* with **Undo** and

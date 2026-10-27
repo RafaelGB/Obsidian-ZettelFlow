@@ -16,7 +16,6 @@ import { ReaderHighlights } from "architecture/components/core/reader/readerHigh
 import { chapterText } from "architecture/components/core/reader/readerMarks";
 import { MOTION } from "architecture/components/core/reader/readerMotion";
 import { currentWriteBatch } from "architecture/plugin/writes/recordVaultWrite";
-import { EXTEND_WINDOW_MS } from "application/reader/ink/strokeHighlight";
 import type { WordBox } from "application/reader/ink/inkAnchor";
 import type { PageText } from "application/library/pdfWords";
 import { FakeEl } from "../../../../support/textDom";
@@ -607,6 +606,8 @@ const middle = (line: number) => TOP + line * LINE + 14;
 const along = (line: number, from = 90, to = 480) => Array.from({ length: 13 }, (_, k) => ({ x: from + ((to - from) * k) / 12, y: middle(line) + (k % 2 ? 1 : -1) }));
 
 function direct(options: { lab?: string; pageWords?: (index: number) => Promise<PageText | null>; run?: boolean; writePending?: boolean; textRects?: boolean; pageLocator?: (index: number) => ThoughtLocator; pageInk?: PageInk } = {}) {
+    /** What is selected now, for a highlight kept by selection (H) beside the pen's (#887). */
+    let selected: { start: number; end: number } | null = null;
     const pageInk = fakePageInk(options.pageInk ?? null);
     const body = chapterEl();
     const text = chapterText(body as never);
@@ -650,7 +651,7 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
         { app: {} as never, host: root as never, owner, scrollTo: jest.fn(), onChange: jest.fn() },
         {
             store: store as never,
-            selection: () => null,
+            selection: () => (selected ? { ...selected, rect: { left: 0, top: 0, width: 0 }, clear: () => (selected = null) } : null),
             headingAt: () => undefined,
             makeMark: (id) => {
                 const mark = new FakeEl("mark");
@@ -695,7 +696,13 @@ function direct(options: { lab?: string; pageWords?: (index: number) => Promise<
         drawings.set(id, renderInkSvg(TWO_STROKES));
         return thought;
     };
-    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, marks, status, button, pageInk, drawings, stored, release: () => release() };
+    /** Select a line's words and press H: a highlight kept by selection. */
+    const select = (line: number) => {
+        const on = words.filter((w) => w.top === TOP + line * LINE + 6);
+        selected = { start: on[0].start, end: on[on.length - 1].end };
+        highlights.highlightCurrent();
+    };
+    return { ink, highlights, store, batches, root, stage, page, body, text, words, draw, pick, select, marks, status, button, pageInk, drawings, stored, release: () => release() };
 }
 
 /** The box of each line's run of the words a mark's text covers, as `getClientRects` gives them. */
@@ -895,17 +902,71 @@ describe("the highlighter (#746)", () => {
         expect(m.store.discard).not.toHaveBeenCalled();
     });
 
-    it("makes a second highlight when the next line comes too late (AC-5)", async () => {
+    it("grows it when the stroke stopped short of the line's last word, and takes that word in (#887 AC-2)", async () => {
+        const m = direct();
+        m.pick("highlighter");
+        await flush();
+        // Line one ends "… changes and not": the hand stops before "and" (middle 352) and "not".
+        m.draw(along(0, 90, 345));
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        expect((m.store.save.mock.calls[0] as [Thought])[0].quote?.exact).toContain("changes and not the state");
+    });
+
+    it("grows a highlight a selection kept, and a selection grows a stroke's: one memory for both (#887 AC-3)", async () => {
+        const m = direct();
+        m.select(0);
+        await flush();
+        m.pick("highlighter");
+        await flush();
+        m.draw(along(1));
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+
+        const n = direct();
+        n.pick("highlighter");
+        await flush();
+        n.draw(along(0));
+        await flush();
+        n.select(1);
+        await flush();
+        expect(n.store.write).toHaveBeenCalledTimes(1);
+        expect(n.store.save).toHaveBeenCalledTimes(1);
+    });
+
+    it("takes back only the stroke's words when it grew a selection's highlight, with Undo (#887 AC-6)", async () => {
+        const m = direct();
+        m.select(0);
+        await flush();
+        const kept = m.marks().length;
+        m.pick("highlighter");
+        await flush();
+        m.draw(along(1));
+        await flush();
+        m.button("Undo")!.click();
+        await flush();
+        expect(m.store.discard).not.toHaveBeenCalled();
+        expect(m.store.save).toHaveBeenCalledTimes(2);
+        expect((m.store.save.mock.calls[1] as [Thought])[0].quote?.exact).toBe((m.store.write.mock.calls[0] as [string, any])[1].quote.exact);
+        jest.runAllTimers();
+        expect(m.marks().filter((mark) => mark.isConnected !== false)).toHaveLength(kept);
+    });
+
+    it("still grows it when the next line comes a long while later: reading it first is no new thought (#887 AC-1)", async () => {
         const m = direct();
         m.pick("highlighter");
         await flush();
         m.draw(along(0));
         await flush();
-        clock += EXTEND_WINDOW_MS + 1;
+        clock += 60 * 60 * 1000;
         m.draw(along(1));
         await flush();
-        expect(m.store.write).toHaveBeenCalledTimes(2);
-        expect(m.store.save).not.toHaveBeenCalled();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
     });
 
     it("turns the stroke into the mark: the ink fades as the mark sweeps from where it began, before the write answers (FR-11, FR-12)", async () => {
@@ -1027,6 +1088,21 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         expect(m.page.byClass("reader-ink-layer").every((layer: any) => !layer.hasClass("theme-dark"))).toBe(true);
     });
 
+    it("grows one highlight down a printed page, line by line: one passage kept, then an update (#887 AC-4)", async () => {
+        const m = await printed(PRINTED);
+        m.pick("highlighter");
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        // The second printed line (top 0.23).
+        m.draw(printedLine().map((p) => ({ x: p.x, y: p.y + 0.03 * 520 })), { target: m.slot });
+        await flush();
+        expect(m.store.write).toHaveBeenCalledTimes(1);
+        expect(m.store.save).toHaveBeenCalledTimes(1);
+        const grown = (m.store.save.mock.calls[0] as [Thought])[0];
+        expect(grown.quote?.exact).toBe(PRINTED.text);
+        expect(grown.locator?.at).toBe(2);
+    });
+
     it("cites a line of a printed page exactly: its key and its print page ride with it (#751 FR-5)", async () => {
         const m = await printed(PRINTED, (at) => ({ at, label: "p. iii", chapter: `page:${at}`, page: "iii" }));
         m.pick("highlighter");
@@ -1130,6 +1206,23 @@ describe("the highlighter on a printed page (#746 FR-9, AC-8)", () => {
         rec.finishAll();
         expect(m.store.discard).toHaveBeenCalledTimes(1);
         expect(m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected)).toHaveLength(0);
+    });
+
+    it("takes back only the line a grown passage gained, with Undo (#887 AC-6)", async () => {
+        const m = await printed(PRINTED);
+        m.pick("highlighter");
+        m.draw(printedLine(), { target: m.slot });
+        await flush();
+        const first = (m.store.write.mock.calls[0] as [string, any])[1].quote.exact as string;
+        const before = m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected).length;
+        m.draw(printedLine().map((p) => ({ x: p.x, y: p.y + 0.03 * 520 })), { target: m.slot });
+        await flush();
+        m.button("Undo")!.click();
+        await flush();
+        rec.finishAll();
+        expect(m.store.discard).not.toHaveBeenCalled();
+        expect((m.store.save.mock.calls[1] as [Thought])[0].quote?.exact).toBe(first);
+        expect(m.slot.byClass("reader-ink-pagemark").filter((el) => el.isConnected)).toHaveLength(before);
     });
 });
 

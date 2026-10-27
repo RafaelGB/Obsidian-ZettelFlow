@@ -100,7 +100,11 @@ export interface InkHighlighter {
     quoteFor(start: number, end: number): { span: TextSpan; quote: ThoughtQuote } | null;
     keepSpan(span: TextSpan, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
     keepPassage(locator: ThoughtLocator, quote: ThoughtQuote, options?: KeepOptions): Promise<Thought | undefined>;
-    extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions">): Promise<Thought | undefined>;
+    extend(thought: Thought, span: TextSpan, options?: Pick<KeepOptions, "direction" | "actions" | "origin">): Promise<Thought | undefined>;
+    /** A selection's highlight these words continue, when a selection kept the last one (#887 AC-3). */
+    selectionToGrow?(span: TextSpan, meaning: HighlightMeaning, lineStarts?: readonly number[]): { thought: Thought; span: TextSpan } | null;
+    /** A printed page's passage grown onto the next line (#887 AC-4). */
+    extendPassage?(thought: Thought, quote: ThoughtQuote, options?: Pick<KeepOptions, "actions" | "origin">): Promise<Thought | undefined>;
     unextend(grown: Thought, before: Thought): Promise<boolean>;
     takeBack(thought: Thought): Promise<boolean>;
     /** The eraser's and the lasso's part (#747): the marks on screen, an erase and its undo, a selection. */
@@ -134,11 +138,11 @@ interface StrokeHighlight {
     previous?: LastStroke | null;
 }
 
-/** The last highlight a stroke made: the next line, drawn soon after on contiguous words, grows it. */
+/** The last highlight a stroke made: the next line, with its meaning, on contiguous words, grows it (#887). */
 interface LastStroke {
     result: Promise<Thought | undefined>;
     span: TextSpan;
-    at: number;
+    meaning: HighlightMeaning;
     surface: string;
     entry: StrokeHighlight;
 }
@@ -1430,27 +1434,35 @@ export class ReaderInk {
         const found = band ? engine.quoteFor(band.span.start, band.span.end) : null;
         if (!band || !found) return this.nothingUnder(live);
         const last = this.lastStroke;
-        const extend = last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, this.now()) ? last : null;
+        const meaning = engine.currentMeaning();
+        const lineStarts = linesOf(near.words, linePx).map((line) => Math.min(...line.words.map((w) => w.start)));
+        // One memory for the pen and a selection (#887 AC-3): a selection kept last is grown too.
+        const selected = engine.selectionToGrow?.(band.span, meaning, lineStarts);
+        const extend = selected
+            ? { result: Promise.resolve<Thought | undefined>(selected.thought), span: selected.span }
+            : last && last.surface === live.surface.key && extendsHighlight(last, band.span, near.text, meaning, lineStarts)
+              ? last
+              : null;
         const entry = this.strokeEntry(live);
         if (extend) {
             // One highlight, grown (FR-5): one recorded update of the one thought.
-            const keep = () => engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+            const keep = () => engine.keepSpan(found.span, found.quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
             entry.result = extend.result.then(async (before) => {
                 // Nothing to grow any more (taken back, or its words gone): a highlight of its own.
                 if (!before) return keep();
                 entry.before = before;
-                const grown = await engine.extend(before, band.span, { direction: metrics.direction, actions: () => this.strokeActions(entry) });
+                const grown = await engine.extend(before, band.span, { direction: metrics.direction, origin: "stroke", actions: () => this.strokeActions(entry) });
                 if (grown) return grown;
                 entry.before = undefined;
                 return keep();
             });
         } else {
-            entry.result = engine.keepSpan(found.span, found.quote, { meaning: engine.currentMeaning(), origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+            entry.result = engine.keepSpan(found.span, found.quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
         }
         // The ink becomes the mark (FR-11): the marks are on the words now, and the stroke fades.
         this.fadeOut(live.el, MOTION.base);
         const union = extend ? { start: Math.min(extend.span.start, band.span.start), end: Math.max(extend.span.end, band.span.end) } : found.span;
-        this.remember(entry, union, live.surface.key);
+        this.remember(entry, union, live.surface.key, meaning);
         return true;
     }
 
@@ -1470,25 +1482,45 @@ export class ReaderInk {
         const band = bandWords(live.stroke.points, words, line);
         const made = band ? quoteAt(text.text, band.span.start, band.span.end) : null;
         if (!band || !made) return this.nothingUnder(live);
-        const heading = pageHeadingAt(text, made.span.start);
-        const quote: ThoughtQuote = { ...made.quote, ...(heading ? { heading } : {}) };
         const meaning = engine.currentMeaning();
+        // The next printed line grows the same passage, as on the text (#887 AC-4).
+        const last = this.lastStroke;
+        const lineStarts = linesOf(words, line).map((row) => Math.min(...row.words.map((w) => w.start)));
+        const extend = engine.extendPassage && last && last.surface === live.surface.key && extendsHighlight(last, made.span, text.text, meaning, lineStarts) ? last : null;
+        const union = extend ? { start: Math.min(extend.span.start, made.span.start), end: Math.max(extend.span.end, made.span.end) } : made.span;
+        const whole = extend ? (quoteAt(text.text, union.start, union.end) ?? made) : made;
+        const heading = pageHeadingAt(text, whole.span.start);
+        const quote: ThoughtQuote = { ...whole.quote, ...(heading ? { heading } : {}) };
         // Marked at once (FR-12), sweeping from the side the stroke began; the write follows.
         const rects = this.pageRects(marks.layer, text, made.span, meaning, metrics.direction);
         const entry = this.strokeEntry(live);
         entry.page = { index: page.index, marks: rects };
         const locator: ThoughtLocator = this.view.pageLocator?.(page.index) ?? { at: page.index, label: this.view.pageLabel?.(page.index) ?? this.chapter?.locator?.label ?? "" };
-        entry.result = engine.keepPassage(locator, quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) }).then((thought) => {
+        const keep = () => engine.keepPassage(locator, quote, { meaning, origin: "stroke", direction: metrics.direction, actions: () => this.strokeActions(entry) });
+        const kept = extend
+            ? extend.result.then(async (before) => {
+                  // Nothing to grow any more (taken back): a passage of its own.
+                  if (!before || !engine.extendPassage) return keep();
+                  entry.before = before;
+                  const grown = await engine.extendPassage(before, quote, { origin: "stroke", actions: () => this.strokeActions(entry) });
+                  if (grown) return grown;
+                  entry.before = undefined;
+                  return keep();
+              })
+            : keep();
+        entry.result = kept.then((thought) => {
             if (!thought) rects.forEach((rect) => rect.remove());
             else {
                 rects.forEach((rect) => rect.setAttribute("data-hl", thought.id));
-                marks.marks.set(thought.id, rects);
-                this.runInk?.highlights.push(thought);
+                marks.marks.set(thought.id, [...(entry.before ? (marks.marks.get(thought.id) ?? []) : []), ...rects]);
+                // A grown passage is the same thought, its quote longer: replaced, never listed twice.
+                if (this.runInk) this.runInk.highlights = [...this.runInk.highlights.filter((t) => t.id !== thought.id), thought];
                 this.view.drawn?.();
             }
             return thought;
         });
         this.fadeOut(live.el, MOTION.base);
+        this.remember(entry, union, live.surface.key, meaning);
         return true;
     }
 
@@ -1507,9 +1539,9 @@ export class ReaderInk {
     }
 
     /** Remember the last stroke highlight — at once, its thought to come — for the next line to grow it. */
-    private remember(entry: StrokeHighlight, span: TextSpan, surface: string): void {
+    private remember(entry: StrokeHighlight, span: TextSpan, surface: string, meaning: HighlightMeaning): void {
         entry.previous = this.lastStroke;
-        this.lastStroke = { result: entry.result, span, at: this.now(), surface, entry };
+        this.lastStroke = { result: entry.result, span, meaning, surface, entry };
     }
 
     /** What the status line offers (FR-7): *Undo*, and *Keep as ink*. */
@@ -1541,7 +1573,11 @@ export class ReaderInk {
         const engine = this.view.highlights?.() ?? null;
         const thought = await entry.result;
         if (!engine || !thought) return true;
-        if (entry.before) return engine.unextend(thought, entry.before);
+        if (entry.before) {
+            if (!(await engine.unextend(thought, entry.before))) return false;
+            this.dropAddedPageMarks(entry, entry.before);
+            return true;
+        }
         if (!(await engine.takeBack(thought))) return false;
         this.dropPageMarks(entry, thought);
         return true;
@@ -1570,6 +1606,17 @@ export class ReaderInk {
             return;
         }
         if (kept) this.undoStack.push(this.drawnAction(live));
+    }
+
+    /** A grown passage taken back (#887 AC-6): only the line this stroke added goes; the passage stays as it was. */
+    private dropAddedPageMarks(entry: StrokeHighlight, before: Thought): void {
+        if (!entry.page) return;
+        const added = entry.page.marks;
+        const marks = this.pageMarks.get(entry.page.index)?.marks;
+        const kept = (marks?.get(before.id) ?? []).filter((rect) => !added.includes(rect));
+        marks?.set(before.id, kept);
+        if (this.runInk) this.runInk.highlights = this.runInk.highlights.map((t) => (t.id === before.id ? before : t));
+        for (const rect of added) this.fadeOut(rect);
     }
 
     private dropPageMarks(entry: StrokeHighlight, thought: Thought): void {

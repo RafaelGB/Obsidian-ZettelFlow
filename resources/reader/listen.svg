@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Listen. Left: a chapter in the Reader read aloud. The paragraph being read is softly tinted from behind; the one before it has given its tint back. A sentence kept with Mark carries its highlight, drawn by the marker's sweep. Above the reader's own bar, the listening bar: previous sentence, pause, next sentence, the speed 1.25×, the voice Hazel (English, on this device), Mark, and stop. A dashed line at 85 % of the view: the page scrolls only when the paragraph read passes it, by one move that brings it to the upper third. Right, top: the Listen menu with From here, This chapter, the voices of the device, and on iPad the line Listening stops when the screen locks or you leave Obsidian. Right, middle: after a scroll of yours, Back to the voice in the bar. Right, bottom: a scanned PDF with Listen disabled, There is no text to read aloud in a scanned PDF. Underneath: your device's own voices only, nothing leaves the device, nothing is written but a mark you make.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">LISTEN — READ ALOUD, THE PAGE FOLLOWING, MARK AS YOU HEAR</text>
+
+<!-- ── the chapter, read aloud ───────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="700" height="620" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">MIDDLEMARCH · CHAPTER 2 · EN</text>
+</g>
+
+<!-- the paragraph heard a moment ago: its tint given back -->
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="150">Miss Brooke had that kind of beauty which seems</text>
+<text x="96" y="176">to be thrown into relief by poor dress.</text>
+</g>
+
+<!-- the paragraph being read: a tint behind the words, the words unmoved -->
+<rect x="80" y="196" width="604" height="112" rx="6" fill="#a99cf5" fill-opacity="0.16"/>
+<g font-family="serif" font-size="17" fill="#dcddde">
+<text x="96" y="226">Her hand and wrist were so finely formed that she</text>
+<text x="96" y="252">could wear sleeves not less bare of style than those</text>
+<text x="96" y="278">in which the Blessed Virgin appeared to Italian</text>
+<text x="96" y="304">painters.</text>
+</g>
+<!-- the sentence kept with Mark, its marker swept from the left -->
+<rect x="96" y="236" width="540" height="22" rx="3" fill="#e0c46c" fill-opacity="0.28"/>
+<path d="M96 262 L636 262" stroke="#e0c46c" stroke-width="1.5" stroke-dasharray="2 5" fill="none"/>
+<text x="696" y="252" fill="#5f6168" font-family="sans-serif" font-size="11">Mark</text>
+
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="346">Her profile as well as her stature and bearing seemed</text>
+<text x="96" y="372">to gain the more dignity from her plain garments.</text>
+<text x="96" y="410">She was usually spoken of as being remarkably clever,</text>
+<text x="96" y="436">but with the addition that her sister had more sense.</text>
+</g>
+
+<!-- the follow line: 85 % of the view -->
+<g font-family="sans-serif">
+<line x1="56" y1="520" x2="724" y2="520" stroke="#5f6168" stroke-dasharray="6 6"/>
+<text x="716" y="512" fill="#5f6168" font-size="11" text-anchor="end">85 % — past it, one move to the upper third</text>
+<path d="M710 540 L710 236" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<path d="M704 246 L710 236 L716 246" stroke="#5f6168" fill="none"/>
+</g>
+
+<!-- the listening bar, risen above the reader's own bar -->
+<g font-family="sans-serif" font-size="12">
+<rect x="90" y="572" width="560" height="44" rx="12" fill="#26262c" stroke="#45454d"/>
+<path d="M112 586 L112 602 M126 586 L116 594 L126 602" stroke="#b3b5ba" stroke-width="2" fill="none"/>
+<rect x="142" y="586" width="4" height="16" rx="1" fill="#dcddde"/>
+<rect x="152" y="586" width="4" height="16" rx="1" fill="#dcddde"/>
+<path d="M172 586 L182 594 L172 602 M186 586 L186 602" stroke="#b3b5ba" stroke-width="2" fill="none"/>
+<rect x="200" y="582" width="62" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="231" y="598" fill="#dcddde" text-anchor="middle">1.25× ▾</text>
+<rect x="270" y="582" width="150" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="345" y="598" fill="#dcddde" text-anchor="middle">Hazel · en-GB ▾</text>
+<rect x="428" y="582" width="76" height="24" rx="5" fill="#33333a" stroke="#e0c46c"/>
+<text x="466" y="598" fill="#dcddde" text-anchor="middle">✎ Mark</text>
+<rect x="618" y="587" width="14" height="14" rx="2" fill="none" stroke="#b3b5ba" stroke-width="2"/>
+<text x="370" y="638" fill="#5f6168" font-size="11" text-anchor="middle">rises 8 px with a fade as it comes · sinks as it goes · K pause · [ ] sentence · H mark · Esc stop</text>
+</g>
+<!-- the reader's own bar -->
+<g font-family="sans-serif">
+<rect x="200" y="652" width="340" height="30" rx="10" fill="#1f1f24" stroke="#3a3a3a"/>
+<text x="370" y="672" fill="#8b8e94" font-size="11" text-anchor="middle">‹  Chapter 2 / 12  ›   ☰  ⌕  ♪  ✎  Aa</text>
+</g>
+
+<!-- ── the Listen menu ────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="780" y="108" fill="#5f6168" font-size="11" letter-spacing="1">LISTEN, IN THE BAR</text>
+<rect x="780" y="124" width="380" height="226" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="804" y="156" fill="#dcddde" font-size="13">▶  From here</text>
+<text x="804" y="182" fill="#dcddde" font-size="13">≡  This chapter</text>
+<line x1="796" y1="198" x2="1144" y2="198" stroke="#3a3a3a"/>
+<text x="804" y="220" fill="#8b8e94" font-size="12">Voice</text>
+<text x="804" y="244" fill="#dcddde" font-size="13">✓  Hazel</text>
+<text x="804" y="268" fill="#dcddde" font-size="13">     George</text>
+<line x1="796" y1="284" x2="1144" y2="284" stroke="#3a3a3a"/>
+<text x="804" y="308" fill="#8b8e94" font-size="12">ⓘ  Listening stops when the screen locks</text>
+<text x="804" y="326" fill="#8b8e94" font-size="12">     or you leave Obsidian</text>
+<text x="1140" y="326" fill="#5f6168" font-size="10" text-anchor="end">iPad, iPhone</text>
+</g>
+
+<!-- ── back to the voice ──────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="780" y="396" fill="#5f6168" font-size="11" letter-spacing="1">YOU SCROLLED AWAY</text>
+<rect x="780" y="410" width="380" height="96" rx="10" fill="none" stroke="#3a3a3a" stroke-dasharray="4 4"/>
+<text x="800" y="438" fill="#8b8e94" font-size="12">The page stops following; the voice goes on.</text>
+<rect x="800" y="456" width="136" height="28" rx="6" fill="#33333a" stroke="#a99cf5"/>
+<text x="868" y="475" fill="#dcddde" font-size="12" text-anchor="middle">Back to the voice</text>
+<text x="950" y="475" fill="#8b8e94" font-size="11">one move back to it</text>
+</g>
+
+<!-- ── a scanned PDF ──────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="780" y="552" fill="#5f6168" font-size="11" letter-spacing="1">A SCANNED PDF</text>
+<rect x="780" y="566" width="380" height="96" rx="10" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="806" y="600" fill="#5f6168" font-size="18">♪</text>
+<text x="830" y="598" fill="#8b8e94" font-size="12">Listen — shown, and disabled:</text>
+<text x="830" y="620" fill="#b3b5ba" font-size="12">There is no text to read aloud in a scanned PDF</text>
+<text x="830" y="644" fill="#5f6168" font-size="11">no voice on the device: no Listen at all</text>
+</g>
+
+<!-- ── what it promises ─────────────────────────────────────────────── -->
+<g font-family="sans-serif" font-size="13" fill="#b3b5ba" text-anchor="middle">
+<text x="600" y="730">your device's own voices only — a voice the engine marks as remote is never used · nothing leaves the device</text>
+<text x="600" y="756">listening writes nothing · only a mark you make is kept, as any highlight · reduced motion: the tint and the page jump</text>
+</g>
+</svg>

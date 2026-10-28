@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1188" viewBox="0 0 1200 1188" role="img" aria-label="Writing — the system's canvas flow: 4 steps">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="1188" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">Writing</text>
+<rect x="150.2" y="28" width="82" height="28" rx="14" fill="#e9973f" fill-opacity="0.18" stroke="#e9973f" stroke-width="1.5"/>
+<text x="191.2" y="47" fill="#e9973f" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">medium</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">4 steps · 1 branch point</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">Writing, drawn as a flow: one capture asks where you are — starting a draft, drafting a section, or reviewing — and</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">branches to the matching note (thesis + outline, section points, or a works/fix/next review), phased and connected on…</text>
+<rect x="24" y="138" width="1152" height="1014.0" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="1012.0" rx="11" fill="url(#dots)"/>
+<g transform="translate(90.0,150.0) scale(1.0000) translate(630,370)">
+<path d="M-220,145.0 C-120.0,145.0 -120.0,-175.0 -24,-175.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-128.2" y="-190.0" width="82.19999999999999" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-87.1" y="-170.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A draft</text>
+<path d="M-220,145.0 C-120.0,145.0 -120.0,125.0 -24,125.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-145.39999999999998" y="110.0" width="99.39999999999999" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-95.69999999999999" y="130.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A section</text>
+<path d="M-220,145.0 C-120.0,145.0 -120.0,425.0 -24,425.0" fill="none" stroke="#8b8e94" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="-136.8" y="410.0" width="90.8" height="30" rx="15" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="-91.4" y="430.0" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14" text-anchor="middle">A review</text>
+<rect x="-560" y="20" width="340" height="250" rx="12" fill="#262626" stroke="#fb464c" stroke-width="3"/>
+<path d="M-560,32 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#fb464c" fill-opacity="0.16"/>
+<text x="-544" y="51" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Writing</text>
+<rect x="-284" y="33" width="50" height="22" rx="11" fill="#7f6df2"/>
+<text x="-259" y="49" fill="#fff" font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700" text-anchor="middle">ROOT</text>
+<text x="-544" y="90" fill="#fb464c" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">capture · → Writing</text>
+<circle cx="-539" cy="111" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="116" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Title<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-539" cy="133" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="138" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Where are you?<tspan fill="#5c5f66" font-size="12.5">  selector</tspan></text>
+<circle cx="-539" cy="155" r="3.5" fill="#8b8e94"/>
+<text x="-528" y="160" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tags<tspan fill="#5c5f66" font-size="12.5">  tags</tspan></text>
+<rect x="-20" y="-300" width="340" height="250" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-20,-288 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-4" y="-269" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Draft</text>
+<text x="-4" y="-230" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → Writing/Drafts</text>
+<circle cx="1" cy="-209" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-204" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Thesis<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="-187" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-182" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Audience<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="-165" r="3.5" fill="#8b8e94"/>
+<text x="12" y="-160" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Outline<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="-106" x2="304" y2="-106" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="-88" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Calculate</text>
+<text x="-4" y="-68" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">maturity</text>
+<rect x="-20" y="0" width="340" height="250" rx="12" fill="#262626" stroke="#e0de71" stroke-width="3"/>
+<path d="M-20,12 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#e0de71" fill-opacity="0.16"/>
+<text x="-4" y="31" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Section</text>
+<text x="-4" y="70" fill="#e0de71" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">process · → Writing/Sections</text>
+<circle cx="1" cy="91" r="3.5" fill="#8b8e94"/>
+<text x="12" y="96" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Heading<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="113" r="3.5" fill="#8b8e94"/>
+<text x="12" y="118" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Key points<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="135" r="3.5" fill="#8b8e94"/>
+<text x="12" y="140" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Draft<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="214" x2="304" y2="214" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="232" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related</text>
+<rect x="-20" y="300" width="340" height="250" rx="12" fill="#262626" stroke="#a882ff" stroke-width="3"/>
+<path d="M-20,312 a12,12 0 0 1 12,-12 h316 a12,12 0 0 1 12,12 v34 h-340 z" fill="#a882ff" fill-opacity="0.16"/>
+<text x="-4" y="331" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Review</text>
+<text x="-4" y="370" fill="#a882ff" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">review · → Writing/Reviews</text>
+<circle cx="1" cy="391" r="3.5" fill="#8b8e94"/>
+<text x="12" y="396" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">What works<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="413" r="3.5" fill="#8b8e94"/>
+<text x="12" y="418" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">What to fix<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="1" cy="435" r="3.5" fill="#8b8e94"/>
+<text x="12" y="440" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Next<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<line x1="-4" y1="514" x2="304" y2="514" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-4" y="532" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related</text>
+</g>
+<text x="32" y="1172" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

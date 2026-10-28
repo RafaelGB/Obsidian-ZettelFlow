@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Look up and translate. Left: a Spanish book in the Reader with the word casa selected, and its popover below it: four meaning dots, Note, Copy and More, and the second row a word gets, Look up, Translate and Link to an idea. Look up opens a card grown from the selected word, a faint dot marking the point it grows from: the headword casa, the line From your dictionaries, on this device, then Wiktionary (Spanish) with its definition, a building to live in, its gender and a short list, then FreeDict spa-eng marked Translation with house, home, and Copy. Beside it, an offline mark: no network. Right: Translate on a passage, its card headed Translate into English, Sent to your AI provider, on your click, with three faint lines breathing where the translation will be, and below it the same card with the translation landed in place. Underneath: StarDict dictionaries in your vault, read on the device; nothing kept; on iPad, beside the system's own Look Up and Translate.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">LOOK UP AND TRANSLATE — FROM THE SELECTION, WITH YOUR OWN DICTIONARIES</text>
+
+<!-- ── the book ───────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="700" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">DON QUIJOTE DE LA MANCHA · I · ES</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="156">Tenía en su casa una ama que pasaba de los</text>
+<text x="96" y="182">cuarenta, y una sobrina que no llegaba a los</text>
+<text x="96" y="208">veinte, y un mozo de campo y plaza.</text>
+</g>
+<!-- the selected word -->
+<rect x="186" y="140" width="44" height="24" rx="4" fill="#a99cf5" fill-opacity="0.24"/>
+
+<!-- the popover below the word: the same first row, and Look up first in the second (#811) -->
+<g font-family="sans-serif">
+<rect x="96" y="226" width="300" height="80" rx="10" fill="#26262c" stroke="#45454d"/>
+<g font-size="12">
+<circle cx="118" cy="250" r="9" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<circle cx="118" cy="250" r="5.5" fill="#e0a351"/>
+<circle cx="140" cy="250" r="5.5" fill="#4a9dff"/>
+<circle cx="162" cy="250" r="5.5" fill="#44cf6e"/>
+<circle cx="184" cy="250" r="5.5" fill="#a882ff"/>
+<rect x="200" y="238" width="52" height="24" rx="5" fill="#7f6df2"/>
+<text x="226" y="254" fill="#ffffff" text-anchor="middle">Note</text>
+<rect x="258" y="238" width="52" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="284" y="254" fill="#b3b5ba" text-anchor="middle">Copy</text>
+<rect x="316" y="238" width="56" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="344" y="254" fill="#b3b5ba" text-anchor="middle">More</text>
+<rect x="110" y="272" width="70" height="24" rx="5" fill="#33333a" stroke="#a99cf5"/>
+<text x="145" y="288" fill="#dcddde" text-anchor="middle">Look up</text>
+<rect x="186" y="272" width="76" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="224" y="288" fill="#dcddde" text-anchor="middle">Translate</text>
+<rect x="268" y="272" width="104" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="320" y="288" fill="#b3b5ba" text-anchor="middle">Link to an idea</text>
+</g>
+</g>
+
+<!-- the card, grown from the word: its origin is the word's own point -->
+<g font-family="sans-serif">
+<circle cx="208" cy="166" r="3" fill="#a99cf5"/>
+<path d="M208 170 C 150 210, 130 330, 170 372" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<rect x="150" y="370" width="440" height="282" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="170" y="400" fill="#dcddde" font-family="serif" font-size="19" font-weight="600">casa</text>
+<text x="568" y="398" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<text x="170" y="420" fill="#8b8e94" font-size="11">From your dictionaries, on this device</text>
+
+<text x="170" y="452" fill="#8b8e94" font-size="11" font-weight="600">Wiktionary (Spanish)</text>
+<text x="170" y="474" fill="#dcddde" font-size="13"><tspan font-weight="700">casa</tspan> <tspan font-style="italic">f.</tspan> Edificio para habitar.</text>
+<text x="184" y="496" fill="#b3b5ba" font-size="12">• hogar, vivienda</text>
+<text x="184" y="514" fill="#b3b5ba" font-size="12">• familia, linaje</text>
+
+<text x="170" y="548" fill="#8b8e94" font-size="11" font-weight="600">FreeDict spa-eng</text>
+<rect x="276" y="537" width="70" height="16" rx="3" fill="none" stroke="#45454d"/>
+<text x="311" y="549" fill="#8b8e94" font-size="10" text-anchor="middle">Translation</text>
+<text x="170" y="572" fill="#dcddde" font-size="13">house; home</text>
+
+<rect x="170" y="606" width="52" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="196" y="622" fill="#b3b5ba" font-size="12" text-anchor="middle">Copy</text>
+</g>
+
+<!-- offline: no network -->
+<g font-family="sans-serif">
+<rect x="610" y="440" width="112" height="70" rx="10" fill="none" stroke="#3a3a3a" stroke-dasharray="4 4"/>
+<path d="M640 468 a26 26 0 0 1 52 0" stroke="#5f6168" stroke-width="2" fill="none"/>
+<path d="M650 474 a16 16 0 0 1 32 0" stroke="#5f6168" stroke-width="2" fill="none"/>
+<circle cx="666" cy="480" r="2.5" fill="#5f6168"/>
+<line x1="642" y1="452" x2="690" y2="486" stroke="#8b8e94" stroke-width="2"/>
+<text x="666" y="502" fill="#8b8e94" font-size="11" text-anchor="middle">no network</text>
+</g>
+
+<!-- ── Translate, by your AI provider, on a click ────────────────────── -->
+<g font-family="sans-serif">
+<text x="780" y="108" fill="#5f6168" font-size="11" letter-spacing="1">TRANSLATE · DESKTOP, AI ON</text>
+<rect x="780" y="124" width="380" height="200" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="800" y="154" fill="#dcddde" font-size="15" font-weight="600">Translate into English</text>
+<text x="1138" y="152" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<text x="800" y="174" fill="#8b8e94" font-size="11">Sent to your AI provider, on your click</text>
+<!-- the ink, breathing where the translation will be -->
+<rect x="800" y="206" width="316" height="3" rx="1.5" fill="#5f6168" fill-opacity="0.6"/>
+<rect x="800" y="226" width="268" height="3" rx="1.5" fill="#5f6168" fill-opacity="0.45"/>
+<rect x="800" y="246" width="184" height="3" rx="1.5" fill="#5f6168" fill-opacity="0.35"/>
+<text x="800" y="300" fill="#5f6168" font-size="11">three faint lines breathe — opacity only</text>
+
+<path d="M970 330 L970 362" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<text x="984" y="352" fill="#5f6168" font-size="11">lands in the same box</text>
+
+<rect x="780" y="370" width="380" height="200" rx="10" fill="#26262c" stroke="#45454d"/>
+<text x="800" y="400" fill="#dcddde" font-size="15" font-weight="600">Translate into English</text>
+<text x="1138" y="398" fill="#8b8e94" font-size="14" text-anchor="end">×</text>
+<text x="800" y="420" fill="#8b8e94" font-size="11">Sent to your AI provider, on your click</text>
+<g font-family="serif" font-size="15" fill="#dcddde">
+<text x="800" y="452">In his house he had a housekeeper past</text>
+<text x="800" y="474">forty, a niece not yet twenty, and a lad</text>
+<text x="800" y="496">for the field and the market.</text>
+</g>
+<rect x="800" y="526" width="52" height="24" rx="5" fill="#33333a" stroke="#45454d"/>
+<text x="826" y="542" fill="#b3b5ba" font-size="12" text-anchor="middle">Copy</text>
+
+<text x="780" y="608" fill="#8b8e94" font-size="12">iPhone and iPad: the system's own Translate,</text>
+<text x="780" y="626" fill="#8b8e94" font-size="12">in its callout — ours is hidden.</text>
+<text x="780" y="652" fill="#8b8e94" font-size="12">AI off: no Translate at all.</text>
+</g>
+
+<!-- ── what it promises ─────────────────────────────────────────────── -->
+<g font-family="sans-serif" font-size="13" fill="#b3b5ba" text-anchor="middle">
+<text x="600" y="716">StarDict dictionaries you keep in your vault, read on the device · the book's language picks them</text>
+<text x="600" y="742">nothing is written, nothing downloaded · on iPad, beside the system's own Look Up</text>
+</g>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-label="This note on a note in an excluded folder: one calm card naming the folder, and Change excluded folders">
+<rect width="960" height="420" fill="#1e1e1e"/>
+<text x="24" y="34" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600">A note in an excluded folder</text>
+<rect x="24" y="48" width="440" height="348" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="2"/>
+<text x="56" y="86" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650">Daily</text>
+<text x="404" y="86" fill="#8b8e94" font-family="sans-serif" font-size="14">📌</text>
+<text x="430" y="86" fill="#8b8e94" font-family="sans-serif" font-size="16">↻</text>
+<text x="56" y="132" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="600">This note is outside ZettelFlow</text>
+<text x="56" y="162" fill="#8b8e94" font-family="sans-serif" font-size="13">It lives in an excluded folder, so it gets no next step,</text>
+<text x="56" y="182" fill="#8b8e94" font-family="sans-serif" font-size="13">no neighbours and no story:</text>
+<rect x="56" y="196" width="96" height="26" rx="4" fill="#303030" stroke="#3a3a3a"/>
+<text x="68" y="214" fill="#dcddde" font-family="monospace" font-size="13">Templates</text>
+<rect x="56" y="244" width="196" height="34" rx="6" fill="#363636" stroke="#4a4a4a"/>
+<text x="154" y="266" fill="#dcddde" font-family="sans-serif" font-size="13" text-anchor="middle">Change excluded folders</text>
+<text x="56" y="324" fill="#5c5f66" font-family="sans-serif" font-size="12">No counts · no stepper · no next step · no story</text>
+<text x="56" y="346" fill="#5c5f66" font-family="sans-serif" font-size="12">Nothing here writes to the note.</text>
+<text x="496" y="34" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600">Its menus, the same rule</text>
+<rect x="496" y="48" width="440" height="348" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="528" y="76" width="376" height="186" rx="8" fill="#2c2c2c" stroke="#3a3a3a"/>
+<text x="548" y="106" fill="#dcddde" font-family="sans-serif" font-size="14">Open in new tab</text>
+<text x="548" y="136" fill="#dcddde" font-family="sans-serif" font-size="14">Rename…</text>
+<text x="548" y="166" fill="#dcddde" font-family="sans-serif" font-size="14">Delete</text>
+<line x1="540" y1="182" x2="892" y2="182" stroke="#3a3a3a"/>
+<text x="548" y="210" fill="#5c5f66" font-family="sans-serif" font-size="14" text-decoration="line-through">Read from here</text>
+<text x="548" y="240" fill="#5c5f66" font-family="sans-serif" font-size="14" text-decoration="line-through">Think about this note</text>
+<text x="528" y="300" fill="#8b8e94" font-family="sans-serif" font-size="13">ZettelFlow's items are simply absent on a note</text>
+<text x="528" y="320" fill="#8b8e94" font-family="sans-serif" font-size="13">in an excluded folder — reading, thinking about it,</text>
+<text x="528" y="340" fill="#8b8e94" font-family="sans-serif" font-size="13">removing a relation, deriving a project, a claim,</text>
+<text x="528" y="360" fill="#8b8e94" font-family="sans-serif" font-size="13">a move. Crystallizing makes a new note instead.</text>
+</svg>

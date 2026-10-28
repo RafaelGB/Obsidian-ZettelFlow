@@ -116,12 +116,12 @@ export function pickMoveOn(app: App, path: string, say: SayMove = notice): void 
 }
 
 /**
-     * What choosing a verb does, which the vocabulary decides rather than this file (#498).
-     *
-     * A **framed** verb opens the thinking space about that note. It records nothing yet: a move
-     * you did not make is not a move, and the space you opened and closed is not an act of
-     * thinking (#500). A verb that only records has nothing else coming, so it records now.
-     */
+ * What choosing a verb does, which the vocabulary decides rather than this file (#498).
+ *
+ * A **framed** verb opens the thinking space about that note. It records nothing yet: a move
+ * you did not make is not a move, and the space you opened and closed is not an act of
+ * thinking (#500). A verb that only records has nothing else coming, so it records now.
+ */
 export function performMove(app: App, verb: MoveVerb, path: string, say: SayMove = notice): void {
     const effect = effectOf(verb.verb, "note");
     if (effect === "space") {

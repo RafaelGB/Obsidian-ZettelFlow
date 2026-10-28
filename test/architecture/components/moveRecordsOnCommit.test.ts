@@ -36,8 +36,7 @@ function functionBody(source: string, signature: string): string {
     const at = source.indexOf(signature);
     if (at === -1) return "";
     const rest = source.slice(at);
-    const end = rest.indexOf("
-}");
+    const end = rest.indexOf("\n}");
     return end === -1 ? rest : rest.slice(0, end);
 }
 

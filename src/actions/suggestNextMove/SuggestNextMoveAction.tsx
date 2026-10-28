@@ -17,7 +17,6 @@ type LocaleKey = Parameters<typeof t>[0];
 const MOVE_LABELS: Record<NextMoveToken, LocaleKey> = {
     "add-source": "knowledge_next_move_add_source",
     "connect": "knowledge_next_move_connect",
-    "add-example": "knowledge_next_move_add_example",
     "advance-state": "knowledge_next_move_advance_state",
 };
 

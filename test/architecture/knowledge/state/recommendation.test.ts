@@ -119,7 +119,7 @@ describe("KnowledgeRecommendation command union + unification (#267, AC-4/AC-6)"
             [fromBalance, ["add-sources", "add-examples", "ask-questions"]],
             [fromReview, ["open", "connect", "review"]],
             [fromNextSession, ["develop-hub"]],
-            [fromNextMove, ["add-source", "connect", "add-example", "advance-state"]],
+            [fromNextMove, ["add-source", "connect", "advance-state"]],
         ];
         for (const [mapper, tokens] of cases) {
             for (const token of tokens) {

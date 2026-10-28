@@ -26,7 +26,6 @@ const KEYS = [
     "knowledge_action_next_move_desc",
     "knowledge_next_move_add_source",
     "knowledge_next_move_connect",
-    "knowledge_next_move_add_example",
     "knowledge_next_move_advance_state",
     "knowledge_next_move_complete",
     "knowledge_next_move_notice",
@@ -46,8 +45,8 @@ const KEYS = [
 ];
 
 describe("knowledge action i18n parity (#153/#158/#165, AC-8)", () => {
-    it("defines all 38 keys in both en and es, non-empty", () => {
-        expect(KEYS.length).toBe(38);
+    it("defines all 37 keys in both en and es, non-empty", () => {
+        expect(KEYS.length).toBe(37);
         const enMap = en as Record<string, string>;
         const esMap = es as Record<string, string>;
         for (const key of KEYS) {

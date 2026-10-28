@@ -36,15 +36,11 @@ function fact(model: KnowledgeModel, path: string, token: NextStepFact["token"])
 
 /**
  * The next-step card for one note: `suggestNextMoves()` mapped one to one into facts. It never
- * reorders or adds a move. It drops one: *Mark an example*, which nobody understood and whose
- * direction contradicted the relation vocabulary (#890 Q4). The suggestion itself keeps the token
- * for the `zf` API and *Suggest next move* until #891 decides.
+ * reorders, adds or drops a move.
  */
 export function nextStepCard(model: KnowledgeModel, path: string): NextStepCard {
     if (!model.get(path)) return { kind: "absent" };
-    const tokens = suggestNextMoves(model, path).filter(
-        (token): token is NextStepFact["token"] => token !== "add-example"
-    );
+    const tokens = suggestNextMoves(model, path);
     if (tokens.length === 0) return { kind: "complete" };
     return { kind: "proposing", moves: tokens.map((token) => fact(model, path, token)) };
 }

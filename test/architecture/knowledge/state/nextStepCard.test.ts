@@ -30,18 +30,12 @@ describe("nextStepCard (#641 FR-1..8, AC-1..4)", () => {
         });
     });
 
-    it("maps suggestNextMoves one to one, except add-example, which the card no longer offers (#890 Q4)", () => {
+    it("maps suggestNextMoves one to one", () => {
         for (const path of ["lonely.md", "linked.md", "a.md", "b.md", "done.md"]) {
             const card = nextStepCard(model, path);
             const tokens = card.kind === "proposing" ? card.moves.map((move) => move.token) : [];
-            expect({ path, tokens }).toEqual({ path, tokens: suggestNextMoves(model, path).filter((token) => token !== "add-example") });
+            expect({ path, tokens }).toEqual({ path, tokens: suggestNextMoves(model, path) });
         }
-    });
-
-    it("yields no add-example fact for a connected note with no example relation (#890 AC-2)", () => {
-        const card = nextStepCard(model, "linked.md");
-        const moves: { token: string }[] = card.kind === "proposing" ? card.moves : [];
-        expect(moves.map((move) => move.token)).not.toContain("add-example");
     });
 
     it("is complete when nothing is pending, and absent for a note the model does not know", () => {

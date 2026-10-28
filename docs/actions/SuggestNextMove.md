@@ -24,7 +24,6 @@ In this order, only those that apply:
 |---|---|
 | **Add a source** | the note makes a claim but cites no source |
 | **Connect it to a related note** | the note has no outgoing links |
-| **Add an example** | the note is connected but declares no `example` relation |
 | **Develop it toward the next state** | the note is in an early lifecycle state (not yet permanent or evergreen) |
 
 A note that needs none of these gets *"Well developed — no action needed."* instead.
@@ -35,7 +34,7 @@ A note that needs none of these gets *"Well developed — no action needed."* in
 ---
 nextMoves:
   - Add a source
-  - Add an example
+  - Connect it to a related note
 ---
 ```
 
@@ -47,8 +46,13 @@ action does nothing.
 
 The same suggestion drives **This note**'s [Actions on this note](../development/this-note.md#actions-on-this-note):
 it lists the open steps together and lets you finish each one — add the source, link the note, move
-the state on — without leaving the sidebar, with an undo. *Mark an example* is not offered there: the
-suggestion still returns `add-example`, and the section leaves it out until #891 decides its fate.
+the state on — without leaving the sidebar, with an undo.
+
+*Add an example* is no longer a move (#891): nobody understood it, and it asked for an `example`
+relation in the opposite direction to the one the relation vocabulary uses. A note that still has
+`Add an example` in its `nextMoves` from an older run keeps it until the action runs again. The
+`example` **relation** itself is unchanged — [Create semantic relation](CreateSemanticRelation.md) still
+writes it, and This note's neighbourhood still colours it.
 
 ## Capabilities
 

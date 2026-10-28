@@ -109,13 +109,13 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `open-questions` | zettelflow-home | 2 | surface `zettelflow-explore:explore` · `show-open-questions` |
 | `resurface` | zettelflow-home | 1 | control in zettelflow-note (`sectionsBlock.ts`) · recommended on `zettelflow-home:home` · `resurface-related-notes` · `show-discoveries` · `show-discovery` |
 | `atomicity-split` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · `split-note-into-atomic-notes` |
-| `cultivate` | zettelflow-home | 1 | ribbon → `cultivate` · surface `zettelflow-home:cultivate` · `cultivate` |
+| `cultivate` | zettelflow-home | 1 | ribbon → `cultivate` · surface `zettelflow-home:cultivate` · control in zettelflow-note (`nextStepBlock.ts`) · `cultivate` |
 | `inquiry` | zettelflow-home | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) |
 | `thought-lab` | zettelflow-home | 1 | ribbon → `think` · surface `zettelflow-home:lab` · `think` |
 | `blind-ask` | zettelflow-explore | 1 | control in zettelflow-explore (`AskGraphRenderer.ts`) |
-| `collision` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) · note menu (`MoveCommandsComponent.ts`) |
-| `moves` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
-| `think-about` | zettelflow-home | 1 | note menu (`ThinkAboutComponent.ts`) · `think-about-this-note` |
+| `collision` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) |
+| `moves` | thinking | 1 | note menu (`MoveCommandsComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) · control in zettelflow-note (`nextStepBlock.ts`) |
+| `think-about` | zettelflow-home | 1 | note menu (`ThinkAboutComponent.ts`) · control in zettelflow-note (`nextStepBlock.ts`) · `think-about-this-note` |
 | `reader` | zettelflow-reader | 1 | note menu (`ReaderComponent.ts`) · control in zettelflow-explore (`AskGraphRenderer.ts`) · control in zettelflow-note (`headBlock.ts`) · control in zettelflow-home (`HomeModeRenderer.ts`) · `open-reader` |
 | `reader-ink` | zettelflow-reader | 1 | control in zettelflow-reader (`readerInk.ts`) · control in zettelflow-home (`LabRenderer.ts`) |
 | `reader-alongside` | zettelflow-reader | 1 | control in zettelflow-reader (`ReaderView.ts`) |
@@ -137,9 +137,9 @@ A ⚠️ marks a row failing guardrail A, carried by the register.
 | `library-shelves` | zettelflow-library | 1 | control in zettelflow-library (`libraryShelves.ts`) · control in zettelflow-library (`LibraryView.ts`) |
 | `library-archive` | zettelflow-library | 1 | control in zettelflow-library (`libraryArchive.ts`) · control in zettelflow-library (`libraryShelves.ts`) · control in zettelflow-library (`libraryDetail.ts`) |
 | `highlights-review` | zettelflow-home | 1 | control in zettelflow-home (`LabRenderer.ts`) · recommended on `zettelflow-home:home` |
-| `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) |
+| `claim-door` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-home (`CultivateModeRenderer.ts`) · control in zettelflow-note (`nextStepBlock.ts`) |
 | `claim-return` | claims | 3 | recommended on `zettelflow-home:home` · `return-to-this-claim` |
-| `wager` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · recommended on `zettelflow-home:home` |
+| `wager` | claims | 1 | note menu (`ClaimDoorComponent.ts`) · control in zettelflow-note (`nextStepBlock.ts`) · recommended on `zettelflow-home:home` |
 | `note-state` | lifecycle | 1 | control in zettelflow-home (`CultivateModeRenderer.ts`) · `change-note-state` |
 | `remove-relation` | relations | 1 | note menu (`RemoveRelationComponent.ts`) · `remove-relation` |
 | `script-workbench` | scripting | 1 | control in editor (`CodeView.ts`) · `open-script-workbench` |

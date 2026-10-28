@@ -14,7 +14,7 @@ Backlinks and Outline do, so the answer to *"what about this note?"* is always o
   *Show evolution timeline*, *Show notes history*, *Show evidence map* and
   *Resurface related notes*. Their ids did not change, so existing hotkeys keep working.
 - **From Health › [Tend](slipbox-health-dashboard.md)** — a row opens its note *and* This note,
-  landed on what the row said was missing: the next-step card on *Add a source* or *Connect*,
+  landed on what the row said was missing: *Actions on this note* on *Add a source* or *Connect*,
   *Near and forgotten* for a note nobody links, *Gaps* for an open question.
 
 There is only ever one. Opening it again reveals the one you have, wherever you put it. If you
@@ -47,7 +47,7 @@ out), or one under ZettelFlow's own folders, is **outside ZettelFlow**. It never
 there is nothing to say about it, and nothing ZettelFlow should write into it. This note says so in
 one calm card: *This note is outside ZettelFlow*, **Left out by** and the rule's own sentence (*are
 in Templates and its subfolders*, *have the tag #draft*), **Kept out also by** for any other rule
-that would, and **Change what is left out**, which opens the settings on that section. It shows no counts, stepper, next step, neighbourhood or
+that would, and **Change what is left out**, which opens the settings on that section. It shows no counts, stepper, actions, neighbourhood or
 story. A pinned note stays pinned, so you can let it go with the pin.
 
 The rule is the same everywhere, and it is the index's own (one predicate, never a second list):
@@ -79,44 +79,55 @@ A note that cites a PDF or an EPUB of your [Library](library.md) — a passage y
 `source::` you wrote — says so under its counts: **Born from** *the book* · *the page*. Click it and
 the Reader opens the book there.
 
-## Next step
+## Actions on this note
 
-Under the head, one card says the note's **next step** and lets you finish it where you are.
+Under the head, one section holds **what you can do to this note**, and lets you do it where you are.
 
-![The next-step card: one move, one primary action, finished in place](../resources/this-note/next-step.svg)
+![Actions on this note: the open steps listed together, one opened in place, and the note's tools](../resources/this-note/next-step.svg)
 
-The moves come from `suggestNextMoves()`, in its order, unchanged: **add a source**, **connect**,
-**mark an example**, **move it on**. The card shows one at a time — *1 of 3*, with **Another step**
-to look at the next — and says the fact the move rests on (*Makes 2 claims with no source*), never
-how good the note is. When nothing is pending it says so once: *Nothing is pending — what remains is
-to think with it.*
+**The open steps.** They come from `suggestNextMoves()`, in its order: **add a source**, **connect**,
+**move it on**. All of them are listed together, each with the fact it rests on (*Makes 2 claims with
+no source*), never how good the note is. The first one is the section's one filled button. Press a
+step and its panel opens under it; press it again and it closes. While a panel is open, the step
+gives up its fill and the confirm inside takes it. When nothing is pending, the section says so
+once: *Nothing is pending — what remains is to think with it.*
 
-The primary action opens a small panel, and nothing is written until you confirm:
+Nothing is written until you confirm:
 
-| Move | What you do | What is written, and where |
+| Step | What you do | What is written, and where |
 |---|---|---|
 | **Add a source** | type a citation, a URL or a `[[note]]` | appended to the note's `source` property — or `sources`, if that is the key it uses. Existing entries are kept, including links to notes that do not exist yet. |
 | **Connect** | pick one of up to four nearby notes, or **Choose another note…** | `[[that note]]` appended to the note's body |
-| **Mark an example** | pick one of its links — *Links out* or *Links in* | `example: [[that note]]` in its properties. If `example:` already holds plain text, that value is left untouched and an inline `example:: [[that note]]` goes in the body instead. |
 | **Move it on** | confirm *Move to Literature* | the lifecycle state property, set to the state Cultivate would propose; recorded in the note's story as your decision |
 
-The stepper's proposed step opens the same confirm. From *permanent* the card does not propose a
+The stepper's proposed step opens the same confirm. From *permanent* the section does not propose a
 move (the note is developed enough); from *developing* it proposes *evergreen*, which the stepper
-only draws once a note is there — so that one is offered by the card alone.
+only draws once a note is there — so that one is offered by the section alone.
 
 Every write goes **into the companion's note** — the pinned one, if it is pinned — in a batch of its
-own, through the write record. The card answers on one line, *Linked to B. Undo*, for thirty seconds;
-there is no toast. Undoing a promotion also withdraws the decision it recorded, so the story never
-tells something you took back. If the step is still open after the write (a source that points to a
-note that does not exist yet does not count), the card says so; otherwise it moves on to the next
-open move.
+own, through the write record. The section answers on one line, *Linked to B. Undo*, for thirty
+seconds; there is no toast. Undoing a promotion also withdraws the decision it recorded, so the story
+never tells something you took back. If the step is still open after the write (a source that points
+to a note that does not exist yet does not count), the section says so. Either way the list starts
+again on its first open step.
+
+**The note's tools.** Under the steps, four quiet buttons, always on this note:
+
+| Tool | What it opens |
+|---|---|
+| **Make a move…** | the [cognitive move](cultivate.md#the-moves) picker, on this note. The move it records answers on the same status line. |
+| **Think about this note** | the [Think](../architecture/thought-lab.md) composer, about this note |
+| **Say what this note claims** | the claim box. A note that already states a claim shows it read-only above the tools, with its wager's day (*You expect to know by 2026-12-01.*), and the button reads **Edit what this note claims**. |
+| **Cultivate this note** | [Cultivate](cultivate.md), on this note |
+
+Each opens from the button you pressed, as one continuous shot (it holds still under reduced motion).
 
 A hand-over can land here: `openNoteCompanion(app, { path, focus: "next", move: "connect" })` opens the
 card on that move with its panel open — or on the first move, if the note no longer has that one.
 
 ## Neighbourhood
 
-Under the next step, the note's **neighbourhood**: the notes it links to and the notes that link to
+Under the actions, the note's **neighbourhood**: the notes it links to and the notes that link to
 it, drawn as a small graph with the note in the centre.
 
 ![The neighbourhood: an ego graph coloured by relation, a dashed near ring, the legend and the list](../resources/this-note/neighbourhood.svg)
@@ -231,12 +242,12 @@ the existing view or creates one with `ensureSideLeaf(…, "right")`.
 | Field | Meaning |
 |---|---|
 | `path` | show this note (a pinned companion moves its pin to it) |
-| `focus` | one-shot landing: `"next"` opens the next-step card (on `move`, if given); `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty); `"links-in"` and `"links-out"` switch the neighbourhood to its list and scroll to that group |
+| `focus` | one-shot landing: `"next"` opens *Actions on this note* (on `move`, if given); `"nearby"` and `"gaps"` expand, scroll to and highlight that section (the quiet line when it is empty); `"links-in"` and `"links-out"` switch the neighbourhood to its list and scroll to that group |
 | `move` | the next move to preselect with `focus: "next"` |
 
 `focus` and `move` are used once on arrival and never persisted; only `{ path, pinned }` of a pinned
 companion survive a restart. The view is a host for **blocks** (`noteCompanion/blocks/`): head,
-next step, neighbourhood, sections and story, each rendering from one `CompanionModel` built per
+actions, neighbourhood, sections and story, each rendering from one `CompanionModel` built per
 refresh from the State-layer projections `noteVitals`, `lifecycleStepper`, `companionSections` and
 `noteNeighbourhood`; the graph's geometry is the pure `layoutNeighbourhood`. A block adds to the
 head's ⋯ menu through `menuItems()`, read when the menu opens.
@@ -251,7 +262,7 @@ that read the code (`realApp.structural.test.ts`) and by a stricter fake DOM:
   its own popover.
 - **Scrolling goes through `ctx.scrollTo(el)`**, which scrolls the view's own container to just under
   the sticky head. `scrollIntoView` is never used: it also scrolls Obsidian's panes.
-- **Writes take turns** (`companionWrites.ts`): insert link, the next-step moves and their undos run
+- **Writes take turns** (`companionWrites.ts`): insert link, the steps in *Actions on this note* and their undos run
   one at a time, and `FileService.appendTo` is atomic (`vault.process`). While one is in flight the
   view is `aria-busy` and the other write buttons wait.
 - **A view first shown late renders then**: Obsidian calls `onResize()` when a hidden sidebar tab or

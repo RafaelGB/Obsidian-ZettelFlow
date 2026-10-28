@@ -35,3 +35,25 @@ describe("the next-step card says facts, never a verdict (#641)", () => {
         expect(tCount(2, "note_next_why_source", "2")).toBe("Makes 2 claims with no source.");
     });
 });
+
+describe("actions on this note's strings (#890 AC-13)", () => {
+    const REMOVED = [
+        "note_next_why_example",
+        "note_next_do_example",
+        "note_next_links_out",
+        "note_next_links_in",
+        "note_next_mark_example",
+        "note_next_done_example",
+        "note_next_already_example",
+    ];
+    const ADDED = ["note_next_cultivate", "note_next_edit_claim", "note_next_wager_by"];
+
+    it("drops the example offer's keys from both languages, and adds the new ones to both, in sentence case", () => {
+        for (const locale of [en, es] as Record<string, string>[]) {
+            expect(REMOVED.filter((key) => key in locale)).toEqual([]);
+            for (const key of ADDED) {
+                expect(locale[key]).toMatch(/^[A-ZÁÉÍÓÚ][^A-Z]*$/);
+            }
+        }
+    });
+});

@@ -227,7 +227,7 @@ button.zettelkasten-flow__note-companion-vital {
     color: $text-faint;
 }
 
-/* ── Next step (#641): one move, one primary action, finished in place ─────────────────────── */
+/* ── Actions on this note (#641, #890): the open steps, one primary action, and the note's tools ──── */
 
 .zettelkasten-flow__note-next {
     @include card;
@@ -250,8 +250,16 @@ button.zettelkasten-flow__note-companion-vital {
     letter-spacing: 0.06em;
 }
 
-.zettelkasten-flow__note-next-count {
-    @include hint;
+.zettelkasten-flow__note-next-steps {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+}
+
+.zettelkasten-flow__note-next-step {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
 }
 
 .zettelkasten-flow__note-next-why {
@@ -266,8 +274,7 @@ button.zettelkasten-flow__note-companion-vital {
 }
 
 /* Text actions, not buttons — `button.` so they outrank Obsidian's `button:not(.clickable-icon)`,
-   which gave *Another step* a button's box beside the real one. */
-button.zettelkasten-flow__note-next-another:not(.clickable-icon),
+   which gave a text action a button's box beside the real one. */
 button.zettelkasten-flow__note-next-cancel:not(.clickable-icon),
 button.zettelkasten-flow__note-next-choose:not(.clickable-icon),
 button.zettelkasten-flow__note-next-pick:not(.clickable-icon),
@@ -287,7 +294,6 @@ button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
     }
 }
 
-button.zettelkasten-flow__note-next-another:not(.clickable-icon),
 button.zettelkasten-flow__note-next-cancel:not(.clickable-icon) {
     color: $text-quiet;
 }
@@ -317,8 +323,7 @@ button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
     border-top: $line-quiet;
 }
 
-.zettelkasten-flow__note-next-hint,
-.zettelkasten-flow__note-next-sublabel {
+.zettelkasten-flow__note-next-hint {
     @include hint;
     margin: 0;
 }
@@ -342,8 +347,27 @@ button.zettelkasten-flow__note-companion-step-next:not(.clickable-icon) {
 }
 
 .zettelkasten-flow__note-next-complete,
-.zettelkasten-flow__note-next-status {
+.zettelkasten-flow__note-next-status,
+.zettelkasten-flow__note-next-wager {
     @include hint;
+}
+
+/* What it claims (#890 Q5): the sentence as it stands, read like a quote — the box edits it. */
+.zettelkasten-flow__note-next-claim {
+    padding-left: $space-2;
+    border-left: var(--border-width) solid var(--interactive-accent);
+    color: $text-plain;
+    line-height: var(--line-height-normal);
+}
+
+/* What you can do with the note (#890): Obsidian's own quiet buttons, wrapping on a narrow pane,
+   under a line so they never read as the open step's answer. */
+.zettelkasten-flow__note-next-tools {
+    @include row;
+    flex-wrap: wrap;
+    gap: $space-2;
+    padding-top: $space-2;
+    border-top: $line-quiet;
 }
 
 /* ── Sections: one heading level, a count, folded when empty ────────────────────────────────── */

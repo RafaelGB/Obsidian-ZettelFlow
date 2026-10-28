@@ -1,14 +1,13 @@
 import type { App } from "obsidian";
 import { c, log } from "architecture";
 import { t, tCount } from "architecture/lang";
-import { STATE_LABEL_KEY, DEFAULT_STATE_PROPERTY } from "architecture/knowledge";
+import { STATE_LABEL_KEY, DEFAULT_STATE_PROPERTY, toDateInput } from "architecture/knowledge";
 import type { Judgement, NextMoveToken, NextStepFact } from "architecture/knowledge/state";
 import { UNDO_OFFER_MS } from "application/writes/undoOffer";
 import { linkNotes, type LinkResult } from "architecture/plugin/services/recordedLink";
 import {
     addSourceTo,
     advanceTo,
-    markExample,
     withdrawPromotion,
     type AdvanceResult,
     type StateSettingsHost,
@@ -16,9 +15,13 @@ import {
 import { undoBatch, type UndoResult } from "architecture/plugin/writes/undoNotice";
 import { hoverPreview, makeActivatable } from "architecture/components/core/a11y";
 import { InquiryNoteSuggest } from "architecture/components/core/cultivate/InquiryNoteSuggest";
+import { pickMoveOn, type SayMove } from "starters/zcomponents/MoveCommandsComponent";
+import { thinkAbout } from "starters/zcomponents/ThinkAboutComponent";
+import { ClaimDoorModal } from "architecture/components/core/claims/ClaimDoorModal";
+import { activateSurface } from "architecture/plugin";
+import { flyOrigin } from "architecture/components/core/reader/openReader";
 import {
     INITIAL_NEXT_UI,
-    anotherMove,
     clampMove,
     closePanel,
     deepLink,
@@ -40,28 +43,44 @@ import {
 export interface NextStepDeps {
     addSourceTo: (app: App, path: string, text: string) => Promise<LinkResult>;
     linkNotes: (app: App, path: string, target: string) => Promise<LinkResult>;
-    markExample: (app: App, path: string, target: string) => Promise<LinkResult>;
     advanceTo: (app: App, host: StateSettingsHost | undefined, path: string) => Promise<AdvanceResult>;
     withdrawPromotion: (judgement: Judgement) => void;
     undoBatch: (batch: string) => Promise<UndoResult>;
     pickNote: (app: App, onPick: (path: string) => void) => void;
+    /** The move picker on the note; a move that only records answers through `say` (#890). */
+    pickMove: (app: App, path: string, say: SayMove) => void;
+    /** Think with the note as the subject; writes nothing (#890). */
+    thinkAbout: (app: App, path: string) => void;
+    /** The claim box for the note — its sentence and the optional wager. */
+    openClaim: (app: App, path: string) => void;
+    /** Cultivate, targeted on the note. */
+    cultivate: (app: App, path: string) => void;
+    /** What you pressed lifts toward where it opens — one continuous shot; instant under reduced motion (§XVI). */
+    flyFrom: (button: HTMLElement) => void;
 }
 
 const DEFAULT_DEPS: NextStepDeps = {
     addSourceTo,
     linkNotes,
-    markExample,
     advanceTo,
     withdrawPromotion,
     undoBatch,
     pickNote: (app, onPick) => new InquiryNoteSuggest(app, onPick, t("note_next_choose_placeholder")).open(),
+    pickMove: pickMoveOn,
+    thinkAbout: (app, path) => thinkAbout({ app }, path),
+    openClaim: (app, path) => {
+        const file = app.vault.getFileByPath(path);
+        if (file) new ClaimDoorModal(app, file).open();
+    },
+    cultivate: (app, path) => void activateSurface(app, "zettelflow-home", "cultivate", { target: path }),
+    flyFrom: flyOrigin,
 };
 
 /** What answers a click — always about the note it was made on (`path`), never another. */
 type Status = { path: string } & (
     | {
           kind: "done";
-          token: NextMoveToken;
+          token: NextStepFact["token"];
           text: string;
           batch?: string;
           judgement?: Judgement;
@@ -71,13 +90,14 @@ type Status = { path: string } & (
           stillOpen?: boolean;
           at: number;
       }
-    | { kind: "undone" | "undo-failed" | "failed" | "already-example"; at: number }
+    | { kind: "undone" | "undo-failed" | "failed"; at: number }
+    /** A move recorded from *Make a move…*: said here, never as a toast (#546). */
+    | { kind: "said"; text: string; at: number }
 );
 
-const ICON_LABEL: Record<NextMoveToken, Parameters<typeof t>[0]> = {
+const ICON_LABEL: Record<NextStepFact["token"], Parameters<typeof t>[0]> = {
     "add-source": "note_next_do_source",
     connect: "note_next_do_connect",
-    "add-example": "note_next_do_example",
     "advance-state": "note_next_do_advance",
 };
 
@@ -150,37 +170,37 @@ export class NextStepBlock extends CompanionBlock {
 
         if (moves.length === 0) {
             card.createDiv({ cls: c("note-next-complete"), text: t("note_next_complete") });
+            this.renderTools(card, ctx, model);
             this.renderStatus(card);
             return;
         }
-        if (moves.length > 1) {
-            head.createSpan({
-                cls: c("note-next-count"),
-                text: t("note_next_counter", String(this.ui.index + 1), String(moves.length)),
+        // The open steps, listed together (Q2): each says its fact and has its button; the one in
+        // hand is the section's primary, and its panel opens under it.
+        const list = card.createDiv({ cls: c("note-next-steps") });
+        moves.forEach((move, index) => {
+            const chosen = index === this.ui.index;
+            const row = list.createDiv({ cls: c("note-next-step") });
+            row.createDiv({ cls: c("note-next-why"), text: this.why(move) });
+            const actions = row.createDiv({ cls: c("note-next-actions") });
+            // One filled button in the section (AC-12): the step in hand, until its panel opens and
+            // the confirm inside takes it.
+            const button = actions.createEl("button", {
+                cls: [
+                    ...(chosen && !this.ui.open ? ["mod-cta"] : []),
+                    c("note-next-step-button"),
+                    ...(chosen ? [c("note-next-primary")] : []),
+                ].join(" "),
+                text: this.label(move),
+                attr: { type: "button", "aria-expanded": String(chosen && this.ui.open) },
             });
-        }
-
-        const move = moves[this.ui.index];
-        card.createDiv({ cls: c("note-next-why"), text: this.why(move) });
-
-        const actions = card.createDiv({ cls: c("note-next-actions") });
-        const primary = actions.createEl("button", {
-            cls: ["mod-cta", c("note-next-primary")].join(" "),
-            text: this.label(move),
-            attr: { type: "button", "aria-expanded": String(this.ui.open) },
+            this.on(button, "click", () =>
+                this.redraw((this.ui = chosen && this.ui.open ? closePanel(this.ui) : openPanel({ index, open: false })))
+            );
+            if (chosen && this.ui.open) this.renderPanel(row, ctx, model, move);
         });
-        this.on(primary, "click", () => this.redraw((this.ui = this.ui.open ? closePanel(this.ui) : openPanel(this.ui))));
-        if (moves.length > 1) {
-            const another = actions.createEl("button", {
-                cls: c("note-next-another"),
-                text: t("note_next_another"),
-                attr: { type: "button" },
-            });
-            this.on(another, "click", () => this.redraw((this.ui = anotherMove(this.ui, moves.length))));
-        }
 
-        if (this.ui.open) this.renderPanel(card, ctx, model, move);
-        else this.draft = "";
+        if (!this.ui.open) this.draft = "";
+        this.renderTools(card, ctx, model);
         this.renderStatus(card);
         if (refocus) card.querySelector<HTMLInputElement>("input")?.focus();
     }
@@ -216,8 +236,6 @@ export class NextStepBlock extends CompanionBlock {
                 return tCount(move.unsourced, "note_next_why_source", String(move.unsourced));
             case "connect":
                 return t("note_next_why_connect");
-            case "add-example":
-                return t("note_next_why_example");
             case "advance-state":
                 return t("note_next_why_advance", stateLabel(move.current));
         }
@@ -291,31 +309,6 @@ export class NextStepBlock extends CompanionBlock {
                 cancel(row);
                 return;
             }
-            case "add-example": {
-                const seen = new Set<string>();
-                for (const [labelKey, paths] of [
-                    ["note_next_links_out", move.linksOut],
-                    ["note_next_links_in", move.linksIn],
-                ] as const) {
-                    const fresh = paths.filter((path) => !seen.has(path));
-                    fresh.forEach((path) => seen.add(path));
-                    if (fresh.length === 0) continue;
-                    panel.createDiv({ cls: c("note-next-sublabel"), text: t(labelKey) });
-                    for (const path of fresh) {
-                        const line = panel.createDiv({ cls: c("note-next-candidate") });
-                        this.renderName(line, ctx, path);
-                        const mark = line.createEl("button", { cls: c("note-next-pick"), text: t("note_next_mark_example"), attr: { type: "button" } });
-                        marksWrite(mark);
-                        this.on(mark, "click", () =>
-                            void this.write("add-example", t("note_next_done_example", noteName(path)), () =>
-                                this.deps.markExample(ctx.app, model.path, path)
-                            )
-                        );
-                    }
-                }
-                cancel(panel.createDiv({ cls: c("note-next-actions") }));
-                return;
-            }
             case "advance-state": {
                 const property = this.host?.settings?.lifecycle?.stateProperty || DEFAULT_STATE_PROPERTY;
                 panel.createEl("p", {
@@ -336,6 +329,34 @@ export class NextStepBlock extends CompanionBlock {
         }
     }
 
+    /** What ZettelFlow lets you do with this note, beside its open steps — quiet, never the primary. */
+    private renderTools(card: HTMLElement, ctx: CompanionContext, model: CompanionModel): void {
+        // What it already claims, said as it stands: the box is where it changes, not here (Q5).
+        if (model.claim) {
+            card.createDiv({ cls: c("note-next-claim"), text: model.claim.text });
+            if (model.claim.wager) {
+                card.createDiv({ cls: c("note-next-wager"), text: t("note_next_wager_by", toDateInput(model.claim.wager.at)) });
+            }
+        }
+        const tools = card.createDiv({ cls: c("note-next-tools") });
+        const tool = (key: Parameters<typeof t>[0], run: () => void, opens = false) => {
+            const button = tools.createEl("button", { cls: c("note-next-tool"), text: t(key), attr: { type: "button" } });
+            this.on(button, "click", () => {
+                if (opens) this.deps.flyFrom(button);
+                run();
+            });
+        };
+        tool("move_pick_title", () =>
+            this.deps.pickMove(ctx.app, model.path, (text) => {
+                this.status = { kind: "said", path: model.path, text, at: Date.now() };
+                this.redraw();
+            })
+        );
+        tool("command_think_about", () => this.deps.thinkAbout(ctx.app, model.path), true);
+        tool(model.claim ? "note_next_edit_claim" : "claim_door_menu", () => this.deps.openClaim(ctx.app, model.path), true);
+        tool("note_next_cultivate", () => this.deps.cultivate(ctx.app, model.path), true);
+    }
+
     private connect(ctx: CompanionContext, model: CompanionModel, target: string): void {
         void this.write("connect", t("note_next_done_link", noteName(target)), () => this.deps.linkNotes(ctx.app, model.path, target));
     }
@@ -346,7 +367,7 @@ export class NextStepBlock extends CompanionBlock {
         hoverPreview(ctx.app, name, path, ctx.owner);
     }
 
-    private async write(token: NextMoveToken, text: string, op: () => Promise<LinkResult | AdvanceResult>): Promise<void> {
+    private async write(token: NextStepFact["token"], text: string, op: () => Promise<LinkResult | AdvanceResult>): Promise<void> {
         const ctx = this.ctx;
         if (this.busy || !ctx || ctx.screen.kind !== "note") return;
         // Outside ZettelFlow since it was drawn (#688): write nothing, and redraw it as what it is.
@@ -362,10 +383,7 @@ export class NextStepBlock extends CompanionBlock {
             // Its turn among the companion's writes, so two never race on one note.
             const result = await queueCompanionWrite(op);
             if (!result.ok) this.status = { kind: "failed", path, at: Date.now() };
-            else if ("written" in result && result.written === false) {
-                // Nothing was written: the link already is an example. Say that, not "marked".
-                this.status = { kind: "already-example", path, at: Date.now() };
-            } else {
+            else {
                 this.status = {
                     kind: "done",
                     path,
@@ -420,12 +438,15 @@ export class NextStepBlock extends CompanionBlock {
         // In an idle pane nothing else would redraw it: the line goes when its window closes.
         this.later(UNDO_OFFER_MS - (Date.now() - status.at), () => this.redraw());
         const line = card.createDiv({ cls: c("note-next-status"), attr: { role: "status" } });
+        if (status.kind === "said") {
+            line.setText(status.text);
+            return;
+        }
         if (status.kind !== "done") {
             const key = {
                 failed: "note_next_failed",
                 undone: "note_next_undone",
                 "undo-failed": "note_next_undo_failed",
-                "already-example": "note_next_already_example",
             } as const;
             line.setText(t(key[status.kind]));
             return;

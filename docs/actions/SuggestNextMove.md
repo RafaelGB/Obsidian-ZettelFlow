@@ -45,9 +45,10 @@ action does nothing.
 
 ## Finish it in place
 
-The same suggestion drives **This note**'s [next-step card](../development/this-note.md#next-step):
-it shows one move at a time and lets you finish it — add the source, link the note, mark the example,
-move the state on — without leaving the sidebar, with an undo.
+The same suggestion drives **This note**'s [Actions on this note](../development/this-note.md#actions-on-this-note):
+it lists the open steps together and lets you finish each one — add the source, link the note, move
+the state on — without leaving the sidebar, with an undo. *Mark an example* is not offered there: the
+suggestion still returns `add-example`, and the section leaves it out until #891 decides its fate.
 
 ## Capabilities
 

@@ -40,11 +40,15 @@ function setup(over: Partial<CompanionModel> = {}, depsOver: Partial<NextStepDep
     const deps = {
         addSourceTo: jest.fn(async () => ({ ok: true, batch: "b1" })),
         linkNotes: jest.fn(async () => ({ ok: true, batch: "b2" })),
-        markExample: jest.fn(async () => ({ ok: true, batch: "b3" })),
         advanceTo: jest.fn(async () => ({ ok: true, batch: "b4", judgement: { at: 1 } as never, to: "literature" as const })),
         withdrawPromotion: jest.fn(),
         undoBatch: jest.fn(async () => ({ hadWork: true, done: 1, failed: [] as string[] })),
         pickNote: jest.fn(),
+        pickMove: jest.fn(),
+        thinkAbout: jest.fn(),
+        openClaim: jest.fn(),
+        cultivate: jest.fn(),
+        flyFrom: jest.fn(),
         ...depsOver,
     };
     const block = new NextStepBlock(host as never, { settings: { lifecycle: { stateProperty: "status" } } }, deps as never);
@@ -75,31 +79,11 @@ afterEach(() => {
 });
 
 describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
-    it("says the fact, offers one primary action, and counts the moves (AC-1)", () => {
+    it("says the fact and offers one primary action (AC-1)", () => {
         const { host } = setup();
-        expect(text(host, "note-next-eyebrow")).toBe("Next step");
         expect(text(host, "note-next-why")).toBe("Makes 1 claim with no source.");
         expect(primary(host).textContent).toBe("Add a source");
         expect(primary(host).hasClass("mod-cta")).toBe(true);
-        expect(text(host, "note-next-count")).toBe("1 of 3");
-    });
-
-    it("cycles through the moves without writing anything (AC-2)", () => {
-        const { host, deps } = setup();
-        const seen: string[] = [];
-        for (let i = 0; i < 3; i++) {
-            seen.push(primary(host).textContent);
-            host.oneByClass("note-next-another").click();
-        }
-        expect(seen).toEqual(["Add a source", "Connect", "Move to Literature"]);
-        expect(primary(host).textContent).toBe("Add a source");
-        for (const dep of Object.values(deps)) expect(dep).not.toHaveBeenCalled();
-    });
-
-    it("drops the counter and Another step for a single move (AC-3)", () => {
-        const { host } = setup({ next: { kind: "proposing", moves: [{ token: "connect" }] } });
-        expect(host.byClass("note-next-count")).toEqual([]);
-        expect(host.byClass("note-next-another")).toEqual([]);
     });
 
     it("says once that nothing is pending, and draws nothing for a note the model does not know (AC-4)", () => {
@@ -108,6 +92,109 @@ describe("the next-step card (#641 FR-1..9, AC-1..4)", () => {
         expect(complete.host.byClass("note-next-primary")).toEqual([]);
         const absent = setup({ next: { kind: "absent" } });
         expect(absent.host.children).toEqual([]);
+    });
+});
+
+describe("actions on this note (#890)", () => {
+    it("is titled Actions on this note and offers no Mark an example, in any move's panel (AC-1, AC-2)", () => {
+        const { host } = setup();
+        expect(text(host, "note-next-eyebrow")).toBe("Actions on this note");
+        expect(host.oneByClass("note-next").attrs["aria-label"]).toBe("Actions on this note");
+        for (let i = 0; i < 3; i++) {
+            host.byClass("note-next-step-button")[i].click();
+            expect(host.byClass("note-next-panel")).toHaveLength(1);
+            expect(host.oneByClass("note-next").textContent).not.toMatch(/example/i);
+        }
+    });
+
+    it("lists the open steps together, each with its fact, the first one filled, and no carousel (Q2)", () => {
+        const { host, deps } = setup();
+        const whys = host.byClass("note-next-why").map((el) => el.textContent);
+        expect(whys).toHaveLength(3);
+        expect(whys[0]).toBe("Makes 1 claim with no source.");
+        expect(new Set(whys).size).toBe(3);
+        const steps = host.byClass("note-next-step-button");
+        expect(steps.map((el) => el.textContent)).toEqual(["Add a source", "Connect", "Move to Literature"]);
+        expect(host.findAll((el) => el.hasClass("mod-cta")).map((el) => el.textContent)).toEqual(["Add a source"]);
+        expect(host.byClass("note-next-count")).toEqual([]);
+        expect(host.byClass("note-next-another")).toEqual([]);
+
+        steps[1].click();
+        expect(host.byClass("note-next-panel")).toHaveLength(1);
+        expect(host.byClass("note-next-candidate")).toHaveLength(2);
+        expect(host.byClass("note-next-step-button").map((el) => el.attrs["aria-expanded"])).toEqual(["false", "true", "false"]);
+        for (const dep of Object.values(deps)) expect(dep).not.toHaveBeenCalled();
+    });
+
+    it("lands an old add-example hand-over on the first item, closed, without an error (AC-10)", () => {
+        const { host, block } = setup();
+        expect(() => block.reveal("next", "add-example")).not.toThrow();
+        expect(primary(host).textContent).toBe("Add a source");
+        expect(host.byClass("note-next-panel")).toEqual([]);
+        expect(host.oneByClass("note-next").hasClass("zettelkasten-flow__note-companion-highlight")).toBe(true);
+    });
+
+    it("opens the move picker on the companion's note, and answers a recorded move inline (AC-5)", () => {
+        const { host, deps } = setup();
+        const make = host.findAll((el) => el.tag === "button" && el.text === "Make a move…")[0];
+        expect(make.hasClass("mod-cta")).toBe(false);
+        make.click();
+        expect(deps.pickMove).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", expect.any(Function));
+        const say = (deps.pickMove as jest.Mock).mock.calls[0][2] as (text: string) => void;
+        say("Set aside — A");
+        expect(text(host, "note-next-status")).toBe("Set aside — A");
+        expect(host.byClass("note-next-undo")).toEqual([]);
+    });
+
+    it("opens Think, the claim box and Cultivate on the companion's note, the pinned one when pinned (AC-6..9)", () => {
+        for (const path of ["zettel/A.md", "pinned/P.md"]) {
+            const { host, deps } = setup({ path, next: { kind: "complete" } });
+            for (const label of ["Think about this note", "Say what this note claims", "Cultivate this note"]) {
+                const button = host.findAll((el) => el.tag === "button" && el.text === label)[0];
+                expect(button.hasClass("mod-cta")).toBe(false);
+                button.click();
+            }
+            expect(deps.thinkAbout).toHaveBeenCalledWith(expect.anything(), path);
+            expect(deps.openClaim).toHaveBeenCalledWith(expect.anything(), path);
+            expect(deps.cultivate).toHaveBeenCalledWith(expect.anything(), path);
+        }
+    });
+
+    it("shows a stated claim and its wager's day read-only, and the entry edits it (Q5)", () => {
+        const at = new Date(2026, 11, 1).getTime();
+        const { host, deps } = setup({ claim: { text: "Debt grows unseen", wager: { expectation: "A rewrite", at } } });
+        expect(text(host, "note-next-claim")).toBe("Debt grows unseen");
+        expect(text(host, "note-next-wager")).toBe("You expect to know by 2026-12-01.");
+        expect(host.oneByClass("note-next-claim").tag).not.toBe("input");
+        expect(host.findAll((el) => el.tag === "button" && el.text === "Say what this note claims")).toEqual([]);
+        host.findAll((el) => el.tag === "button" && el.text === "Edit what this note claims")[0].click();
+        expect(deps.openClaim).toHaveBeenCalledWith(expect.anything(), "zettel/A.md");
+
+        const none = setup();
+        expect(none.host.byClass("note-next-claim")).toEqual([]);
+    });
+
+    it("keeps one filled button, and opens Think, the claim box and Cultivate from the pressed one (AC-12)", () => {
+        const { host, deps } = setup();
+        expect(host.findAll((el) => el.hasClass("mod-cta"))).toHaveLength(1);
+        for (const label of ["Think about this note", "Say what this note claims", "Cultivate this note"]) {
+            const button = host.findAll((el) => el.tag === "button" && el.text === label)[0];
+            button.click();
+            expect(deps.flyFrom).toHaveBeenLastCalledWith(button);
+        }
+        expect(deps.flyFrom).toHaveBeenCalledTimes(3);
+    });
+
+    it("hands the one filled button to the open panel's confirm, and takes it back on close (AC-12)", () => {
+        const { host } = setup({
+            next: { kind: "proposing", moves: [{ token: "advance-state", current: "fleeting", proposed: "literature" }] },
+        });
+        primary(host).click();
+        const filled = host.findAll((el) => el.hasClass("mod-cta"));
+        expect(filled).toHaveLength(1);
+        expect(filled[0].parent?.parent?.hasClass("zettelkasten-flow__note-next-panel")).toBe(true);
+        primary(host).click();
+        expect(host.findAll((el) => el.hasClass("mod-cta"))).toEqual([primary(host)]);
     });
 });
 
@@ -156,18 +243,6 @@ describe("each move, finished in place (#641 FR-10..13, AC-6..9)", () => {
         await flush();
         expect(deps.linkNotes).toHaveBeenCalledTimes(1);
         expect(deps.linkNotes).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", "far/D.md");
-    });
-
-    it("lists links out and links in as example candidates (Q3)", async () => {
-        const { host, deps } = setup({
-            next: { kind: "proposing", moves: [{ token: "add-example", linksOut: ["x/Out.md"], linksIn: ["x/In.md", "x/Out.md"] }] },
-        });
-        primary(host).click();
-        expect(host.byClass("note-next-sublabel").map((el) => el.textContent)).toEqual(["Links out", "Links in"]);
-        expect(host.byClass("note-next-name").map((el) => el.textContent)).toEqual(["Out", "In"]);
-        host.byClass("note-next-pick")[1].click();
-        await flush();
-        expect(deps.markExample).toHaveBeenCalledWith(expect.anything(), "zettel/A.md", "x/In.md");
     });
 
     it("says what advancing writes, and advances on confirm", async () => {
@@ -322,18 +397,6 @@ describe("the card after the epic's review (#639)", () => {
         undo.click();
         await flush();
         expect(deps.undoBatch).toHaveBeenCalledTimes(1);
-    });
-
-    it("says a link is already an example instead of claiming it marked one", async () => {
-        const { host } = setup(
-            { next: { kind: "proposing", moves: [{ token: "add-example", linksOut: ["x/L.md"], linksIn: [] }] } },
-            { markExample: jest.fn(async () => ({ ok: true, written: false })) } as never
-        );
-        primary(host).click();
-        host.oneByClass("note-next-pick").click();
-        await flush();
-        expect(text(host, "note-next-status")).toBe("Already an example — nothing to write.");
-        expect(host.byClass("note-next-undo")).toEqual([]);
     });
 
     it("says the write failed when it throws, and offers no undo", async () => {

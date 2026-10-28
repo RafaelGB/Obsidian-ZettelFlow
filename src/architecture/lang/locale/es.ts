@@ -1790,7 +1790,6 @@ export default {
     knowledge_action_next_move_desc: 'Sugiere la acción más útil para desarrollar esta nota.',
     knowledge_next_move_add_source: 'Añade una fuente',
     knowledge_next_move_connect: 'Conéctala con una nota relacionada',
-    knowledge_next_move_add_example: 'Añade un ejemplo',
     knowledge_next_move_advance_state: 'Desarróllala hacia el siguiente estado',
     knowledge_next_move_complete: 'Bien desarrollada — no requiere acción.',
     knowledge_next_move_notice: 'Se han sugerido {0} movimiento(s).',

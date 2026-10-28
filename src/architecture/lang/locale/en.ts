@@ -1792,7 +1792,6 @@ export default {
     knowledge_action_next_move_desc: 'Suggest the most useful next action to develop this note.',
     knowledge_next_move_add_source: 'Add a source',
     knowledge_next_move_connect: 'Connect it to a related note',
-    knowledge_next_move_add_example: 'Add an example',
     knowledge_next_move_advance_state: 'Develop it toward the next state',
     knowledge_next_move_complete: 'Well developed — no action needed.',
     knowledge_next_move_notice: 'Suggested {0} next move(s).',

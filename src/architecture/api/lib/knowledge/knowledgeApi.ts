@@ -347,7 +347,7 @@ export function knowledgeApi(deps: KnowledgeApiDeps): Record<string, KnowledgeMe
         },
         nextMoves: {
             signature: "(path: string) => NextMoveToken[]",
-            summary: "The concrete next moves for one note, in order: add-source, connect, add-example, advance-state.",
+            summary: "The concrete next moves for one note, in order: add-source, connect, advance-state.",
             call: (path: string) => suggestNextMoves(model(), path),
         },
         tend: {

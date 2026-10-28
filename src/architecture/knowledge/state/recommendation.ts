@@ -246,8 +246,6 @@ export function fromNextMove(token: string): RecommendationReason {
             return "add-source";
         case "connect":
             return "connect";
-        case "add-example":
-            return "add-examples";
         default: // advance-state
             return "advance-state";
     }

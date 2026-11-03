@@ -11,6 +11,7 @@ import { t } from "architecture/lang";
 import { ProgressBar } from "architecture/components/core";
 import { EvalContext } from "application/notes/conditionEvaluator";
 import { partitionExits } from "application/notes/stepExits";
+import { exitFrontmatter } from "application/notes/exitFrontmatter";
 import { isWaitNode, WaitMachine } from "architecture/plugin/workflow";
 import { WaitPromptModal } from "zettelkasten/modals/WaitPromptModal";
 
@@ -190,11 +191,12 @@ export async function manageElement(
 
 function buildEvalContext(state: CallbackPickedState, info: NoteBuilderType): EvalContext {
   const sourceFile = info.modal.getSourceFile();
-  const frontmatter: Record<string, unknown> = sourceFile
+  const sourceFrontmatter: Record<string, unknown> = sourceFile
     ? (ObsidianApi.globalApp().metadataCache.getFileCache(sourceFile)?.frontmatter ?? {})
     : {};
   return {
-    frontmatter,
+    // The exits ask about the note being written: this wizard's answers, over the source (#898).
+    frontmatter: exitFrontmatter(sourceFrontmatter, state.data.getElements()),
     noteTitle: state.data.getTitle(),
     canvasName: info.modal.getCanvasName(),
   };

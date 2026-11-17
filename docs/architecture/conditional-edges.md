@@ -73,7 +73,7 @@ Parentheses `( … )` can be used to override precedence.
 
 | Variable | Value |
 |---|---|
-| `frontmatter.<key>` | The source note's frontmatter property `<key>` |
+| `frontmatter.<key>` | The property `<key>` of the note being written: a frontmatter answer given earlier in this wizard (a selector, a prompt…), otherwise the source note's property. On a new note there is no source note, so only the wizard's answers count (#898) |
 | `note.title` | The current note title being built |
 | `canvas.name` | The name of the active canvas (without extension) |
 

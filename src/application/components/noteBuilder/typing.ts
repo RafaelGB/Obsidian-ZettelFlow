@@ -55,6 +55,8 @@ export type NoteBuilderStateInfo = {
     wasActionTriggered: () => boolean;
     getTitle: () => string;
     getCurrentNode: () => FlowNode | undefined;
+    /** The answers given so far, by position — what a step's exits read (#898). */
+    getElements: () => Map<number, FinalElement>;
 }
 
 export type NoteBuilderStateActions = {

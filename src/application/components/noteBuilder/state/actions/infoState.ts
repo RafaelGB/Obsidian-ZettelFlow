@@ -5,7 +5,8 @@ const infoStep =
         return {
             wasActionTriggered: () => get().actionWasTriggered,
             getTitle: () => get().title,
-            getCurrentNode: () => get().currentNode
+            getCurrentNode: () => get().currentNode,
+            getElements: () => get().builder.note.getElements()
         }
     };
 

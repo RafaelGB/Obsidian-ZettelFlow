@@ -1,5 +1,5 @@
 import { describe, it, expect, jest } from "@jest/globals";
-import { recordScriptRun, withScriptRun, type ScriptRunSink } from "architecture/api/lib/recordScriptRun";
+import { recordScriptRun, recordScriptRuns, withScriptRun, type ScriptRunSink } from "architecture/api/lib/recordScriptRun";
 import type { ScriptRun } from "application/scripts/scriptRunLog";
 
 function sink(overrides: Partial<ScriptRunSink> = {}) {
@@ -98,5 +98,29 @@ describe("timing a run records both outcomes (#444)", () => {
             }, store)
         ).rejects.toThrow("the real one");
         expect(spy).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("a batch of runs is one write (#904)", () => {
+    it("writes N runs to the log with a single sink write", () => {
+        const store = sink();
+        const write = jest.fn(store.write);
+        const facts = ["a", "b", "c"].map((ref) => ({
+            surface: "library" as const,
+            origin: { ref, label: ref },
+            durationMs: 0,
+            ok: ref !== "b",
+            ...(ref === "b" ? { error: new Error("boom") } : {}),
+        }));
+
+        recordScriptRuns(facts, { ...store, write });
+
+        expect(write).toHaveBeenCalledTimes(1);
+        expect(store.state.runs.map((run) => [run.origin.ref, run.ok])).toEqual([
+            ["c", true],
+            ["b", false],
+            ["a", true],
+        ]);
+        expect(store.state.runs[1].error?.message).toBe("boom");
     });
 });

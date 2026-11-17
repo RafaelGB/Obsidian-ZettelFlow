@@ -47,9 +47,13 @@ export class ZfScripts extends LibModule {
         // A fresh picture every load: a module deleted between two loads should stop being listed.
         ZfScripts.modules.clear();
 
-        for (const file of files) {
+        // Read side by side (#904): one after another, a cold disk made the first script step of a
+        // flow wait one round trip per module. They still load in folder order below.
+        const sources = files.map((file) => this.app.vault.read(file));
+
+        for (const [index, file] of files.entries()) {
             try {
-                await this.loadUserFnFrom(file);
+                await this.loadUserFnFrom(file, await sources[index]);
             } catch (error) {
                 log.error(`Error loading ZettelFlow script from path = "${file.path}`, error);
                 const message = error instanceof Error ? error.message : String(error);
@@ -66,8 +70,7 @@ export class ZfScripts extends LibModule {
         };
     }
 
-    async loadUserFnFrom(file: TFile): Promise<void> {
-        const file_content = await this.app.vault.read(file);
+    async loadUserFnFrom(file: TFile, file_content: string): Promise<void> {
         const nodeRequire = (window as { require?: (s: string) => unknown }).require;
         const req = (s: string): unknown => (nodeRequire ? nodeRequire(s) : undefined);
         const exp: Record<string, unknown> = {};

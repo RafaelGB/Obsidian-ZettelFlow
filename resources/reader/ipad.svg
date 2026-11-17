@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="The Reader on an iPad. Landscape: the outer fifth of the page on each side is a tap zone that turns a screen back or forward, the middle shows the bar, which reads Chapter 11 / 30 · 2 of 44, and a finger swiping left holds the chapter's page part-turned under it. Portrait: the drawer is the bottom sheet — Contents opens at half height with a grab handle, its tabs, the pencil for Recall and the notebook, and its own close, its rows read, partly read or not yet, the current one washed, a mark where you marked; the page dims behind it. The bar stays above the sheet, its Contents button pressed; another panel swaps into the same sheet without rising again.">
+<rect width="1200" height="820" fill="#141416"/>
+<text x="600.0" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">THE READER ON AN IPAD</text>
+<rect x="40" y="120" width="700" height="500" rx="26" fill="#1b1b1f" stroke="#3a3a3a" stroke-width="2"/>
+<text x="40" y="104" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">LANDSCAPE</text>
+<rect x="42" y="122" width="140.0" height="496" rx="24" fill="#7f6df2" opacity="0.08"/>
+<rect x="598.0" y="122" width="140.0" height="496" rx="24" fill="#7f6df2" opacity="0.08"/>
+<text x="110.0" y="370.0" fill="#a99cf5" font-family="sans-serif" font-size="12" text-anchor="middle">← back</text>
+<text x="670.0" y="370.0" fill="#a99cf5" font-family="sans-serif" font-size="12" text-anchor="middle">forward →</text>
+<text x="390.0" y="172" fill="#8b8e94" font-family="sans-serif" font-size="10" text-anchor="middle" letter-spacing="2">01. PRINCIPIOS BÁSICOS</text>
+<text x="194.0" y="216" fill="#c8c9cc" font-family="serif" font-size="15">Un sistema no es solo una</text>
+<text x="194.0" y="243" fill="#c8c9cc" font-family="serif" font-size="15">colección de cosas. Un sistema</text>
+<text x="194.0" y="270" fill="#c8c9cc" font-family="serif" font-size="15">es un conjunto de elementos</text>
+<text x="194.0" y="297" fill="#c8c9cc" font-family="serif" font-size="15">interrelacionados, organizados</text>
+<text x="194.0" y="324" fill="#c8c9cc" font-family="serif" font-size="15">de manera coherente para</text>
+<text x="194.0" y="351" fill="#c8c9cc" font-family="serif" font-size="15">alcanzar un fin.</text>
+<path d="M 420.0 370 Q 480.0 450 440.0 540 L 560.0 540 L 560.0 370 Z" stroke="#3a3a3a" stroke-width="1" fill="#202024" opacity="0.9"/>
+<circle cx="460.0" cy="480" r="14" fill="#ffffff" opacity="0.18"/>
+<path d="M 450.0 502 L 400.0 502" stroke="#a99cf5" stroke-width="1.5" fill="none" stroke-dasharray="3 4"/>
+<text x="390.0" y="524" fill="#a99cf5" font-family="sans-serif" font-size="11">the page under your finger</text>
+<rect x="158.5" y="564" width="463.0" height="34" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 174.5 576 L 169.5 581 L 174.5 586" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<text x="184.5" y="585" fill="#c8c9cc" font-family="sans-serif" font-size="11">Chapter 11 / 30 · 2 of 44</text>
+<rect x="351.5" y="579" width="70" height="4" rx="2" fill="#2a2a30"/>
+<rect x="351.5" y="579" width="21.0" height="4" rx="2" fill="#7f6df2"/>
+<path d="M 433.5 576 L 438.5 581 L 433.5 586" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 447.5 572 L 447.5 590" stroke="#3a3a3a" stroke-width="1" fill="none"/>
+<path d="M 455.5 577 L 467.5 577" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 455.5 581 L 467.5 581" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 455.5 585 L 467.5 585" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<rect x="480.5" y="576" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="480.5" y="582" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="486.5" y="576" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<rect x="486.5" y="582" width="4" height="4" rx="0.5" fill="none" stroke="#8b8e94" stroke-width="1.1"/>
+<circle cx="508.5" cy="580" r="4.5" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 512.0 583.5 L 515.5 587" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 528.5 587 L 527.5 588 L 528.5 584 L 537.5 575 L 539.5 577 L 530.5 586 Z" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 552.5 576 L 562.5 576" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 557.5 576 L 557.5 587" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<rect x="575.5" y="576" width="12" height="10" rx="1.5" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 583.5 576 L 583.5 586" stroke="#8b8e94" stroke-width="1.2" fill="none"/>
+<rect x="820" y="80" width="340" height="720" rx="26" fill="#1b1b1f" stroke="#3a3a3a" stroke-width="2"/>
+<text x="820" y="70" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="1">PORTRAIT</text>
+<text x="850" y="150" fill="#c8c9cc" font-family="serif" font-size="15">Un sistema no es solo una</text>
+<text x="850" y="177" fill="#c8c9cc" font-family="serif" font-size="15">colección de cosas. Un</text>
+<text x="850" y="204" fill="#c8c9cc" font-family="serif" font-size="15">sistema es un conjunto de</text>
+<text x="850" y="231" fill="#c8c9cc" font-family="serif" font-size="15">elementos interrelacionados,</text>
+<text x="850" y="258" fill="#c8c9cc" font-family="serif" font-size="15">organizados de manera</text>
+<text x="850" y="285" fill="#c8c9cc" font-family="serif" font-size="15">coherente para alcanzar</text>
+<text x="850" y="312" fill="#c8c9cc" font-family="serif" font-size="15">un fin.</text>
+<rect x="822" y="82" width="336" height="716" rx="24" fill="#000000" opacity="0.35"/>
+<rect x="813.5" y="380" width="353.0" height="34" rx="12" fill="#1f1f23" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 829.5 392 L 824.5 397 L 829.5 402" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<text x="839.5" y="401" fill="#c8c9cc" font-family="sans-serif" font-size="11">Chapter 11 / 30</text>
+<rect x="944.5" y="395" width="70" height="4" rx="2" fill="#2a2a30"/>
+<rect x="944.5" y="395" width="21.0" height="4" rx="2" fill="#7f6df2"/>
+<path d="M 1026.5 392 L 1031.5 397 L 1026.5 402" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 1040.5 388 L 1040.5 406" stroke="#3a3a3a" stroke-width="1" fill="none"/>
+<rect x="1044.5" y="387" width="20" height="20" rx="5" fill="#7f6df2" opacity="0.25"/>
+<path d="M 1048.5 393 L 1060.5 393" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<path d="M 1048.5 397 L 1060.5 397" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<path d="M 1048.5 401 L 1060.5 401" stroke="#a99cf5" stroke-width="1.3" fill="none"/>
+<circle cx="1077.5" cy="396" r="4.5" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 1081.0 399.5 L 1084.5 403" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 1097.5 392 L 1107.5 392" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<path d="M 1102.5 392 L 1102.5 403" stroke="#8b8e94" stroke-width="1.4" fill="none"/>
+<rect x="1120.5" y="392" width="12" height="10" rx="1.5" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 1128.5 392 L 1128.5 402" stroke="#8b8e94" stroke-width="1.2" fill="none"/>
+<rect x="822" y="430" width="336" height="368" rx="20" fill="#1e1e22" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="970.0" y="440" width="40" height="4" rx="2" fill="#5f6168"/>
+<rect x="836" y="458" width="52.32000000000001" height="20" rx="10.0" fill="#7f6df2"/>
+<text x="862.16" y="471.24" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="600" text-anchor="middle">Contents</text>
+<rect x="892.32" y="458" width="57.36000000000001" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="921.0" y="471.24" fill="#8b8e94" font-family="sans-serif" font-size="9" text-anchor="middle">Bookmarks</text>
+<rect x="953.6800000000001" y="458" width="97.68" height="20" rx="10.0" fill="#2a2a30"/>
+<text x="1002.5200000000001" y="471.24" fill="#8b8e94" font-family="sans-serif" font-size="9" text-anchor="middle">Where you've been</text>
+<path d="M 1089 474 L 1088 475 L 1089 471 L 1098 462 L 1100 464 L 1091 473 Z" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<rect x="1112" y="461" width="12" height="14" rx="2" fill="none" stroke="#8b8e94" stroke-width="1.3"/>
+<path d="M 1115 461 L 1115 475" stroke="#8b8e94" stroke-width="1.3" fill="none"/>
+<path d="M 1118 466 L 1122 466" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1118 470 L 1122 470" stroke="#8b8e94" stroke-width="1.1" fill="none"/>
+<path d="M 1138.0 464.0 L 1146.0 472.0 M 1146.0 464.0 L 1138.0 472.0" stroke="#8b8e94" stroke-width="1.5" fill="none"/>
+<circle cx="842" cy="512" r="4" fill="#8b8e94"/>
+<text x="854" y="516" fill="#c8c9cc" font-family="sans-serif" font-size="11">Introducción. La lente de los sistemas</text>
+<circle cx="842" cy="540" r="4" fill="#8b8e94"/>
+<text x="854" y="544" fill="#c8c9cc" font-family="sans-serif" font-size="11">Parte I. Estructura y comportamiento</text>
+<rect x="828" y="555.0" width="324" height="26" rx="6" fill="#7f6df2" opacity="0.22"/>
+<circle cx="856" cy="568" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 856 564 A 4 4 0 0 0 856 572 Z" stroke="none" stroke-width="0" fill="#8b8e94"/>
+<text x="868" y="572" fill="#dcddde" font-family="sans-serif" font-size="11">01. Principios básicos</text>
+<rect x="1140" y="561" width="3" height="14" rx="1.5" fill="#e0a351"/>
+<circle cx="856" cy="596" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<path d="M 856 592 A 4 4 0 0 0 856 600 Z" stroke="none" stroke-width="0" fill="#8b8e94"/>
+<text x="868" y="600" fill="#c8c9cc" font-family="sans-serif" font-size="11">02. Una visita rápida al zoo</text>
+<circle cx="842" cy="624" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<text x="854" y="628" fill="#c8c9cc" font-family="sans-serif" font-size="11">Parte II. Los sistemas y nosotros</text>
+<circle cx="856" cy="652" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<text x="868" y="656" fill="#c8c9cc" font-family="sans-serif" font-size="11">03. Por qué los sistemas funcionan</text>
+<circle cx="856" cy="680" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<text x="868" y="684" fill="#c8c9cc" font-family="sans-serif" font-size="11">04. Por qué los sistemas nos sorprenden</text>
+<circle cx="856" cy="708" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<text x="868" y="712" fill="#c8c9cc" font-family="sans-serif" font-size="11">05. Trampas… y oportunidades</text>
+<circle cx="842" cy="736" r="4" fill="none" stroke="#8b8e94" stroke-width="1.2"/>
+<text x="854" y="740" fill="#c8c9cc" font-family="sans-serif" font-size="11">Parte III. Provocar cambios</text>
+<text x="990.0" y="816" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle">another panel swaps into the same sheet</text>
+</svg>

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="920" viewBox="0 0 1200 920" role="img" aria-label="The Library's archive: at the end of the stacks a filing cabinet with three drawers — Books, 2 items; Papers, 1 item; Articles, empty — and a book flying off the Finished shelf into it; beside the cabinet, Archive, 3 things put away, the folder it uses, and Archived Field Notes on Rivers with Undo; below, the Books drawer pulled out into index cards, each with its title, author, the date it was archived, the folder it was in, Return to shelf and Open">
+<defs>
+<pattern id="weave" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0.5H4M0.5 0V4" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/></pattern>
+<linearGradient id="hinge" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.35"/><stop offset="0.07" stop-color="#fff" stop-opacity="0.08"/><stop offset="0.13" stop-color="#000" stop-opacity="0"/></linearGradient>
+<linearGradient id="plank" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6b5843"/><stop offset="1" stop-color="#43372b"/></linearGradient>
+<linearGradient id="cab" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5a4a39"/><stop offset="1" stop-color="#3d3227"/></linearGradient>
+<linearGradient id="face" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7a6650"/><stop offset="1" stop-color="#625140"/></linearGradient>
+<linearGradient id="steel" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9a9aa2"/><stop offset="1" stop-color="#5d5d64"/></linearGradient>
+<linearGradient id="tray" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2b2620"/><stop offset="0.25" stop-color="#1d1c1f"/></linearGradient>
+<filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.45"/></filter>
+<filter id="lift" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.55"/></filter>
+</defs>
+<rect x="0" y="0" width="1200" height="920" fill="#141416"/>
+<rect x="30" y="20" width="1140" height="880" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="52" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="70" cy="40" r="5.5" fill="#e9973f"/>
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e"/>
+<text x="600" y="45" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a"/>
+<rect x="30" y="60" width="44" height="840" fill="#202022"/>
+<rect x="40" y="112" width="24" height="24" rx="6" fill="#2f2b45"/>
+<text x="52" y="129" fill="#7f6df2" font-family="sans-serif" font-size="13" text-anchor="middle">▥</text>
+<rect x="74" y="60" width="1096" height="34" fill="#202022"/>
+<rect x="84" y="66" width="120" height="28" rx="6" fill="#18181b"/>
+<text x="100" y="85" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500">Library</text>
+
+<!-- the last shelf of the stacks -->
+<rect x="100" y="112" width="1044" height="150" rx="6" fill="#1f1e22"/>
+<g filter="url(#shadow)">
+  <rect x="136" y="132" width="84" height="126" rx="3" fill="#2d4f73"/><rect x="136" y="132" width="84" height="126" rx="3" fill="url(#weave)"/><rect x="136" y="132" width="84" height="126" rx="3" fill="url(#hinge)"/>
+  <text x="150" y="160" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">The Quiet</text><text x="150" y="174" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">Index</text>
+  <rect x="240" y="132" width="84" height="126" rx="3" fill="#6b3b54"/><rect x="240" y="132" width="84" height="126" rx="3" fill="url(#weave)"/><rect x="240" y="132" width="84" height="126" rx="3" fill="url(#hinge)"/>
+  <text x="254" y="160" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">A Grammar</text><text x="254" y="174" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">of Maps</text>
+</g>
+<!-- the place the flown book left -->
+<rect x="344" y="132" width="84" height="126" rx="3" fill="none" stroke="#3a3a3a" stroke-dasharray="4 4"/>
+<rect x="100" y="262" width="1044" height="14" rx="2" fill="url(#plank)"/>
+<rect x="124" y="270" width="78" height="22" rx="3" fill="#18181b" stroke="#55493b"/>
+<text x="134" y="285" fill="#b3b3b3" font-family="Georgia, serif" font-size="12" font-weight="600">Finished</text>
+
+<!-- the flight: the book on its way into the top drawer -->
+<path d="M386 200 C 420 300, 330 360, 250 392" fill="none" stroke="#7f6df2" stroke-width="1.5" stroke-dasharray="3 6" stroke-opacity="0.8"/>
+<g transform="translate(276 318) rotate(-10) scale(0.62)" filter="url(#lift)" opacity="0.92">
+  <rect x="0" y="0" width="84" height="126" rx="3" fill="#2f6b55"/><rect x="0" y="0" width="84" height="126" rx="3" fill="url(#weave)"/><rect x="0" y="0" width="84" height="126" rx="3" fill="url(#hinge)"/>
+  <text x="14" y="28" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">Field Notes</text><text x="14" y="42" fill="#f0f0f0" font-family="Georgia, serif" font-size="11" font-weight="600">on Rivers</text>
+  <rect x="12" y="108" width="26" height="12" rx="2" fill="#18181b" opacity="0.9"/><text x="25" y="117" fill="#dcddde" font-family="sans-serif" font-size="8" font-weight="600" text-anchor="middle">PDF</text>
+</g>
+
+<!-- the cabinet -->
+<g filter="url(#shadow)">
+  <rect x="124" y="380" width="236" height="232" rx="6" fill="url(#cab)"/>
+  <rect x="132" y="612" width="220" height="10" rx="2" fill="#2f271f"/>
+</g>
+<g>
+  <rect x="134" y="392" width="216" height="62" rx="3" fill="url(#face)" stroke="#7f6df2" stroke-width="2"/>
+  <rect x="148" y="404" width="104" height="38" rx="2" fill="#efe6c8" stroke="#9a9aa2" stroke-width="1.5"/>
+  <text x="156" y="420" fill="#3b3424" font-family="sans-serif" font-size="12.5" font-weight="700">Books</text>
+  <text x="156" y="435" fill="#6d6248" font-family="sans-serif" font-size="11">2 items</text>
+  <rect x="282" y="417" width="48" height="12" rx="6" fill="url(#steel)"/>
+
+  <rect x="134" y="462" width="216" height="62" rx="3" fill="url(#face)"/>
+  <rect x="148" y="474" width="104" height="38" rx="2" fill="#efe6c8" stroke="#9a9aa2" stroke-width="1.5"/>
+  <text x="156" y="490" fill="#3b3424" font-family="sans-serif" font-size="12.5" font-weight="700">Papers</text>
+  <text x="156" y="505" fill="#6d6248" font-family="sans-serif" font-size="11">1 item</text>
+  <rect x="282" y="487" width="48" height="12" rx="6" fill="url(#steel)"/>
+
+  <rect x="134" y="532" width="216" height="62" rx="3" fill="url(#face)"/>
+  <rect x="148" y="544" width="104" height="38" rx="2" fill="#efe6c8" stroke="#9a9aa2" stroke-width="1.5" opacity="0.6"/>
+  <text x="156" y="560" fill="#3b3424" font-family="sans-serif" font-size="12.5" font-weight="700" opacity="0.6">Articles</text>
+  <text x="156" y="575" fill="#6d6248" font-family="sans-serif" font-size="11" opacity="0.6">empty</text>
+  <rect x="282" y="557" width="48" height="12" rx="6" fill="url(#steel)"/>
+</g>
+
+<!-- beside it -->
+<text x="400" y="452" fill="#dcddde" font-family="sans-serif" font-size="20" font-weight="700">Archive</text>
+<text x="400" y="478" fill="#a3a3a3" font-family="sans-serif" font-size="13.5">3 things put away.</text>
+<text x="400" y="502" fill="#a3a3a3" font-family="sans-serif" font-size="13.5">Out of sight, never lost: what you archive leaves the shelves and the search,</text>
+<text x="400" y="520" fill="#a3a3a3" font-family="sans-serif" font-size="13.5">and waits here until you take it back.</text>
+<text x="400" y="546" fill="#6b6b6b" font-family="monospace" font-size="12.5">▭ In Library archive/</text>
+<rect x="396" y="562" width="380" height="32" rx="6" fill="#202022" stroke="#3a3a3a"/>
+<text x="410" y="583" fill="#a3a3a3" font-family="sans-serif" font-size="13">Archived “Field Notes on Rivers”.</text>
+<text x="660" y="583" fill="#8a7cf5" font-family="sans-serif" font-size="13" font-weight="600">Undo</text>
+
+<!-- the Books drawer, pulled out under the cabinet -->
+<rect x="100" y="640" width="1044" height="244" rx="6" fill="url(#tray)" stroke="#3a3a3a"/>
+<text x="126" y="676" fill="#dcddde" font-family="sans-serif" font-size="15" font-weight="700">Archive</text>
+<rect x="200" y="660" width="86" height="26" rx="13" fill="#7f6df2"/>
+<text x="214" y="678" fill="#ffffff" font-family="sans-serif" font-size="12.5">Books</text><text x="270" y="678" fill="#e0dcfb" font-family="sans-serif" font-size="12" text-anchor="end">2</text>
+<rect x="294" y="660" width="88" height="26" rx="13" fill="#202022" stroke="#3a3a3a"/>
+<text x="308" y="678" fill="#a3a3a3" font-family="sans-serif" font-size="12.5">Papers</text><text x="370" y="678" fill="#6b6b6b" font-family="sans-serif" font-size="12" text-anchor="end">1</text>
+<rect x="390" y="660" width="92" height="26" rx="13" fill="#202022" stroke="#3a3a3a"/>
+<text x="404" y="678" fill="#a3a3a3" font-family="sans-serif" font-size="12.5">Articles</text><text x="470" y="678" fill="#6b6b6b" font-family="sans-serif" font-size="12" text-anchor="end">0</text>
+<rect x="498" y="660" width="220" height="26" rx="13" fill="#18181b" stroke="#3a3a3a"/>
+<text x="514" y="678" fill="#5f6168" font-family="sans-serif" font-size="12.5">Search the archive</text>
+<text x="1116" y="679" fill="#a3a3a3" font-family="sans-serif" font-size="16" text-anchor="end">✕</text>
+
+<!-- index cards -->
+<g filter="url(#shadow)">
+  <rect x="126" y="712" width="300" height="150" rx="3" fill="#efe6c8"/>
+  <line x1="126" y1="742" x2="426" y2="742" stroke="#d08a8a" stroke-width="1"/>
+  <line x1="126" y1="766" x2="426" y2="766" stroke="#a8b8d8" stroke-opacity="0.6"/><line x1="126" y1="790" x2="426" y2="790" stroke="#a8b8d8" stroke-opacity="0.6"/><line x1="126" y1="814" x2="426" y2="814" stroke="#a8b8d8" stroke-opacity="0.6"/>
+  <rect x="368" y="702" width="40" height="14" rx="3" fill="#6e60c8"/><text x="388" y="713" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">EPUB</text>
+  <text x="140" y="735" fill="#2f2a1e" font-family="Georgia, serif" font-size="14" font-weight="700">Old Manual of Frameworks</text>
+  <text x="140" y="760" fill="#6d6248" font-family="sans-serif" font-size="12">Mara Ostrova</text>
+  <text x="140" y="784" fill="#8b7f63" font-family="sans-serif" font-size="11.5">Archived Oct 3, 2026 · was in Books/Tech/</text>
+  <text x="140" y="842" fill="#5a4bd1" font-family="sans-serif" font-size="12.5" font-weight="700">Return to shelf</text>
+  <text x="262" y="842" fill="#8b7f63" font-family="sans-serif" font-size="12.5">Open</text>
+
+  <rect x="446" y="712" width="300" height="150" rx="3" fill="#efe6c8"/>
+  <line x1="446" y1="742" x2="746" y2="742" stroke="#d08a8a" stroke-width="1"/>
+  <line x1="446" y1="766" x2="746" y2="766" stroke="#a8b8d8" stroke-opacity="0.6"/><line x1="446" y1="790" x2="746" y2="790" stroke="#a8b8d8" stroke-opacity="0.6"/><line x1="446" y1="814" x2="746" y2="814" stroke="#a8b8d8" stroke-opacity="0.6"/>
+  <rect x="688" y="702" width="40" height="14" rx="3" fill="#6e60c8"/><text x="708" y="713" fill="#ffffff" font-family="sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">PDF</text>
+  <text x="460" y="735" fill="#2f2a1e" font-family="Georgia, serif" font-size="14" font-weight="700">A Handbook Three Versions Old</text>
+  <text x="460" y="760" fill="#6d6248" font-family="sans-serif" font-size="12">Teo Lindqvist</text>
+  <text x="460" y="784" fill="#8b7f63" font-family="sans-serif" font-size="11.5">Archived Sep 12, 2026 · was in Books/</text>
+  <text x="460" y="842" fill="#5a4bd1" font-family="sans-serif" font-size="12.5" font-weight="700">Return to shelf</text>
+  <text x="582" y="842" fill="#8b7f63" font-family="sans-serif" font-size="12.5">Open</text>
+</g>
+<text x="780" y="760" fill="#6b6b6b" font-family="sans-serif" font-size="12.5" font-style="italic">The drawer unfolds in place —</text>
+<text x="780" y="778" fill="#6b6b6b" font-family="sans-serif" font-size="12.5" font-style="italic">no window, no new tab.</text>
+<text x="780" y="808" fill="#6b6b6b" font-family="sans-serif" font-size="12.5" font-style="italic">Return to shelf moves the file back</text>
+<text x="780" y="826" fill="#6b6b6b" font-family="sans-serif" font-size="12.5" font-style="italic">where it came from; its note, place</text>
+<text x="780" y="844" fill="#6b6b6b" font-family="sans-serif" font-size="12.5" font-style="italic">and highlights never left it.</text>
+</svg>

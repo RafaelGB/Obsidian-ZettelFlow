@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" role="img" aria-label="A designed PDF page as printed, beside the same page in the reading view: the running head and footer are left out, the parameters table and the plot are shown as printed in their place, the page's rule is a separator, and the caption reads as text">
+<rect x="0" y="0" width="1200" height="820"  fill="#141319"/>
+<text x="60" y="52" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" letter-spacing="2">AS PRINTED</text>
+<rect x="60" y="70" width="430" height="710" rx="8" fill="#f4efe3"/>
+<rect x="84" y="92" width="34" height="34" rx="2" fill="#e8752a"/>
+<text x="126" y="115" fill="#2b2722" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start">Business</text>
+<text x="466" y="110" fill="#8a8276" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="end">SMS API — Developer manual</text>
+<text x="84" y="168" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">One request can send a message to many</text>
+<text x="84" y="185" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">recipients at once. The parameters it takes:</text>
+<line x1="88" y1="212" x2="422" y2="212" stroke="#2b2722" stroke-width="1.6"/>
+<text x="92" y="228" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Name</text>
+<text x="162" y="228" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Type</text>
+<text x="222" y="228" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Req.</text>
+<text x="267" y="228" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Max</text>
+<text x="322" y="228" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Description</text>
+<rect x="85" y="240" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="92" y="246" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">id</text>
+<text x="162" y="246" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">string</text>
+<text x="222" y="246" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">OP</text>
+<text x="267" y="246" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">128</text>
+<rect x="315" y="240" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="322" y="246" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">Message GUID</text>
+<rect x="85" y="255" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="92" y="261" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">text</text>
+<text x="162" y="261" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">string</text>
+<text x="222" y="261" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">OB</text>
+<text x="267" y="261" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">1024</text>
+<rect x="315" y="255" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="322" y="261" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">Body of the SMS</text>
+<rect x="85" y="270" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="92" y="276" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">sender</text>
+<text x="162" y="276" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">string</text>
+<text x="222" y="276" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">OB</text>
+<text x="267" y="276" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">20</text>
+<rect x="315" y="270" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="322" y="276" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">Sender: a number</text>
+<text x="322" y="291" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">or a name of 11</text>
+<rect x="85" y="300" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="92" y="306" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">mobile</text>
+<text x="162" y="306" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">string</text>
+<text x="222" y="306" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">OB</text>
+<text x="267" y="306" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">50</text>
+<rect x="315" y="300" width="3.5" height="3.5"  fill="#e8752a"/>
+<text x="322" y="306" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">Recipient, in the</text>
+<text x="322" y="321" fill="#6b6358" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">international form</text>
+<line x1="88" y1="340" x2="422" y2="340" stroke="#2b2722" stroke-width="0.8"/>
+<line x1="84" y1="372" x2="466" y2="372" stroke="#cfc6b2" stroke-width="1"/>
+<text x="100" y="404" fill="#2b2722" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="start">Bits per word, by compute</text>
+<line x1="118" y1="420" x2="440" y2="420" stroke="#d9d2c3" stroke-width="0.8"/>
+<line x1="118" y1="471.3333333333333" x2="440" y2="471.3333333333333" stroke="#d9d2c3" stroke-width="0.8"/>
+<line x1="118" y1="522.6666666666666" x2="440" y2="522.6666666666666" stroke="#d9d2c3" stroke-width="0.8"/>
+<line x1="118" y1="574" x2="440" y2="574" stroke="#d9d2c3" stroke-width="0.8"/>
+<line x1="118" y1="574" x2="440" y2="574" stroke="#2b2722" stroke-width="1"/>
+<path d="M130 426 L166.25 470.70026423472603 L202.5 501.12828830763544 L238.75 521.8410215505473 L275 535.9404358721624 L311.25 545.538082009984 L347.5 552.0713187307198 L383.75 556.5185739677063 L420 559.5458757460316" fill="none" stroke="#a09a8e" stroke-width="1.2" stroke-dasharray="3 3"/>
+<circle cx="130" cy="426" r="2.6" fill="#5d5a55"/>
+<circle cx="166.25" cy="470.70026423472603" r="2.6" fill="#5d5a55"/>
+<circle cx="202.5" cy="501.12828830763544" r="2.6" fill="#5d5a55"/>
+<circle cx="238.75" cy="521.8410215505473" r="2.6" fill="#5d5a55"/>
+<circle cx="275" cy="535.9404358721624" r="2.6" fill="#5d5a55"/>
+<circle cx="311.25" cy="545.538082009984" r="2.6" fill="#5d5a55"/>
+<circle cx="347.5" cy="552.0713187307198" r="2.6" fill="#5d5a55"/>
+<circle cx="383.75" cy="556.5185739677063" r="2.6" fill="#5d5a55"/>
+<circle cx="420" cy="559.5458757460316" r="2.6" fill="#4caf50"/>
+<text x="84" y="618" fill="#6b6358" font-family="Georgia, serif" font-size="10.5" font-weight="400" text-anchor="start">Figure 1. Each point is a run; the line is the</text>
+<text x="84" y="633" fill="#6b6358" font-family="Georgia, serif" font-size="10.5" font-weight="400" text-anchor="start">fit, and it predicts the last one.</text>
+<line x1="84" y1="736" x2="466" y2="736" stroke="#cfc6b2" stroke-width="1"/>
+<text x="84" y="754" fill="#8a8276" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="start">Confidential — Business Ltd.</text>
+<text x="466" y="754" fill="#8a8276" font-family="sans-serif" font-size="9.5" font-weight="400" text-anchor="end">Page 14 of 30</text>
+<text x="60" y="800" fill="#8f7ff5" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Running head and footer: furniture, left out of the text (#853)</text>
+<path d="M508 425 L560 425" stroke="#8f7ff5" stroke-width="2"/><path d="M552 417 L562 425 L552 433" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+<text x="580" y="52" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" letter-spacing="2">IN THE READING VIEW</text>
+<rect x="580" y="70" width="560" height="710" rx="12" stroke="#3a3a3a" stroke-width="1.5" fill="#18171e"/>
+<rect x="581" y="71" width="220" height="3"  fill="#7f6df2"/>
+<text x="860" y="102" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle" letter-spacing="2">p. 14</text>
+<text x="612" y="136" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="400" text-anchor="start">One request can send a message to many</text>
+<text x="612" y="164" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="400" text-anchor="start">recipients at once. The parameters it takes:</text>
+<rect x="612" y="214" width="496" height="196" rx="6" fill="#f4efe3"/>
+<line x1="626.56" y1="226" x2="1080.8" y2="226" stroke="#2b2722" stroke-width="2.176"/>
+<text x="632" y="247.76" fill="#2b2722" font-family="sans-serif" font-size="13.600000000000001" font-weight="700" text-anchor="start">Name</text>
+<text x="727.2" y="247.76" fill="#2b2722" font-family="sans-serif" font-size="13.600000000000001" font-weight="700" text-anchor="start">Type</text>
+<text x="808.8" y="247.76" fill="#2b2722" font-family="sans-serif" font-size="13.600000000000001" font-weight="700" text-anchor="start">Req.</text>
+<text x="870" y="247.76" fill="#2b2722" font-family="sans-serif" font-size="13.600000000000001" font-weight="700" text-anchor="start">Max</text>
+<text x="944.8" y="247.76" fill="#2b2722" font-family="sans-serif" font-size="13.600000000000001" font-weight="700" text-anchor="start">Description</text>
+<rect x="622.48" y="264.08" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="632" y="272.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">id</text>
+<text x="727.2" y="272.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">string</text>
+<text x="808.8" y="272.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">OP</text>
+<text x="870" y="272.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">128</text>
+<rect x="935.28" y="264.08" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="944.8" y="272.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">Message GUID</text>
+<rect x="622.48" y="284.47999999999996" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="632" y="292.64" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">text</text>
+<text x="727.2" y="292.64" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">string</text>
+<text x="808.8" y="292.64" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">OB</text>
+<text x="870" y="292.64" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">1024</text>
+<rect x="935.28" y="284.47999999999996" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="944.8" y="292.64" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">Body of the SMS</text>
+<rect x="622.48" y="304.88" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="632" y="313.04" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">sender</text>
+<text x="727.2" y="313.04" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">string</text>
+<text x="808.8" y="313.04" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">OB</text>
+<text x="870" y="313.04" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">20</text>
+<rect x="935.28" y="304.88" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="944.8" y="313.04" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">Sender: a number</text>
+<text x="944.8" y="333.44" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">or a name of 11</text>
+<rect x="622.48" y="345.68" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="632" y="353.84000000000003" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">mobile</text>
+<text x="727.2" y="353.84000000000003" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">string</text>
+<text x="808.8" y="353.84000000000003" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">OB</text>
+<text x="870" y="353.84000000000003" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">50</text>
+<rect x="935.28" y="345.68" width="4.760000000000001" height="4.760000000000001"  fill="#e8752a"/>
+<text x="944.8" y="353.84000000000003" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">Recipient, in the</text>
+<text x="944.8" y="374.24" fill="#6b6358" font-family="sans-serif" font-size="12.920000000000002" font-weight="400" text-anchor="start">international form</text>
+<line x1="626.56" y1="400.08000000000004" x2="1080.8" y2="400.08000000000004" stroke="#2b2722" stroke-width="1.088"/>
+<text x="1108" y="206" fill="#8f7ff5" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">as printed: an island (#854)</text>
+<line x1="612" y1="436" x2="1108" y2="436" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="1108" y="454" fill="#8f7ff5" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="end">a rule: a separator</text>
+<rect x="662" y="470" width="396" height="200" rx="6" fill="#f4efe3"/>
+<text x="680" y="486.48" fill="#2b2722" font-family="sans-serif" font-size="10.4" font-weight="700" text-anchor="start">Bits per word, by compute</text>
+<line x1="698.72" y1="503.12" x2="1046" y2="503.12" stroke="#d9d2c3" stroke-width="0.8320000000000001"/>
+<line x1="698.72" y1="551.1733333333333" x2="1046" y2="551.1733333333333" stroke="#d9d2c3" stroke-width="0.8320000000000001"/>
+<line x1="698.72" y1="599.2266666666667" x2="1046" y2="599.2266666666667" stroke="#d9d2c3" stroke-width="0.8320000000000001"/>
+<line x1="698.72" y1="647.28" x2="1046" y2="647.28" stroke="#d9d2c3" stroke-width="0.8320000000000001"/>
+<line x1="698.72" y1="647.28" x2="1046" y2="647.28" stroke="#2b2722" stroke-width="1.04"/>
+<path d="M711.2 509.36 L750.45 550.7396731772893 L789.7 578.9073297476397 L828.95 598.0814028067924 L868.2 611.133432064516 L907.45 620.0181102035281 L946.7 626.0660207678663 L985.95 630.1829084729624 L1025.2 632.9853249763264" fill="none" stroke="#a09a8e" stroke-width="1.248" stroke-dasharray="3.12 3.12"/>
+<circle cx="711.2" cy="509.36" r="2.704" fill="#5d5a55"/>
+<circle cx="750.45" cy="550.7396731772893" r="2.704" fill="#5d5a55"/>
+<circle cx="789.7" cy="578.9073297476397" r="2.704" fill="#5d5a55"/>
+<circle cx="828.95" cy="598.0814028067924" r="2.704" fill="#5d5a55"/>
+<circle cx="868.2" cy="611.133432064516" r="2.704" fill="#5d5a55"/>
+<circle cx="907.45" cy="620.0181102035281" r="2.704" fill="#5d5a55"/>
+<circle cx="946.7" cy="626.0660207678663" r="2.704" fill="#5d5a55"/>
+<circle cx="985.95" cy="630.1829084729624" r="2.704" fill="#5d5a55"/>
+<circle cx="1025.2" cy="632.9853249763264" r="2.704" fill="#4caf50"/>
+<text x="612" y="700" fill="#dcddde" font-family="Georgia, serif" font-size="16" font-weight="400" text-anchor="start">Figure 1. Each point is a run; the line is the fit,</text>
+<text x="612" y="726" fill="#dcddde" font-family="Georgia, serif" font-size="16" font-weight="400" text-anchor="start">and it predicts the last one.</text>
+<text x="612" y="762" fill="#8f7ff5" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">The caption reads as text. Every word of the island is kept, for search and highlights.</text>
+</svg>

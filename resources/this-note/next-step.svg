@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="770" viewBox="0 0 1200 770" role="img" aria-label="This note — actions on this note: the open steps listed together, one opened in place, and the note's tools">
+<rect width="1200" height="770" fill="#1e1e1e"/>
+<text x="24" y="34" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">The open steps, together — the first one filled</text>
+<rect x="24" y="48" width="400" height="500" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="2"/>
+<text x="44" y="82" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Ideas as debt</text>
+<text x="380" y="82" fill="#8b8e94" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">↻</text>
+<circle cx="49" cy="107" r="5" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/>
+<text x="59" y="112" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Fleeting</text>
+<line x1="126" y1="107" x2="140" y2="107" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="153" cy="107" r="5" fill="none" stroke="#a99cf7" stroke-width="2"/>
+<text x="163" y="112" fill="#a99cf7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Literature</text>
+<line x1="245" y1="107" x2="259" y2="107" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="272" cy="107" r="5" fill="none" stroke="#5c5f66" stroke-width="2"/>
+<text x="282" y="112" fill="#5c5f66" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Permanent</text>
+<line x1="28" y1="130" x2="420" y2="130" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="44" y="144" width="360" height="390" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="60" y="170" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="start">ACTIONS ON THIS NOTE</text>
+<text x="60" y="196" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Makes 2 claims with no source.</text>
+<rect x="60" y="208" width="118" height="30" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="119.0" y="228" fill="#fff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Add a source</text>
+<text x="60" y="274" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">It does not link to any note yet.</text>
+<rect x="60" y="286" width="86" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="103.0" y="306" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Connect</text>
+<text x="60" y="352" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">It is still fleeting.</text>
+<rect x="60" y="364" width="146" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="133.0" y="384" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Move to Literature</text>
+<circle cx="414" cy="196" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="414" y="201" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<line x1="60" y1="422" x2="388" y2="422" stroke="#303030" stroke-width="1.5"/>
+<rect x="60" y="436" width="112" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="116.0" y="456" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Make a move…</text>
+<rect x="182" y="436" width="160" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="262.0" y="456" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Think about this note</text>
+<rect x="60" y="476" width="186" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="153.0" y="496" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Say what this note claims</text>
+<rect x="256" y="476" width="132" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="322.0" y="496" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Cultivate this note</text>
+<circle cx="414" cy="451" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="414" y="456" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<text x="444" y="34" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Press a step: its panel opens under it; nothing is written until you confirm</text>
+<rect x="444" y="48" width="400" height="700" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="2"/>
+<text x="464" y="82" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Ideas as debt</text>
+<text x="800" y="82" fill="#8b8e94" font-family="sans-serif" font-size="17" font-weight="400" text-anchor="start">↻</text>
+<circle cx="469" cy="107" r="5" fill="#7f6df2" stroke="#7f6df2" stroke-width="2"/>
+<text x="479" y="112" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">Fleeting</text>
+<line x1="546" y1="107" x2="560" y2="107" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="573" cy="107" r="5" fill="none" stroke="#a99cf7" stroke-width="2"/>
+<text x="583" y="112" fill="#a99cf7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Literature</text>
+<line x1="665" y1="107" x2="679" y2="107" stroke="#3a3a3a" stroke-width="2"/>
+<circle cx="692" cy="107" r="5" fill="none" stroke="#5c5f66" stroke-width="2"/>
+<text x="702" y="112" fill="#5c5f66" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Permanent</text>
+<line x1="448" y1="130" x2="840" y2="130" stroke="#3a3a3a" stroke-width="2"/>
+<rect x="464" y="144" width="360" height="590" rx="8" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2"/>
+<text x="480" y="170" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="700" text-anchor="start">ACTIONS ON THIS NOTE</text>
+<text x="480" y="196" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">Makes 2 claims with no source.</text>
+<rect x="480" y="208" width="118" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="539.0" y="228" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Add a source</text>
+<text x="480" y="274" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">It does not link to any note yet.</text>
+<rect x="480" y="286" width="86" height="30" rx="6" fill="#2f2f2f" stroke="#7f6df2" stroke-width="1.5"/>
+<text x="523.0" y="306" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Connect</text>
+<circle cx="834" cy="274" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="834" y="279" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<rect x="480" y="328" width="328" height="150" rx="6" fill="#262626" stroke="#303030" stroke-width="1.5"/>
+<text x="494" y="354" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Luhmann's slip-box</text>
+<text x="494" y="371" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Shares tag #pkm</text>
+<rect x="734" y="338" width="62" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="765.0" y="358" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Link</text>
+<text x="494" y="398" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">PKM vs Zettelkasten</text>
+<text x="494" y="415" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Links to the same notes</text>
+<rect x="734" y="382" width="62" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="765.0" y="402" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Link</text>
+<text x="494" y="448" fill="#a99cf7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Choose another note…</text>
+<text x="794" y="448" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="end">Cancel</text>
+<circle cx="834" cy="354" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="834" y="359" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<text x="480" y="510" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="400" text-anchor="start">It is still fleeting.</text>
+<rect x="480" y="522" width="146" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="553.0" y="542" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Move to Literature</text>
+<line x1="480" y1="580" x2="808" y2="580" stroke="#303030" stroke-width="1.5"/>
+<rect x="480" y="594" width="112" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="536.0" y="614" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Make a move…</text>
+<rect x="602" y="594" width="160" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="682.0" y="614" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Think about this note</text>
+<rect x="480" y="634" width="186" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="573.0" y="654" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Say what this note claims</text>
+<rect x="676" y="634" width="132" height="30" rx="6" fill="#2f2f2f" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="742.0" y="654" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Cultivate this note</text>
+<text x="480" y="696" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Linked to Luhmann's slip-box.</text>
+<text x="694" y="696" fill="#a99cf7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Undo</text>
+<circle cx="834" cy="691" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="834" y="696" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">5</text>
+<circle cx="886" cy="65" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="886" y="70" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<text x="906" y="70" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">The moves suggestNextMoves() returns,</text>
+<text x="906" y="89" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">in its order — each with the fact it</text>
+<text x="906" y="108" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">rests on, never a grade. One filled</text>
+<text x="906" y="127" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">button: the step in hand.</text>
+<circle cx="886" cy="171" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="886" y="176" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<text x="906" y="176" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">The note's tools, quiet buttons: make</text>
+<text x="906" y="195" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">a move, think about it, say what it</text>
+<text x="906" y="214" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">claims (or edit the claim it states),</text>
+<text x="906" y="233" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">cultivate it — always on this note.</text>
+<circle cx="886" cy="277" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="886" y="282" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<text x="906" y="282" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Pressing a step opens it under itself;</text>
+<text x="906" y="301" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">pressing it again closes it. While it</text>
+<text x="906" y="320" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">is open the step gives up its fill —</text>
+<text x="906" y="339" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">a confirm inside takes it.</text>
+<circle cx="886" cy="383" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="886" y="388" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<text x="906" y="388" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Always a way to link any note: the</text>
+<text x="906" y="407" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">picker is there even when nothing</text>
+<text x="906" y="426" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">nearby is offered.</text>
+<circle cx="886" cy="470" r="10" fill="#e0a351" stroke="#e0a351" stroke-width="2"/>
+<text x="886" y="475" fill="#1e1e1e" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">5</text>
+<text x="906" y="475" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">After you confirm, one line answers</text>
+<text x="906" y="494" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">with an Undo for 30 s, in this note's</text>
+<text x="906" y="513" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">own batch — no toast. The list starts</text>
+<text x="906" y="532" fill="#b3b3b3" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">again on its first open step.</text>
+</svg>

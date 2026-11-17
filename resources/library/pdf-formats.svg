@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="A PDF page as printed beside the same page in the Reader's reading view: the heading, bold and italic, a footnote marker raised, inline code, a bulleted and a numbered list with hanging markers, a listing in its own box with its indentation, a block quote, a link and the footnote at the foot — the page's text unchanged">
+<rect x="0" y="0" width="1200" height="800"  fill="#141319"/>
+<text x="60" y="52" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" letter-spacing="2">AS PRINTED</text>
+<rect x="60" y="70" width="420" height="680" rx="8" fill="#f4efe3"/>
+<text x="84" y="112" fill="#2b2722" font-family="Georgia, serif" font-size="17" font-weight="700" text-anchor="start">Chapter 1. Formats in a paper</text>
+<text x="84" y="146" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">This paragraph has a bold term and an italic phrase</text>
+<text x="84" y="163" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">inside it, and a note¹. It continues with inline</text>
+<text x="84" y="180" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">parseConfig() code in it.</text>
+<text x="84" y="209" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">• First item of a list</text>
+<text x="84" y="226" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">• Second item of a list</text>
+<text x="84" y="243" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">1. A numbered item</text>
+<text x="84" y="260" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">2. Another numbered item</text>
+<text x="84" y="289" fill="#6b6358" font-family="monospace" font-size="11.5" font-weight="400" text-anchor="start">function&#160;greet(name)&#160;{</text>
+<text x="84" y="305" fill="#6b6358" font-family="monospace" font-size="11.5" font-weight="400" text-anchor="start">&#160;&#160;&#160;&#160;return&#160;'Hello&#160;'&#160;+&#160;name;</text>
+<text x="84" y="321" fill="#6b6358" font-family="monospace" font-size="11.5" font-weight="400" text-anchor="start">}</text>
+<text x="118" y="351" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">A quoted passage set in from both</text>
+<text x="118" y="368" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">margins, as an essay sets one.</text>
+<text x="84" y="397" fill="#6b6358" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start">See example.org for more.</text>
+<line x1="84" y1="690" x2="220" y2="690" stroke="#cfc6b2" stroke-width="1"/>
+<text x="84" y="710" fill="#6b6358" font-family="Georgia, serif" font-size="9.5" font-weight="400" text-anchor="start">¹ The footnote text, small, at the foot.</text>
+<path d="M500 410 L560 410" stroke="#8f7ff5" stroke-width="2"/><path d="M552 402 L562 410 L552 418" fill="none" stroke="#8f7ff5" stroke-width="2"/>
+<text x="580" y="52" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" letter-spacing="2">IN THE READING VIEW</text>
+<rect x="580" y="70" width="560" height="680" rx="12" stroke="#3a3a3a" stroke-width="1.5" fill="#18171e"/>
+<rect x="581" y="71" width="220" height="3"  fill="#7f6df2"/>
+<text x="612" y="124" fill="#dcddde" font-family="Georgia, serif" font-size="23" font-weight="700" text-anchor="start">Chapter 1. Formats in a paper</text>
+<text x="612" y="164" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start"><tspan>This paragraph has a </tspan><tspan font-weight="700">bold term</tspan><tspan> and an </tspan><tspan font-style="italic">italic phrase</tspan><tspan>,</tspan></text>
+<text x="612" y="190" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start"><tspan>and a note</tspan><tspan font-size="10" dy="-7" fill="#8f7ff5">1</tspan><tspan dy="7">.</tspan><tspan> It continues with inline </tspan></text>
+<rect x="610" y="201" width="118" height="21" rx="4" fill="#26252f"/>
+<text x="616" y="216" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start"><tspan font-family="monospace" font-size="13.5">parseConfig()</tspan><tspan dx="8"> code in it.</tspan></text>
+<text x="624" y="256" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="end">•</text>
+<text x="636" y="256" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">First item of a list</text>
+<text x="624" y="281" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="end">•</text>
+<text x="636" y="281" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">Second item of a list</text>
+<text x="624" y="306" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="end">1.</text>
+<text x="636" y="306" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">A numbered item</text>
+<text x="624" y="331" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="end">2.</text>
+<text x="636" y="331" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start">Another numbered item</text>
+<rect x="608" y="364" width="504" height="80" rx="6" stroke="#2a2936" stroke-width="1" fill="#211f29"/>
+<text x="624" y="390" fill="#dcddde" font-family="monospace" font-size="13.5" font-weight="400" text-anchor="start">function&#160;greet(name)&#160;{</text>
+<text x="624" y="412" fill="#dcddde" font-family="monospace" font-size="13.5" font-weight="400" text-anchor="start">&#160;&#160;&#160;&#160;return&#160;'Hello&#160;'&#160;+&#160;name;</text>
+<text x="624" y="434" fill="#dcddde" font-family="monospace" font-size="13.5" font-weight="400" text-anchor="start">}</text>
+<rect x="612" y="464" width="3" height="52"  fill="#8f7ff5"/>
+<text x="630" y="482" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" font-style="italic" text-anchor="start">A quoted passage set in from both margins,</text>
+<text x="630" y="508" fill="#8b8e94" font-family="Georgia, serif" font-size="15" font-weight="400" font-style="italic" text-anchor="start">as an essay sets one.</text>
+<text x="612" y="552" fill="#dcddde" font-family="Georgia, serif" font-size="15" font-weight="400" text-anchor="start"><tspan>See </tspan><tspan fill="#8f7ff5" text-decoration="underline">example.org</tspan><tspan> for more.</tspan></text>
+<line x1="612" y1="672" x2="760" y2="672" stroke="#3a3a3a" stroke-width="1"/>
+<text x="612" y="694" fill="#8b8e94" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start"><tspan fill="#8f7ff5" font-size="11">1</tspan><tspan dx="4"> The footnote text, small, at the foot of the page.</tspan></text>
+<text x="860" y="734" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">The text is the page's own: your highlights find their words.</text>
+</svg>

@@ -1,0 +1,133 @@
+/* ZettelFlow docs — minimalist brand refinements.
+   Everything here is intentionally light-touch: brand colour, a comfortable
+   reading measure, and softer surfaces. No layout rewrites. */
+
+:root {
+  /* Refined Obsidian-violet, warmer than the stock deep-purple. */
+  --md-primary-fg-color:        #6b4ffb;
+  --md-primary-fg-color--light: #8a72ff;
+  --md-primary-fg-color--dark:  #4b32d6;
+  --md-accent-fg-color:         #7c5cff;
+  --md-default-font-feature-settings: "kern", "liga";
+}
+
+/* Dark scheme: soften the violet so it reads calm on slate. */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #8a72ff;
+  --md-accent-fg-color:         #a78bfa;
+  --md-hue: 250;
+}
+
+/* Comfortable reading measure — wide enough for tables, not sprawling. */
+.md-grid {
+  max-width: 68rem;
+}
+
+/* Sticky tabs: a touch more weight, less shout. */
+.md-tabs {
+  font-weight: 500;
+}
+.md-tabs__link {
+  opacity: 0.85;
+}
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  opacity: 1;
+}
+
+/* Softer surfaces: tables, admonitions, details, code. */
+.md-typeset table:not([class]) {
+  border-radius: 0.4rem;
+  overflow: hidden;
+}
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 0.5rem;
+  border-left-width: 0.2rem;
+}
+.md-typeset code {
+  border-radius: 0.3rem;
+}
+.md-typeset pre > code {
+  border-radius: 0.4rem;
+}
+
+/* Headings: a little more air, lighter tracking. */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.md-typeset h2 {
+  font-weight: 600;
+  margin-top: 2.2em;
+  letter-spacing: -0.005em;
+}
+
+/* Logo + search breathing room. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.4rem;
+}
+.md-search__form {
+  border-radius: 0.5rem;
+}
+
+/* ── Landing page (#653) ───────────────────────────────────────────────────────────────────
+   A centred hero and illustrated cards. Theme-aware: colours come from Material's variables. */
+.zf-hero {
+  text-align: center;
+  margin: 0 auto 1.5rem;
+}
+.md-typeset .zf-hero h1 {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 2.6rem;
+}
+.zf-hero__logo {
+  width: 4.5rem;
+  height: auto;
+}
+.md-typeset .zf-hero__tagline {
+  font-size: 1.15rem;
+  color: var(--md-default-fg-color--light);
+  margin: 0 auto 1.2rem;
+  max-width: 38rem;
+}
+.md-typeset .zf-hero__links {
+  font-size: 0.8rem;
+  margin: 0.6rem 0 0;
+  color: var(--md-default-fg-color--light);
+}
+.md-typeset .zf-hero .md-button {
+  margin: 0 0.3rem 0.6rem;
+}
+.zf-hero__image {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 0.6rem;
+  box-shadow: var(--md-shadow-z2);
+}
+/* Card illustrations: full width, one height, the scene's own frame kept. */
+.md-typeset .grid.cards > ul > li img,
+.md-typeset .grid.cards > ol > li img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: top left;
+  border-radius: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+/* Three across on the landing page, so each illustration is big enough to read. */
+.md-typeset .grid.cards.zf-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+@media screen and (min-width: 60em) {
+  .md-typeset .grid.cards.zf-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  /* Four cards read as two rows of two, never three and an orphan (the Why page). */
+  .md-typeset .grid.cards.zf-cards.zf-cards--two {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

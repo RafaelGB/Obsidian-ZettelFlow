@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000" role="img" aria-label="Your shelves: Clásicos and a new empty shelf in the chip row beside + New shelf; a book lifted off On the shelf, its place left faint, carried as a tilted copy of its cover onto Clásicos, the one shelf lit; Moved to Clásicos with Undo on the line in the bar; and the book's menu offering Move to shelf…, its current shelf checked">
+<defs><pattern id="weave" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0.5H4M0.5 0V4" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/></pattern><linearGradient id="hinge" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.35"/><stop offset="0.07" stop-color="#fff" stop-opacity="0.08"/><stop offset="0.13" stop-color="#000" stop-opacity="0"/></linearGradient><linearGradient id="spineshade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.28"/><stop offset="0.3" stop-color="#000" stop-opacity="0"/><stop offset="0.7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.32"/></linearGradient><linearGradient id="plank" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6b5843"/><stop offset="1" stop-color="#43372b"/></linearGradient><linearGradient id="wall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#18181b" stop-opacity="0"/><stop offset="0.5" stop-color="#1f1e22"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.45"/></filter></defs>
+<rect x="0.0" y="0.0" width="1200.0" height="1000.0" rx="0" fill="#141416" stroke="none" stroke-width="1" />
+<rect x="30.0" y="20.0" width="1140.0" height="960.0" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="52" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="70" cy="40" r="5.5" fill="#e9973f"/>
+<circle cx="88" cy="40" r="5.5" fill="#44cf6e"/>
+<text x="600.0" y="45.0" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >My vault — Obsidian</text>
+<line x1="30" y1="60" x2="1170" y2="60" stroke="#3a3a3a" stroke-width="1" />
+<rect x="30.0" y="60.0" width="44.0" height="920.0" rx="0" fill="#202022" stroke="none" stroke-width="1" />
+<rect x="40.0" y="112.0" width="24.0" height="24.0" rx="6" fill="#2f2b45" stroke="none" stroke-width="1" />
+<text x="52.0" y="129.0" fill="#7f6df2" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" >▥</text>
+<rect x="74.0" y="60.0" width="1096.0" height="34.0" rx="0" fill="#202022" stroke="none" stroke-width="1" />
+<rect x="84.0" y="66.0" width="120.0" height="28.0" rx="6" fill="#18181b" stroke="none" stroke-width="1" />
+<text x="100.0" y="85.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Library</text>
+<rect x="74.0" y="94.0" width="1096.0" height="144.0" rx="0" fill="#1a1a1d" stroke="none" stroke-width="1" />
+<text x="100.0" y="130.0" fill="#dcddde" font-family="sans-serif" font-size="22" font-weight="700" text-anchor="start" >Library</text>
+<rect x="620.0" y="110.0" width="320.0" height="32.0" rx="8" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="636.0" y="131.0" fill="#5f6168" font-family="sans-serif" font-size="15" font-weight="400" text-anchor="start" >⌕</text>
+<text x="656.0" y="131.0" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Search titles and authors</text>
+<rect x="912.0" y="117.0" width="18.0" height="18.0" rx="4" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="921.0" y="130.0" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle" >/</text>
+<rect x="960.0" y="110.0" width="180.0" height="32.0" rx="8" fill="#26262a" stroke="none" stroke-width="1" />
+<rect x="963.0" y="113.0" width="87.0" height="26.0" rx="6" fill="#18181b" stroke="#4a4a4f" stroke-width="1" />
+<text x="1006.0" y="131.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Covers</text>
+<text x="1093.0" y="131.0" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle" >Spines</text>
+<rect x="100.0" y="156.0" width="55.5" height="26.0" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="110.0" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >All</text>
+<text x="145.5" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">17</text>
+<rect x="161.5" y="156.0" width="68.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="171.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Books</text>
+<text x="220.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">16</text>
+<rect x="236.0" y="156.0" width="75.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="246.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Papers</text>
+<text x="301.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">1</text>
+<rect x="317.0" y="156.0" width="88.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="327.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Articles</text>
+<text x="395.0" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">0</text>
+<rect x="411.0" y="156.0" width="68.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="421.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Paths</text>
+<text x="469.5" y="173.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" opacity="0.8">0</text>
+<line x1="487.5" y1="160" x2="487.5" y2="178" stroke="#3a3a3a" stroke-width="1" />
+<rect x="497.5" y="156.0" width="91.5" height="26.0" rx="13" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="507.5" y="173.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >Every shelf</text>
+<rect x="595.0" y="156.0" width="65.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="605.0" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Reading</text>
+<rect x="666.5" y="156.0" width="98.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="676.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Want to read</text>
+<rect x="770.5" y="156.0" width="98.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="780.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >On the shelf</text>
+<rect x="874.5" y="156.0" width="72.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<text x="884.5" y="173.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Finished</text>
+<rect x="100.0" y="190.0" width="86.0" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<path d="M110 197 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="124.0" y="207.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Clásicos</text>
+<rect x="192.0" y="190.0" width="105.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" />
+<path d="M202.0 197 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="216.0" y="207.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >Para releer</text>
+<rect x="303.5" y="190.0" width="91.5" height="26.0" rx="13" fill="none" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="313.5" y="207.5" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="start" >+ New shelf</text>
+<rect x="1010.0" y="190.0" width="130.0" height="26.0" rx="6" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="1022.0" y="207.5" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Recently read</text>
+<text x="1128.0" y="207.5" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" >⌄</text>
+<text x="100.0" y="236.0" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Moved to Clásicos</text>
+<rect x="229.0" y="221.0" width="52.0" height="22.0" rx="5" fill="#232326" stroke="#3a3a3a" stroke-width="1" />
+<text x="255.0" y="236.0" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle" >Undo</text>
+<rect x="74.0" y="252.0" width="1096.0" height="3.0" rx="0" fill="#000" stroke="none" stroke-width="1" opacity="0.35"/>
+<rect x="100.0" y="285.0" width="1040.0" height="186.0" rx="6" fill="url(#wall)" stroke="none" stroke-width="1" />
+<rect x="100" y="471" width="1040" height="12" rx="2" fill="url(#plank)" filter="url(#shadow)"/>
+<text x="122.0" y="505.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >On the shelf</text>
+<text x="223.2" y="505.0" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" font-style="italic" >not started yet</text>
+<g filter="url(#shadow)">
+<rect x="122.0" y="311.0" width="106.7" height="160.0" rx="4" fill="#2f7a7a" stroke="none" stroke-width="1" />
+<rect x="122.0" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="134.8" y="322.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="181.7" y="414.0" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >The Pragmatic</text>
+<text x="181.7" y="426.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >Programmer</text>
+<text x="181.7" y="445.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Hunt &amp; Thomas</text>
+<rect x="122.0" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<g filter="url(#shadow)">
+<rect x="246.7" y="311.0" width="106.7" height="160.0" rx="4" fill="#b5772e" stroke="none" stroke-width="1" />
+<rect x="246.7" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="259.5" y="322.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="306.4" y="426.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >Rayuela</text>
+<text x="306.4" y="445.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Cortázar</text>
+<rect x="246.7" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<g opacity="0.35">
+<g filter="url(#shadow)">
+<rect x="371.3" y="311.0" width="106.7" height="160.0" rx="4" fill="#8e3b3b" stroke="none" stroke-width="1" />
+<rect x="371.3" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="384.1" y="322.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="431.1" y="414.0" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >Cien años de</text>
+<text x="431.1" y="426.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >soledad</text>
+<text x="431.1" y="445.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">García Márquez</text>
+<rect x="371.3" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+</g>
+<g filter="url(#shadow)">
+<rect x="496.0" y="311.0" width="106.7" height="160.0" rx="4" fill="#6b4f8f" stroke="none" stroke-width="1" />
+<rect x="496.0" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="508.8" y="322.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="555.7" y="426.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >Meditations</text>
+<text x="555.7" y="445.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Marcus Aurelius</text>
+<rect x="496.0" y="311.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<rect x="100.0" y="535.0" width="1040.0" height="186.0" rx="6" fill="url(#wall)" stroke="none" stroke-width="1" />
+<rect x="100.0" y="535.0" width="1040.0" height="186.0" rx="6" fill="#7f6df2" stroke="none" stroke-width="1" opacity="0.10"/>
+<rect x="101.0" y="536.0" width="1038.0" height="184.0" rx="6" fill="none" stroke="#7f6df2" stroke-width="2" stroke-opacity="0.6"/>
+<rect x="100" y="721" width="1040" height="12" rx="2" fill="url(#plank)" filter="url(#shadow)"/>
+<path d="M122 744 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="138.0" y="755.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Clásicos</text>
+<text x="208.8" y="755.0" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" font-style="italic" >Your shelf</text>
+<text x="286.8" y="755.0" fill="#5f6168" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start" >⋯</text>
+<g filter="url(#shadow)">
+<rect x="122.0" y="561.0" width="106.7" height="160.0" rx="4" fill="#9a8433" stroke="none" stroke-width="1" />
+<rect x="122.0" y="561.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="134.8" y="572.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="181.7" y="664.0" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >El arte de la</text>
+<text x="181.7" y="676.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >guerra</text>
+<text x="181.7" y="695.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Sun Tzu</text>
+<rect x="122.0" y="561.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<g filter="url(#shadow)">
+<rect x="246.7" y="561.0" width="106.7" height="160.0" rx="4" fill="#3f6e4f" stroke="none" stroke-width="1" />
+<rect x="246.7" y="561.0" width="106.7" height="160.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="259.5" y="572.2" width="85.3" height="137.6" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="306.4" y="664.0" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >El nombre de</text>
+<text x="306.4" y="676.2" fill="#ffffff" font-family="Georgia, serif" font-size="10.133333333333335" font-weight="700" text-anchor="middle" >la rosa</text>
+<text x="306.4" y="695.4" fill="#ffffff" font-family="Georgia, serif" font-size="7.701333333333334" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">Eco</text>
+<rect x="246.7" y="561.0" width="106.7" height="160.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+<path d="M353.33333333333337 707 L353.33333333333337 717 Q353.33333333333337 721 349.33333333333337 721 L339.33333333333337 721 Z" fill="#18181b" opacity="0.92"/>
+<g transform="rotate(-4 451.33333333333337 616)" opacity="0.92">
+<g filter="url(#shadow)">
+<rect x="401.3" y="541.0" width="96.0" height="144.0" rx="4" fill="#8e3b3b" stroke="none" stroke-width="1" />
+<rect x="401.3" y="541.0" width="96.0" height="144.0" rx="4" fill="url(#weave)" stroke="none" stroke-width="1" />
+<rect x="412.9" y="551.1" width="76.8" height="123.8" rx="3" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.28"/>
+<text x="455.1" y="633.7" fill="#ffffff" font-family="Georgia, serif" font-size="9.120000000000001" font-weight="700" text-anchor="middle" >Cien años de</text>
+<text x="455.1" y="644.7" fill="#ffffff" font-family="Georgia, serif" font-size="9.120000000000001" font-weight="700" text-anchor="middle" >soledad</text>
+<text x="455.1" y="662.0" fill="#ffffff" font-family="Georgia, serif" font-size="6.9312000000000005" font-weight="400" text-anchor="middle" font-style="italic" opacity="0.85">García Márquez</text>
+<rect x="401.3" y="541.0" width="96.0" height="144.0" rx="4" fill="url(#hinge)" stroke="none" stroke-width="1" />
+</g>
+</g>
+<path d="M471.33333333333337 641 l0 18 l5 -5 l4 8 l3 -1.5 l-4 -8 l7 0 z" fill="#ffffff" stroke="#111" stroke-width="1"/>
+<path d="M421.33333333333337 391.0 C 491.33333333333337 511, 341.33333333333337 511, 421.33333333333337 551" fill="none" stroke="#7f6df2" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.7"/>
+<rect x="100.0" y="785.0" width="640.0" height="96.0" rx="6" fill="url(#wall)" stroke="none" stroke-width="1" />
+<rect x="100" y="881" width="640" height="12" rx="2" fill="url(#plank)" filter="url(#shadow)"/>
+<path d="M122 904 h8 v12 l-4 -3 l-4 3 z" fill="none" stroke="#7f6df2" stroke-width="1.4" stroke-linejoin="round"/>
+<text x="138.0" y="915.0" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Para releer</text>
+<text x="231.6" y="915.0" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" font-style="italic" >Your shelf</text>
+<text x="309.6" y="915.0" fill="#5f6168" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start" >⋯</text>
+<text x="122.0" y="837.0" fill="#5f6168" font-family="Georgia, serif" font-size="13" font-weight="400" text-anchor="start" font-style="italic" >Drag books here to shelve them</text>
+<rect x="790.0" y="779.0" width="300.0" height="168.0" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1" filter="url(#shadow)"/>
+<text x="804.0" y="801.0" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Move to shelf…</text>
+<text x="810.0" y="825.0" fill="#7f6df2" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" ></text>
+<text x="828.0" y="825.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Reading</text>
+<text x="810.0" y="849.0" fill="#7f6df2" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" ></text>
+<text x="828.0" y="849.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Want to read</text>
+<text x="810.0" y="873.0" fill="#7f6df2" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >✓</text>
+<text x="828.0" y="873.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >On the shelf</text>
+<text x="810.0" y="897.0" fill="#7f6df2" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" ></text>
+<text x="828.0" y="897.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Finished</text>
+<rect x="796.0" y="905.0" width="288.0" height="22.0" rx="4" fill="#2f2b45" stroke="none" stroke-width="1" />
+<text x="810.0" y="921.0" fill="#7f6df2" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" ></text>
+<text x="828.0" y="921.0" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Clásicos</text>
+</svg>

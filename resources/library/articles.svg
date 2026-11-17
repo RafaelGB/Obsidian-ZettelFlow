@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Articles from Web Clipper: on the shelf, the Articles chip is chosen and under it the line Articles come from Clippings, Change; two clipped articles sit on the shelf with drawn covers, one by Jane Doe and one signed by its site, blog.example.org. Recently added follows Continue reading: one row, newest first, where a book just dropped into the vault settles in, a touch smaller and clear, while the card beside it makes room. And a clipping read in the Reader like a book: Section 2 of 3, its heading Speed, a highlighted sentence, and Contents listing the article's headings">
+<rect x="0" y="0" width="1200" height="630" rx="0" fill="#141416" stroke="none" stroke-width="0" />
+
+<!-- 1 · the Articles chip -->
+<circle cx="54" cy="52" r="13" fill="#7f6df2" />
+<text x="54" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >1</text>
+<text x="76" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >What you clip, on the shelf</text>
+<rect x="36" y="76" width="360" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<rect x="54" y="96" width="50" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="79.0" y="112" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >All  6</text>
+<rect x="110" y="96" width="66" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="143.0" y="112" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Books  2</text>
+<rect x="182" y="96" width="70" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="217.0" y="112" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Papers  1</text>
+<rect x="258" y="96" width="78" height="24" rx="12" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="297.0" y="112" fill="#ffffff" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="middle" >Articles  2</text>
+<rect x="54" y="126" width="62" height="24" rx="12" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="85.0" y="142" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="middle" >Paths  1</text>
+<text x="54" y="176" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Articles come from Clippings</text>
+<text x="226" y="176" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >·</text>
+<text x="238" y="176" fill="#9d8df7" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Change</text>
+<text x="54" y="214" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" letter-spacing="1.6">ARTICLES</text>
+<rect x="54" y="228" width="100" height="150" rx="4" fill="#4b3b6b" stroke="none" stroke-width="0" />
+<text x="104" y="300" fill="#ffffff" font-family="Georgia, serif" font-size="10.5" font-weight="700" text-anchor="middle" >The case for</text>
+<text x="104" y="314" fill="#ffffff" font-family="Georgia, serif" font-size="10.5" font-weight="700" text-anchor="middle" >slow software</text>
+<text x="104" y="358" fill="#ffffff" font-family="sans-serif" font-size="6" font-weight="400" text-anchor="middle" opacity="0.8" letter-spacing="1.2">JANE DOE</text>
+<rect x="60" y="234" width="40" height="15" rx="7.5" fill="#141416" opacity="0.7" />
+<text x="80" y="245" fill="#dcddde" font-family="sans-serif" font-size="8.5" font-weight="600" text-anchor="middle" >Article</text>
+<text x="54" y="398" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >The case for slow…</text>
+<text x="54" y="415" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >Jane Doe</text>
+<text x="54" y="434" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >40% · 1 highlight</text>
+<rect x="176" y="228" width="100" height="150" rx="4" fill="#3b6b5b" stroke="none" stroke-width="0" />
+<text x="226" y="300" fill="#ffffff" font-family="Georgia, serif" font-size="10.5" font-weight="700" text-anchor="middle" >Notes on</text>
+<text x="226" y="314" fill="#ffffff" font-family="Georgia, serif" font-size="10.5" font-weight="700" text-anchor="middle" >attention</text>
+<text x="226" y="358" fill="#ffffff" font-family="sans-serif" font-size="6" font-weight="400" text-anchor="middle" opacity="0.8" letter-spacing="1.2">BLOG.EXAMPLE.ORG</text>
+<rect x="182" y="234" width="40" height="15" rx="7.5" fill="#141416" opacity="0.7" />
+<text x="202" y="245" fill="#dcddde" font-family="sans-serif" font-size="8.5" font-weight="600" text-anchor="middle" >Article</text>
+<text x="176" y="398" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >Notes on attention</text>
+<text x="176" y="415" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >blog.example.org</text>
+<text x="176" y="434" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >Never opened</text>
+<text x="216" y="478" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">In the folder, with a web source.</text>
+<text x="216" y="496" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">A tag alone is not enough.</text>
+
+<!-- 2 · Recently added -->
+<circle cx="448" cy="52" r="13" fill="#7f6df2" />
+<text x="448" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >2</text>
+<text x="470" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >Recently added</text>
+<rect x="430" y="76" width="340" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="448" y="108" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" letter-spacing="1.6">CONTINUE READING</text>
+<rect x="448" y="120" width="304" height="72" rx="8" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<rect x="458" y="128" width="38" height="56" rx="3" fill="#e0a351" />
+<text x="508" y="150" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start" >Thinking, Fast and Slow</text>
+<text x="508" y="168" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >Chapter 3 of 38</text>
+<text x="448" y="226" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" letter-spacing="1.6">RECENTLY ADDED</text>
+<!-- the card arriving: a touch smaller and clear -->
+<g opacity="0.55">
+<rect x="452" y="244" width="62" height="93" rx="4" fill="#4b6b8a" stroke="none" stroke-width="0" />
+<text x="483" y="290" fill="#ffffff" font-family="Georgia, serif" font-size="8.5" font-weight="700" text-anchor="middle" >Designing</text>
+<text x="483" y="302" fill="#ffffff" font-family="Georgia, serif" font-size="8.5" font-weight="700" text-anchor="middle" >Data</text>
+</g>
+<rect x="448" y="240" width="70" height="101" rx="5" fill="none" stroke="#9d8df7" stroke-width="1" stroke-dasharray="4 3" />
+<text x="448" y="358" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >Designing…</text>
+<text x="448" y="374" fill="#9d8df7" font-family="sans-serif" font-size="11" font-weight="500" text-anchor="start" >today</text>
+<!-- its neighbours make room -->
+<rect x="530" y="240" width="70" height="101" rx="4" fill="#4b3b6b" stroke="none" stroke-width="0" />
+<text x="565" y="286" fill="#ffffff" font-family="Georgia, serif" font-size="8.5" font-weight="700" text-anchor="middle" >The case for</text>
+<text x="565" y="298" fill="#ffffff" font-family="Georgia, serif" font-size="8.5" font-weight="700" text-anchor="middle" >slow software</text>
+<text x="530" y="358" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >The case…</text>
+<text x="530" y="374" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >yesterday</text>
+<rect x="612" y="240" width="70" height="101" rx="4" fill="#5b8a4b" stroke="none" stroke-width="0" />
+<text x="647" y="292" fill="#ffffff" font-family="Georgia, serif" font-size="8.5" font-weight="700" text-anchor="middle" >Dune</text>
+<text x="612" y="358" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="600" text-anchor="start" >Dune</text>
+<text x="612" y="374" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >5 days ago</text>
+<rect x="694" y="240" width="58" height="101" rx="4" fill="#8a4b5b" stroke="none" stroke-width="0" opacity="0.5" />
+<line x1="536" y1="392" x2="590" y2="392" stroke="#9d8df7" stroke-width="1.5" />
+<path d="M 590 388 L 598 392 L 590 396 Z" fill="#9d8df7" />
+<line x1="618" y1="392" x2="672" y2="392" stroke="#9d8df7" stroke-width="1.5" />
+<path d="M 672 388 L 680 392 L 672 396 Z" fill="#9d8df7" />
+<text x="600" y="418" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" >the cards beside it make room</text>
+<text x="600" y="466" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">The last thirty days, not finished, newest first.</text>
+<text x="600" y="484" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">One row, as many as fit.</text>
+
+<!-- 3 · read like a book -->
+<circle cx="822" cy="52" r="13" fill="#7f6df2" />
+<text x="822" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >3</text>
+<text x="844" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >Read like a book</text>
+<rect x="804" y="76" width="360" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="824" y="104" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >The case for slow software · Jane Doe</text>
+<!-- Contents -->
+<rect x="824" y="118" width="120" height="150" rx="8" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="836" y="138" fill="#5f6168" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="start" letter-spacing="1.2">CONTENTS</text>
+<text x="836" y="162" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >The case for slow…</text>
+<rect x="830" y="172" width="108" height="20" rx="4" fill="#2a2640" />
+<text x="836" y="186" fill="#dcddde" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" >Speed</text>
+<text x="848" y="210" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >Measured</text>
+<text x="836" y="234" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start" >Care</text>
+<!-- the page -->
+<text x="960" y="138" fill="#5f6168" font-family="sans-serif" font-size="10.5" font-weight="500" text-anchor="start" >Section 2 / 3</text>
+<text x="960" y="166" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-weight="700" text-anchor="start" >Speed</text>
+<text x="960" y="192" fill="#b3b5ba" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start" >Every millisecond is a</text>
+<text x="960" y="210" fill="#b3b5ba" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start" >promise the software</text>
+<rect x="958" y="216" width="180" height="18" rx="3" fill="#4a3f7a" opacity="0.65" />
+<text x="960" y="229" fill="#dcddde" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start" >makes, and then forgets.</text>
+<text x="960" y="246" fill="#b3b5ba" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start" >We measured it, and</text>
+<text x="960" y="264" fill="#b3b5ba" font-family="Georgia, serif" font-size="11.5" font-weight="400" text-anchor="start" >the numbers were kind.¹</text>
+<rect x="1060" y="276" width="78" height="20" rx="10" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="1099" y="290" fill="#9d8df7" font-family="sans-serif" font-size="10.5" font-weight="600" text-anchor="middle" >Question</text>
+<line x1="824" y1="318" x2="1144" y2="318" stroke="#3a3a3a" stroke-width="1" />
+<text x="824" y="346" fill="#8b8e94" font-family="monospace" font-size="11.5" font-weight="500" text-anchor="start" >source</text>
+<text x="904" y="346" fill="#9d8df7" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >https://example.com/slow-software</text>
+<text x="824" y="372" fill="#8b8e94" font-family="monospace" font-size="11.5" font-weight="500" text-anchor="start" >status</text>
+<text x="904" y="372" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" >reading — set in Details, nothing else written</text>
+<text x="984" y="418" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" >Its headings are its sections.</text>
+<text x="984" y="466" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">The clipping stays the note it is:</text>
+<text x="984" y="484" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">no import, no copy, never rewritten.</text>
+
+<text x="600" y="560" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">An article is a note in your articles folder whose source is a web address, as Web Clipper saves it.</text>
+<text x="600" y="582" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">ZettelFlow never fetches the page; reading it writes nothing but a status you choose.</text>
+</svg>

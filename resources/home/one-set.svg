@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-label="Home, Cultivate and Think side by side as one strip, with the camera on Home; the Last thought card flies along the strip into its place in Think's list and the idea to tend onto Cultivate's stage; Home and Esc bring the card back">
+<rect x="0" y="0" width="1200" height="560" fill="#141319"/>
+<text x="600" y="44" fill="#a3a1b8" font-family="sans-serif" font-size="15" text-anchor="middle">One set, one camera: the modes sit side by side, and the camera moves along them</text>
+<rect x="40" y="80" width="360" height="400" rx="12" fill="#1c1b22" stroke="#7f6df2" stroke-width="3"/>
+<rect x="420" y="80" width="360" height="400" rx="12" fill="#1c1b22" stroke="#3a3847" stroke-width="1.5"/>
+<rect x="800" y="80" width="360" height="400" rx="12" fill="#1c1b22" stroke="#3a3847" stroke-width="1.5"/>
+<text x="64" y="116" fill="#dadada" font-family="sans-serif" font-size="15" font-weight="700">Home</text>
+<rect x="64" y="124" width="44" height="3" rx="1.5" fill="#7f6df2"/>
+<text x="444" y="116" fill="#6c6a80" font-family="sans-serif" font-size="15">Cultivate</text>
+<text x="824" y="116" fill="#6c6a80" font-family="sans-serif" font-size="15">Think</text>
+<text x="64" y="166" fill="#dadada" font-family="sans-serif" font-size="20" font-weight="700">Good morning</text>
+<rect x="64" y="186" width="312" height="44" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<text x="80" y="213" fill="#6c6a80" font-family="Georgia, serif" font-size="14">What is on your mind?</text>
+<text x="64" y="262" fill="#6c6a80" font-family="sans-serif" font-size="11">WHERE YOU LEFT OFF</text>
+<rect x="64" y="272" width="150" height="74" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<text x="76" y="296" fill="#a3a1b8" font-family="sans-serif" font-size="11">Reading</text>
+<text x="76" y="318" fill="#dadada" font-family="sans-serif" font-size="13">The Shape of Rivers</text>
+<rect x="226" y="272" width="150" height="74" rx="8" fill="#24232c" stroke="#e0a351" stroke-width="2"/>
+<text x="238" y="296" fill="#a3a1b8" font-family="sans-serif" font-size="11">Last thought</text>
+<text x="238" y="318" fill="#dadada" font-family="Georgia, serif" font-size="13">A bend is a loop</text>
+<text x="238" y="336" fill="#dadada" font-family="Georgia, serif" font-size="13">with a delay.</text>
+<text x="64" y="378" fill="#6c6a80" font-family="sans-serif" font-size="11">ONE IDEA TO TEND</text>
+<rect x="64" y="388" width="312" height="58" rx="8" fill="#24232c" stroke="#5cc98a" stroke-width="2"/>
+<text x="80" y="422" fill="#dadada" font-family="sans-serif" font-size="14">Meanders grow by erosion</text>
+<rect x="444" y="150" width="312" height="110" rx="12" fill="#1d1b2b" stroke="#5cc98a" stroke-width="2"/>
+<text x="462" y="180" fill="#a3a1b8" font-family="sans-serif" font-size="11">ON THE STAGE</text>
+<text x="462" y="212" fill="#dadada" font-family="sans-serif" font-size="15">Meanders grow by erosion</text>
+<rect x="444" y="282" width="98" height="52" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<rect x="551" y="282" width="98" height="52" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<rect x="658" y="282" width="98" height="52" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<rect x="1060" y="96" width="82" height="26" rx="6" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<text x="1101" y="114" fill="#dadada" font-family="sans-serif" font-size="12" text-anchor="middle">← Home</text>
+<rect x="824" y="150" width="312" height="44" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<rect x="824" y="210" width="312" height="64" rx="8" fill="#24232c" stroke="#e0a351" stroke-width="2"/>
+<text x="840" y="238" fill="#dadada" font-family="Georgia, serif" font-size="13">A bend is a loop with a delay.</text>
+<text x="840" y="260" fill="#6c6a80" font-family="sans-serif" font-size="11">arrived</text>
+<rect x="824" y="288" width="312" height="56" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<rect x="824" y="358" width="312" height="56" rx="8" fill="#24232c" stroke="#3a3847" stroke-width="1"/>
+<path d="M 300 272 C 520 40, 760 60, 900 206" fill="none" stroke="#e0a351" stroke-width="2.5" stroke-dasharray="7 6"/>
+<path d="M 894 196 L 904 210 L 888 210 Z" fill="#e0a351"/>
+<path d="M 220 388 C 300 330, 380 260, 470 260" fill="none" stroke="#5cc98a" stroke-width="2.5" stroke-dasharray="7 6"/>
+<path d="M 462 254 L 474 260 L 462 266 Z" fill="#5cc98a"/>
+<path d="M 980 500 C 760 540, 420 540, 260 500" fill="none" stroke="#8f7ff5" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M 268 494 L 256 500 L 268 506 Z" fill="#8f7ff5"/>
+<text x="600" y="530" fill="#a3a1b8" font-family="sans-serif" font-size="13" text-anchor="middle">Home, or Esc: the same shot, backwards, to the card you pressed</text>
+</svg>

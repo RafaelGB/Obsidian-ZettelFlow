@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-label="Think filtered by one source: the find bar holds a book's chip and From…, the book's header with Open in the Reader, In reading order chosen over Newest, the thoughts under chapter heads in the book's order, and a spine beside them with a tick where each thought sits — no number anywhere">
+<rect x="0" y="0" width="1200" height="820" fill="#141319"/>
+<rect x="40" y="30" width="1120" height="750" rx="12" fill="#1c1b22" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#f06a6f"/>
+<circle cx="80" cy="50" r="5.5" fill="#e0a351"/>
+<circle cx="98" cy="50" r="5.5" fill="#5cc98a"/>
+<text x="600" y="55" fill="#5c5f66" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="72" y="98" fill="#6c6a80" font-family="sans-serif" font-size="13">Home</text>
+<text x="136" y="98" fill="#6c6a80" font-family="sans-serif" font-size="13">Cultivate</text>
+<text x="240" y="98" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700">Think</text>
+<rect x="236" y="106" width="48" height="2.5" rx="1.2" fill="#7f6df2"/>
+<line x1="56" y1="110" x2="1144" y2="110" stroke="#2a2936" stroke-width="1"/>
+
+<!-- the composer, writing about the one source -->
+<rect x="110" y="132" width="980" height="78" rx="12" fill="#1d1b2b" stroke="#2a2936" stroke-width="1.5"/>
+<text x="128" y="168" fill="#5c5f66" font-family="Georgia, serif" font-size="17">What are you thinking about The Shape of Rivers?</text>
+<text x="128" y="196" fill="#6c6a80" font-family="sans-serif" font-size="11.5">Ctrl+Enter, or click away, to keep it.</text>
+
+<!-- the find bar: the source's chip, the text, Clear, From…, the calendar -->
+<text x="112" y="250" fill="#6c6a80" font-family="sans-serif" font-size="16">⌕</text>
+<rect x="134" y="230" width="196" height="28" rx="14" fill="#7f6df2"/>
+<rect x="148" y="237" width="10" height="14" rx="1.5" fill="none" stroke="#dcddde" stroke-width="1.3"/>
+<text x="166" y="249" fill="#dcddde" font-family="sans-serif" font-size="12.5">The Shape of Rivers   ✕</text>
+<text x="346" y="249" fill="#5c5f66" font-family="sans-serif" font-size="13">Find a thought</text>
+<line x1="344" y1="258" x2="860" y2="258" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="876" y="230" width="72" height="28" rx="6" fill="#24232c" stroke="#3a3a3a" stroke-width="1"/>
+<text x="912" y="249" fill="#a3a1b8" font-family="sans-serif" font-size="12.5" text-anchor="middle">✕ Clear</text>
+<rect x="958" y="230" width="86" height="28" rx="14" fill="none" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="1001" y="249" fill="#a3a1b8" font-family="sans-serif" font-size="12.5" text-anchor="middle">From…</text>
+<rect x="1054" y="230" width="36" height="28" rx="6" fill="none" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1072" y="249" fill="#6c6a80" font-family="sans-serif" font-size="13" text-anchor="middle">▦</text>
+
+<!-- the one-source header -->
+<rect x="110" y="276" width="40" height="56" rx="4" fill="#24232c" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="122" y="294" width="16" height="20" rx="2" fill="none" stroke="#6c6a80" stroke-width="1.5"/>
+<line x1="126" y1="294" x2="126" y2="314" stroke="#6c6a80" stroke-width="1.2"/>
+<text x="166" y="298" fill="#dcddde" font-family="sans-serif" font-size="16" font-weight="700">The Shape of Rivers</text>
+<text x="166" y="320" fill="#a3a1b8" font-family="sans-serif" font-size="12.5">A. Delta · Book</text>
+<rect x="944" y="286" width="146" height="30" rx="6" fill="#24232c" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1017" y="306" fill="#dcddde" font-family="sans-serif" font-size="12.5" text-anchor="middle">Open in the Reader</text>
+
+<!-- the order: reading order chosen -->
+<rect x="878" y="346" width="124" height="26" rx="13" fill="#7f6df2"/>
+<text x="940" y="364" fill="#dcddde" font-family="sans-serif" font-size="12" text-anchor="middle">In reading order</text>
+<rect x="1010" y="346" width="80" height="26" rx="13" fill="#24232c" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1050" y="364" fill="#a3a1b8" font-family="sans-serif" font-size="12" text-anchor="middle">Newest</text>
+
+<!-- chapter heads and the threads in the book's order -->
+<text x="110" y="404" fill="#6c6a80" font-family="sans-serif" font-size="11.5">Ch. 1 · Where water starts</text>
+<rect x="110" y="414" width="900" height="82" rx="8" fill="#1d1b2b" stroke="#2a2936" stroke-width="1"/>
+<rect x="126" y="428" width="3" height="20" fill="#e0a351"/>
+<text x="140" y="443" fill="#a3a1b8" font-family="Georgia, serif" font-size="14">A river is a record of every rain upstream.</text>
+<text x="126" y="472" fill="#dcddde" font-family="sans-serif" font-size="14">So the channel is memory: it holds the past in the present.</text>
+<text x="126" y="488" fill="#6c6a80" font-family="sans-serif" font-size="11">Ch. 1 · today</text>
+
+<text x="110" y="528" fill="#6c6a80" font-family="sans-serif" font-size="11.5">Ch. 3 · Meanders</text>
+<rect x="110" y="538" width="900" height="66" rx="8" fill="#1d1b2b" stroke="#2a2936" stroke-width="1"/>
+<text x="126" y="566" fill="#dcddde" font-family="sans-serif" font-size="14">A bend grows because the outside of it erodes faster: a loop with a delay.</text>
+<text x="126" y="590" fill="#6c6a80" font-family="sans-serif" font-size="11">Ch. 3 · 2 days ago</text>
+<rect x="110" y="614" width="900" height="66" rx="8" fill="#1d1b2b" stroke="#2a2936" stroke-width="1"/>
+<text x="126" y="642" fill="#dcddde" font-family="sans-serif" font-size="14">And a cut-off oxbow is the loop letting go.</text>
+<text x="126" y="666" fill="#6c6a80" font-family="sans-serif" font-size="11">Ch. 3 · last week</text>
+
+<text x="110" y="712" fill="#6c6a80" font-family="sans-serif" font-size="11.5">Not tied to a place</text>
+<rect x="110" y="722" width="900" height="44" rx="8" fill="#1d1b2b" stroke="#2a2936" stroke-width="1"/>
+<text x="126" y="750" fill="#dcddde" font-family="sans-serif" font-size="14">Read the appendix on floods.</text>
+
+<!-- the spine: a tick where each thought sits, and no number -->
+<line x1="1070" y1="394" x2="1070" y2="760" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="1060" y="420" width="20" height="3" rx="1.5" fill="#7f6df2"/>
+<rect x="1060" y="562" width="20" height="3" rx="1.5" fill="#7f6df2"/>
+<rect x="1060" y="574" width="20" height="3" rx="1.5" fill="#7f6df2"/>
+<rect x="1060" y="690" width="20" height="3" rx="1.5" fill="#7f6df2"/>
+</svg>

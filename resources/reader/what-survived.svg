@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-label="What survived? The last page of a chapter turns like a leaf onto a page between two chapters: End of chapter 2, What survived?, the chapter's title, your two marks in their meanings' colours with the chosen one lifted and its Write a note, your ink, the note it touched, one question, Keep reading and a quiet Don't pause at chapter ends. No number, no summary.">
+<rect width="1200" height="900" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="720" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">MIDDLEMARCH  ·  GEORGE ELIOT</text>
+<text x="1130" y="102" fill="#5f6168" font-family="sans-serif" font-size="20" text-anchor="middle">×</text>
+
+<!-- the leaf: a page between two chapters -->
+<text x="600" y="150" fill="#5f6168" font-family="sans-serif" font-size="13" text-anchor="middle">◇</text>
+<line x1="548" y1="146" x2="580" y2="146" stroke="#5f6168" stroke-width="1"/>
+<line x1="620" y1="146" x2="652" y2="146" stroke="#5f6168" stroke-width="1"/>
+<text x="600" y="184" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">END OF CHAPTER 2</text>
+<text x="600" y="226" fill="#dcddde" font-family="Georgia, serif" font-size="34" font-weight="700" text-anchor="middle">What survived?</text>
+<text x="600" y="254" fill="#8b8e94" font-family="Georgia, serif" font-size="16" font-style="italic" text-anchor="middle">Miss Brooke</text>
+
+<text x="380" y="298" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="0.6">YOUR MARKS IN THIS CHAPTER</text>
+<!-- a mark, chosen: lifted, its ink drawn beside it -->
+<rect x="366" y="304" width="7" height="88" rx="3" fill="#e0c050"/>
+<g transform="translate(380 310) scale(1.02)">
+<rect x="0" y="0" width="460" height="84" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="0" y="0" width="4" height="84" rx="2" fill="#e0c050"/>
+<text x="18" y="26" fill="#8b8e94" font-family="Georgia, serif" font-size="14" font-style="italic">“She was regarded as remarkably clever, but with the</text>
+<text x="18" y="44" fill="#8b8e94" font-family="Georgia, serif" font-size="14" font-style="italic">addition that her sister Celia had more common sense.”</text>
+<rect x="18" y="56" width="92" height="22" rx="5" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1"/>
+<text x="64" y="71" fill="#dcddde" font-family="sans-serif" font-size="12" text-anchor="middle">Write a note</text>
+</g>
+<rect x="380" y="404" width="460" height="62" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="380" y="404" width="4" height="62" rx="2" fill="#5b8def"/>
+<text x="398" y="428" fill="#8b8e94" font-family="Georgia, serif" font-size="14" font-style="italic">“What could she do, what ought she to do?”</text>
+<text x="398" y="452" fill="#dcddde" font-family="sans-serif" font-size="13">Is the question hers, or the town’s?</text>
+
+<text x="380" y="494" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="0.6">YOUR INK</text>
+<rect x="380" y="502" width="460" height="40" rx="6" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<path d="M 398 528 c 10 -14 18 6 28 -6 s 14 8 24 -4 c 8 -8 12 6 20 2 M 482 516 q 8 14 18 0 t 18 4" fill="none" stroke="#a882ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+<text x="380" y="570" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="0.6">IT TOUCHED</text>
+<text x="380" y="592" fill="#7f6df2" font-family="Georgia, serif" font-size="14">Dorothea’s choice</text>
+<text x="520" y="592" fill="#7f6df2" font-family="Georgia, serif" font-size="14">Duty and desire</text>
+
+<text x="600" y="630" fill="#dcddde" font-family="Georgia, serif" font-size="17" font-style="italic" text-anchor="middle">Is one of these worth a note of its own?</text>
+<rect x="530" y="648" width="140" height="32" rx="6" fill="#7f6df2"/>
+<text x="600" y="669" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">Keep reading  →</text>
+<text x="600" y="702" fill="#8b8e94" font-family="sans-serif" font-size="12" text-anchor="middle">Don’t pause at chapter ends</text>
+<text x="600" y="724" fill="#5f6168" font-family="sans-serif" font-size="11" text-anchor="middle">No summary is written for you.</text>
+
+<!-- the chapter's last page, turning away on its spine -->
+<path d="M 340 118 L 120 140 Q 112 420 118 716 L 340 736 Z" fill="#1d1d21" stroke="#3a3a3a" stroke-width="1.5"/>
+<path d="M 340 118 Q 300 420 340 736" fill="none" stroke="#2c2c31" stroke-width="10" opacity="0.6"/>
+<line x1="150" y1="200" x2="300" y2="190" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<line x1="150" y1="226" x2="306" y2="217" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<line x1="150" y1="252" x2="296" y2="244" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<rect x="148" y="270" width="150" height="8" rx="3" fill="#e0c050" opacity="0.35"/>
+<line x1="150" y1="304" x2="304" y2="297" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<line x1="150" y1="330" x2="290" y2="324" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<rect x="148" y="348" width="120" height="8" rx="3" fill="#5b8def" opacity="0.35"/>
+<line x1="150" y1="384" x2="300" y2="379" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<line x1="150" y1="410" x2="270" y2="406" stroke="#3a3a3a" stroke-width="3" stroke-linecap="round"/>
+<text x="226" y="470" fill="#5f6168" font-family="sans-serif" font-size="13" text-anchor="middle">◇</text>
+
+<text x="1010" y="160" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="middle">NEXT · OLD AND YOUNG</text>
+<rect x="890" y="174" width="240" height="320" rx="8" fill="none" stroke="#3a3a3a" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="1010" y="340" fill="#5f6168" font-family="Georgia, serif" font-size="14" font-style="italic" text-anchor="middle">chapter 3, a turn away</text>
+
+<!-- callouts -->
+<circle cx="104" cy="128" r="11" fill="#e0a351"/>
+<text x="104" y="132.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<circle cx="476" cy="184" r="11" fill="#e0a351"/>
+<text x="476" y="188.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<circle cx="350" cy="350" r="11" fill="#e0a351"/>
+<text x="350" y="354.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<circle cx="360" cy="588" r="11" fill="#e0a351"/>
+<text x="360" y="592.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<circle cx="696" cy="664" r="11" fill="#e0a351"/>
+<text x="696" y="668.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">5</text>
+
+<circle cx="76" cy="786" r="11" fill="#e0a351"/>
+<text x="76" y="790.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">1</text>
+<text x="96" y="791" fill="#dcddde" font-family="sans-serif" font-size="13.5">At the end of a chapter you marked and read for two minutes, the page turns as a chapter turns — onto a page, not a window.</text>
+<circle cx="76" cy="808" r="11" fill="#e0a351"/>
+<text x="76" y="812.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">2</text>
+<text x="96" y="813" fill="#dcddde" font-family="sans-serif" font-size="13.5">One question, What survived? — and no summary, no key points, no count of what you marked, no score.</text>
+<circle cx="76" cy="830" r="11" fill="#e0a351"/>
+<text x="76" y="834.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">3</text>
+<text x="96" y="835" fill="#dcddde" font-family="sans-serif" font-size="13.5">Your marks, in their meanings’ colours. Pick one: it lifts, and Write a note opens the preview — nothing is written until Create note.</text>
+<circle cx="76" cy="852" r="11" fill="#e0a351"/>
+<text x="76" y="856.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">4</text>
+<text x="96" y="857" fill="#dcddde" font-family="sans-serif" font-size="13.5">Your ink, as ink, and the notes of yours it touched: born from this chapter, linked from its marks, or opened from it.</text>
+<circle cx="76" cy="874" r="11" fill="#e0a351"/>
+<text x="76" y="878.5" fill="#1e1e1e" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">5</text>
+<text x="96" y="879" fill="#dcddde" font-family="sans-serif" font-size="13.5">Keep reading, → or Space, turns on to the next chapter; ← goes back to this one’s last page. One click turns it off.</text>
+</svg>

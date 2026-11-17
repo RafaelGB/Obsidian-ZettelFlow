@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-label="Community, one view with four rooms side by side on one strip: Learn, a tutorial for every feature with search and your progress; Systems, each card a drawing of the system's own canvas, one marked In your vault; Contribute, Share this canvas as a system and the cards that open GitHub; Installed, the systems you installed with Open canvas and Remove, and the loose pieces. The nav above pans the camera from one room to the next.">
+<rect x="0" y="0" width="1200" height="620" rx="0" fill="#1a1a1a"/>
+<rect x="24" y="20" width="1152" height="580" rx="12" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="46" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="64" cy="40" r="5.5" fill="#e0a351"/>
+<circle cx="82" cy="40" r="5.5" fill="#5cc98a"/>
+<text x="600.0" y="45" fill="#5c5f66" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Community — Obsidian</text>
+<line x1="24" y1="60" x2="1176" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="332" y="78" width="536" height="40" rx="10" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="395" y="103" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="500" text-anchor="middle">Learn</text>
+<text x="439" y="103" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">3/34</text>
+<text x="525" y="103" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">Systems</text>
+<text x="569" y="103" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">13</text>
+<text x="665" y="103" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="500" text-anchor="middle">Contribute</text>
+<text x="785" y="103" fill="#8b8e94" font-family="sans-serif" font-size="13.5" font-weight="500" text-anchor="middle">Installed</text>
+<text x="829" y="103" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">2</text>
+<rect x="494" y="112" width="82" height="3" rx="1.5" fill="#8f7ff5"/>
+<text x="600" y="140" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">The nav pans the camera: one strip, four rooms, never a cut</text>
+<rect x="46.0" y="156" width="262" height="360" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="64.0" y="184" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Learn</text>
+<rect x="328.0" y="156" width="262" height="360" rx="12" fill="#262626" stroke="#8f7ff5" stroke-width="2"/>
+<text x="346.0" y="184" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Systems</text>
+<rect x="610.0" y="156" width="262" height="360" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="628.0" y="184" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Contribute</text>
+<rect x="892.0" y="156" width="262" height="360" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="910.0" y="184" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Installed</text>
+<text x="64.0" y="212" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="650" text-anchor="start">Everything ZettelFlow does,</text>
+<text x="64.0" y="230" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="650" text-anchor="start">step by step</text>
+<rect x="64.0" y="244" width="226" height="30" rx="15" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="82.0" y="263.5" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">What do you want to do?</text>
+<circle cx="86.0" cy="308" r="18" fill="none" stroke="#3a3850" stroke-width="5"/>
+<path d="M 86.0 290 A 18 18 0 0 1 103.1 302.4" fill="none" stroke="#8f7ff5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="116.0" y="305" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">3 of 34 tutorials</text>
+<text x="116.0" y="322" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Your progress stays in this vault.</text>
+<text x="64.0" y="358" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">First ten minutes</text>
+<rect x="64.0" y="366" width="226" height="4" rx="2" fill="#3a3850"/>
+<rect x="64.0" y="366" width="70" height="4" rx="2" fill="#8f7ff5"/>
+<rect x="64.0" y="380" width="70" height="92" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="72.0" y="388" width="54" height="34" rx="4" fill="#2a2938" stroke="#3d3b54" stroke-width="1"/>
+<text x="72.0" y="440" fill="#dcddde" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start">Get started</text>
+<text x="72.0" y="458" fill="#5cc98a" font-family="sans-serif" font-size="10.5" font-weight="500" text-anchor="start">Done</text>
+<rect x="142.0" y="380" width="70" height="92" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="150.0" y="388" width="54" height="34" rx="4" fill="#2a2938" stroke="#3d3b54" stroke-width="1"/>
+<text x="150.0" y="440" fill="#dcddde" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start">Think</text>
+<text x="150.0" y="458" fill="#8f7ff5" font-family="sans-serif" font-size="10.5" font-weight="500" text-anchor="start">New</text>
+<rect x="220.0" y="380" width="70" height="92" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<rect x="228.0" y="388" width="54" height="34" rx="4" fill="#2a2938" stroke="#3d3b54" stroke-width="1"/>
+<text x="228.0" y="440" fill="#dcddde" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start">Undo</text>
+<text x="228.0" y="458" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="500" text-anchor="start">4 min</text>
+<text x="346.0" y="212" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="650" text-anchor="start">A whole method</text>
+<rect x="346.0" y="228" width="226" height="124" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 420.6 269.0 C 426.7 269.0 426.7 251.6 432.7 251.6" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 420.6 269.0 C 426.7 269.0 426.7 286.4 432.7 286.4" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 485.3 251.6 C 491.3 251.6 491.3 269.0 497.4 269.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 485.3 286.4 C 491.3 286.4 491.3 269.0 497.4 269.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="368.1" y="262.8" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="432.7" y="245.4" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="432.7" y="280.2" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="497.4" y="262.8" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="358.0" y="320" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Zettelkasten v2</text>
+<text x="358.0" y="338" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">4 steps · 1 branch point</text>
+<rect x="462.0" y="236" width="98" height="22" rx="11" fill="#2a2938" stroke="#3d3b54" stroke-width="1"/>
+<path d="M 472.0 247 L 476.0 251 L 483.0 243" fill="none" stroke="#5cc98a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="489.0" y="251" fill="#dcddde" font-family="sans-serif" font-size="10.5" font-weight="500" text-anchor="start">In your vault</text>
+<rect x="346.0" y="366" width="226" height="124" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 420.6 407.0 C 426.7 407.0 426.7 389.6 432.7 389.6" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 420.6 407.0 C 426.7 407.0 426.7 424.4 432.7 424.4" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 485.3 389.6 C 491.3 389.6 491.3 407.0 497.4 407.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 485.3 424.4 C 491.3 424.4 491.3 407.0 497.4 407.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="368.1" y="400.8" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="432.7" y="383.4" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="432.7" y="418.2" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="497.4" y="400.8" width="52.5" height="12.4" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="358.0" y="458" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">PARA v2</text>
+<text x="358.0" y="476" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">5 steps · 2 branch points</text>
+<text x="346.0" y="504" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Loose pieces · 9 steps and templates</text>
+<rect x="628.0" y="200" width="226" height="128" rx="10" fill="#2a2938" stroke="#3d3b54" stroke-width="1.5"/>
+<text x="642.0" y="224" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="650" text-anchor="start">Share this canvas as a system</text>
+<path d="M 679.2 258.0 C 682.8 258.0 682.8 244.6 686.4 244.6" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 679.2 258.0 C 682.8 258.0 682.8 271.4 686.4 271.4" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 717.6 244.6 C 721.2 244.6 721.2 258.0 724.8 258.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 717.6 271.4 C 721.2 271.4 721.2 258.0 724.8 258.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="648.0" y="253.2" width="31.2" height="9.6" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="686.4" y="239.8" width="31.2" height="9.6" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="686.4" y="266.6" width="31.2" height="9.6" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="724.8" y="253.2" width="31.2" height="9.6" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="772.0" y="254" fill="#8b8e94" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">Reading.canvas</text>
+<text x="772.0" y="270" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">3 steps</text>
+<rect x="642.0" y="292" width="132" height="26" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="708.0" y="309.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">Prepare the system</text>
+<rect x="628.0" y="342" width="226" height="32" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="644.0" cy="358" r="4.5" fill="#e0a351"/>
+<text x="658.0" y="362.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="start">Suggest an idea</text>
+<rect x="628.0" y="382" width="226" height="32" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="644.0" cy="398" r="4.5" fill="#fb464c"/>
+<text x="658.0" y="402.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="start">Report a bug</text>
+<rect x="628.0" y="422" width="226" height="32" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="644.0" cy="438" r="4.5" fill="#5aa9f0"/>
+<text x="658.0" y="442.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="start">Talk to other users</text>
+<rect x="628.0" y="462" width="226" height="32" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<circle cx="644.0" cy="478" r="4.5" fill="#5cc98a"/>
+<text x="658.0" y="482.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="start">How to contribute well</text>
+<text x="628.0" y="506" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Everything goes through GitHub.</text>
+<text x="910.0" y="212" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="650" text-anchor="start">Systems you installed</text>
+<rect x="910.0" y="226" width="226" height="92" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 943.6 254.0 C 945.8 254.0 945.8 242.8 948.1 242.8" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 943.6 254.0 C 945.8 254.0 945.8 265.2 948.1 265.2" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 967.9 242.8 C 970.2 242.8 970.2 254.0 972.4 254.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 967.9 265.2 C 970.2 265.2 970.2 254.0 972.4 254.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="923.8" y="250.0" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="948.1" y="238.8" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="948.1" y="261.2" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="972.4" y="250.0" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="1004.0" y="250" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Zettelkasten v2</text>
+<text x="1004.0" y="266" fill="#5c5f66" font-family="sans-serif" font-size="10" font-weight="400" text-anchor="start">Installed 12 Oct · Zettel</text>
+<rect x="920.0" y="284" width="92" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="966.0" y="301.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Open canvas</text>
+<rect x="1020.0" y="284" width="70" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1055.0" y="301.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Remove</text>
+<rect x="910.0" y="330" width="226" height="92" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 943.6 358.0 C 945.8 358.0 945.8 346.8 948.1 346.8" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 943.6 358.0 C 945.8 358.0 945.8 369.2 948.1 369.2" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 967.9 346.8 C 970.2 346.8 970.2 358.0 972.4 358.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 967.9 369.2 C 970.2 369.2 970.2 358.0 972.4 358.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="923.8" y="354.0" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="948.1" y="342.8" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="948.1" y="365.2" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="972.4" y="354.0" width="19.8" height="8.0" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="1004.0" y="354" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Meeting notes</text>
+<text x="1004.0" y="370" fill="#5c5f66" font-family="sans-serif" font-size="10" font-weight="400" text-anchor="start">Installed 3 Oct · Meetings</text>
+<rect x="920.0" y="388" width="92" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="966.0" y="405.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Open canvas</text>
+<rect x="1020.0" y="388" width="70" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1055.0" y="405.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Remove</text>
+<text x="910.0" y="456" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Loose pieces</text>
+<rect x="910.0" y="466" width="226" height="30" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="924.0" y="485.5" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Add contact · step</text>
+<path d="M 322.0 538 L 596.0 538" fill="none" stroke="#8f7ff5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 177.0 538 L 314.0 538" fill="none" stroke="#5c5f66" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 5"/>
+<path d="M 604.0 538 L 1023.0 538" fill="none" stroke="#5c5f66" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 5"/>
+<text x="600" y="585" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">The room in view is the one the camera frames; the others wait, still, on the same strip.</text>
+</svg>

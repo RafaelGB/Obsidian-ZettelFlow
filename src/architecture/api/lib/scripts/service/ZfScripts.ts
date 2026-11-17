@@ -49,11 +49,20 @@ export class ZfScripts extends LibModule {
 
         // Read side by side (#904): one after another, a cold disk made the first script step of a
         // flow wait one round trip per module. They still load in folder order below.
-        const sources = files.map((file) => this.app.vault.read(file));
+        // Each read is settled the moment it starts, so one that fails while an earlier module is
+        // still being waited for is never an unhandled rejection; it fails its own module below.
+        const sources = files.map((file) =>
+            this.app.vault.read(file).then(
+                (content) => ({ content }),
+                (error: unknown) => ({ error })
+            )
+        );
 
         for (const [index, file] of files.entries()) {
             try {
-                await this.loadUserFnFrom(file, await sources[index]);
+                const source = await sources[index];
+                if ("error" in source) throw source.error;
+                await this.loadUserFnFrom(file, source.content);
             } catch (error) {
                 log.error(`Error loading ZettelFlow script from path = "${file.path}`, error);
                 const message = error instanceof Error ? error.message : String(error);

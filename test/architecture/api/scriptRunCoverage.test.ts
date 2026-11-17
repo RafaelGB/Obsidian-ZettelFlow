@@ -38,7 +38,8 @@ describe("every script run leaves a fact (#444)", () => {
 
     it("has each of them record", () => {
         const silent = runners()
-            .filter(({ text }) => !/withScriptRun\(|recordScriptRun\(/.test(text))
+            // `recordScriptRuns` is the batch form (#904): a library load is one write for all modules.
+            .filter(({ text }) => !/withScriptRun\(|recordScriptRuns?\(/.test(text))
             .map(({ path }) => path.slice(SRC.length + 1));
         expect(silent).toEqual([]);
     });

@@ -13,6 +13,20 @@ jest.mock("architecture/api/lib/vault/service/ZfVault", () => ({
     }),
 }));
 
+const recorded: Array<Array<{ origin: { ref: string }; ok: boolean }>> = [];
+const perRunRecords: string[] = [];
+jest.mock("architecture/api/lib/recordScriptRun", () => {
+    const actual = jest.requireActual<typeof import("architecture/api/lib/recordScriptRun")>("architecture/api/lib/recordScriptRun");
+    return {
+        ...actual,
+        recordScriptRuns: (batch: never[]) => recorded.push([...batch]),
+        withScriptRun: (facts: { origin: { ref: string } }, run: () => Promise<unknown>) => {
+            perRunRecords.push(facts.origin.ref);
+            return run();
+        },
+    };
+});
+
 import { ZfScripts } from "architecture/api/lib/scripts/service/ZfScripts";
 
 describe("the library load (#904)", () => {
@@ -91,5 +105,27 @@ describe("the library load (#904)", () => {
 
         release.forEach((done) => done());
         await loading;
+    });
+
+    it("writes the whole load down with one record, failures included", async () => {
+        recorded.length = 0;
+        perRunRecords.length = 0;
+        const app = {
+            vault: {
+                read: (file: { path: string }) =>
+                    Promise.resolve(file.path === "lib/b.js" ? "throw new Error('bad module');" : "module.exports = () => 1;"),
+            },
+        };
+        const scripts = new ZfScripts({ jsLibraryFolderPath: "lib" } as never, app as never);
+
+        await scripts.create_dynamic_functions();
+
+        expect(perRunRecords).toEqual([]);
+        expect(recorded).toHaveLength(1);
+        expect(recorded[0].map((facts) => [facts.origin.ref, facts.ok])).toEqual([
+            ["lib/a.js", true],
+            ["lib/b.js", false],
+            ["lib/c.js", true],
+        ]);
     });
 });

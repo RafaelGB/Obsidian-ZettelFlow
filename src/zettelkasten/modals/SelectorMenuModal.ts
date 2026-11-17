@@ -10,6 +10,8 @@ import { ConfirmModal } from "architecture/components/settings";
 import { draftStore } from "architecture/plugin/noteBuilder/DraftStore";
 import { useNoteBuilderStore } from "application/components/noteBuilder";
 import type { CrystallizeSeed } from "application/thinking/crystallize";
+import { warmScriptApi } from "application/notes/warmScriptApi";
+import { fnsManager } from "architecture/api";
 
 export class SelectorMenuModal extends Modal {
     private root: Root;
@@ -69,6 +71,8 @@ export class SelectorMenuModal extends Modal {
         }
         // No flow yet: the first-run screen, which is as tall as what it says.
         if (!this.flow) this.modalEl.addClass(c("note-builder-modal-welcome"));
+        // Prepare `zf` while the steps are answered, not when the first script step needs it (#904).
+        if (this.flow) warmScriptApi(() => fnsManager.getFns());
         const child = this.contentEl.createDiv({ cls: c("note-builder-root") });
         this.root = createRoot(child);
         if (this.flow) {

@@ -70,25 +70,33 @@ function describeError(error: unknown): { message: string; line?: number } {
 
 /** Write one run down. Never throws: a log that breaks a script is worse than no log. */
 export function recordScriptRun(facts: ScriptRunFacts, sink: ScriptRunSink = settingsSink): void {
+    recordScriptRuns([facts], sink);
+}
+
+/**
+ * Write several runs down with **one** write (#904). Loading a library is one run per module, and a
+ * settings write per module was fourteen saves of the plugin's data before the first script step
+ * could start. Same records, same order, as writing them one by one.
+ */
+export function recordScriptRuns(batch: readonly ScriptRunFacts[], sink: ScriptRunSink = settingsSink): void {
+    if (batch.length === 0) return;
     try {
         const state = sink.read();
-        const run: ScriptRun = {
-            id: sink.id(),
-            at: sink.now(),
-            surface: facts.surface,
-            origin: facts.origin,
-            durationMs: facts.durationMs,
-            ok: facts.ok,
-            ...(facts.ok ? {} : { error: describeError(facts.error) }),
-            ...(facts.input ? { inputKeys: summariseInput(facts.input) } : {}),
-        };
-        sink.write({
-            runs: appendRun(state.runs, run, {
-                now: run.at,
-                retentionDays: state.retentionDays,
-            }),
-            retentionDays: state.retentionDays,
-        });
+        let runs = state.runs;
+        for (const facts of batch) {
+            const run: ScriptRun = {
+                id: sink.id(),
+                at: sink.now(),
+                surface: facts.surface,
+                origin: facts.origin,
+                durationMs: facts.durationMs,
+                ok: facts.ok,
+                ...(facts.ok ? {} : { error: describeError(facts.error) }),
+                ...(facts.input ? { inputKeys: summariseInput(facts.input) } : {}),
+            };
+            runs = appendRun(runs, run, { now: run.at, retentionDays: state.retentionDays });
+        }
+        sink.write({ runs, retentionDays: state.retentionDays });
     } catch (error) {
         log.warn("[scripts] could not record a script run", error);
     }

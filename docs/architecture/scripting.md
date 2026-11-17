@@ -89,5 +89,13 @@ loaded, the error if it did not — remembered rather than announced once at sta
 about itself, a *try it* that writes the call into the bench, and *find who uses it*, scanned on
 demand across your hooks and canvases.
 
+**A flow never waits for it (#904).** `zf` used to be built by a flow's first script step, which
+loaded the modules one after another, each with its own write to the run log. On a cold start
+(right after Obsidian opens, while the indexers read the vault) that left the note on *Creating
+the note… 6/11* for half a minute. Now the wizard starts building `zf` the moment it opens, while
+you answer the steps. The module files are read side by side and still load in folder order, and
+the whole load goes into the run log with one write. A module that cannot be read fails on its own,
+the way one that throws always has.
+
 A module that reaches `require()` is marked **desktop only**: `window.require` does not exist on
 mobile, where it used to return `undefined` in silence.

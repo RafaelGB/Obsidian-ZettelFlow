@@ -5,7 +5,7 @@ import { ZfVault } from "../../vault/service/ZfVault";
 import { log } from "architecture";
 import { buildSyncScriptFunction } from "../../FnConstructor";
 import { contractSignature, parseLibraryContract, type LibraryContract } from "../jsdocContract";
-import { withScriptRun } from "../../recordScriptRun";
+import { recordScriptRuns, type ScriptRunFacts } from "../../recordScriptRun";
 
 /** What happened to one library module the last time it was loaded (#448). */
 export interface LibraryModuleStatus {
@@ -47,9 +47,23 @@ export class ZfScripts extends LibModule {
         // A fresh picture every load: a module deleted between two loads should stop being listed.
         ZfScripts.modules.clear();
 
-        for (const file of files) {
+        // Read side by side (#904): one after another, a cold disk made the first script step of a
+        // flow wait one round trip per module. They still load in folder order below.
+        // Each read is settled the moment it starts, so one that fails while an earlier module is
+        // still being waited for is never an unhandled rejection; it fails its own module below.
+        const sources = files.map((file) =>
+            this.app.vault.read(file).then(
+                (content) => ({ content }),
+                (error: unknown) => ({ error })
+            )
+        );
+
+        const runs: ScriptRunFacts[] = [];
+        for (const [index, file] of files.entries()) {
             try {
-                await this.loadUserFnFrom(file);
+                const source = await sources[index];
+                if ("error" in source) throw source.error;
+                await this.loadUserFnFrom(file, source.content, runs);
             } catch (error) {
                 log.error(`Error loading ZettelFlow script from path = "${file.path}`, error);
                 const message = error instanceof Error ? error.message : String(error);
@@ -64,10 +78,10 @@ export class ZfScripts extends LibModule {
                 new Notice(`Error loading ZettelFlow script "${file.path}". ${message}`);
             }
         };
+        recordScriptRuns(runs);
     }
 
-    async loadUserFnFrom(file: TFile): Promise<void> {
-        const file_content = await this.app.vault.read(file);
+    async loadUserFnFrom(file: TFile, file_content: string, runs: ScriptRunFacts[]): Promise<void> {
         const nodeRequire = (window as { require?: (s: string) => unknown }).require;
         const req = (s: string): unknown => (nodeRequire ? nodeRequire(s) : undefined);
         const exp: Record<string, unknown> = {};
@@ -80,11 +94,17 @@ export class ZfScripts extends LibModule {
         // it keeps the "exactly one home" the capability disclosure promises actually true.
         const wrapping_fn = buildSyncScriptFunction(["require", "module", "exports"], file_content);
         // Loading a module runs it, so it is a run and it is recorded (#444): a library that
-        // throws on load used to show one toast at startup and then vanish from the story.
-        await withScriptRun(
-            { surface: "library", origin: { ref: file.path, label: file.basename } },
-            async () => wrapping_fn(req, mod, exp)
-        );
+        // throws on load used to show one toast at startup and then vanish from the story. The
+        // caller writes the whole load down at once (#904).
+        const facts = { surface: "library" as const, origin: { ref: file.path, label: file.basename } };
+        const started = Date.now();
+        try {
+            wrapping_fn(req, mod, exp);
+            runs.push({ ...facts, durationMs: Date.now() - started, ok: true });
+        } catch (error) {
+            runs.push({ ...facts, durationMs: Date.now() - started, ok: false, error });
+            throw error;
+        }
         const formula_function = exp['default'] || mod.exports;
 
         if (!formula_function) {

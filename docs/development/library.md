@@ -730,8 +730,10 @@ brings the shelf back.
   and **With notes only**.
 - **Export as a reading note.** A preview of exactly what will be written, for what the filter
   shows: a title, `Source:: [[the book]]`, and per chapter the quotes (with the page, in a paper)
-  and your notes as bullets. Pages are written as text, never as block ids. Pick a folder (the last
-  one is remembered) and **Create note**. Nothing is written before that. The note never goes over
+  and your notes as bullets. Pages are written as text, never as block ids — and each quote links
+  back to its paragraph: its page is a [passage link](reader.md#passage-links) that opens the Reader
+  there and marks the passage (a bare `↪` under a chapter heading that already names it). Pick a
+  folder (the last one is remembered) and **Create note**. Nothing is written before that. The note never goes over
   an existing file, and its creation can be undone.
 
 ## From passage to note

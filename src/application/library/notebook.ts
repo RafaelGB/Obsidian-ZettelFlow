@@ -7,6 +7,7 @@
  */
 import { isInk, type Thought } from "application/thinking/thought";
 import { HIGHLIGHT_MEANINGS, meaningOf, type HighlightMeaning } from "application/thinking/highlightMeaning";
+import { linkToPassage, placeOf } from "./provenance";
 
 export interface NotebookEntry {
     id: string;
@@ -97,14 +98,23 @@ export function filterNotebook(groups: readonly NotebookGroup[], filter: { meani
  * The reading note: a title, the source as a link, then per chapter its quotes (with the page, in a
  * paper) and your notes as bullets. Plain Markdown, no frontmatter.
  */
-export function readingNoteMarkdown(input: { title: string; sourceLink: string; groups: readonly NotebookGroup[] }): string {
+export function readingNoteMarkdown(input: {
+    title: string;
+    sourceLink: string;
+    groups: readonly NotebookGroup[];
+    /** The vault's name: with it each quote links back to its passage in the Reader (#906). */
+    vault?: string;
+}): string {
     const lines: string[] = [`# ${input.title}`, "", `Source:: ${input.sourceLink}`, ""];
     for (const group of input.groups) {
         if (group.title) lines.push(`## ${group.title}`, "");
         for (const entry of group.entries) {
             if (entry.quote) {
-                // The page goes after the passage only when the heading does not already say it.
-                const cite = entry.label && entry.label !== group.title ? ` (${entry.label})` : "";
+                // The page goes after the passage only when the heading does not already say it — and it
+                // is the link back to the passage (#906); under a heading that says it, a bare `↪` is.
+                const link = linkToPassage(placeOf(entry.thought), input.vault);
+                const shown = entry.label && entry.label !== group.title;
+                const cite = link ? (shown ? ` ([${entry.label}](${link}))` : ` [↪](${link})`) : shown ? ` (${entry.label})` : "";
                 const quoted = entry.quote.split(/\r?\n/).map((line) => `> ${line}`);
                 quoted[quoted.length - 1] += cite;
                 lines.push(...quoted, "");

@@ -1,5 +1,5 @@
 import type { TextQuote } from "application/thinking/quoteAnchor";
-import { isHighlight, type Thought } from "application/thinking/thought";
+import { isHighlight, type Thought, type ThoughtLocator } from "application/thinking/thought";
 import { titleFromName } from "./shelf";
 import { sourceFormat } from "./sourceMeta";
 
@@ -134,17 +134,21 @@ export function boundQuote(quote: TextQuote): TextQuote {
  * thought answers (#756). `null` for anything else.
  */
 export function placeOf(thought: Thought): PassagePlace | null {
-    if (!(isHighlight(thought) || thought.madeBy) || !thought.about || !thought.locator) return null;
-    const format = sourceFormat(thought.about);
-    if (!format || !thought.quote?.exact?.trim()) return null;
-    const locator = thought.locator;
+    if (!(isHighlight(thought) || thought.madeBy) || !thought.about || !thought.locator || !thought.quote) return null;
+    return passagePlaceAt(thought.about, thought.locator, thought.quote);
+}
+
+/** The place of `quote`, found at `locator` in the PDF or EPUB `file`. `null` for any other file, or no words. */
+export function passagePlaceAt(file: string, locator: ThoughtLocator, quote: TextQuote): PassagePlace | null {
+    const format = sourceFormat(file);
+    if (!format || !quote.exact?.trim()) return null;
     const chapter = locator.chapter ?? (format === "pdf" ? `page:${locator.at}` : undefined);
     return {
-        file: thought.about,
+        file,
         ...(chapter ? { chapter } : {}),
         label: locator.label,
         ...(locator.page ? { page: locator.page } : {}),
-        quote: boundQuote(thought.quote),
+        quote: boundQuote(quote),
     };
 }
 
@@ -362,7 +366,10 @@ function paramsOf(place: PassagePlace, withLabel: boolean): [string, string][] {
     return out;
 }
 
-const query = (pairs: [string, string][]) => pairs.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+/** A value in a query; `(` and `)` encoded too, so the link survives as a Markdown link's target (#906). */
+const encodeValue = (value: string) => encodeURIComponent(value).replace(/\(/g, "%28").replace(/\)/g, "%29");
+
+const query = (pairs: [string, string][]) => pairs.map(([k, v]) => `${k}=${encodeValue(v)}`).join("&");
 
 /** A place, as the Reader's one-shot view state carries it (`ReaderState.at`). */
 export function serializePlace(place: PassagePlace): string {
@@ -411,6 +418,14 @@ export function parsePlace(text: unknown): PassagePlace | null {
  */
 export function passageLink(place: PassagePlace, vault: string): string {
     return `obsidian://${PASSAGE_ACTION}?${query([["vault", vault], ...paramsOf(place, false)])}`;
+}
+
+/**
+ * The passage link to `place`, only when it can find the passage again (#906): a chapter, the
+ * opening words and a vault to route it by — what `parsePassageLink` asks of it.
+ */
+export function linkToPassage(place: PassagePlace | null, vault: string | undefined): string | undefined {
+    return place?.chapter && place.quote?.exact && vault ? passageLink(place, vault) : undefined;
 }
 
 const LINK_KEYS = new Set(["action", "vault", "file", "chapter", "q", "pre", "suf", "page"]);

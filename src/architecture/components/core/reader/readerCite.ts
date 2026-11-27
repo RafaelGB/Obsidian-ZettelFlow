@@ -43,6 +43,8 @@ export interface CiteRequest {
     place?: CiteInput["place"];
     /** The words cited; absent for a whole book. */
     passage?: string;
+    /** The link to the passage itself (#906), which the Markdown form makes its place. */
+    passageLink?: string;
     from: CiteBox;
 }
 
@@ -123,6 +125,7 @@ export class CitePanel {
             ...(request.place ? { place: request.place } : {}),
             ...(request.passage?.trim() ? { passage: request.passage } : {}),
             link: citeLink(request.file, fields.title, request.chapterKey),
+            ...(request.passageLink ? { passageLink: request.passageLink } : {}),
         };
         const title = request.passage?.trim() ? t("reader_cite_title") : t("shelf_cite_book");
         // Esc, or a click anywhere else puts it away (FR-10): over the page, in another pane, in the sidebar.

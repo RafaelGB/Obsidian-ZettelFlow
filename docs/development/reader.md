@@ -883,7 +883,9 @@ There are five forms, one at a time, chosen by a chip. The panel opens on the fo
 
 The Markdown link back is the one a note's `source` gets when it is
 [made from a passage](#every-note-goes-back-to-its-paragraph): the book file, with the chapter in
-its subpath. It is never a block id. An article links to its note.
+its subpath. It is never a block id. An article links to its note. In a PDF or an EPUB the place
+itself (`p. 42`, `ch. 3`) is also a [passage link](#passage-links), so a click on it opens the Reader
+at that paragraph; the other four forms carry no link.
 
 **Where it comes from.** A citation is drawn from what your vault holds, and from nothing else:
 
@@ -1595,6 +1597,19 @@ obsidian://zettelflow-read?vault=<vault>&file=<vault path>&chapter=<chapter>&q=<
 | `q` | The passage's opening words | 90 |
 | `pre`, `suf` | A few words before and after them | 24 each |
 | `page` | The print page, when the source has one | 32 |
+
+The same link is written for you wherever a passage leaves the Reader as Markdown (#906):
+
+- **[Export as a reading note](library.md#the-book-notebook)** makes each quote's page its link back,
+  `> … ([p. 9](obsidian://zettelflow-read?…))`; under a chapter heading that already names the
+  place, a bare `[↪](…)` follows the quote.
+- **[Cite](#cite-a-passage) → Markdown** makes the place it cites the link: `(2011), [p. 42](obsidian://…)`.
+
+In Reading view the link shows only as its page or `↪`. A quote with no words to find again — ink, a
+highlight made before 3.7 in an EPUB — keeps its page as plain text. The `[[book]]` wikilink stays
+beside it: Obsidian keeps a wikilink up to date when the book is renamed or moved, but never an
+`obsidian://` link. In a link, `(` and `)` are percent-encoded too, so a book named *West Africa
+(Captivating History)* still makes one whole Markdown link.
 
 The link carries the path and the anchor's few words, nothing more. One that names a file that is
 not a PDF or an EPUB, or not in the vault, is over a cap, misses `file`, `chapter` or `q`, or has a

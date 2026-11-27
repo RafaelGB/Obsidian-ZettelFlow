@@ -107,6 +107,15 @@ describe("the panel (FR-2, FR-7, FR-8)", () => {
         expect(h.text()).toBe("(Kahneman, 2011, ch. 3)");
     });
 
+    it("copies Markdown whose place links back to the passage, when the request carries the link (#906)", () => {
+        const h = harness();
+        const passageLink = "obsidian://zettelflow-read?vault=v&file=Books%2FThinking.epub&chapter=c&q=A%20general";
+        h.panel.show(bookRequest({ passageLink }));
+        expect(h.text()).toContain(`(2011), [ch. 3](${passageLink}) · [[`);
+        h.copy().click();
+        expect(h.copied).toEqual([h.text()]);
+    });
+
     it("copies exactly what is shown, and only on Copy (FR-7, FR-8, AC-5)", () => {
         const h = harness({ form: "bibtex" });
         const before = bufferedWrites().length;

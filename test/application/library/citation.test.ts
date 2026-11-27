@@ -152,6 +152,19 @@ describe("the five forms, exactly (FR-2, AC-1)", () => {
         );
     });
 
+    it("Markdown makes the place the link back to the passage, when there is one (#906) — and only Markdown", () => {
+        const passageLink = "obsidian://zettelflow-read?vault=v&file=Books%2Fx.epub&chapter=c&q=A%20general";
+        expect(formatCitation("markdown", { ...full({ page: "42" }), passageLink })).toBe(
+            "> A general law of least effort applies to cognitive as well as physical exertion.\n" +
+                `> — Daniel Kahneman, *Thinking, Fast and Slow* (2011), [p. 42](${passageLink}) · [[Books/Thinking, Fast and Slow.epub#OEBPS/ch03.xhtml|Thinking, Fast and Slow]]`
+        );
+        // No place a style names: the link still goes back, as a bare arrow.
+        expect(formatCitation("markdown", { ...full(undefined), passageLink })).toContain(`(2011) [↪](${passageLink}) · [[`);
+        for (const form of ["inline", "key", "bibtex", "csl"] as const) {
+            expect(formatCitation(form, { ...full({ page: "42" }), passageLink })).not.toContain("obsidian://");
+        }
+    });
+
     it("Inline: one, two and four authors, a page and a chapter, n.d. and the title for the missing", () => {
         expect(formatCitation("inline", full({ page: "42" }))).toBe("(Kahneman, 2011, p. 42)");
         expect(formatCitation("inline", full({ chapter: "3 · The lazy controller" }))).toBe("(Kahneman, 2011, ch. 3)");

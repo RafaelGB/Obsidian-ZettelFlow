@@ -66,6 +66,8 @@ export interface CiteInput {
     passage?: string;
     /** The link back to the place (#751): `[[Books/x.epub#OEBPS/ch03.xhtml|Title]]`. */
     link?: string;
+    /** The link to the passage itself (#906): `obsidian://zettelflow-read?…`. Markdown makes its place this link. */
+    passageLink?: string;
 }
 
 /** The fields a form can lack, in the order a line names them. */
@@ -227,7 +229,10 @@ function markdown(input: CiteInput): string {
     const { fields } = input;
     const who = joined(fields.authors, fullName);
     const where = locatorText(input.place);
-    let line = `${who ? `${who}, ` : ""}*${fields.title}* (${yearText(fields)})${where ? `, ${where}` : ""}`;
+    const back = input.passageLink;
+    // The place is the link back to the passage (#906); with no place a style names, a bare `↪` is.
+    const at = where ? `, ${back ? `[${where}](${back})` : where}` : back ? ` [↪](${back})` : "";
+    let line = `${who ? `${who}, ` : ""}*${fields.title}* (${yearText(fields)})${at}`;
     if (input.link) line += ` · ${input.link}`;
     const passage = input.passage ? quoted(input.passage) : [];
     if (passage.length === 0) return `— ${line}`;

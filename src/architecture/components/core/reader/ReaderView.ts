@@ -34,7 +34,7 @@ import { escapeStep, isReadingKey, movedEnough } from "./readerDeep";
 import { PINCH_SHARE, completionRate, edgeZone, isThing, listingScrolls, pinchRelease, releaseTurn, rubberBand, startGesture, twoFingers, type Gesture, type TwoFingerKind, SYSTEM_EDGE_PX } from "./readerGestures";
 import { blockAtLine, placeAt, READING_LINE, scrollFor, type Box as PlaceBox, type Place } from "./readerPlace";
 import { ReaderAlongside, type AlongsideDeps, type AlongsidePassage, type AlongsideReading } from "./readerAlongside";
-import { foldMarks, parsePlace, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
+import { foldMarks, linkToPassage, parsePlace, passagePlaceAt, resolveChapter, type PageMark, type PassagePlace } from "application/library/provenance";
 import { anchorQuote, type TextQuote } from "application/thinking/quoteAnchor";
 import { dragSheet, settleDuration, settleSheet, sheetSnaps, type SheetSnaps } from "./readerSheet";
 import { knownPdf, sourceFormat } from "application/library/sourceMeta";
@@ -4729,7 +4729,10 @@ export class ReaderView extends ItemView {
         if (!path || !doc || !panel) return null;
         return (passage, from) => {
             const locator = passage.locator;
+            // The Markdown form links back to the passage itself (#906): a PDF's or an EPUB's, never an article's.
+            const link = linkToPassage(passagePlaceAt(path, locator, passage.quote), this.app.vault.getName?.());
             panel.show({
+                ...(link ? { passageLink: link } : {}),
                 source: citeSourceOf(this.app, path, doc.format, doc.title || noteName(path)),
                 file: path,
                 ...(locator.chapter ? { chapterKey: locator.chapter } : {}),

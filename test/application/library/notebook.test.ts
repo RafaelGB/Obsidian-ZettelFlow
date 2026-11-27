@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import type { Thought } from "application/thinking/thought";
 import { buildNotebook, filterNotebook, readingNoteMarkdown } from "application/library/notebook";
+import { parsePassageLink } from "application/library/provenance";
 
 const BOOK = "Books/aposd.epub";
 const label = (at: number) => [`Ch. 1 · Introduction`, `Ch. 2 · Complexity`, `Ch. 4 · Deep modules`][at] ?? `Ch. ${at + 1}`;
@@ -87,6 +88,60 @@ describe("the book notebook — everything you marked in one book (#721)", () =>
         expect(md).toContain("## 3. Asynchronous networks");
         expect(md).toContain("> It is impossible.\n> Truly. (p. 9)");
         expect(md).not.toMatch(/\^\w/);
+    });
+});
+
+describe("every quote goes back to its paragraph (#906)", () => {
+    const placed = (id: string, at: number, exact: string, extra: Partial<Thought["locator"]> = {}, about = BOOK) =>
+        ({
+            id,
+            at: 0,
+            text: "",
+            links: [],
+            about,
+            quote: { exact, prefix: "the words before ", suffix: " the words after" },
+            locator: { at, label: label(at), chapter: `OEBPS/ch0${at + 1}.xhtml`, ...extra },
+        }) as Thought;
+    const linkIn = (md: string) => {
+        const match = /\]\((obsidian:\/\/zettelflow-read\?[^)\s]+)\)/.exec(md);
+        if (!match) throw new Error(`no passage link in:\n${md}`);
+        const url = new URL(match[1]);
+        return parsePassageLink(Object.fromEntries(url.searchParams));
+    };
+
+    it("links a quote of a book to its passage, under a chapter heading that already names the place", () => {
+        const book = buildNotebook([placed("h", 1, "Complexity is whatever makes a system hard to understand.")], label);
+        const md = readingNoteMarkdown({ title: "APOSD", sourceLink: "[[aposd.epub]]", groups: book.groups, vault: "My vault" });
+        expect(md).toContain("> Complexity is whatever makes a system hard to understand. [↪](obsidian://zettelflow-read?vault=My%20vault&file=Books%2Faposd.epub&chapter=");
+        expect(linkIn(md)).toMatchObject({
+            file: BOOK,
+            chapter: "OEBPS/ch02.xhtml",
+            quote: { exact: "Complexity is whatever makes a system hard to understand." },
+        });
+    });
+
+    it("makes the page it cites the link, in a paper", () => {
+        const paper = { ...placed("p", 8, "It is impossible.", { label: "p. 9", chapter: "page:8" }, "Papers/cap.pdf") } as Thought;
+        const book = buildNotebook([paper], () => "p. 9", () => "3. Asynchronous networks");
+        const md = readingNoteMarkdown({ title: "CAP", sourceLink: "[[cap.pdf]]", groups: book.groups, vault: "v" });
+        expect(md).toMatch(/^> It is impossible\. \(\[p\. 9\]\(obsidian:\/\/zettelflow-read\?[^)]+\)\)$/m);
+        expect(linkIn(md)).toMatchObject({ file: "Papers/cap.pdf", chapter: "page:8" });
+    });
+
+    it("keeps the link whole when the book's name or the passage has brackets in it", () => {
+        const file = "Books/West Africa (Captivating History).epub";
+        const book = buildNotebook([placed("h", 1, "The Hausas (well known) popularized it.", {}, file)], label);
+        const md = readingNoteMarkdown({ title: "W", sourceLink: "[[w]]", groups: book.groups, vault: "v" });
+        expect(linkIn(md)).toMatchObject({ file, quote: { exact: "The Hausas (well known) popularized it." } });
+    });
+
+    it("writes no link where the passage cannot be found again: an old highlight with no chapter, ink, no vault", () => {
+        const old = buildNotebook(THOUGHTS, label);
+        expect(readingNoteMarkdown({ title: "A", sourceLink: "[[a]]", groups: old.groups, vault: "v" })).not.toContain("obsidian://");
+        const ink = { ...placed("k", 2, "deep"), ink: { drawing: "k.svg", side: "right", x: 0, line: 0, em: 16 } } as Thought;
+        expect(readingNoteMarkdown({ title: "A", sourceLink: "[[a]]", groups: buildNotebook([ink], label).groups, vault: "v" })).not.toContain("obsidian://");
+        const fresh = buildNotebook([placed("h", 1, "Words.")], label);
+        expect(readingNoteMarkdown({ title: "A", sourceLink: "[[a]]", groups: fresh.groups })).not.toContain("obsidian://");
     });
 });
 

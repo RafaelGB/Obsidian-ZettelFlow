@@ -200,7 +200,7 @@ class ReadingNoteModal extends Modal {
     private markdown(target: string): string {
         const file = this.item.file ? this.app.vault.getAbstractFileByPath(this.item.file) : null;
         const link = file instanceof TFile ? this.app.metadataCache.fileToLinktext(file, target, false) : (this.item.file ?? this.item.title);
-        return readingNoteMarkdown({ title: this.item.title, sourceLink: `[[${link}|${this.item.title}]]`, groups: this.groups });
+        return readingNoteMarkdown({ title: this.item.title, sourceLink: `[[${link}|${this.item.title}]]`, groups: this.groups, vault: this.app.vault.getName?.() });
     }
 
     private target(): string {

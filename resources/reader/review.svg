@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860" role="img" aria-label="A few things you marked: a Home tile that appears only on a day something is due, and the review card — the passage in the Reader's type, where you marked it, your margin note, the question and five answers with their keys">
+<rect x="0" y="0" width="1200" height="860" rx="0" fill="#141416" stroke="none" stroke-width="0" />
+<rect x="40" y="30" width="1120" height="790" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5" />
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="80" y="112" fill="#8a8c93" font-family="sans-serif" font-size="22" font-weight="700" text-anchor="start" >Good morning</text>
+<rect x="80" y="140" width="240" height="130" rx="10" fill="#1c1c20" stroke="#2e2e33" stroke-width="1.5" />
+<text x="96" y="166" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >NEXT</text>
+<text x="96" y="192" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Your idea with the most headroom</text>
+<rect x="96" y="222" width="90" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="141" y="241" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >Open</text>
+<rect x="340" y="140" width="240" height="130" rx="10" fill="#1c1c20" stroke="#2e2e33" stroke-width="1.5" />
+<text x="356" y="166" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >CULTIVATE</text>
+<text x="356" y="192" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >A guided thinking session</text>
+<rect x="356" y="222" width="90" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="401" y="241" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >Start</text>
+<rect x="600" y="140" width="240" height="130" rx="10" fill="#1c1c20" stroke="#2e2e33" stroke-width="1.5" />
+<text x="616" y="166" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >READY TO LOOK AT AGAIN</text>
+<text x="616" y="192" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >A claim you wrote in March</text>
+<rect x="616" y="222" width="90" height="28" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="661" y="241" fill="#6c6e75" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle" >Look again</text>
+<rect x="860" y="140" width="260" height="130" rx="10" fill="#202024" stroke="#7f6df2" stroke-width="2" />
+<text x="876" y="166" fill="#a99cf7" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >A FEW THINGS YOU MARKED</text>
+<text x="876" y="192" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Passages from your reading,</text>
+<text x="876" y="209" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >back for a second look.</text>
+<rect x="876" y="226" width="96" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="924" y="245" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle" >Look again</text>
+<rect x="40" y="71" width="1120" height="749" rx="0" fill="#000000" stroke="none" stroke-width="0" fill-opacity="0.45"/>
+<rect x="860" y="140" width="260" height="130" rx="10" fill="#202024" stroke="#7f6df2" stroke-width="2" />
+<text x="876" y="166" fill="#a99cf7" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="start" >A FEW THINGS YOU MARKED</text>
+<text x="876" y="192" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Passages from your reading,</text>
+<text x="876" y="209" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >back for a second look.</text>
+<rect x="876" y="226" width="96" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="924" y="245" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="middle" >Look again</text>
+<text x="1110" y="296" fill="#a99cf7" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end" font-style="italic">only on a day something is due</text>
+<rect x="250" y="330" width="700" height="436" rx="14" fill="#1e1e22" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="282" y="370" fill="#dcddde" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="start" >A few things you marked</text>
+<text x="920" y="370" fill="#8a8c93" font-family="sans-serif" font-size="20" font-weight="400" text-anchor="middle" >×</text>
+<rect x="282" y="396" width="636" height="300" rx="14" fill="#25252a" stroke="#3a3a3a" stroke-width="1.5" />
+<rect x="310" y="424" width="3" height="58" fill="#7f6df2"/>
+<text x="326" y="446" fill="#dcddde" font-family="Georgia, serif" font-size="19" font-weight="400" text-anchor="start" >Event sourcing stores changes, not state. Every</text>
+<text x="326" y="474" fill="#dcddde" font-family="Georgia, serif" font-size="19" font-weight="400" text-anchor="start" >decision becomes a fact that cannot be taken back.</text>
+<text x="310" y="508" fill="#6c6e75" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >Marked in Event sourcing › Events · October 2026</text>
+<text x="310" y="536" fill="#a3a5ab" font-family="Georgia, serif" font-size="14" font-weight="400" text-anchor="start" font-style="italic">Like a ledger — nothing is erased, only appended.</text>
+<text x="310" y="574" fill="#dcddde" font-family="sans-serif" font-size="14.5" font-weight="700" text-anchor="start" >Do you still think so?</text>
+<rect x="310" y="592" width="132" height="32" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1" />
+<text x="322" y="613" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start" >Still think so</text>
+<rect x="416" y="600" width="16" height="16" rx="4" fill="#9486f5" stroke="none" stroke-width="0" />
+<text x="424" y="612" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="600" text-anchor="middle" >1</text>
+<rect x="452" y="592" width="152" height="32" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="464" y="613" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="start" >Changed my mind</text>
+<rect x="578" y="600" width="16" height="16" rx="4" fill="#3a3a40" stroke="none" stroke-width="0" />
+<text x="586" y="612" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="600" text-anchor="middle" >2</text>
+<rect x="614" y="592" width="166" height="32" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="626" y="613" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="start" >Open in the Reader</text>
+<rect x="754" y="600" width="16" height="16" rx="4" fill="#3a3a40" stroke="none" stroke-width="0" />
+<text x="762" y="612" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="600" text-anchor="middle" >3</text>
+<rect x="310" y="634" width="112" height="32" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="322" y="655" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="start" >Crystallize</text>
+<rect x="396" y="642" width="16" height="16" rx="4" fill="#3a3a40" stroke="none" stroke-width="0" />
+<text x="404" y="654" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="600" text-anchor="middle" >4</text>
+<rect x="432" y="634" width="94" height="32" rx="6" fill="#2b2b30" stroke="#3a3a3a" stroke-width="1" />
+<text x="444" y="655" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="500" text-anchor="start" >Let it go</text>
+<rect x="500" y="642" width="16" height="16" rx="4" fill="#3a3a40" stroke="none" stroke-width="0" />
+<text x="508" y="654" fill="#dcddde" font-family="monospace" font-size="10.5" font-weight="600" text-anchor="middle" >5</text>
+<circle cx="573" cy="738" r="4.5" fill="#7f6df2"/>
+<circle cx="591" cy="738" r="4.5" fill="#3a3a3a"/>
+<circle cx="609" cy="738" r="4.5" fill="#3a3a3a"/>
+<circle cx="627" cy="738" r="4.5" fill="#3a3a3a"/>
+<text x="918" y="742" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="end" >← → between cards · Esc closes</text>
+</svg>

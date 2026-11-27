@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-label="Keep what you lasso: in three moments, a handwritten word in the margin beside a paragraph that is only page ink, with nothing in the margin's list; a dashed lasso loop round the word and the quiet offer Ink in the loop with Keep as note, Read as text and Delete; and the word kept as an ink note, its ink settled into the kept tone and a new row under Ink notes with its drawing and the chip Ink · kept as you wrote it · Read as text">
+<rect width="1200" height="560" fill="#141416"/>
+<rect x="40" y="30" width="1120" height="500" rx="12" fill="#18181b" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="62" cy="50" r="5.5" fill="#fb464c"/>
+<circle cx="80" cy="50" r="5.5" fill="#e9973f"/>
+<circle cx="98" cy="50" r="5.5" fill="#44cf6e"/>
+<text x="600" y="55" fill="#5f6168" font-family="sans-serif" font-size="12.5" text-anchor="middle">My vault — Obsidian</text>
+<line x1="40" y1="70" x2="1160" y2="70" stroke="#3a3a3a" stroke-width="1"/>
+<text x="90" y="100" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">A PHILOSOPHY OF SOFTWARE DESIGN  ·  JOHN OUSTERHOUT</text>
+
+<!-- three moments, left to right -->
+<g font-family="sans-serif" font-size="12" font-weight="600" fill="#5f6168">
+<text x="80" y="140">1 · IT STAYS ON THE PAGE</text>
+<text x="440" y="140">2 · LOOP WHAT YOU WANT</text>
+<text x="800" y="140">3 · KEPT AS A NOTE</text>
+</g>
+<line x1="420" y1="130" x2="420" y2="500" stroke="#2a2a2e" stroke-width="1"/>
+<line x1="780" y1="130" x2="780" y2="500" stroke="#2a2a2e" stroke-width="1"/>
+
+<!-- the same paragraph in each frame, the word written in its margin -->
+<g font-family="Georgia, serif" font-size="15" fill="#dcddde">
+<text x="80" y="190">A deep module hides a great</text>
+<text x="80" y="216">deal of complexity behind an</text>
+<text x="80" y="242">interface that is much simpler.</text>
+
+<text x="440" y="190">A deep module hides a great</text>
+<text x="440" y="216">deal of complexity behind an</text>
+<text x="440" y="242">interface that is much simpler.</text>
+
+<text x="800" y="190">A deep module hides a great</text>
+<text x="800" y="216">deal of complexity behind an</text>
+<text x="800" y="242">interface that is much simpler.</text>
+</g>
+
+<!-- 1: the handwriting, page ink at full tone; the margin's list empty -->
+<g fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M310 214 C314 200 320 198 318 212 C316 222 324 224 330 212 C334 204 338 206 338 214 C338 220 344 220 348 212"/>
+<path d="M352 212 C358 200 364 204 360 214 C358 222 366 222 372 210 L376 200"/>
+</g>
+<text x="80" y="300" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the pen only draws: ink stays where</text>
+<text x="80" y="318" fill="#8a8c94" font-family="sans-serif" font-size="12.5">you wrote it, like ink on paper</text>
+<rect x="80" y="352" width="300" height="76" rx="8" fill="none" stroke="#2f2f36" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="96" y="378" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">INK NOTES</text>
+<text x="96" y="404" fill="#5f6168" font-family="sans-serif" font-size="12.5">nothing listed, nothing in Think</text>
+
+<!-- 2: the lasso round the word, and the quiet offer -->
+<g fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M670 214 C674 200 680 198 678 212 C676 222 684 224 690 212 C694 204 698 206 698 214 C698 220 704 220 708 212"/>
+<path d="M712 212 C718 200 724 204 720 214 C718 222 726 222 732 210 L736 200"/>
+</g>
+<ellipse cx="703" cy="210" rx="48" ry="24" fill="none" stroke="#a68af9" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="460" y="270" width="300" height="58" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="476" y="293" fill="#dcddde" font-family="sans-serif" font-size="12.5">Ink in the loop</text>
+<rect x="476" y="302" width="96" height="18" rx="5" fill="#2f2f36"/>
+<text x="524" y="315" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Keep as note</text>
+<rect x="580" y="302" width="92" height="18" rx="5" fill="#2f2f36"/>
+<text x="626" y="315" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Read as text</text>
+<rect x="680" y="302" width="60" height="18" rx="5" fill="#2f2f36"/>
+<text x="710" y="315" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Delete</text>
+<text x="440" y="370" fill="#8a8c94" font-family="sans-serif" font-size="12.5">the lasso offers, and writes nothing</text>
+<text x="440" y="388" fill="#8a8c94" font-family="sans-serif" font-size="12.5">until you choose</text>
+<text x="440" y="418" fill="#5f6168" font-family="sans-serif" font-size="12">ink wins over the words under it</text>
+
+<!-- 3: the word kept — the kept tone, and its row in the margin -->
+<g fill="none" stroke="#dcddde" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.86">
+<path d="M1030 214 C1034 200 1040 198 1038 212 C1036 222 1044 224 1050 212 C1054 204 1058 206 1058 214 C1058 220 1064 220 1068 212"/>
+<path d="M1072 212 C1078 200 1084 204 1080 214 C1078 222 1086 222 1092 210 L1096 200"/>
+</g>
+<rect x="800" y="270" width="320" height="118" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="816" y="294" fill="#5f6168" font-family="sans-serif" font-size="12" font-weight="600">INK NOTES</text>
+<rect x="816" y="306" width="96" height="40" rx="6" fill="#18181b" stroke="#3a3a3a" stroke-width="1"/>
+<g fill="none" stroke="#dcddde" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.86">
+<path d="M828 330 C831 320 835 319 834 329 C833 336 838 337 842 329 C845 323 848 325 848 330 C848 334 852 334 855 329"/>
+<path d="M858 329 C862 320 866 323 864 330 C862 335 868 335 872 327 L875 320"/>
+</g>
+<text x="924" y="324" fill="#dcddde" font-family="sans-serif" font-size="12.5">beside “interface that is…”</text>
+<text x="816" y="372" fill="#8a8c94" font-family="sans-serif" font-size="12">Ink · kept as you wrote it  ·</text>
+<text x="984" y="372" fill="#a68af9" font-family="sans-serif" font-size="12">Read as text</text>
+<rect x="830" y="404" width="270" height="34" rx="8" fill="#202024" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="846" y="426" fill="#dcddde" font-family="sans-serif" font-size="12.5">Kept as an ink note.</text>
+<rect x="1030" y="412" width="52" height="18" rx="5" fill="#2f2f36"/>
+<text x="1056" y="425" fill="#dcddde" font-family="sans-serif" font-size="11.5" text-anchor="middle">Undo</text>
+<text x="800" y="470" fill="#8a8c94" font-family="sans-serif" font-size="12.5">a thought in your thinking space, in one batch;</text>
+<text x="800" y="488" fill="#8a8c94" font-family="sans-serif" font-size="12.5">Undo puts it back on the page</text>
+</svg>

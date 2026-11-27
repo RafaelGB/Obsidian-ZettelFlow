@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Make it a claim, or link it to an idea. Left: a book in the Reader, a sentence naming the planning fallacy selected, and its popover below it: four meaning dots, Note, Copy and More, then the second row a sentence gets, Claim, Link to an idea and Cite. A dashed arc shows the selected words travelling from the page into the quote of the claim sheet on the right, which stands in Alongside's place beside the page: Make it a claim, the claim box holding Big projects fail by underestimating complexity, the title, the passage quoted, the source as it will be written with the book, the chapter and page 143, the folder, and Cancel and Create. Below the popover, the picker grown from Link to an idea: Find an idea, Planning fallacy at the top as near this passage, Optimism bias, and the line Already linked to this passage under a second pick. At the bottom of the sheet's slot, From this reading lists Claim: Big projects fail by underestimating complexity and Linked to Optimism bias. Underneath: your own act, nothing to accept; a taken name is never overwritten; the highlight is kept; no AI.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">MAKE IT A CLAIM, OR LINK IT TO AN IDEA — FROM THE SELECTION</text>
+
+<!-- ── the book ───────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="1120" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">HOW BIG THINGS GET DONE · 2 · THINK SLOW, ACT FAST · P. 143</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="160">Every project we looked at began with a plan that was</text>
+<text x="96" y="186">close to the best case, and ended far from it.</text>
+</g>
+<!-- the selection -->
+<rect x="92" y="208" width="520" height="54" rx="4" fill="#a99cf5" fill-opacity="0.22"/>
+<g font-family="serif" font-size="17" fill="#dcddde">
+<text x="96" y="228">This is the planning fallacy, or the planning bias, as</text>
+<text x="96" y="254">some call it: complexity underestimated, not unknown.</text>
+</g>
+<!-- the claim tick a highlight takes once it is a claim -->
+<rect x="84" y="222" width="7" height="7" fill="#7f6df2" transform="rotate(45 87.5 225.5)"/>
+
+<!-- the popover under the selection: the same first row, and a second that fits a sentence (#811) -->
+<g font-family="sans-serif">
+<rect x="110" y="276" width="420" height="112" rx="10" fill="#26262c" stroke="#45454d"/>
+<g font-size="12">
+<circle cx="132" cy="303" r="10" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<circle cx="132" cy="303" r="6" fill="#e0a351"/>
+<circle cx="156" cy="303" r="6" fill="#4a9dff"/>
+<circle cx="180" cy="303" r="6" fill="#44cf6e"/>
+<circle cx="204" cy="303" r="6" fill="#a882ff"/>
+<rect x="222" y="290" width="56" height="26" rx="6" fill="#7f6df2"/>
+<text x="250" y="307" fill="#ffffff" text-anchor="middle">Note</text>
+<rect x="284" y="290" width="54" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="311" y="307" fill="#b3b5ba" text-anchor="middle">Copy</text>
+<rect x="344" y="290" width="58" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="373" y="307" fill="#b3b5ba" text-anchor="middle">More</text>
+<rect x="126" y="330" width="70" height="28" rx="6" fill="#33333a" stroke="#a99cf5"/>
+<text x="161" y="348" fill="#dcddde" text-anchor="middle">Claim</text>
+<rect x="204" y="330" width="120" height="28" rx="6" fill="#33333a" stroke="#45454d"/>
+<text x="264" y="348" fill="#dcddde" text-anchor="middle">Link to an idea</text>
+<rect x="332" y="330" width="56" height="28" rx="6" fill="#33333a" stroke="#45454d"/>
+<text x="360" y="348" fill="#b3b5ba" text-anchor="middle">Cite</text>
+</g>
+<text x="126" y="378" fill="#5f6168" font-size="11">One sentence: Claim · Link to an idea · Cite  ·  the rest in More</text>
+</g>
+
+<!-- the picker, grown from Link to an idea -->
+<g font-family="sans-serif">
+<path d="M264 358 L330 414" stroke="#5f6168" stroke-dasharray="3 4" fill="none"/>
+<rect x="300" y="414" width="300" height="196" rx="10" fill="#26262c" stroke="#45454d"/>
+<rect x="316" y="430" width="268" height="30" rx="6" fill="#1b1b1f" stroke="#45454d"/>
+<text x="330" y="450" fill="#8b8e94" font-size="12">Find an idea</text>
+<rect x="316" y="470" width="268" height="30" rx="5" fill="#33333a"/>
+<text x="330" y="490" fill="#dcddde" font-size="13">Planning fallacy</text>
+<text x="572" y="490" fill="#8b8e94" font-size="10" text-anchor="end">near this passage</text>
+<text x="330" y="524" fill="#b3b5ba" font-size="13">Optimism bias</text>
+<text x="330" y="554" fill="#b3b5ba" font-size="13">Reference-class forecasting</text>
+<line x1="316" y1="570" x2="584" y2="570" stroke="#3a3a3a"/>
+<text x="330" y="594" fill="#8b8e94" font-size="12">Already linked to this passage</text>
+</g>
+
+<!-- ── the claim sheet, in Alongside's place ─────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="700" y="92" width="440" height="568" rx="12" fill="#232328" stroke="#45454d"/>
+<text x="724" y="128" fill="#dcddde" font-size="15" font-weight="600">Make it a claim</text>
+<text x="1114" y="128" fill="#8b8e94" font-size="14" text-anchor="end">✕</text>
+
+<text x="724" y="160" fill="#8b8e94" font-size="11">The claim</text>
+<rect x="724" y="168" width="392" height="58" rx="6" fill="#1b1b1f" stroke="#7f6df2"/>
+<text x="738" y="192" fill="#dcddde" font-size="14">Big projects fail by underestimating</text>
+<text x="738" y="212" fill="#dcddde" font-size="14">complexity</text>
+
+<text x="724" y="248" fill="#8b8e94" font-size="11">Title</text>
+<rect x="724" y="256" width="392" height="30" rx="6" fill="#1b1b1f" stroke="#45454d"/>
+<text x="738" y="276" fill="#b3b5ba" font-size="13">Big projects fail by underestimating complexity</text>
+
+<text x="724" y="308" fill="#8b8e94" font-size="11">Passage</text>
+<rect x="724" y="318" width="3" height="44" fill="#7f6df2"/>
+<text x="738" y="334" fill="#dcddde" font-family="serif" font-size="14">This is the planning fallacy, or the planning</text>
+<text x="738" y="354" fill="#dcddde" font-family="serif" font-size="14">bias, as some call it: complexity underestimated…</text>
+
+<text x="724" y="386" fill="#8b8e94" font-size="11">Source</text>
+<text x="724" y="404" fill="#8b8e94" font-size="11">[[How Big Things Get Done.epub#…|How Big Things Get Done]]</text>
+<text x="724" y="420" fill="#8b8e94" font-size="11">p. 143 · 2 · Think slow, act fast · “‹This is the planning fallacy›…”</text>
+
+<text x="724" y="446" fill="#8b8e94" font-size="11">Folder</text>
+<rect x="724" y="454" width="392" height="30" rx="6" fill="#1b1b1f" stroke="#45454d"/>
+<text x="738" y="474" fill="#b3b5ba" font-size="13">Claims</text>
+
+<rect x="958" y="502" width="72" height="30" rx="6" fill="#33333a" stroke="#45454d"/>
+<text x="994" y="521" fill="#dcddde" font-size="12" text-anchor="middle">Cancel</text>
+<rect x="1038" y="502" width="78" height="30" rx="6" fill="#7f6df2"/>
+<text x="1077" y="521" fill="#ffffff" font-size="12" text-anchor="middle">Create</text>
+
+<line x1="724" y1="556" x2="1116" y2="556" stroke="#3a3a3a"/>
+<text x="724" y="580" fill="#5f6168" font-size="10" letter-spacing="1">FROM THIS READING</text>
+<text x="724" y="604" fill="#dcddde" font-size="12">Claim: Big projects fail by underestimating complexity</text>
+<text x="724" y="626" fill="#dcddde" font-size="12">Linked to Optimism bias</text>
+<text x="1116" y="626" fill="#8b8e94" font-size="10" text-anchor="end">You linked it to this passage</text>
+</g>
+
+<!-- the words travelling from the page into the sheet's quote: one gesture with its slide -->
+<path d="M560 214 C 640 160, 660 250, 722 330" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+<path d="M716 322 L722 330 L712 330" stroke="#a99cf5" stroke-width="1.5" fill="none"/>
+<path d="M690 176 L700 176" stroke="#5f6168" stroke-width="1.5"/>
+<path d="M670 176 L682 176" stroke="#5f6168" stroke-width="1.5" stroke-opacity="0.5"/>
+
+<!-- ── what it means ───────────────────────────────────────────────────── -->
+<g font-family="sans-serif" font-size="13">
+<text x="60" y="716" fill="#dcddde" font-weight="600">Your own act</text>
+<text x="60" y="738" fill="#8b8e94">nothing to accept: Create writes one note</text>
+<text x="350" y="716" fill="#dcddde" font-weight="600">Never overwritten</text>
+<text x="350" y="738" fill="#8b8e94">a taken name says so, and offers Open it</text>
+<text x="640" y="716" fill="#dcddde" font-weight="600">The highlight is kept</text>
+<text x="640" y="738" fill="#8b8e94">a tick on the page, Claim: … in the margin</text>
+<text x="930" y="716" fill="#dcddde" font-weight="600">No AI</text>
+<text x="930" y="738" fill="#8b8e94">a link is one source entry, undoable</text>
+</g>
+</svg>

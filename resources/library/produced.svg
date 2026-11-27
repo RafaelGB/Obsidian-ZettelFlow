@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="What a book produced in your vault: in the Library&#39;s detail, six lists under What it produced in your vault — Notes born from it (Note A), Ideas it led to (Risk window), Links you made (Note A to Planning fallacy, supports), Tensions (Older view to Note A, contradicts), Open questions (Why do plans slip?) and Still unresolved (two passages) — no count beside any heading; and a pair clicked opening Note A and Planning fallacy in a split beside the Library, the detail staying where it is">
+<rect x="0" y="0" width="1200" height="630" rx="0" fill="#141416" stroke="none" stroke-width="0" />
+<circle cx="54" cy="52" r="13" fill="#7f6df2" />
+<text x="54" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >1</text>
+<text x="76" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >In the book's detail, what it produced</text>
+<rect x="36" y="76" width="520" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="58" y="108" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="600" text-anchor="start" letter-spacing="1.6">WHAT IT PRODUCED IN YOUR VAULT</text>
+<text x="58" y="136" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Notes born from it</text>
+<text x="58" y="158" fill="#44cf6e" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start" >◆</text>
+<text x="76" y="158" fill="#9d8df7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Note A</text>
+<line x1="58" y1="166" x2="534" y2="166" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="188" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Ideas it led to</text>
+<text x="58" y="210" fill="#9d8df7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Risk window</text>
+<line x1="58" y1="218" x2="534" y2="218" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="240" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Links you made</text>
+<text x="58" y="262" fill="#9d8df7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Note A ↔ Planning fallacy · supports</text>
+<line x1="58" y1="270" x2="534" y2="270" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="292" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Tensions</text>
+<text x="58" y="314" fill="#9d8df7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Older view ↔ Note A · contradicts</text>
+<line x1="58" y1="322" x2="534" y2="322" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="344" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Open questions</text>
+<text x="58" y="366" fill="#9d8df7" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start" >Why do plans slip?</text>
+<line x1="58" y1="374" x2="534" y2="374" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="396" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Still unresolved</text>
+<text x="58" y="418" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >“Nothing in life is as important as you think…”</text>
+<text x="534" y="418" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="end" >Ch. 38</text>
+<line x1="58" y1="426" x2="534" y2="426" stroke="#26262a" stroke-width="1"/>
+<text x="58" y="442" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >“What you see is all there is.”</text>
+<text x="534" y="442" fill="#5f6168" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="end" >Ch. 7</text>
+<line x1="58" y1="450" x2="534" y2="450" stroke="#26262a" stroke-width="1"/>
+<text x="296" y="506" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle" font-style="italic">Lists, never a score: no count, no total, no bar.</text>
+<circle cx="608" cy="52" r="13" fill="#7f6df2" />
+<text x="608" y="56.5" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle" >2</text>
+<text x="630" y="57" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="600" text-anchor="start" >A pair opens in a split</text>
+<rect x="590" y="76" width="280" height="444" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="610" y="108" fill="#5f6168" font-family="sans-serif" font-size="10.5" font-weight="600" text-anchor="start" letter-spacing="1.2">LIBRARY</text>
+<rect x="610" y="124" width="240" height="160" rx="8" fill="#1c1c1f" stroke="#3a3a3a" stroke-width="1" />
+<text x="626" y="150" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start" >Links you made</text>
+<rect x="620" y="162" width="220" height="30" rx="6" fill="#24242a" stroke="#9d8df7" stroke-width="1" />
+<text x="630" y="182" fill="#9d8df7" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start" >Note A ↔ Planning fallacy</text>
+<text x="626" y="226" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" font-style="italic">The detail stays where it is;</text>
+<text x="626" y="244" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" font-style="italic">nothing in the shelf jumps.</text>
+<path d="M 846 177 C 880 177, 880 200, 906 200" fill="none" stroke="#7f6df2" stroke-width="1.5"/>
+<path d="M 900 195 L 908 200 L 900 205" fill="none" stroke="#7f6df2" stroke-width="1.5"/>
+<rect x="908" y="76" width="256" height="214" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="928" y="108" fill="#5f6168" font-family="sans-serif" font-size="10.5" font-weight="600" text-anchor="start" letter-spacing="1.2">NOTE A</text>
+<text x="928" y="140" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >Plans slip because the inside</text>
+<text x="928" y="160" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >view ignores base rates.</text>
+<text x="928" y="190" fill="#8b8e94" font-family="monospace" font-size="11.5" font-weight="400" text-anchor="start" >supports:: [[Planning fallacy]]</text>
+<text x="928" y="214" fill="#8b8e94" font-family="monospace" font-size="10.5" font-weight="400" text-anchor="start" >source:: [[Thinking, Fast…]] Ch. 1</text>
+<rect x="908" y="306" width="256" height="214" rx="12" fill="#151517" stroke="#3a3a3a" stroke-width="1.5" />
+<text x="928" y="338" fill="#5f6168" font-family="sans-serif" font-size="10.5" font-weight="600" text-anchor="start" letter-spacing="1.2">PLANNING FALLACY</text>
+<text x="928" y="370" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >We underestimate how long</text>
+<text x="928" y="390" fill="#dcddde" font-family="Georgia, serif" font-size="12.5" font-weight="400" text-anchor="start" >our own tasks will take.</text>
+<text x="928" y="430" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" font-style="italic">An older note of yours: a link</text>
+<text x="928" y="448" fill="#5f6168" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start" font-style="italic">to what you already knew.</text>
+<text x="600" y="560" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">Every list is read off your links, relations, citations, dates and Think. Nothing is inferred from text.</text>
+<text x="600" y="582" fill="#5f6168" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle" font-style="italic">A note opens in the editor, a passage in the Reader, a challenge in Think. Opening it writes nothing.</text>
+</svg>

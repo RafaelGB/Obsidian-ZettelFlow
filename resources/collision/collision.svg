@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="Two things far apart: in the thinking space, two notes from different regions of the vault sit far apart under one question, What could these two have in common?, with no hint and no answer. The composer is empty and yours. Three ways out: Another pair, Nothing here, which rules the pair out for good, and Close, which records nothing.">
+<rect x="0" y="0" width="1200" height="640" rx="0" fill="#1a1a1a"/>
+<rect x="24" y="20" width="1152" height="600" rx="12" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="46" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="64" cy="40" r="5.5" fill="#e0a351"/>
+<circle cx="82" cy="40" r="5.5" fill="#5cc98a"/>
+<text x="600.0" y="45" fill="#5c5f66" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="24" y1="60" x2="1176" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<text x="56" y="88" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Home</text>
+<text x="122.4" y="88" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Cultivate</text>
+<text x="226.8" y="88" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="start">Think</text>
+<rect x="222.8" y="96" width="46.0" height="2.5" rx="1.2" fill="#8f7ff5"/>
+<line x1="40" y1="100" x2="1160" y2="100" stroke="#2f2d3a" stroke-width="1"/>
+<text x="600" y="140" fill="#dcddde" font-family="sans-serif" font-size="20" font-weight="650" text-anchor="middle">What could these two have in common?</text>
+<text x="600" y="166" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="middle">Two notes with nothing between them. The answer is yours — nothing here will offer one.</text>
+<rect x="80" y="200" width="360" height="160" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="106" cy="228" r="5" fill="#5aa9f0"/>
+<text x="120" y="232" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Learning</text>
+<text x="104" y="268" fill="#dcddde" font-family="sans-serif" font-size="17" font-weight="650" text-anchor="start">Spaced repetition</text>
+<rect x="104" y="284" width="3" height="48" rx="1.5" fill="#8f7ff5"/>
+<text x="118" y="302" fill="#a3a1b8" font-family="Georgia, serif" font-size="14" font-weight="400" text-anchor="start">Forgetting a little is what makes</text>
+<text x="118" y="324" fill="#a3a1b8" font-family="Georgia, serif" font-size="14" font-weight="400" text-anchor="start">the next recall strengthen memory.</text>
+<rect x="760" y="200" width="360" height="160" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="786" cy="228" r="5" fill="#e0a351"/>
+<text x="800" y="232" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Kitchen</text>
+<text x="784" y="268" fill="#dcddde" font-family="sans-serif" font-size="17" font-weight="650" text-anchor="start">Sourdough starter</text>
+<rect x="784" y="284" width="3" height="48" rx="1.5" fill="#8f7ff5"/>
+<text x="798" y="302" fill="#a3a1b8" font-family="Georgia, serif" font-size="14" font-weight="400" text-anchor="start">A culture stays alive only if</text>
+<text x="798" y="324" fill="#a3a1b8" font-family="Georgia, serif" font-size="14" font-weight="400" text-anchor="start">you keep feeding it on a rhythm.</text>
+<path d="M 448 280 C 520 250, 680 250, 752 280" fill="none" stroke="#5c5f66" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 6"/>
+<rect x="510" y="236" width="180" height="26" rx="13" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="600" y="253.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">As far as this vault goes</text>
+<text x="600" y="300" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">no link · no shared neighbour</text>
+<rect x="80" y="392" width="1040" height="72" rx="10" fill="#232323" stroke="#3a3a3a" stroke-width="1.5"/>
+<line x1="102" y1="414" x2="102" y2="436" stroke="#8f7ff5" stroke-width="2"/>
+<text x="112" y="431" fill="#5c5f66" font-family="sans-serif" font-size="14" font-weight="400" text-anchor="start">Your thought, about both notes</text>
+<rect x="80" y="488" width="132" height="32" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="146.0" y="508.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Another pair</text>
+<rect x="224" y="488" width="132" height="32" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="290.0" y="508.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Nothing here</text>
+<rect x="368" y="488" width="92" height="32" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="414.0" y="508.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Close</text>
+<text x="80" y="552" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Write something</text>
+<text x="80" y="572" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">one thought, two subjects, one move</text>
+<text x="400" y="552" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Nothing here</text>
+<text x="400" y="572" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">a verdict: this pair never comes back</text>
+<text x="760" y="552" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="600" text-anchor="start">Close</text>
+<text x="760" y="572" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">nothing is recorded; the pair can come back</text>
+<text x="600" y="604" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="middle">No hint · no example · no AI anywhere in the path</text>
+</svg>

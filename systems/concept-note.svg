@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="717" viewBox="0 0 1200 717" role="img" aria-label="Concept note — the system's canvas flow: 1 step">
+<defs>
+<pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#2e2e2e"/></pattern>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8b8e94"/></marker>
+</defs>
+<rect width="1200" height="717" fill="#1e1e1e"/>
+<text x="32" y="50" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="28" font-weight="700">Concept note</text>
+<rect x="223.2" y="28" width="64" height="28" rx="14" fill="#44cf6e" fill-opacity="0.18" stroke="#44cf6e" stroke-width="1.5"/>
+<text x="255.2" y="47" fill="#44cf6e" font-family="Inter, Segoe UI, sans-serif" font-size="14" font-weight="700" text-anchor="middle">easy</text>
+<text x="1168" y="48" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="15" text-anchor="end">1 step</text>
+<text x="32" y="86" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">An evergreen concept note as a single rich step: name it, define it, say why it matters and give an example, stamp a</text>
+<text x="32" y="110" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="16">Zettel id, and on creation get it related, cross-checked, maturity-scored and questioned — all in one inline box.…</text>
+<rect x="24" y="138" width="1152" height="543.8" rx="12" fill="#191919" stroke="#3a3a3a" stroke-width="1.5"/>
+<rect x="25" y="139" width="1150" height="541.8" rx="11" fill="url(#dots)"/>
+<g transform="translate(278.0,150.0) scale(1.1500) translate(250,110)">
+<rect x="-180" y="-40" width="420" height="312" rx="12" fill="#262626" stroke="#53dfdd" stroke-width="3"/>
+<path d="M-180,-28 a12,12 0 0 1 12,-12 h396 a12,12 0 0 1 12,12 v34 h-420 z" fill="#53dfdd" fill-opacity="0.16"/>
+<text x="-164" y="-9" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="20" font-weight="700">Concept note</text>
+<text x="-164" y="30" fill="#53dfdd" font-family="Inter, Segoe UI, sans-serif" font-size="13.5" font-weight="600">develop · → Concepts</text>
+<circle cx="-159" cy="51" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="56" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Concept<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-159" cy="73" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="78" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Definition<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-159" cy="95" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="100" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Why it matters<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-159" cy="117" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="122" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Example<tspan fill="#5c5f66" font-size="12.5">  prompt</tspan></text>
+<circle cx="-159" cy="139" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="144" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Tags<tspan fill="#5c5f66" font-size="12.5">  tags</tspan></text>
+<circle cx="-159" cy="161" r="3.5" fill="#8b8e94"/>
+<text x="-148" y="166" fill="#dcddde" font-family="Inter, Segoe UI, sans-serif" font-size="14.5">Zettel id<tspan fill="#5c5f66" font-size="12.5">  zettel-id · automatic</tspan></text>
+<line x1="-164" y1="196" x2="224" y2="196" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="-164" y="214" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">⚡ on creation: Find related, Calculate</text>
+<text x="-164" y="234" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">maturity, Find contradiction, Find unanswered</text>
+<text x="-164" y="254" fill="#8b8e94" font-family="Inter, Segoe UI, sans-serif" font-size="12.5">question</text>
+</g>
+<text x="32" y="701" fill="#5c5f66" font-family="Inter, Segoe UI, sans-serif" font-size="13">Installs as a canvas flow in one click from the ZettelFlow Systems gallery.</text>
+</svg>

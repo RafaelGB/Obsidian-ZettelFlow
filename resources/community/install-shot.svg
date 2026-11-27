@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-label="Installing a system, in one continuous shot: a card in the Systems room is a drawing of the system's own canvas; pressed, the drawing grows into the stage, where Try it: walk the flow lights each step and How will you use it? says exactly what Install will write; Install, and the drawing fills the tab, which becomes the canvas, while the notice says the system is in your vault and offers Create a note and Undo.">
+<rect x="0" y="0" width="1200" height="600" rx="0" fill="#1a1a1a"/>
+<rect x="24" y="20" width="1152" height="560" rx="12" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="46" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="64" cy="40" r="5.5" fill="#e0a351"/>
+<circle cx="82" cy="40" r="5.5" fill="#5cc98a"/>
+<text x="600.0" y="45" fill="#5c5f66" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Community — Obsidian</text>
+<line x1="24" y1="60" x2="1176" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<text x="64" y="100" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">1 · The card</text>
+<rect x="64" y="116" width="240" height="210" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<path d="M 144.5 180.0 C 150.7 180.0 150.7 153.1 157.0 153.1" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 144.5 180.0 C 150.7 180.0 150.7 206.9 157.0 206.9" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 211.0 153.1 C 217.3 153.1 217.3 180.0 223.5 180.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 211.0 206.9 C 217.3 206.9 217.3 180.0 223.5 180.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="90.4" y="170.4" width="54.1" height="19.2" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="157.0" y="143.5" width="54.1" height="19.2" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="157.0" y="197.3" width="54.1" height="19.2" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="223.5" y="170.4" width="54.1" height="19.2" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<text x="80" y="260" fill="#dcddde" font-family="sans-serif" font-size="14" font-weight="650" text-anchor="start">Zettelkasten v2</text>
+<text x="80" y="280" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">The slip-box, from fleeting to permanent.</text>
+<circle cx="84" cy="304" r="4" fill="#8f7ff5"/>
+<circle cx="96" cy="304" r="4" fill="#8f7ff5"/>
+<circle cx="108" cy="304" r="4" fill="#3a3850"/>
+<text x="124" y="308" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">4 steps · 1 branch point</text>
+<text x="64" y="352" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">a drawing of the system's own canvas,</text>
+<text x="64" y="370" fill="#5c5f66" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">fetched as it scrolls into view</text>
+<path d="M 318 220 C 340 220 344 220 362 220" fill="none" stroke="#8f7ff5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 356 214 L 364 220 L 356 226" fill="none" stroke="#8f7ff5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="378" y="100" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">2 · In place: walk it, then say how you will use it</text>
+<rect x="378" y="116" width="468" height="360" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="398" y="142" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">‹ Systems</text>
+<rect x="398" y="154" width="250" height="156" rx="8" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<path d="M 479.3 230.0 C 486.2 230.0 486.2 196.4 493.1 196.4" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 479.3 230.0 C 486.2 230.0 486.2 263.6 493.1 263.6" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 552.9 196.4 C 559.8 196.4 559.8 230.0 566.7 230.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 552.9 263.6 C 559.8 263.6 559.8 230.0 566.7 230.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="419.5" y="218.0" width="59.8" height="24.0" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="493.1" y="184.4" width="59.8" height="24.0" rx="4" fill="#232323" stroke="#8f7ff5" stroke-width="2"/>
+<rect x="493.1" y="251.6" width="59.8" height="24.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="566.7" y="218.0" width="59.8" height="24.0" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<circle cx="556" cy="182" r="4" fill="#8f7ff5"/>
+<text x="664" y="172" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="650" text-anchor="start">Try it: walk the flow</text>
+<rect x="664" y="184" width="164" height="30" rx="6" fill="#2a2938" stroke="#3d3b54" stroke-width="1"/>
+<text x="676" y="203.5" fill="#dcddde" font-family="sans-serif" font-size="11.5" font-weight="500" text-anchor="start">Literature note</text>
+<rect x="664" y="220" width="164" height="30" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="676" y="239.5" fill="#8b8e94" font-family="sans-serif" font-size="11.5" font-weight="400" text-anchor="start">Permanent note</text>
+<text x="664" y="274" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">nothing is created,</text>
+<text x="664" y="290" fill="#5c5f66" font-family="sans-serif" font-size="10.5" font-weight="400" text-anchor="start">nothing is read</text>
+<text x="398" y="340" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="650" text-anchor="start">How will you use it?</text>
+<rect x="398" y="352" width="160" height="30" rx="6" fill="#2a2938" stroke="#8f7ff5" stroke-width="1.5"/>
+<text x="412" y="371.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Create notes</text>
+<rect x="566" y="354" width="70" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="601.0" y="371.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Change</text>
+<rect x="398" y="390" width="430" height="42" rx="6" fill="#2b2722" stroke="#3a352d" stroke-width="1"/>
+<text x="410" y="406" fill="#cfc6b2" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Creates Zettelkasten v2 (5 files) in Zettel.</text>
+<text x="410" y="423" fill="#cfc6b2" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">The notice after installing can undo it in one go.</text>
+<rect x="398" y="440" width="96" height="28" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="446.0" y="458.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">Install</text>
+<text x="506" y="458" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">no confirmation dialog: the sentence was it</text>
+<path d="M 860 296 C 882 296 886 296 904 296" fill="none" stroke="#8f7ff5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 898 290 L 906 296 L 898 302" fill="none" stroke="#8f7ff5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="920" y="100" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">3 · The tab becomes the canvas</text>
+<rect x="920" y="116" width="216" height="236" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="936" y="140" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">Zettelkasten v2.canvas</text>
+<path d="M 990.8 235.0 C 996.6 235.0 996.6 193.0 1002.5 193.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 990.8 235.0 C 996.6 235.0 996.6 277.0 1002.5 277.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1053.5 193.0 C 1059.4 193.0 1059.4 235.0 1065.2 235.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 1053.5 277.0 C 1059.4 277.0 1059.4 235.0 1065.2 235.0" fill="none" stroke="#8b8e94" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="939.8" y="220.0" width="51.0" height="30.0" rx="4" fill="#232323" stroke="#e0a351" stroke-width="1.2"/>
+<rect x="1002.5" y="178.0" width="51.0" height="30.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="1002.5" y="262.0" width="51.0" height="30.0" rx="4" fill="#232323" stroke="#5aa9f0" stroke-width="1.2"/>
+<rect x="1065.2" y="220.0" width="51.0" height="30.0" rx="4" fill="#232323" stroke="#5cc98a" stroke-width="1.2"/>
+<rect x="920" y="368" width="216" height="108" rx="10" fill="#2a2938" stroke="#3d3b54" stroke-width="1.5"/>
+<text x="936" y="394" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="start">Zettelkasten v2 is in your vault</text>
+<text x="936" y="413" fill="#8b8e94" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="start">The ribbon icon will open it.</text>
+<rect x="936" y="430" width="104" height="26" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="988.0" y="447.5" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">Create a note</text>
+<rect x="1048" y="430" width="72" height="26" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="1084.0" y="447.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">Undo</text>
+<text x="1028" y="498" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">Back returns to Systems:</text>
+<text x="1028" y="514" fill="#5c5f66" font-family="sans-serif" font-size="11" font-weight="400" text-anchor="middle">the drawing flies home onto its card</text>
+<text x="600" y="556" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">One drawing, one shot: card, stage, canvas. Undo in the notice takes the whole install back.</text>
+</svg>

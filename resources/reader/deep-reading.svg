@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-label="Deep reading, in three frames. Left: the ordinary Reader, with the top line, the bookmark ribbon, the hairline, the margin of highlights, the chapter dots and the bar holding the Deep reading button. Middle: after F, the same page alone; the top line has slid up, the bar down, the margin to its side, the dots and the hairline have faded, and the line you were reading has not moved; one quiet line says Move the pointer for the controls, Esc to leave, for two seconds. Right: the pointer moved, and the controls have slid back over the page; the button now reads Leave deep reading; after two seconds of stillness they fade again. Space and the arrows turn without bringing them back.">
+<rect width="1200" height="640" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">DEEP READING: THE PAGE AND NOTHING ELSE</text>
+
+<!-- ── 1 · the ordinary Reader ───────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="210" y="80" fill="#8b8e94" font-size="12" font-weight="600" text-anchor="middle">1 · The Reader</text>
+<rect x="30" y="96" width="360" height="440" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="30" y="96" width="140" height="3" fill="#7f6df2"/>
+<text x="52" y="124" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">THINKING, FAST AND SLOW · 4 / 38</text>
+<text x="370" y="124" fill="#5f6168" font-size="12" text-anchor="end">×</text>
+<path d="M 330 134 h 18 v 30 l -9 -7 l -9 7 z" fill="none" stroke="#5f6168" stroke-width="1.5"/>
+<text x="52" y="176" fill="#dcddde" font-family="serif" font-size="18" font-weight="700">4 · The associative machine</text>
+<g fill="#b3b5ba" font-family="serif" font-size="12">
+<text x="52" y="206">An idea that has been activated does</text>
+<text x="52" y="226">not merely evoke one other idea. It</text>
+<text x="52" y="246">activates many ideas, which in turn</text>
+</g>
+<rect x="48" y="254" width="236" height="20" rx="3" fill="#7f6df2" fill-opacity="0.14"/>
+<text x="52" y="268" fill="#dcddde" font-family="serif" font-size="12">activate others. Furthermore, only a</text>
+<g fill="#b3b5ba" font-family="serif" font-size="12">
+<text x="52" y="290">few of the activated ideas will register</text>
+<text x="52" y="310">in consciousness; most of the work of</text>
+<text x="52" y="330">associative thinking is silent, hidden</text>
+<text x="52" y="350">from our conscious selves.</text>
+</g>
+<rect x="300" y="200" width="78" height="56" rx="6" fill="#2a2a30"/>
+<text x="308" y="218" fill="#8b8e94" font-size="9">MARGIN</text>
+<text x="308" y="234" fill="#b3b5ba" font-size="9">Idea · activated</text>
+<text x="308" y="248" fill="#b3b5ba" font-size="9">ideas spread</text>
+<g fill="#5f6168"><circle cx="186" cy="450" r="3"/><circle cx="198" cy="450" r="3"/><rect x="206" y="447" width="14" height="6" rx="3" fill="#7f6df2"/><circle cx="228" cy="450" r="3"/></g>
+<rect x="70" y="474" width="280" height="40" rx="10" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="86" y="499" fill="#8b8e94" font-size="12">‹</text>
+<text x="104" y="499" fill="#8b8e94" font-size="10">Chapter 4 / 38</text>
+<text x="186" y="499" fill="#8b8e94" font-size="12">›</text>
+<g fill="#8b8e94" font-size="11"><text x="206" y="499">☰</text><text x="226" y="499">⌕</text><text x="246" y="499">T</text></g>
+<rect x="262" y="482" width="26" height="24" rx="6" fill="#7f6df2" fill-opacity="0.35" stroke="#7f6df2"/>
+<text x="275" y="499" fill="#ffffff" font-size="11" text-anchor="middle">◎</text>
+<text x="310" y="499" fill="#8b8e94" font-size="11">⌨</text>
+<text x="275" y="560" fill="#a99cf5" font-size="10" text-anchor="middle">Deep reading · F</text>
+<path d="M 275 548 v -38" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="3 3"/>
+</g>
+
+<!-- ── 2 · the page alone ───────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="600" y="80" fill="#8b8e94" font-size="12" font-weight="600" text-anchor="middle">2 · The page alone</text>
+<rect x="420" y="96" width="360" height="440" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<!-- where the chrome went -->
+<path d="M 600 116 v -14" stroke="#a99cf5" stroke-width="1.5"/>
+<path d="M 594 108 l 6 -8 l 6 8" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="612" y="114" fill="#a99cf5" font-size="9">top line slides up</text>
+<path d="M 766 228 h 12" stroke="#a99cf5" stroke-width="1.5"/>
+<path d="M 772 222 l 8 6 l -8 6" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="760" y="214" fill="#a99cf5" font-size="9" text-anchor="end">margin to its side</text>
+<text x="442" y="176" fill="#dcddde" font-family="serif" font-size="18" font-weight="700">4 · The associative machine</text>
+<g fill="#b3b5ba" font-family="serif" font-size="12">
+<text x="442" y="206">An idea that has been activated does</text>
+<text x="442" y="226">not merely evoke one other idea. It</text>
+<text x="442" y="246">activates many ideas, which in turn</text>
+</g>
+<rect x="438" y="254" width="236" height="20" rx="3" fill="#7f6df2" fill-opacity="0.14"/>
+<text x="442" y="268" fill="#dcddde" font-family="serif" font-size="12">activate others. Furthermore, only a</text>
+<path d="M 680 264 h 18" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="702" y="268" fill="#a99cf5" font-size="9">your line:</text>
+<text x="702" y="280" fill="#a99cf5" font-size="9">it does not move</text>
+<g fill="#b3b5ba" font-family="serif" font-size="12">
+<text x="442" y="290">few of the activated ideas will register</text>
+<text x="442" y="310">in consciousness; most of the work of</text>
+<text x="442" y="330">associative thinking is silent, hidden</text>
+<text x="442" y="350">from our conscious selves.</text>
+<text x="442" y="380">The notion that we have limited access</text>
+<text x="442" y="400">to the workings of our minds is</text>
+</g>
+<rect x="452" y="446" width="296" height="26" rx="13" fill="#2a2a30"/>
+<text x="600" y="463" fill="#8b8e94" font-size="10" text-anchor="middle">Move the pointer for the controls · Esc to leave</text>
+<text x="600" y="490" fill="#5f6168" font-size="9" text-anchor="middle">said once, for two seconds; not a notice</text>
+<path d="M 600 512 v 16" stroke="#a99cf5" stroke-width="1.5"/>
+<path d="M 594 520 l 6 8 l 6 -8" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="612" y="524" fill="#a99cf5" font-size="9">bar slides down</text>
+<text x="600" y="560" fill="#a99cf5" font-size="10" text-anchor="middle">one 250 ms gesture · the window goes fullscreen on a desktop</text>
+<text x="600" y="576" fill="#5f6168" font-size="10" text-anchor="middle">Space, the arrows and the page's edges turn quietly</text>
+</g>
+
+<!-- ── 3 · the controls back ────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<text x="990" y="80" fill="#8b8e94" font-size="12" font-weight="600" text-anchor="middle">3 · You move: the controls come back</text>
+<rect x="810" y="96" width="360" height="440" rx="14" fill="#1e1e22" stroke="#3a3a3a"/>
+<rect x="810" y="96" width="140" height="3" fill="#7f6df2"/>
+<text x="832" y="124" fill="#5f6168" font-size="10" font-weight="600" letter-spacing="1">THINKING, FAST AND SLOW · 4 / 38</text>
+<text x="1150" y="124" fill="#5f6168" font-size="12" text-anchor="end">×</text>
+<path d="M 1110 134 h 18 v 30 l -9 -7 l -9 7 z" fill="none" stroke="#5f6168" stroke-width="1.5"/>
+<text x="832" y="176" fill="#dcddde" font-family="serif" font-size="18" font-weight="700">4 · The associative machine</text>
+<g fill="#b3b5ba" font-family="serif" font-size="12">
+<text x="832" y="206">An idea that has been activated does</text>
+<text x="832" y="226">not merely evoke one other idea. It</text>
+<text x="832" y="246">activates many ideas, which in turn</text>
+<text x="832" y="268">activate others. Furthermore, only a</text>
+<text x="832" y="290">few of the activated ideas will register</text>
+<text x="832" y="310">in consciousness; most of the work of</text>
+<text x="832" y="330">associative thinking is silent, hidden</text>
+<text x="832" y="350">from our conscious selves.</text>
+</g>
+<rect x="1080" y="200" width="78" height="56" rx="6" fill="#2a2a30"/>
+<text x="1088" y="218" fill="#8b8e94" font-size="9">MARGIN</text>
+<text x="1088" y="234" fill="#b3b5ba" font-size="9">Idea · activated</text>
+<text x="1088" y="248" fill="#b3b5ba" font-size="9">ideas spread</text>
+<!-- the pointer that moved -->
+<path d="M 1010 382 l 0 22 l 6 -6 l 5 10 l 4 -2 l -5 -10 l 8 0 z" fill="#dcddde" stroke="#141416" stroke-width="1"/>
+<path d="M 970 392 q 16 -10 34 -4" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="3 3"/>
+<g fill="#5f6168"><circle cx="966" cy="450" r="3"/><circle cx="978" cy="450" r="3"/><rect x="986" y="447" width="14" height="6" rx="3" fill="#7f6df2"/><circle cx="1008" cy="450" r="3"/></g>
+<rect x="850" y="474" width="280" height="40" rx="10" fill="#2a2a30" stroke="#3a3a3a"/>
+<text x="866" y="499" fill="#8b8e94" font-size="12">‹</text>
+<text x="884" y="499" fill="#8b8e94" font-size="10">Chapter 4 / 38</text>
+<text x="966" y="499" fill="#8b8e94" font-size="12">›</text>
+<g fill="#8b8e94" font-size="11"><text x="986" y="499">☰</text><text x="1006" y="499">⌕</text><text x="1026" y="499">T</text></g>
+<rect x="1042" y="482" width="26" height="24" rx="6" fill="#7f6df2" stroke="#7f6df2"/>
+<text x="1055" y="499" fill="#ffffff" font-size="11" text-anchor="middle">◎</text>
+<text x="1090" y="499" fill="#8b8e94" font-size="11">⌨</text>
+<text x="1055" y="560" fill="#a99cf5" font-size="10" text-anchor="middle">Leave deep reading · F</text>
+<path d="M 1055 548 v -38" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="3 3"/>
+<text x="990" y="590" fill="#5f6168" font-size="10" text-anchor="middle">in quickly (120 ms); still for two seconds, it fades (400 ms)</text>
+<text x="990" y="606" fill="#5f6168" font-size="10" text-anchor="middle">a panel, search or a popover keeps it</text>
+</g>
+
+<text x="600" y="624" fill="#5f6168" font-family="sans-serif" font-size="10" text-anchor="middle">Esc: the nearest thing first, then deep reading, then the Reader · on an iPad the status bar stays</text>
+</svg>

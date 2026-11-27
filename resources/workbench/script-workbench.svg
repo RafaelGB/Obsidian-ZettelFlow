@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-label="The script workbench: choose what kind of script it is (a step action, a dynamic selector, a property hook, a condition), the real note to run it against, and Run it. It shows what the script returned and what it would write, as a difference, and how long it took — and says None of this was written. Your vault is untouched.">
+<rect x="0" y="0" width="1200" height="620" rx="0" fill="#1a1a1a"/>
+<rect x="24" y="20" width="1152" height="580" rx="12" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+<circle cx="46" cy="40" r="5.5" fill="#fb464c"/>
+<circle cx="64" cy="40" r="5.5" fill="#e0a351"/>
+<circle cx="82" cy="40" r="5.5" fill="#5cc98a"/>
+<text x="600.0" y="45" fill="#5c5f66" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">My vault — Obsidian</text>
+<line x1="24" y1="60" x2="1176" y2="60" stroke="#3a3a3a" stroke-width="1"/>
+<text x="56" y="96" fill="#dcddde" font-family="sans-serif" font-size="18" font-weight="650" text-anchor="start">Script workbench</text>
+<text x="56" y="120" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Try a script before it touches anything. Nothing here is written: what it would write is shown as a difference.</text>
+<rect x="56" y="140" width="480" height="432" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="80" y="172" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">What kind of script is this?</text>
+<rect x="80" y="186" width="115" height="28" rx="14" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="137.5" y="204.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">A step action</text>
+<rect x="203" y="186" width="150" height="28" rx="14" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="278.0" y="204.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">A dynamic selector</text>
+<rect x="361" y="186" width="129" height="28" rx="14" fill="#2d2945" stroke="#8f7ff5" stroke-width="1"/>
+<text x="425.5" y="204.5" fill="#dcddde" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">A property hook</text>
+<rect x="80" y="222" width="101" height="28" rx="14" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="130.5" y="240.5" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="middle">A condition</text>
+<text x="80" y="284" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">Run it against</text>
+<rect x="80" y="296" width="432" height="32" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="94" y="317" fill="#dcddde" font-family="sans-serif" font-size="13" font-weight="400" text-anchor="start">Retrieval practice</text>
+<text x="498" y="317" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="end">▾</text>
+<text x="80" y="348" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">A real note, so what your script reads is the real thing.</text>
+<rect x="80" y="362" width="432" height="146" rx="6" fill="#1c1b22" stroke="#3a3a3a" stroke-width="1"/>
+<text x="94" y="386" fill="#5c5f66" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">// handed: event, note, zf</text>
+<text x="94" y="410" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">if (event.request.newValue === 'done') {</text>
+<text x="94" y="434" fill="#5aa9f0" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">  event.response.frontmatter</text>
+<text x="94" y="458" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">    .completed = new Date().toISOString().slice(0, 10);</text>
+<text x="94" y="482" fill="#dcddde" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">}</text>
+<rect x="80" y="526" width="100" height="32" rx="6" fill="#7f6df2" stroke="#7f6df2" stroke-width="1"/>
+<text x="130.0" y="546.5" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="500" text-anchor="middle">Run it</text>
+<rect x="190" y="526" width="80" height="32" rx="6" fill="#2a2936" stroke="#3a3a3a" stroke-width="1"/>
+<text x="230.0" y="546.5" fill="#dcddde" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="middle">Clear</text>
+<rect x="568" y="140" width="576" height="432" rx="12" fill="#262626" stroke="#3a3a3a" stroke-width="1.5"/>
+<text x="592" y="172" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">What it returned</text>
+<rect x="592" y="184" width="528" height="34" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="606" y="206" fill="#8b8e94" font-family="sans-serif" font-size="12.5" font-weight="400" text-anchor="start">Nothing.</text>
+<text x="592" y="254" fill="#dcddde" font-family="sans-serif" font-size="13.5" font-weight="600" text-anchor="start">What it would write</text>
+<rect x="592" y="266" width="528" height="128" rx="6" fill="#232323" stroke="#3a3a3a" stroke-width="1"/>
+<text x="612" y="298" fill="#8b8e94" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">  status: done</text>
+<text x="612" y="330" fill="#8b8e94" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">  tags: learning</text>
+<rect x="600" y="344" width="3" height="26" rx="1.5" fill="#5cc98a"/>
+<text x="612" y="362" fill="#5cc98a" font-family="monospace" font-size="12.5" font-weight="400" text-anchor="start" xml:space="preserve">+ completed: 2026-10-14</text>
+<text x="592" y="424" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Took 3 ms.</text>
+<rect x="592" y="444" width="528" height="44" rx="8" fill="#232323" stroke="#2f9e62" stroke-width="1"/>
+<text x="612" y="471" fill="#5cc98a" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="start">None of this was written. Your vault is untouched.</text>
+<text x="592" y="520" fill="#8b8e94" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">The run is recorded in the run log, marked as a bench run.</text>
+<text x="592" y="542" fill="#5c5f66" font-family="sans-serif" font-size="12" font-weight="400" text-anchor="start">Reached from Open the script workbench, or Try it in the workbench beside a script.</text>
+</svg>

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Moves by your AI provider. Left: a book in the Reader, a sentence naming the planning fallacy selected, and its popover below it: four meaning dots, Note, Copy and More; Claim, Link to an idea and Cite; and More open, with Read aloud and, last, the Think group wrapping onto two lines — Contradict and Connect, then Why?, Challenge, Question, What's the claim, Reflect and Explain. A dashed arc shows a card flying out of the Why? button into the top of Alongside on the right. There the Why? card reads Proposed by your AI provider, the passage, and the answer, a few sentences, with Accept, Modify and Reject. Under it a second card, Challenge, still waiting: three short faint lines breathing where the answer will be, the line Still waiting for your provider…, and Cancel; no spinner. At the bottom of Alongside, From this reading lists Why? · AI. A small Think card shows the kept thought with its chip, Why? · AI, quoting the passage. Underneath: only the passage, its paragraph and the one before, and the book and chapter titles are sent, and only on a click; Accept writes one thought; Reject writes nothing; Cancel discards the answer.">
+<rect width="1200" height="800" fill="#141416"/>
+<text x="600" y="44" fill="#8b8e94" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" letter-spacing="1.5">MOVES BY YOUR AI PROVIDER — ONE QUESTION, ONE PASSAGE, ON A CLICK</text>
+
+<!-- ── the book ───────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="40" y="76" width="1120" height="600" rx="14" fill="#1b1b1f" stroke="#3a3a3a"/>
+<text x="68" y="108" fill="#5f6168" font-size="11" letter-spacing="1">THINKING, FAST AND SLOW · 23 · THE OUTSIDE VIEW</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="160">Forecasts were too optimistic in every case we looked at,</text>
+<text x="96" y="186">and the plan stood in for the history of projects like ours.</text>
+</g>
+<!-- the selection -->
+<rect x="92" y="216" width="520" height="54" rx="4" fill="#a99cf5" fill-opacity="0.22"/>
+<g font-family="serif" font-size="17" fill="#dcddde">
+<text x="96" y="236">This is the planning fallacy, or the planning bias as some</text>
+<text x="96" y="262">call it: plans that are close to best-case scenarios.</text>
+</g>
+<g font-family="serif" font-size="17" fill="#8b8e94">
+<text x="96" y="500">Optimism is the engine of capitalism, and the source of</text>
+<text x="96" y="526">most of its failures. The outside view is the cure that</text>
+<text x="96" y="552">nobody wants to take.</text>
+</g>
+
+<!-- the popover under the selection: More open, the Think group last, its AI moves wrapping (#811) -->
+<g font-family="sans-serif">
+<rect x="130" y="286" width="440" height="200" rx="10" fill="#26262c" stroke="#45454d"/>
+<g font-size="12">
+<circle cx="152" cy="313" r="10" fill="none" stroke="#a99cf5" stroke-width="1.5"/>
+<circle cx="152" cy="313" r="6" fill="#e0a351"/>
+<circle cx="176" cy="313" r="6" fill="#4a9dff"/>
+<circle cx="200" cy="313" r="6" fill="#44cf6e"/>
+<circle cx="224" cy="313" r="6" fill="#a882ff"/>
+<rect x="242" y="300" width="56" height="26" rx="6" fill="#7f6df2"/>
+<text x="270" y="317" fill="#ffffff" text-anchor="middle">Note</text>
+<rect x="304" y="300" width="54" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="331" y="317" fill="#b3b5ba" text-anchor="middle">Copy</text>
+<rect x="364" y="300" width="58" height="26" rx="6" fill="#33303f" stroke="#a99cf5"/>
+<text x="393" y="317" fill="#dcddde" text-anchor="middle">More</text>
+<rect x="146" y="336" width="58" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="175" y="353" fill="#b3b5ba" text-anchor="middle">Claim</text>
+<rect x="210" y="336" width="112" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="266" y="353" fill="#b3b5ba" text-anchor="middle">Link to an idea</text>
+<rect x="328" y="336" width="48" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="352" y="353" fill="#b3b5ba" text-anchor="middle">Cite</text>
+</g>
+<path d="M 146 374 h 408" stroke="#3a3a3a"/>
+<g font-size="12">
+<rect x="146" y="384" width="86" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="189" y="401" fill="#b3b5ba" text-anchor="middle">Read aloud</text>
+<text x="148" y="435" fill="#5f6168" font-size="11">Think</text>
+<rect x="190" y="420" width="84" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="232" y="438" fill="#b3b5ba" text-anchor="middle">Contradict</text>
+<rect x="280" y="420" width="70" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="315" y="438" fill="#b3b5ba" text-anchor="middle">Connect</text>
+<rect x="356" y="420" width="54" height="26" rx="6" fill="#33303f" stroke="#a99cf5" stroke-width="1.5"/>
+<text x="383" y="438" fill="#dcddde" text-anchor="middle">Why?</text>
+<rect x="416" y="420" width="80" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="456" y="438" fill="#b3b5ba" text-anchor="middle">Challenge</text>
+<rect x="190" y="452" width="72" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="226" y="470" fill="#b3b5ba" text-anchor="middle">Question</text>
+<rect x="268" y="452" width="116" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="326" y="470" fill="#b3b5ba" text-anchor="middle">What's the claim</text>
+<rect x="390" y="452" width="64" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="422" y="470" fill="#b3b5ba" text-anchor="middle">Reflect</text>
+<rect x="460" y="452" width="66" height="26" rx="6" fill="none" stroke="#45454d"/>
+<text x="493" y="470" fill="#b3b5ba" text-anchor="middle">Explain</text>
+</g>
+</g>
+
+<!-- the flight: the card is there at once, born from the button -->
+<path d="M 410 426 C 500 340, 600 170, 712 150" fill="none" stroke="#a99cf5" stroke-width="1.5" stroke-dasharray="5 5"/>
+<path d="M 712 150 l -12 -5 l 3 6 l -3 6 z" fill="#a99cf5"/>
+<text x="636" y="168" fill="#a99cf5" font-family="sans-serif" font-size="11" text-anchor="middle" transform="rotate(-22 636 168)">there at once · 250 ms</text>
+
+<!-- ── Alongside ──────────────────────────────────────────────────────── -->
+<g font-family="sans-serif">
+<rect x="700" y="96" width="440" height="560" rx="12" fill="#232328" stroke="#3a3a3a"/>
+<text x="724" y="126" fill="#8b8e94" font-size="11" font-weight="600" letter-spacing="1.2">ALONGSIDE</text>
+<text x="812" y="126" fill="#b3b5ba" font-size="12">Near your selection</text>
+
+<!-- the landed answer -->
+<rect x="716" y="140" width="408" height="226" rx="10" fill="#2a2a31" stroke="#a99cf5" stroke-opacity="0.6"/>
+<text x="732" y="164" fill="#dcddde" font-size="13" font-weight="600">Why?</text>
+<text x="732" y="184" fill="#5f6168" font-size="10" letter-spacing="1">PROPOSED BY YOUR AI PROVIDER</text>
+<path d="M 734 194 v 16" stroke="#45454d" stroke-width="2"/>
+<text x="744" y="206" fill="#b3b5ba" font-family="serif" font-size="13" font-style="italic">This is the planning fallacy</text>
+<g font-size="12" fill="#dcddde">
+<text x="732" y="234">The author reasons from cases: every team forecast its own</text>
+<text x="732" y="252">project from the plan in front of it, and none asked how long</text>
+<text x="732" y="270">such projects usually take. The bias is in skipping that base</text>
+<text x="732" y="288">rate, not in the people.</text>
+</g>
+<g font-size="12">
+<rect x="732" y="306" width="68" height="28" rx="6" fill="#7f6df2"/>
+<text x="766" y="325" fill="#ffffff" text-anchor="middle">Accept</text>
+<rect x="808" y="306" width="68" height="28" rx="6" fill="none" stroke="#45454d"/>
+<text x="842" y="325" fill="#b3b5ba" text-anchor="middle">Modify</text>
+<rect x="884" y="306" width="64" height="28" rx="6" fill="none" stroke="#45454d"/>
+<text x="916" y="325" fill="#b3b5ba" text-anchor="middle">Reject</text>
+</g>
+<text x="732" y="352" fill="#5f6168" font-size="11">Nothing is written until you accept.</text>
+
+<!-- still waiting: a pen about to write -->
+<rect x="716" y="380" width="408" height="172" rx="10" fill="#2a2a31" stroke="#45454d"/>
+<text x="732" y="404" fill="#dcddde" font-size="13" font-weight="600">Challenge</text>
+<text x="732" y="424" fill="#5f6168" font-size="10" letter-spacing="1">PROPOSED BY YOUR AI PROVIDER</text>
+<path d="M 734 434 v 16" stroke="#45454d" stroke-width="2"/>
+<text x="744" y="446" fill="#b3b5ba" font-family="serif" font-size="13" font-style="italic">This is the planning fallacy</text>
+<rect x="732" y="466" width="340" height="2" rx="1" fill="#8b8e94" fill-opacity="0.7"/>
+<rect x="732" y="478" width="288" height="2" rx="1" fill="#8b8e94" fill-opacity="0.5"/>
+<rect x="732" y="490" width="200" height="2" rx="1" fill="#8b8e94" fill-opacity="0.35"/>
+<text x="1104" y="482" fill="#5f6168" font-size="10" text-anchor="end">breathing</text>
+<text x="732" y="514" fill="#8b8e94" font-size="11">Still waiting for your provider…</text>
+<rect x="732" y="522" width="64" height="24" rx="6" fill="none" stroke="#45454d"/>
+<text x="764" y="538" fill="#b3b5ba" font-size="12" text-anchor="middle">Cancel</text>
+
+<!-- From this reading -->
+<path d="M 716 580 h 408" stroke="#3a3a3a"/>
+<text x="732" y="602" fill="#5f6168" font-size="10" letter-spacing="1">FROM THIS READING</text>
+<text x="732" y="624" fill="#dcddde" font-size="12">Why? · AI</text>
+<path d="M 1110 320 C 1176 420, 1176 560, 1112 616" fill="none" stroke="#5f6168" stroke-width="1.2" stroke-dasharray="3 4"/>
+<path d="M 1112 616 l 4 -11 l 3 8 z" fill="#5f6168"/>
+<text x="1100" y="624" fill="#5f6168" font-size="10" text-anchor="end">accepted, it folds down here</text>
+</g>
+
+<!-- Think, afterwards: the thought and its chip -->
+<g font-family="sans-serif">
+<rect x="96" y="580" width="520" height="80" rx="10" fill="#232328" stroke="#3a3a3a"/>
+<text x="114" y="602" fill="#5f6168" font-size="10" letter-spacing="1">IN THINK</text>
+<rect x="176" y="589" width="74" height="20" rx="10" fill="#33303f" stroke="#a99cf5"/>
+<text x="213" y="603" fill="#dcddde" font-size="11" text-anchor="middle">Why? · AI</text>
+<text x="114" y="626" fill="#dcddde" font-size="12">The bias is in skipping the base rate, not in the people.</text>
+<path d="M 116 636 v 14" stroke="#45454d" stroke-width="2"/>
+<text x="126" y="647" fill="#b3b5ba" font-family="serif" font-size="12" font-style="italic">This is the planning fallacy · Thinking, Fast and Slow</text>
+</g>
+
+<!-- ── what is sent, and what each verdict does ───────────────────────── -->
+<g font-family="sans-serif" font-size="12" fill="#8b8e94">
+<text x="70" y="716"><tspan fill="#dcddde" font-weight="600">Sent</tspan> · the passage, its paragraph and the one before, the book and chapter titles — never your notes</text>
+<text x="70" y="740"><tspan fill="#dcddde" font-weight="600">Accept</tspan> · one thought in Think, quoting the passage · <tspan fill="#dcddde" font-weight="600">Modify</tspan> · the answer is yours to rewrite</text>
+<text x="70" y="764"><tspan fill="#dcddde" font-weight="600">Reject</tspan> · nothing written · <tspan fill="#dcddde" font-weight="600">Cancel</tspan> · the answer is discarded · two at once, nothing ever retries by itself</text>
+</g>
+</svg>
